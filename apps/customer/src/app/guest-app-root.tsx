@@ -37,7 +37,12 @@ const isDev = process.env.NODE_ENV !== 'production';
 
 export function GuestAppRoot() {
   const { t } = useTranslation();
-  const { client, isTokenBootstrapComplete } = useGuestAuth();
+  const {
+    client,
+    isTokenBootstrapComplete,
+    isBootstrapTemporarilyUnavailable,
+    retryBootstrap,
+  } = useGuestAuth();
   const { session, isLoading, isNetworkError, isExpired, refreshSession } = useGuestSession();
   const retrieval = useRetrieval();
   const handoff = useHandoff();
@@ -145,6 +150,7 @@ export function GuestAppRoot() {
   const screenId = resolveGuestScreenId({
     hasAuthority: Boolean(client),
     isTokenBootstrapComplete,
+    isAuthBootstrapUnavailable: isBootstrapTemporarilyUnavailable,
     isExpired,
     isNetworkError,
     isLoading,
@@ -173,7 +179,11 @@ export function GuestAppRoot() {
   if (screenId === 'NETWORK_ERROR') {
     return (
       <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore} showNav={false}>
-        <ScreenNetworkUnavailable onRetry={() => void refreshSession()} />
+        <ScreenNetworkUnavailable
+          onRetry={() =>
+            void (isBootstrapTemporarilyUnavailable ? retryBootstrap() : refreshSession())
+          }
+        />
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
         {isDev && (
           <DevPreviewControls

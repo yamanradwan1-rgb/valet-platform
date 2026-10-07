@@ -3,12 +3,13 @@ export const runtimeGuestBrowserFunctions = [
   "public.guest_browser_exchange(text,text,text)",
   "public.guest_browser_resolve(text,boolean)",
   "public.guest_browser_end(text)",
-  "public.guest_browser_invalidate_for_session(uuid)",
   "public.guest_browser_rating_submit(text,integer)",
 ];
 
 export const privateGuestBrowserFunctions = [
+  "public.guest_browser_bridge_legacy_generation()",
   "public.guest_browser_hash_secret(text)",
+  "public.guest_browser_invalidate_on_generation_change()",
 ];
 
 const guestBrowserTables = [

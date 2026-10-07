@@ -336,11 +336,6 @@ export function createIssueGuestAccessCommandExecutor(
       if (persistedExpiresAt === undefined) {
         throw new Error("Guest-access mutation returned no session.");
       }
-      await transaction.query(
-        `SELECT public.guest_browser_invalidate_for_session($1::uuid)`,
-        [scope.valet_session_id],
-      );
-
       await appendCustodyAuditEvent(
         transaction,
         {
@@ -418,11 +413,6 @@ export function createRevokeGuestAccessCommandExecutor(
       if (revokedAt === undefined) {
         throw new Error("Guest-access revocation returned no session.");
       }
-      await transaction.query(
-        `SELECT public.guest_browser_invalidate_for_session($1::uuid)`,
-        [scope.valet_session_id],
-      );
-
       await appendCustodyAuditEvent(
         transaction,
         {

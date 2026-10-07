@@ -338,8 +338,11 @@ disabled marker and rotates only a real active credential. It cannot reactivate
 a real revoked credential: post-revocation access requires the separately
 explicit `REISSUE_REVOKED` intent and exact persisted `revokedAt`. Rotation,
 reissue and first revocation advance the explicit Guest credential generation
-and invalidate Browser Sessions from the old generation before commit. Repeated
-revocation remains idempotent. Physical session state/version and handoff,
+and a database generation-change trigger invalidates Browser Sessions from the
+old generation before commit. The same database boundary bridges legacy rolling-
+deployment writers that still mutate only the pre-T1 token/revocation columns,
+so they cannot leave a real bearer at generation 0. Repeated revocation remains
+idempotent. Physical session state/version and handoff,
 Retrieval, financial and custody state are unchanged by credential lifecycle.
 
 Guest resolution accepts no Organization or Location input. During staged
@@ -368,7 +371,9 @@ Pre-exchange enrollment mints independent enrollment and pending Browser Session
 secrets before any bearer is consumed and persists verifier hashes only. Exchange
 requires exact Customer Origin, strict JSON and a same-origin request header,
 locks the exact ValetSession before enrollment/session rows, and atomically binds
-the current generation. If the database commit succeeds but the exchange HTTP
+the current generation. Database wall time is re-sampled after the authority
+locks, so waiting for a lock cannot extend fresh bearer/enrollment expiry or the
+24-hour post-visit boundary. If the database commit succeeds but the exchange HTTP
 response is lost, that same browser already holds its pending Browser Session
 cookie and can reconcile/restore the committed session. A different enrollment
 cannot recover it. Fresh enrollment never adopts caller-supplied cookie values,
@@ -385,9 +390,24 @@ VAL-004M's existing 60-failure client-address and 180-request credential budgets
 remain unchanged in T1. The Browser Session secret supplies a durable
 credential identity to the same Guest limiter boundary; T3 owns later
 request-class budget/cadence redesign. Guest data is still returned only after
-resolution and address finalization are authoritative. New Browser enrollment
-remains rollout-disabled until the approved T3/T4 gates, while servers must
-continue resolving Browser Sessions that already exist.
+resolution and address finalization are authoritative. Because anonymous
+enrollment allocates durable database state before Guest authentication, each
+successful allocation consumes one slot from the existing durable
+`v1:guest-client-address` 60/15-minute window until T3 replaces this safety floor
+with the approved final request-class policy; no new T1 quota identity or number
+is created, and successful authenticated Guest resolution remains ignored for the
+DEC-024 failure budget. Enrollment creation also performs bounded server-time
+retention cleanup of only expired, unexchanged, unbound and Browser-unreferenced
+enrollment rows; valid or exchanged/recovery rows are never deleted. New Browser
+enrollment remains rollout-disabled until the approved T3/T4 gates, while
+servers must continue resolving Browser Sessions that already exist.
+
+U-03 also forbids silent same-browser context replacement. If a new Guest link is
+opened while the browser still has valid `ACTIVE` or `POST_VISIT` authority, the
+current server behavior preserves that authority and refuses automatic
+replacement. A usable context-conflict/end-access choice is **UI-FROZEN SAFE
+DELTA REQUIRED** and needs explicit Owner approval; T1 does not silently end the
+old Browser Session or exchange the new bearer.
 
 Limiter keys are versioned HMAC-SHA-256 values derived from a separate 32-byte secret with explicit scope separation. Raw/normalized email, raw/canonical address, guest bearer, password and Authorization never enter limiter persistence, AuditEvent or normal telemetry. Socket peer authority is used directly unless the immediate peer is inside an explicitly configured trusted CIDR; only then is one unambiguous `X-Forwarded-For` chain walked right-to-left. Limiter failure never falls back to unlimited access or process memory.
 

@@ -62,4 +62,18 @@ describe('Guest bootstrap lifecycle', () => {
       }),
     ).toBe('UNAVAILABLE');
   });
+
+  it('routes a temporary auth bootstrap transport failure to the existing network state', () => {
+    expect(
+      resolveGuestScreenId({
+        hasAuthority: false,
+        isTokenBootstrapComplete: true,
+        isAuthBootstrapUnavailable: true,
+        isExpired: false,
+        isNetworkError: false,
+        isLoading: false,
+        session: null,
+      }),
+    ).toBe('NETWORK_ERROR');
+  });
 });

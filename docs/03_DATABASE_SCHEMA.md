@@ -1015,7 +1015,12 @@ Customer-access rules:
 - `customer_access_generation` is the explicit serialized credential generation.
   Initial real bearer issuance starts generation 1; rotate/reissue/revoke advance
   the generation under the ValetSession lock. Browser Sessions are bound to one
-  exact generation, so stale generations cannot regain authority.
+  exact generation, so stale generations cannot regain authority. During the
+  additive-database/compatible-API rollout, a database trigger bridges a still-
+  running pre-T1 writer that updates only legacy token/revocation columns by
+  advancing the same generation; a paired trigger invalidates stale Browser
+  Session rows in that parent transaction. New T1 writers set the generation
+  explicitly and are not double-advanced.
 - `customer_access_consumed_at` records successful one-time Browser Session
   bootstrap exchange. A consumed bearer cannot resolve through the staged legacy
   compatibility path.
@@ -1035,8 +1040,16 @@ Rules:
 - enrollment and Browser Session secrets use independent high-entropy values;
 - only versioned cryptographic verifier hashes are persisted;
 - enrollment has a short database-authored expiry and is not Guest authority;
+- successful unauthenticated enrollment allocation consumes the existing durable
+  Guest client-address limiter slot as T1's bounded safety floor until T3 owns the
+  final request-class policy; no new T1 limiter scope/threshold is introduced;
+- enrollment creation reclaims at most a bounded batch of rows whose database-
+  authored expiry has passed and which remain strictly unexchanged, unbound and
+  unreferenced by any Browser Session. Live enrollments and every exchanged row
+  remain retained because committed-exchange recovery can outlive enrollment TTL;
 - successful exchange locks the exact ValetSession before enrollment/session
-  rows, consumes the current bearer generation, and binds one Browser Session;
+  rows, re-samples database wall time after authority locks, consumes the current
+  bearer generation, and binds one Browser Session;
 - `(valet_session_id, credential_generation)` permits one primary Browser
   Session for that visit generation while same-browser tabs share its cookie;
 - Browser Session lookup is backed by a unique verifier index and never scans;
@@ -1047,7 +1060,8 @@ Rules:
   `completed_at` and only approved safe read/rating/receipt operations;
 - `CANCELLED` never resolves through Browser Session authority;
 - staff generation rotate/reissue/revoke invalidates Browser Sessions from the
-  prior generation; per-browser end-access revokes only that Browser Session;
+  prior generation through the parent generation-change trigger; per-browser
+  end-access revokes only that Browser Session;
 - ordinary runtime receives no broad direct Browser Session/enrollment table
   mutation or verifier-read privilege. Lifecycle and rating authorization use
   focused migration-owner `SECURITY DEFINER` functions with fixed safe

@@ -111,7 +111,7 @@ export class GuestBrowserSessionController {
             await this.antiAbuse.finalizeInTransaction(
               transaction,
               reservation,
-              "IGNORED",
+              "COUNTED",
             );
             return created;
           },

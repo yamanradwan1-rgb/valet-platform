@@ -3201,7 +3201,17 @@ fixed 24-hour server expiry/polling dependency. `COMPLETED` retains only a
 unexchanged legacy bearer remains compatible until consumed/expired/revoked,
 but a request may present exactly one credential source and never falls back
 from failed cookie authority to a bearer. T1 leaves DEC-024 quotas/cadence
-unchanged and keeps new enrollment rollout-disabled until T3/T4 production gates.
+unchanged and adds no new quota identity/number: as a pre-rollout storage-safety
+floor, each successful anonymous enrollment allocation consumes one existing
+durable Guest client-address slot (60/15 minutes) until T3 defines the final
+request-class policy. Expired strictly-unexchanged/unbound/unreferenced enrollment
+rows are reclaimed in bounded database-time batches, while exchanged recovery
+state is retained. Rolling pre-T1 writers are generation-bridged in the database,
+and generation changes invalidate stale Browser Sessions transactionally. New
+enrollment stays rollout-disabled until T3/T4 production gates. A same-browser
+second-link conflict never switches `ACTIVE` or `POST_VISIT` authority silently;
+usable context switching remains **UI-FROZEN SAFE DELTA REQUIRED** pending an
+explicit Owner-approved user decision/control.
 
 Every Employee shareable surface (QR, copied link, dev/test Open Guest App)
 builds from one centrally validated canonical origin,

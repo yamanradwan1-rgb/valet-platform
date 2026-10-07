@@ -16,6 +16,7 @@ export type GuestScreenId =
 export interface RouteResolutionInput {
   readonly hasAuthority: boolean;
   readonly isTokenBootstrapComplete?: boolean;
+  readonly isAuthBootstrapUnavailable?: boolean;
   readonly isExpired: boolean;
   readonly isNetworkError: boolean;
   readonly isLoading: boolean;
@@ -26,6 +27,10 @@ export interface RouteResolutionInput {
 export function resolveGuestScreenId(input: RouteResolutionInput): GuestScreenId {
   if (input.isTokenBootstrapComplete === false) {
     return 'LOADING';
+  }
+
+  if (input.isAuthBootstrapUnavailable) {
+    return 'NETWORK_ERROR';
   }
 
   // If no guest authority or session expired, render safe unavailable screen

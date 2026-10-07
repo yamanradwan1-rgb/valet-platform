@@ -17,6 +17,8 @@ interface GuestAuthContextValue {
   readonly token: string | null;
   readonly client: GuestApiClient | null;
   readonly isTokenBootstrapComplete: boolean;
+  readonly isBootstrapTemporarilyUnavailable: boolean;
+  readonly retryBootstrap: () => Promise<void>;
   readonly setToken: (token: string | null) => void;
 }
 
@@ -26,11 +28,27 @@ interface GuestTokenBootstrapState {
   readonly token: string | null;
   readonly client: GuestApiClient | null;
   readonly isComplete: boolean;
+  readonly isTemporarilyUnavailable: boolean;
+  readonly retryStage: GuestAuthBootstrapStage | null;
 }
 
 interface GuestAuthBootstrapResult {
   readonly token: string | null;
   readonly client: GuestApiClient;
+}
+
+type GuestAuthBootstrapStage = 'ENROLL' | 'EXCHANGE';
+
+export function isRetryableGuestAuthBootstrapFailure(error: unknown): boolean {
+  return (
+    error instanceof GuestApiError &&
+    (error.isNetworkError ||
+      (error.status >= 500 && error.status <= 599))
+  );
+}
+
+function isTerminalGuestAuthBootstrapFailure(error: unknown): boolean {
+  return error instanceof GuestApiError && error.code === 'GUEST_ACCESS_INVALID';
 }
 
 function isAmbiguousExchangeFailure(error: unknown): boolean {
@@ -40,9 +58,21 @@ function isAmbiguousExchangeFailure(error: unknown): boolean {
   );
 }
 
-export async function bootstrapGuestAuthTransport(
+async function exchangeBrowserSessionWithRecovery(
+  bootstrapClient: GuestApiClient,
+): Promise<void> {
+  try {
+    await bootstrapClient.exchangeBrowserSession();
+  } catch (error) {
+    if (!isAmbiguousExchangeFailure(error)) throw error;
+    await bootstrapClient.exchangeBrowserSession();
+  }
+}
+
+async function runGuestAuthBootstrap(
   fragmentToken: string | null,
   enrollmentEnabled: boolean,
+  onStage?: (stage: GuestAuthBootstrapStage) => void,
 ): Promise<GuestAuthBootstrapResult> {
   if (fragmentToken === null) {
     return { token: null, client: GuestApiClient.browserSession() };
@@ -53,15 +83,62 @@ export async function bootstrapGuestAuthTransport(
   }
 
   const bootstrapClient = new GuestApiClient(fragmentToken);
+  onStage?.('ENROLL');
   await bootstrapClient.enrollBrowserSession();
-  try {
-    await bootstrapClient.exchangeBrowserSession();
-  } catch (error) {
-    if (!isAmbiguousExchangeFailure(error)) throw error;
-    await bootstrapClient.exchangeBrowserSession();
-  }
+  onStage?.('EXCHANGE');
+  await exchangeBrowserSessionWithRecovery(bootstrapClient);
 
   return { token: null, client: GuestApiClient.browserSession() };
+}
+
+export async function bootstrapGuestAuthTransport(
+  fragmentToken: string | null,
+  enrollmentEnabled: boolean,
+): Promise<GuestAuthBootstrapResult> {
+  return runGuestAuthBootstrap(fragmentToken, enrollmentEnabled);
+}
+
+export async function retryGuestAuthBootstrapTransport(
+  fragmentToken: string,
+  enrollmentEnabled: boolean,
+  retryStage: GuestAuthBootstrapStage,
+  onStage?: (stage: GuestAuthBootstrapStage) => void,
+): Promise<GuestAuthBootstrapResult> {
+  if (enrollmentEnabled && retryStage === 'EXCHANGE') {
+    const bootstrapClient = new GuestApiClient(fragmentToken);
+    await exchangeBrowserSessionWithRecovery(bootstrapClient);
+    return { token: null, client: GuestApiClient.browserSession() };
+  }
+  return runGuestAuthBootstrap(fragmentToken, enrollmentEnabled, onStage);
+}
+
+function failedBootstrapState(
+  fragmentToken: string | null,
+  enrollmentEnabled: boolean,
+  error: unknown,
+  retryStage: GuestAuthBootstrapStage,
+): GuestTokenBootstrapState {
+  if (
+    enrollmentEnabled &&
+    fragmentToken !== null &&
+    !isTerminalGuestAuthBootstrapFailure(error)
+  ) {
+    const retryable = isRetryableGuestAuthBootstrapFailure(error);
+    return {
+      token: fragmentToken,
+      client: null,
+      isComplete: true,
+      isTemporarilyUnavailable: retryable,
+      retryStage: retryable ? retryStage : null,
+    };
+  }
+  return {
+    token: null,
+    client: null,
+    isComplete: true,
+    isTemporarilyUnavailable: false,
+    retryStage: null,
+  };
 }
 
 export function GuestAuthProvider({
@@ -78,6 +155,8 @@ export function GuestAuthProvider({
         ? null
         : new GuestApiClient(initialToken),
     isComplete: initialToken !== undefined,
+    isTemporarilyUnavailable: false,
+    retryStage: null,
   }));
 
   useEffect(() => {
@@ -89,16 +168,32 @@ export function GuestAuthProvider({
       const fragmentToken = extractGuestFragmentToken();
       const enrollmentEnabled =
         process.env.NEXT_PUBLIC_GUEST_BROWSER_SESSION_ENROLLMENT_ENABLED === 'true';
+      let retryStage: GuestAuthBootstrapStage = 'ENROLL';
       try {
-        const result = await bootstrapGuestAuthTransport(
+        const result = await runGuestAuthBootstrap(
           fragmentToken,
           enrollmentEnabled,
+          (stage) => {
+            retryStage = stage;
+          },
         );
         if (!isActive) return;
-        setBootstrap({ ...result, isComplete: true });
-      } catch {
+        setBootstrap({
+          ...result,
+          isComplete: true,
+          isTemporarilyUnavailable: false,
+          retryStage: null,
+        });
+      } catch (error) {
         if (!isActive) return;
-        setBootstrap({ token: fragmentToken, client: null, isComplete: true });
+        setBootstrap(
+          failedBootstrapState(
+            fragmentToken,
+            enrollmentEnabled,
+            error,
+            retryStage,
+          ),
+        );
       }
     });
 
@@ -107,11 +202,55 @@ export function GuestAuthProvider({
     };
   }, [initialToken]);
 
+  const retryBootstrap = useCallback(async () => {
+    if (
+      !bootstrap.isTemporarilyUnavailable ||
+      bootstrap.token === null ||
+      bootstrap.retryStage === null
+    ) {
+      return;
+    }
+
+    const fragmentToken = bootstrap.token;
+    const enrollmentEnabled =
+      process.env.NEXT_PUBLIC_GUEST_BROWSER_SESSION_ENROLLMENT_ENABLED === 'true';
+    let retryStage = bootstrap.retryStage;
+    setBootstrap({ ...bootstrap, isComplete: false });
+
+    try {
+      const result = await retryGuestAuthBootstrapTransport(
+        fragmentToken,
+        enrollmentEnabled,
+        retryStage,
+        (stage) => {
+          retryStage = stage;
+        },
+      );
+      setBootstrap({
+        ...result,
+        isComplete: true,
+        isTemporarilyUnavailable: false,
+        retryStage: null,
+      });
+    } catch (error) {
+      setBootstrap(
+        failedBootstrapState(
+          fragmentToken,
+          enrollmentEnabled,
+          error,
+          retryStage,
+        ),
+      );
+    }
+  }, [bootstrap]);
+
   const setToken = useCallback((token: string | null) => {
     setBootstrap({
       token,
       client: token === null ? null : new GuestApiClient(token),
       isComplete: true,
+      isTemporarilyUnavailable: false,
+      retryStage: null,
     });
   }, []);
 
@@ -119,6 +258,7 @@ export function GuestAuthProvider({
     token,
     client,
     isComplete: isTokenBootstrapComplete,
+    isTemporarilyUnavailable: isBootstrapTemporarilyUnavailable,
   } = bootstrap;
 
   const value = useMemo(
@@ -126,9 +266,18 @@ export function GuestAuthProvider({
       token,
       client,
       isTokenBootstrapComplete,
+      isBootstrapTemporarilyUnavailable,
+      retryBootstrap,
       setToken,
     }),
-    [token, client, isTokenBootstrapComplete, setToken],
+    [
+      token,
+      client,
+      isTokenBootstrapComplete,
+      isBootstrapTemporarilyUnavailable,
+      retryBootstrap,
+      setToken,
+    ],
   );
 
   return (

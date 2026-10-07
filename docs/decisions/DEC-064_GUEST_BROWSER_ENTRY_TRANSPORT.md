@@ -83,19 +83,32 @@ assumption that the fragment bearer remains the browser's normal authority.
     the same enrollment can reconcile the already-authorized Browser Session;
     a different enrollment cannot. A fresh enrollment never adopts caller-
     supplied session material, so the protocol does not create a session-
-    fixation or browser-swap path.
+    fixation or browser-swap path. Authority expiry is evaluated with database
+    wall time after the authoritative ValetSession/enrollment locks are held, so
+    lock waits cannot extend a fresh bearer, enrollment or post-visit window.
 
 11. One primary Browser Session is permitted per ValetSession credential
     generation. Tabs sharing the same browser cookie share that authority. A
     second browser/device cannot silently join the visit; staff reissue is the
     transfer mechanism. IP addresses and browser/device fingerprints are not
-    authentication bindings.
+    authentication bindings. A same-browser second Guest-link intent while an
+    `ACTIVE` or `POST_VISIT` Browser Session is still authoritative must not
+    silently replace or discard either context. T1 therefore keeps the existing
+    authority unchanged and treats usable same-browser context switching as
+    **UI-FROZEN SAFE DELTA REQUIRED**: an explicit Owner-approved user decision
+    is required before any end-access/exchange action. No automatic switch is
+    approved by this amendment.
 
 12. Staff rotate/reissue/revoke remains the authoritative generation boundary.
     A generation change invalidates Browser Sessions derived from the previous
     generation. Per-browser end-access may revoke only that Browser Session.
     None of these credential actions verifies/consumes handoff proof, releases
-    the vehicle, creates Retrieval work or changes custody.
+    the vehicle, creates Retrieval work or changes custody. The additive-
+    database/compatible-API rollout also bridges a pre-T1 server writer that
+    changes the legacy token/revocation columns after the migration: the database
+    advances the same generation and invalidates stale Browser Sessions in the
+    parent transaction. This compatibility bridge prevents a generation-0 bearer
+    cohort during rolling deployment and is not a second credential authority.
 
 13. A valid Browser Session for a non-terminal active visit has no fixed 24-hour
     server expiry and does not depend on polling, process memory or one API/
@@ -119,9 +132,19 @@ assumption that the fragment bearer remains the browser's normal authority.
 
 16. T1 keeps DEC-024 request budgets/cadence unchanged. The Browser Session
     secret provides the durable credential identity for the existing Guest
-    anti-abuse boundary and future T3 request-class budgets. New enrollment is
-    rollout-gated off until the later T3/T4 production gates are satisfied,
-    while servers must continue resolving already-created Browser Sessions.
+    anti-abuse boundary and future T3 request-class budgets. T1 does not invent a
+    new enrollment quota/scope/threshold: until T3 supplies the final request-
+    class policy, every successfully allocated unauthenticated enrollment consumes
+    one slot from the existing durable `v1:guest-client-address` 60/15-minute
+    window. This is a pre-rollout resource-allocation safety floor; successful
+    authenticated Guest resolution remains `IGNORED` under DEC-024. Expired
+    strictly-unexchanged enrollment rows are retention state, not business/audit
+    history: enrollment creation reclaims a bounded batch using database time,
+    only when `exchanged_at`, ValetSession/generation binding and Browser Session
+    reference are all absent. Valid pending or exchanged/recovery rows are never
+    cleanup candidates. New enrollment remains rollout-gated off until the later
+    T3/T4 production gates are satisfied, while servers must continue resolving
+    already-created Browser Sessions.
 
 ## Reason
 

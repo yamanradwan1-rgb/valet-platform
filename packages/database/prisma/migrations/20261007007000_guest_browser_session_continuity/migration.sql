@@ -81,6 +81,60 @@ CREATE TABLE public.guest_browser_sessions (
 CREATE INDEX guest_browser_sessions_session_revoked_idx
   ON public.guest_browser_sessions(valet_session_id, revoked_at);
 
+CREATE FUNCTION public.guest_browser_bridge_legacy_generation()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $function$
+BEGIN
+  IF NEW.customer_access_token_hash IS DISTINCT FROM OLD.customer_access_token_hash
+     OR NEW.customer_access_revoked_at IS DISTINCT FROM OLD.customer_access_revoked_at THEN
+    IF NEW.customer_access_generation IS NOT DISTINCT FROM OLD.customer_access_generation THEN
+      NEW.customer_access_generation := CASE
+        WHEN NEW.customer_access_token_hash LIKE 'disabled:intake:%' THEN 0
+        ELSE GREATEST(OLD.customer_access_generation + 1, 1)
+      END;
+    END IF;
+    IF NEW.customer_access_token_hash IS DISTINCT FROM OLD.customer_access_token_hash THEN
+      NEW.customer_access_consumed_at := NULL;
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+
+CREATE TRIGGER guest_browser_bridge_legacy_generation_trigger
+BEFORE UPDATE OF customer_access_token_hash, customer_access_revoked_at
+ON public.valet_sessions
+FOR EACH ROW
+EXECUTE FUNCTION public.guest_browser_bridge_legacy_generation();
+
+CREATE FUNCTION public.guest_browser_invalidate_on_generation_change()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $function$
+BEGIN
+  IF NEW.customer_access_generation IS DISTINCT FROM OLD.customer_access_generation THEN
+    UPDATE public.guest_browser_sessions
+       SET revoked_at = COALESCE(revoked_at, pg_catalog.clock_timestamp())
+     WHERE valet_session_id = NEW.id
+       AND credential_generation <> NEW.customer_access_generation
+       AND revoked_at IS NULL;
+  END IF;
+  RETURN NULL;
+END;
+$function$;
+
+CREATE TRIGGER guest_browser_invalidate_on_generation_change_trigger
+AFTER UPDATE OF customer_access_token_hash, customer_access_revoked_at,
+                customer_access_generation
+ON public.valet_sessions
+FOR EACH ROW
+EXECUTE FUNCTION public.guest_browser_invalidate_on_generation_change();
+
 CREATE FUNCTION public.guest_browser_hash_secret(p_secret TEXT)
 RETURNS TEXT
 LANGUAGE SQL
@@ -115,6 +169,26 @@ BEGIN
     RETURN QUERY SELECT 'REQUEST_INVALID'::TEXT, NULL::TIMESTAMPTZ;
     RETURN;
   END IF;
+
+  WITH expired_unexchanged AS (
+    SELECT enrollment.id
+    FROM public.guest_browser_enrollments AS enrollment
+    WHERE enrollment.expires_at <= v_now
+      AND enrollment.exchanged_at IS NULL
+      AND enrollment.valet_session_id IS NULL
+      AND enrollment.credential_generation IS NULL
+      AND NOT EXISTS (
+        SELECT 1
+        FROM public.guest_browser_sessions AS browser
+        WHERE browser.enrollment_id = enrollment.id
+      )
+    ORDER BY enrollment.expires_at, enrollment.id
+    LIMIT 256
+    FOR UPDATE OF enrollment SKIP LOCKED
+  )
+  DELETE FROM public.guest_browser_enrollments AS enrollment
+  USING expired_unexchanged
+  WHERE enrollment.id = expired_unexchanged.id;
 
   v_expires_at := v_now + INTERVAL '15 minutes';
   INSERT INTO public.guest_browser_enrollments(
@@ -158,7 +232,7 @@ DECLARE
   v_enrollment_exchanged_at TIMESTAMPTZ;
   v_generation INTEGER;
   v_guest_hash TEXT;
-  v_now TIMESTAMPTZ := pg_catalog.clock_timestamp();
+  v_now TIMESTAMPTZ;
   v_session_id UUID;
   v_state public.valet_session_state;
   v_completed_at TIMESTAMPTZ;
@@ -188,6 +262,7 @@ BEGIN
    WHERE session.customer_access_token_hash = v_guest_hash
    FOR UPDATE OF session;
 
+  v_now := pg_catalog.clock_timestamp();
   IF NOT FOUND OR v_generation <= 0 OR v_revoked_at IS NOT NULL
      OR v_state = 'CANCELLED'::public.valet_session_state
      OR (v_state = 'COMPLETED'::public.valet_session_state AND
@@ -206,6 +281,15 @@ BEGIN
    FOR UPDATE OF enrollment;
 
   IF NOT FOUND THEN
+    RETURN QUERY SELECT 'INVALID_ACCESS'::TEXT, NULL::UUID;
+    RETURN;
+  END IF;
+
+  v_now := pg_catalog.clock_timestamp();
+  IF v_generation <= 0 OR v_revoked_at IS NOT NULL
+     OR v_state = 'CANCELLED'::public.valet_session_state
+     OR (v_state = 'COMPLETED'::public.valet_session_state AND
+         (v_completed_at IS NULL OR v_completed_at + INTERVAL '24 hours' <= v_now)) THEN
     RETURN QUERY SELECT 'INVALID_ACCESS'::TEXT, NULL::UUID;
     RETURN;
   END IF;
@@ -290,7 +374,7 @@ DECLARE
   v_browser_revoked_at TIMESTAMPTZ;
   v_completed_at TIMESTAMPTZ;
   v_generation INTEGER;
-  v_now TIMESTAMPTZ := pg_catalog.clock_timestamp();
+  v_now TIMESTAMPTZ;
   v_session_id UUID;
   v_session_revoked_at TIMESTAMPTZ;
   v_state public.valet_session_state;
@@ -330,6 +414,7 @@ BEGIN
      AND browser.token_hash = v_browser_hash
    FOR UPDATE OF browser;
 
+  v_now := pg_catalog.clock_timestamp();
   IF NOT FOUND OR v_browser_revoked_at IS NOT NULL
      OR v_session_revoked_at IS NOT NULL
      OR v_browser_generation IS DISTINCT FROM v_generation
@@ -383,33 +468,6 @@ BEGIN
     RETURN 'ENDED';
   END IF;
   RETURN 'INVALID_ACCESS';
-END;
-$function$;
-
-CREATE FUNCTION public.guest_browser_invalidate_for_session(p_valet_session_id UUID)
-RETURNS INTEGER
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = pg_catalog, public
-AS $function$
-DECLARE
-  v_current_generation INTEGER;
-  v_count INTEGER;
-  v_now TIMESTAMPTZ := pg_catalog.clock_timestamp();
-BEGIN
-  SELECT customer_access_generation INTO v_current_generation
-    FROM public.valet_sessions
-   WHERE id = p_valet_session_id
-   FOR UPDATE;
-  IF NOT FOUND THEN RETURN 0; END IF;
-
-  UPDATE public.guest_browser_sessions
-     SET revoked_at = COALESCE(revoked_at, v_now)
-   WHERE valet_session_id = p_valet_session_id
-     AND credential_generation <> v_current_generation
-     AND revoked_at IS NULL;
-  GET DIAGNOSTICS v_count = ROW_COUNT;
-  RETURN v_count;
 END;
 $function$;
 
@@ -554,12 +612,13 @@ $function$;
 
 REVOKE ALL ON TABLE public.guest_browser_enrollments FROM PUBLIC;
 REVOKE ALL ON TABLE public.guest_browser_sessions FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.guest_browser_bridge_legacy_generation() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.guest_browser_invalidate_on_generation_change() FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.guest_browser_hash_secret(TEXT) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.guest_browser_enroll(TEXT, TEXT) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.guest_browser_exchange(TEXT, TEXT, TEXT) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.guest_browser_resolve(TEXT, BOOLEAN) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.guest_browser_end(TEXT) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.guest_browser_invalidate_for_session(UUID) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.guest_browser_rating_submit(TEXT, INTEGER) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.guest_rating_submit(TEXT, INTEGER) FROM PUBLIC;
 

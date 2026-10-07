@@ -7,6 +7,8 @@ import { GuestApiError } from '../../lib/api/api-error';
 import {
   bootstrapGuestAuthTransport,
   GuestAuthProvider,
+  isRetryableGuestAuthBootstrapFailure,
+  retryGuestAuthBootstrapTransport,
   useGuestAuth,
 } from './guest-auth-context';
 
@@ -118,6 +120,39 @@ describe('GuestAuthProvider bootstrap', () => {
     );
   });
 
+  it('keeps enrollment network failure retryable instead of classifying the link invalid', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new TypeError('Failed to fetch'));
+
+    let caught: unknown;
+    try {
+      await bootstrapGuestAuthTransport(VALID_TOKEN, true);
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(caught).toMatchObject({ isNetworkError: true });
+    expect(isRetryableGuestAuthBootstrapFailure(caught)).toBe(true);
+  });
+
+  it('keeps enrollment 5xx retryable instead of classifying the link invalid', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({ code: 'SERVICE_UNAVAILABLE', message: 'Temporary failure' }),
+        { status: 503, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+
+    let caught: unknown;
+    try {
+      await bootstrapGuestAuthTransport(VALID_TOKEN, true);
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(caught).toMatchObject({ status: 503 });
+    expect(isRetryableGuestAuthBootstrapFailure(caught)).toBe(true);
+  });
+
   it('retries the same exchange once after an ambiguous network failure', async () => {
     const fetchSpy = vi
       .spyOn(globalThis, 'fetch')
@@ -185,6 +220,24 @@ describe('GuestAuthProvider bootstrap', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(3);
   });
 
+  it('resumes an unresolved exchange without creating a second enrollment', async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+
+    const result = await retryGuestAuthBootstrapTransport(
+      VALID_TOKEN,
+      true,
+      'EXCHANGE',
+    );
+
+    expect(result.token).toBeNull();
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy.mock.calls[0]?.[0]).toContain(
+      '/v1/guest/browser-session/exchange',
+    );
+  });
+
   it('fails closed without cookie or legacy fallback after exchange denial', async () => {
     vi.spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(new Response(null, { status: 204 }))
@@ -195,8 +248,13 @@ describe('GuestAuthProvider bootstrap', () => {
         ),
       );
 
-    await expect(bootstrapGuestAuthTransport(VALID_TOKEN, true)).rejects.toMatchObject({
-      code: 'GUEST_ACCESS_INVALID',
-    });
+    let caught: unknown;
+    try {
+      await bootstrapGuestAuthTransport(VALID_TOKEN, true);
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toMatchObject({ code: 'GUEST_ACCESS_INVALID' });
+    expect(isRetryableGuestAuthBootstrapFailure(caught)).toBe(false);
   });
 });

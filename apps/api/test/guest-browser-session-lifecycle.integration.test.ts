@@ -126,8 +126,32 @@ describe("Guest Browser Session T1 lifecycle", () => {
     expect(await context.resolveDirect(credentials.browser)).toBe("OK:ACTIVE");
   });
 
-  it("does not replace a valid post-visit Browser Session during enrollment", async () => {
+  it("does not silently replace an ACTIVE Browser Session when a second valid Guest link is opened", async () => {
+    const { credentials } = await browserForVisit();
+    const nextVisit = await context.createVisit();
+    const result = await context.request(
+      "POST",
+      "/v1/guest/browser-session/enroll",
+      {
+        body: {},
+        cookies: [context.browserCookie(credentials.browser)],
+        headers: mutationHeaders,
+      },
+    );
+    expect(result).toMatchObject({
+      body: { code: "GUEST_ACCESS_INVALID" },
+      status: 401,
+    });
+    expect(await context.resolveDirect(credentials.browser, true)).toBe("OK:ACTIVE");
+    const stillValidSecondLink = await context.request("GET", "/v1/guest/session", {
+      authorization: `Bearer ${nextVisit.token}`,
+    });
+    expect(stillValidSecondLink.status).toBe(200);
+  });
+
+  it("does not silently replace a POST_VISIT Browser Session when a second valid Guest link is opened", async () => {
     const { credentials, visit } = await browserForVisit();
+    const nextVisit = await context.createVisit();
     await context.complete(visit.sessionId);
     expect(await context.resolveDirect(credentials.browser, true)).toBe(
       "OK:POST_VISIT",
@@ -148,6 +172,10 @@ describe("Guest Browser Session T1 lifecycle", () => {
     expect(await context.resolveDirect(credentials.browser, true)).toBe(
       "OK:POST_VISIT",
     );
+    const stillValidSecondLink = await context.request("GET", "/v1/guest/session", {
+      authorization: `Bearer ${nextVisit.token}`,
+    });
+    expect(stillValidSecondLink.status).toBe(200);
   });
 
   it("rejects an unknown shape-valid Browser Session on end-access", async () => {

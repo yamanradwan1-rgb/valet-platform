@@ -164,7 +164,8 @@ describe("DEC-064 T1 runtime database authority", () => {
          to_regprocedure('public.guest_browser_exchange(text,text,text)'),
          to_regprocedure('public.guest_browser_resolve(text,boolean)'),
          to_regprocedure('public.guest_browser_end(text)'),
-         to_regprocedure('public.guest_browser_invalidate_for_session(uuid)'),
+         to_regprocedure('public.guest_browser_bridge_legacy_generation()'),
+         to_regprocedure('public.guest_browser_invalidate_on_generation_change()'),
          to_regprocedure('public.guest_browser_rating_submit(text,integer)'),
          to_regprocedure('public.guest_browser_hash_secret(text)'),
          to_regprocedure('public.guest_rating_submit(text,integer)'))
@@ -178,11 +179,12 @@ describe("DEC-064 T1 runtime database authority", () => {
         row.security_definer,
       ]),
     ).toEqual([
+      ["guest_browser_bridge_legacy_generation", false, true],
       ["guest_browser_end", true, true],
       ["guest_browser_enroll", true, true],
       ["guest_browser_exchange", true, true],
       ["guest_browser_hash_secret", false, false],
-      ["guest_browser_invalidate_for_session", true, true],
+      ["guest_browser_invalidate_on_generation_change", false, true],
       ["guest_browser_rating_submit", true, true],
       ["guest_browser_resolve", true, true],
       ["guest_rating_submit", true, true],
