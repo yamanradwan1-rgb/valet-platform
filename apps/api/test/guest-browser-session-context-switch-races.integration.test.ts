@@ -73,7 +73,7 @@ describe("Guest Browser Session T1 atomic context-switch races", () => {
 
   it("serializes switch against source revoke/reissue without resurrecting the old Browser Session", async () => {
     const source = await context.createVisit();
-    const target = await context.createSiblingVisit(source);
+    const target = await context.createVisit();
     const sourceBrowser = await authorize(source);
     const transition = await prepare(target, sourceBrowser.browser);
 
@@ -147,7 +147,7 @@ describe("Guest Browser Session T1 atomic context-switch races", () => {
 
   it("serializes switch against target revoke/reissue and never promotes a stale target generation", async () => {
     const source = await context.createVisit();
-    const target = await context.createSiblingVisit(source);
+    const target = await context.createVisit();
     const sourceBrowser = await authorize(source);
     const transition = await prepare(target, sourceBrowser.browser);
 

@@ -3219,7 +3219,10 @@ consumes its bootstrap and revokes the source browser only at the same commit.
 Rollback preserves the source, POST_VISIT remains valid until commit, and an
 exact committed transition is recoverable after lost response without duplicate
 authority. Normal Guest routes remain mixed-source fail-closed; only prepare/
-switch may deliberately inspect both current cookie and target bearer. A random
+switch may deliberately inspect both current cookie and target bearer. This
+explicit context replacement may cross Organizations only because the target
+bearer independently proves the exact target visit; source tenant authority is
+never inherited, combined or copied into the target context. A random
 non-authoritative browser-context marker fences stale Customer responses/tabs
 after the shared cookie context changes.
 

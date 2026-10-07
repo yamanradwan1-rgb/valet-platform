@@ -27,7 +27,6 @@ DECLARE
   v_source_browser_revoked_at TIMESTAMPTZ;
   v_source_generation INTEGER;
   v_source_hash TEXT;
-  v_source_org UUID;
   v_source_revoked_at TIMESTAMPTZ;
   v_source_session_id UUID;
   v_source_state public.valet_session_state;
@@ -38,7 +37,6 @@ DECLARE
   v_target_expires_at TIMESTAMPTZ;
   v_target_generation INTEGER;
   v_target_hash TEXT;
-  v_target_org UUID;
   v_target_revoked_at TIMESTAMPTZ;
   v_target_state public.valet_session_state;
   v_target_scope TEXT;
@@ -97,16 +95,16 @@ BEGIN
      WHERE session.id = v_source_session_id FOR UPDATE OF session;
   END IF;
 
-  SELECT session.organization_id, session.customer_access_generation,
+  SELECT session.customer_access_generation,
          session.customer_access_revoked_at, session.state, session.completed_at
-    INTO v_source_org, v_source_generation, v_source_revoked_at,
+    INTO v_source_generation, v_source_revoked_at,
          v_source_state, v_source_completed_at
     FROM public.valet_sessions AS session
    WHERE session.id = v_source_session_id;
-  SELECT session.organization_id, session.customer_access_generation,
+  SELECT session.customer_access_generation,
          session.customer_access_revoked_at, session.customer_access_consumed_at,
          session.customer_access_expires_at, session.state, session.completed_at
-    INTO v_target_org, v_target_generation, v_target_revoked_at,
+    INTO v_target_generation, v_target_revoked_at,
          v_target_consumed_at, v_target_expires_at, v_target_state,
          v_target_completed_at
     FROM public.valet_sessions AS session
@@ -192,7 +190,6 @@ BEGIN
          OR v_source_completed_at + INTERVAL '24 hours' <= v_now
        )
      )
-     OR v_source_org IS DISTINCT FROM v_target_org
      OR v_target_generation IS DISTINCT FROM v_enrollment_generation
      OR v_target_revoked_at IS NOT NULL
      OR v_target_consumed_at IS NOT NULL

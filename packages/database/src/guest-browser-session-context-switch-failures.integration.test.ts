@@ -170,19 +170,15 @@ describe("DEC-064 same-browser context switch", () => {
     expect(target.rows[0]).toEqual({ browser_count: 0, consumed: null });
   });
 
-  it("rolls back a switch without revoking the source or partially consuming the target", async () => {
+  it("rolls back a cross-organization switch without revoking the source or partially consuming the target", async () => {
     const sourceToken = "d".repeat(43);
     const targetToken = "e".repeat(43);
-    const sourceVisit = await seedT1Session(client, "rollback-source", sourceToken, {
+    await seedT1Session(client, "rollback-source", sourceToken, {
       state: "PARKED",
     });
-    const targetVisit = await seedT1SiblingSession(
-      client,
-      "rollback-target",
-      targetToken,
-      sourceVisit,
-      { state: "PARKED" },
-    );
+    const targetVisit = await seedT1Session(client, "rollback-target", targetToken, {
+      state: "PARKED",
+    });
     const source = await enrollAndExchange(sourceToken);
     const prepared = await prepare(targetToken, source.browser);
     const transaction = new Client({ connectionString: databaseUrl });
@@ -260,15 +256,47 @@ describe("DEC-064 same-browser context switch", () => {
     expect(await resolve(source.browser)).toBe("OK:ACTIVE");
   });
 
-  it("rejects a foreign-tenant target without mutating either authority", async () => {
+  it("allows explicit context replacement between independently authorized organizations", async () => {
     const sourceToken = "l".repeat(43);
     const targetToken = "m".repeat(43);
-    await seedT1Session(client, "foreign-target", targetToken, { state: "PARKED" });
-    await seedT1Session(client, "foreign-source", sourceToken, { state: "PARKED" });
+    const targetVisit = await seedT1Session(client, "foreign-target", targetToken, {
+      state: "PARKED",
+    });
+    const sourceVisit = await seedT1Session(client, "foreign-source", sourceToken, {
+      state: "PARKED",
+    });
+    expect(sourceVisit.organizationId).not.toBe(targetVisit.organizationId);
     const source = await enrollAndExchange(sourceToken);
     const prepared = await prepare(targetToken, source.browser);
-    expect(prepared.result).toBe("INVALID_ACCESS");
+    expect(prepared.result).toBe("CONTEXT_CONFLICT");
     expect(await resolve(source.browser)).toBe("OK:ACTIVE");
+    const before = await client.query<{ browser_count: number; consumed: Date | null }>(
+      `SELECT session.customer_access_consumed_at AS consumed,
+              (SELECT count(*)::int FROM guest_browser_sessions AS browser
+                WHERE browser.valet_session_id=session.id) AS browser_count
+         FROM valet_sessions AS session WHERE session.id=$1`,
+      [targetVisit.sessionId],
+    );
+    expect(before.rows[0]).toEqual({ browser_count: 0, consumed: null });
+    expect(await switchContext(targetToken, source.browser, prepared.transition)).toBe(
+      "SWITCHED",
+    );
+    expect(await resolve(source.browser)).toBe("INVALID_ACCESS");
+    expect(await resolve(prepared.transition.browser)).toBe("OK:ACTIVE");
+    const bound = await client.query<{
+      organization_id: string;
+      session_id: string;
+    }>(
+      `SELECT session.organization_id::text, browser.valet_session_id::text AS session_id
+         FROM guest_browser_sessions AS browser
+         JOIN valet_sessions AS session ON session.id=browser.valet_session_id
+        WHERE browser.token_hash=guest_browser_hash_secret($1)`,
+      [prepared.transition.browser],
+    );
+    expect(bound.rows[0]).toEqual({
+      organization_id: targetVisit.organizationId,
+      session_id: targetVisit.sessionId,
+    });
   });
 
   it("converges duplicate switch clicks to one switch plus one recovery", async () => {

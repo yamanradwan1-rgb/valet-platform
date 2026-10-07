@@ -77,18 +77,41 @@ describe("Guest Browser Session T1 same-browser context switch HTTP contract", (
     expect(after.rows[0]?.count).toBe(before.rows[0]?.count);
   });
 
-  it("returns a verified ACTIVE conflict without mutating either visit before choice", async () => {
+  it("returns a verified cross-organization ACTIVE conflict without mutating either visit before choice", async () => {
     const source = await authorizeBrowser(context);
-    const target = await context.createSiblingVisit(source.visit);
+    const target = await context.createVisit();
     const transition = await prepareConflict(context, source, target);
     expect(await context.resolveDirect(source.browser)).toBe("OK:ACTIVE");
+    const sourceProjection = await context.request("GET", "/v1/guest/session", {
+      cookies: [context.browserCookie(source.browser)],
+    });
+    expect(sourceProjection).toMatchObject({
+      body: { valetSessionId: source.visit.sessionId },
+      status: 200,
+    });
     const targetBearer = await context.request("GET", "/v1/guest/session", {
       authorization: `Bearer ${target.token}`,
     });
-    expect(targetBearer.status).toBe(200);
+    expect(targetBearer).toMatchObject({
+      body: { valetSessionId: target.sessionId },
+      status: 200,
+    });
+    expect(sourceProjection.body.valetSessionId).not.toBe(targetBearer.body.valetSessionId);
     expect(await context.resolveDirect(transition.pendingBrowser)).toBe(
       "INVALID_ACCESS",
     );
+    const targetState = await context.adminPool.query<{
+      browser_count: number;
+      consumed_at: Date | null;
+    }>(
+      `SELECT session.customer_access_consumed_at AS consumed_at,
+              (SELECT count(*)::int FROM guest_browser_sessions AS browser
+                WHERE browser.valet_session_id=session.id) AS browser_count
+         FROM valet_sessions AS session
+        WHERE session.id=$1`,
+      [target.sessionId],
+    );
+    expect(targetState.rows[0]).toEqual({ browser_count: 0, consumed_at: null });
 
     const bypass = await context.request(
       "POST",
@@ -110,9 +133,9 @@ describe("Guest Browser Session T1 same-browser context switch HTTP contract", (
     expect(await context.resolveDirect(source.browser)).toBe("OK:ACTIVE");
   });
 
-  it("returns the POST_VISIT conflict variant while preserving the 24-hour source authority", async () => {
+  it("moves a POST_VISIT browser context across organizations only after explicit switch", async () => {
     const source = await authorizeBrowser(context);
-    const target = await context.createSiblingVisit(source.visit);
+    const target = await context.createVisit();
     await context.complete(source.visit.sessionId);
     const prepared = await context.request(
       "POST",
@@ -133,7 +156,100 @@ describe("Guest Browser Session T1 same-browser context switch HTTP contract", (
       await context.request("GET", "/v1/guest/session", {
         authorization: `Bearer ${target.token}`,
       }),
-    ).toMatchObject({ status: 200 });
+    ).toMatchObject({ body: { valetSessionId: target.sessionId }, status: 200 });
+    const enrollment = cookieValue(prepared.headers, GUEST_ENROLLMENT_COOKIE);
+    const pendingBrowser = cookieValue(prepared.headers, GUEST_PENDING_BROWSER_COOKIE);
+    expect(enrollment).toMatch(/^vge1\.[A-Za-z0-9_-]{43}$/);
+    expect(pendingBrowser).toMatch(/^vgb1\.[A-Za-z0-9_-]{43}$/);
+    const switched = await context.request(
+      "POST",
+      "/v1/guest/browser-session/switch",
+      {
+        authorization: `Bearer ${target.token}`,
+        body: {},
+        cookies: [
+          context.browserCookie(source.browser),
+          context.enrollmentCookie(enrollment!),
+          context.pendingBrowserCookie(pendingBrowser!),
+        ],
+        headers: mutationHeaders,
+      },
+    );
+    expect(switched).toMatchObject({ body: { result: "SWITCHED" }, status: 200 });
+    expect(await context.resolveDirect(source.browser, true)).toBe("INVALID_ACCESS");
+    expect(await context.resolveDirect(pendingBrowser!)).toBe("OK:ACTIVE");
+    expect(
+      await context.request("GET", "/v1/guest/session", {
+        cookies: [context.browserCookie(pendingBrowser!)],
+      }),
+    ).toMatchObject({ body: { valetSessionId: target.sessionId }, status: 200 });
+  });
+
+  it("keeps tenant projections independent before and after a cross-organization switch", async () => {
+    const source = await authorizeBrowser(context);
+    const target = await context.createVisit();
+
+    expect(
+      await context.request("GET", "/v1/guest/session", {
+        cookies: [context.browserCookie(source.browser)],
+      }),
+    ).toMatchObject({ body: { valetSessionId: source.visit.sessionId }, status: 200 });
+    expect(
+      await context.request("GET", "/v1/guest/session", {
+        authorization: `Bearer ${target.token}`,
+      }),
+    ).toMatchObject({ body: { valetSessionId: target.sessionId }, status: 200 });
+
+    const forgedRead = await context.request(
+      "GET",
+      `/v1/guest/session?valetSessionId=${target.sessionId}&organizationId=${target.fixture.organizationId}&locationId=${target.fixture.locationId}`,
+      { cookies: [context.browserCookie(source.browser)] },
+    );
+    expect(forgedRead.status).toBe(400);
+
+    const forgedPrepare = await context.request(
+      "POST",
+      "/v1/guest/browser-session/prepare",
+      {
+        authorization: `Bearer ${target.token}`,
+        body: {
+          valetSessionId: target.sessionId,
+          organizationId: target.fixture.organizationId,
+          locationId: target.fixture.locationId,
+        },
+        cookies: [context.browserCookie(source.browser)],
+        headers: mutationHeaders,
+      },
+    );
+    expect(forgedPrepare.status).toBe(400);
+    expect(await context.resolveDirect(source.browser)).toBe("OK:ACTIVE");
+
+    const transition = await prepareConflict(context, source, target);
+    const switched = await context.request(
+      "POST",
+      "/v1/guest/browser-session/switch",
+      {
+        authorization: `Bearer ${target.token}`,
+        body: {},
+        cookies: [
+          context.browserCookie(source.browser),
+          context.enrollmentCookie(transition.enrollment),
+          context.pendingBrowserCookie(transition.pendingBrowser),
+        ],
+        headers: mutationHeaders,
+      },
+    );
+    expect(switched.status).toBe(200);
+    const targetProjection = await context.request("GET", "/v1/guest/session", {
+      cookies: [context.browserCookie(transition.pendingBrowser)],
+    });
+    expect(targetProjection).toMatchObject({
+      body: { valetSessionId: target.sessionId },
+      status: 200,
+    });
+    expect(targetProjection.body.valetSessionId).not.toBe(source.visit.sessionId);
+    expect(targetProjection.body).not.toHaveProperty("organizationId");
+    expect(targetProjection.body).not.toHaveProperty("locationId");
   });
 
   it("switches atomically only after explicit choice and promotes exactly one pending browser context", async () => {

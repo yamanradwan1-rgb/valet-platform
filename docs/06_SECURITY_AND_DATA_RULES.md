@@ -423,8 +423,12 @@ already-created target Browser Session and current target generation.
 
 Normal Guest business endpoints still reject bearer-plus-cookie mixed authority.
 The dual-source exception exists only for context preparation/explicit switch and
-accepts no caller-supplied session/tenant authority. Cross-Organization switches
-fail closed. Preparation never replaces the primary Browser Session cookie: it
+accepts no caller-supplied session/tenant authority. A different-Organization
+target is allowed only when its own Guest bootstrap bearer independently resolves
+and passes the full target generation/revocation/expiry/lifecycle checks; the
+source Browser Session grants no authority in that target tenant. This is browser-
+context replacement, not cross-tenant authority inheritance or a combined tenant
+projection. Preparation never replaces the primary Browser Session cookie: it
 uses a separate short-lived `__Host-vaylet_guest_pending_browser` HttpOnly cookie
 and the existing enrollment cookie. The target bearer remains memory-only after
 fragment scrubbing. Successful switch promotes that pending secret to the sole

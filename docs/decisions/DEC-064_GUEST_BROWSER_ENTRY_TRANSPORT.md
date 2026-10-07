@@ -108,7 +108,13 @@ assumption that the fragment bearer remains the browser's normal authority.
     current Browser Session cookie, and explicit switch may re-present both plus
     the exact source-bound transition cookies. These inputs are comparison/
     transition proofs only; no client session/tenant identifier grants authority.
-    The server derives source and target from persisted credential verifiers.
+    The server derives source and target independently from persisted credential
+    verifiers. Source and target may belong to different Organizations: the
+    source Browser Session proves only the current browser context, while the
+    target bearer alone proves the exact target ValetSession and its persisted
+    tenant/Location. No source Organization/Location permission is inherited,
+    copied or combined into target authority, and normal cross-tenant Guest access
+    remains prohibited and non-disclosing.
     The primary Browser Session cookie remains unchanged during preparation.
     A separate short-lived HttpOnly pending-browser cookie plus enrollment cookie
     carries server-minted transition material. The raw target bearer remains

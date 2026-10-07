@@ -18,7 +18,7 @@ describe("Guest Browser Session T1 context switch recovery and validation", () =
 
   it("recovers a committed switch after a lost response without a duplicate Browser Session", async () => {
     const source = await authorizeBrowser(context);
-    const target = await context.createSiblingVisit(source.visit);
+    const target = await context.createVisit();
     const transition = await prepareConflict(context, source, target);
     const staleCookieJar = [
       context.browserCookie(source.browser),
@@ -75,6 +75,11 @@ describe("Guest Browser Session T1 context switch recovery and validation", () =
     );
     expect(count.rows[0]?.count).toBe(1);
     expect(await context.resolveDirect(source.browser)).toBe("INVALID_ACCESS");
+    expect(
+      await context.request("GET", "/v1/guest/session", {
+        cookies: [context.browserCookie(transition.pendingBrowser)],
+      }),
+    ).toMatchObject({ body: { valetSessionId: target.sessionId }, status: 200 });
   });
 
   it("rejects an expired prepared switch before commit while preserving source and target", async () => {
@@ -139,14 +144,13 @@ describe("Guest Browser Session T1 context switch recovery and validation", () =
     expect(await context.resolveDirect(source.browser)).toBe("OK:ACTIVE");
   });
 
-  it.each(["expired", "revoked", "foreign"] as const)(
-    "rejects a %s target while preserving current authority",
+  it.each(["invalid", "expired", "revoked"] as const)(
+    "rejects a cross-organization %s target bearer while preserving current authority",
     async (kind) => {
       const source = await authorizeBrowser(context);
-      const target =
-        kind === "foreign"
-          ? await context.createVisit()
-          : await context.createSiblingVisit(source.visit);
+      const target = await context.createVisit();
+      const authorizationToken =
+        kind === "invalid" ? "Z".repeat(43) : target.token;
       if (kind === "expired") {
         await context.adminPool.query(
           "UPDATE valet_sessions SET customer_access_expires_at=clock_timestamp()-interval '1 minute' WHERE id=$1",
@@ -159,7 +163,7 @@ describe("Guest Browser Session T1 context switch recovery and validation", () =
         "POST",
         "/v1/guest/browser-session/prepare",
         {
-          authorization: `Bearer ${target.token}`,
+          authorization: `Bearer ${authorizationToken}`,
           body: {},
           cookies: [context.browserCookie(source.browser)],
           headers: mutationHeaders,
@@ -170,6 +174,17 @@ describe("Guest Browser Session T1 context switch recovery and validation", () =
         status: 401,
       });
       expect(await context.resolveDirect(source.browser)).toBe("OK:ACTIVE");
+      const targetState = await context.adminPool.query<{
+        browser_count: number;
+        consumed_at: Date | null;
+      }>(
+        `SELECT session.customer_access_consumed_at AS consumed_at,
+                (SELECT count(*)::int FROM guest_browser_sessions AS browser
+                  WHERE browser.valet_session_id=session.id) AS browser_count
+           FROM valet_sessions AS session WHERE session.id=$1`,
+        [target.sessionId],
+      );
+      expect(targetState.rows[0]).toEqual({ browser_count: 0, consumed_at: null });
     },
   );
 
