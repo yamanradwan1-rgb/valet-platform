@@ -79,6 +79,31 @@ describe("Guest Browser Session T1 lifecycle", () => {
     expect(await context.resolveDirect(fresh.browser)).toBe("OK:ACTIVE");
   });
 
+  it("requires staff reissue before a different browser can bind the visit", async () => {
+    const { credentials, visit } = await browserForVisit();
+    const revokedAt = await context.revoke(visit);
+    expect(await context.resolveDirect(credentials.browser)).toBe(
+      "INVALID_ACCESS",
+    );
+
+    const beforeReissue = await context.enrollDirect();
+    expect(await context.exchangeDirect(visit.token, beforeReissue)).toBe(
+      "INVALID_ACCESS",
+    );
+
+    const reissuedToken = await context.reissue(visit, revokedAt);
+    const differentBrowser = await context.enrollDirect();
+    expect(await context.exchangeDirect(reissuedToken, differentBrowser)).toBe(
+      "AUTHORIZED",
+    );
+    expect(await context.resolveDirect(differentBrowser.browser)).toBe(
+      "OK:ACTIVE",
+    );
+    expect(await context.resolveDirect(credentials.browser)).toBe(
+      "INVALID_ACCESS",
+    );
+  });
+
   it("per-browser end access revokes only the current Browser Session", async () => {
     const { credentials, visit } = await browserForVisit();
     await context.endDirect(credentials.browser);
@@ -129,6 +154,9 @@ describe("Guest Browser Session T1 lifecycle", () => {
   it("does not silently replace an ACTIVE Browser Session when a second valid Guest link is opened", async () => {
     const { credentials } = await browserForVisit();
     const nextVisit = await context.createVisit();
+    const enrollmentCountBefore = await context.adminPool.query<{ count: number }>(
+      "SELECT count(*)::int AS count FROM guest_browser_enrollments",
+    );
     const result = await context.request(
       "POST",
       "/v1/guest/browser-session/enroll",
@@ -142,6 +170,13 @@ describe("Guest Browser Session T1 lifecycle", () => {
       body: { code: "GUEST_ACCESS_INVALID" },
       status: 401,
     });
+    expect(result.headers.get("set-cookie")).toBeNull();
+    const enrollmentCountAfter = await context.adminPool.query<{ count: number }>(
+      "SELECT count(*)::int AS count FROM guest_browser_enrollments",
+    );
+    expect(enrollmentCountAfter.rows[0]?.count).toBe(
+      enrollmentCountBefore.rows[0]?.count,
+    );
     expect(await context.resolveDirect(credentials.browser, true)).toBe("OK:ACTIVE");
     const stillValidSecondLink = await context.request("GET", "/v1/guest/session", {
       authorization: `Bearer ${nextVisit.token}`,
@@ -156,6 +191,9 @@ describe("Guest Browser Session T1 lifecycle", () => {
     expect(await context.resolveDirect(credentials.browser, true)).toBe(
       "OK:POST_VISIT",
     );
+    const enrollmentCountBefore = await context.adminPool.query<{ count: number }>(
+      "SELECT count(*)::int AS count FROM guest_browser_enrollments",
+    );
     const result = await context.request(
       "POST",
       "/v1/guest/browser-session/enroll",
@@ -169,6 +207,13 @@ describe("Guest Browser Session T1 lifecycle", () => {
       body: { code: "GUEST_ACCESS_INVALID" },
       status: 401,
     });
+    expect(result.headers.get("set-cookie")).toBeNull();
+    const enrollmentCountAfter = await context.adminPool.query<{ count: number }>(
+      "SELECT count(*)::int AS count FROM guest_browser_enrollments",
+    );
+    expect(enrollmentCountAfter.rows[0]?.count).toBe(
+      enrollmentCountBefore.rows[0]?.count,
+    );
     expect(await context.resolveDirect(credentials.browser, true)).toBe(
       "OK:POST_VISIT",
     );

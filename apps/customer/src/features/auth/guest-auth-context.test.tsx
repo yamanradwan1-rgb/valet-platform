@@ -153,6 +153,21 @@ describe('GuestAuthProvider bootstrap', () => {
     expect(isRetryableGuestAuthBootstrapFailure(caught)).toBe(true);
   });
 
+  it('stops before exchange when enrollment fails closed with invalid authority', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({ code: 'GUEST_ACCESS_INVALID', message: 'Guest access is invalid.' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+
+    await expect(bootstrapGuestAuthTransport(VALID_TOKEN, true)).rejects.toMatchObject({
+      code: 'GUEST_ACCESS_INVALID',
+    });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy.mock.calls[0]?.[0]).toContain('/v1/guest/browser-session/enroll');
+  });
+
   it('retries the same exchange once after an ambiguous network failure', async () => {
     const fetchSpy = vi
       .spyOn(globalThis, 'fetch')
