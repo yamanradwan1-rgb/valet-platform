@@ -77,7 +77,12 @@ function setup() {
   let authorized = true;
   const location = new FakeLocation();
   const uploads: Array<{ sessionId: string; samples: readonly unknown[] }> = [];
-  const upload = vi.fn(async (sessionId: string, samples: readonly EmployeeGpsSample[]) => {
+  const upload = vi.fn(async (
+    sessionId: string,
+    samples: readonly EmployeeGpsSample[],
+    signal?: AbortSignal,
+  ) => {
+    void signal;
     uploads.push({ sessionId, samples });
     return {
       samples: samples.map((sample) => ({
@@ -118,10 +123,18 @@ async function settle() {
   for (let index = 0; index < 8; index += 1) await Promise.resolve();
 }
 
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
+}
+
 afterEach(() => vi.useRealTimers());
 
 describe("#270 Native task GPS publisher", () => {
-  it("starts only after access is granted and removes a late watcher after retirement", async () => {
+  it("removes a late watcher after dispose and keeps double dispose idempotent", async () => {
     const s = setup();
     let release!: (watcher: NativeTaskLocationWatcher) => void;
     s.location.delayedWatch = new Promise((resolve) => {
@@ -130,11 +143,57 @@ describe("#270 Native task GPS publisher", () => {
     s.publisher.start(binding);
     await settle();
     expect(s.publisher.current().kind).toBe("checking");
-    s.publisher.retire({ kind: "idle" });
+    s.publisher.dispose();
+    s.publisher.dispose();
     release({ remove: s.location.remove });
     await settle();
     expect(s.location.remove).toHaveBeenCalledOnce();
     expect(s.upload).not.toHaveBeenCalled();
+  });
+
+  it("dispose removes the watcher, aborts in-flight upload and clears later work", async () => {
+    vi.useFakeTimers();
+    const s = setup();
+    const pending = deferred<{ samples: never[] }>();
+    let uploadSignal: AbortSignal | undefined;
+    s.upload.mockImplementationOnce(async (_sessionId, _samples, signal) => {
+      uploadSignal = signal;
+      return pending.promise;
+    });
+    s.publisher.start(binding);
+    await settle();
+    s.location.emit(baseNow);
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(uploadSignal?.aborted).toBe(false);
+    s.publisher.dispose();
+    s.publisher.dispose();
+    expect(s.location.remove).toHaveBeenCalledOnce();
+    expect(uploadSignal?.aborted).toBe(true);
+    pending.resolve({ samples: [] });
+    await settle();
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(s.upload).toHaveBeenCalledOnce();
+  });
+
+  it("prompts once per tracker unless retry is explicit", async () => {
+    const s = setup();
+    s.location.access = { canAskAgain: true, kind: "denied" };
+    s.publisher.start(binding);
+    await settle();
+    expect(s.publisher.current().kind).toBe("permission-denied");
+    s.publisher.retire({ kind: "idle" });
+    s.publisher.start(binding);
+    await settle();
+    s.publisher.start(binding);
+    await settle();
+    expect(s.location.ensureRequests).toEqual([true, false, false]);
+    s.publisher.start(binding, true);
+    await settle();
+    expect(s.location.ensureRequests).toEqual([true, false, false, true]);
+    s.publisher.retire({ kind: "idle" });
+    s.publisher.start({ ...binding, trackingSessionId: "88888888-8888-4888-8888-888888888888" });
+    await settle();
+    expect(s.location.ensureRequests.at(-1)).toBe(true);
   });
 
   it.each([

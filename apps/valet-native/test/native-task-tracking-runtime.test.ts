@@ -9,6 +9,7 @@ import type {
 } from "@valet/employee-client";
 import { NativeTaskTrackingRuntime } from "../src/tracking/native-task-tracking-runtime";
 import type {
+  NativeTaskLocationAccess,
   NativeTaskLocationFix,
   NativeTaskLocationPort,
 } from "../src/tracking/native-task-location-adapter";
@@ -23,6 +24,7 @@ const ids = {
 function tracking(
   taskType: "PARKING" | "RETRIEVAL" = "PARKING",
   count = 1,
+  trackerId = ids.tracker,
 ): EmployeeOperationalSnapshot {
   return {
     ...operations("ready", { retainedScope: scope }),
@@ -32,7 +34,7 @@ function tracking(
         sessionId: ids.session,
         taskId: ids.task,
         taskType,
-        trackingSessionId: ids.tracker,
+        trackingSessionId: trackerId,
         trackingStartedAt: "2026-10-07T00:59:59.000Z",
       },
       status: "ELIGIBLE",
@@ -41,14 +43,17 @@ function tracking(
 }
 
 class FakeLocation implements NativeTaskLocationPort {
+  access: NativeTaskLocationAccess = { kind: "granted" };
   callback: ((fix: NativeTaskLocationFix) => void) | undefined;
+  ensureRequests: boolean[] = [];
   remove = vi.fn();
   watchCalls = 0;
-  async ensureAccess() {
-    return { kind: "granted" as const };
+  async ensureAccess(requestPermission: boolean) {
+    this.ensureRequests.push(requestPermission);
+    return this.access;
   }
   async inspectAccess() {
-    return { kind: "granted" as const };
+    return this.access;
   }
   async openSettings() {}
   async watch(callback: (fix: NativeTaskLocationFix) => void) {
@@ -196,6 +201,29 @@ describe("#270 Native task tracking authority owner", () => {
     s.setSnapshot(tracking("PARKING", 2));
     await settle();
     expect(s.location.watchCalls).toBe(2);
+    s.runtime.dispose();
+  });
+
+  it("does not reprompt a denied tracker until explicit retry", async () => {
+    const s = fixture(tracking());
+    s.location.access = { canAskAgain: true, kind: "denied" };
+    s.runtime.setForeground(true);
+    await settle();
+    expect(s.runtime.current().kind).toBe("permission-denied");
+    expect(s.location.ensureRequests.filter(Boolean)).toHaveLength(1);
+    s.runtime.setForeground(false);
+    s.runtime.setForeground(true);
+    await settle();
+    s.setSnapshot(tracking("PARKING", 2));
+    s.setAuth(auth("authenticated"));
+    await settle();
+    expect(s.location.ensureRequests.filter(Boolean)).toHaveLength(1);
+    s.runtime.retry();
+    await settle();
+    expect(s.location.ensureRequests.filter(Boolean)).toHaveLength(2);
+    s.setSnapshot(tracking("PARKING", 3, "88888888-8888-4888-8888-888888888888"));
+    await settle();
+    expect(s.location.ensureRequests.filter(Boolean)).toHaveLength(3);
     s.runtime.dispose();
   });
 

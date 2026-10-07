@@ -45,11 +45,10 @@ export class NativeTaskGpsPublisher {
   private lastAdmissionAt = Number.NEGATIVE_INFINITY;
   private readonly location: NativeTaskLocationPort;
   private readonly now: () => number;
+  private permissionPromptedTrackerId: string | undefined;
   private readonly retry: NativeTaskGpsRetryBudget;
   private status: NativeTaskTrackingStatus = { kind: "idle" };
-  private readonly subscribers = new Set<
-    (status: NativeTaskTrackingStatus) => void
-  >();
+  private readonly subscribers = new Set<(status: NativeTaskTrackingStatus) => void>();
   private timer: ReturnType<typeof setTimeout> | undefined;
   private watcher: NativeTaskLocationWatcher | undefined;
 
@@ -60,9 +59,7 @@ export class NativeTaskGpsPublisher {
     this.retry = new NativeTaskGpsRetryBudget(options.random);
   }
 
-  current(): NativeTaskTrackingStatus {
-    return this.status;
-  }
+  current(): NativeTaskTrackingStatus { return this.status; }
 
   currentBindingKey(): string | undefined {
     return this.binding?.key;
@@ -85,7 +82,10 @@ export class NativeTaskGpsPublisher {
     }
     this.stopGeneration(!sameBinding);
     this.binding = binding;
-    void this.startWatcher(binding, requestPermission || !sameBinding);
+    const shouldRequestPermission = requestPermission ||
+      this.permissionPromptedTrackerId !== binding.trackingSessionId;
+    if (shouldRequestPermission) this.permissionPromptedTrackerId = binding.trackingSessionId;
+    void this.startWatcher(binding, shouldRequestPermission);
   }
 
   pause(status: NativeTaskTrackingStatus): void {
@@ -106,9 +106,11 @@ export class NativeTaskGpsPublisher {
 
   dispose(): void {
     if (this.disposed) return;
-    this.disposed = true;
-    this.retire({ kind: "idle" });
+    this.stopGeneration(true);
+    this.binding = undefined;
+    this.permissionPromptedTrackerId = undefined;
     this.subscribers.clear();
+    this.disposed = true;
   }
 
   private async startWatcher(

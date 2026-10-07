@@ -28,6 +28,7 @@ function definitiveAuthorityFailure(error: Error): boolean {
 
 export class LiveMapRefreshOwner<T> {
   private active = false;
+  private automatic = true;
   private controller: AbortController | undefined;
   private data: T | null = null;
   private disposed = false;
@@ -48,7 +49,8 @@ export class LiveMapRefreshOwner<T> {
       this.clearTimer();
       return;
     }
-    if (this.visible) void this.request();
+    this.automatic = true;
+    if (this.visible) void this.request(false);
   }
 
   setVisible(visible: boolean): void {
@@ -59,13 +61,13 @@ export class LiveMapRefreshOwner<T> {
       this.clearTimer();
       return;
     }
-    if (this.active) void this.request();
+    if (this.active && this.automatic) void this.request(false);
   }
 
   refresh(): Promise<void> {
     if (this.disposed || !this.active || !this.visible) return Promise.resolve();
     this.clearTimer();
-    return this.request();
+    return this.request(true);
   }
 
   dispose(): void {
@@ -76,9 +78,14 @@ export class LiveMapRefreshOwner<T> {
     this.clearTimer();
   }
 
-  private request(): Promise<void> {
+  private request(manual: boolean): Promise<void> {
     if (this.inFlight !== undefined) return this.inFlight;
-    if (this.disposed || !this.active || !this.visible) return Promise.resolve();
+    if (
+      this.disposed ||
+      !this.active ||
+      !this.visible ||
+      (!manual && !this.automatic)
+    ) return Promise.resolve();
     const generation = ++this.generation;
     const controller = new AbortController();
     this.controller = controller;
@@ -102,6 +109,7 @@ export class LiveMapRefreshOwner<T> {
         this.clearTimeoutTimer();
         this.controller = undefined;
         this.failureCount = 0;
+        this.automatic = true;
         this.data = data;
         this.publish({ data, error: null, loading: false });
         this.schedule(liveMapPollDelayMs);
@@ -114,7 +122,7 @@ export class LiveMapRefreshOwner<T> {
         this.data = null;
         this.publish({ data: null, error, loading: false });
         if (definitiveAuthorityFailure(error)) {
-          this.active = false;
+          this.automatic = false;
           this.clearTimer();
         } else {
           this.scheduleTransientFailure();
@@ -135,10 +143,10 @@ export class LiveMapRefreshOwner<T> {
 
   private schedule(delay: number): void {
     this.clearTimer();
-    if (this.disposed || !this.active || !this.visible) return;
+    if (this.disposed || !this.active || !this.visible || !this.automatic) return;
     this.timer = setTimeout(() => {
       this.timer = undefined;
-      void this.request();
+      void this.request(false);
     }, delay);
   }
 
