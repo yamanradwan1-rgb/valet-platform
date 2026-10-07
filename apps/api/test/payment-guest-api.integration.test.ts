@@ -1,5 +1,8 @@
+import { randomBytes } from "node:crypto";
+
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
+import { GUEST_BROWSER_COOKIE } from "../src/modules/guest-access/guest-browser-transport";
 import {
   PaymentApiTestContext,
   type PaymentHttpResult,
@@ -37,6 +40,28 @@ function guestTip(token: string, body: unknown): Promise<PaymentHttpResult> {
     authorization: `Bearer ${token}`,
     body,
   });
+}
+
+async function browserCookie(fixture: PaymentFixture): Promise<string> {
+  const token = await context.guestToken(fixture);
+  await context.adminPool.query(
+    `UPDATE valet_sessions
+     SET customer_access_generation=1,customer_access_consumed_at=NULL
+     WHERE id=$1`,
+    [fixture.sessionId],
+  );
+  const enrollment = `vge1.${randomBytes(32).toString("base64url")}`;
+  const browser = `vgb1.${randomBytes(32).toString("base64url")}`;
+  await context.runtimePool.query("SELECT guest_browser_enroll($1,$2)", [
+    enrollment,
+    browser,
+  ]);
+  const exchanged = await context.runtimePool.query<{ result_code: string }>(
+    "SELECT result_code FROM guest_browser_exchange($1,$2,$3)",
+    [token, enrollment, browser],
+  );
+  expect(exchanged.rows[0]?.result_code).toBe("AUTHORIZED");
+  return `${GUEST_BROWSER_COOKIE}=${browser}`;
 }
 
 describe("VAL-008B production Guest Payment HTTP boundary", () => {
@@ -131,6 +156,28 @@ describe("VAL-008B production Guest Payment HTTP boundary", () => {
     expect(await context.payment(foreign.sessionId)).toMatchObject({
       tip_amount: "0.000",
     });
+  });
+
+  it("does not let a Browser Session select another visit through the path", async () => {
+    const owned = await paymentFixture();
+    const foreign = await paymentFixture();
+    const cookie = await browserCookie(owned);
+    const ownedRead = await context.request(
+      "GET",
+      `/v1/guest/valet-sessions/${owned.sessionId}/payment`,
+      { headers: { Cookie: cookie } },
+    );
+    expect(ownedRead.status).toBe(200);
+    const foreignRead = await context.request(
+      "GET",
+      `/v1/guest/valet-sessions/${foreign.sessionId}/payment`,
+      { headers: { Cookie: cookie } },
+    );
+    expect(foreignRead).toMatchObject({
+      body: { code: "GUEST_ACCESS_INVALID" },
+      status: 401,
+    });
+    expectNoStore(foreignRead);
   });
 
   it("rejects missing, malformed, and duplicate Guest Authorization", async () => {

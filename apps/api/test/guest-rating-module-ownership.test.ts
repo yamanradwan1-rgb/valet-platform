@@ -7,6 +7,10 @@ import {
 } from "../src/modules/guest-access/guest-access.controller";
 import { GuestAccessModule } from "../src/modules/guest-access/guest-access.module";
 import { GuestAccessService } from "../src/modules/guest-access/guest-access.service";
+import { GuestBrowserSessionController } from "../src/modules/guest-access/guest-browser-session.controller";
+import { GuestBrowserSessionService } from "../src/modules/guest-access/guest-browser-session.service";
+import { GuestAuthOriginPolicy } from "../src/modules/guest-access/guest-browser-transport";
+import { GuestCredentialAuthorizer } from "../src/modules/guest-access/guest-credential-authorizer";
 import { GuestRatingController } from "../src/modules/guest-access/guest-rating.controller";
 import { GuestRatingService } from "../src/modules/guest-access/guest-rating.service";
 
@@ -20,11 +24,20 @@ describe("MGT-BE-09 Guest Rating module ownership", () => {
       StaffGuestAccessController,
       GuestAccessController,
       GuestRatingController,
+      GuestBrowserSessionController,
     ]);
     expect(metadata(MODULE_METADATA.PROVIDERS)).toEqual([
       GuestAccessService,
+      GuestBrowserSessionService,
+      GuestAuthOriginPolicy,
+      GuestCredentialAuthorizer,
       GuestRatingService,
     ]);
-    expect(metadata(MODULE_METADATA.EXPORTS)).toEqual([GuestAccessService]);
+    expect(metadata(MODULE_METADATA.EXPORTS)).toEqual([
+      GuestAccessService,
+      GuestBrowserSessionService,
+      GuestAuthOriginPolicy,
+      GuestCredentialAuthorizer,
+    ]);
   });
 });

@@ -53,7 +53,9 @@ export interface RevokeGuestAccessResult {
 
 interface GuestAccessScope {
   state: string;
+  customer_access_consumed_at: Date | null;
   customer_access_expires_at: Date;
+  customer_access_generation: number;
   customer_access_revoked_at: Date | null;
   customer_access_token_hash: string;
   location_id: string;
@@ -191,7 +193,8 @@ async function lockSessionScope(
   const result = await transaction.query<GuestAccessScope>(
     `SELECT id::text AS valet_session_id, organization_id::text,
             location_id::text, state::text, customer_access_token_hash,
-            customer_access_expires_at, customer_access_revoked_at
+            customer_access_expires_at, customer_access_revoked_at,
+            customer_access_generation, customer_access_consumed_at
      FROM valet_sessions
      WHERE id = $1 AND organization_id = $2 AND location_id = $3
      FOR UPDATE`,
@@ -308,20 +311,35 @@ export function createIssueGuestAccessCommandExecutor(
       const expiresAt = new Date(
         operationTime.getTime() + guestAccessContract.lifetimeMilliseconds,
       );
+      const nextGeneration = isDisabledPlaceholder
+        ? 1
+        : scope.customer_access_generation + 1;
       const mutationResult = await transaction.query<{ expires_at: Date }>(
         `UPDATE valet_sessions
          SET customer_access_token_hash = $2,
              customer_access_expires_at = $4,
              customer_access_revoked_at = NULL,
+             customer_access_generation = $5,
+             customer_access_consumed_at = NULL,
              updated_at = $3
          WHERE id = $1
          RETURNING customer_access_expires_at AS expires_at`,
-        [scope.valet_session_id, tokenHash, operationTime, expiresAt],
+        [
+          scope.valet_session_id,
+          tokenHash,
+          operationTime,
+          expiresAt,
+          nextGeneration,
+        ],
       );
       const persistedExpiresAt = mutationResult.rows[0]?.expires_at;
       if (persistedExpiresAt === undefined) {
         throw new Error("Guest-access mutation returned no session.");
       }
+      await transaction.query(
+        `SELECT public.guest_browser_invalidate_for_session($1::uuid)`,
+        [scope.valet_session_id],
+      );
 
       await appendCustodyAuditEvent(
         transaction,
@@ -386,18 +404,24 @@ export function createRevokeGuestAccessCommandExecutor(
       }
 
       const operationTime = await serverTime(transaction);
+      const nextGeneration = scope.customer_access_generation + 1;
       const mutationResult = await transaction.query<{ revoked_at: Date }>(
         `UPDATE valet_sessions
          SET customer_access_revoked_at = $2,
+             customer_access_generation = $3,
              updated_at = $2
          WHERE id = $1
          RETURNING customer_access_revoked_at AS revoked_at`,
-        [scope.valet_session_id, operationTime],
+        [scope.valet_session_id, operationTime, nextGeneration],
       );
       const revokedAt = mutationResult.rows[0]?.revoked_at;
       if (revokedAt === undefined) {
         throw new Error("Guest-access revocation returned no session.");
       }
+      await transaction.query(
+        `SELECT public.guest_browser_invalidate_for_session($1::uuid)`,
+        [scope.valet_session_id],
+      );
 
       await appendCustodyAuditEvent(
         transaction,

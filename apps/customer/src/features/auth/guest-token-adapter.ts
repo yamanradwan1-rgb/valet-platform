@@ -5,9 +5,9 @@
  * `#guestToken=<43-character-base64url-token>`: read browser-only after
  * mount, validated against the exact token shape, immediately scrubbed from
  * the address bar via history.replaceState, and adopted only when safe
- * scrubbing succeeds. The credential stays memory-only; any full reload
- * after scrubbing intentionally loses access until the original link is
- * reopened or Staff reissues Guest Access.
+ * scrubbing succeeds. The credential stays memory-only and is used only as
+ * bootstrap material. When Browser Session enrollment is enabled, successful
+ * exchange replaces it with the server-authoritative HttpOnly cookie path.
  *
  * Malformed guest fragments are scrubbed and rejected (fail closed). A
  * scrubbing failure never adopts the token. No logging, no persistence.

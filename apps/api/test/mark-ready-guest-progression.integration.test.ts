@@ -22,6 +22,9 @@ import { AntiAbuseService } from "../src/modules/anti-abuse/anti-abuse.service";
 import { TrustedClientAddressResolver } from "../src/modules/anti-abuse/client-address";
 import { GuestAccessController } from "../src/modules/guest-access/guest-access.controller";
 import { GuestAccessService } from "../src/modules/guest-access/guest-access.service";
+import { GuestBrowserSessionService } from "../src/modules/guest-access/guest-browser-session.service";
+import { GuestAuthOriginPolicy } from "../src/modules/guest-access/guest-browser-transport";
+import { GuestCredentialAuthorizer } from "../src/modules/guest-access/guest-credential-authorizer";
 import { hashGuestAccessToken } from "../src/modules/valet-sessions/guest-access-command";
 import { CompleteHandoffTestContext } from "./complete-handoff-test-context";
 
@@ -36,6 +39,9 @@ let baseUrl: string;
     AntiAbuseKeyDeriver,
     AntiAbuseService,
     GuestAccessService,
+    GuestBrowserSessionService,
+    GuestAuthOriginPolicy,
+    GuestCredentialAuthorizer,
     TrustedClientAddressResolver,
     RequestIdMiddleware,
     { provide: APP_FILTER, useClass: ApiExceptionFilter },

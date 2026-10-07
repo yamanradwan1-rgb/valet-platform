@@ -927,6 +927,8 @@ model ValetSession {
   customerAccessTokenHash                 String            @unique(map: "valet_sessions_customer_access_token_hash_key") @map("customer_access_token_hash")
   customerAccessExpiresAt                 DateTime          @map("customer_access_expires_at") @db.Timestamptz(3)
   customerAccessRevokedAt                 DateTime?         @map("customer_access_revoked_at") @db.Timestamptz(3)
+  customerAccessGeneration                Int               @default(0) @map("customer_access_generation")
+  customerAccessConsumedAt                DateTime?         @map("customer_access_consumed_at") @db.Timestamptz(3)
   organizationId                          String            @map("organization_id") @db.Uuid
   locationId                              String            @map("location_id") @db.Uuid
   vehicleId                               String            @map("vehicle_id") @db.Uuid
@@ -981,6 +983,8 @@ model ValetSession {
   geofenceEvents              GeofenceEvent[]
   staffPushIntents            StaffPushIntent[]
   guestRatings                GuestRating[]
+  guestBrowserEnrollments     GuestBrowserEnrollment[]
+  guestBrowserSessions        GuestBrowserSession[]
 
   @@unique([organizationId, id], map: "valet_sessions_organization_id_id_key")
   @@unique([organizationId, locationId, id], map: "valet_sessions_organization_id_location_id_id_key")
@@ -990,6 +994,40 @@ model ValetSession {
   @@index([organizationId, customerId, createdAt(sort: Desc), id(sort: Desc)], map: "valet_sessions_organization_customer_created_at_id_idx")
   @@index([locationId, retrievalRequestedAt], map: "valet_sessions_location_id_retrieval_requested_at_idx")
   @@map("valet_sessions")
+}
+
+model GuestBrowserEnrollment {
+  id                      String   @id @default(uuid()) @db.Uuid
+  enrollmentTokenHash     String   @unique(map: "guest_browser_enrollments_enrollment_token_hash_key") @map("enrollment_token_hash")
+  browserSessionTokenHash String   @unique(map: "guest_browser_enrollments_browser_session_token_hash_key") @map("browser_session_token_hash")
+  createdAt               DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  expiresAt               DateTime @map("expires_at") @db.Timestamptz(3)
+  valetSessionId          String?  @map("valet_session_id") @db.Uuid
+  credentialGeneration    Int?     @map("credential_generation")
+  exchangedAt             DateTime? @map("exchanged_at") @db.Timestamptz(3)
+
+  valetSession   ValetSession?       @relation(fields: [valetSessionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  browserSession GuestBrowserSession?
+
+  @@index([expiresAt], map: "guest_browser_enrollments_expires_at_idx")
+  @@map("guest_browser_enrollments")
+}
+
+model GuestBrowserSession {
+  id                   String   @id @default(uuid()) @db.Uuid
+  valetSessionId       String   @map("valet_session_id") @db.Uuid
+  credentialGeneration Int      @map("credential_generation")
+  enrollmentId         String   @unique(map: "guest_browser_sessions_enrollment_id_key") @map("enrollment_id") @db.Uuid
+  tokenHash            String   @unique(map: "guest_browser_sessions_token_hash_key") @map("token_hash")
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  revokedAt            DateTime? @map("revoked_at") @db.Timestamptz(3)
+
+  valetSession ValetSession          @relation(fields: [valetSessionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  enrollment   GuestBrowserEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([valetSessionId, credentialGeneration], map: "guest_browser_sessions_session_generation_key")
+  @@index([valetSessionId, revokedAt], map: "guest_browser_sessions_session_revoked_idx")
+  @@map("guest_browser_sessions")
 }
 
 model GuestRating {

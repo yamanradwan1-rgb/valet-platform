@@ -71,7 +71,7 @@ The route is:
 POST /v1/guest/session/request-retrieval
 ```
 
-The route stays under the existing bearer-owned guest session namespace and accepts no session UUID as routing authority.
+The route stays under the Guest session namespace and accepts no session UUID as routing authority. DEC-064's T1 amendment owns the credential transport.
 
 No alternate guest Retrieval route is introduced by VAL-006B.
 
@@ -79,7 +79,7 @@ No alternate guest Retrieval route is introduced by VAL-006B.
 
 The request requires:
 
-- exactly one shape-valid existing Guest Access bearer in `Authorization`;
+- exactly one authorized Guest Access source: an unconsumed staged-rollout legacy bearer or the current Guest Browser Session cookie;
 - strict empty JSON body `{}`;
 - no query parameters;
 - existing bounded request-ID behavior;
@@ -87,7 +87,7 @@ The request requires:
 
 The guest does not supply ValetSession, Organization, Location, Customer, Task, RetrievalRequest, expected-version, actor, priority, KeySlot, Zone or Spot authority.
 
-All operational scope is derived from persisted state resolved through the bearer.
+All operational scope is derived from persisted state resolved through that credential. Mixed bearer/cookie authority fails closed, and post-COMPLETED Browser Session scope cannot invoke this operational mutation.
 
 ### 5. Guest authority remains session-bound
 

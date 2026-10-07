@@ -37,7 +37,7 @@ const isDev = process.env.NODE_ENV !== 'production';
 
 export function GuestAppRoot() {
   const { t } = useTranslation();
-  const { token, isTokenBootstrapComplete } = useGuestAuth();
+  const { client, isTokenBootstrapComplete } = useGuestAuth();
   const { session, isLoading, isNetworkError, isExpired, refreshSession } = useGuestSession();
   const retrieval = useRetrieval();
   const handoff = useHandoff();
@@ -143,7 +143,7 @@ export function GuestAppRoot() {
 
   // 4. Authoritative Route Resolution
   const screenId = resolveGuestScreenId({
-    hasToken: Boolean(token),
+    hasAuthority: Boolean(client),
     isTokenBootstrapComplete,
     isExpired,
     isNetworkError,

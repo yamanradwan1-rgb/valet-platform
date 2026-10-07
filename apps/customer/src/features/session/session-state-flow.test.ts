@@ -20,7 +20,7 @@ describe('Authoritative Guest State Machine & Production Router', () => {
     // Check-in states -> RECEIVED
     expect(
       resolveGuestScreenId({
-        hasToken: true,
+        hasAuthority: true,
         isExpired: false,
         isNetworkError: false,
         isLoading: false,
@@ -30,7 +30,7 @@ describe('Authoritative Guest State Machine & Production Router', () => {
 
     expect(
       resolveGuestScreenId({
-        hasToken: true,
+        hasAuthority: true,
         isExpired: false,
         isNetworkError: false,
         isLoading: false,
@@ -40,7 +40,7 @@ describe('Authoritative Guest State Machine & Production Router', () => {
 
     expect(
       resolveGuestScreenId({
-        hasToken: true,
+        hasAuthority: true,
         isExpired: false,
         isNetworkError: false,
         isLoading: false,
@@ -51,7 +51,7 @@ describe('Authoritative Guest State Machine & Production Router', () => {
     // PARKED -> PARKED
     expect(
       resolveGuestScreenId({
-        hasToken: true,
+        hasAuthority: true,
         isExpired: false,
         isNetworkError: false,
         isLoading: false,
@@ -62,7 +62,7 @@ describe('Authoritative Guest State Machine & Production Router', () => {
     // REQUESTED -> REQUESTED
     expect(
       resolveGuestScreenId({
-        hasToken: true,
+        hasAuthority: true,
         isExpired: false,
         isNetworkError: false,
         isLoading: false,
@@ -73,7 +73,7 @@ describe('Authoritative Guest State Machine & Production Router', () => {
     // RETRIEVING -> RETRIEVING
     expect(
       resolveGuestScreenId({
-        hasToken: true,
+        hasAuthority: true,
         isExpired: false,
         isNetworkError: false,
         isLoading: false,
@@ -84,7 +84,7 @@ describe('Authoritative Guest State Machine & Production Router', () => {
     // READY -> READY (never renders handoff proof)
     expect(
       resolveGuestScreenId({
-        hasToken: true,
+        hasAuthority: true,
         isExpired: false,
         isNetworkError: false,
         isLoading: false,
@@ -95,7 +95,7 @@ describe('Authoritative Guest State Machine & Production Router', () => {
     // HANDOFF_PENDING -> PIN or QR depending on active method
     expect(
       resolveGuestScreenId({
-        hasToken: true,
+        hasAuthority: true,
         isExpired: false,
         isNetworkError: false,
         isLoading: false,
@@ -106,7 +106,7 @@ describe('Authoritative Guest State Machine & Production Router', () => {
 
     expect(
       resolveGuestScreenId({
-        hasToken: true,
+        hasAuthority: true,
         isExpired: false,
         isNetworkError: false,
         isLoading: false,
@@ -118,7 +118,7 @@ describe('Authoritative Guest State Machine & Production Router', () => {
     // COMPLETED -> COMPLETED (terminal)
     expect(
       resolveGuestScreenId({
-        hasToken: true,
+        hasAuthority: true,
         isExpired: false,
         isNetworkError: false,
         isLoading: false,
@@ -131,7 +131,7 @@ describe('Authoritative Guest State Machine & Production Router', () => {
     // No token -> UNAVAILABLE
     expect(
       resolveGuestScreenId({
-        hasToken: false,
+        hasAuthority: false,
         isExpired: false,
         isNetworkError: false,
         isLoading: false,
@@ -142,7 +142,7 @@ describe('Authoritative Guest State Machine & Production Router', () => {
     // Expired -> UNAVAILABLE
     expect(
       resolveGuestScreenId({
-        hasToken: true,
+        hasAuthority: true,
         isExpired: true,
         isNetworkError: false,
         isLoading: false,
@@ -153,7 +153,7 @@ describe('Authoritative Guest State Machine & Production Router', () => {
     // Null session when not loading -> UNAVAILABLE
     expect(
       resolveGuestScreenId({
-        hasToken: true,
+        hasAuthority: true,
         isExpired: false,
         isNetworkError: false,
         isLoading: false,
@@ -164,7 +164,7 @@ describe('Authoritative Guest State Machine & Production Router', () => {
 
   it('READY state strictly cannot render handoff proof screens', () => {
     const screen = resolveGuestScreenId({
-      hasToken: true,
+      hasAuthority: true,
       isExpired: false,
       isNetworkError: false,
       isLoading: false,

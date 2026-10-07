@@ -12,6 +12,7 @@ import {
   type AntiAbuseReservation,
 } from "../anti-abuse/anti-abuse.service";
 import { GuestAccessService } from "../guest-access/guest-access.service";
+import type { GuestCredentialInput } from "../guest-access/guest-credential";
 import { GuestAccessError } from "../valet-sessions/guest-access-command";
 import { createAbortHandoffExecutor } from "./abort-handoff-command";
 import { HandoffError } from "./handoff-errors";
@@ -63,16 +64,16 @@ export class HandoffService {
 
   async issueGuestMaterial(
     reservation: AntiAbuseReservation,
-    rawToken: string,
+    credential: GuestCredentialInput,
     method: HandoffStandardMethod,
     rotate: boolean,
   ) {
     const outcome = await this.inTransaction(async (transaction) => {
-      const guestSession = await this.guestAccess.resolveAndLockInTransaction(
+      const resolved = await this.guestAccess.resolveAndLockCredentialInTransaction(
         transaction,
-        rawToken,
+        credential,
       );
-      if (guestSession === undefined) {
+      if (resolved === undefined) {
         await this.finalize(transaction, reservation, "COUNTED");
         return {
           error: new GuestAccessError("GUEST_ACCESS_INVALID"),
@@ -83,7 +84,7 @@ export class HandoffService {
         const result = await issueHandoffVerification(
           transaction,
           this.antiAbuse,
-          guestSession,
+          resolved.session,
           method,
           rotate,
         );

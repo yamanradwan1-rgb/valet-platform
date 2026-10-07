@@ -43,6 +43,7 @@ describe('GuestApiClient', () => {
       expect.objectContaining({
         method: 'GET',
         cache: 'no-store',
+        credentials: 'same-origin',
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${token}`,
@@ -180,5 +181,97 @@ describe('GuestApiClient', () => {
       expect(apiErr.isNetworkError).toBe(true);
       expect(apiErr.code).toBe('NETWORK_ERROR');
     }
+  });
+
+  it('enrolls without Authorization and exchanges with the bootstrap bearer', async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+
+    await client.enrollBrowserSession();
+    await client.exchangeBrowserSession();
+
+    expect(fetchSpy).toHaveBeenNthCalledWith(
+      1,
+      'http://test-server/api/v1/guest/browser-session/enroll',
+      expect.objectContaining({
+        method: 'POST',
+        credentials: 'same-origin',
+        body: '{}',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'x-vaylet-guest-session': 'v1',
+        },
+      }),
+    );
+    expect(fetchSpy).toHaveBeenNthCalledWith(
+      2,
+      'http://test-server/api/v1/guest/browser-session/exchange',
+      expect.objectContaining({
+        method: 'POST',
+        credentials: 'same-origin',
+        body: '{}',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'x-vaylet-guest-session': 'v1',
+        },
+      }),
+    );
+  });
+
+  it('uses cookie authority without Authorization and fences cookie mutations with CSRF', async () => {
+    const cookieClient = GuestApiClient.browserSession(customBaseUrl);
+    const session = {
+      readyAt: null,
+      valetSessionId: validUuid,
+      state: 'PARKED',
+      vehicle: { make: 'Porsche', model: 'Taycan', color: 'Blue' },
+    };
+    const requested = { ...session, state: 'REQUESTED' };
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(session), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(requested), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      );
+
+    await cookieClient.loadSession();
+    await cookieClient.requestRetrieval();
+
+    expect(fetchSpy).toHaveBeenNthCalledWith(
+      1,
+      'http://test-server/api/v1/guest/session',
+      expect.objectContaining({
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' },
+      }),
+    );
+    expect(fetchSpy).toHaveBeenNthCalledWith(
+      2,
+      'http://test-server/api/v1/guest/session/request-retrieval',
+      expect.objectContaining({
+        method: 'POST',
+        credentials: 'same-origin',
+        body: '{}',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'x-vaylet-guest-session': 'v1',
+        },
+      }),
+    );
   });
 });

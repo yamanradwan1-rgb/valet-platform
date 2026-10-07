@@ -17,6 +17,7 @@ import {
   type AntiAbuseReservation,
 } from "../anti-abuse/anti-abuse.service";
 import { GuestAccessService } from "../guest-access/guest-access.service";
+import type { GuestCredentialInput } from "../guest-access/guest-credential";
 import { GuestAccessError } from "../valet-sessions/guest-access-command";
 import { resolveEffectiveFinancialPolicy } from "./financial-policy-resolver";
 import { authorizeManagerFinancialMutation } from "./payment-authorization";
@@ -96,11 +97,11 @@ export class PaymentMutationService {
 
   async guestTip(
     reservation: AntiAbuseReservation,
-    rawToken: string,
+    credential: GuestCredentialInput,
     tipAmount: string,
   ): Promise<PaymentMutationProjection> {
     const result = await inPaymentTransaction(this.pool, (transaction) =>
-      this.guestTipInTransaction(transaction, reservation, rawToken, tipAmount),
+      this.guestTipInTransaction(transaction, reservation, credential, tipAmount),
     );
     if (result.kind === "INVALID_ACCESS") {
       throw new GuestAccessError("GUEST_ACCESS_INVALID");
@@ -146,19 +147,19 @@ export class PaymentMutationService {
   private async guestTipInTransaction(
     transaction: PostgresTransaction,
     reservation: AntiAbuseReservation,
-    rawToken: string,
+    credential: GuestCredentialInput,
     tipAmount: string,
   ): Promise<GuestResult> {
-    const session = await this.guestAccess.resolveAndLockInTransaction(
+    const resolved = await this.guestAccess.resolveAndLockCredentialInTransaction(
       transaction,
-      rawToken,
+      credential,
     );
-    if (session === undefined) {
+    if (resolved === undefined) {
       await this.finalize(transaction, reservation, "COUNTED");
       return { kind: "INVALID_ACCESS" };
     }
     try {
-      const context = await this.mutationContext(transaction, session, {
+      const context = await this.mutationContext(transaction, resolved.session, {
         actorClass: "GUEST",
         membershipId: null,
       });

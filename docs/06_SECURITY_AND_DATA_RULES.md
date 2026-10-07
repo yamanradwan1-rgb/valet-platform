@@ -316,21 +316,78 @@ Use:
 
 Never expose exact parking coordinates, internal employee-only data or key-slot identifiers to the Guest.
 
-Raw guest bearer tokens must not be stored in logs/audit metadata.
+Raw guest bearer, enrollment and Browser Session secrets and all corresponding
+verifier hashes must not be stored in logs/audit metadata/analytics/traces.
 
 The existence of hashed guest-access fields on ValetSession is a persistence foundation, not permission for check-in commands to manufacture, return, log, or audit raw bearer tokens. Guest issuance/authorization semantics remain a focused Phase 2 task.
 
 VAL-004E satisfies those required persistence fields with an interim disabled marker for a newly created session: no bearer credential or usable preimage is generated, the marker is both expired and revoked at the session creation timestamp, and neither the result nor the AuditEvent contains it. VAL-004F must replace that disabled state through its own secure issuance contract before any guest access is possible.
 
-VAL-004F replacement uses 256 bits of Node CSPRNG entropy encoded as unpadded base64url. Only the successful authorized issue/rotate result receives the raw bearer token, once. The database stores only `sha256:v1:` plus SHA-256 of the exact raw UTF-8 token string; no raw, reversible or encrypted token copy is persisted. The MVP credential expires 24 hours after the database-authoritative issue/rotation time.
+VAL-004F replacement uses 256 bits of Node CSPRNG entropy encoded as unpadded
+base64url. Only the successful authorized issue/rotate result receives the raw
+bearer token, once. The database stores only `sha256:v1:` plus SHA-256 of the
+exact raw UTF-8 token string; no raw, reversible or encrypted token copy is
+persisted. Its 24-hour expiry remains the bootstrap/staged-legacy boundary and
+does not terminate an already-exchanged active Browser Session.
 
-Issue/rotation/revocation require an active User, active same-Organization membership, explicit session-Location access and an operational employee/supervisor role. They lock the ValetSession row and atomically mutate the credential with one safe AuditEvent. Initial `ISSUE_OR_ROTATE` replaces the disabled marker and rotates only a real active credential. It cannot reactivate a real revoked credential: post-revocation access requires the separately explicit `REISSUE_REVOKED` intent and the exact persisted `revokedAt` value previously observed from revocation. This expected timestamp is only an optimistic concurrency token and grants no authorization; the normal authorized path still applies. The intent is rejected unless a real credential remains revoked at that exact timestamp. Row locking plus this comparison prevents stale ordinary rotation and stale explicit reissue from clearing or becoming valid because of a concurrent revocation. Revocation preserves the hash, sets server time, and repeated revocation returns the existing timestamp without another audit. Physical session state and version never change.
+Issue/rotation/revocation require an active User, active same-Organization
+membership, explicit session-Location access and an operational
+employee/supervisor role. They lock the ValetSession row and atomically mutate
+the credential with one safe AuditEvent. Initial `ISSUE_OR_ROTATE` replaces the
+disabled marker and rotates only a real active credential. It cannot reactivate
+a real revoked credential: post-revocation access requires the separately
+explicit `REISSUE_REVOKED` intent and exact persisted `revokedAt`. Rotation,
+reissue and first revocation advance the explicit Guest credential generation
+and invalidate Browser Sessions from the old generation before commit. Repeated
+revocation remains idempotent. Physical session state/version and handoff,
+Retrieval, financial and custody state are unchanged by credential lifecycle.
 
-Guest resolution accepts no Organization or Location input. It hashes the presented shape-valid token, requires the globally unique matching hash to be unrevoked and unexpired, and returns only session ID, public state, Vehicle make/model/color, `readyAt`, and the effective `guestVehicleReadyNotificationEnabled` presentation flag. Malformed, random, expired, revoked and rotated-old tokens share the same `GUEST_ACCESS_INVALID` code/message. No parking spot, key slot, membership/staff identity, internal Location/Organization, audit data, token/hash, GPS or exact parking location is returned.
+Guest resolution accepts no Organization or Location input. During staged
+rollout it accepts exactly one source: a shape-valid unconsumed legacy bearer or
+the current Guest Browser Session cookie. Browser authority is a separate
+high-entropy secret with only a versioned hash persisted, bound to the exact
+ValetSession and credential generation. Mixed bearer/cookie authority fails
+closed; authentication failure never falls back to another source. Active
+Browser Session authority is server-authoritative and independent of polling,
+process memory and the old bearer expiry. The cookie transport uses a 400-day
+`Max-Age`; this is a browser-persistence cap rather than server-side visit
+expiry, and loss/expiry of the cookie uses staff recovery/reissue. `COMPLETED` resolves only within the
+24-hour limited post-visit scope; `CANCELLED` never resolves. Public projections
+remain Guest-safe and exclude parking/key, staff, tenant, audit, GPS and all
+credential/verifier material.
 
-VAL-004I wires the narrow guest resolver only at `GET /v1/guest/session`. It accepts the raw credential exclusively as `Authorization: Bearer <token>` and returns the existing guest-safe result. Query, body, cookie, path and alternate-header token transport are not accepted. Missing, malformed, random, expired, revoked and rotated-old credentials remain indistinguishable.
+DEC-064 T1 retains `Authorization: Bearer <token>` solely for staged unexchanged
+legacy clients and one-time bootstrap exchange. Normal Browser Session requests
+use a same-origin host-only `__Host-` cookie with `Secure`, `HttpOnly`, `Path=/`,
+no `Domain` and `SameSite=Lax`. The original bearer is never stored in a cookie.
+Duplicate target cookies, duplicate bearer headers and mixed credential sources
+fail closed. Missing, malformed, random, expired/consumed, revoked and stale-
+generation credentials remain indistinguishable.
 
-VAL-004M protects that route with a 60-failure trusted-client-address rolling window and a separate 180-request shape-valid-token rolling window. Guest address reservations become `COUNTED` only for authentication failure and `IGNORED` for success or token-limit rejection. Guest data is returned only after resolution and address finalization commit atomically. Staff login separately enforces 30 syntactically valid attempts per trusted client address and five failed credentials per normalized identifier. Successful staff identifier finalization commits atomically with session issuance and `lastLoginAt`; unknown, wrong-password, disabled and unsupported-hash outcomes are non-disclosing counted failures.
+Pre-exchange enrollment mints independent enrollment and pending Browser Session
+secrets before any bearer is consumed and persists verifier hashes only. Exchange
+requires exact Customer Origin, strict JSON and a same-origin request header,
+locks the exact ValetSession before enrollment/session rows, and atomically binds
+the current generation. If the database commit succeeds but the exchange HTTP
+response is lost, that same browser already holds its pending Browser Session
+cookie and can reconcile/restore the committed session. A different enrollment
+cannot recover it. Fresh enrollment never adopts caller-supplied cookie values,
+preventing session fixation/enrollment replacement.
+
+Cookie-authenticated exchange, operational mutations and per-browser end-access
+require an exact configured public Customer Origin, strict content type and the
+same-origin request header. Wildcards, arbitrary reflected origins, Host and
+`X-Forwarded-Host` are not authority. SameSite is defense in depth rather than
+the sole CSRF control. Safe cookie-authenticated reads remain same-origin
+transport and do not convert request IDs or path/session inputs into authority.
+
+VAL-004M's existing 60-failure client-address and 180-request credential budgets
+remain unchanged in T1. The Browser Session secret supplies a durable
+credential identity to the same Guest limiter boundary; T3 owns later
+request-class budget/cadence redesign. Guest data is still returned only after
+resolution and address finalization are authoritative. New Browser enrollment
+remains rollout-disabled until the approved T3/T4 gates, while servers must
+continue resolving Browser Sessions that already exist.
 
 Limiter keys are versioned HMAC-SHA-256 values derived from a separate 32-byte secret with explicit scope separation. Raw/normalized email, raw/canonical address, guest bearer, password and Authorization never enter limiter persistence, AuditEvent or normal telemetry. Socket peer authority is used directly unless the immediate peer is inside an explicitly configured trusted CIDR; only then is one unambiguous `X-Forwarded-For` chain walked right-to-left. Limiter failure never falls back to unlimited access or process memory.
 
@@ -1018,7 +1075,7 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
   `{ rating: 1..5 }`, no query parameters and no-store response headers. The
   response contains only `valetSessionId`, `rating` and `ratedAt`. Session,
   Organization and Location are never caller-selected.
-- Rating reuses the current Guest Access bearer and the existing shared
+- Rating reuses the current Guest Access credential identity and the existing shared
   `v1:guest-client-address` and `v1:guest-token` DEC-024 anti-abuse scopes in the
   same authentication/finalization pattern. Missing, malformed, duplicate,
   unknown, expired and revoked Guest authority remains non-disclosing; an
@@ -1029,12 +1086,13 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
   and `ratedAt`; competing/different values cannot overwrite the first persisted
   fact and fail with the safe rating-conflict boundary.
 - Migration 42, `20260917004200_mgt_be_09_guest_rating`, keeps Guest Rating
-  behind a function-only ordinary-runtime write boundary. Runtime has no direct
-  table read or DML privilege and may execute only
-  `guest_rating_submit(text, integer)`; the migration-owned function has fixed
-  safe search path, PUBLIC execution is revoked, and the private immutable-row
-  helper is not runtime-executable. Table UPDATE/DELETE is also rejected by the
-  immutable-row trigger.
+  behind a function-only ordinary-runtime write boundary. T1 preserves that
+  model: runtime still has no direct rating-table read/DML privilege; the legacy
+  `guest_rating_submit(text, integer)` is forward-hardened to reject consumed
+  bootstraps, and a separate Browser Session rating function revalidates exact
+  current generation plus the 24-hour `COMPLETED` scope. Both are migration-
+  owner `SECURITY DEFINER` entry points with fixed safe search path and PUBLIC
+  execution revoked. The immutable-row trigger remains unchanged.
 - Guest Rating creates no tenant `AuditEvent`. The immutable `guest_ratings` row
   is the authoritative rating source. Its `rated_at` is submission/receipt time,
   not a replacement for the later Location-local analytics visit-period

@@ -8,6 +8,7 @@ import {
   type AntiAbuseReservation,
 } from "../anti-abuse/anti-abuse.service";
 import { GuestAccessService } from "../guest-access/guest-access.service";
+import type { GuestCredentialInput } from "../guest-access/guest-credential";
 import { GuestAccessError } from "../valet-sessions/guest-access-command";
 import { inPaymentTransaction } from "./payment-transaction";
 import { authorizeStaffPaymentProjection } from "./payment-projection-authorization";
@@ -34,21 +35,28 @@ export class PaymentProjectionService {
 
   async guest(
     reservation: AntiAbuseReservation,
-    rawToken: string,
+    credential: GuestCredentialInput,
     valetSessionId: string,
   ) {
     const result = await inPaymentTransaction(
       this.pool,
       async (transaction) => {
-        const scope = await this.guestAccess.resolveAndLockInTransaction(
+        const resolved = await this.guestAccess.resolveAndLockCredentialInTransaction(
           transaction,
-          rawToken,
+          credential,
+          true,
         );
-        if (scope === undefined || scope.valetSessionId !== valetSessionId) {
+        if (
+          resolved === undefined ||
+          resolved.session.valetSessionId !== valetSessionId
+        ) {
           await this.finalize(transaction, reservation, "COUNTED");
           return null;
         }
-        const projection = await loadSafePaymentProjection(transaction, scope);
+        const projection = await loadSafePaymentProjection(
+          transaction,
+          resolved.session,
+        );
         await this.finalize(transaction, reservation, "IGNORED");
         return projection;
       },

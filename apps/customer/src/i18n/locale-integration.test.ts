@@ -98,7 +98,7 @@ describe('i18n Localization Integration & Parameter Interpolation', () => {
 
     const route = (session: GuestSafeSession | null, method: 'PICKUP_CODE' | 'DYNAMIC_QR' = 'PICKUP_CODE') =>
       resolveGuestScreenId({
-        hasToken: true,
+        hasAuthority: true,
         isExpired: false,
         isNetworkError: false,
         isLoading: false,

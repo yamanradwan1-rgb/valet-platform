@@ -55,8 +55,13 @@ release predicate. Payment absence is represented as `payment: null`. The
 current Validation is included without historical Validation rows. Refunds of
 all statuses are ordered by `requested_at`, then internal id.
 
-The Guest route requires the existing bearer Guest access for the exact path
-session, retains the existing anti-abuse and no-store boundary, and returns only:
+The Guest route requires the current authorized Guest Access context for the
+exact path session, retains the existing anti-abuse and no-store boundary, and
+returns only the narrow projection below. During DEC-064 T1 rollout that
+authority is exactly one unconsumed legacy bearer or current Guest Browser
+Session; mixed authority fails closed. A valid 24-hour post-`COMPLETED` Browser
+Session may use this read-only projection as approved receipt behavior, but it
+grants no financial mutation or release authority:
 
 - `releaseRequiresPayment`, `releaseSatisfied`;
 - Payment payer, service/tip/due/paid amounts, current Validation mode/amount,

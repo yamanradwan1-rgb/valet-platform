@@ -1,4 +1,6 @@
 import {
+  GUEST_BROWSER_CSRF_HEADER,
+  GUEST_BROWSER_CSRF_VALUE,
   guestHandoffMaterialResponseSchema,
   guestSafeSessionResponseSchema,
   guestSessionReadResponseSchema,
@@ -16,6 +18,8 @@ interface RequestOptions {
   method?: "GET" | "POST" | undefined;
   body?: unknown;
   signal?: AbortSignal | undefined;
+  omitAuthorization?: boolean | undefined;
+  requireBrowserCsrf?: boolean | undefined;
 }
 
 const customerSessionReadSchema = guestSessionReadResponseSchema.extend({
@@ -26,31 +30,53 @@ const customerSessionReadSchema = guestSessionReadResponseSchema.extend({
 
 export class GuestApiClient {
   private readonly baseUrl: string;
-  private readonly bearerToken: string;
+  private readonly bearerToken: string | null;
 
-  constructor(bearerToken: string, customBaseUrl?: string | undefined) {
+  constructor(
+    bearerToken: string | null,
+    customBaseUrl?: string | undefined,
+  ) {
     this.bearerToken = bearerToken;
     this.baseUrl = customBaseUrl ?? getGuestApiBaseUrl();
+  }
+
+  static browserSession(customBaseUrl?: string | undefined): GuestApiClient {
+    return new GuestApiClient(null, customBaseUrl);
   }
 
   private async request<T>(
     path: string,
     options: RequestOptions = {},
   ): Promise<T> {
-    const { method = "GET", body, signal } = options;
+    const {
+      method = "GET",
+      body,
+      signal,
+      omitAuthorization = false,
+      requireBrowserCsrf = false,
+    } = options;
     const url = `${this.baseUrl}${path}`;
 
     const headers: Record<string, string> = {
       Accept: "application/json",
-      Authorization: `Bearer ${this.bearerToken}`,
     };
+    if (!omitAuthorization && this.bearerToken !== null) {
+      headers.Authorization = `Bearer ${this.bearerToken}`;
+    }
     if (body !== undefined) {
       headers["Content-Type"] = "application/json";
+    }
+    if (
+      requireBrowserCsrf ||
+      (method === "POST" && this.bearerToken === null)
+    ) {
+      headers[GUEST_BROWSER_CSRF_HEADER] = GUEST_BROWSER_CSRF_VALUE;
     }
 
     const fetchInit: RequestInit = {
       method,
       cache: "no-store",
+      credentials: "same-origin",
       headers,
     };
     if (signal !== undefined) {
@@ -97,6 +123,32 @@ export class GuestApiClient {
     }
 
     return payload as T;
+  }
+
+  async enrollBrowserSession(
+    signal?: AbortSignal | undefined,
+  ): Promise<void> {
+    await this.request<void>("/browser-session/enroll", {
+      method: "POST",
+      body: {},
+      signal,
+      omitAuthorization: true,
+      requireBrowserCsrf: true,
+    });
+  }
+
+  async exchangeBrowserSession(
+    signal?: AbortSignal | undefined,
+  ): Promise<void> {
+    if (this.bearerToken === null) {
+      throw new Error("Guest browser-session exchange requires a bootstrap bearer.");
+    }
+    await this.request<void>("/browser-session/exchange", {
+      method: "POST",
+      body: {},
+      signal,
+      requireBrowserCsrf: true,
+    });
   }
 
   async loadSession(

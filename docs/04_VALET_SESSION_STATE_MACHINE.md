@@ -474,8 +474,10 @@ version CAS, guarded state/invariants and atomic safe cancellation audit. Condit
 and Vehicle child history remains. DEC-097 cancellation never means completed Check-In,
 release, handoff or successful visit, and has no outgoing edge. No hard deletion,
 automatic expiry, override or hidden lifecycle flag is authorized. Unknown outcomes
-require exact authorized status reconciliation before explicit retry. Guest bearers
-cannot resolve CANCELLED; stored credentials are retained rather than auto-revoked.
+require exact authorized status reconciliation before explicit retry. Neither a
+Guest bootstrap bearer nor a Browser Session can resolve CANCELLED; stored
+credential history may be retained for integrity/cleanup but grants no post-visit
+Guest scope.
 See `docs/decisions/DEC-097_INCOMPLETE_CHECK_IN_CANCELLATION.md` for the full contract.
 
 ## API/domain command rule

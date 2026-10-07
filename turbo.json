@@ -7,7 +7,11 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "env": ["API_ORIGIN", "NEXT_PUBLIC_CUSTOMER_APP_ORIGIN"],
+      "env": [
+        "API_ORIGIN",
+        "NEXT_PUBLIC_CUSTOMER_APP_ORIGIN",
+        "NEXT_PUBLIC_GUEST_BROWSER_SESSION_ENROLLMENT_ENABLED"
+      ],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "test": {

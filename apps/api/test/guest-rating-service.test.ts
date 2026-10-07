@@ -42,7 +42,9 @@ describe("GuestRatingService second-stage Guest authorization", () => {
     const finalizeInTransaction = vi.fn().mockResolvedValue(undefined);
     const antiAbuse = { finalizeInTransaction } as unknown as AntiAbuseService;
     const guestAccess = {
-      resolveAndLockInTransaction: vi.fn().mockResolvedValue(session),
+      resolveAndLockCredentialInTransaction: vi
+        .fn()
+        .mockResolvedValue({ scope: "POST_VISIT", session }),
     } as unknown as GuestAccessService;
     const service = new GuestRatingService(pool, antiAbuse, guestAccess);
     const reservation = {

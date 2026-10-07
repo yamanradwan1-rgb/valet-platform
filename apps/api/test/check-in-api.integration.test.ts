@@ -48,6 +48,10 @@ import {
   StaffGuestAccessController,
 } from "../src/modules/guest-access/guest-access.controller";
 import { GuestAccessService } from "../src/modules/guest-access/guest-access.service";
+import { GuestBrowserSessionService } from "../src/modules/guest-access/guest-browser-session.service";
+import { GuestAuthOriginPolicy } from "../src/modules/guest-access/guest-browser-transport";
+import { GuestCredentialAuthorizer } from "../src/modules/guest-access/guest-credential-authorizer";
+import { databaseUrlFor, runtimeDatabaseUrlFor } from "./database-url-test-utils";
 
 interface Fixture {
   locationId: string;
@@ -126,6 +130,9 @@ let testRuntimeUrl: string;
   providers: [
     CheckInApiService,
     GuestAccessService,
+    GuestBrowserSessionService,
+    GuestAuthOriginPolicy,
+    GuestCredentialAuthorizer,
     ApiOperationRunner,
     CheckInOperationRunner,
     AntiAbuseKeyDeriver,
@@ -171,20 +178,6 @@ class TestCheckInModule implements NestModule {
         GuestAccessController,
       );
   }
-}
-
-function connectionUrlFor(databaseName: string): string {
-  const url = new URL(adminDatabaseUrl);
-  url.pathname = `/${databaseName}`;
-  return url.toString();
-}
-
-function runtimeUrlFor(databaseName: string): string {
-  const url = new URL(adminDatabaseUrl);
-  url.pathname = `/${databaseName}`;
-  url.username = runtimeRole;
-  url.password = runtimePassword;
-  return url.toString();
 }
 
 function redactDatabaseDetails(value: string): string {
@@ -420,8 +413,13 @@ beforeAll(async () => {
   process.env.ANTI_ABUSE_HMAC_SECRET_B64URL =
     randomBytes(32).toString("base64url");
   process.env.ANTI_ABUSE_TRUSTED_PROXY_CIDRS = "";
-  testMigrationUrl = connectionUrlFor(testDatabaseName);
-  testRuntimeUrl = runtimeUrlFor(testDatabaseName);
+  testMigrationUrl = databaseUrlFor(adminDatabaseUrl, testDatabaseName);
+  testRuntimeUrl = runtimeDatabaseUrlFor(
+    adminDatabaseUrl,
+    testDatabaseName,
+    runtimeRole,
+    runtimePassword,
+  );
   const bootstrapPool = new Pool({ connectionString: adminDatabaseUrl });
   try {
     await bootstrapPool.query(`CREATE DATABASE "${testDatabaseName}"`);

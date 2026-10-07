@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  Headers,
   Param,
   Patch,
   Query,
@@ -21,17 +20,7 @@ import {
   setNoStoreResponseHeaders,
   type HeaderResponse,
 } from "../../common/http/no-store-response";
-import {
-  AntiAbuseRateLimitError,
-  AntiAbuseService,
-  AntiAbuseUnavailableError,
-  type AntiAbuseReservation,
-} from "../anti-abuse/anti-abuse.service";
-import {
-  ClientAddressUnavailableError,
-  TrustedClientAddressResolver,
-} from "../anti-abuse/client-address";
-import { GuestAccessError } from "../valet-sessions/guest-access-command";
+import { GuestCredentialAuthorizer } from "../guest-access/guest-credential-authorizer";
 import {
   guestPaymentHttpProjection,
   guestPaymentProjectionHttp,
@@ -41,36 +30,18 @@ import {
 import { PaymentMutationService } from "./payment-mutation.service";
 import { PaymentProjectionService } from "./payment-projection.service";
 
-const bearerPattern = /^Bearer ([A-Za-z0-9_-]{43})$/;
-
-function guestBearer(
-  request: ApiRequest,
-  authorization: string | undefined,
-): string | undefined {
-  const headers = request.rawHeaders;
-  if (headers === undefined || headers.length % 2 !== 0) return undefined;
-  let count = 0;
-  for (let index = 0; index < headers.length; index += 2) {
-    if (headers[index]?.toLowerCase() === "authorization") count += 1;
-  }
-  if (count !== 1) return undefined;
-  return bearerPattern.exec(authorization ?? "")?.[1];
-}
-
 @Controller("v1/guest")
 export class GuestPaymentController {
   constructor(
     private readonly service: PaymentMutationService,
     private readonly projections: PaymentProjectionService,
     private readonly runner: ApiOperationRunner,
-    private readonly antiAbuse: AntiAbuseService,
-    private readonly clientAddresses: TrustedClientAddressResolver,
+    private readonly authorizer: GuestCredentialAuthorizer,
   ) {}
 
   @Patch("payment/tip")
   tip(
     @Req() request: ApiRequest,
-    @Headers("authorization") authorization: string | undefined,
     @Body() body: unknown,
     @Query() query: unknown,
     @Res({ passthrough: true }) response: HeaderResponse,
@@ -82,11 +53,11 @@ export class GuestPaymentController {
       }
       const input = parsePaymentBody(paymentTipMutationRequestSchema, body);
       return guestPaymentHttpProjection(
-        await this.authorizeGuestOperation(
+        await this.authorizer.authorize(
           request,
-          authorization,
-          (reservation, rawToken) =>
-            this.service.guestTip(reservation, rawToken, input.tipAmount),
+          { mutation: true },
+          (reservation, credential) =>
+            this.service.guestTip(reservation, credential, input.tipAmount),
         ),
       );
     });
@@ -95,7 +66,6 @@ export class GuestPaymentController {
   @Get("valet-sessions/:sessionId/payment")
   payment(
     @Req() request: ApiRequest,
-    @Headers("authorization") authorization: string | undefined,
     @Param("sessionId") sessionId: string,
     @Query() query: unknown,
     @Res({ passthrough: true }) response: HeaderResponse,
@@ -110,68 +80,15 @@ export class GuestPaymentController {
         }
         const targetSessionId = parsePaymentUuid(sessionId);
         return guestPaymentProjectionHttp(
-          await this.authorizeGuestOperation(
+          await this.authorizer.authorize(
             request,
-            authorization,
-            (reservation, rawToken) =>
-              this.projections.guest(reservation, rawToken, targetSessionId),
+            { mutation: false },
+            (reservation, credential) =>
+              this.projections.guest(reservation, credential, targetSessionId),
           ),
         );
       },
     );
   }
 
-  private async authorizeGuestOperation<T>(
-    request: ApiRequest,
-    authorization: string | undefined,
-    operation: (
-      reservation: AntiAbuseReservation,
-      rawToken: string,
-    ) => Promise<T>,
-  ): Promise<T> {
-    let clientAddress: string;
-    try {
-      clientAddress = this.clientAddresses.resolve(request);
-    } catch (error) {
-      if (error instanceof ClientAddressUnavailableError) {
-        throw new AntiAbuseUnavailableError();
-      }
-      throw error;
-    }
-    const addressKey = this.antiAbuse.key(
-      "v1:guest-client-address",
-      clientAddress,
-    );
-    const rawToken = guestBearer(request, authorization);
-    const tokenKey =
-      rawToken === undefined
-        ? undefined
-        : this.antiAbuse.key("v1:guest-token", rawToken);
-    const addressDecision = await this.antiAbuse.reserve(addressKey, 60);
-    if (!addressDecision.allowed) {
-      const tokenRetry =
-        tokenKey === undefined
-          ? undefined
-          : await this.antiAbuse.blocker(tokenKey, 180);
-      throw new AntiAbuseRateLimitError(
-        "GUEST_ACCESS_RATE_LIMITED",
-        Math.max(addressDecision.retryAfter, tokenRetry ?? 0),
-      );
-    }
-    if (tokenKey !== undefined) {
-      const tokenDecision = await this.antiAbuse.count(tokenKey, 180);
-      if (!tokenDecision.allowed) {
-        await this.antiAbuse.finalize(addressDecision.reservation, "IGNORED");
-        throw new AntiAbuseRateLimitError(
-          "GUEST_ACCESS_RATE_LIMITED",
-          tokenDecision.retryAfter,
-        );
-      }
-    }
-    if (rawToken === undefined) {
-      await this.antiAbuse.finalize(addressDecision.reservation, "COUNTED");
-      throw new GuestAccessError("GUEST_ACCESS_INVALID");
-    }
-    return operation(addressDecision.reservation, rawToken);
-  }
 }

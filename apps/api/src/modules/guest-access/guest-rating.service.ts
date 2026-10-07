@@ -17,6 +17,7 @@ import {
   type GuestRatingCommandResult,
 } from "./guest-rating-command";
 import { GuestAccessService } from "./guest-access.service";
+import type { GuestCredentialInput } from "./guest-credential";
 
 type GuestRatingOperationResult =
   | { readonly kind: "INVALID_ACCESS" }
@@ -33,11 +34,11 @@ export class GuestRatingService {
 
   async submit(
     reservation: AntiAbuseReservation,
-    rawToken: string,
+    credential: GuestCredentialInput,
     rating: number,
   ) {
     const result = await this.inTransaction((transaction) =>
-      this.executeInTransaction(transaction, reservation, rawToken, rating),
+      this.executeInTransaction(transaction, reservation, credential, rating),
     );
     if (result.kind === "INVALID_ACCESS") {
       throw new GuestAccessError("GUEST_ACCESS_INVALID");
@@ -53,19 +54,26 @@ export class GuestRatingService {
   private async executeInTransaction(
     transaction: PostgresTransaction,
     reservation: AntiAbuseReservation,
-    rawToken: string,
+    credential: GuestCredentialInput,
     rating: number,
   ): Promise<GuestRatingOperationResult> {
-    const session = await this.guestAccess.resolveAndLockInTransaction(
-      transaction,
-      rawToken,
-    );
-    if (session === undefined) {
+    const resolved =
+      await this.guestAccess.resolveAndLockCredentialInTransaction(
+        transaction,
+        credential,
+        true,
+      );
+    if (resolved === undefined) {
       await this.finalize(transaction, reservation, "COUNTED");
       return { kind: "INVALID_ACCESS" };
     }
     try {
-      const result = await submitGuestRating(transaction, rawToken, session, rating);
+      const result = await submitGuestRating(
+        transaction,
+        credential,
+        resolved.session,
+        rating,
+      );
       await this.finalize(transaction, reservation, "IGNORED");
       return { kind: "SUCCESS", rating: result };
     } catch (error) {
@@ -85,7 +93,11 @@ export class GuestRatingService {
     state: "COUNTED" | "IGNORED",
   ): Promise<void> {
     try {
-      await this.antiAbuse.finalizeInTransaction(transaction, reservation, state);
+      await this.antiAbuse.finalizeInTransaction(
+        transaction,
+        reservation,
+        state,
+      );
     } catch {
       throw new AntiAbuseUnavailableError();
     }

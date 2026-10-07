@@ -28,21 +28,14 @@ import {
   type HeaderResponse,
 } from "../../common/http/no-store-response";
 import type { ApiRequest } from "../../common/http/api-request";
-import {
-  AntiAbuseRateLimitError,
-  AntiAbuseService,
-  AntiAbuseUnavailableError,
-} from "../anti-abuse/anti-abuse.service";
-import {
-  ClientAddressUnavailableError,
-  TrustedClientAddressResolver,
-} from "../anti-abuse/client-address";
+import { AntiAbuseService } from "../anti-abuse/anti-abuse.service";
 import {
   STAFF_PRINCIPAL_RESOLVER,
   type StaffPrincipalResolver,
 } from "../auth/staff-principal";
 import { GuestAccessError } from "../valet-sessions/guest-access-command";
 import { GuestAccessService } from "./guest-access.service";
+import { GuestCredentialAuthorizer } from "./guest-credential-authorizer";
 
 interface ParseSchema<T> {
   safeParse(
@@ -52,7 +45,6 @@ interface ParseSchema<T> {
 
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const bearerPattern = /^Bearer ([A-Za-z0-9_-]{43})$/;
 
 function parse<T>(schema: ParseSchema<T>, value: unknown): T {
   const parsed = schema.safeParse(value);
@@ -67,23 +59,6 @@ function parseAbsentOrEmptyBody(body: unknown): void {
 function parseUuid(value: string): string {
   if (!uuidPattern.test(value)) throw new ApiTransportValidationError();
   return value;
-}
-
-function shapeValidGuestBearer(
-  request: ApiRequest,
-  value: string | undefined,
-): string | undefined {
-  const rawHeaders = request.rawHeaders;
-  if (rawHeaders === undefined || rawHeaders.length % 2 !== 0) return undefined;
-  let authorizationCount = 0;
-  for (let index = 0; index < rawHeaders.length; index += 2) {
-    if (rawHeaders[index]?.toLowerCase() === "authorization") {
-      authorizationCount += 1;
-    }
-  }
-  if (authorizationCount !== 1) return undefined;
-  const match = typeof value === "string" ? bearerPattern.exec(value) : null;
-  return match?.[1];
 }
 
 function iso(value: Date): string {
@@ -186,78 +161,43 @@ export class GuestAccessController {
     private readonly service: GuestAccessService,
     private readonly runner: ApiOperationRunner,
     private readonly antiAbuse: AntiAbuseService,
-    private readonly clientAddresses: TrustedClientAddressResolver,
+    private readonly authorizer: GuestCredentialAuthorizer,
   ) {}
 
   @Get("session")
   async getSession(
     @Req() request: ApiRequest,
-    @Headers("authorization") authorization: string | undefined,
     @Query() query: unknown,
     @Res({ passthrough: true }) response: HeaderResponse,
   ) {
     setNoStoreResponseHeaders(response);
     return this.runner.run("GUEST_SESSION_READ", request, async () => {
       parse(emptyRequestSchema, query ?? {});
-      let clientAddress: string;
-      try {
-        clientAddress = this.clientAddresses.resolve(request);
-      } catch (error) {
-        if (error instanceof ClientAddressUnavailableError) {
-          throw new AntiAbuseUnavailableError();
-        }
-        throw error;
-      }
-      const addressKey = this.antiAbuse.key(
-        "v1:guest-client-address",
-        clientAddress,
-      );
-      const rawToken = shapeValidGuestBearer(request, authorization);
-      const tokenKey =
-        rawToken === undefined
-          ? undefined
-          : this.antiAbuse.key("v1:guest-token", rawToken);
-      const addressDecision = await this.antiAbuse.reserve(addressKey, 60);
-      if (!addressDecision.allowed) {
-        const tokenRetry =
-          tokenKey === undefined
-            ? undefined
-            : await this.antiAbuse.blocker(tokenKey, 180);
-        throw new AntiAbuseRateLimitError(
-          "GUEST_ACCESS_RATE_LIMITED",
-          Math.max(addressDecision.retryAfter, tokenRetry ?? 0),
-        );
-      }
-      if (tokenKey !== undefined) {
-        const tokenDecision = await this.antiAbuse.count(tokenKey, 180);
-        if (!tokenDecision.allowed) {
-          await this.antiAbuse.finalize(addressDecision.reservation, "IGNORED");
-          throw new AntiAbuseRateLimitError(
-            "GUEST_ACCESS_RATE_LIMITED",
-            tokenDecision.retryAfter,
+      return this.authorizer.authorize(
+        request,
+        { mutation: false },
+        async (reservation, credential) => {
+          const result = await this.antiAbuse.transaction(
+            async (transaction) => {
+              const resolved =
+                await this.service.resolveCredentialInTransaction(
+                  transaction,
+                  credential,
+                );
+              await this.antiAbuse.finalizeInTransaction(
+                transaction,
+                reservation,
+                resolved === undefined ? "COUNTED" : "IGNORED",
+              );
+              return resolved;
+            },
           );
-        }
-      }
-      if (rawToken === undefined) {
-        await this.antiAbuse.finalize(addressDecision.reservation, "COUNTED");
-        throw new GuestAccessError("GUEST_ACCESS_INVALID");
-      }
-      const result = await this.antiAbuse.transaction(async (transaction) => {
-        const resolved = await this.service.resolveInTransaction(
-          transaction,
-          rawToken,
-        );
-        await this.antiAbuse.finalizeInTransaction(
-          transaction,
-          addressDecision.reservation,
-          resolved === undefined ? "COUNTED" : "IGNORED",
-        );
-        return resolved;
-      });
-      if (result === undefined) {
-        throw new GuestAccessError("GUEST_ACCESS_INVALID");
-      }
-      return guestSessionReadResponseSchema.parse(result);
+          if (result === undefined) {
+            throw new GuestAccessError("GUEST_ACCESS_INVALID");
+          }
+          return guestSessionReadResponseSchema.parse(result.session);
+        },
+      );
     });
   }
 }

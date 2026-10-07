@@ -968,6 +968,8 @@ id
 customer_access_token_hash
 customer_access_expires_at
 customer_access_revoked_at nullable
+customer_access_generation
+customer_access_consumed_at nullable
 organization_id
 location_id
 vehicle_id
@@ -1002,13 +1004,54 @@ updated_at
 
 Customer-access rules:
 
-- Customer link secret is cryptographically random and unguessable.
+- Customer link secret is cryptographically random and unguessable and is
+  transient bootstrap material after DEC-064 T1.
 - Never persist the raw bearer token used in the customer URL.
 - Store only a cryptographic hash in `customer_access_token_hash`.
 - `customer_access_token_hash` unique.
-- `customer_access_expires_at` required; exact lifetime is defined by the customer-access implementation task.
+- `customer_access_expires_at` remains the temporary bootstrap/legacy-bearer
+  lifetime and does not limit an already-exchanged active Browser Session.
 - `customer_access_revoked_at` supports explicit revocation.
+- `customer_access_generation` is the explicit serialized credential generation.
+  Initial real bearer issuance starts generation 1; rotate/reissue/revoke advance
+  the generation under the ValetSession lock. Browser Sessions are bound to one
+  exact generation, so stale generations cannot regain authority.
+- `customer_access_consumed_at` records successful one-time Browser Session
+  bootstrap exchange. A consumed bearer cannot resolve through the staged legacy
+  compatibility path.
 - Raw customer access tokens must never be logged or placed in audit metadata.
+
+### guest_browser_enrollments / guest_browser_sessions
+
+DEC-064 T1 adds durable Browser Session continuity without storing any raw Guest
+credential. `guest_browser_enrollments` stores the server-side verifier state for
+one short-lived pre-exchange browser enrollment and its independently minted
+pending Browser Session verifier. `guest_browser_sessions` stores only the
+authorized Browser Session verifier plus its exact ValetSession and credential
+generation binding.
+
+Rules:
+
+- enrollment and Browser Session secrets use independent high-entropy values;
+- only versioned cryptographic verifier hashes are persisted;
+- enrollment has a short database-authored expiry and is not Guest authority;
+- successful exchange locks the exact ValetSession before enrollment/session
+  rows, consumes the current bearer generation, and binds one Browser Session;
+- `(valet_session_id, credential_generation)` permits one primary Browser
+  Session for that visit generation while same-browser tabs share its cookie;
+- Browser Session lookup is backed by a unique verifier index and never scans;
+- active Browser Session authority derives from the persisted non-terminal
+  ValetSession plus current generation and revocation state, not a fixed 24-hour
+  server TTL or polling activity;
+- after `COMPLETED`, Browser Session authority is limited to 24 hours from
+  `completed_at` and only approved safe read/rating/receipt operations;
+- `CANCELLED` never resolves through Browser Session authority;
+- staff generation rotate/reissue/revoke invalidates Browser Sessions from the
+  prior generation; per-browser end-access revokes only that Browser Session;
+- ordinary runtime receives no broad direct Browser Session/enrollment table
+  mutation or verifier-read privilege. Lifecycle and rating authorization use
+  focused migration-owner `SECURITY DEFINER` functions with fixed safe
+  `search_path`, PUBLIC execution denied, and narrowly granted runtime EXECUTE.
 
 Canonical state contract aligned to Blueprint v1.0:
 
@@ -2334,13 +2377,17 @@ database-authored rating-write time. An immutable-row trigger rejects UPDATE and
 DELETE even for a caller that otherwise reaches the table.
 
 Ordinary runtime receives no direct `SELECT`, `INSERT`, `UPDATE`, `DELETE` or
-`TRUNCATE` privilege on `guest_ratings`. Its only rating-write authority is
-`EXECUTE` on migration-owner `guest_rating_submit(text, integer)`, a fixed
-`search_path = pg_catalog, public` `SECURITY DEFINER` function; PUBLIC and the
-private mutation-rejection helper receive no execute authority. The function
-resolves the current unrevoked/unexpired Guest bearer, locks its ValetSession,
-requires `state = COMPLETED` with `completed_at`, and derives Organization and
-Location from that row. An existing equal value returns the same persisted row
+`TRUNCATE` privilege on `guest_ratings`. Migration 42's legacy
+`guest_rating_submit(text, integer)` remains available during staged rollout for
+an unconsumed current bearer and is forward-hardened by T1 so a consumed bearer
+cannot authorize rating. T1 adds a separate Browser Session rating entry point.
+Both are migration-owner `SECURITY DEFINER` functions with fixed
+`search_path = pg_catalog, public`; PUBLIC and the private mutation-rejection
+helper receive no execute authority. Each function derives and locks the exact
+ValetSession, requires `state = COMPLETED` with non-null `completed_at`, and the
+Browser Session path additionally requires current generation, no revocation and
+`completed_at + 24 hours > database time`. Organization and Location are always
+derived from that row. An existing equal value returns the same persisted row
 and original `rated_at`; an existing different value returns conflict and never
 overwrites. The rating write appends no `AuditEvent`.
 

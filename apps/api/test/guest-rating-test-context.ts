@@ -21,6 +21,9 @@ import { AntiAbuseKeyDeriver } from "../src/modules/anti-abuse/anti-abuse-key";
 import { AntiAbuseService } from "../src/modules/anti-abuse/anti-abuse.service";
 import { TrustedClientAddressResolver } from "../src/modules/anti-abuse/client-address";
 import { GuestAccessService } from "../src/modules/guest-access/guest-access.service";
+import { GuestBrowserSessionService } from "../src/modules/guest-access/guest-browser-session.service";
+import { GuestAuthOriginPolicy } from "../src/modules/guest-access/guest-browser-transport";
+import { GuestCredentialAuthorizer } from "../src/modules/guest-access/guest-credential-authorizer";
 import { GuestRatingController } from "../src/modules/guest-access/guest-rating.controller";
 import { GuestRatingService } from "../src/modules/guest-access/guest-rating.service";
 import { hashGuestAccessToken } from "../src/modules/valet-sessions/guest-access-command";
@@ -50,6 +53,9 @@ export class GuestRatingTestContext extends CompleteHandoffTestContext {
         AntiAbuseKeyDeriver,
         AntiAbuseService,
         GuestAccessService,
+        GuestBrowserSessionService,
+        GuestAuthOriginPolicy,
+        GuestCredentialAuthorizer,
         GuestRatingService,
         TrustedClientAddressResolver,
         RequestIdMiddleware,

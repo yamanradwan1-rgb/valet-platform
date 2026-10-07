@@ -51,7 +51,7 @@ describe('Production Guest UI Invariants and Security Behavior', () => {
   it('HANDOFF_PENDING routes correctly for real Pickup Code material and Dynamic QR payloads', async () => {
     // 1. PIN handoff route
     const pinScreen = resolveGuestScreenId({
-      hasToken: true,
+      hasAuthority: true,
       isExpired: false,
       isNetworkError: false,
       isLoading: false,
@@ -62,7 +62,7 @@ describe('Production Guest UI Invariants and Security Behavior', () => {
 
     // 2. Dynamic QR route
     const qrScreen = resolveGuestScreenId({
-      hasToken: true,
+      hasAuthority: true,
       isExpired: false,
       isNetworkError: false,
       isLoading: false,
@@ -97,7 +97,7 @@ describe('Production Guest UI Invariants and Security Behavior', () => {
 
   it('COMPLETED state is terminal and routes to COMPLETED screen without fallback', () => {
     const screen = resolveGuestScreenId({
-      hasToken: true,
+      hasAuthority: true,
       isExpired: false,
       isNetworkError: false,
       isLoading: false,
@@ -108,7 +108,7 @@ describe('Production Guest UI Invariants and Security Behavior', () => {
 
   it('verifies demo UI cannot run when no valid credentials exist in live mode', () => {
     const unauthenticatedScreen = resolveGuestScreenId({
-      hasToken: false,
+      hasAuthority: false,
       isExpired: false,
       isNetworkError: false,
       isLoading: false,

@@ -2291,7 +2291,7 @@ Date: 2026-08-13
 Decision:
 VAL-006B implements exactly one guest-originated `request-retrieval` command. A winning first request atomically moves the authoritative ValetSession `PARKED -> REQUESTED`, sets server-authored `retrieval_requested_at`, creates one `RetrievalRequest(status = OPEN)`, one unassigned `Task(task_type = RETRIEVAL, status = QUEUED)`, one `DispatchEvent(QUEUED)` and one `AuditEvent(RETRIEVAL_REQUESTED)`. Coherent repeated/stale guest presses are non-mutating HTTP 200 current-progression reads; inconsistent partial lifecycle fails closed.
 
-The canonical route is `POST /v1/guest/session/request-retrieval` with a strict empty JSON body. Session/tenant/location/customer/task/version authority is never accepted from guest input. The route reuses the existing Guest Access bearer and the shared DEC-024 guest address/token anti-abuse scopes and quotas. Customer persistence remains optional: migration 21 changes only `retrieval_requests_requester_consistency_check` so a `CUSTOMER`-originated request may have nullable `requested_by_customer_id` while STAFF requester semantics and existing tenant-safe foreign keys remain unchanged. No synthetic Customer is created.
+The canonical route is `POST /v1/guest/session/request-retrieval` with a strict empty JSON body. Session/tenant/location/customer/task/version authority is never accepted from guest input. Under the DEC-064 T1 amendment the route accepts exactly one authorized Guest Access source: an unconsumed staged-rollout legacy bearer or the current active-scope Guest Browser Session; mixed authority and post-`COMPLETED` scope fail closed. Existing DEC-024 Guest anti-abuse budgets remain unchanged. Customer persistence remains optional: migration 21 changes only `retrieval_requests_requester_consistency_check` so a `CUSTOMER`-originated request may have nullable `requested_by_customer_id` while STAFF requester semantics and existing tenant-safe foreign keys remain unchanged. No synthetic Customer is created.
 
 Retrieval business ownership lives in `apps/api/src/modules/retrieval/`. Guest Access retains credential/authentication ownership; Retrieval may depend one-way on a narrow Guest Access resolution boundary. The Phase-3 PARKING-specific queue command must not be reused, wrapped, spoofed or weakened for Retrieval. Shared Task/Dispatch schema and invariants remain authoritative; implementation may reuse a genuinely generic narrow Dispatch persistence primitive or add focused Retrieval queue persistence without creating a second dispatch system.
 
@@ -2308,12 +2308,16 @@ Status: Accepted
 Date: 2026-08-13
 
 Decision:
-VAL-006F implements explicit staff-owned `READY -> HANDOFF_PENDING`, guest-bearer
-Standard proof issuance/rotation, separate staff pickup-code and Dynamic-QR
+VAL-006F implements explicit staff-owned `READY -> HANDOFF_PENDING`, Guest
+Access-authorized Standard proof issuance/rotation, separate staff pickup-code and Dynamic-QR
 verification commands, actively shifted same-Location `VALET_SUPERVISOR`-only
 override while already `HANDOFF_PENDING`, and reasoned owner/supervisor abort
 back to `READY`. Verification does not release the vehicle; Task remains
 `IN_PROGRESS` and RetrievalRequest remains `ACCEPTED`.
+
+The DEC-064 T1 amendment changes only Guest credential transport: staged
+unconsumed bearer or current active-scope Browser Session, exactly one source.
+Post-`COMPLETED` Browser Session scope cannot issue or rotate handoff proof.
 
 Typed handoff policy is Company default -> nullable Location override with
 `PICKUP_CODE | DYNAMIC_QR | EITHER` and Company default `EITHER`. Pickup code
@@ -2365,10 +2369,12 @@ Status: Accepted
 Date: 2026-08-14
 
 Decision:
-VAL-006H adds Guest bearer-owned pre-start cancellation at
+VAL-006H adds Guest Access-owned pre-start cancellation at
 `POST /v1/guest/session/cancel-retrieval` with a strict empty body and the same
 Guest Access, shared anti-abuse, request-ID and no-store boundary as guest
-Retrieval request. It is valid only for Session `REQUESTED`, one OPEN
+Retrieval request. DEC-064 T1 permits exactly one unconsumed legacy bearer or
+current active-scope Browser Session and rejects mixed/post-completion authority.
+It is valid only for Session `REQUESTED`, one OPEN
 RetrievalRequest and one RETRIEVAL Task in `QUEUED`, `ASSIGNED` or `ACCEPTED`.
 
 One session-first locked transaction changes the Request and Task to
@@ -2956,8 +2962,10 @@ state fails closed with `FINANCIAL_RELEASE_NOT_SATISFIED`; Refund state never
 changes the predicate.
 
 Read-only Guest and staff session-Payment routes expose narrow purpose-specific
-projections. Guest access remains bearer-owned, exact-session, anti-abuse, and
-no-store. Staff access permits Location Manager without a Shift and Employee or
+projections. Guest access remains exact-session, anti-abuse, and no-store. Under
+DEC-064 T1 it accepts exactly one staged unconsumed bearer or current Browser
+Session, and the 24-hour post-`COMPLETED` Browser Session scope may use only this
+approved read-only receipt projection. Staff access permits Location Manager without a Shift and Employee or
 Supervisor only with their own active exact-Location Shift; ORG_ADMIN is denied.
 Provider, correlation, reason, authorizer, idempotency, operation/event, tenant,
 and audit internals remain private. No schema, migration, privilege, dependency,
@@ -3171,24 +3179,36 @@ Status: Accepted
 Date: 2026-08-23
 
 Decision:
-The production one-time Guest browser entry transport is exactly
-`#guestToken=<43-character-base64url-token>` appended to the canonical
-Customer application origin. The fragment is read browser-only after mount,
-validated against the exact token shape, immediately scrubbed with
-`history.replaceState`, and adopted only when safe scrubbing succeeds.
-Malformed guest fragments are scrubbed and rejected; scrubbing failure fails
-closed; unrelated hashes are untouched. The raw token and its derived URL are
-memory-only inside the mounted Customer flow — never persisted or logged —
-and a reload after scrubbing intentionally loses access until the original
-link is reopened/rescanned or Staff reissues.
+The production one-time Guest browser entry transport remains exactly
+`#guestToken=<43-character-base64url-token>` appended to the canonical Customer
+application origin. The fragment is read browser-only after mount, validated,
+immediately scrubbed with `history.replaceState`, and adopted only when safe
+scrubbing succeeds. The raw bearer remains transient bootstrap material and is
+never persisted/logged. The Owner-approved 2026-10-07 T1 amendment then creates
+a server-minted pre-exchange browser enrollment, exchanges the bearer once under
+ValetSession/generation serialization, and establishes a distinct high-entropy
+hash-only Guest Browser Session carried by a host-only `__Host-`, `Secure`,
+`HttpOnly`, `Path=/`, `SameSite=Lax` cookie with no Domain attribute.
+
+The enrollment/pending Browser Session cookie exists before the consuming
+exchange, so the same browser can restore/reconcile after a committed exchange
+whose HTTP response is lost while a different browser cannot. One primary
+Browser Session is allowed per visit generation; same-browser tabs share it.
+Staff rotate/reissue/revoke advances or invalidates the credential generation
+and old Browser Sessions. Active-visit Browser authority is persisted and has no
+fixed 24-hour server expiry/polling dependency. `COMPLETED` retains only a
+24-hour safe read/rating/receipt scope; `CANCELLED` has none. During rollout an
+unexchanged legacy bearer remains compatible until consumed/expired/revoked,
+but a request may present exactly one credential source and never falls back
+from failed cookie authority to a bearer. T1 leaves DEC-024 quotas/cadence
+unchanged and keeps new enrollment rollout-disabled until T3/T4 production gates.
 
 Every Employee shareable surface (QR, copied link, dev/test Open Guest App)
 builds from one centrally validated canonical origin,
 `NEXT_PUBLIC_CUSTOMER_APP_ORIGIN` (absolute clean origin; production HTTPS;
 development localhost HTTP allowed; missing/malformed fails closed). This
-transport changes no ValetSession/Task lifecycle state, no schema, and no
-existing guest command semantics; mutations remain online-only under
-DEC-063.
+transport changes no physical ValetSession/Task, Retrieval, Handoff, Financial
+or Custody semantics; mutations remain online-only under DEC-063.
 
 Full binding contract:
 `docs/decisions/DEC-064_GUEST_BROWSER_ENTRY_TRANSPORT.md`
@@ -3485,7 +3505,7 @@ Date: 2026-08-29
 Decision:
 Issue #192 MVP adds exactly two foreground in-app operational notifications without creating a general notification platform. A genuinely new guest retrieval request may notify eligible Employee users only after the canonical transaction creates a new unassigned `QUEUED` `RETRIEVAL` Task; the stable presentation identity is the Task ID. The Guest/Customer dashboard may notify only after the first authoritative `RETRIEVING -> READY` Mark Ready transition; the stable presentation identity is `ValetSession.id + ready_at`.
 
-Employee recipients reuse the existing persisted exact-Location queue/Shift authorization boundary: active User, active membership and Organization/Location, explicit Location access, `VALET_EMPLOYEE` or `VALET_SUPERVISOR`, and an ACTIVE Shift at that exact Location. Guest presentation remains scoped only through the existing bearer-authorized GuestAccess session boundary. Notification presentation grants no domain authority.
+Employee recipients reuse the existing persisted exact-Location queue/Shift authorization boundary: active User, active membership and Organization/Location, explicit Location access, `VALET_EMPLOYEE` or `VALET_SUPERVISOR`, and an ACTIVE Shift at that exact Location. Guest presentation remains scoped only through the DEC-064-authorized Guest Access session boundary; Browser Session restore may survive reload while notification presentation state still baselines from canonical current state. Notification presentation grants no domain authority.
 
 The selected MVP transport is the existing five-second canonical polling/refetch in Employee and Guest applications with client transition detection and baseline/dedupe semantics. No SSE, WebSocket, event bus, notification endpoint, or dedicated notification persistence is added. Existing Task/Dispatch/RetrievalRequest/ValetSession/Audit state remains authoritative, the external SMS/WhatsApp/Email `notifications` table is not reused, and missed presentation signals recover from canonical persisted state.
 
@@ -4008,6 +4028,12 @@ Guest rating is 1–5, once per completed visit, guest-only and idempotent; staf
 cannot alter it. Returning Contact replaces Repeat Guest and means only that a
 normalized contact appeared on a prior completed authorized-scope visit, not
 that the same person or owner was proven.
+
+DEC-064 T1 preserves exact-visit rating authorization through either an
+unconsumed staged legacy bearer or the current Guest Browser Session. Browser
+Session rating exists only within the 24-hour `COMPLETED` post-visit scope and
+must pass the same function-only least-privilege database authorization;
+`CANCELLED` has no rating scope.
 
 Full contract:
 `docs/decisions/DEC-091_GUEST_RATING_AND_RETURNING_CONTACT.md`.

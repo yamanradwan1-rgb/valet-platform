@@ -10,6 +10,7 @@ import React, {
 } from 'react';
 
 import { GuestApiClient } from '../../lib/api/guest-api-client';
+import { GuestApiError } from '../../lib/api/api-error';
 import { extractGuestFragmentToken } from './guest-token-adapter';
 
 interface GuestAuthContextValue {
@@ -23,7 +24,44 @@ const GuestAuthContext = createContext<GuestAuthContextValue | null>(null);
 
 interface GuestTokenBootstrapState {
   readonly token: string | null;
+  readonly client: GuestApiClient | null;
   readonly isComplete: boolean;
+}
+
+interface GuestAuthBootstrapResult {
+  readonly token: string | null;
+  readonly client: GuestApiClient;
+}
+
+function isAmbiguousExchangeFailure(error: unknown): boolean {
+  return (
+    error instanceof GuestApiError &&
+    (error.isNetworkError || (error.status >= 500 && error.status <= 599))
+  );
+}
+
+export async function bootstrapGuestAuthTransport(
+  fragmentToken: string | null,
+  enrollmentEnabled: boolean,
+): Promise<GuestAuthBootstrapResult> {
+  if (fragmentToken === null) {
+    return { token: null, client: GuestApiClient.browserSession() };
+  }
+
+  if (!enrollmentEnabled) {
+    return { token: fragmentToken, client: new GuestApiClient(fragmentToken) };
+  }
+
+  const bootstrapClient = new GuestApiClient(fragmentToken);
+  await bootstrapClient.enrollBrowserSession();
+  try {
+    await bootstrapClient.exchangeBrowserSession();
+  } catch (error) {
+    if (!isAmbiguousExchangeFailure(error)) throw error;
+    await bootstrapClient.exchangeBrowserSession();
+  }
+
+  return { token: null, client: GuestApiClient.browserSession() };
 }
 
 export function GuestAuthProvider({
@@ -35,6 +73,10 @@ export function GuestAuthProvider({
 }) {
   const [bootstrap, setBootstrap] = useState<GuestTokenBootstrapState>(() => ({
     token: initialToken ?? null,
+    client:
+      initialToken === undefined || initialToken === null
+        ? null
+        : new GuestApiClient(initialToken),
     isComplete: initialToken !== undefined,
   }));
 
@@ -42,12 +84,22 @@ export function GuestAuthProvider({
     if (initialToken !== undefined) return;
 
     let isActive = true;
-    queueMicrotask(() => {
+    queueMicrotask(async () => {
       if (!isActive) return;
-      setBootstrap({
-        token: extractGuestFragmentToken(),
-        isComplete: true,
-      });
+      const fragmentToken = extractGuestFragmentToken();
+      const enrollmentEnabled =
+        process.env.NEXT_PUBLIC_GUEST_BROWSER_SESSION_ENROLLMENT_ENABLED === 'true';
+      try {
+        const result = await bootstrapGuestAuthTransport(
+          fragmentToken,
+          enrollmentEnabled,
+        );
+        if (!isActive) return;
+        setBootstrap({ ...result, isComplete: true });
+      } catch {
+        if (!isActive) return;
+        setBootstrap({ token: fragmentToken, client: null, isComplete: true });
+      }
     });
 
     return () => {
@@ -56,15 +108,18 @@ export function GuestAuthProvider({
   }, [initialToken]);
 
   const setToken = useCallback((token: string | null) => {
-    setBootstrap({ token, isComplete: true });
+    setBootstrap({
+      token,
+      client: token === null ? null : new GuestApiClient(token),
+      isComplete: true,
+    });
   }, []);
 
-  const { token, isComplete: isTokenBootstrapComplete } = bootstrap;
-
-  const client = useMemo(() => {
-    if (!token) return null;
-    return new GuestApiClient(token);
-  }, [token]);
+  const {
+    token,
+    client,
+    isComplete: isTokenBootstrapComplete,
+  } = bootstrap;
 
   const value = useMemo(
     () => ({

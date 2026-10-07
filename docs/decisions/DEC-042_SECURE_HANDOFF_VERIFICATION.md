@@ -69,9 +69,12 @@ Standard initiation and verification require:
 The Task projection, not `ValetSession.current_assignee_membership_id`, remains
 canonical operational ownership.
 
-Guest issuance and rotation require the existing shape-valid Guest Access
-bearer for the same ValetSession and never accept session, tenant, Location,
-Task, membership or version authority from the request.
+Guest issuance and rotation require the current authorized Guest Access context
+for the same ValetSession and active-visit scope. During DEC-064 T1 rollout that
+context is exactly one unconsumed legacy bearer or one current Guest Browser
+Session; mixed authority fails closed. The request never supplies session,
+tenant, Location, Task, membership or version authority. The 24-hour
+post-`COMPLETED` Browser Session scope cannot issue or rotate proof.
 
 Supervisor override is allowed only to an actively shifted, explicitly
 Location-authorized `VALET_SUPERVISOR` at the exact session Location. It does not

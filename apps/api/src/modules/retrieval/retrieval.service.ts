@@ -11,6 +11,7 @@ import {
   type AntiAbuseReservation,
 } from "../anti-abuse/anti-abuse.service";
 import { GuestAccessService } from "../guest-access/guest-access.service";
+import type { GuestCredentialInput } from "../guest-access/guest-credential";
 import { StaffPushOperationalPolicy } from "../staff-push/staff-push-operational-policy";
 import { GuestAccessError } from "../valet-sessions/guest-access-command";
 import type { GuestSafeSession } from "../valet-sessions/guest-safe-session";
@@ -64,11 +65,11 @@ export class RetrievalService {
 
   async requestGuestRetrieval(
     reservation: AntiAbuseReservation,
-    rawToken: string,
+    credential: GuestCredentialInput,
   ): Promise<GuestSafeSession> {
     return this.executeGuestOperation(
       reservation,
-      rawToken,
+      credential,
       (transaction, session) =>
         requestGuestRetrieval(
           transaction,
@@ -81,22 +82,22 @@ export class RetrievalService {
 
   async cancelGuestRetrieval(
     reservation: AntiAbuseReservation,
-    rawToken: string,
+    credential: GuestCredentialInput,
   ): Promise<GuestSafeSession> {
     return this.executeGuestOperation(
       reservation,
-      rawToken,
+      credential,
       cancelGuestRetrieval,
     );
   }
 
   private async executeGuestOperation(
     reservation: AntiAbuseReservation,
-    rawToken: string,
+    credential: GuestCredentialInput,
     operation: GuestRetrievalOperation,
   ): Promise<GuestSafeSession> {
     const result = await this.inTransaction((transaction) =>
-      this.executeInTransaction(transaction, reservation, rawToken, operation),
+      this.executeInTransaction(transaction, reservation, credential, operation),
     );
     if (result.kind === "INVALID_ACCESS") {
       throw new GuestAccessError("GUEST_ACCESS_INVALID");
@@ -108,19 +109,19 @@ export class RetrievalService {
   private async executeInTransaction(
     transaction: PostgresTransaction,
     reservation: AntiAbuseReservation,
-    rawToken: string,
+    credential: GuestCredentialInput,
     operation: GuestRetrievalOperation,
   ): Promise<GuestOperationResult> {
-    const session = await this.guestAccess.resolveAndLockInTransaction(
+    const resolved = await this.guestAccess.resolveAndLockCredentialInTransaction(
       transaction,
-      rawToken,
+      credential,
     );
-    if (session === undefined) {
+    if (resolved === undefined) {
       await this.finalize(transaction, reservation, "COUNTED");
       return { kind: "INVALID_ACCESS" };
     }
     try {
-      const result = await operation(transaction, session);
+      const result = await operation(transaction, resolved.session);
       await this.finalize(transaction, reservation, "IGNORED");
       return { kind: "SUCCESS", session: guestSafeSession(result) };
     } catch (error) {

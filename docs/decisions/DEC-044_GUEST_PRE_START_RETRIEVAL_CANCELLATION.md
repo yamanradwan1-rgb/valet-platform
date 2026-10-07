@@ -25,9 +25,11 @@ The canonical route is:
 POST /v1/guest/session/cancel-retrieval
 ```
 
-Cancellation is owned by the existing Guest Access bearer for its own
-ValetSession. The request body is a strict empty JSON object and no session UUID
-is accepted as guest routing authority.
+Cancellation is owned by the current authorized Guest Access context for its
+own ValetSession. During DEC-064 T1 rollout that context is exactly one
+unconsumed legacy bearer or one current Guest Browser Session. The request body
+is a strict empty JSON object and no session UUID is accepted as guest routing
+authority. Post-`COMPLETED` Browser Session scope cannot cancel Retrieval.
 
 The command accepts no client-supplied Organization, Location, Customer,
 ValetSession, Task, RetrievalRequest, membership, assignee, expected version,
@@ -35,8 +37,8 @@ timestamp, reason, role, KeySlot, parking Spot or Zone authority.
 
 The route reuses the existing Guest Access authentication and durable DEC-024
 guest anti-abuse boundary used by `request-retrieval`, including exactly one
-Authorization bearer shape, safe invalid-guest behavior, shared guest address
-and token quotas, existing request-ID behavior, and `Cache-Control: no-store`.
+credential source, safe invalid-guest behavior, unchanged guest address/token
+budgets, existing request-ID behavior, and `Cache-Control: no-store`.
 
 Guest is not an OrganizationMembership. Guest-originated cancellation keeps
 AuditEvent and DispatchEvent actor membership null.

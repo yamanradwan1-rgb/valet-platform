@@ -21,7 +21,6 @@ import {
   AntiAbuseService,
   AntiAbuseUnavailableError,
 } from "../src/modules/anti-abuse/anti-abuse.service";
-import { TrustedClientAddressResolver } from "../src/modules/anti-abuse/client-address";
 import {
   STAFF_PRINCIPAL_RESOLVER,
   type StaffPrincipalResolver,
@@ -31,6 +30,7 @@ import {
   StaffGuestAccessController,
 } from "../src/modules/guest-access/guest-access.controller";
 import { GuestAccessService } from "../src/modules/guest-access/guest-access.service";
+import { guestAuthorizerTestProviders } from "./guest-authorizer-test-providers";
 
 const sessionId = randomUUID();
 const rawToken = "A".repeat(43);
@@ -53,10 +53,10 @@ const service = {
     revoked = true;
     return { revokedAt: now, valetSessionId: sessionId };
   },
-  async resolveInTransaction() {
+  async resolveCredentialInTransaction() {
     if (guestMode === "UNEXPECTED") throw new Error("test failure");
     if (guestMode === "INVALID" || revoked) return undefined;
-    return {
+    const session = {
       branding: { displayName: "Guest Safe", primaryColor: "#176BFF" },
       guestVehicleReadyNotificationEnabled: true,
       readyAt: null,
@@ -64,6 +64,7 @@ const service = {
       valetSessionId: sessionId,
       vehicle: { color: "Black", make: "Toyota", model: "Camry" },
     };
+    return { scope: "ACTIVE" as const, session };
   },
 };
 
@@ -110,11 +111,8 @@ const principal: StaffPrincipalResolver = {
     ApiOperationRunner,
     RequestIdMiddleware,
     { provide: GuestAccessService, useValue: service },
+    ...guestAuthorizerTestProviders,
     { provide: AntiAbuseService, useValue: antiAbuse },
-    {
-      provide: TrustedClientAddressResolver,
-      useValue: { resolve: () => "127.0.0.1" },
-    },
     { provide: STAFF_PRINCIPAL_RESOLVER, useValue: principal },
     { provide: MONOTONIC_CLOCK, useValue: { now: () => 1 } },
     { provide: OPERATION_OBSERVER, useValue: { observe: () => undefined } },

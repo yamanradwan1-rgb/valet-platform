@@ -2,6 +2,7 @@
 
 Status: Accepted
 Date: 2026-08-23
+Amended: 2026-10-07 — Owner-approved Guest Browser Session continuity (T1)
 Task: VUI-009A — Employee Guest Access and Production Guest Entry
 
 ## Context
@@ -41,11 +42,11 @@ render deterministic after the recent hydration stabilization work.
    closed). Malformed guest fragments are scrubbed and rejected. Unrelated
    hash fragments are ignored and left untouched.
 
-5. The raw token and its derived URL are memory-only inside the mounted
-   Customer flow. They must never be written to localStorage, sessionStorage,
-   IndexedDB, cookies, or Service Worker storage, and never logged. A full
-   page reload after scrubbing intentionally loses access until the original
-   link is reopened/rescanned or Staff reissues Guest Access.
+5. The raw bootstrap token and its derived URL are memory-only inside the
+   mounted Customer flow. They must never be written to localStorage,
+   sessionStorage, IndexedDB, cookies, Service Worker storage, analytics,
+   logs, traces, AuditEvent, BroadcastChannel or an offline queue. It is
+   bootstrap material only and is discarded after successful exchange.
 
 6. The Employee side builds every shareable surface (QR, copied link, dev/test
    Open Guest App) from one canonical origin configuration,
@@ -55,26 +56,94 @@ render deterministic after the recent hydration stabilization work.
    development may use localhost HTTP. No production host is hard-coded.
 
 7. This transport changes no ValetSession lifecycle state, Task/Dispatch
-   state, database schema, or existing issue/reissue/revoke command
-   semantics. Guest Access mutations remain online-only under DEC-063.
+   state or existing Retrieval/Handoff/Financial/Custody semantics. Guest
+   Access mutations remain online-only under DEC-063.
+
+### 2026-10-07 T1 continuity amendment
+
+The Project Owner approved U-01 through U-07 in
+`docs/GUEST_APP_PRODUCTION_READINESS_IMPLEMENTATION_PLAN.md`. Those decisions
+supersede only the earlier memory-only post-entry continuity limitation and the
+assumption that the fragment bearer remains the browser's normal authority.
+
+8. After fragment scrubbing, the Customer establishes a server-minted opaque
+   pre-exchange browser enrollment binding and performs one retry-safe exchange
+   of the transient bearer. The exchange is serialized against the exact
+   persisted ValetSession and current Guest credential generation. Successful
+   exchange consumes that bootstrap generation for legacy bearer use.
+
+9. Browser authority after exchange is a distinct high-entropy opaque Guest
+   Browser Session. Persistence contains only versioned verifier hashes. Browser
+   authentication uses a same-origin host-only `__Host-` cookie with `Secure`,
+   `HttpOnly`, `Path=/`, no `Domain`, and explicit `SameSite=Lax`. The original
+   Guest bearer is never stored in that cookie.
+
+10. Enrollment establishes the browser-owned pending credential before the
+    consuming exchange. If the exchange commits and its HTTP response is lost,
+    the same enrollment can reconcile the already-authorized Browser Session;
+    a different enrollment cannot. A fresh enrollment never adopts caller-
+    supplied session material, so the protocol does not create a session-
+    fixation or browser-swap path.
+
+11. One primary Browser Session is permitted per ValetSession credential
+    generation. Tabs sharing the same browser cookie share that authority. A
+    second browser/device cannot silently join the visit; staff reissue is the
+    transfer mechanism. IP addresses and browser/device fingerprints are not
+    authentication bindings.
+
+12. Staff rotate/reissue/revoke remains the authoritative generation boundary.
+    A generation change invalidates Browser Sessions derived from the previous
+    generation. Per-browser end-access may revoke only that Browser Session.
+    None of these credential actions verifies/consumes handoff proof, releases
+    the vehicle, creates Retrieval work or changes custody.
+
+13. A valid Browser Session for a non-terminal active visit has no fixed 24-hour
+    server expiry and does not depend on polling, process memory or one API/
+    Customer process instance. The browser cookie uses a 400-day `Max-Age` as a
+    transport persistence cap; it is not server-side Guest authority expiry.
+    Cleared/expired browser storage uses the approved staff recovery/reissue
+    path rather than changing the persisted active-visit rule.
+
+14. `COMPLETED` retains only a 24-hour post-visit Browser Session scope measured
+    from authoritative `completed_at`. That scope permits safe completed-session
+    reads, DEC-091 rating and explicitly approved receipt reads only. It cannot
+    request/cancel Retrieval, issue/rotate handoff proof, change tips or other
+    financial terms, restart work, reopen custody or release a vehicle.
+    `CANCELLED` has no post-visit Guest scope.
+
+15. During staged rollout, an unexchanged legacy client may continue to present
+    the current 43-character bearer until that credential is consumed, expires,
+    rotates or is revoked. A business request presents exactly one authority
+    source: legacy bearer or Browser Session cookie. Mixed sources fail closed;
+    failed Browser Session authentication never falls back to a different bearer.
+
+16. T1 keeps DEC-024 request budgets/cadence unchanged. The Browser Session
+    secret provides the durable credential identity for the existing Guest
+    anti-abuse boundary and future T3 request-class budgets. New enrollment is
+    rollout-gated off until the later T3/T4 production gates are satisfied,
+    while servers must continue resolving already-created Browser Sessions.
 
 ## Reason
 
-A one-time, immediately-scrubbed fragment keeps the credential out of
-servers, logs, referrer headers, and durable storage while requiring no new
-infrastructure. Fail-closed scrubbing and strict shape validation prevent
-partial or hostile fragments from being adopted, and memory-only custody
-bounds the blast radius of any shared device.
+A one-time, immediately-scrubbed fragment keeps the bootstrap credential out
+of referrers, logs and durable browser storage. Durable continuity belongs to a
+separate hash-only, server-authoritative Browser Session so reloads, browser
+restarts and application process restarts do not require retaining or replaying
+the original bearer. Exact generation and lifecycle checks keep that durable
+authority scoped to the same persisted visit.
 
 ## Consequences
 
 - VUI-009A implements the production-capable fragment adapter in the Customer
   app and removes the development-only production rejection.
-- Refresh-after-entry is intentionally unsupported for MVP; recovery is
-  reopen original link, rescan original QR, or Staff reissue.
+- T1 adds retry-safe one-time bootstrap exchange and durable same-browser
+  continuity without changing the frozen Guest presentation.
+- Reload/reopen restores the exact visit through the Browser Session while it
+  remains authorized; cleared browser credentials or device transfer require
+  the approved recovery/reissue path.
 - Any future alternative transport (for example scoped short-lived paths or
   messaging-delivered links) requires another decision.
-- Persistent Guest credential storage remains prohibited.
+- Persistent storage of the original Guest bearer remains prohibited.
 
 ## Affected docs/code
 

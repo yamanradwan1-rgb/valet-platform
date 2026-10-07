@@ -14,7 +14,7 @@ describe('Guest bootstrap lifecycle', () => {
   it('stays loading while browser token acquisition is unresolved', () => {
     expect(
       resolveGuestScreenId({
-        hasToken: false,
+        hasAuthority: false,
         isTokenBootstrapComplete: false,
         isExpired: false,
         isNetworkError: false,
@@ -27,7 +27,7 @@ describe('Guest bootstrap lifecycle', () => {
   it('stays loading after token acquisition while the session request is pending', () => {
     expect(
       resolveGuestScreenId({
-        hasToken: true,
+        hasAuthority: true,
         isTokenBootstrapComplete: true,
         isExpired: false,
         isNetworkError: false,
@@ -40,7 +40,7 @@ describe('Guest bootstrap lifecycle', () => {
   it('routes an authoritative PARKING session to the received state', () => {
     expect(
       resolveGuestScreenId({
-        hasToken: true,
+        hasAuthority: true,
         isTokenBootstrapComplete: true,
         isExpired: false,
         isNetworkError: false,
@@ -53,7 +53,7 @@ describe('Guest bootstrap lifecycle', () => {
   it('becomes unavailable only after bootstrap completes without a token', () => {
     expect(
       resolveGuestScreenId({
-        hasToken: false,
+        hasAuthority: false,
         isTokenBootstrapComplete: true,
         isExpired: false,
         isNetworkError: false,

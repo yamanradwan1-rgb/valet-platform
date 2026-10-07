@@ -1,10 +1,13 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
 import { GuestAccessError } from "../valet-sessions/guest-access-command";
 import type { LockedGuestAccessSessionScope } from "../valet-sessions/guest-access-session-resolution";
+import {
+  normalizeGuestCredential,
+  type GuestCredentialInput,
+} from "./guest-credential";
 
 export type GuestRatingErrorCode =
-  | "GUEST_RATING_CONFLICT"
-  | "GUEST_RATING_NOT_AVAILABLE";
+  "GUEST_RATING_CONFLICT" | "GUEST_RATING_NOT_AVAILABLE";
 
 export class GuestRatingError extends Error {
   constructor(readonly code: GuestRatingErrorCode) {
@@ -31,25 +34,27 @@ export interface GuestRatingCommandResult {
 }
 
 function assertCompletedVisit(session: LockedGuestAccessSessionScope): void {
-  if (
-    session.state !== "COMPLETED" ||
-    session.completedAt === null
-  ) {
+  if (session.state !== "COMPLETED" || session.completedAt === null) {
     throw new GuestRatingError("GUEST_RATING_NOT_AVAILABLE");
   }
 }
 
 export async function submitGuestRating(
   transaction: PostgresTransaction,
-  rawToken: string,
+  credentialInput: GuestCredentialInput,
   session: LockedGuestAccessSessionScope,
   rating: number,
 ): Promise<GuestRatingCommandResult> {
   assertCompletedVisit(session);
+  const credential = normalizeGuestCredential(credentialInput);
   const result = await transaction.query<GuestRatingCommandRow>(
     `SELECT result_code, valet_session_id::text, rating, rated_at
-     FROM guest_rating_submit($1, $2)`,
-    [rawToken, rating],
+     FROM ${
+       credential.kind === "BROWSER_SESSION"
+         ? "guest_browser_rating_submit($1, $2)"
+         : "guest_rating_submit($1, $2)"
+     }`,
+    [credential.secret, rating],
   );
   const row = result.rows[0];
   if (row?.result_code === "INVALID_ACCESS") {

@@ -21,6 +21,9 @@ import {
   type StaffPrincipalResolver,
 } from "../src/modules/auth/staff-principal";
 import { GuestAccessService } from "../src/modules/guest-access/guest-access.service";
+import { GuestBrowserSessionService } from "../src/modules/guest-access/guest-browser-session.service";
+import { GuestAuthOriginPolicy } from "../src/modules/guest-access/guest-browser-transport";
+import { GuestCredentialAuthorizer } from "../src/modules/guest-access/guest-credential-authorizer";
 import { HandoffGuestController } from "../src/modules/retrieval/handoff-guest.controller";
 import { HandoffStaffController } from "../src/modules/retrieval/handoff-staff.controller";
 import { HandoffService } from "../src/modules/retrieval/handoff.service";
@@ -47,6 +50,9 @@ let baseUrl: string;
     AntiAbuseKeyDeriver,
     AntiAbuseService,
     GuestAccessService,
+    GuestBrowserSessionService,
+    GuestAuthOriginPolicy,
+    GuestCredentialAuthorizer,
     HandoffService,
     TrustedClientAddressResolver,
     { provide: RUNTIME_POSTGRES_POOL, useFactory: () => context.runtimePool },

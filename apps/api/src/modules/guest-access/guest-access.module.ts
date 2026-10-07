@@ -12,12 +12,17 @@ import {
 import { GuestAccessService } from "./guest-access.service";
 import { GuestRatingController } from "./guest-rating.controller";
 import { GuestRatingService } from "./guest-rating.service";
+import { GuestBrowserSessionService } from "./guest-browser-session.service";
+import { GuestBrowserSessionController } from "./guest-browser-session.controller";
+import { GuestAuthOriginPolicy } from "./guest-browser-transport";
+import { GuestCredentialAuthorizer } from "./guest-credential-authorizer";
 
 @Module({
   controllers: [
     StaffGuestAccessController,
     GuestAccessController,
     GuestRatingController,
+    GuestBrowserSessionController,
   ],
   imports: [
     AuthModule,
@@ -25,8 +30,19 @@ import { GuestRatingService } from "./guest-rating.service";
     RuntimeDatabaseModule,
     HttpInfrastructureModule,
   ],
-  providers: [GuestAccessService, GuestRatingService],
-  exports: [GuestAccessService],
+  providers: [
+    GuestAccessService,
+    GuestBrowserSessionService,
+    GuestAuthOriginPolicy,
+    GuestCredentialAuthorizer,
+    GuestRatingService,
+  ],
+  exports: [
+    GuestAccessService,
+    GuestBrowserSessionService,
+    GuestAuthOriginPolicy,
+    GuestCredentialAuthorizer,
+  ],
 })
 export class GuestAccessModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
@@ -36,6 +52,7 @@ export class GuestAccessModule implements NestModule {
         StaffGuestAccessController,
         GuestAccessController,
         GuestRatingController,
+        GuestBrowserSessionController,
       );
   }
 }

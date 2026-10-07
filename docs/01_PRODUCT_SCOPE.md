@@ -336,8 +336,10 @@ enablement and accepted financial commands remain unchanged.
   exposed.
 - MGT-BE-09 implements Guest Rating at `POST /v1/guest/session/rating`. The
   request is strict `{ rating: 1..5 }`, accepts no query authority, and derives
-  the exact visit only from the current authorized Guest Access bearer. Rating
-  is available only after the persisted visit is `COMPLETED`; the response is
+  the exact visit only from the current authorized Guest Access context. During
+  DEC-064 T1 staged rollout this may be an unconsumed legacy bearer or current
+  Browser Session; Browser Session rating is limited to 24 hours after the
+  persisted visit becomes `COMPLETED`. The response is
   limited to session ID, rating and `ratedAt`, with guest no-store transport.
   One immutable rating may exist per visit. An exact same-value retry returns
   the persisted rating and original `ratedAt`; a different later value conflicts

@@ -21,6 +21,9 @@ import { AntiAbuseKeyDeriver } from "../src/modules/anti-abuse/anti-abuse-key";
 import { AntiAbuseService } from "../src/modules/anti-abuse/anti-abuse.service";
 import { TrustedClientAddressResolver } from "../src/modules/anti-abuse/client-address";
 import { GuestAccessService } from "../src/modules/guest-access/guest-access.service";
+import { GuestBrowserSessionService } from "../src/modules/guest-access/guest-browser-session.service";
+import { GuestAuthOriginPolicy } from "../src/modules/guest-access/guest-browser-transport";
+import { GuestCredentialAuthorizer } from "../src/modules/guest-access/guest-credential-authorizer";
 import { GuestRetrievalController } from "../src/modules/retrieval/guest-retrieval.controller";
 import { RetrievalService } from "../src/modules/retrieval/retrieval.service";
 import { StaffPushOperationalPolicy } from "../src/modules/staff-push/staff-push-operational-policy";
@@ -40,6 +43,9 @@ let baseUrl: string;
     AntiAbuseKeyDeriver,
     AntiAbuseService,
     GuestAccessService,
+    GuestBrowserSessionService,
+    GuestAuthOriginPolicy,
+    GuestCredentialAuthorizer,
     RetrievalService,
     {
       provide: StaffPushOperationalPolicy,

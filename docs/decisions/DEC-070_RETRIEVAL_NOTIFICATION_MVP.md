@@ -328,10 +328,11 @@ Guest presentation dedupe uses `valetSessionId + readyAt`:
    lifecycle, so polling, manual refresh, render, visibility, reconnect,
    duplicate response, handoff abort back to READY, stale Mark Ready, and later
    session version changes do not replay it; and
-4. DEC-064 remains authoritative: the raw Guest token and presentation state
-   stay memory-only, and a full reload after fragment scrubbing intentionally
-   loses access. Reopening an original valid link starts with an authoritative
-   baseline and does not replay an already-existing READY sound.
+4. DEC-064 remains authoritative: the raw bootstrap Guest token and presentation
+   state stay memory-only. A full reload may restore the exact visit through the
+   durable Guest Browser Session, but presentation state still starts from the
+   authoritative current snapshot baseline and therefore does not replay an
+   already-existing READY sound.
 
 If a refresh misses the literal READY state because the session has already
 advanced to `HANDOFF_PENDING`, newly observed `readyAt` still proves the first

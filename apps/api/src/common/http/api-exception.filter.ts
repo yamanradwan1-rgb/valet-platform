@@ -16,6 +16,10 @@ import {
   type OperationObserver,
 } from "../observability/operation-observability";
 import { resolveRequestId, type ApiRequest } from "./api-request";
+import {
+  guestAccessOperations,
+  guestOperationRoutes,
+} from "./guest-operation-routes";
 import { handoffOperationRoutes } from "./handoff-operation-routes";
 import { paymentOperationRoutes } from "./payment-operation-routes";
 import { setNoStoreResponseHeaders } from "./no-store-response";
@@ -46,6 +50,7 @@ const operationRoutes: ReadonlyArray<{
   ...staffOnboardingOperationRoutes,
   ...staffShiftForceEndOperationRoutes,
   ...presenceOperationRoutes,
+  ...guestOperationRoutes,
   {
     method: "PUT",
     operation: "STAFF_PUSH_REGISTRATION_PUT",
@@ -117,21 +122,6 @@ const operationRoutes: ReadonlyArray<{
     path: /^\/v1\/staff\/check-in\/sessions\/[^/]+\/complete$/,
   },
   {
-    method: "GET",
-    operation: "GUEST_SESSION_READ",
-    path: /^\/v1\/guest\/session$/,
-  },
-  {
-    method: "POST",
-    operation: "GUEST_RETRIEVAL_REQUEST",
-    path: /^\/v1\/guest\/session\/request-retrieval$/,
-  },
-  {
-    method: "POST",
-    operation: "GUEST_RETRIEVAL_CANCEL",
-    path: /^\/v1\/guest\/session\/cancel-retrieval$/,
-  },
-  {
     method: "POST",
     operation: "SHIFT_START",
     path: /^\/v1\/staff\/shifts\/start$/,
@@ -167,17 +157,6 @@ const operationRoutes: ReadonlyArray<{
     path: /^\/v1\/staff\/valet-sessions\/[^/]+\/start-retrieval$/,
   },
 ];
-
-const guestAccessOperations = new Set([
-  "CHECK_IN_GUEST_ACCESS_ISSUE",
-  "CHECK_IN_GUEST_ACCESS_REVOKE",
-  "GUEST_SESSION_READ",
-  "GUEST_RETRIEVAL_REQUEST",
-  "GUEST_RETRIEVAL_CANCEL",
-  "PAYMENT_GUEST_TIP_UPDATE",
-  "ISSUE_HANDOFF_VERIFICATION",
-  "ROTATE_HANDOFF_VERIFICATION",
-]);
 
 function routedOperation(request: FilterRequest): string | undefined {
   const path = request.originalUrl.split("?", 1)[0] ?? "";

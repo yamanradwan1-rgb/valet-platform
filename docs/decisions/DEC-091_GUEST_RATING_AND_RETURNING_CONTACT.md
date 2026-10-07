@@ -16,6 +16,13 @@ authorized Guest Access context for one completed visit. At most one rating may
 be created per visit. The write is idempotent for an exact retry and conflicting
 second values fail safely. Staff cannot create, alter, or delete a rating.
 
+DEC-064's T1 amendment preserves this exact-visit authorization through either
+an unconsumed legacy bearer during staged rollout or the current Guest Browser
+Session. Browser Session rating is available only inside the accepted 24-hour
+post-`COMPLETED` scope and must be revalidated through the same least-privilege
+database authorization boundary; no client-supplied ValetSession ID is
+authority. `CANCELLED` never becomes rating scope.
+
 Use the label **Returning Contact**, not Repeat Guest. It means the normalized
 contact on the current visit appeared on a prior completed visit within the
 viewer's authorized analytics scope. It does not prove the same human, an
