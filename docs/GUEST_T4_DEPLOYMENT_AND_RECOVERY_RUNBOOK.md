@@ -102,6 +102,12 @@ single-host unit files constitute the final immutable release scheme.
    logs no authenticated URLs/cookies; verify Origin/CSRF/no-store/Set-Cookie
    preservation and Native API access. Derive `ANTI_ABUSE_TRUSTED_PROXY_CIDRS`
    from controlled proxy hop evidence only. Never use universal trust CIDRs.
+   **Restrict `/health/ready` and `/readyz` to approved load-balancer or
+   monitoring sources where practical; configure edge-level request-rate and
+   concurrency protection while preserving legitimate checks.** Code-level
+   single-flight protection is per process, not a substitute for ingress
+   controls or measured cross-replica capacity. Do not put health requests
+   under broad Guest credential quotas.
 5. Shift traffic to one verified ready replica **only on explicit operator
    approval**, observe health and error rate, then sequentially drain old
    replicas while keeping enough healthy replicas to serve current Guests.

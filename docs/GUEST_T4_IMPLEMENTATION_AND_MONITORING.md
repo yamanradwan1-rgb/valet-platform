@@ -70,6 +70,63 @@ delivery report; results below are local T4 implementation evidence:
 | Real two-replica PostgreSQL suites | Added; pre-fix T4 ObservabilityModule independently instantiated a runtime pool inside HTTP test modules and blocked Nest startup, including an existing T3 suite. That T4 regression was corrected by placing RuntimeMetricsPulse in HealthModule. | Rerun pending against **confirmed disposable** PostgreSQL; no success or HA proof claimed. |
 | Live public ingress, DB failover, alerts | No authorized staging/production evidence | **NOT VERIFIED** |
 
+### T4 readiness concurrency merge-gate follow-up (2026-10-08)
+
+**Confirmed source-level defect, not a measured production exploit.** Before
+this remediation, 100 simultaneous calls to the real Customer readiness
+checker invoked the mocked upstream fetch **100 times**; 100 simultaneous
+calls to the real API HealthReadinessService invoked the mocked PostgreSQL
+capability query **100 times**. Both baseline test runs passed while asserting
+those observed counts. No network/load test was sent to production.
+
+With single-flight in-flight coalescing, repeating both controlled 100-caller
+scenarios invokes **1 upstream HTTP fetch** and **1 PostgreSQL capability
+SELECT**, respectively. Each wave completes with its own authoritative
+success/failure; no positive or negative result is retained after completion.
+Both implementations admit at most **128 waiting callers per in-flight
+operation**; additional callers fail closed immediately and do not enqueue
+work. The cap is a local resource bound, not a production ingress rate limit.
+
+- Customer rechecks the immutable artifact-origin configuration before
+  waiting and before accepting a successful result. A changed/malformed origin
+  while a check is pending fails closed; different configurations do not
+  spawn a second simultaneous probe. Existing 3-second deadline and
+  AbortController behavior remain intact; the shared promise slot clears even
+  if a test transport ignores abortion.
+- API independently checks Guest rate-policy, HMAC capability and production
+  allowed origin **for every caller and again after the database wait**.
+  Drain status is checked before starting and after awaiting the shared query,
+  so neither a new call nor a late success can publish ready after drain.
+  PostgreSQL readiness remains the existing read-only privilege/capability
+  SELECT with a 2.5-second operation deadline; no Guest limiter reservation,
+  token issuance, other mutation, migration or DB privilege expansion.
+- Existing DB deadline/connection/statement limits still govern the underlying
+  query and cleanup. Single-flight does **not** independently guarantee that
+  an uncooperative network or real PostgreSQL driver cancels immediately;
+  real pool and failure recovery must still be observed on approved staging.
+  The API in-flight slot clears after a timeout and permits the next wave.
+- Tests also cover 200-call overflow, repeated success/failure/success waves,
+  failed config, deadline/retry, late database success after drain and generic
+  Customer `/readyz` response without credentials or internal details.
+
+Local focused commands after remediation: Customer `vitest run`
+`src/app/readyz/route.test.ts` and
+`src/app/readyz/readiness-concurrency.test.ts` **10/10 PASS**; API
+`vitest run --config vitest.config.mjs --project api-non-postgres`
+`test/guest-t4-health.test.ts` and
+`test/guest-t4-readiness-concurrency.test.ts` **18/18 PASS**. Both targeted
+TypeScript checks and both app-level lint commands passed. The repository-wide
+architecture check still fails on the two pre-existing out-of-scope violations
+listed above; all six follow-up changed/new files remain within the 300-line
+authored-code ceiling and no new T4 architecture violation was reported.
+
+**Infrastructure qualification remains pending.** The operator must restrict
+health endpoints to appropriate load-balancer/monitoring sources where
+practical, apply edge rate/concurrency controls against public probe floods,
+preserve legitimate probes, and verify readiness routing/monitoring across real
+replicas. The actual ingress ACL, forwarding hop chain, DB HA and alert
+provider are not established by these unit-level measurements.
+
 No new production DB migration, Prisma schema change, lockfile/dependency
 change, Guest UI redesign, Android/iOS build or deployment is intended in T4.
 Current published commit/review outcome belongs in the final Owner handoff,
