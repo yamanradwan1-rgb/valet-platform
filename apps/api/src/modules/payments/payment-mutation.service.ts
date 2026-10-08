@@ -14,6 +14,7 @@ import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.mo
 import {
   AntiAbuseService,
   AntiAbuseUnavailableError,
+  AntiAbuseRateLimitError,
   type AntiAbuseReservation,
 } from "../anti-abuse/anti-abuse.service";
 import { GuestAccessService } from "../guest-access/guest-access.service";
@@ -101,7 +102,12 @@ export class PaymentMutationService {
     tipAmount: string,
   ): Promise<PaymentMutationProjection> {
     const result = await inPaymentTransaction(this.pool, (transaction) =>
-      this.guestTipInTransaction(transaction, reservation, credential, tipAmount),
+      this.guestTipInTransaction(
+        transaction,
+        reservation,
+        credential,
+        tipAmount,
+      ),
     );
     if (result.kind === "INVALID_ACCESS") {
       throw new GuestAccessError("GUEST_ACCESS_INVALID");
@@ -150,19 +156,24 @@ export class PaymentMutationService {
     credential: GuestCredentialInput,
     tipAmount: string,
   ): Promise<GuestResult> {
-    const resolved = await this.guestAccess.resolveAndLockCredentialInTransaction(
-      transaction,
-      credential,
-    );
+    const resolved =
+      await this.guestAccess.resolveAndLockCredentialInTransaction(
+        transaction,
+        credential,
+      );
     if (resolved === undefined) {
       await this.finalize(transaction, reservation, "COUNTED");
       return { kind: "INVALID_ACCESS" };
     }
     try {
-      const context = await this.mutationContext(transaction, resolved.session, {
-        actorClass: "GUEST",
-        membershipId: null,
-      });
+      const context = await this.mutationContext(
+        transaction,
+        resolved.session,
+        {
+          actorClass: "GUEST",
+          membershipId: null,
+        },
+      );
       const projection = await mutateTip(transaction, {
         ...context,
         tipAmount,
@@ -187,7 +198,8 @@ export class PaymentMutationService {
         reservation,
         state,
       );
-    } catch {
+    } catch (error) {
+      if (error instanceof AntiAbuseRateLimitError) throw error;
       throw new AntiAbuseUnavailableError();
     }
   }

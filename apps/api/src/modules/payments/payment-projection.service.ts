@@ -5,6 +5,7 @@ import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.mo
 import {
   AntiAbuseService,
   AntiAbuseUnavailableError,
+  AntiAbuseRateLimitError,
   type AntiAbuseReservation,
 } from "../anti-abuse/anti-abuse.service";
 import { GuestAccessService } from "../guest-access/guest-access.service";
@@ -41,11 +42,12 @@ export class PaymentProjectionService {
     const result = await inPaymentTransaction(
       this.pool,
       async (transaction) => {
-        const resolved = await this.guestAccess.resolveAndLockCredentialInTransaction(
-          transaction,
-          credential,
-          true,
-        );
+        const resolved =
+          await this.guestAccess.resolveAndLockCredentialInTransaction(
+            transaction,
+            credential,
+            true,
+          );
         if (
           resolved === undefined ||
           resolved.session.valetSessionId !== valetSessionId
@@ -76,7 +78,8 @@ export class PaymentProjectionService {
         reservation,
         state,
       );
-    } catch {
+    } catch (error) {
+      if (error instanceof AntiAbuseRateLimitError) throw error;
       throw new AntiAbuseUnavailableError();
     }
   }

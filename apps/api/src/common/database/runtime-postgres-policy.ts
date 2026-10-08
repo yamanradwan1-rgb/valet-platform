@@ -22,9 +22,17 @@ function integer(
   return Number(raw);
 }
 
+export interface GeneralDatabaseBudgets {
+  readonly lockMs: number;
+  readonly statementMs: number;
+  readonly transactionMs: number;
+  readonly idleTransactionMs: number;
+}
+
 export function runtimePostgresPolicy(environment: NodeJS.ProcessEnv): {
   readonly config: PoolConfig;
   readonly maxWaiters: number;
+  readonly general: GeneralDatabaseBudgets;
 } {
   const production = environment.NODE_ENV === "production";
   const max = integer(
@@ -50,8 +58,40 @@ export function runtimePostgresPolicy(environment: NodeJS.ProcessEnv): {
   if (max > 100 || maxWaiters > 1024) {
     throw new Error("Runtime database admission capacity is out of bounds.");
   }
+  const general = {
+    lockMs: integer(
+      environment,
+      "DATABASE_GENERAL_LOCK_MS",
+      production ? undefined : 5000,
+    ),
+    statementMs: integer(
+      environment,
+      "DATABASE_GENERAL_STATEMENT_MS",
+      production ? undefined : 15_000,
+    ),
+    transactionMs: integer(
+      environment,
+      "DATABASE_GENERAL_TRANSACTION_MS",
+      production ? undefined : 30_000,
+    ),
+    idleTransactionMs: integer(
+      environment,
+      "DATABASE_GENERAL_IDLE_TRANSACTION_MS",
+      production ? undefined : 10_000,
+    ),
+  };
+  if (
+    general.lockMs > general.statementMs ||
+    general.idleTransactionMs > general.transactionMs ||
+    general.statementMs >= general.transactionMs
+  ) {
+    throw new Error(
+      "Runtime database general budgets require statement and idle within the transaction ceiling.",
+    );
+  }
   return {
     maxWaiters,
+    general,
     config: {
       max,
       connectionTimeoutMillis: runtimeDatabaseBudgets.acquireMs,

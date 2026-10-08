@@ -1,3 +1,4 @@
+import { withDatabaseOperationDeadline } from "../src/common/database/runtime-database-deadline";
 import {
   baselineSha,
   t3RepositoryRoot as root,
@@ -184,9 +185,9 @@ describe("T3 measured immutable T1 baseline versus classified read", () => {
       new GuestRequestAdmission(current, addresses, access),
     );
     // Bind historical compatible rows outside the steady-state read sample.
-    await authorizer.read(request);
+    await withDatabaseOperationDeadline(() => authorizer.read(request));
     const after = await measure("after", context.runtimePool, () =>
-      authorizer.read(request),
+      withDatabaseOperationDeadline(() => authorizer.read(request)),
     );
     expect(after).toBeLessThan(before / 2);
     const explain = () =>
@@ -224,7 +225,7 @@ describe("T3 measured immutable T1 baseline versus classified read", () => {
     );
     measurements.planIndexed = redact(indexed);
     await measure("afterIndexed", context.runtimePool, () =>
-      authorizer.read(request),
+      withDatabaseOperationDeadline(() => authorizer.read(request)),
     );
     mkdirSync(`${root}/tmp/guest-t3-evidence`, { recursive: true });
     writeFileSync(

@@ -14,7 +14,10 @@ import {
 
 import type { ApiRequest } from "../../common/http/api-request";
 import { ApiTransportValidationError } from "../../common/http/api-errors";
-import { ApiOperationRunner } from "../../common/http/api-operation-runner";
+import {
+  ApiOperationRunner,
+  guestOperation,
+} from "../../common/http/api-operation-runner";
 import {
   setNoStoreResponseHeaders,
   type HeaderResponse,
@@ -51,18 +54,22 @@ export class GuestRetrievalController {
     @Res({ passthrough: true }) response: HeaderResponse,
   ) {
     setNoStoreResponseHeaders(response);
-    return this.runner.run("GUEST_RETRIEVAL_REQUEST", request, async () => {
-      parseEmptyBody(body);
-      parseEmptyQuery(query);
-      return guestSafeSessionResponseSchema.parse(
-        await this.authorizer.authorize(
-          request,
-          { mutation: true },
-          (reservation, credential) =>
-            this.service.requestGuestRetrieval(reservation, credential),
-        ),
-      );
-    });
+    return this.runner.run(
+      guestOperation("GUEST_RETRIEVAL_REQUEST"),
+      request,
+      async () => {
+        parseEmptyBody(body);
+        parseEmptyQuery(query);
+        return guestSafeSessionResponseSchema.parse(
+          await this.authorizer.authorize(
+            request,
+            { mutation: true },
+            (reservation, credential) =>
+              this.service.requestGuestRetrieval(reservation, credential),
+          ),
+        );
+      },
+    );
   }
 
   @HttpCode(200)
@@ -74,17 +81,21 @@ export class GuestRetrievalController {
     @Res({ passthrough: true }) response: HeaderResponse,
   ) {
     setNoStoreResponseHeaders(response);
-    return this.runner.run("GUEST_RETRIEVAL_CANCEL", request, async () => {
-      parseEmptyBody(body);
-      parseEmptyQuery(query);
-      return guestSafeSessionResponseSchema.parse(
-        await this.authorizer.authorize(
-          request,
-          { mutation: true },
-          (reservation, credential) =>
-            this.service.cancelGuestRetrieval(reservation, credential),
-        ),
-      );
-    });
+    return this.runner.run(
+      guestOperation("GUEST_RETRIEVAL_CANCEL"),
+      request,
+      async () => {
+        parseEmptyBody(body);
+        parseEmptyQuery(query);
+        return guestSafeSessionResponseSchema.parse(
+          await this.authorizer.authorize(
+            request,
+            { mutation: true },
+            (reservation, credential) =>
+              this.service.cancelGuestRetrieval(reservation, credential),
+          ),
+        );
+      },
+    );
   }
 }

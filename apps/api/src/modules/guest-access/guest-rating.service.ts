@@ -9,6 +9,7 @@ import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.mo
 import {
   AntiAbuseService,
   AntiAbuseUnavailableError,
+  AntiAbuseRateLimitError,
   type AntiAbuseReservation,
 } from "../anti-abuse/anti-abuse.service";
 import { GuestAccessError } from "../valet-sessions/guest-access-command";
@@ -99,7 +100,8 @@ export class GuestRatingService {
         reservation,
         state,
       );
-    } catch {
+    } catch (error) {
+      if (error instanceof AntiAbuseRateLimitError) throw error;
       throw new AntiAbuseUnavailableError();
     }
   }

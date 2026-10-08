@@ -177,10 +177,10 @@ const safeMessages: Readonly<Record<string, string>> = {
   TENANT_ACCESS_DENIED: "The requested resource is not available.",
 };
 
-export function mapApiError(error: unknown): MappedApiError {
+export function mapApiError(error: unknown, guest = false): MappedApiError {
   if (isExpectedDatabaseExhaustion(error)) {
     return {
-      code: "ANTI_ABUSE_UNAVAILABLE",
+      code: guest ? "ANTI_ABUSE_UNAVAILABLE" : "INTERNAL_ERROR",
       message: "Service temporarily unavailable.",
       status: HttpStatus.SERVICE_UNAVAILABLE,
     };

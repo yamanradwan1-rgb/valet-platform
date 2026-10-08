@@ -14,7 +14,10 @@ import {
 } from "@valet/contracts";
 
 import { ApiTransportValidationError } from "../../common/http/api-errors";
-import { ApiOperationRunner } from "../../common/http/api-operation-runner";
+import {
+  ApiOperationRunner,
+  guestOperation,
+} from "../../common/http/api-operation-runner";
 import type { ApiRequest } from "../../common/http/api-request";
 import {
   setNoStoreResponseHeaders,
@@ -46,18 +49,22 @@ export class GuestRatingController {
     @Res({ passthrough: true }) response: HeaderResponse,
   ) {
     setNoStoreResponseHeaders(response);
-    return this.runner.run("GUEST_RATING_SUBMIT", request, async () => {
-      const parsed = guestRatingSubmissionRequestSchema.safeParse(body);
-      if (!parsed.success) throw new ApiTransportValidationError();
-      parseQuery(query);
-      return guestRatingSubmissionResponseSchema.parse(
-        await this.authorizer.authorize(
-          request,
-          { mutation: true },
-          (reservation, credential) =>
-            this.service.submit(reservation, credential, parsed.data.rating),
-        ),
-      );
-    });
+    return this.runner.run(
+      guestOperation("GUEST_RATING_SUBMIT"),
+      request,
+      async () => {
+        const parsed = guestRatingSubmissionRequestSchema.safeParse(body);
+        if (!parsed.success) throw new ApiTransportValidationError();
+        parseQuery(query);
+        return guestRatingSubmissionResponseSchema.parse(
+          await this.authorizer.authorize(
+            request,
+            { mutation: true },
+            (reservation, credential) =>
+              this.service.submit(reservation, credential, parsed.data.rating),
+          ),
+        );
+      },
+    );
   }
 }

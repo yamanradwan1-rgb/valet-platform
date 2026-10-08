@@ -1,6 +1,13 @@
+import {
+  beginTransactionOutcomes,
+  finishTransactionOutcomes,
+} from "./postgres-transaction-outcome";
 import type { PostgresPool } from "./postgres";
 import type { PostgresTransaction } from "./postgres";
-import { remainingDatabaseOperationMs } from "./runtime-database-deadline";
+import {
+  isGuestDatabaseOperation,
+  remainingDatabaseOperationMs,
+} from "./runtime-database-deadline";
 import { runtimeDatabaseBudgets } from "./runtime-postgres-policy";
 
 export async function inPostgresTransaction<T>(
@@ -10,9 +17,14 @@ export async function inPostgresTransaction<T>(
   const transaction = await pool.connect();
   let unusable = false;
   let shortened = false;
+  let committing = false;
+  beginTransactionOutcomes(transaction);
   try {
     const remaining = remainingDatabaseOperationMs();
-    if (remaining < runtimeDatabaseBudgets.transactionMs) {
+    if (
+      isGuestDatabaseOperation() &&
+      remaining < runtimeDatabaseBudgets.transactionMs
+    ) {
       shortened = true;
       // PostgreSQL arms transaction_timeout at transaction start, not a later SET LOCAL.
       // A separate autocommit SET must finish before BEGIN starts the protected work.
@@ -20,13 +32,22 @@ export async function inPostgresTransaction<T>(
     }
     await transaction.query("BEGIN");
     const result = await action(transaction);
+    if (isGuestDatabaseOperation()) remainingDatabaseOperationMs();
+    committing = true;
     await transaction.query("COMMIT");
+    finishTransactionOutcomes(transaction, "COMMITTED");
     return result;
   } catch (error) {
+    if (committing) unusable = true;
     try {
       await transaction.query("ROLLBACK");
+      finishTransactionOutcomes(
+        transaction,
+        committing ? "UNAVAILABLE" : "ROLLED_BACK",
+      );
     } catch {
       unusable = true;
+      finishTransactionOutcomes(transaction, "UNAVAILABLE");
     }
     throw error;
   } finally {

@@ -5,6 +5,10 @@ import { afterEach, describe, expect, it } from "vitest";
 import { createRuntimePostgresPool } from "../src/common/database/postgres.js";
 
 const productionCapacity = {
+  DATABASE_GENERAL_LOCK_MS: "5000",
+  DATABASE_GENERAL_STATEMENT_MS: "15000",
+  DATABASE_GENERAL_TRANSACTION_MS: "30000",
+  DATABASE_GENERAL_IDLE_TRANSACTION_MS: "10000",
   DATABASE_POOL_MAX: "4",
   DATABASE_ALLOWED_CONNECTIONS: "100",
   DATABASE_RESERVED_CONNECTIONS: "20",

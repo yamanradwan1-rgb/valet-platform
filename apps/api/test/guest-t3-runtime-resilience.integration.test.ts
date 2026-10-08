@@ -21,6 +21,10 @@ describe("T3 real PostgreSQL server deadlines and bounded admission", () => {
     await context.setup();
     pool = createRuntimePostgresPool(context.runtimeUrl, {
       NODE_ENV: "test",
+      DATABASE_GENERAL_LOCK_MS: "2000",
+      DATABASE_GENERAL_STATEMENT_MS: "3000",
+      DATABASE_GENERAL_TRANSACTION_MS: "5000",
+      DATABASE_GENERAL_IDLE_TRANSACTION_MS: "2000",
       DATABASE_POOL_MAX: "1",
       DATABASE_POOL_MAX_WAITERS: "1",
     });
@@ -58,12 +62,16 @@ describe("T3 real PostgreSQL server deadlines and bounded admission", () => {
   it("verifies actual server settings and refuses a connection with a disabled deadline", async () => {
     const lifecycle = new RuntimeDatabaseLifecycle(pool);
     await lifecycle.onApplicationBootstrap();
-    await pool.query("SET statement_timeout = 0");
-    await expect(lifecycle.onApplicationBootstrap()).rejects.toThrow(
-      "verified PostgreSQL 17 transaction deadlines",
-    );
-    await pool.query("SET statement_timeout = '3s'");
-    await lifecycle.onApplicationBootstrap();
+    await withDatabaseOperationDeadline(async () => {
+      const client = await pool.connect();
+      await client.query("SET statement_timeout = 0");
+      client.release();
+      await expect(lifecycle.onApplicationBootstrap()).rejects.toThrow(
+        "verified PostgreSQL 17 transaction deadlines",
+      );
+      await pool.query("SET statement_timeout = '3s'");
+      await lifecycle.onApplicationBootstrap();
+    });
   });
 
   it("rejects an overfull queue immediately and removes timed-out acquisition", async () => {
@@ -133,7 +141,7 @@ describe("T3 real PostgreSQL server deadlines and bounded admission", () => {
     );
     expect(mapApiError(error)).toMatchObject({
       status: 503,
-      code: "ANTI_ABUSE_UNAVAILABLE",
+      code: "INTERNAL_ERROR",
     });
     await noPersistedEffect();
   }, 10_000);

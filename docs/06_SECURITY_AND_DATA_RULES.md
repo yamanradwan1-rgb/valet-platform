@@ -1391,4 +1391,8 @@ source scope `v1:guest-enrollment-address`. Runtime has no new direct DELETE,
 TRUNCATE or credential-table authority. Cleanup remains fixed at older than
 one DB-authored hour and is now bounded to 1000 SKIP LOCKED candidates per call.
 PostgreSQL 17 server timeouts and validated finite pool/queue budgets follow the
-same policy. No domain/audit/lifecycle or Customer presentation change is made.
+same policy. The 6-second operation deadline requires explicit typed Guest
+opt-in; general leases configure separately validated operator-supplied native
+lock/statement/transaction/idle limits before BEGIN and reset before reuse.
+Every lease, checkout (including configuration), and cleanup is bounded.
+No domain/audit/lifecycle or Customer presentation change is made.

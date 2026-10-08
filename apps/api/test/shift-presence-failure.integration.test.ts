@@ -39,7 +39,7 @@ describe("actual disconnect, cash/open-work/audit rollback and minimized telemet
         { targetLocationId: f.locationId, presence: db.measured(challenge) },
       );
       expect(response.status).toBe(503);
-      expect(response.body.code).toBe("ANTI_ABUSE_UNAVAILABLE");
+      expect(response.body.code).toBe("INTERNAL_ERROR");
       expect(await db.facts(f)).toEqual({
         shifts: 0,
         decisions: 0,

@@ -1,4 +1,8 @@
-import { GuestBrowserLimiter } from "./guest-browser-limiter";
+import { requireEmptyGuestRequest as requireEmpty } from "./guest-browser-request-validation";
+import {
+  GuestBrowserLimiter,
+  type BrowserAdmissionCredentials,
+} from "./guest-browser-limiter";
 import {
   Body,
   Controller,
@@ -8,11 +12,12 @@ import {
   Req,
   Res,
 } from "@nestjs/common";
-import { emptyRequestSchema } from "@valet/contracts";
 
-import { ApiTransportValidationError } from "../../common/http/api-errors";
 import type { ApiRequest } from "../../common/http/api-request";
-import { ApiOperationRunner } from "../../common/http/api-operation-runner";
+import {
+  ApiOperationRunner,
+  guestOperation,
+} from "../../common/http/api-operation-runner";
 import { setNoStoreResponseHeaders } from "../../common/http/no-store-response";
 import {
   AntiAbuseService,
@@ -41,12 +46,6 @@ interface CookieResponse {
   setHeader(name: string, value: string | readonly string[]): void;
 }
 
-function requireEmpty(value: unknown): void {
-  if (!emptyRequestSchema.safeParse(value ?? {}).success) {
-    throw new ApiTransportValidationError();
-  }
-}
-
 @Controller("v1/guest/browser-session")
 export class GuestBrowserSessionController {
   constructor(
@@ -67,7 +66,7 @@ export class GuestBrowserSessionController {
   ): Promise<void> {
     setNoStoreResponseHeaders(response);
     return this.runner.run(
-      "GUEST_BROWSER_SESSION_ENROLL",
+      guestOperation("GUEST_BROWSER_SESSION_ENROLL"),
       request,
       async () => {
         requireEmpty(body);
@@ -137,7 +136,7 @@ export class GuestBrowserSessionController {
   ): Promise<void> {
     setNoStoreResponseHeaders(response);
     return this.runner.run(
-      "GUEST_BROWSER_SESSION_EXCHANGE",
+      guestOperation("GUEST_BROWSER_SESSION_EXCHANGE"),
       request,
       async () => {
         requireEmpty(body);
@@ -146,7 +145,11 @@ export class GuestBrowserSessionController {
         const credentials = readExchangeCredentials(request);
         const accepted = await this.withLimiter(
           request,
-          credentials?.guestBearer,
+          {
+            primary: credentials?.guestBearer,
+            recovery:
+              credentials === undefined ? [] : [credentials.browserSecret],
+          },
           async (transaction, reservation) => {
             if (credentials === undefined) {
               await this.antiAbuse.finalizeInTransaction(
@@ -195,50 +198,54 @@ export class GuestBrowserSessionController {
     @Res({ passthrough: true }) response: CookieResponse,
   ): Promise<void> {
     setNoStoreResponseHeaders(response);
-    return this.runner.run("GUEST_BROWSER_SESSION_END", request, async () => {
-      requireEmpty(body);
-      requireEmpty(query);
-      requireGuestBrowserMutationTransport(request, this.originPolicy);
-      const browserSecret = readBrowserCookie(request);
-      const ended = await this.withLimiter(
-        request,
-        browserSecret,
-        async (transaction, reservation) => {
-          if (browserSecret === undefined) {
+    return this.runner.run(
+      guestOperation("GUEST_BROWSER_SESSION_END"),
+      request,
+      async () => {
+        requireEmpty(body);
+        requireEmpty(query);
+        requireGuestBrowserMutationTransport(request, this.originPolicy);
+        const browserSecret = readBrowserCookie(request);
+        const ended = await this.withLimiter(
+          request,
+          browserSecret,
+          async (transaction, reservation) => {
+            if (browserSecret === undefined) {
+              await this.antiAbuse.finalizeInTransaction(
+                transaction,
+                reservation,
+                "COUNTED",
+              );
+              return false;
+            }
+            const result = await this.sessions.endInTransaction(
+              transaction,
+              browserSecret,
+            );
             await this.antiAbuse.finalizeInTransaction(
               transaction,
               reservation,
-              "COUNTED",
+              result ? "IGNORED" : "COUNTED",
             );
-            return false;
-          }
-          const result = await this.sessions.endInTransaction(
-            transaction,
-            browserSecret,
-          );
-          await this.antiAbuse.finalizeInTransaction(
-            transaction,
-            reservation,
-            result ? "IGNORED" : "COUNTED",
-          );
-          return result;
-        },
-      );
-      if (!ended) {
-        throw new GuestAccessError("GUEST_ACCESS_INVALID");
-      }
-      response.setHeader("Set-Cookie", [
-        clearBrowserCookie(),
-        clearBrowserContextCookie(),
-        clearEnrollmentCookie(),
-        clearPendingBrowserCookie(),
-      ]);
-    });
+            return result;
+          },
+        );
+        if (!ended) {
+          throw new GuestAccessError("GUEST_ACCESS_INVALID");
+        }
+        response.setHeader("Set-Cookie", [
+          clearBrowserCookie(),
+          clearBrowserContextCookie(),
+          clearEnrollmentCookie(),
+          clearPendingBrowserCookie(),
+        ]);
+      },
+    );
   }
 
   private async withLimiter<T>(
     request: ApiRequest,
-    credentialSecret: string | undefined,
+    credentialSecret: BrowserAdmissionCredentials,
     operation: (
       transaction: Parameters<AntiAbuseService["transaction"]>[0] extends (
         transaction: infer P,

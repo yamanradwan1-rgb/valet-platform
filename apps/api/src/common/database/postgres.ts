@@ -113,6 +113,7 @@ export function createRuntimePostgresPool(
     new Pool({ ...poolConfig, ...policy.config }),
     policy.config.max!,
     policy.maxWaiters,
+    policy.general,
   );
 }
 

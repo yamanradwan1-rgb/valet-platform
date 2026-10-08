@@ -11,7 +11,7 @@ interface OperationDeadline {
 const deadlines = new AsyncLocalStorage<OperationDeadline>();
 
 export class RuntimeDatabaseUnavailableError extends Error {
-  readonly code = "ANTI_ABUSE_UNAVAILABLE";
+  readonly code = "INTERNAL_ERROR";
 
   constructor() {
     super("Service temporarily unavailable.");
@@ -54,14 +54,20 @@ export function trackDatabaseOperationClient(client: {
   };
 }
 
-export function remainingDatabaseOperationMs(): number {
+export function isGuestDatabaseOperation(): boolean {
+  return deadlines.getStore() !== undefined;
+}
+
+export function remainingDatabaseOperationMs(
+  maximum: number = runtimeDatabaseBudgets.transactionMs,
+): number {
   const deadline = deadlines.getStore();
   const remaining =
     deadline === undefined
-      ? runtimeDatabaseBudgets.transactionMs
+      ? maximum
       : Math.floor(deadline.at - performance.now());
   if (remaining <= 0) throw new RuntimeDatabaseUnavailableError();
-  return Math.min(runtimeDatabaseBudgets.transactionMs, remaining);
+  return Math.min(maximum, remaining);
 }
 
 export function isExpectedDatabaseExhaustion(error: unknown): boolean {

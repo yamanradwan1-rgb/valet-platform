@@ -1,3 +1,4 @@
+import { requireEmptyGuestRequest as requireEmpty } from "./guest-browser-request-validation";
 import {
   Body,
   Controller,
@@ -8,20 +9,24 @@ import {
   Res,
 } from "@nestjs/common";
 import {
-  emptyRequestSchema,
   guestBrowserPrepareResponseSchema,
   guestBrowserSwitchReconcileResponseSchema,
   guestBrowserSwitchResponseSchema,
 } from "@valet/contracts";
 
-import { ApiTransportValidationError } from "../../common/http/api-errors";
 import type { ApiRequest } from "../../common/http/api-request";
-import { ApiOperationRunner } from "../../common/http/api-operation-runner";
+import {
+  ApiOperationRunner,
+  guestOperation,
+} from "../../common/http/api-operation-runner";
 import { setNoStoreResponseHeaders } from "../../common/http/no-store-response";
 import { AntiAbuseService } from "../anti-abuse/anti-abuse.service";
 import { GuestAccessError } from "../valet-sessions/guest-access-command";
 import { GuestBrowserContextService } from "./guest-browser-context.service";
-import { GuestBrowserLimiter } from "./guest-browser-limiter";
+import {
+  GuestBrowserLimiter,
+  browserAdmissionCredentials,
+} from "./guest-browser-limiter";
 import {
   browserContextCookie,
   clearPendingBrowserCookie,
@@ -40,12 +45,6 @@ import {
 
 interface CookieResponse {
   setHeader(name: string, value: string | readonly string[]): void;
-}
-
-function requireEmpty(value: unknown): void {
-  if (!emptyRequestSchema.safeParse(value ?? {}).success) {
-    throw new ApiTransportValidationError();
-  }
 }
 
 @Controller("v1/guest/browser-session")
@@ -68,7 +67,7 @@ export class GuestBrowserContextController {
   ) {
     setNoStoreResponseHeaders(response);
     return this.runner.run(
-      "GUEST_BROWSER_SESSION_PREPARE_CONTEXT",
+      guestOperation("GUEST_BROWSER_SESSION_PREPARE_CONTEXT"),
       request,
       async () => {
         requireEmpty(body);
@@ -80,7 +79,10 @@ export class GuestBrowserContextController {
         const credentials = readContextPrepareCredentials(request);
         const prepared = await this.limiter.run(
           request,
-          credentials?.guestBearer,
+          browserAdmissionCredentials(
+            credentials?.guestBearer,
+            credentials?.currentBrowserSecret,
+          ),
           async (transaction, reservation) => {
             if (credentials === undefined) {
               await this.antiAbuse.finalizeInTransaction(
@@ -157,7 +159,7 @@ export class GuestBrowserContextController {
   ) {
     setNoStoreResponseHeaders(response);
     return this.runner.run(
-      "GUEST_BROWSER_SESSION_SWITCH_CONTEXT",
+      guestOperation("GUEST_BROWSER_SESSION_SWITCH_CONTEXT"),
       request,
       async () => {
         requireEmpty(body);
@@ -166,7 +168,11 @@ export class GuestBrowserContextController {
         const credentials = readContextSwitchCredentials(request);
         const switched = await this.limiter.run(
           request,
-          credentials?.guestBearer,
+          browserAdmissionCredentials(
+            credentials?.guestBearer,
+            credentials?.pendingBrowserSecret,
+            credentials?.currentBrowserSecret,
+          ),
           async (transaction, reservation) => {
             if (credentials === undefined) {
               await this.antiAbuse.finalizeInTransaction(
@@ -229,7 +235,7 @@ export class GuestBrowserContextController {
   ) {
     setNoStoreResponseHeaders(response);
     return this.runner.run(
-      "GUEST_BROWSER_SESSION_RECONCILE_SWITCH",
+      guestOperation("GUEST_BROWSER_SESSION_RECONCILE_SWITCH"),
       request,
       async () => {
         requireEmpty(body);
@@ -248,7 +254,10 @@ export class GuestBrowserContextController {
         }
         const reconciled = await this.limiter.run(
           request,
-          credentials.currentBrowserSecret,
+          browserAdmissionCredentials(
+            credentials.currentBrowserSecret,
+            credentials.pendingBrowserSecret,
+          ),
           async (transaction, reservation) => {
             const result = await this.contexts.reconcileInTransaction(
               transaction,

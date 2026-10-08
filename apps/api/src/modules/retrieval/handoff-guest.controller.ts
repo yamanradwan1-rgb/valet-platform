@@ -15,7 +15,10 @@ import {
 } from "@valet/contracts";
 
 import { ApiTransportValidationError } from "../../common/http/api-errors";
-import { ApiOperationRunner } from "../../common/http/api-operation-runner";
+import {
+  ApiOperationRunner,
+  guestOperation,
+} from "../../common/http/api-operation-runner";
 import type { ApiRequest } from "../../common/http/api-request";
 import {
   setNoStoreResponseHeaders,
@@ -76,8 +79,10 @@ export class HandoffGuestController {
     @Res({ passthrough: true }) response: HeaderResponse,
   ) {
     setNoStoreResponseHeaders(response);
-    return this.runner.run("ISSUE_HANDOFF_VERIFICATION", request, () =>
-      this.execute(request, body, query, false),
+    return this.runner.run(
+      guestOperation("ISSUE_HANDOFF_VERIFICATION"),
+      request,
+      () => this.execute(request, body, query, false),
     );
   }
 
@@ -90,8 +95,10 @@ export class HandoffGuestController {
     @Res({ passthrough: true }) response: HeaderResponse,
   ) {
     setNoStoreResponseHeaders(response);
-    return this.runner.run("ROTATE_HANDOFF_VERIFICATION", request, () =>
-      this.execute(request, body, query, true),
+    return this.runner.run(
+      guestOperation("ROTATE_HANDOFF_VERIFICATION"),
+      request,
+      () => this.execute(request, body, query, true),
     );
   }
 }

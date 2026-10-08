@@ -9,6 +9,22 @@ Branch: `fix/guest-anti-abuse-postgres-resilience-t3`.
 
 ## Contract ledger
 
+Remediation contract (owner request, 2026-10-08): only explicitly opted-in
+Guest HTTP operations receive the six-second application deadline. Shared
+connections remain finite. General database leases use separately validated
+operator-supplied lock, statement, transaction and idle-transaction budgets in
+production; these are resource ceilings, not HTTP deadlines or check-in KPIs.
+Development defaults (5s lock, 15s statement, 30s lease/transaction, 10s idle) support
+delayed compatibility probes and are not production sizing evidence.
+General leases configure/reset only their four timeout settings. Guest leases
+retain native 3s statement / 5s transaction / 2s idle and lock limits without
+adding timeout-configuration SQL to the Guest hot path. Pool acquisition
+remains 2s with the same aggregate pool/queue capacity. Every lease has a finite
+watchdog, including callbacks that never resume. Resource exhaustion outside
+Guest uses the existing neutral INTERNAL_ERROR code with a safe 503 response.
+Class metrics publish acknowledged commits separately from confirmed rollbacks
+and unavailable/ambiguous outcomes; they never authorize a request.
+
 LOCKED: PostgreSQL exact 900-second rolling windows, shared HMAC secret/full-key
 predicates, advisory serialization, fail closed, generic 429/503, no-store;
 DEC-025 verified TLS/non-owner runtime; DEC-064 generation/current exact visit
@@ -79,7 +95,8 @@ Authorized A/B/C/D share `v1:guest-token` with the visit aggregate cap **864**
 (784+32+32+16). Alternating routes cannot multiply it. Bearer consumption prevents
 simultaneously valid legacy and Browser Session business transport; transition
 proofs remain the sole DEC-064 exception. Server-authorized recovery may use the
-current browser identity only through its existing independent authority check.
+validated current or pending target Browser Session only through its existing
+independent authority check and exact downstream transition binding.
 No cookie's mere presence enables an authenticated quota. Failed transition
 proofs still consume the shared source failure quota before invalid disclosure.
 
@@ -98,10 +115,13 @@ fell from 105.79ms before that index to 24.27ms after it in the same run.
 Forward migration 077 adds that measured index; it excludes NULL groups and
 IGNORED events. No clock-dependent or speculative partial predicate is used.
 
-Connection acquisition 2s; bounded admission queue; lock 2s; statement 3s;
+Shared checkout (including lease configuration) 2s; bounded admission queue.
+Guest leases: lock 2s; statement 3s;
 idle-in-transaction 2s; transaction 5s; Guest API operation 6s. PostgreSQL 17 is
 the repository-supported runtime and provides server-side `transaction_timeout`;
-startup must verify version/settings rather than assume support. Server deadlines
+startup must verify Guest-native version/settings rather than assume support.
+General leases use the separately validated finite production budgets described
+above, including lock wait, with no Guest HTTP timer. Server deadlines
 terminate work; a JS Promise race alone is not cancellation proof. Failed rollback
 or a terminated client requires destruction, never recycling. Commit-response loss
 remains ambiguous and never triggers automatic POST replay.

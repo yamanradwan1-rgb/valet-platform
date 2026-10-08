@@ -49,6 +49,10 @@ describe("T3 derived envelope and finite capacity", () => {
   it("requires real production capacity inputs and includes rollout surge", () => {
     expect(() => runtimePostgresPolicy({ NODE_ENV: "production" })).toThrow();
     const supplied = {
+      DATABASE_GENERAL_LOCK_MS: "5000",
+      DATABASE_GENERAL_STATEMENT_MS: "15000",
+      DATABASE_GENERAL_TRANSACTION_MS: "30000",
+      DATABASE_GENERAL_IDLE_TRANSACTION_MS: "10000",
       NODE_ENV: "production",
       DATABASE_POOL_MAX: "8",
       DATABASE_ALLOWED_CONNECTIONS: "100",
@@ -79,7 +83,7 @@ describe("T3 derived envelope and finite capacity", () => {
     "ECONNRESET",
   ])("maps expected resource exhaustion %s to a generic 503", (code) => {
     expect(mapApiError({ code, message: "private database secret" })).toEqual({
-      code: "ANTI_ABUSE_UNAVAILABLE",
+      code: "INTERNAL_ERROR",
       message: "Service temporarily unavailable.",
       status: 503,
     });
@@ -89,7 +93,7 @@ describe("T3 derived envelope and finite capacity", () => {
     expect(
       mapApiError(new Error("Connection terminated unexpectedly")),
     ).toEqual({
-      code: "ANTI_ABUSE_UNAVAILABLE",
+      code: "INTERNAL_ERROR",
       message: "Service temporarily unavailable.",
       status: 503,
     });

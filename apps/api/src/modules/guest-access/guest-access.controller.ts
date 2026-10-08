@@ -21,7 +21,10 @@ import {
   type GuestAccessIssueRequest,
 } from "@valet/contracts";
 
-import { ApiOperationRunner } from "../../common/http/api-operation-runner";
+import {
+  ApiOperationRunner,
+  guestOperation,
+} from "../../common/http/api-operation-runner";
 import { ApiTransportValidationError } from "../../common/http/api-errors";
 import {
   setNoStoreResponseHeaders,
@@ -168,11 +171,15 @@ export class GuestAccessController {
     @Res({ passthrough: true }) response: HeaderResponse,
   ) {
     setNoStoreResponseHeaders(response);
-    return this.runner.run("GUEST_SESSION_READ", request, async () => {
-      parse(emptyRequestSchema, query ?? {});
-      return guestSessionReadResponseSchema.parse(
-        await this.authorizer.read(request),
-      );
-    });
+    return this.runner.run(
+      guestOperation("GUEST_SESSION_READ"),
+      request,
+      async () => {
+        parse(emptyRequestSchema, query ?? {});
+        return guestSessionReadResponseSchema.parse(
+          await this.authorizer.read(request),
+        );
+      },
+    );
   }
 }

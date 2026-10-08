@@ -13,6 +13,26 @@ import {
 } from "./guest-browser-transport";
 import type { GuestCredential } from "./guest-credential";
 
+export type BrowserAdmissionCredentials =
+  | string
+  | undefined
+  | {
+      readonly primary?: string | undefined;
+      readonly recovery: readonly string[];
+    };
+
+export function browserAdmissionCredentials(
+  primary: string | undefined,
+  ...recovery: readonly (string | undefined)[]
+): BrowserAdmissionCredentials {
+  return {
+    primary,
+    recovery: recovery.filter(
+      (secret): secret is string => secret !== undefined,
+    ),
+  };
+}
+
 @Injectable()
 export class GuestBrowserLimiter {
   constructor(
@@ -38,7 +58,7 @@ export class GuestBrowserLimiter {
 
   async run<T>(
     request: ApiRequest,
-    credentialSecret: string | undefined,
+    credentials: BrowserAdmissionCredentials,
     operation: (
       transaction: PostgresTransaction,
       reservation: AntiAbuseReservation,
@@ -46,6 +66,14 @@ export class GuestBrowserLimiter {
     allocation = false,
   ): Promise<T> {
     const browser = readBrowserCookie(request);
+    const credentialSecret =
+      typeof credentials === "object" ? credentials.primary : credentials;
+    const recovery =
+      typeof credentials === "object" ? credentials.recovery : [];
+    const alternates: GuestCredential[] = [
+      ...recovery,
+      ...(browser === undefined ? [] : [browser]),
+    ].map((secret) => ({ kind: "BROWSER_SESSION", secret }));
     const credential: GuestCredential | undefined =
       credentialSecret === undefined
         ? browser === undefined
@@ -59,14 +87,7 @@ export class GuestBrowserLimiter {
           };
     const reservation = allocation
       ? await this.admission.allocation(request, credential)
-      : await this.admission.admit(
-          request,
-          credential,
-          "B",
-          browser === undefined
-            ? undefined
-            : { kind: "BROWSER_SESSION", secret: browser },
-        );
+      : await this.admission.admit(request, credential, "B", alternates);
     return this.antiAbuse.transaction((transaction) =>
       operation(transaction, reservation),
     );

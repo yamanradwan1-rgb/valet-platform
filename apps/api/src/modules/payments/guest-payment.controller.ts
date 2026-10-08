@@ -14,7 +14,10 @@ import {
 } from "@valet/contracts";
 
 import { ApiTransportValidationError } from "../../common/http/api-errors";
-import { ApiOperationRunner } from "../../common/http/api-operation-runner";
+import {
+  ApiOperationRunner,
+  guestOperation,
+} from "../../common/http/api-operation-runner";
 import type { ApiRequest } from "../../common/http/api-request";
 import {
   setNoStoreResponseHeaders,
@@ -47,20 +50,24 @@ export class GuestPaymentController {
     @Res({ passthrough: true }) response: HeaderResponse,
   ) {
     setNoStoreResponseHeaders(response);
-    return this.runner.run("PAYMENT_GUEST_TIP_UPDATE", request, async () => {
-      if (!emptyRequestSchema.safeParse(query ?? {}).success) {
-        throw new ApiTransportValidationError();
-      }
-      const input = parsePaymentBody(paymentTipMutationRequestSchema, body);
-      return guestPaymentHttpProjection(
-        await this.authorizer.authorize(
-          request,
-          { mutation: true },
-          (reservation, credential) =>
-            this.service.guestTip(reservation, credential, input.tipAmount),
-        ),
-      );
-    });
+    return this.runner.run(
+      guestOperation("PAYMENT_GUEST_TIP_UPDATE"),
+      request,
+      async () => {
+        if (!emptyRequestSchema.safeParse(query ?? {}).success) {
+          throw new ApiTransportValidationError();
+        }
+        const input = parsePaymentBody(paymentTipMutationRequestSchema, body);
+        return guestPaymentHttpProjection(
+          await this.authorizer.authorize(
+            request,
+            { mutation: true },
+            (reservation, credential) =>
+              this.service.guestTip(reservation, credential, input.tipAmount),
+          ),
+        );
+      },
+    );
   }
 
   @Get("valet-sessions/:sessionId/payment")
@@ -72,7 +79,7 @@ export class GuestPaymentController {
   ) {
     setNoStoreResponseHeaders(response);
     return this.runner.run(
-      "PAYMENT_GUEST_PROJECTION_READ",
+      guestOperation("PAYMENT_GUEST_PROJECTION_READ"),
       request,
       async () => {
         if (!emptyRequestSchema.safeParse(query ?? {}).success) {
@@ -90,5 +97,4 @@ export class GuestPaymentController {
       },
     );
   }
-
 }

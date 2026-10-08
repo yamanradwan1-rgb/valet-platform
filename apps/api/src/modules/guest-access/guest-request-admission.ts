@@ -84,25 +84,22 @@ export class GuestRequestAdmission {
     request: ApiRequest,
     credential: GuestCredential | undefined,
     requestClass: GuestRequestClass,
-    alternate?: GuestCredential,
+    alternates: readonly GuestCredential[] = [],
   ): Promise<AntiAbuseReservation> {
     if (credential !== undefined) {
       const authenticated = await this.antiAbuse.transaction(
-        async (transaction) =>
-          (await this.authenticatedInTransaction(
-            transaction,
-            request,
-            credential,
-            requestClass,
-          )) ??
-          (alternate === undefined
-            ? undefined
-            : await this.authenticatedInTransaction(
-                transaction,
-                request,
-                alternate,
-                requestClass,
-              )),
+        async (transaction) => {
+          for (const candidate of [credential, ...alternates]) {
+            const result = await this.authenticatedInTransaction(
+              transaction,
+              request,
+              candidate,
+              requestClass,
+            );
+            if (result !== undefined) return result;
+          }
+          return undefined;
+        },
       );
       if (authenticated !== undefined) return authenticated.reservation;
     }

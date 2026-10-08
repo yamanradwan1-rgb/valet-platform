@@ -1,3 +1,4 @@
+import { withDatabaseOperationDeadline } from "./runtime-database-deadline";
 import {
   Inject,
   Injectable,
@@ -27,18 +28,20 @@ export class RuntimeDatabaseLifecycle
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
-    const result = await this.pool.query<{
-      version: number;
-      transaction_timeout: string;
-      statement_timeout: string;
-      lock_timeout: string;
-      idle_timeout: string;
-    }>(
-      `SELECT current_setting('server_version_num')::int AS version,
+    const result = await withDatabaseOperationDeadline(() =>
+      this.pool.query<{
+        version: number;
+        transaction_timeout: string;
+        statement_timeout: string;
+        lock_timeout: string;
+        idle_timeout: string;
+      }>(
+        `SELECT current_setting('server_version_num')::int AS version,
        current_setting('transaction_timeout') AS transaction_timeout,
        current_setting('statement_timeout') AS statement_timeout,
        current_setting('lock_timeout') AS lock_timeout,
        current_setting('idle_in_transaction_session_timeout') AS idle_timeout`,
+      ),
     );
     if (
       (result.rows[0]?.version ?? 0) < 170000 ||

@@ -1,12 +1,13 @@
+import { observeTransactionOutcome } from "../../common/database/postgres-transaction-outcome";
 import type { PostgresTransaction } from "../../common/database/postgres";
 import type { AntiAbuseKey } from "./anti-abuse-key";
 
 // Fixed dimensions only. T4 may export these through the existing observability boundary.
 export const guestClassMeasurements = {
-  A: { allowed: 0, blocked: 0, unavailable: 0 },
-  B: { allowed: 0, blocked: 0, unavailable: 0 },
-  C: { allowed: 0, blocked: 0, unavailable: 0 },
-  D: { allowed: 0, blocked: 0, unavailable: 0 },
+  A: { allowed: 0, blocked: 0, rolledBack: 0, unavailable: 0 },
+  B: { allowed: 0, blocked: 0, rolledBack: 0, unavailable: 0 },
+  C: { allowed: 0, blocked: 0, rolledBack: 0, unavailable: 0 },
+  D: { allowed: 0, blocked: 0, rolledBack: 0, unavailable: 0 },
 };
 
 // Policy is supplied by Guest Access; Anti-Abuse does not own route semantics.
@@ -95,9 +96,17 @@ export async function countClassifiedGuest(
     if (row === undefined || (row.id === null && row.retry_after === 0)) {
       throw new Error("Guest accounting unavailable.");
     }
-    guestClassMeasurements[requestClass][
-      row.retry_after === 0 ? "allowed" : "blocked"
-    ] += 1;
+    observeTransactionOutcome(transaction, (outcome) => {
+      const counter =
+        outcome === "COMMITTED"
+          ? row.retry_after === 0
+            ? "allowed"
+            : "blocked"
+          : outcome === "ROLLED_BACK"
+            ? "rolledBack"
+            : "unavailable";
+      guestClassMeasurements[requestClass][counter] += 1;
+    });
     return {
       ...(row.id === null ? {} : { id: row.id }),
       retryAfter: row.retry_after,
