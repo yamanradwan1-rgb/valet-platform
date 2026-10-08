@@ -297,3 +297,13 @@ later operational dependencies, not completed evidence from T3. Do not merge.
 - `packages/database/src/guest-anti-abuse-schema-assertions.ts`
 - `packages/database/src/guest-t3-migration.integration.test.ts`
 - `packages/database/src/schema.integration.test.ts`
+
+## T3 remediation checkpoint (2026-10-08)
+
+Remediation commit: `9d627af2fbb992316957f79f21d9eb81515d70a0`, following the initial T3 implementation `046efa652c2fabf974813f0e0141d4b63b6c3de2`. The old validation and blocker entries above describe the **initial** implementation only.
+
+The new commit scopes the six-second operation deadline to explicitly opted-in Guest routes, introduces separate finite general PostgreSQL lease limits, hardens lease/protocol handling and COMMIT outcome accounting, preserves rate-limit 429 responses, and supports authorized Browser Session reconciliation under same-NAT contention. No Customer presentation files or new migrations were changed in remediation.
+
+The implementing agent reported 59 focused T3 tests (12 files), 50 compatibility tests, 213 Customer tests, and passing focused lint/typecheck. Several aggregate failures were reported on both the T3 branch and pinned baseline. **Final PostgreSQL aggregate and remaining verification were NOT COMPLETED — OWNER-REQUESTED STOP**. These results were not independently rerun during the subsequent GitHub source inspection. No passing GitHub CI status is recorded for the remediation SHA.
+
+Independent source inspection found no obvious new P0/P1 issue in the scoped remediation but does not certify runtime or production readiness. Any owner-authorized fast-forward is code integration with explicitly incomplete verification, not authorization to deploy, enable enrollment, or activate `GUEST_T3_RATE_POLICY=ACTIVE`. T4 deployment validation and T6 capacity/soak qualification remain pending.
