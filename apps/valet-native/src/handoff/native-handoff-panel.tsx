@@ -16,6 +16,7 @@ import {
 } from "../employee-ui/employee-feedback";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import { getNativeHandoffCopy } from "./native-handoff-copy";
+import { nativeHandoffGuestAccessRecoveryTarget } from "./native-handoff-guest-access-recovery";
 import { NativeHandoffPending } from "./native-handoff-pending";
 import { useNativeHandoffPrivacy } from "./native-handoff-privacy";
 import { nativeHandoffStylesTheme as sTheme } from "./native-handoff-styles";
@@ -26,6 +27,7 @@ export function NativeHandoffPanel({
   handoff,
   locale,
   onBack,
+  onGuestAccessRecovery,
   onReportIssue,
   snapshot,
 }: {
@@ -33,6 +35,7 @@ export function NativeHandoffPanel({
   readonly handoff: EmployeeHandoffSession;
   readonly locale: FoundationLocale;
   readonly onBack: () => void;
+  readonly onGuestAccessRecovery?: (() => void) | undefined;
   readonly onReportIssue?: ((sessionId: string) => void) | undefined;
   readonly snapshot: EmployeeHandoffSnapshot;
 }) {
@@ -74,6 +77,8 @@ export function NativeHandoffPanel({
     onReportIssue && snapshot.session
       ? () => onReportIssue(snapshot.session!.sessionId)
       : undefined;
+  const recovery = onGuestAccessRecovery && nativeHandoffGuestAccessRecoveryTarget(snapshot)
+    ? onGuestAccessRecovery : undefined;
   const back = () => {
     setPickupCode("");
     setQrProof("");
@@ -162,6 +167,7 @@ export function NativeHandoffPanel({
               copy={copy}
               handoff={handoff}
               locale={locale}
+              onGuestAccessRecovery={recovery}
               onReportIssue={reportIssue}
               snapshot={snapshot}
               state={state}

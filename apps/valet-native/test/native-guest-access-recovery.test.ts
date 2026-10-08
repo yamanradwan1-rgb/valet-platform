@@ -56,6 +56,39 @@ describe("Native Guest Access recovery and lifecycle", () => {
     expect(h.session.freshCredentialUrl()).toBeNull();
   });
 
+  it.each([
+    [408, "REQUEST_TIMEOUT"],
+    [504, "GATEWAY_TIMEOUT"],
+  ] as const)(
+    "treats %s issue timeout as ambiguous and reconciles without POST replay",
+    async (status, code) => {
+      const timeout = new EmployeeApiError({
+        code,
+        message: "timeout",
+        status,
+      });
+      const h = queueSession([
+        detail("NOT_ISSUED"),
+        timeout,
+        detail("ACTIVE"),
+      ]);
+      await h.session.open(target);
+
+      expect(await h.session.issue()).toBe(false);
+      expect(h.requests.map(({ method }) => method)).toEqual([
+        "GET",
+        "POST",
+        "GET",
+      ]);
+      expect(h.session.current()).toMatchObject({
+        credentialFresh: false,
+        error: "OUTCOME_UNKNOWN",
+        status: "ACTIVE",
+      });
+      expect(h.session.freshCredentialUrl()).toBeNull();
+    },
+  );
+
   it("purges the credential before publishing REVOKED", async () => {
     const h = queueSession([
       detail("NOT_ISSUED"),
@@ -177,5 +210,80 @@ describe("Native Guest Access recovery and lifecycle", () => {
       target: null,
     });
     expect(session.freshCredentialUrl()).toBeNull();
+  });
+
+  it("fences a late issue response after recovery switches exact sessions", async () => {
+    const pending = deferred<unknown>();
+    const nextSessionId = "88888888-8888-4888-8888-888888888888";
+    const request = vi
+      .fn()
+      .mockResolvedValueOnce(detail("NOT_ISSUED"))
+      .mockReturnValueOnce(pending.promise)
+      .mockResolvedValueOnce({
+        ...detail("ACTIVE"),
+        handoff: {
+          pendingAt: "2026-09-10T11:00:00.000Z",
+          verification: null,
+        },
+        sessionId: nextSessionId,
+        state: "HANDOFF_PENDING",
+      });
+    const session = new NativeGuestAccessSession(() => ({ request }) as never, {
+      customerOrigin: validOrigin,
+      isOnline: () => true,
+    });
+    await session.open(target);
+    const issue = session.issue();
+    const nextOpen = session.open({ origin: "HANDOFF", sessionId: nextSessionId });
+    pending.resolve(issuePayload(tokenA));
+
+    expect(await issue).toBe(false);
+    await nextOpen;
+    expect(session.current()).toMatchObject({
+      phase: "ready",
+      target: { origin: "HANDOFF", sessionId: nextSessionId },
+    });
+    expect(session.freshCredentialUrl()).toBeNull();
+  });
+
+  it("fails closed when a HANDOFF recovery target is no longer pending", async () => {
+    const h = queueSession([
+      {
+        ...detail("ACTIVE"),
+        handoff: { pendingAt: null, verification: null },
+        state: "READY",
+      },
+    ]);
+
+    await h.session.open({ origin: "HANDOFF", sessionId });
+
+    expect(h.session.current()).toMatchObject({
+      credentialFresh: false,
+      error: "LOAD_FAILED",
+      phase: "load-error",
+    });
+    expect(h.session.freshCredentialUrl()).toBeNull();
+  });
+
+  it("fails closed after authoritative Handoff verification already succeeded", async () => {
+    const h = queueSession([
+      {
+        ...detail("ACTIVE"),
+        handoff: {
+          pendingAt: "2026-09-10T11:00:00.000Z",
+          verification: {
+            method: "PICKUP_CODE",
+            status: "VERIFIED",
+            verifiedAt: "2026-09-10T11:01:00.000Z",
+          },
+        },
+        state: "HANDOFF_PENDING",
+      },
+    ]);
+
+    await h.session.open({ origin: "HANDOFF", sessionId });
+
+    expect(h.session.current().phase).toBe("load-error");
+    expect(h.session.freshCredentialUrl()).toBeNull();
   });
 });

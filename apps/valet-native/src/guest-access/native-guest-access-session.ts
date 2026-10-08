@@ -12,11 +12,12 @@ import {
   type NativeCustomerAppOriginResult,
 } from "./native-customer-app-origin";
 import { NativeGuestAccessCredentialMemory } from "./native-guest-access-credential-memory";
-import type {
-  NativeGuestAccessError,
-  NativeGuestAccessSnapshot,
+import {
+  inactiveNativeGuestAccessSnapshot as inactive,
+  nativeGuestAccessTargetMatchesDetail,
+  type NativeGuestAccessError,
+  type NativeGuestAccessSnapshot,
 } from "./native-guest-access-types";
-import { inactiveNativeGuestAccessSnapshot as inactive } from "./native-guest-access-types";
 import {
   ambiguousGuestAccessError,
   issueNativeGuestAccess,
@@ -43,8 +44,7 @@ export class NativeGuestAccessSession {
     private readonly client: () => EmployeeClient,
     options: NativeGuestAccessSessionOptions = {},
   ) {
-    this.customerOrigin =
-      options.customerOrigin ?? currentNativeCustomerAppOrigin();
+    this.customerOrigin = options.customerOrigin ?? currentNativeCustomerAppOrigin();
     this.isOnline = options.isOnline ?? (() => true);
   }
   current = () => this.snapshot;
@@ -261,7 +261,7 @@ export class NativeGuestAccessSession {
     try {
       const raw = await loadNativeGuestAccess(this.client(), target.sessionId);
       const detail = staffValetSessionDetailResponseSchema.parse(raw);
-      if (detail.sessionId !== target.sessionId)
+      if (!nativeGuestAccessTargetMatchesDetail(target, detail))
         throw new Error("Invalid target");
       if (generation !== this.generation) return;
       if (detail.guestAccess.status !== "ACTIVE") this.credential.clear();

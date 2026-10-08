@@ -37,6 +37,20 @@ export const inactiveNativeGuestAccessSnapshot: NativeGuestAccessSnapshot = {
   target: null,
 };
 
+export function nativeGuestAccessTargetMatchesDetail(
+  target: NativeContextualTarget,
+  detail: StaffValetSessionDetailResponse,
+): boolean {
+  return (
+    detail.sessionId === target.sessionId &&
+    (target.origin !== "HANDOFF" ||
+      (detail.state === "HANDOFF_PENDING" &&
+        detail.handoff.pendingAt !== null &&
+        detail.handoff.verification?.status !== "VERIFIED" &&
+        (detail.handoff.verification?.verifiedAt ?? null) === null))
+  );
+}
+
 export type NativeGuestAccessPrimaryAction = {
   readonly kind: "CREATE" | "CREATE_NEW" | "REISSUE";
   readonly confirm: boolean;

@@ -8,6 +8,7 @@ import {
 } from "@valet/employee-client";
 
 import { EmployeeButton } from "../employee-ui/employee-controls";
+import { getNativeGuestAccessCopy } from "../guest-access/native-guest-access-copy";
 import { EmployeeError } from "../employee-ui/employee-feedback";
 import { employeeTextStyle } from "../employee-ui/employee-typography";
 import type { FoundationLocale } from "../foundation/foundation-locale";
@@ -25,6 +26,7 @@ export function NativeHandoffPending({
   copy,
   handoff,
   locale,
+  onGuestAccessRecovery,
   onReportIssue,
   snapshot,
   state,
@@ -35,6 +37,7 @@ export function NativeHandoffPending({
   readonly copy: NativeHandoffCopy;
   readonly handoff: EmployeeHandoffSession;
   readonly locale: FoundationLocale;
+  readonly onGuestAccessRecovery?: (() => void) | undefined;
   readonly onReportIssue?: (() => void) | undefined;
   readonly snapshot: EmployeeHandoffSnapshot;
   readonly state: {
@@ -131,6 +134,15 @@ export function NativeHandoffPending({
           textAlign={locale === "ar" ? "right" : "left"}
           title={copy.supervisorTitle}
           value={state.overrideReason}
+        />
+      ) : null}
+      {onGuestAccessRecovery ? (
+        <EmployeeButton
+          disabled={busy}
+          label={getNativeGuestAccessCopy(locale).title}
+          onPress={onGuestAccessRecovery}
+          size="standard"
+          variant="secondary"
         />
       ) : null}
       {onReportIssue ? (

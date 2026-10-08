@@ -28,6 +28,8 @@ import { getNativeShellCopy } from "./native-shell-copy";
 import {
   closeRetrieval,
   openHandoff,
+  openHandoffGuestAccessRecovery,
+  NATIVE_HANDOFF_GUEST_ACCESS_RECOVERY_UI_ENABLED,
 } from "./native-production-workflow-navigation";
 import { NativeContextualSurface } from "./native-contextual-surface";
 import { nativeContextualNavigationPinned } from "./native-contextual-route";
@@ -205,6 +207,7 @@ export function NativeProductionWorkspace({
                 handoff={runtime.handoff}
                 locale={locale}
                 onBack={() => closeRetrieval(runtime, navigate)}
+                onGuestAccessRecovery={NATIVE_HANDOFF_GUEST_ACCESS_RECOVERY_UI_ENABLED ? () => openHandoffGuestAccessRecovery(handoff, contextual.open) : undefined}
                 onReportIssue={(sessionId) =>
                   contextual.open("incident", "HANDOFF", sessionId)
                 }
