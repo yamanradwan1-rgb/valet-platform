@@ -14,10 +14,12 @@ export function ScreenParked({
   session,
   onRequestClick,
   onViewDetails,
+  canRequest = true,
 }: {
   readonly session: GuestSafeSession;
   readonly onRequestClick: () => void;
   readonly onViewDetails: () => void;
+  readonly canRequest?: boolean;
 }) {
   const { t } = useTranslation();
 
@@ -64,7 +66,7 @@ export function ScreenParked({
           paddingTop: 4,
         }}
       >
-        <Btn onClick={onRequestClick}>{t("parked.requestButton")}</Btn>
+        <Btn onClick={onRequestClick} disabled={!canRequest}>{t("parked.requestButton")}</Btn>
         <Btn onClick={onViewDetails} variant="ghost">
           {t("vehicle.viewDetails")}
         </Btn>

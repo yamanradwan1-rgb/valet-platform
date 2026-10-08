@@ -1,215 +1,165 @@
-"use client";
+'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
-
-import { getLocalizedErrorMessage } from "../../i18n/error-translator";
-import { useTranslation } from "../../i18n/use-translation";
-import { GuestApiError } from "../../lib/api/api-error";
-import type { GuestSafeSession } from "../../lib/api/guest-api-types";
-import { useGuestAuth } from "../auth/guest-auth-context";
-import { attemptGuestReadyAlertAudio } from "../ready-alert/guest-ready-alert-audio";
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { getLocalizedErrorMessage } from '../../i18n/error-translator';
+import { useTranslation } from '../../i18n/use-translation';
+import type { GuestSafeSession } from '../../lib/api/guest-api-types';
+import { useGuestAuth } from '../auth/guest-auth-context';
+import { attemptGuestReadyAlertAudio } from '../ready-alert/guest-ready-alert-audio';
 import {
-  createGuestReadyAlertTracker,
-  observeGuestReadySnapshot,
-  resetGuestReadyAlertTracker,
-} from "../ready-alert/guest-ready-alert-tracker";
-import { GuestVehicleReadyAlert } from "../ready-alert/guest-vehicle-ready-alert";
-import { GuestSessionContext } from "./use-guest-session";
+  createGuestReadyAlertTracker, observeGuestReadySnapshot,
+} from '../ready-alert/guest-ready-alert-tracker';
+import { GuestVehicleReadyAlert } from '../ready-alert/guest-vehicle-ready-alert';
+import { classifyGuestReadFailure } from './guest-read-error-classification';
 import {
-  currentClientSession,
-  applyCurrentClientSessionUpdate,
-} from "./client-bound-session";
-
-const POLLING_INTERVAL_MS = 5_000;
-
-interface ClientBoundSession {
-  readonly client: ReturnType<typeof useGuestAuth>["client"];
-  readonly value: GuestSafeSession | null;
-}
+  GUEST_FOREGROUND_STALE_TARGET_MS, nextGuestReadDelay,
+} from './guest-read-schedule';
+import { GuestRequestCoordinator, type GuestCoordinatorState } from './guest-request-coordinator';
+import { GuestSessionContext } from './use-guest-session';
 
 export function GuestSessionProvider({
-  children,
-  initialSession,
+  children, initialSession,
 }: {
   readonly children: React.ReactNode;
-  readonly initialSession?: GuestSafeSession | null | undefined;
+  readonly initialSession?: GuestSafeSession | null;
 }) {
   const { t } = useTranslation();
   const { client, isContextSwitchOutcomeAmbiguous } = useGuestAuth();
-  const [sessionEnvelope, setSessionEnvelope] = useState<ClientBoundSession>(
-    () => ({
+  const initialClientRef = useRef(client);
+  const [owner, setOwner] = useState<{
+    readonly client: typeof client; readonly coordinator: GuestRequestCoordinator;
+  } | null>(null);
+  const [stateEnvelope, setStateEnvelope] = useState<{
+    readonly client: typeof client; readonly state: GuestCoordinatorState;
+  } | null>(null);
+  const [readyAlert, setReadyAlert] = useState<{
+    readonly client: typeof client; readonly identity: string | null;
+  }>({ client, identity: null });
+  const [isDocumentVisible, setDocumentVisible] = useState(true);
+  const [isOnline, setOnline] = useState(true);
+  const [clockNow, setClockNow] = useState(() => Date.now());
+  const coordinator = owner?.client === client ? owner.coordinator : null;
+  const state = stateEnvelope?.client === client
+    ? stateEnvelope.state : coordinator?.snapshot ?? null;
+  const session = state?.session ?? null;
+  const isFresh = Boolean(coordinator?.isFresh(GUEST_FOREGROUND_STALE_TARGET_MS) &&
+    isDocumentVisible && isOnline && !isContextSwitchOutcomeAmbiguous);
+  const isStale = Boolean(session && !isFresh);
+  const errorValue = state?.error;
+  const error = errorValue ? getLocalizedErrorMessage(errorValue, t) : null;
+  const isExpired = Boolean(state?.isExpired && !isContextSwitchOutcomeAmbiguous);
+  const isNetworkError = Boolean(errorValue && !isExpired);
+  const failureKind = classifyGuestReadFailure(errorValue);
+  const isLoading = Boolean(client && !session && !error && !isExpired);
+  const cooldownSeconds = Math.max(0, Math.ceil(((state?.cooldownUntil ?? 0) - clockNow) / 1_000));
+
+  // Only this effect constructs and disposes client ownership. Old callbacks
+  // become inert before the replacement coordinator is exposed to rendering.
+  useEffect(() => {
+    if (!client) return;
+    let active = true;
+    // Do not adopt an initial snapshot from a previous visit after a T1 switch.
+    const trustedInitial = initialClientRef.current === client ? initialSession ?? null : null;
+    const tracked = createGuestReadyAlertTracker(trustedInitial);
+    const next = new GuestRequestCoordinator(
       client,
-      value: initialSession ?? null,
-    }),
-  );
-  const [readyAlertEnvelope, setReadyAlertEnvelope] = useState<{
-    readonly client: typeof client;
-    readonly identity: string | null;
-  }>(() => ({ client, identity: null }));
-  const [isLoading, setIsLoading] = useState<boolean>(
-    () => !initialSession && Boolean(client),
-  );
-  const [error, setError] = useState<string | null>(null);
-  const [isNetworkError, setIsNetworkError] = useState<boolean>(false);
-  const [isExpired, setIsExpired] = useState<boolean>(false);
-
-  const inFlightClientRef = useRef<typeof client>(null);
-  const latestSessionRef = useRef(sessionEnvelope);
-  const session = currentClientSession(sessionEnvelope, client);
-  const readyAlertIdentity =
-    readyAlertEnvelope.client === client ? readyAlertEnvelope.identity : null;
-  const readyTrackerRef = useRef(
-    createGuestReadyAlertTracker(initialSession ?? null),
-  );
-  const activeClientRef = useRef(client);
-  const sessionStateRef = useRef<string | undefined>(session?.state);
-
-  useEffect(() => {
-    if (activeClientRef.current !== client) {
-      resetGuestReadyAlertTracker(readyTrackerRef.current);
-      setError(null);
-      setIsExpired(false);
-      setIsNetworkError(false);
-    }
-    activeClientRef.current = client;
-    sessionStateRef.current = session?.state;
-  }, [client, session?.state]);
-
-  const applyAuthorizedSessionSnapshot = useCallback(
-    (newSession: GuestSafeSession) => {
-      if (activeClientRef.current !== client) return;
-
-      const decision = observeGuestReadySnapshot(
-        readyTrackerRef.current,
-        newSession,
-      );
-      latestSessionRef.current = { client, value: newSession };
-      setSessionEnvelope(latestSessionRef.current);
-      if (newSession.state === "COMPLETED" || decision.kind === "BASELINE") {
-        setReadyAlertEnvelope({ client, identity: null });
-      } else if (decision.kind === "PRESENT") {
-        attemptGuestReadyAlertAudio();
-        setReadyAlertEnvelope({ client, identity: decision.identity });
-      }
-    },
-    [client],
-  );
-
-  const fetchSession = useCallback(async () => {
-    if (!client || inFlightClientRef.current === client) return;
-    if (sessionStateRef.current === "COMPLETED") return;
-
-    inFlightClientRef.current = client;
-    setIsLoading(true);
-
-    try {
-      const data = await client.loadSession();
-      if (activeClientRef.current !== client) return;
-      applyAuthorizedSessionSnapshot(data);
-      setError(null);
-      setIsNetworkError(false);
-      setIsExpired(false);
-    } catch (err: unknown) {
-      if (activeClientRef.current !== client) return;
-      if (err instanceof GuestApiError) {
-        if (err.isNetworkError) {
-          setIsNetworkError(true);
-        } else if (err.code === "GUEST_ACCESS_INVALID") {
-          setIsExpired(true);
-          resetGuestReadyAlertTracker(readyTrackerRef.current);
-          setReadyAlertEnvelope({ client, identity: null });
+      (snapshot) => {
+        if (active) setStateEnvelope({ client, state: snapshot });
+      },
+      (snapshot) => {
+        if (!active) return;
+        const decision = observeGuestReadySnapshot(tracked, snapshot);
+        if (snapshot.state === 'COMPLETED' || decision.kind === 'BASELINE') {
+          setReadyAlert({ client, identity: null });
+        } else if (decision.kind === 'PRESENT') {
+          attemptGuestReadyAlertAudio();
+          setReadyAlert({ client, identity: decision.identity });
         }
-      }
-      setError(getLocalizedErrorMessage(err, t));
-    } finally {
-      if (inFlightClientRef.current === client) {
-        inFlightClientRef.current = null;
-      }
-      if (activeClientRef.current === client) setIsLoading(false);
-    }
-  }, [applyAuthorizedSessionSnapshot, client, t]);
-
-  const refreshSession = useCallback(async () => {
-    await fetchSession();
-  }, [fetchSession]);
-
-  const updateSession = useCallback(
-    (snapshot: GuestSafeSession) =>
-      applyCurrentClientSessionUpdate(
-        latestSessionRef,
-        activeClientRef,
-        client,
-        snapshot,
-        (newSession) => {
-          applyAuthorizedSessionSnapshot(newSession);
-          setError(null);
-          setIsNetworkError(false);
-        },
-      ),
-    [applyAuthorizedSessionSnapshot, client],
-  );
-
-  // Initial load via asynchronous trigger
-  useEffect(() => {
-    if (client && !session) {
-      const timer = setTimeout(() => {
-        void fetchSession();
-      }, 0);
-      return () => clearTimeout(timer);
-    }
-    return undefined;
-  }, [client, session, fetchSession]);
-
-  // Foreground Polling
-  useEffect(() => {
-    if (!client || isExpired) return;
-
-    const intervalId = setInterval(() => {
-      if (
-        typeof document !== "undefined" &&
-        document.visibilityState === "visible" &&
-        sessionStateRef.current !== "COMPLETED"
-      ) {
-        void fetchSession();
-      }
-    }, POLLING_INTERVAL_MS);
-
-    const onVisibilityChange = () => {
-      if (
-        document.visibilityState === "visible" &&
-        sessionStateRef.current !== "COMPLETED"
-      ) {
-        void fetchSession();
-      }
-    };
-
-    document.addEventListener("visibilitychange", onVisibilityChange);
-
+      },
+      trustedInitial,
+    );
+    queueMicrotask(() => {
+      if (!active) return;
+      setOwner({ client, coordinator: next });
+      setReadyAlert({ client, identity: null });
+      setClockNow(Date.now());
+      setDocumentVisible(document.visibilityState !== 'hidden');
+      setOnline(navigator.onLine !== false);
+      void next.read();
+    });
     return () => {
-      clearInterval(intervalId);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
+      active = false;
+      next.dispose();
     };
-  }, [client, isExpired, fetchSession]);
+  }, [client, initialSession]);
 
-  const value = {
-    session,
-    isLoading: isLoading || Boolean(client && !session && !error),
-    error,
-    isNetworkError,
-    isExpired: isContextSwitchOutcomeAmbiguous && session !== null ? false : isExpired,
-    refreshSession,
-    updateSession,
-  };
+  useEffect(() => {
+    if (!coordinator || isExpired) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let active = true;
+    const visible = () => document.visibilityState !== 'hidden';
+    const online = () => navigator.onLine !== false;
+    const pulse = () => setClockNow(Date.now());
+    const schedule = () => {
+      if (timer) clearTimeout(timer);
+      if (!active || !visible() || !online() || coordinator.snapshot.isExpired ||
+          coordinator.snapshot.session?.state === 'COMPLETED') return;
+      const delay = nextGuestReadDelay(coordinator.snapshot, Date.now());
+      timer = setTimeout(() => {
+        if (active && visible() && online()) void coordinator.read().finally(schedule);
+      }, delay);
+    };
+    const recover = () => {
+      setDocumentVisible(visible());
+      setOnline(online());
+      pulse();
+      if (visible() && online()) void coordinator.triggerRead().finally(schedule);
+      else schedule();
+    };
+    document.addEventListener('visibilitychange', recover);
+    window.addEventListener('online', recover);
+    window.addEventListener('offline', recover);
+    window.addEventListener('pageshow', recover);
+    window.addEventListener('focus', recover);
+    const freshnessTimer = setInterval(pulse, 1000);
+    schedule();
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+      clearInterval(freshnessTimer);
+      document.removeEventListener('visibilitychange', recover);
+      window.removeEventListener('online', recover);
+      window.removeEventListener('offline', recover);
+      window.removeEventListener('pageshow', recover);
+      window.removeEventListener('focus', recover);
+    };
+  }, [coordinator, isExpired]);
+
+  const refreshSession = useCallback(async () => { await coordinator?.read(); }, [coordinator]);
+  const beginMutation = useCallback(() => {
+    if (!coordinator || !isDocumentVisible || !isOnline ||
+        isContextSwitchOutcomeAmbiguous ||
+        !coordinator.isFresh(GUEST_FOREGROUND_STALE_TARGET_MS)) return null;
+    return coordinator.beginMutation();
+  }, [coordinator, isDocumentVisible, isOnline, isContextSwitchOutcomeAmbiguous]);
+  const updateSession = useCallback((snapshot: GuestSafeSession) => {
+    coordinator?.updateSession(snapshot);
+  }, [coordinator]);
 
   return (
     <>
-      <GuestSessionContext.Provider value={value}>
+      <GuestSessionContext.Provider value={{
+        session, isLoading, error, isNetworkError, isExpired,
+        failureKind,
+        isRefreshing: Boolean(state?.isReading && session),
+        isFresh, isStale, isMutating: Boolean(state?.isMutating),
+        cooldownSeconds,
+        refreshSession, updateSession, beginMutation,
+      }}>
         {children}
       </GuestSessionContext.Provider>
-      {readyAlertIdentity !== null && (
-        <GuestVehicleReadyAlert
-          onDismiss={() => setReadyAlertEnvelope({ client, identity: null })}
-        />
+      {readyAlert.client === client && readyAlert.identity !== null && isFresh && !isExpired && (
+        <GuestVehicleReadyAlert onDismiss={() => setReadyAlert({ client, identity: null })} />
       )}
     </>
   );

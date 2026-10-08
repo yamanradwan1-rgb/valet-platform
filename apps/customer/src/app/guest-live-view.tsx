@@ -23,6 +23,8 @@ export function GuestLiveView({
   onViewDetails,
   onViewReceipt,
   onRateExperience,
+  canMutate = true,
+  isRefreshing = false,
 }: {
   readonly screenId: GuestScreenId;
   readonly session: GuestSafeSession;
@@ -33,10 +35,12 @@ export function GuestLiveView({
   readonly onViewDetails: () => void;
   readonly onViewReceipt?: (() => void) | undefined;
   readonly onRateExperience?: (() => void) | undefined;
+  readonly canMutate?: boolean;
+  readonly isRefreshing?: boolean;
 }) {
   switch (screenId) {
     case 'RECEIVED':
-      return <ScreenReceived session={session} onRefresh={onRefreshSession} />;
+      return <ScreenReceived session={session} onRefresh={onRefreshSession} isRefreshing={isRefreshing} />;
 
     case 'PARKED':
       return (
@@ -44,6 +48,7 @@ export function GuestLiveView({
           session={session}
           onRequestClick={onRequestVehicle}
           onViewDetails={onViewDetails}
+          canRequest={canMutate}
         />
       );
 
@@ -53,6 +58,7 @@ export function GuestLiveView({
           session={session}
           onCancel={() => void retrieval.cancelRetrieval()}
           isCancelling={retrieval.isCancelling}
+          canCancel={canMutate}
           error={retrieval.actionError}
         />
       );
@@ -68,13 +74,13 @@ export function GuestLiveView({
         <ScreenReadyPIN
           session={session}
           pickupCode={
-            handoff.material?.method === 'PICKUP_CODE'
+            canMutate && handoff.material?.method === 'PICKUP_CODE'
               ? handoff.material.pickupCode
               : undefined
           }
           secondsRemaining={handoff.secondsRemaining}
-          onSwitchToQR={() => void handoff.switchMethod('DYNAMIC_QR')}
-          onRotate={() => void handoff.rotateCurrent()}
+          onSwitchToQR={canMutate ? () => void handoff.switchMethod('DYNAMIC_QR') : undefined}
+          onRotate={canMutate ? () => void handoff.rotateCurrent() : undefined}
           isRotating={handoff.isRotating}
           error={handoff.error}
         />
@@ -85,13 +91,13 @@ export function GuestLiveView({
         <ScreenReadyQR
           session={session}
           qrPayload={
-            handoff.material?.method === 'DYNAMIC_QR'
+            canMutate && handoff.material?.method === 'DYNAMIC_QR'
               ? handoff.material.qrPayload
               : undefined
           }
           secondsRemaining={handoff.secondsRemaining}
-          onSwitchToPIN={() => void handoff.switchMethod('PICKUP_CODE')}
-          onRotate={() => void handoff.rotateCurrent()}
+          onSwitchToPIN={canMutate ? () => void handoff.switchMethod('PICKUP_CODE') : undefined}
+          onRotate={canMutate ? () => void handoff.rotateCurrent() : undefined}
           isRotating={handoff.isRotating}
           error={handoff.error}
         />

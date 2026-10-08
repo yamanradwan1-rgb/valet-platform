@@ -6,23 +6,21 @@ function source(relativePath: string): string {
 }
 
 describe('Guest READY alert composition', () => {
-  it('applies fetch and updateSession snapshots through one tracker boundary', () => {
+  it('applies canonical and mutation snapshots through one coordinator-owned alert boundary', () => {
     const provider = source('./guest-session-provider.tsx');
-    expect(provider.match(/applyAuthorizedSessionSnapshot\(/gu)).toHaveLength(2);
-    expect(provider).toContain('applyAuthorizedSessionSnapshot(data)');
-    expect(provider).toContain('applyAuthorizedSessionSnapshot(newSession)');
+    const coordinator = source('./guest-request-coordinator.ts');
+    expect(provider).toContain('observeGuestReadySnapshot(tracked, snapshot)');
+    expect(coordinator).toContain('this.acceptSession(session)');
+    expect(coordinator).toContain('this.acceptSession(retained)');
     expect(provider).not.toContain('setSession(data)');
     expect(provider).not.toContain('setSession(newSession)');
   });
 
-  it('retains exactly one five-second Guest session polling owner', () => {
+  it('retains exactly one adaptive Guest session scheduling owner', () => {
     const provider = source('./guest-session-provider.tsx');
-    const customerSourceFiles = [
-      provider,
-      source('../../app/guest-app-root.tsx'),
-      source('./use-guest-session.ts'),
-    ].join('\n');
-    expect(customerSourceFiles.match(/setInterval\s*\(/gu)).toHaveLength(1);
-    expect(provider).toContain('const POLLING_INTERVAL_MS = 5_000');
+    expect(provider).toContain('nextGuestReadDelay(coordinator.snapshot');
+    expect(provider).toContain('timer = setTimeout(');
+    expect(provider).not.toContain('POLLING_INTERVAL_MS = 5_000');
+    expect(source('./guest-request-coordinator.ts')).not.toContain('setInterval(');
   });
 });

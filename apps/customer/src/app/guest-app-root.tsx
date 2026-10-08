@@ -2,13 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 
-import { useTranslation } from '../i18n/use-translation';
 import { AppShell } from '../components/layout/app-shell';
 import type { CustomerTab } from '../components/layout/bottom-nav';
 import { useGuestSession } from '../features/session/use-guest-session';
 import { resolveGuestScreenId } from '../features/session/guest-lifecycle-router';
 import { useRetrieval } from '../features/retrieval/use-retrieval';
-import { OverlayConfirmRequest } from '../features/retrieval/overlay-confirm-request';
 import { useHandoff } from '../features/handoff/use-handoff';
 import {
   ScreenPaymentOverview,
@@ -20,7 +18,6 @@ import {
   ScreenNetworkUnavailable,
   ScreenExpired,
 } from '../features/deferred/screen-system';
-import { OverlayVehicleDetails } from '../features/deferred/overlay-vehicle-details';
 import { OverlayMoreMenu } from '../features/deferred/overlay-more-menu';
 import { useGuestAuth } from '../features/auth/guest-auth-context';
 import {
@@ -30,20 +27,21 @@ import {
 import { DemoScreenRenderer } from '../features/demo/demo-screen-renderer';
 import { DevPreviewControls } from '../features/demo/dev-preview-controls';
 import { GuestLiveView } from './guest-live-view';
+import { GuestLiveOverlays } from './guest-live-overlays';
+import { GuestFreshnessNotice } from './guest-freshness-notice';
+import { GuestSessionLoading } from './guest-session-loading';
 import { registerServiceWorker } from '../lib/pwa/register-pwa';
-import { C } from '../lib/theme/colors';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
 export function GuestAppRoot() {
-  const { t } = useTranslation();
   const {
     client,
     isTokenBootstrapComplete,
     isBootstrapTemporarilyUnavailable,
     retryBootstrap,
   } = useGuestAuth();
-  const { session, isLoading, isNetworkError, isExpired, refreshSession } = useGuestSession();
+  const { session, isLoading, isNetworkError, isExpired, isFresh, isStale, isRefreshing, isMutating, failureKind, cooldownSeconds, refreshSession } = useGuestSession();
   const retrieval = useRetrieval();
   const handoff = useHandoff();
 
@@ -180,6 +178,8 @@ export function GuestAppRoot() {
     return (
       <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore} showNav={false}>
         <ScreenNetworkUnavailable
+          failureKind={isBootstrapTemporarilyUnavailable ? 'UNAVAILABLE' : failureKind}
+          retryAfterSeconds={cooldownSeconds}
           onRetry={() =>
             void (isBootstrapTemporarilyUnavailable ? retryBootstrap() : refreshSession())
           }
@@ -201,28 +201,7 @@ export function GuestAppRoot() {
   if (screenId === 'LOADING') {
     return (
       <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore} showNav={false}>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '60vh',
-            gap: 16,
-          }}
-        >
-          <div
-            className="spin"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: '50%',
-              border: `2px solid ${C.borderSemantic}`,
-              borderTopColor: C.accent,
-            }}
-          />
-          <span style={{ fontSize: 14, color: C.textSecondary }}>{t('common.loadingSession')}</span>
-        </div>
+        <GuestSessionLoading />
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
         {isDev && (
           <DevPreviewControls
@@ -254,7 +233,9 @@ export function GuestAppRoot() {
         retrieval={retrieval}
         handoff={handoff}
         onRefreshSession={() => void refreshSession()}
-        onRequestVehicle={() => setShowConfirmRequest(true)}
+        onRequestVehicle={() => { if (isFresh && !isMutating) setShowConfirmRequest(true); }}
+        canMutate={isFresh && !isMutating}
+        isRefreshing={isRefreshing}
         onViewDetails={() => setShowVehicleDetails(true)}
         onViewReceipt={isDev ? () => setTab('payment') : undefined}
         onRateExperience={
@@ -268,22 +249,25 @@ export function GuestAppRoot() {
       />
 
       {/* Production Overlays */}
-      <OverlayConfirmRequest
-        open={showConfirmRequest}
-        onClose={() => setShowConfirmRequest(false)}
-        onConfirm={handleRequestConfirm}
-        isLoading={retrieval.isRequesting}
-      />
-
-      <OverlayVehicleDetails
-        open={showVehicleDetails}
-        onClose={() => setShowVehicleDetails(false)}
+      <GuestLiveOverlays
         session={session}
+        showConfirmRequest={showConfirmRequest}
+        showVehicleDetails={showVehicleDetails}
+        showMoreMenu={showMoreMenu}
+        onCloseConfirm={() => setShowConfirmRequest(false)}
+        onConfirm={handleRequestConfirm}
+        onCloseDetails={() => setShowVehicleDetails(false)}
+        onCloseMore={handleCloseMore}
+        isRequesting={retrieval.isRequesting}
+        requestError={retrieval.actionError}
+        canRequest={isFresh && !isMutating}
       />
 
-      <OverlayMoreMenu
-        open={showMoreMenu}
-        onClose={handleCloseMore}
+      <GuestFreshnessNotice
+        visible={isStale}
+        cooldownSeconds={cooldownSeconds}
+        isRefreshing={isRefreshing}
+        onRefresh={() => void refreshSession()}
       />
 
       {/* Dedicated Dev-Only Preview Overlays and Navigator */}

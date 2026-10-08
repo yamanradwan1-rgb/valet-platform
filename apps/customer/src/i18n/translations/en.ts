@@ -153,6 +153,12 @@ export const enTranslations: TranslationDictionary = {
 
   // System & Error Screens
   'system.networkUnavailableTitle': 'Network unavailable',
+  'system.rateLimitedTitle': 'Please wait a moment',
+  'system.rateLimitedSub': 'Too many status requests. You can refresh when the wait time ends.',
+  'system.temporaryUnavailableTitle': 'Service temporarily unavailable',
+  'system.temporaryUnavailableSub': 'Your current status could not be confirmed. Please try again.',
+  'system.staleStatusNotice': 'Your last vehicle status may be out of date. Actions are paused until it is confirmed.',
+  'system.cooldownNotice': 'Please wait {seconds}s before refreshing.',
   'system.networkUnavailableSub': 'Connection lost. Your current vehicle status is preserved.',
   'system.lastRecordedState': 'Last recorded state: {state}',
   'system.expiredTitle': 'Valet session unavailable',
@@ -180,6 +186,12 @@ export const enTranslations: TranslationDictionary = {
   'errors.HANDOFF_VERIFICATION_RATE_LIMITED':
     'Too many verification attempts. Please wait a moment.',
   'errors.HANDOFF_VERIFICATION_NOT_ACTIVE': 'Vehicle is not currently ready for handoff.',
+  'errors.HANDOFF_VERIFICATION_ALREADY_ISSUED': 'A pickup proof is already active. Ask staff for help if it is not visible.',
+  'errors.HANDOFF_VERIFICATION_ALREADY_VERIFIED': 'Pickup verification is already complete.',
+  'errors.MUTATION_OUTCOME_UNKNOWN': 'This action may have gone through. Check your current status before trying again.',
+  'errors.REQUEST_TIMEOUT': 'The request timed out. Please try again.',
+  'errors.INVALID_RESPONSE': 'The server sent an unexpected response. Please refresh.',
+  'errors.GUEST_REQUEST_CANCELLED': 'The request was cancelled.',
   'errors.INVALID_STATE_TRANSITION':
     'Unable to perform this action for the vehicle’s current state.',
   'errors.RETRIEVAL_REQUEST_NOT_READY':

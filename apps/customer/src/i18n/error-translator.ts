@@ -8,14 +8,13 @@ export function getLocalizedErrorMessage(
   t: (key: TranslationKey, params?: Record<string, string | number>) => string,
 ): string {
   if (err instanceof GuestApiError) {
-    if (err.isNetworkError) {
-      return t('errors.NETWORK_ERROR');
-    }
-
     const key = `errors.${err.code}` as TranslationKey;
     // Check if the code is actually a known translation key in our dictionary
     if (key in enTranslations || key in arTranslations) {
       return t(key);
+    }
+    if (err.isNetworkError) {
+      return t('errors.NETWORK_ERROR');
     }
 
     // NEVER return raw backend err.message for unknown error codes

@@ -11,11 +11,15 @@ export function OverlayConfirmRequest({
   onConfirm,
   onClose,
   isLoading = false,
+  error,
+  canConfirm = true,
 }: {
   readonly open: boolean;
   readonly onConfirm: () => void;
   readonly onClose: () => void;
   readonly isLoading?: boolean;
+  readonly error?: string | null;
+  readonly canConfirm?: boolean;
 }) {
   const { t } = useTranslation();
 
@@ -48,7 +52,12 @@ export function OverlayConfirmRequest({
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 4 }}>
-          <Btn onClick={onConfirm} loading={isLoading} disabled={isLoading}>
+          {error && (
+            <p role="alert" style={{ color: C.dangerSemantic, fontSize: 13, margin: 0 }}>
+              {error}
+            </p>
+          )}
+          <Btn onClick={onConfirm} loading={isLoading} disabled={isLoading || !canConfirm}>
             {t('confirmRequest.confirmButton')}
           </Btn>
           <Btn onClick={onClose} variant="ghost" disabled={isLoading}>

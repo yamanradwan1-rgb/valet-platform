@@ -12,11 +12,13 @@ export function ScreenRequested({
   session,
   onCancel,
   isCancelling = false,
+  canCancel = true,
   error,
 }: {
   readonly session: GuestSafeSession;
   readonly onCancel: () => void;
   readonly isCancelling?: boolean;
+  readonly canCancel?: boolean;
   readonly error?: string | null;
 }) {
   const { t } = useTranslation();
@@ -85,18 +87,18 @@ export function ScreenRequested({
         <button
           type="button"
           onClick={onCancel}
-          disabled={isCancelling}
+          disabled={isCancelling || !canCancel}
           style={{
             width: '100%',
             textAlign: 'center',
             padding: '12px 16px',
             fontSize: 14,
             fontWeight: 500,
-            color: isCancelling ? C.textMuted : C.textSecondary,
+            color: isCancelling || !canCancel ? C.textMuted : C.textSecondary,
             background: 'none',
             border: `1px solid ${C.borderSemantic}`,
             borderRadius: 10,
-            cursor: isCancelling ? 'not-allowed' : 'pointer',
+            cursor: isCancelling || !canCancel ? 'not-allowed' : 'pointer',
             transition: 'opacity 150ms ease',
           }}
         >

@@ -13,7 +13,8 @@ import {
 } from "@valet/contracts";
 
 import { getGuestApiBaseUrl } from "./api-config";
-import { GuestApiError, mapToGuestSafeMessage } from "./api-error";
+import { GuestApiError } from "./api-error";
+import { executeGuestHttpRequest } from './guest-http-transport';
 import {
   announceBrowserContextChange,
   readBrowserContextMarker,
@@ -63,6 +64,7 @@ export class GuestApiClient {
   private async request<T>(
     path: string,
     options: RequestOptions = {},
+    parse?: (raw: unknown) => T,
   ): Promise<T> {
     const {
       method = "GET",
@@ -99,54 +101,17 @@ export class GuestApiClient {
       credentials: "same-origin",
       headers,
     };
-    if (signal !== undefined) {
-      fetchInit.signal = signal;
-    }
     if (body !== undefined) {
       fetchInit.body = JSON.stringify(body);
     }
 
-    let response: Response;
-    try {
-      response = await fetch(url, fetchInit);
-    } catch (networkErr: unknown) {
-      if (signal?.aborted) {
-        throw networkErr;
-      }
-      throw new GuestApiError({
-        status: 0,
-        code: "NETWORK_ERROR",
-        message:
-          "Network connection unavailable. Please check your internet connection.",
-        isNetworkError: true,
-      });
-    }
-
+    const value = await executeGuestHttpRequest<T>({
+      url, init: fetchInit, callerSignal: signal, parse,
+    });
     if (this.bearerToken === null && !allowBrowserContextChange) {
       this.assertBrowserContextCurrent();
     }
-
-    const text = await response.text();
-    let payload: unknown;
-    if (text.length > 0) {
-      try {
-        payload = JSON.parse(text);
-      } catch {
-        payload = text;
-      }
-    }
-
-    if (!response.ok) {
-      const mapped = mapToGuestSafeMessage(response.status, payload);
-      throw new GuestApiError({
-        status: response.status,
-        code: mapped.code,
-        message: mapped.message,
-        retryAfter: mapped.retryAfter,
-      });
-    }
-
-    return payload as T;
+    return value;
   }
 
   private assertBrowserContextCurrent(): void {
@@ -165,13 +130,12 @@ export class GuestApiClient {
     if (this.bearerToken === null) {
       throw new Error("Guest browser-session prepare requires a bootstrap bearer.");
     }
-    const raw = await this.request<unknown>("/browser-session/prepare", {
+    return this.request<GuestBrowserPrepareResponse>("/browser-session/prepare", {
       method: "POST",
       body: {},
       signal,
       requireBrowserCsrf: true,
-    });
-    return guestBrowserPrepareResponseSchema.parse(raw);
+    }, (raw) => guestBrowserPrepareResponseSchema.parse(raw));
   }
 
   async enrollBrowserSession(
@@ -206,13 +170,12 @@ export class GuestApiClient {
     if (this.bearerToken === null) {
       throw new Error("Guest browser context switch requires a bootstrap bearer.");
     }
-    const raw = await this.request<unknown>("/browser-session/switch", {
+    return this.request<GuestBrowserSwitchResponse>("/browser-session/switch", {
       method: "POST",
       body: {},
       signal,
       requireBrowserCsrf: true,
-    });
-    return guestBrowserSwitchResponseSchema.parse(raw);
+    }, (raw) => guestBrowserSwitchResponseSchema.parse(raw));
   }
 
   async reconcileBrowserContextSwitch(
@@ -221,75 +184,69 @@ export class GuestApiClient {
     if (this.bearerToken !== null) {
       throw new Error("Guest browser switch reconciliation requires cookie authority.");
     }
-    const raw = await this.request<unknown>("/browser-session/switch/reconcile", {
+    return this.request<GuestBrowserSwitchReconcileResponse>("/browser-session/switch/reconcile", {
       method: "POST",
       body: {},
       signal,
       requireBrowserCsrf: true,
       allowBrowserContextChange: true,
-    });
-    return guestBrowserSwitchReconcileResponseSchema.parse(raw);
+    }, (raw) => guestBrowserSwitchReconcileResponseSchema.parse(raw));
   }
 
   async loadSession(
     signal?: AbortSignal | undefined,
   ): Promise<GuestSafeSession> {
-    const raw = await this.request<unknown>("/session", {
+    return this.request<GuestSafeSession>("/session", {
       method: "GET",
       signal,
-    });
-    return customerSessionReadSchema.parse(raw);
+    }, (raw) => customerSessionReadSchema.parse(raw));
   }
 
   async requestRetrieval(
     signal?: AbortSignal | undefined,
   ): Promise<GuestSafeSession> {
-    const raw = await this.request<unknown>("/session/request-retrieval", {
+    return this.request<GuestSafeSession>("/session/request-retrieval", {
       method: "POST",
       body: {},
       signal,
-    });
-    return guestSafeSessionResponseSchema.parse(raw);
+    }, (raw) => guestSafeSessionResponseSchema.parse(raw));
   }
 
   async cancelRetrieval(
     signal?: AbortSignal | undefined,
   ): Promise<GuestSafeSession> {
-    const raw = await this.request<unknown>("/session/cancel-retrieval", {
+    return this.request<GuestSafeSession>("/session/cancel-retrieval", {
       method: "POST",
       body: {},
       signal,
-    });
-    return guestSafeSessionResponseSchema.parse(raw);
+    }, (raw) => guestSafeSessionResponseSchema.parse(raw));
   }
 
   async issueHandoff(
     method: HandoffStandardMethod,
     signal?: AbortSignal | undefined,
   ): Promise<GuestHandoffMaterial> {
-    const raw = await this.request<unknown>(
+    return this.request<GuestHandoffMaterial>(
       "/session/handoff-verification/issue",
       {
         method: "POST",
         body: { method },
         signal,
-      },
+      }, (raw) => guestHandoffMaterialResponseSchema.parse(raw),
     );
-    return guestHandoffMaterialResponseSchema.parse(raw);
   }
 
   async rotateHandoff(
     method: HandoffStandardMethod,
     signal?: AbortSignal | undefined,
   ): Promise<GuestHandoffMaterial> {
-    const raw = await this.request<unknown>(
+    return this.request<GuestHandoffMaterial>(
       "/session/handoff-verification/rotate",
       {
         method: "POST",
         body: { method },
         signal,
-      },
+      }, (raw) => guestHandoffMaterialResponseSchema.parse(raw),
     );
-    return guestHandoffMaterialResponseSchema.parse(raw);
   }
 }

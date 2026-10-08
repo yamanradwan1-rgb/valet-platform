@@ -1,4 +1,6 @@
-export interface TranslationDictionary {
+import type { GuestErrorTranslationTypes } from './guest-error-translation-types';
+
+export interface TranslationDictionary extends GuestErrorTranslationTypes {
   // Common
   'common.appName': string;
   'common.poweredBy': string;
@@ -149,11 +151,17 @@ export interface TranslationDictionary {
   // System & Error Screens
   'system.networkUnavailableTitle': string;
   'system.networkUnavailableSub': string;
+  'system.rateLimitedTitle': string;
+  'system.rateLimitedSub': string;
+  'system.temporaryUnavailableTitle': string;
+  'system.temporaryUnavailableSub': string;
   'system.lastRecordedState': string;
   'system.expiredTitle': string;
   'system.expiredSub': string;
   'system.requestErrorTitle': string;
   'system.requestErrorDefault': string;
+  'system.staleStatusNotice': string;
+  'system.cooldownNotice': string;
 
   // Same-browser Guest visit context conflict
   'contextConflict.title': string;
@@ -161,21 +169,6 @@ export interface TranslationDictionary {
   'contextConflict.postVisitBody': string;
   'contextConflict.continueCurrent': string;
   'contextConflict.openNew': string;
-
-  // API & Runtime Errors
-  'errors.ANTI_ABUSE_UNAVAILABLE': string;
-  'errors.GUEST_ACCESS_INVALID': string;
-  'errors.GUEST_ACCESS_RATE_LIMITED': string;
-  'errors.HANDOFF_VERIFICATION_FAILED': string;
-  'errors.HANDOFF_VERIFICATION_RATE_LIMITED': string;
-  'errors.HANDOFF_VERIFICATION_NOT_ACTIVE': string;
-  'errors.INVALID_STATE_TRANSITION': string;
-  'errors.RETRIEVAL_REQUEST_NOT_READY': string;
-  'errors.VERSION_CONFLICT': string;
-  'errors.SERVICE_UNAVAILABLE': string;
-  'errors.REQUEST_FAILED': string;
-  'errors.NETWORK_ERROR': string;
-  'errors.GENERIC_ERROR': string;
 
   // Deferred Previews (Payment, Service)
   'payment.previewBanner': string;

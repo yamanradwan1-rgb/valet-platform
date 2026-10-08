@@ -47,6 +47,19 @@ all in-flight N-1 requests have drained, and a full protected window has passed.
 Local tests default ACTIVE. Invalid policy values fail startup. This task does
 not enable ACTIVE policy in production. The 2x promise applies to ACTIVE.
 
+**T2 client-only compatibility policy (Owner approved 2026-10-08; not a T3
+quota change):** Until T4 independently authorizes ACTIVE, the Customer Guest
+foreground coordinator polls each visible tab every 21 seconds with ±1-second
+bounded jitter (minimum 20 seconds), treats the last validated state as stale
+after 35 seconds, and never polls while hidden. Manual and wake/online/pageshow
+reads coalesce through the same per-client coordinator. Two tabs contribute about
+90 minimum-interval polls per 900 seconds; the previously documented additional
+66 supported presentations yield about 156 against the unchanged 180 legacy
+shared credential cap. Rolling-window, wake and cooldown tests in T2 verify the
+model; physical multi-tab and production-provider qualification remains T6.
+T2 does not raise any quota, modify hostile traffic handling, change the proof
+limit, enable enrollment or set `GUEST_T3_RATE_POLICY=ACTIVE`.
+
 DERIVED: one classified event can enforce both a visit aggregate and its
 request-class sub-budget; NULL historical classes conservatively consume every
 sub-budget. An internal persisted-authority probe discloses no result and grants

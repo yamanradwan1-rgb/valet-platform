@@ -1,62 +1,110 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from "vitest";
 
-import { createInFlightLock } from '../../lib/async/in-flight-guard';
+import type { GuestSafeSession } from "../../lib/api/guest-api-types";
+import type { BeginGuestMutation, GuestMutationTicket } from "../session/guest-request-coordinator";
+import { runRetrievalMutation } from "./use-retrieval";
 
-describe('Production in-flight locking guard (createInFlightLock)', () => {
-  it('ensures two synchronous concurrent calls execute the guarded mutation exactly once', async () => {
-    const lock = createInFlightLock();
-    let mutationCount = 0;
+const SESSION = {
+  valetSessionId: "11111111-1111-4111-8111-111111111111",
+  state: "REQUESTED",
+} as GuestSafeSession;
 
-    const guardedMutation = vi.fn().mockImplementation(async () => {
-      mutationCount++;
-      // Simulate network roundtrip
-      await new Promise((resolve) => setTimeout(resolve, 40));
-      return { success: true, count: mutationCount };
-    });
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason: unknown) => void;
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, resolve, reject };
+}
 
-    // Launch two calls concurrently without awaiting the first
-    const [result1, result2] = await Promise.all([
-      lock.runGuarded(guardedMutation),
-      lock.runGuarded(guardedMutation),
+function coordinatedMutationFixture() {
+  let activeGeneration = 1;
+  let lockedGeneration: number | null = null;
+  const finishCalls: Array<{
+    generation: number;
+    snapshot: GuestSafeSession | undefined;
+  }> = [];
+
+  const beginMutation: BeginGuestMutation = () => {
+    if (lockedGeneration === activeGeneration) return null;
+    const generation = activeGeneration;
+    lockedGeneration = generation;
+    const ticket: GuestMutationTicket = {
+      isCurrent: () => generation === activeGeneration,
+      finish: async (snapshot) => {
+        finishCalls.push({ generation, snapshot });
+        if (lockedGeneration === generation) lockedGeneration = null;
+      },
+    };
+    return ticket;
+  };
+
+  return {
+    beginMutation,
+    finishCalls,
+    replaceVisit: () => {
+      activeGeneration += 1;
+      lockedGeneration = null;
+    },
+  };
+}
+
+describe("runRetrievalMutation", () => {
+  it("rejects a rapid duplicate before executing a second POST", async () => {
+    const coordinator = coordinatedMutationFixture();
+    const pending = deferred<GuestSafeSession>();
+    const mutate = vi.fn(() => pending.promise);
+
+    const first = runRetrievalMutation(coordinator.beginMutation, mutate);
+    const duplicate = await runRetrievalMutation(
+      coordinator.beginMutation,
+      mutate,
+    );
+
+    expect(duplicate).toEqual({ kind: "BUSY" });
+    expect(mutate).toHaveBeenCalledTimes(1);
+
+    pending.resolve(SESSION);
+    await expect(first).resolves.toEqual({ kind: "SUCCESS" });
+    expect(coordinator.finishCalls).toEqual([
+      { generation: 1, snapshot: SESSION },
     ]);
-
-    // The first call successfully executes and returns the result
-    expect(result1).toEqual({ success: true, count: 1 });
-
-    // The second concurrent call is synchronously rejected by the lock and returns null
-    expect(result2).toBeNull();
-
-    // The underlying mutation function was called exactly once
-    expect(mutationCount).toBe(1);
-    expect(guardedMutation).toHaveBeenCalledTimes(1);
-
-    // After the in-flight operation completes, the lock is released
-    expect(lock.isLocked()).toBe(false);
-
-    // A subsequent call can now execute normally
-    const result3 = await lock.runGuarded(guardedMutation);
-    expect(result3).toEqual({ success: true, count: 2 });
-    expect(mutationCount).toBe(2);
-    expect(guardedMutation).toHaveBeenCalledTimes(2);
   });
 
-  it('releases lock safely even when the guarded mutation throws an error', async () => {
-    const lock = createInFlightLock();
+  it("drops a late result from a replaced visit generation", async () => {
+    const coordinator = coordinatedMutationFixture();
+    const oldRequest = deferred<GuestSafeSession>();
+    const first = runRetrievalMutation(
+      coordinator.beginMutation,
+      () => oldRequest.promise,
+    );
 
-    const failingMutation = vi.fn().mockImplementation(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 20));
-      throw new Error('Network timeout');
-    });
+    coordinator.replaceVisit();
+    await expect(
+      runRetrievalMutation(coordinator.beginMutation, async () => SESSION),
+    ).resolves.toEqual({ kind: "SUCCESS" });
 
-    await expect(lock.runGuarded(failingMutation)).rejects.toThrow('Network timeout');
+    oldRequest.resolve(SESSION);
+    await expect(first).resolves.toEqual({ kind: "STALE" });
+    expect(coordinator.finishCalls).toEqual([
+      { generation: 2, snapshot: SESSION },
+      { generation: 1, snapshot: undefined },
+    ]);
+  });
 
-    // Lock is properly released in finally block
-    expect(lock.isLocked()).toBe(false);
+  it("reconciles once after failure without replaying the mutation", async () => {
+    const coordinator = coordinatedMutationFixture();
+    const failure = new Error("ambiguous transport failure");
+    const mutate = vi.fn().mockRejectedValue(failure);
 
-    // Subsequent operation can proceed
-    const nextMutation = vi.fn().mockResolvedValue('ok');
-    const result = await lock.runGuarded(nextMutation);
-    expect(result).toBe('ok');
-    expect(nextMutation).toHaveBeenCalledTimes(1);
+    await expect(
+      runRetrievalMutation(coordinator.beginMutation, mutate),
+    ).resolves.toEqual({ kind: "FAILED", error: failure });
+    expect(mutate).toHaveBeenCalledTimes(1);
+    expect(coordinator.finishCalls).toEqual([
+      { generation: 1, snapshot: undefined },
+    ]);
   });
 });

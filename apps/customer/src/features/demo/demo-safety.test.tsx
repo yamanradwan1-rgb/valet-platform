@@ -65,7 +65,9 @@ describe('Dev Preview Safety & Invariant Contracts', () => {
 
     // Verify production OverlayConfirmRequest is wired to handleRequestConfirm and retrieval.isRequesting
     expect(rootSource).toContain('onConfirm={handleRequestConfirm}');
-    expect(rootSource).toContain('isLoading={retrieval.isRequesting}');
+    expect(rootSource).toContain('isRequesting={retrieval.isRequesting}');
+    const overlaySource = fs.readFileSync(path.resolve(__dirname, '../../app/guest-live-overlays.tsx'), 'utf8');
+    expect(overlaySource).toContain('isLoading={isRequesting}');
   });
 
   // 3. DevPreviewControls pairs DevPreviewOverlayHost with DemoNavigator

@@ -153,6 +153,12 @@ export const arTranslations: TranslationDictionary = {
 
   // System & Error Screens
   'system.networkUnavailableTitle': 'الاتصال غير متاح',
+  'system.rateLimitedTitle': 'يرجى الانتظار قليلاً',
+  'system.rateLimitedSub': 'طلبات التحديث كثيرة حالياً. يمكنك التحديث عند انتهاء وقت الانتظار.',
+  'system.temporaryUnavailableTitle': 'الخدمة غير متاحة مؤقتاً',
+  'system.temporaryUnavailableSub': 'تعذر تأكيد الحالة الحالية. يرجى المحاولة مرة أخرى.',
+  'system.staleStatusNotice': 'قد تكون حالة سيارتك المعروضة غير محدثة. توقفت الإجراءات مؤقتاً حتى تأكيد الحالة.',
+  'system.cooldownNotice': 'يرجى الانتظار {seconds} ثانية قبل التحديث.',
   'system.networkUnavailableSub': 'انقطع الاتصال. تم حفظ حالة سيارتك الحالية.',
   'system.lastRecordedState': 'آخر حالة مسجلة: {state}',
   'system.expiredTitle': 'خدمة الاصطفاف غير متاحة',
@@ -180,6 +186,12 @@ export const arTranslations: TranslationDictionary = {
   'errors.HANDOFF_VERIFICATION_RATE_LIMITED':
     'محاولات تحقق متعددة. يرجى الانتظار قليلاً.',
   'errors.HANDOFF_VERIFICATION_NOT_ACTIVE': 'السيارة ليست جاهزة للتسليم حالياً.',
+  'errors.HANDOFF_VERIFICATION_ALREADY_ISSUED': 'يوجد رمز استلام فعال بالفعل. اطلب مساعدة الموظف إذا لم يظهر لك.',
+  'errors.HANDOFF_VERIFICATION_ALREADY_VERIFIED': 'تم تأكيد التحقق من الاستلام بالفعل.',
+  'errors.MUTATION_OUTCOME_UNKNOWN': 'قد تكون العملية تمت. تحقق من الحالة الحالية قبل إعادة المحاولة.',
+  'errors.REQUEST_TIMEOUT': 'انتهت مهلة الطلب. يرجى المحاولة مجدداً.',
+  'errors.INVALID_RESPONSE': 'استجابة غير متوقعة من الخادم. يرجى تحديث الحالة.',
+  'errors.GUEST_REQUEST_CANCELLED': 'تم إلغاء الطلب.',
   'errors.INVALID_STATE_TRANSITION':
     'لا يمكن تنفيذ هذا الإجراء في حالة السيارة الحالية.',
   'errors.RETRIEVAL_REQUEST_NOT_READY':

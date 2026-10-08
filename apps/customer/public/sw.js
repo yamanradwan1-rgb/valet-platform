@@ -1,56 +1,78 @@
-const CACHE_PREFIX = 'vaylet-static-';
-const CACHE_NAME = `${CACHE_PREFIX}v1`;
+/* VAYLET Guest: public-static only. The Browser Session is cookie-authorized. */
+const PREFIX = 'vaylet-guest-public-static-';
+const CACHE_NAME = `${PREFIX}r2`;
+const LEGACY_CACHE = 'vaylet-static-v1';
+const MAX_ASSETS = 240;
+const PUBLIC_ASSETS = new Set([
+  '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png',
+  '/icons/icon-maskable-512.png', '/icons/apple-touch-icon.png',
+]);
 
-self.addEventListener('install', () => {
-  self.skipWaiting();
+function isPublicStatic(url) {
+  if (url.origin !== self.location.origin || url.search || url.hash) return false;
+  return PUBLIC_ASSETS.has(url.pathname) ||
+    /^\/_next\/static\/[a-zA-Z0-9/_\-\.]+$/.test(url.pathname);
+}
+
+async function prune(cache) {
+  const requests = await cache.keys();
+  const excess = Math.max(0, requests.length - MAX_ASSETS);
+  await Promise.all(requests.slice(0, excess).map((request) => cache.delete(request)));
+}
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then(async (keys) => {
-      await Promise.all(
-        keys
-          .filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
-          .map((key) => caches.delete(key)),
-      );
-      await self.clients.claim();
-    }),
-  );
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    const target = await caches.open(CACHE_NAME);
+    // Older releases' hashed Next chunks remain useful for already-open pages.
+    // Import ONLY approved public files from the former overly broad cache.
+    const migrations = keys.filter((key) => key === LEGACY_CACHE ||
+      (key.startsWith(PREFIX) && key !== CACHE_NAME));
+    for (const key of migrations) {
+      const source = await caches.open(key);
+      for (const request of await source.keys()) {
+        if (!isPublicStatic(new URL(request.url))) continue;
+        const response = await source.match(request);
+        if (response?.ok && response.type === 'basic') {
+          await target.put(request, response);
+        }
+      }
+      await caches.delete(key);
+    }
+    await prune(target);
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener('fetch', (event) => {
   const request = event.request;
-  if (request.method !== 'GET') return;
-
+  if (request.method !== 'GET' || request.mode === 'navigate' ||
+      request.headers.has('authorization')) return;
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
+  if (!isPublicStatic(url)) return;
 
-  // Never cache API or guest backend endpoints
-  if (url.pathname.startsWith('/v1/') || url.pathname.startsWith('/api/')) return;
-
-  // Never cache requests with Authorization header
-  if (request.headers.has('authorization')) return;
-
-  // Only cache safe static assets (_next/static, icons, manifest, static media)
-  const isSafeStatic =
-    url.pathname.startsWith('/_next/static/') ||
-    url.pathname.startsWith('/icons/') ||
-    url.pathname === '/manifest.webmanifest' ||
-    url.pathname.endsWith('.png') ||
-    url.pathname.endsWith('.svg') ||
-    url.pathname.endsWith('.woff2');
-
-  if (!isSafeStatic) return;
-
-  event.respondWith(
-    caches.match(request).then(async (cached) => {
-      if (cached) return cached;
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const hashed = url.pathname.startsWith('/_next/static/');
+    const cached = await cache.match(request);
+    if (hashed && cached) return cached;
+    try {
       const response = await fetch(request);
-      if (response.ok && response.type === 'basic') {
-        const cache = await caches.open(CACHE_NAME);
+      if (response.ok && response.type === 'basic' &&
+          !response.headers.has('set-cookie') &&
+          (!response.headers.has('cache-control') ||
+           !/private|no-store/i.test(response.headers.get('cache-control') || ''))) {
         await cache.put(request, response.clone());
+        await prune(cache);
       }
       return response;
-    }),
-  );
+    } catch (error) {
+      if (cached) return cached;
+      throw error;
+    }
+  })());
 });

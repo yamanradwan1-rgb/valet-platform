@@ -6,13 +6,18 @@ import { Btn } from '../../components/primitives/btn';
 import { IcAlert, IcClock, IcWifiOff } from '../../components/icons/status-icons';
 import { IcRefresh } from '../../components/icons/action-icons';
 import { C } from '../../lib/theme/colors';
+import type { GuestReadFailureKind } from '../session/guest-read-error-classification';
 
 export function ScreenNetworkUnavailable({
   onRetry,
   lastKnownState,
+  retryAfterSeconds = 0,
+  failureKind = 'NETWORK',
 }: {
   readonly onRetry: () => void;
   readonly lastKnownState?: string | undefined;
+  readonly retryAfterSeconds?: number;
+  readonly failureKind?: GuestReadFailureKind;
 }) {
   const { t } = useTranslation();
   const formattedState = lastKnownState ? formatSessionState(lastKnownState, t) : undefined;
@@ -53,10 +58,14 @@ export function ScreenNetworkUnavailable({
           className="font-display"
           style={{ fontSize: 20, fontWeight: 600, color: C.text, margin: 0 }}
         >
-          {t('system.networkUnavailableTitle')}
+          {failureKind === 'RATE_LIMITED' ? t('system.rateLimitedTitle') :
+            failureKind === 'UNAVAILABLE' ? t('system.temporaryUnavailableTitle') :
+              t('system.networkUnavailableTitle')}
         </p>
         <p style={{ fontSize: 14, marginTop: 8, marginBottom: 0, color: C.textSecondary, maxWidth: 280 }}>
-          {t('system.networkUnavailableSub')}
+          {failureKind === 'RATE_LIMITED' ? t('system.rateLimitedSub') :
+            failureKind === 'UNAVAILABLE' ? t('system.temporaryUnavailableSub') :
+              t('system.networkUnavailableSub')}
         </p>
       </div>
 
@@ -76,7 +85,13 @@ export function ScreenNetworkUnavailable({
         </div>
       )}
 
-      <Btn onClick={onRetry} variant="secondary" fullWidth={false}>
+      {retryAfterSeconds > 0 && (
+        <p role="status" style={{ margin: 0, color: C.textSecondary, fontSize: 13 }}>
+          {t('system.cooldownNotice', { seconds: retryAfterSeconds })}
+        </p>
+      )}
+      <Btn onClick={onRetry} variant="secondary" fullWidth={false}
+        disabled={retryAfterSeconds > 0}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <IcRefresh /> {t('common.tryAgain')}
         </span>
