@@ -1,12 +1,19 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
+import { assertArtifactMatchesDeployment } from "../../apps/customer/scripts/artifact-origin.mjs";
 import {
   buildEnvironment,
   pnpmCommand,
   turboBuildArguments,
+  validateCustomerReadinessOriginArtifact,
+  validateCustomerRewriteArtifact,
+  validateCustomerStandaloneArtifact,
   VERIFICATION_API_ORIGIN,
 } from "./build-contract.mjs";
 
@@ -52,6 +59,158 @@ test("build orchestration pins Turbo strict environment mode", () => {
     "build",
     "--env-mode=strict",
   ]);
+});
+
+test("Customer startup requires an approved deployment API origin matching its immutable artifact", () => {
+  const artifact = "https://api-build.example.test";
+  assert.doesNotThrow(() =>
+    assertArtifactMatchesDeployment(artifact, artifact),
+  );
+  assert.doesNotThrow(() =>
+    assertArtifactMatchesDeployment(
+      "http://127.0.0.1:3911",
+      "http://127.0.0.1:3911",
+    ),
+  );
+  assert.throws(
+    () =>
+      assertArtifactMatchesDeployment(
+        artifact,
+        "https://api-prod.example.test",
+      ),
+    /does not match deployment API_ORIGIN/u,
+  );
+  assert.throws(
+    () => assertArtifactMatchesDeployment(artifact, undefined),
+    /deployment API_ORIGIN is required/u,
+  );
+  for (const invalid of [
+    "http://api.example.test",
+    "https://api.example.test/other",
+    "https://username:password@api.example.test",
+    "not an origin",
+  ]) {
+    assert.throws(() => assertArtifactMatchesDeployment(artifact, invalid));
+  }
+});
+
+test("Customer artifact proves the exact build-time Guest API rewrite", async () => {
+  const root = await mkdtemp(join(tmpdir(), "vaylet-customer-artifact-"));
+  try {
+    await mkdir(root, { recursive: true });
+    await writeFile(
+      join(root, "routes-manifest.json"),
+      JSON.stringify({
+        rewrites: {
+          beforeFiles: [],
+          afterFiles: [
+            {
+              source: "/api/v1/guest/:path*",
+              destination: "https://api.example.test/v1/guest/:path*",
+            },
+          ],
+          fallback: [],
+        },
+      }),
+    );
+    assert.equal(
+      validateCustomerRewriteArtifact({
+        customerBuildRoot: root,
+        expectedApiOrigin: "https://api.example.test",
+      }).destination,
+      "https://api.example.test/v1/guest/:path*",
+    );
+    assert.throws(
+      () =>
+        validateCustomerRewriteArtifact({
+          customerBuildRoot: root,
+          expectedApiOrigin: "https://other-api.example.test",
+        }),
+      /does not match build-time API_ORIGIN/u,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("Customer readiness derives from the immutable standalone Guest rewrite", async () => {
+  const root = await mkdtemp(join(tmpdir(), "vaylet-customer-readiness-"));
+  try {
+    await mkdir(join(root, "static"), { recursive: true });
+    await mkdir(join(root, "standalone/apps/customer/.next"), {
+      recursive: true,
+    });
+    await writeFile(
+      join(root, "standalone/apps/customer/.next/routes-manifest.json"),
+      JSON.stringify({
+        rewrites: {
+          beforeFiles: [],
+          afterFiles: [
+            {
+              source: "/api/v1/guest/:path*",
+              destination: "https://api.example.test/v1/guest/:path*",
+            },
+          ],
+          fallback: [],
+        },
+      }),
+    );
+    assert.doesNotThrow(() =>
+      validateCustomerReadinessOriginArtifact({
+        customerBuildRoot: root,
+        expectedApiOrigin: "https://api.example.test",
+      }),
+    );
+    assert.throws(
+      () =>
+        validateCustomerReadinessOriginArtifact({
+          customerBuildRoot: root,
+          expectedApiOrigin: "https://other-api.example.test",
+        }),
+      /does not match build-time API_ORIGIN/u,
+    );
+    await writeFile(
+      join(root, "static", "client.js"),
+      "const upstream = 'https://api.example.test';\n",
+    );
+    assert.throws(
+      () =>
+        validateCustomerReadinessOriginArtifact({
+          customerBuildRoot: root,
+          expectedApiOrigin: "https://api.example.test",
+        }),
+      /leaked into public assets/u,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("Customer standalone artifact contains the production start path and public assets", async () => {
+  const root = await mkdtemp(join(tmpdir(), "vaylet-customer-standalone-"));
+  try {
+    assert.throws(
+      () => validateCustomerStandaloneArtifact(root),
+      /missing standalone\/apps\/customer\/server\.js/u,
+    );
+    await mkdir(join(root, "standalone/apps/customer/public"), {
+      recursive: true,
+    });
+    await mkdir(join(root, "standalone/apps/customer/.next/static"), {
+      recursive: true,
+    });
+    await writeFile(
+      join(root, "standalone/apps/customer/server.js"),
+      "// test\n",
+    );
+    await writeFile(
+      join(root, "standalone/apps/customer/public/sw.js"),
+      "// test\n",
+    );
+    assert.doesNotThrow(() => validateCustomerStandaloneArtifact(root));
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 test("actual Customer production build rejects missing and invalid API_ORIGIN", async () => {

@@ -143,16 +143,19 @@ function contains(cidr: ParsedCidr, address: ParsedIp): boolean {
   return (cidr.bytes[whole]! & mask) === (address.bytes[whole]! & mask);
 }
 
-function rawHeaderCount(request: ApiRequest, header: string): number {
+function singleRawHeader(request: ApiRequest, header: string): string {
   const rawHeaders = request.rawHeaders;
   if (rawHeaders === undefined || rawHeaders.length % 2 !== 0) {
     throw new ClientAddressUnavailableError();
   }
-  let count = 0;
+  let value: string | undefined;
   for (let index = 0; index < rawHeaders.length; index += 2) {
-    if (rawHeaders[index]?.toLowerCase() === header) count += 1;
+    if (rawHeaders[index]?.toLowerCase() !== header) continue;
+    if (value !== undefined) throw new ClientAddressUnavailableError();
+    value = rawHeaders[index + 1];
   }
-  return count;
+  if (value === undefined) throw new ClientAddressUnavailableError();
+  return value;
 }
 
 @Injectable()
@@ -181,11 +184,7 @@ export class TrustedClientAddressResolver {
       throw new ClientAddressUnavailableError();
     }
     if (!this.isTrusted(peer)) return peer.canonical;
-    if (rawHeaderCount(request, "x-forwarded-for") !== 1) {
-      throw new ClientAddressUnavailableError();
-    }
-    const header = request.headers["x-forwarded-for"];
-    if (typeof header !== "string") throw new ClientAddressUnavailableError();
+    const header = singleRawHeader(request, "x-forwarded-for");
     const parts = header.split(",").map((entry) => entry.trim());
     if (parts.length === 0 || parts.some((entry) => entry === "")) {
       throw new ClientAddressUnavailableError();

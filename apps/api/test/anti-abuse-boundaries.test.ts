@@ -130,6 +130,52 @@ describe("DEC-024 anti-abuse boundaries", () => {
     ).toThrow(ClientAddressUnavailableError);
   });
 
+  it("uses the nearest untrusted hop and never trusts attacker-supplied hops to its left", () => {
+    process.env.ANTI_ABUSE_TRUSTED_PROXY_CIDRS = "10.0.0.0/8";
+    const resolver = new TrustedClientAddressResolver();
+
+    expect(
+      resolver.resolve(
+        request({
+          peer: "10.0.0.3",
+          rawXff: ["203.0.113.77, 198.51.100.8, 10.0.0.2"],
+          xff: "203.0.113.77, 198.51.100.8, 10.0.0.2",
+        }),
+      ),
+    ).toBe("198.51.100.8");
+  });
+
+  it("fails closed for a trusted peer without one raw XFF header or with an all-trusted chain", () => {
+    process.env.ANTI_ABUSE_TRUSTED_PROXY_CIDRS = "10.0.0.0/8";
+    const resolver = new TrustedClientAddressResolver();
+
+    expect(() => resolver.resolve(request({ peer: "10.0.0.2" }))).toThrow(
+      ClientAddressUnavailableError,
+    );
+    expect(() =>
+      resolver.resolve(
+        request({
+          peer: "10.0.0.2",
+          rawXff: ["10.0.0.1"],
+          xff: "10.0.0.1",
+        }),
+      ),
+    ).toThrow(ClientAddressUnavailableError);
+  });
+
+  it("derives trusted forwarding only from the unique raw header value", () => {
+    process.env.ANTI_ABUSE_TRUSTED_PROXY_CIDRS = "10.0.0.0/8";
+    expect(
+      new TrustedClientAddressResolver().resolve(
+        request({
+          peer: "10.0.0.2",
+          rawXff: ["198.51.100.7, 10.0.0.1"],
+          xff: "203.0.113.99",
+        }),
+      ),
+    ).toBe("198.51.100.7");
+  });
+
   it("canonicalizes IPv4-mapped and alternate IPv6 forms into one bucket", () => {
     expect(parseCanonicalIp("::ffff:192.0.2.10").canonical).toBe("192.0.2.10");
     expect(parseCanonicalIp("2001:0DB8:0:0:0:0:0:1").canonical).toBe(

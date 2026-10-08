@@ -21,8 +21,18 @@ export class RuntimeDatabaseUnavailableError extends Error {
 export function withDatabaseOperationDeadline<T>(
   action: () => Promise<T>,
 ): Promise<T> {
+  return withDatabaseDeadline(runtimeDatabaseBudgets.operationMs, action);
+}
+
+export function withDatabaseDeadline<T>(
+  maximumMs: number,
+  action: () => Promise<T>,
+): Promise<T> {
+  if (!Number.isInteger(maximumMs) || maximumMs <= 0) {
+    throw new Error("Runtime database deadline must be a positive integer.");
+  }
   const scope: OperationDeadline = {
-    at: performance.now() + runtimeDatabaseBudgets.operationMs,
+    at: performance.now() + maximumMs,
     clients: new Set(),
   };
   return deadlines.run(
@@ -35,7 +45,7 @@ export function withDatabaseOperationDeadline<T>(
           for (const client of scope.clients)
             void client.end().catch(() => undefined);
           reject(new RuntimeDatabaseUnavailableError());
-        }, runtimeDatabaseBudgets.operationMs);
+        }, maximumMs);
         void Promise.resolve()
           .then(action)
           .then(resolve, reject)

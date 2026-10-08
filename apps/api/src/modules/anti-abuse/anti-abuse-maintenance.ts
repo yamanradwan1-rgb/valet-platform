@@ -8,6 +8,7 @@ import {
 
 import type { PostgresPool } from "../../common/database/postgres";
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
+import { recordLimiterMaintenanceSnapshot } from "../../common/observability/limiter-maintenance-metrics";
 
 @Injectable()
 export class AntiAbuseMaintenance implements OnModuleInit, OnModuleDestroy {
@@ -77,6 +78,7 @@ export class AntiAbuseMaintenance implements OnModuleInit, OnModuleDestroy {
       this.measurements.failures += 1;
     } finally {
       this.measurements.durationMs += performance.now() - started;
+      recordLimiterMaintenanceSnapshot(this.measurements);
     }
   }
 }

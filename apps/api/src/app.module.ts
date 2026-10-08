@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 
 import { AppController } from "./app.controller";
+import { HealthModule } from "./health/health.module";
 import { AntiAbuseModule } from "./modules/anti-abuse/anti-abuse.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { CheckInModule } from "./modules/check-in-api/check-in.module";
@@ -23,6 +24,7 @@ import { TrackingModule } from "./modules/tracking/tracking.module";
     AuthModule,
     AntiAbuseModule,
     GuestAccessModule,
+    HealthModule,
     CheckInModule,
     DashboardModule,
     ShiftModule,

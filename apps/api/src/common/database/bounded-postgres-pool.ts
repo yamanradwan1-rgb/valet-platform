@@ -18,6 +18,7 @@ type ConnectCallback = (
 
 export interface RuntimePoolMeasurements {
   acquisitions: number;
+  acquisitionsOver200Ms: number;
   rejected: number;
   acquisitionMs: number;
   failures: number;
@@ -51,6 +52,7 @@ export function boundPostgresPool(
   }) as Pool["end"];
   const measurements: RuntimePoolMeasurements = {
     acquisitions: 0,
+    acquisitionsOver200Ms: 0,
     rejected: 0,
     acquisitionMs: 0,
     failures: 0,
@@ -116,6 +118,7 @@ export function boundPostgresPool(
       measurements.acquisitions += 1;
       const waitMs = performance.now() - started;
       measurements.acquisitionMs += waitMs;
+      if (waitMs > 200) measurements.acquisitionsOver200Ms += 1;
       const bucket = [5, 25, 100, 500, 1000, 2000].findIndex(
         (ceiling) => waitMs <= ceiling,
       );

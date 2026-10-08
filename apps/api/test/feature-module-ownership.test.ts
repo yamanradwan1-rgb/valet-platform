@@ -2,6 +2,7 @@ import { MODULE_METADATA } from "@nestjs/common/constants";
 import { describe, expect, it } from "vitest";
 
 import { AppModule } from "../src/app.module";
+import { HealthModule } from "../src/health/health.module";
 import { RuntimeDatabaseModule } from "../src/common/database/runtime-database.module";
 import { IncidentReportingController } from "../src/modules/incidents/incident-reporting.controller";
 import { IncidentReportingService } from "../src/modules/incidents/incident-reporting.service";
@@ -105,6 +106,7 @@ describe("accepted feature module ownership", () => {
       AuthModule,
       AntiAbuseModule,
       GuestAccessModule,
+      HealthModule,
       CheckInModule,
       DashboardModule,
       ShiftModule,

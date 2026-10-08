@@ -10,6 +10,10 @@ function configurationError(message: string): Error {
   return new Error(`Customer API_ORIGIN configuration error: ${message}`);
 }
 
+function isLoopbackHostname(hostname: string): boolean {
+  return hostname === "127.0.0.1" || hostname === "[::1]" || hostname === "::1";
+}
+
 /** Resolves the server-only origin used by the same-origin Guest API proxy. */
 export function resolveCustomerApiOrigin(
   environment: CustomerApiOriginEnvironment,
@@ -30,6 +34,15 @@ export function resolveCustomerApiOrigin(
   }
   if (origin.protocol !== "http:" && origin.protocol !== "https:") {
     throw configurationError("API_ORIGIN must use HTTP or HTTPS.");
+  }
+  if (
+    environment.nodeEnv === "production" &&
+    origin.protocol !== "https:" &&
+    !isLoopbackHostname(origin.hostname)
+  ) {
+    throw configurationError(
+      "production API_ORIGIN must use HTTPS unless it is an explicit loopback origin.",
+    );
   }
   if (origin.username !== "" || origin.password !== "") {
     throw configurationError("API_ORIGIN must not contain credentials.");

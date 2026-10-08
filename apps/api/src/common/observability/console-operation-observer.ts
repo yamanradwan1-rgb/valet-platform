@@ -4,6 +4,7 @@ import type {
   OperationMeasurement,
   OperationObserver,
 } from "./operation-observability";
+import { formatGuestOperationMetric } from "./guest-operation-metrics";
 
 /**
  * Collapses control characters (newlines, ANSI escapes, ...) so a hostile or
@@ -51,6 +52,8 @@ export class ConsoleOperationObserver implements OperationObserver {
     try {
       // One structured line per measurement; fields stay contract-bounded.
       this.logger.log(formatOperationMeasurement(measurement));
+      const guestMetric = formatGuestOperationMetric(measurement);
+      if (guestMetric !== undefined) this.logger.log(guestMetric);
     } catch {
       // Observability must never break the instrumented operation.
     }

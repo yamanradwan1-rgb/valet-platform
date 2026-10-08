@@ -1,0 +1,97 @@
+{
+  "policyVersion": "guest-t4-v1",
+  "status": "PENDING_EXTERNAL_METRIC_INGESTION_AND_DELIVERY_VERIFICATION",
+  "requiredOperatorInputs": [
+    "monitoring provider and log-to-metric projection",
+    "verified request and database histogram ingestion",
+    "page and investigation destinations",
+    "named primary and backup responders",
+    "escalation route and acknowledgement policy",
+    "independently verified replica readiness and recovery metrics"
+  ],
+  "sources": {
+    "http": "HTTP_METRIC fixed operation/outcome/status/durationMs",
+    "guestOperation": "GUEST_OPERATION_METRIC fixed operation/outcome/errorCategory/durationMs",
+    "runtime": "RUNTIME_METRIC fixed numeric PostgreSQL pool and process counters",
+    "infrastructure": "PENDING provider health, restarts, instance failure and HA database measurements",
+    "incident": "PENDING confirmed security/business integrity incident signal"
+  },
+  "rules": [
+    {
+      "id": "confirmed_access_loss",
+      "source": "incident",
+      "severity": "immediate_page",
+      "condition": "confirmed active-visit access-loss defect",
+      "destination": "OPERATOR_TO_ASSIGN"
+    },
+    {
+      "id": "confirmed_duplicate_effect",
+      "source": "incident",
+      "severity": "immediate_page",
+      "condition": "confirmed duplicate protected business effect",
+      "destination": "OPERATOR_TO_ASSIGN"
+    },
+    {
+      "id": "confirmed_cross_tenant_disclosure",
+      "source": "incident",
+      "severity": "immediate_page",
+      "condition": "confirmed cross-tenant or cross-session disclosure",
+      "destination": "OPERATOR_TO_ASSIGN"
+    },
+    {
+      "id": "unexpected_guest_rate_limits_or_auth_failures",
+      "source": "http",
+      "severity": "investigate",
+      "condition": "unexpected legitimate Guest 429 or 401/403 baseline deviation",
+      "destination": "OPERATOR_TO_ASSIGN"
+    },
+    {
+      "id": "http_5xx_ratio",
+      "source": "http",
+      "severity": "page",
+      "metric": "http_server_failures_divided_by_all_http_responses",
+      "comparison": ">",
+      "threshold": 0.01,
+      "windowSeconds": 300,
+      "destination": "OPERATOR_TO_ASSIGN"
+    },
+    {
+      "id": "guest_read_p95_latency",
+      "source": "http",
+      "severity": "page",
+      "metric": "guest_read_duration_p95_seconds",
+      "comparison": ">",
+      "threshold": 1,
+      "windowSeconds": 300,
+      "destination": "OPERATOR_TO_ASSIGN"
+    },
+    {
+      "id": "pool_wait_p95_latency",
+      "source": "runtime",
+      "severity": "page",
+      "metric": "postgres_pool_acquisition_duration_p95_seconds",
+      "comparison": ">",
+      "threshold": 0.2,
+      "windowSeconds": 300,
+      "destination": "OPERATOR_TO_ASSIGN"
+    },
+    {
+      "id": "cleanup_backlog_age",
+      "source": "runtime",
+      "severity": "alert",
+      "metric": "limiterOldestExpiredAgeSeconds",
+      "comparison": ">",
+      "threshold": 7200,
+      "destination": "OPERATOR_TO_ASSIGN"
+    },
+    {
+      "id": "zero_ready_replicas",
+      "source": "infrastructure",
+      "severity": "immediate_page",
+      "metric": "ready_replicas_per_required_tier",
+      "comparison": "==",
+      "threshold": 0,
+      "destination": "OPERATOR_TO_ASSIGN"
+    }
+  ]
+}

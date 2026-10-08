@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { GUEST_API_BROWSER_BASE_PATH } from "./api-config";
+import { GUEST_API_BROWSER_BASE_PATH, getGuestApiBaseUrl } from "./api-config";
 import {
   CUSTOMER_DEVELOPMENT_API_ORIGIN,
   GUEST_API_REWRITE_SOURCE,
@@ -17,6 +17,11 @@ function environment(
 }
 
 describe("Customer API_ORIGIN authority", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
   it("uses the deliberate API-port default outside production", () => {
     expect(
       resolveCustomerApiOrigin(environment(undefined, "development")),
@@ -48,6 +53,14 @@ describe("Customer API_ORIGIN authority", () => {
     ).toBe("http://127.0.0.1:3001");
   });
 
+  it("rejects plaintext non-loopback production API origins", () => {
+    expect(() =>
+      resolveCustomerApiOrigin(
+        environment("http://api.example.test:3001", "production"),
+      ),
+    ).toThrow("production API_ORIGIN must use HTTPS unless it is an explicit loopback origin");
+  });
+
   it.each([
     "not a URL",
     "ftp://api.example.test",
@@ -73,6 +86,9 @@ describe("Customer API_ORIGIN authority", () => {
   });
 
   it("keeps browser traffic on the same-origin Guest path", () => {
+    vi.stubEnv("API_ORIGIN", "https://private-api.example.test");
+    vi.stubGlobal("window", {});
     expect(GUEST_API_BROWSER_BASE_PATH).toBe("/api/v1/guest");
+    expect(getGuestApiBaseUrl()).toBe("/api/v1/guest");
   });
 });
