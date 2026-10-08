@@ -14,6 +14,7 @@ export interface EligibleGuestPushDelivery extends ClaimedGuestPushDelivery {
   readonly p256dh: string;
   readonly registrationId: string;
   readonly remainingLifetimeMilliseconds: number;
+  readonly remainingLeaseMilliseconds: number;
 }
 
 export interface GuestPushCleanupResult {

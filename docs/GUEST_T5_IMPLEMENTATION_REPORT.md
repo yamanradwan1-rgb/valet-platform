@@ -189,13 +189,13 @@ DEC-101 records Owner approval for the five T5 UI deltas. Repository implementat
 See `GUEST_T5_T6_QUALIFICATION_HANDOFF.md` for exact supported-device matrices, real Customer HTTPS, secret/provider config, multi-replica, disposable PostgreSQL, full browser E2E, 100/500/1000 active-Guest, same NAT, 8-hour/26-hour soak, HA/failover and rollback. None is claimed by this local branch.
 
 **T5 CODE IMPLEMENTATION: LOCALLY IMPLEMENTED.** Independent security Reviewer
-A and product Reviewer C report PASS after P1 remediation. The original
-Reviewer B report blocked the **prior**, shared-DB-role implementation;
-re-review of the corrected sender code is tracked separately and is not
-silently represented as a fresh B PASS. Guest Help is unavailable for
-unverified Locations. Disposable SQL role separation and endpoint contention
-passed; two-sender `SKIP LOCKED` claim/reclaim/crash, live credentials,
-production deploy and physical device proof remain unverified.
+A, independent security/reliability Reviewer B, and product Reviewer C report
+PASS after the focused P1 remediations. The historical Reviewer B BLOCKER
+applied to the earlier shared-DB-role implementation, not the latest review.
+Guest Help remains unavailable for unverified Locations. Disposable SQL role
+separation, endpoint contention, and two-sender `SKIP LOCKED` claim/reclaim/
+stale-finalization passed on isolated local PostgreSQL. Live provider credentials,
+production deployment, and physical device proof remain unverified.
 
 **T5 OWNER PRODUCT/UI DECISIONS: APPROVED (DEC-101).**
 
@@ -204,3 +204,48 @@ production deploy and physical device proof remain unverified.
 **T5 PRODUCTION READINESS: NOT VERIFIED**.
 
 No PR, merge, `main` mutation, deployment, production migration, or Guest enrollment activation is authorized by this report.
+
+## 9. Focused final security merge-gate follow-up — 2026-10-09
+
+The follow-up on the same T5 branch repaired and regression-tested three
+additional source-level hazards found through final review and actual SQL:
+
+1. API worker idle polling used to retain an abort listener after every timed
+   wait. `guest-push-idle-delay.ts` now removes it on both timeout and shutdown;
+   repeated-poll and shutdown regression tests pass.
+2. The SECURITY DEFINER recipient resolver previously returned subscription
+   secrets for an already-expired, unreclaimed lease. Migration 078 now requires
+   an exact live lease in both its precheck and final query, returns remaining
+   lease time, and the worker refuses to start a provider call without enough
+   remaining lease for the configured bounded timeout. An expired or superseded
+   lease never terminally suppresses still-reclaimable READY work.
+3. Real PostgreSQL execution exposed a PL/pgSQL output-variable conflict in
+   the READY-intent delivery insert's `ON CONFLICT` target. Migration 078 now
+   uses `ON CONFLICT DO NOTHING` while the existing UNIQUE
+   `(intent_id, registration_id)` index remains the durable dedupe fence.
+
+**Final independent Reviewer B: PASS** on the corrected worker, SQL,
+authorization, provider, registration, SW privacy, and concurrency boundaries;
+no remaining P0/P1 code issue reported. This is a code review, not production
+provisioning or physical notification acceptance.
+
+**New actual PostgreSQL test:**
+`pnpm exec vitest run --config vitest.config.mjs --project database-postgres-provision src/guest-push-worker-replica.integration.test.ts`
+from `packages/database`: **4/4 PASS**. The test runs real sender children
+with separate restricted worker connections, demonstrates only one claim/send
+for competing replicas, crash-and-reclaim with stale lease finalization denied,
+denial of secret resolution for an expired unreclaimed lease, and retry
+expiration without extending the original READY intent. The migrated fixture
+creates UUID-named isolated PostgreSQL child DBs and temporary roles; final
+harness cleanup reported `db=0 roles=0 children=0`. This does not authorize or
+prove production migrations or multi-instance deployment.
+
+**Additional focused checks:** idle/worker/eligibility regression tests
+12/12 PASS; API and database typecheck PASS; API lint PASS; `git diff --check`
+PASS. Overall `architecture:check` still reports the same two unrelated,
+pre-existing violations documented in section 5, with no new T5 file violation.
+
+**Remaining external qualification:** real VAPID/provider credentials, worker
+operations with production grants, Android/iOS Home Screen notification receipt,
+Native issue #219 physical recovery, per-Location Help availability, and T6
+HA/load/soak/release gates. No code-review PASS overrides these requirements.

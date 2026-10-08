@@ -675,7 +675,10 @@ BEGIN
      AND registration.credential_generation = v_generation
      AND registration.state = 'ACTIVE'
      AND browser.revoked_at IS NULL
-  ON CONFLICT (intent_id, registration_id) DO NOTHING;
+   -- Both names are also PL/pgSQL output variables; targetless conflict
+   -- handling avoids ambiguous variable/column resolution while the UNIQUE
+   -- (intent_id, registration_id) index remains the durable dedupe fence.
+   ON CONFLICT DO NOTHING;
   GET DIAGNOSTICS v_inserted = ROW_COUNT;
 
   RETURN QUERY SELECT v_intent_id, v_inserted;
@@ -694,7 +697,8 @@ RETURNS TABLE (
   p256dh TEXT,
   auth_secret TEXT,
   locale TEXT,
-  remaining_lifetime_milliseconds INTEGER
+  remaining_lifetime_milliseconds INTEGER,
+  remaining_lease_milliseconds INTEGER
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -705,9 +709,10 @@ DECLARE
 BEGIN
   SELECT delivery.organization_id INTO v_organization_id
     FROM public.guest_push_deliveries AS delivery
-   WHERE delivery.id = p_delivery_id
-     AND delivery.state = 'LEASED'
-     AND delivery.lease_token = p_lease_token;
+    WHERE delivery.id = p_delivery_id
+      AND delivery.state = 'LEASED'
+      AND delivery.lease_token = p_lease_token
+      AND delivery.lease_expires_at > clock_timestamp();
   IF NOT FOUND THEN RETURN; END IF;
 
   PERFORM pg_advisory_xact_lock_shared(
@@ -720,7 +725,9 @@ BEGIN
          registration.endpoint, registration.p256dh,
          registration.auth_secret, registration.locale::text,
          floor(EXTRACT(EPOCH FROM
-           (intent.expires_at - clock.now)) * 1000)::integer
+           (intent.expires_at - clock.now)) * 1000)::integer,
+         floor(EXTRACT(EPOCH FROM
+           (delivery.lease_expires_at - clock.now)) * 1000)::integer
     FROM public.guest_push_deliveries AS delivery
     CROSS JOIN clock
     INNER JOIN public.guest_push_intents AS intent
@@ -761,9 +768,10 @@ BEGIN
      AND session.customer_access_revoked_at IS NULL
      AND session.ready_at = intent.ready_at
      AND session.state IN ('READY', 'HANDOFF_PENDING')
-   WHERE delivery.id = p_delivery_id
-     AND delivery.state = 'LEASED'
-     AND delivery.lease_token = p_lease_token;
+    WHERE delivery.id = p_delivery_id
+      AND delivery.state = 'LEASED'
+      AND delivery.lease_token = p_lease_token
+      AND delivery.lease_expires_at > clock.now;
 END;
 $function$;
 

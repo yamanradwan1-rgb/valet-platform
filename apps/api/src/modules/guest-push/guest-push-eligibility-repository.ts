@@ -12,6 +12,7 @@ interface EligibleRow {
   readonly p256dh: string;
   readonly registration_id: string;
   readonly remaining_lifetime_milliseconds: number;
+  readonly remaining_lease_milliseconds: number;
 }
 
 export async function resolveEligibleGuestPushDelivery(
@@ -21,7 +22,7 @@ export async function resolveEligibleGuestPushDelivery(
 ): Promise<EligibleGuestPushDelivery | undefined> {
   const result = await pool.query<EligibleRow>(
     `SELECT intent_id, registration_id, endpoint, p256dh, auth_secret,
-            locale, remaining_lifetime_milliseconds
+            locale, remaining_lifetime_milliseconds, remaining_lease_milliseconds
      FROM public.guest_push_resolve_eligible_v1($1,$2,$3)`,
     [claim.deliveryId, claim.leaseToken, policyVersion],
   );
@@ -36,5 +37,6 @@ export async function resolveEligibleGuestPushDelivery(
     p256dh: row.p256dh,
     registrationId: row.registration_id,
     remainingLifetimeMilliseconds: row.remaining_lifetime_milliseconds,
+    remainingLeaseMilliseconds: row.remaining_lease_milliseconds,
   };
 }

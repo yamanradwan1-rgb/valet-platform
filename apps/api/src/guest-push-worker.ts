@@ -16,25 +16,11 @@ import {
 } from "./modules/guest-push/guest-push-observability";
 import { readGuestPushOperationalPolicy } from "./modules/guest-push/guest-push-operational-policy";
 import { readGuestPushWorkerDatabaseUrl } from "./modules/guest-push/guest-push-worker-database";
+import { waitForGuestPushPoll } from "./modules/guest-push/guest-push-idle-delay";
 import { GuestWebPushAdapter } from "./modules/guest-push/guest-web-push-adapter";
 import { readGuestWebPushConfig } from "./modules/guest-push/guest-web-push-config";
 
 const IDLE_POLL_MILLISECONDS = 1_000;
-
-async function delay(milliseconds: number, signal: AbortSignal): Promise<void> {
-  await new Promise<void>((resolve) => {
-    if (signal.aborted) return resolve();
-    const timer = setTimeout(resolve, milliseconds);
-    signal.addEventListener(
-      "abort",
-      () => {
-        clearTimeout(timer);
-        resolve();
-      },
-      { once: true },
-    );
-  });
-}
 
 async function bootstrap(): Promise<void> {
   const policy = readGuestPushOperationalPolicy(process.env);
@@ -81,7 +67,7 @@ async function bootstrap(): Promise<void> {
       const backlog = await guestPushBacklog(pool);
       await observeGuestPushSafely(observer, { event: "BACKLOG", ...backlog });
       const worked = worker === undefined ? false : await worker.runOnce();
-      if (!worked) await delay(IDLE_POLL_MILLISECONDS, stop.signal);
+      if (!worked) await waitForGuestPushPoll(IDLE_POLL_MILLISECONDS, stop.signal);
     }
   } finally {
     await pool.end();

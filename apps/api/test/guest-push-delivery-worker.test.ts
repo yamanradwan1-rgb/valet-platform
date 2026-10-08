@@ -11,7 +11,7 @@ const repository = vi.hoisted(() => ({
 
 vi.mock("../src/modules/guest-push/guest-push-claim-repository", () => ({
   claimGuestPushDelivery: repository.claim,
-  claimedGuestPushDeliveryIsExpired: repository.claimExpired,
+  claimedGuestPushDeliveryExpiry: repository.claimExpired,
 }));
 vi.mock("../src/modules/guest-push/guest-push-eligibility-repository", () => ({
   resolveEligibleGuestPushDelivery: repository.eligible,
@@ -49,6 +49,7 @@ const eligible = {
   p256dh: "p256dh-key",
   registrationId: "44444444-4444-4444-8444-444444444444",
   remainingLifetimeMilliseconds: 30_000,
+  remainingLeaseMilliseconds: 30_000,
 };
 
 const policy: GuestPushOperationalPolicyShape = {
@@ -79,7 +80,7 @@ describe("Guest Push delivery worker", () => {
     repository.finalize.mockResolvedValue(true);
     repository.invalidEndpoint.mockResolvedValue(true);
     repository.retry.mockResolvedValue("RETRY_WAIT");
-    repository.claimExpired.mockResolvedValue(false);
+    repository.claimExpired.mockResolvedValue({ intentExpired: false, leaseExpired: false });
   });
 
   it("claims with the 30 second lease and fenced claim identity", async () => {
@@ -131,6 +132,28 @@ describe("Guest Push delivery worker", () => {
     );
   });
 
+  it("does not suppress live work after the resolver detects an expired lease", async () => {
+    repository.eligible.mockResolvedValue(undefined);
+    repository.claimExpired.mockResolvedValue({
+      intentExpired: false,
+      leaseExpired: true,
+    });
+    const transport = provider({
+      kind: "PROVIDER_RESULT",
+      result: { resultClass: "ACCEPTED" },
+    });
+    const worker = new GuestPushDeliveryWorker(
+      {} as never,
+      policy,
+      transport,
+      observer(),
+    );
+
+    await expect(worker.runOnce()).resolves.toBe(true);
+    expect(transport.send).not.toHaveBeenCalled();
+    expect(repository.finalize).not.toHaveBeenCalled();
+  });
+
   it("expires if the absolute READY lifetime ends before transport starts", async () => {
     let monotonicNow = 0;
     repository.eligible.mockResolvedValue({
@@ -168,6 +191,33 @@ describe("Guest Push delivery worker", () => {
       claim,
       "EXPIRED",
     );
+  });
+
+  it("does not start provider I/O after the lease becomes too short to finish safely", async () => {
+    let monotonicNow = 0;
+    repository.eligible.mockResolvedValue({
+      ...eligible,
+      remainingLeaseMilliseconds: 11_000,
+    });
+    const transport = provider({
+      kind: "PROVIDER_RESULT",
+      result: { resultClass: "ACCEPTED" },
+    });
+    const worker = new GuestPushDeliveryWorker(
+      {} as never,
+      policy,
+      transport,
+      observer(),
+      Math.random,
+      () => monotonicNow,
+      async () => undefined,
+      async () => { monotonicNow = 2_000; },
+    );
+
+    await expect(worker.runOnce()).resolves.toBe(true);
+    expect(transport.send).not.toHaveBeenCalled();
+    expect(repository.finalize).not.toHaveBeenCalled();
+    expect(repository.retry).not.toHaveBeenCalled();
   });
 
   it("schedules bounded retry without changing the original intent lifetime", async () => {

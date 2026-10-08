@@ -1,6 +1,6 @@
 import type { PostgresPool } from "../../common/database/postgres";
 import {
-  claimedGuestPushDeliveryIsExpired,
+  claimedGuestPushDeliveryExpiry,
   claimGuestPushDelivery,
 } from "./guest-push-claim-repository";
 import { resolveEligibleGuestPushDelivery } from "./guest-push-eligibility-repository";
@@ -63,8 +63,12 @@ export class GuestPushDeliveryWorker {
       this.policy.policyVersion,
     );
     if (eligible === undefined) {
-      const expired = await claimedGuestPushDeliveryIsExpired(this.pool, claim);
-      const state = expired === true ? "EXPIRED" : "SUPPRESSED";
+      const expiry = await claimedGuestPushDeliveryExpiry(this.pool, claim);
+      // Another worker owns a reclaimed claim, or our lease timed out before
+      // the resolver ran. Do not suppress still-eligible durable work: leave
+      // this lease for the next replica's safe reclaim.
+      if (expiry === undefined || expiry.leaseExpired) return true;
+      const state = expiry.intentExpired ? "EXPIRED" : "SUPPRESSED";
       if (await finalizeGuestPushDelivery(this.pool, claim, state)) {
         await observeGuestPushSafely(
           this.observer,
@@ -76,6 +80,20 @@ export class GuestPushDeliveryWorker {
       return true;
     }
     await this.beforeProviderCall();
+    // Do not start transport on a lease that could expire before the provider's
+    // bounded timeout. Leave the lease for safe expiration/reclaim, not a
+    // misleading terminal EXPIRED transition for an otherwise-live READY intent.
+    const remainingLease = remainingGuestPushLifetime(
+      eligible.remainingLeaseMilliseconds,
+      eligibilityStartedAt,
+      this.monotonicNow(),
+    );
+    if (
+      remainingLease === undefined ||
+      remainingLease <= this.policy.providerCallTimeoutSeconds * 1_000
+    ) {
+      return true;
+    }
     const providerStartedAt = this.monotonicNow();
     const send = await this.provider.send({
       messageForTransport: () => {

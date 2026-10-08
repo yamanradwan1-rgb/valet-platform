@@ -104,17 +104,24 @@ export async function terminalizeUnclaimableGuestPushDeliveries(
   });
 }
 
-export async function claimedGuestPushDeliveryIsExpired(
+export async function claimedGuestPushDeliveryExpiry(
   pool: PostgresPool,
   claim: ClaimedGuestPushDelivery,
-): Promise<boolean | undefined> {
-  const result = await pool.query<{ expired: boolean }>(
-    `SELECT intent.expires_at <= clock_timestamp() AS expired
+): Promise<{ readonly intentExpired: boolean; readonly leaseExpired: boolean } | undefined> {
+  const result = await pool.query<{
+    readonly intent_expired: boolean;
+    readonly lease_expired: boolean;
+  }>(
+    `SELECT intent.expires_at <= clock_timestamp() AS intent_expired,
+            delivery.lease_expires_at <= clock_timestamp() AS lease_expired
      FROM guest_push_deliveries AS delivery
      INNER JOIN guest_push_intents AS intent ON intent.id = delivery.intent_id
      WHERE delivery.id = $1 AND delivery.state = 'LEASED'
        AND delivery.lease_token = $2`,
     [claim.deliveryId, claim.leaseToken],
   );
-  return result.rows[0]?.expired;
+  const row = result.rows[0];
+  return row === undefined
+    ? undefined
+    : { intentExpired: row.intent_expired, leaseExpired: row.lease_expired };
 }
