@@ -7,6 +7,17 @@ const PUBLIC_ASSETS = new Set([
   '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png',
   '/icons/icon-maskable-512.png', '/icons/apple-touch-icon.png',
 ]);
+const READY_PUSH_COPY = Object.freeze({
+  en: Object.freeze({
+    title: 'Your vehicle is ready',
+    body: 'Your vehicle has arrived at the pickup area.',
+  }),
+  ar: Object.freeze({
+    title: 'سيارتك جاهزة',
+    body: 'وصلت مركبتك إلى منطقة الاستلام وهي جاهزة لك.',
+  }),
+});
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function isPublicStatic(url) {
   if (url.origin !== self.location.origin || url.search || url.hash) return false;
@@ -88,5 +99,51 @@ self.addEventListener('fetch', (event) => {
       if (cached) return cached;
       throw error;
     }
+  })());
+});
+
+function parseReadyPush(event) {
+  let payload;
+  try {
+    payload = event.data?.json();
+  } catch {
+    return null;
+  }
+  if (!payload || payload.schemaVersion !== 1 ||
+      payload.kind !== 'GUEST_VEHICLE_READY' ||
+      payload.routeIntent !== 'GUEST_STATUS' ||
+      !UUID.test(payload.intentId) ||
+      (payload.locale !== 'en' && payload.locale !== 'ar')) return null;
+  return payload;
+}
+
+self.addEventListener('push', (event) => {
+  const payload = parseReadyPush(event);
+  if (!payload) return;
+  const copy = READY_PUSH_COPY[payload.locale];
+  event.waitUntil(self.registration.showNotification(copy.title, {
+    body: copy.body,
+    data: { routeIntent: 'GUEST_STATUS' },
+    tag: `guest-ready:${payload.intentId}`,
+  }));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  if (event.notification.data?.routeIntent !== 'GUEST_STATUS') return;
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ includeUncontrolled: true, type: 'window' });
+    const existing = windows.find((client) => {
+      try {
+        return new URL(client.url).origin === self.location.origin;
+      } catch {
+        return false;
+      }
+    });
+    if (existing) {
+      await existing.focus();
+      return;
+    }
+    await self.clients.openWindow('/');
   })());
 });

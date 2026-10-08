@@ -1,6 +1,6 @@
 # Guest T5 — Pilot Feature and Authority Matrix
 
-Status: implementation tracking; **not a rollout, UI, provider or physical acceptance**. Base `74cc7064a907bec79c154e2d1afc55288ceffb1a` (2026-10-08). The binding source is `GUEST_APP_PRODUCTION_READINESS_IMPLEMENTATION_PLAN.md`, U-06/U-08/U-09 and the focused Accepted decisions.
+Status: **OWNER PRODUCT/UI/WEB PUSH CHOICES APPROVED (DEC-101)**; code/runtime/physical qualifications remain separate. Base `74cc7064a907bec79c154e2d1afc55288ceffb1a` (2026-10-08). The binding source is `GUEST_APP_PRODUCTION_READINESS_IMPLEMENTATION_PLAN.md`, U-06/U-08/U-09 and the focused Accepted decisions.
 
 ## Current pilot authorization envelope
 
@@ -8,16 +8,16 @@ Status: implementation tracking; **not a rollout, UI, provider or physical accep
 | --- | --- | --- | --- |
 | QR/Copy Link Guest Access | Enabled after separately approved Guest enrollment; one primary browser binding, exact-visit authority and staff-assisted reissue | Enrollment **not enabled by T5** | T1 Browser Session / DEC-064; existing Native Guest Access |
 | Same-visit continuity, request/status, secure handoff | Authorized core journey | T1–T4 code is not a substitute for T6 real-origin/device/HA evidence | DEC-040/042/043/044, T2 and T4 delivery docs |
-| Native contextual Guest Access recovery | T5 implementation authorized | Visible handoff entry requires a named Owner UI-FROZEN SAFE DELTA; exact-session Native physical proof pending | `apps/valet-native/src/handoff/**`, `src/guest-access/**`; issue #219 |
+| Native contextual Guest Access recovery | **T5-UI-01 Owner-approved** for current authorized unverified Handoff | Enable exact-session entry in Native; Android physical proof remains pending | `apps/valet-native/src/handoff/**`, `src/guest-access/**`; issue #219 |
 | Foreground READY | Preserve working authorized notice and dedupe | Not evidence of background receipt | DEC-070; `apps/customer/src/features/ready-alert/**` |
-| Background/closed-app READY push | **Required**, not a discretionary enhancement | Transport/provider, persistence/retention, approved browser/PWA support and real-device delivery must be accepted and demonstrated | T5 notification decision, then provider/schema implementation and T6 physical proof |
-| Post-visit rating | Exactly one immutable integer 1–5 for authenticated `COMPLETED`, within 24h, not `CANCELLED` | Existing backend is not a live Customer screen; entry/success/error UI needs Owner delta approval | DEC-091; `POST /v1/guest/session/rating` |
-| Financial payment projection | Read-only exact-session projection allowed, no-store and authorized for valid post-visit scope | Actual display may only be enabled after UI approval and truthful canonical data validation | DEC-057; `GET /v1/guest/valet-sessions/:sessionId/payment` |
+| Background/closed-app READY push | **Required; T5-PUSH-01..09 Owner-approved**, standards Web Push, approved durable DB, sender and browser/PWA contract | Code/local evidence separately tracked; live provider, production config, Android/iOS actual device proof still outstanding | Accepted DEC-101 and T5 Web Push contract |
+| Post-visit rating | **T5-UI-03 Owner-approved**; exactly one immutable integer 1–5 for authenticated `COMPLETED` within 24h, not `CANCELLED` | Enable current real Customer form, preserve authoritative revoked/expired/ambiguous guards; test production mode | DEC-091; `POST /v1/guest/session/rating` |
+| Financial payment projection | **T5-UI-04 Owner-approved Payment Summary**; read-only exact-session no-store and valid post-visit scope | Enable source-backed UI only; never infer paid/zero/receipt | DEC-057; `GET /v1/guest/valet-sessions/:sessionId/payment` |
 | Cash collection | Staff-managed server-owned cash workflow, if configured | Never synthesize Guest digital `PAID` or release authority | DEC-051/057 |
 | Digital checkout | **Disabled** (`paymentMethodsPolicy = CASH_ONLY`) | Deferred real provider decision; no fake checkout or payment-success view | DEC-051 |
 | Guest tips | **Disabled** (`tipsEnabled = false`) | Do not expose tip mutation control | DEC-051 |
-| Receipt | Distinguish legally valid payment receipt from a visit summary | Keep production control disabled unless authoritative source, legal fields, display policy and Owner UI are accepted | Existing Customer `features/deferred/screen-payment.tsx` is a preview |
-| Real staff help | Required approved operational assistance route or truthful configured destination | No fabricated desk number, emergency destination or `Report Issue` endpoint; source and UI delta approval pending until proved | Existing Customer `features/deferred/screen-service.tsx` uses preview content |
+| Receipt | **Official/legal/tax receipt explicitly deferred** | Do not show legal receipt, invented identifiers, statutory claims or download | Existing Customer `features/deferred/screen-payment.tsx` is a preview |
+| Real staff help | **T5-UI-05 Owner-approved:** on-site valet employee assistance | Only enable Help for Locations with independently verified operational support; no fabricated desk, emergency destination or `Report Issue` endpoint | Accepted DEC-101, Location-specific operational proof still required |
 | Full Guest incident/claim intake | Deferred | Do not turn preview submission into reported incident | Existing deferred Report Issue presentation |
 | Automatic Guest Access SMS/WhatsApp | Deferred | No channel/provider addition | U-08 |
 
@@ -33,20 +33,20 @@ Status: implementation tracking; **not a rollout, UI, provider or physical accep
 | Handoff | Proof issuance, verification, consumption and vehicle release are independent commands with DEC-042/043 guards. Guest Access rotation satisfies none of them. |
 | Financial | Payment is independent of physical custody. DEC-057 release check reads authoritative Payment and effective `Organization default -> Location override` policy; Guest projection grants no release authority. |
 | READY event | First committed `RETRIEVING -> READY` with server `ready_at`, stable identity `(ValetSession.id, ready_at)`. No push send may fabricate business truth. |
-| Persistence | Existing partial uniqueness/foreign-key, append-only audit, durable limiter, privileged rating SQL, T1 Browser Session generation and DEC-025 runtime/migration separation remain binding. New push schema requires a separate accepted contract. |
+| Persistence | Existing partial uniqueness/foreign-key, append-only audit, durable limiter, privileged rating SQL, T1 Browser Session generation and DEC-025 runtime/migration separation remain binding. **Guest Push schema, forward migration and bounded runtime grants now authorized by DEC-101**. |
 | Security/telemetry | No raw Guest bearer, cookie, enrollment secret, handoff PIN/QR, plate, phone, payment internals or tenant IDs in public push/log labels; no private SW cache. |
 
 ## State classification
 
-An **implemented** client/API path is not automatically **UI approved**, **provider configured**, **physically tested** or **pilot enabled**. T5 branch delivery must report each axis separately. A preview is **not** an operational feature. The notification requirement is a mandatory first-launch gate even if transport approval remains pending.
+An **Owner-approved** design is not automatically **implemented**, **locally tested**, **provider configured**, **runtime tested**, **physically tested** or **pilot enabled**. T5 must report each axis separately. A preview is **not** an operational feature. The mandatory notification contract is **approved**, while actual device proof remains a first-launch gate.
 
 ## Source and decision dependencies
 
-- U-08 fixes product scope; U-06 fixes post-visit; U-09 fixes runtime qualification. None authorizes new push provider/schema by implication.
+- U-08 fixes product scope; U-06 fixes post-visit; U-09 fixes runtime qualification. **Accepted DEC-101 explicitly approves** push provider/schema and all five UI deltas for repository implementation, without implying deployment.
 - DEC-024/025 retain durable anti-abuse, TLS and runtime-role separation.
 - DEC-040/042/043/044 retain current retrieval and handoff safeguards.
 - DEC-051/057 retain typed cash/tip/digital and release/projection policy.
 - DEC-064 governs Browser Session/rotation and cross-tenant context transfer only when a separate valid target bearer independently authorizes that exact target.
-- DEC-070 keeps foreground READY; DEC-085 governs effective branding; DEC-091 owns immutable Guest rating.
+- DEC-070 keeps foreground READY; DEC-085 governs effective branding; DEC-091 owns immutable Guest rating; DEC-101 authorizes bounded Web Push and pilot UI.
 
-Pending decisions and evidence are detailed in the T5 implementation, notification, UI-safe-delta and T6 handoff reports. No change to canonical DEC status is implied here.
+Approved product choices and the remaining **implementation, runtime and physical** gates are detailed in the T5 implementation, notification, UI-safe-delta and T6 handoff reports.

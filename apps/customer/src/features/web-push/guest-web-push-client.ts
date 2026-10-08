@@ -1,0 +1,169 @@
+import type { GuestWebPushLocale } from './guest-web-push-copy';
+import { GuestApiError } from '../../lib/api/api-error';
+import {
+  announceBrowserContextChange,
+  readBrowserContextMarker,
+} from '../../lib/api/guest-browser-context-marker';
+
+export type GuestWebPushCapability =
+  | 'AVAILABLE'
+  | 'DENIED'
+  | 'IOS_HOME_SCREEN_REQUIRED'
+  | 'UNSUPPORTED';
+
+export interface GuestWebPushCapabilitySnapshot {
+  readonly displayModeStandalone: boolean | null;
+  readonly hasNotification: boolean;
+  readonly hasPushManager: boolean;
+  readonly hasServiceWorker: boolean;
+  readonly iosStandalone: boolean | null;
+  readonly isSecureContext: boolean;
+  readonly permission: NotificationPermission | 'unsupported';
+}
+
+export interface GuestWebPushRegistrationPayload {
+  readonly endpoint: string;
+  readonly auth: string;
+  readonly locale: GuestWebPushLocale;
+  readonly p256dh: string;
+}
+
+export interface GuestWebPushTransport {
+  loadVapidPublicKey(signal?: AbortSignal): Promise<string>;
+  registerSubscription(
+    payload: GuestWebPushRegistrationPayload,
+    signal?: AbortSignal,
+  ): Promise<void>;
+}
+
+interface BrowserPushDependencies {
+  readonly capability: () => GuestWebPushCapabilitySnapshot;
+  readonly requestPermission: () => Promise<NotificationPermission>;
+  readonly serviceWorkerReady: () => Promise<ServiceWorkerRegistration>;
+}
+
+function readIosStandalone(): boolean | null {
+  if (typeof navigator === 'undefined') return null;
+  const value = (navigator as Navigator & { readonly standalone?: unknown }).standalone;
+  return typeof value === 'boolean' ? value : null;
+}
+
+function readDisplayModeStandalone(): boolean | null {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return null;
+  try {
+    return window.matchMedia('(display-mode: standalone)').matches === true;
+  } catch {
+    return null;
+  }
+}
+
+export function readGuestWebPushCapability(): GuestWebPushCapabilitySnapshot {
+  const hasNotification = typeof Notification !== 'undefined';
+  return {
+    displayModeStandalone: readDisplayModeStandalone(),
+    hasNotification,
+    hasPushManager: typeof PushManager !== 'undefined',
+    hasServiceWorker: typeof navigator !== 'undefined' && 'serviceWorker' in navigator,
+    iosStandalone: readIosStandalone(),
+    isSecureContext: typeof window !== 'undefined' && window.isSecureContext === true,
+    permission: hasNotification ? Notification.permission : 'unsupported',
+  };
+}
+
+export function detectGuestWebPushCapability(
+  snapshot: GuestWebPushCapabilitySnapshot,
+): GuestWebPushCapability {
+  if (snapshot.iosStandalone === false) return 'IOS_HOME_SCREEN_REQUIRED';
+  if (snapshot.displayModeStandalone === null) return 'UNSUPPORTED';
+  if (snapshot.iosStandalone === true && snapshot.displayModeStandalone !== true) {
+    return 'UNSUPPORTED';
+  }
+  if (!snapshot.isSecureContext || !snapshot.hasNotification ||
+      !snapshot.hasPushManager || !snapshot.hasServiceWorker) return 'UNSUPPORTED';
+  return snapshot.permission === 'denied' ? 'DENIED' : 'AVAILABLE';
+}
+
+function decodeVapidPublicKey(value: string): ArrayBuffer {
+  const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+  const binary = atob(padded);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return bytes.buffer;
+}
+
+function serializeSubscription(
+  subscription: PushSubscription,
+  locale: GuestWebPushLocale,
+): GuestWebPushRegistrationPayload {
+  const json = subscription.toJSON();
+  const endpoint = json.endpoint;
+  const auth = json.keys?.auth;
+  const p256dh = json.keys?.p256dh;
+  if (typeof endpoint !== 'string' || endpoint.length === 0 ||
+      typeof auth !== 'string' || auth.length === 0 ||
+      typeof p256dh !== 'string' || p256dh.length === 0) {
+    throw new Error('Guest Web Push subscription is incomplete.');
+  }
+  return { endpoint, auth, locale, p256dh };
+}
+
+function browserDependencies(): BrowserPushDependencies {
+  return {
+    capability: readGuestWebPushCapability,
+    requestPermission: () => Notification.requestPermission(),
+    serviceWorkerReady: () => navigator.serviceWorker.ready,
+  };
+}
+
+function assertGuestPushContext(expected: string | null): void {
+  if (expected === readBrowserContextMarker()) return;
+  announceBrowserContextChange();
+  throw new GuestApiError({
+    status: 409,
+    code: 'GUEST_CONTEXT_CHANGED',
+    message: 'The guest browser context changed.',
+  });
+}
+
+export async function enableGuestWebPush(
+  transport: GuestWebPushTransport,
+  locale: GuestWebPushLocale,
+  signal?: AbortSignal,
+  dependencies: BrowserPushDependencies = browserDependencies(),
+): Promise<'ENABLED' | GuestWebPushCapability> {
+  const browserContext = readBrowserContextMarker();
+  const initial = dependencies.capability();
+  const initialCapability = detectGuestWebPushCapability(initial);
+  if (initialCapability !== 'AVAILABLE') return initialCapability;
+
+  let permission = initial.permission;
+  if (permission === 'default') permission = await dependencies.requestPermission();
+  if (permission !== 'granted') return permission === 'denied' ? 'DENIED' : 'AVAILABLE';
+  assertGuestPushContext(browserContext);
+  signal?.throwIfAborted();
+
+  const registration = await dependencies.serviceWorkerReady();
+  let subscription = await registration.pushManager.getSubscription();
+  let created = false;
+  if (subscription === null) {
+    const publicKey = await transport.loadVapidPublicKey(signal);
+    signal?.throwIfAborted();
+    subscription = await registration.pushManager.subscribe({
+      applicationServerKey: decodeVapidPublicKey(publicKey),
+      userVisibleOnly: true,
+    });
+    created = true;
+  }
+
+  try {
+    assertGuestPushContext(browserContext);
+    await transport.registerSubscription(serializeSubscription(subscription, locale), signal);
+    return 'ENABLED';
+  } catch (error) {
+    if (created) await subscription.unsubscribe().catch(() => false);
+    throw error;
+  }
+}

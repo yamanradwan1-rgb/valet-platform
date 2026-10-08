@@ -15,7 +15,7 @@ import type {
 
 type ActiveShell = Extract<ProductionShellState, { readonly kind: "active" }>;
 
-export const NATIVE_HANDOFF_GUEST_ACCESS_RECOVERY_UI_ENABLED = false;
+export const NATIVE_HANDOFF_GUEST_ACCESS_RECOVERY_UI_ENABLED = true;
 
 export function openHandoffGuestAccessRecovery(
   snapshot: EmployeeHandoffSnapshot,

@@ -1,5 +1,65 @@
 # Database Schema — Logical Design
 
+## DEC-101 — Guest Web Push v1 durable registration, READY intent and delivery
+
+Status: **Owner architecture approved** (2026-10-08); **not a production
+migration or release approval**. DEC-101 introduces Guest-only browser Web Push
+state independently of existing StaffPush and legacy `notifications`. The
+three dedicated tables are `guest_push_registrations`,
+`guest_push_intents` and `guest_push_deliveries`, corresponding to the
+Prisma models `GuestPushRegistration`, `GuestPushIntent` and
+`GuestPushDelivery`. `CASH_ONLY`, handoff proof/release and existing
+Guest Browser Session consent/cookie authority are unchanged.
+
+**GuestPushRegistration:** UUID identity; Organization, Location and
+ValetSession scope; exact `GuestBrowserSession` FK plus
+`credential_generation`; encrypted push transport destination material
+(`endpoint`, `p256dh`, `auth_secret`) held as secret-at-rest input to the
+authorized sender, controlled EN/AR locale, versioned endpoint hash and
+`ACTIVE | DISABLED | PROVIDER_INVALID | SUPERSEDED` state. SQL adds
+**partial unique indexes** for at most one ACTIVE Browser Session
+registration and at most one ACTIVE endpoint hash owner. Terminalization
+clears raw destination/key material; no public read exposes it.
+
+**GuestPushIntent:** UUID, exact Organization/Location/ValetSession, versioned
+`GUEST_VEHICLE_READY` kind, server-immutable `ready_at`, creation time
+and one absolute 30-minute expiry. Database unique
+`(kind, valet_session_id, ready_at)` fences the first committed READY event,
+independent of later ValetSession version changes. The writer runs **inside**
+the same transaction as the only accepted `RETRIEVING -> READY` transition
+and existing audit. Rollback means zero intent/delivery; duplicate Mark Ready
+never emits another logical event.
+
+**GuestPushDelivery:** UUID, exact Organization plus composite-scoped intent
+and registration relationships, unique `(intent_id, registration_id)`,
+`PENDING | LEASED | RETRY_WAIT | PROVIDER_ACCEPTED | SUPPRESSED |
+PERMANENT_FAILURE | EXPIRED`, bounded attempt count, next-attempt,
+unique lease token/deadline, normalized provider status and minimal
+terminal/accepted timestamps. Claim/finalize uses PostgreSQL row locking,
+`SKIP LOCKED`, exact token fencing, current Browser Session/generation/
+tenant/visit/policy/READY eligibility and absolute intent expiry. The
+worker sends outside DB transactions. Provider `ACCEPTED` cannot be
+interpreted as OS-level delivery.
+
+The forward SQL migration enforces same-tenant/same-session FKs, partial
+uniqueness, retention indexes, domain immutable boundary, guarded
+registration/READY writes and narrow runtime role grants following DEC-025.
+The worker cleanup policy is seven-day intent/delivery and thirty-day
+terminal registration retention. Never grant an arbitrary Guest or runtime
+database principal unrestricted direct writes just to simplify push sends.
+Write/read claims, lease/finalization, cleanup and grants must be verified
+in an isolated disposable PostgreSQL target before any release claim.
+
+Owner-approved initial version: immutable 30-minute intent expiry,
+four maximum attempts, provider deadline 10 seconds, worker lease 30
+seconds, full-jitter retry from a 10-second floor to a 60-second maximum.
+Subscription endpoint hashes, URLs, keys, bearer/cookie, visit/customer/
+vehicle/tenant data never enter public payloads or metric labels. The
+service worker's only notification kind has controlled English/Arabic copy,
+opaque intent tag and public Customer root click, which reauthorizes
+against the canonical current Browser Session. Physical Android/iOS
+delivery proof remains a T6 first-launch gate.
+
 ## Issue #257 evidence-free result provenance — owner correction
 
 Forward migration 067 initially adds nullable typed Operation `completion_basis`

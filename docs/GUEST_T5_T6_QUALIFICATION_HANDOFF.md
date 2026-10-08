@@ -1,12 +1,22 @@
 # Guest T5 — T6 Qualification Handoff
 
-**Status: NOT PHYSICALLY QUALIFIED / NOT PRODUCTION READY.** This is a T5-to-T6 test and acceptance handoff, not permission to deploy, migrate, activate Guest enrollment or widen the pilot. Baseline: `74cc7064a907bec79c154e2d1afc55288ceffb1a` (2026-10-08).
+**Status: OWNER DESIGN/UI DECISIONS APPROVED (DEC-101); NOT PHYSICALLY QUALIFIED / NOT PRODUCTION READY.** This is a T5-to-T6 test and acceptance handoff, not permission to deploy, run production/shared migrations, activate Guest enrollment or widen the pilot. Baseline: `74cc7064a907bec79c154e2d1afc55288ceffb1a` (2026-10-08).
+
+The owner approved T5-PUSH-01..09 and T5-UI-01..05 on 2026-10-08,
+including dedicated Web Push DB persistence, sender, library, VAPID config
+contract and the iOS Home Screen support boundary. Design authorization is
+complete; code verification, production origin/VAPID/migration/worker setup,
+real browser/device receipt and T6 go/no-go remain distinct evidence gates.
+
+See `GUEST_T5_WEB_PUSH_OPERATIONS_AND_PHYSICAL_TESTS.md` for the specific
+approved delivery bounds, safe migration/worker rollout, rollback floor,
+low-cardinality operations evidence and Android/iOS physical test checklist.
 
 ## Distinct acceptance gates
 
 1. **Code:** locally exercised T5 contracts and implementations, without outstanding P0/P1 changes.
-2. **Owner product/UI:** named UI-FROZEN SAFE DELTAs and pilot feature matrix approved. A hidden entry point is not a shipped product capability.
-3. **Provider/infrastructure:** accepted notification transport, authorized secret configuration, migration/rollout plan, source data for receipt/help, real Customer HTTPS origin.
+2. **Owner product/UI:** all five named UI-FROZEN SAFE DELTAs **approved by DEC-101**; prove their actual production-mode rendering and exact configured eligibility. An unmounted or disabled entry point is not a shipped capability.
+3. **Provider/infrastructure:** Web Push architecture **approved**; actual reviewed dependency, durable schema implementation, authorized secret configuration, migration/rollout plan, Location-specific Help availability and real Customer HTTPS origin must be verified separately.
 4. **Physical/device:** actual READY delivery on supported background/closed-app combinations, real Native handoff recovery without custody bypass, real QR/link/reissue behavior.
 5. **T6 release:** CI/E2E, HA/database, load, long-soak, rollback, security, canary and human go/no-go evidence.
 
@@ -26,13 +36,13 @@
 
 ## Browser/PWA matrix to resolve before test execution
 
-Record exact **OS build, browser build, installation mode, origin, permission state, subscription ID fingerprint (non-secret), backend delivery attempt ID, provider response, actual device receipt and click reauthentication outcome** for each case. Do not assume Safari tabs and iOS Home Screen apps, or Android Chrome tabs and installed PWAs, share permission or browser storage. If closed-app delivery is unsupported in a desired combination, present a first-launch support-matrix decision rather than weakening U-08.
+Record exact **OS build, browser build, installation mode, origin, permission state, subscription ID fingerprint (non-secret), backend delivery attempt ID, provider response, actual device receipt and click reauthentication outcome** for each case. Do not assume Safari tabs and iOS Home Screen apps, or Android Chrome tabs and installed PWAs, share permission or browser storage. **Accepted DEC-101 already fixes ordinary iPhone Safari tabs as foreground-only and iOS/iPadOS 16.4+ supported Home Screen web apps as the background target**. No new first-launch support-matrix choice is pending; actual physical device proof remains mandatory.
 
 | Platform/mode | Foreground | Background/locked | Closed app or process eviction | Permission denied, offline recovery, revoke |
 | --- | --- | --- | --- | --- |
 | Android Chrome tab | T6 evidence pending | T6 evidence pending | T6 evidence pending | T6 evidence pending |
 | Installed Android PWA | T6 evidence pending | T6 evidence pending | T6 evidence pending | T6 evidence pending |
-| iPhone Safari tab | T6 capability/support decision pending | T6 capability/support decision pending | T6 capability/support decision pending | T6 evidence pending |
+| iPhone Safari tab | Foreground-only by DEC-101; T6 evidence pending | **Not supported as Web Push background target**; Home Screen required | **Not supported as closed-app Web Push target**; Home Screen required | T6 foreground/install/denial/revocation evidence pending |
 | iPhone Home Screen web app | T6 evidence pending | T6 evidence pending | T6 evidence pending | T6 evidence pending |
 
 ## Required independent automated gates

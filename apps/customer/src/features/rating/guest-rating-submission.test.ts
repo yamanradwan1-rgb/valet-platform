@@ -80,7 +80,7 @@ describe('T5 rating submission concurrency/authority fence', () => {
     ['409 immutable conflict', new GuestApiError({ status: 409, code: 'GUEST_RATING_CONFLICT', message: '' }), 'conflict'],
     ['409 rating unavailable', new GuestApiError({ status: 409, code: 'GUEST_RATING_NOT_AVAILABLE', message: '' }), 'unavailable'],
     ['409 unrelated failure', new GuestApiError({ status: 409, code: 'REQUEST_FAILED', message: '' }), 'failed'],
-    ['403 revoked', new GuestApiError({ status: 403, code: 'GUEST_ACCESS_INVALID', message: '' }), 'failed'],
+    ['403 revoked', new GuestApiError({ status: 403, code: 'GUEST_ACCESS_INVALID', message: '' }), 'unavailable'],
     ['429 admitted denial', new GuestApiError({ status: 429, code: 'GUEST_ACCESS_RATE_LIMITED', message: '' }), 'failed'],
   ] as const)('classifies %s safely', async (_case, error, expected) => {
     const observed: RatingOutcome[] = [];

@@ -65,6 +65,19 @@ a separate later decision.
 - no login/password required in MVP
 - session access by secure guest token
 
+DEC-101 approves a **Guest-only Web Push** extension for
+`GUEST_VEHICLE_READY`: standards browser Push API/Service Worker, reviewed
+Node `web-push` library (v3.6.7 pinned in the T5 branch), VAPID
+application-server authentication and a separate API modular-monolith worker
+coordinated through durable PostgreSQL GuestPush registration/intent/delivery
+tables. No new message broker, microservice, sticky session or third-party
+notification state authority is introduced. Existing Guest Browser Session
+cookie/CSRF and DEC-070 foreground READY flow remain authoritative. Supported
+launch targets are Android Chrome, Android PWA and supported iOS/iPadOS 16.4+
+**Home Screen** web apps; iPhone Safari tabs are foreground-only for this
+contract. Approved code is not evidence of runtime or physical notification
+delivery.
+
 ### Management Dashboard
 
 - Next.js

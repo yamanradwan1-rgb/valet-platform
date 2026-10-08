@@ -37,6 +37,16 @@ export const guestOperationRoutes = [
   },
   {
     method: "GET",
+    operation: "GUEST_PUSH_CONFIG_READ",
+    path: /^\/v1\/guest\/push\/config$/,
+  },
+  {
+    method: "POST",
+    operation: "GUEST_PUSH_REGISTRATION",
+    path: /^\/v1\/guest\/push\/registration$/,
+  },
+  {
+    method: "GET",
     operation: "PAYMENT_GUEST_PROJECTION_READ",
     path: /^\/v1\/guest\/valet-sessions\/[^/]+\/payment$/,
   },

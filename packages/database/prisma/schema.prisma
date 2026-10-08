@@ -392,6 +392,52 @@ enum StaffPushProviderResultClass {
   @@map("staff_push_provider_result_class")
 }
 
+enum GuestPushLocale {
+  EN @map("en")
+  AR @map("ar")
+
+  @@map("guest_push_locale")
+}
+
+enum GuestPushRegistrationState {
+  ACTIVE
+  DISABLED
+  PROVIDER_INVALID
+  SUPERSEDED
+
+  @@map("guest_push_registration_state")
+}
+
+enum GuestPushKind {
+  GUEST_VEHICLE_READY
+
+  @@map("guest_push_kind")
+}
+
+enum GuestPushDeliveryState {
+  PENDING
+  LEASED
+  RETRY_WAIT
+  PROVIDER_ACCEPTED
+  SUPPRESSED
+  PERMANENT_FAILURE
+  EXPIRED
+
+  @@map("guest_push_delivery_state")
+}
+
+enum GuestPushProviderResultClass {
+  ACCEPTED
+  TRANSIENT
+  RATE_LIMITED
+  INVALID_ENDPOINT
+  PERMANENT
+  CONFIGURATION
+  UNKNOWN
+
+  @@map("guest_push_provider_result_class")
+}
+
 enum AuditActorType {
   MEMBERSHIP
   GUEST
@@ -480,6 +526,9 @@ model Organization {
   geofenceEvents              GeofenceEvent[]
   staffPushIntents            StaffPushIntent[]
   staffPushDeliveries         StaffPushDelivery[]
+  guestPushRegistrations      GuestPushRegistration[]
+  guestPushIntents            GuestPushIntent[]
+  guestPushDeliveries         GuestPushDelivery[]
   operatingHours              OrganizationOperatingHour[]
   locationOperatingHourOverrides LocationOperatingHourOverride[]
 
@@ -546,6 +595,8 @@ model Location {
   rawGpsSamples            RawGpsSample[]
   geofenceEvents           GeofenceEvent[]
   staffPushIntents         StaffPushIntent[]
+  guestPushRegistrations   GuestPushRegistration[]
+  guestPushIntents         GuestPushIntent[]
   operatingHoursOverrides  LocationOperatingHourOverride[]
 
   shiftStartPresenceModeOverride ShiftPresenceMode? @map("shift_start_presence_mode_override")
@@ -985,6 +1036,8 @@ model ValetSession {
   guestRatings                GuestRating[]
   guestBrowserEnrollments     GuestBrowserEnrollment[]
   guestBrowserSessions        GuestBrowserSession[]
+  guestPushRegistrations      GuestPushRegistration[]
+  guestPushIntents            GuestPushIntent[]
 
   @@unique([organizationId, id], map: "valet_sessions_organization_id_id_key")
   @@unique([organizationId, locationId, id], map: "valet_sessions_organization_id_location_id_id_key")
@@ -1029,8 +1082,10 @@ model GuestBrowserSession {
   valetSession      ValetSession             @relation(fields: [valetSessionId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   enrollment        GuestBrowserEnrollment    @relation("GuestBrowserEnrollmentTarget", fields: [enrollmentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   sourceEnrollments GuestBrowserEnrollment[]  @relation("GuestBrowserEnrollmentSource")
+  pushRegistrations GuestPushRegistration[]
 
   @@unique([valetSessionId, credentialGeneration], map: "guest_browser_sessions_session_generation_key")
+  @@unique([id, valetSessionId, credentialGeneration], map: "guest_browser_sessions_id_session_generation_key")
   @@index([valetSessionId, revokedAt], map: "guest_browser_sessions_session_revoked_idx")
   @@map("guest_browser_sessions")
 }
@@ -1655,6 +1710,94 @@ model StaffPushDelivery {
   @@index([registrationId, state], map: "staff_push_deliveries_registration_state_idx")
   @@index([organizationId, recipientMembershipId, state], map: "staff_push_deliveries_recipient_state_idx")
   @@map("staff_push_deliveries")
+}
+
+model GuestPushRegistration {
+  id                         String                     @id @default(uuid()) @db.Uuid
+  organizationId             String                     @map("organization_id") @db.Uuid
+  locationId                 String                     @map("location_id") @db.Uuid
+  valetSessionId             String                     @map("valet_session_id") @db.Uuid
+  credentialGeneration       Int                        @map("credential_generation")
+  guestBrowserSessionId      String                     @map("guest_browser_session_id") @db.Uuid
+  endpoint                   String?
+  endpointHash               String                     @map("endpoint_hash")
+  p256dh                     String?
+  authSecret                 String?                    @map("auth_secret")
+  locale                     GuestPushLocale
+  state                      GuestPushRegistrationState @default(ACTIVE)
+  lastConfirmedAt            DateTime                   @default(now()) @map("last_confirmed_at") @db.Timestamptz(3)
+  terminalAt                 DateTime?                  @map("terminal_at") @db.Timestamptz(3)
+  terminalReasonClass        String?                    @map("terminal_reason_class")
+  supersededByRegistrationId String?                    @map("superseded_by_registration_id") @db.Uuid
+  createdAt                  DateTime                   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                  DateTime                   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization        Organization             @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "guest_push_registrations_organization_id_fkey")
+  location            Location                 @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "guest_push_registrations_org_location_id_fkey")
+  valetSession        ValetSession             @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "guest_push_registrations_scope_valet_session_id_fkey")
+  guestBrowserSession GuestBrowserSession      @relation(fields: [guestBrowserSessionId, valetSessionId, credentialGeneration], references: [id, valetSessionId, credentialGeneration], onDelete: Restrict, onUpdate: Restrict, map: "guest_push_registrations_browser_session_scope_fkey")
+  supersededBy        GuestPushRegistration?   @relation("GuestPushRegistrationSupersession", fields: [supersededByRegistrationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "guest_push_registrations_superseded_by_fkey")
+  supersedes          GuestPushRegistration[]  @relation("GuestPushRegistrationSupersession")
+  deliveries          GuestPushDelivery[]
+
+  @@unique([organizationId, id], map: "guest_push_registrations_organization_id_id_key")
+  @@index([guestBrowserSessionId, state], map: "guest_push_registrations_browser_session_state_idx")
+  @@index([valetSessionId, credentialGeneration, state], map: "guest_push_registrations_session_generation_state_idx")
+  @@index([supersededByRegistrationId], map: "guest_push_registrations_superseded_by_idx")
+  @@index([terminalAt, id], map: "guest_push_registrations_terminal_at_idx")
+  @@map("guest_push_registrations")
+}
+
+model GuestPushIntent {
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String        @map("organization_id") @db.Uuid
+  locationId     String        @map("location_id") @db.Uuid
+  valetSessionId String        @map("valet_session_id") @db.Uuid
+  kind           GuestPushKind
+  readyAt        DateTime      @map("ready_at") @db.Timestamptz(3)
+  policyVersion  Int           @map("policy_version")
+  expiresAt      DateTime      @map("expires_at") @db.Timestamptz(3)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "guest_push_intents_organization_id_fkey")
+  location     Location            @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "guest_push_intents_org_location_id_fkey")
+  valetSession ValetSession        @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "guest_push_intents_scope_valet_session_id_fkey")
+  deliveries   GuestPushDelivery[]
+
+  @@unique([organizationId, id], map: "guest_push_intents_organization_id_id_key")
+  @@unique([kind, valetSessionId, readyAt], map: "guest_push_intents_kind_session_ready_at_key")
+  @@index([locationId, createdAt, id], map: "guest_push_intents_location_created_at_idx")
+  @@index([expiresAt, id], map: "guest_push_intents_expires_at_idx")
+  @@map("guest_push_intents")
+}
+
+model GuestPushDelivery {
+  id                  String                        @id @default(uuid()) @db.Uuid
+  organizationId      String                        @map("organization_id") @db.Uuid
+  intentId            String                        @map("intent_id") @db.Uuid
+  registrationId      String                        @map("registration_id") @db.Uuid
+  state               GuestPushDeliveryState        @default(PENDING)
+  attemptCount        Int                           @default(0) @map("attempt_count")
+  maxAttempts         Int                           @map("max_attempts")
+  nextAttemptAt       DateTime?                     @map("next_attempt_at") @db.Timestamptz(3)
+  leaseToken          String?                       @unique(map: "guest_push_deliveries_lease_token_key") @map("lease_token") @db.Uuid
+  leaseExpiresAt      DateTime?                     @map("lease_expires_at") @db.Timestamptz(3)
+  providerResultClass GuestPushProviderResultClass? @map("provider_result_class")
+  providerReference   String?                       @map("provider_reference")
+  providerAcceptedAt  DateTime?                     @map("provider_accepted_at") @db.Timestamptz(3)
+  terminalAt          DateTime?                     @map("terminal_at") @db.Timestamptz(3)
+  createdAt           DateTime                      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime                      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "guest_push_deliveries_organization_id_fkey")
+  intent       GuestPushIntent       @relation(fields: [organizationId, intentId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "guest_push_deliveries_org_intent_id_fkey")
+  registration GuestPushRegistration @relation(fields: [organizationId, registrationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "guest_push_deliveries_org_registration_id_fkey")
+
+  @@unique([intentId, registrationId], map: "guest_push_deliveries_intent_registration_key")
+  @@index([state, nextAttemptAt, createdAt, id], map: "guest_push_deliveries_due_idx")
+  @@index([leaseExpiresAt, id], map: "guest_push_deliveries_lease_expiry_idx")
+  @@index([registrationId, state], map: "guest_push_deliveries_registration_state_idx")
+  @@map("guest_push_deliveries")
 }
 
 model AuditEvent {

@@ -19,7 +19,6 @@ export function ScreenCompleted({
 }) {
   const { t } = useTranslation();
   const vehicleName = `${session.vehicle.make ?? t('vehicle.defaultMake')} ${session.vehicle.model ?? ''}`.trim();
-  const isDev = process.env.NODE_ENV !== 'production';
 
   return (
     <div
@@ -78,19 +77,16 @@ export function ScreenCompleted({
         <JourneyProgress step={2} />
       </div>
 
-      {isDev && (onViewReceipt || onRateExperience) && (
+      {(onViewReceipt || onRateExperience) && (
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
             gap: 8,
-            borderTop: `1px dashed ${C.borderSemantic}`,
+            borderTop: `1px solid ${C.borderSemantic}`,
             paddingTop: 16,
           }}
         >
-          <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: C.textSecondary }}>
-            {t('completed.devPreviews')}
-          </span>
           <div style={{ display: 'flex', gap: 8 }}>
             {onViewReceipt && (
               <button
@@ -108,7 +104,7 @@ export function ScreenCompleted({
                   cursor: 'pointer',
                 }}
               >
-                {t('completed.receiptPreview')}
+                {t('paymentSummary.title')}
               </button>
             )}
             {onRateExperience && (
@@ -127,7 +123,7 @@ export function ScreenCompleted({
                   cursor: 'pointer',
                 }}
               >
-                {t('completed.ratingPreview')}
+                {t('rating.liveTitle')}
               </button>
             )}
           </div>

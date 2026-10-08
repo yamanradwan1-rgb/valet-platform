@@ -15,6 +15,14 @@ interface ScopedOutcome {
   readonly value: RatingOutcome;
 }
 
+const starLabelKeys = [
+  'rating.star1',
+  'rating.star2',
+  'rating.star3',
+  'rating.star4',
+  'rating.star5',
+] as const;
+
 /** T5 real-authority rating flow. Not mounted in production until the UI delta is approved. */
 export function GuestLiveRating({ client, visitId, canRate, onBack }: {
   readonly client: GuestApiClient | null;
@@ -60,11 +68,11 @@ export function GuestLiveRating({ client, visitId, canRate, onBack }: {
         style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
         {[1, 2, 3, 4, 5].map((star) => (
           <button key={star} type="button" onClick={() => setStars(star)} disabled={locked}
-            aria-label={t('rating.selectStar', { star: String(star) })}
+            aria-label={t(starLabelKeys[star - 1]!)}
             aria-pressed={stars === star}
             style={{ background: 'none', border: 'none', fontSize: 32,
               cursor: locked ? 'not-allowed' : 'pointer',
-              color: stars !== null && star <= stars ? '#F59E0B' : C.borderSemantic }}>
+              color: stars !== null && star <= stars ? C.warningSemantic : C.borderSemantic }}>
             ★
           </button>
         ))}

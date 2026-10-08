@@ -103,11 +103,14 @@ export function parseMigrationDatabaseUrl(
   return { parsed, value };
 }
 
-export function parseRuntimeDatabaseUrlForProvisioning(value) {
-  const parsed = requireDatabaseUrl(value, "DATABASE_URL");
+export function parseRuntimeDatabaseUrlForProvisioning(
+  value,
+  name = "DATABASE_URL",
+) {
+  const parsed = requireDatabaseUrl(value, name);
   if (parsed.search !== "") {
     throw new Error(
-      "Runtime-role provisioning does not allow query parameters in DATABASE_URL.",
+      `Runtime-role provisioning does not allow query parameters in ${name}.`,
     );
   }
   return { parsed, value };

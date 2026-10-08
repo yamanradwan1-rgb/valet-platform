@@ -5,6 +5,7 @@ import {
 } from "../dispatch/dispatch-transaction";
 import { stopTaskTrackingForMovement } from "../tracking/task-tracking-lifecycle";
 import { appendMarkReadyAuditEvent } from "./mark-ready-audit";
+import { persistGuestReadyPush } from "./mark-ready-guest-push";
 import { MarkReadyError } from "./mark-ready-errors";
 import {
   assertAcceptedRetrievalRequest,
@@ -86,6 +87,7 @@ export function createMarkReadyCommandExecutor(
         { actorMembershipId, operationTime, session, sessionVersion, task },
         options.auditEventIdFactory,
       );
+      await persistGuestReadyPush(transaction, session, operationTime);
       return {
         readyAt: operationTime.toISOString(),
         sessionId: session.id,

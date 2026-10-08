@@ -28,7 +28,8 @@ export function nativeHandoffGuestAccessRecoveryTarget(
     task.taskType !== "RETRIEVAL" ||
     task.status !== "IN_PROGRESS" ||
     task.sessionId !== session.sessionId ||
-    task.valetSessionState !== "HANDOFF_PENDING"
+    task.valetSessionState !== "HANDOFF_PENDING" ||
+    task.valetSessionVersion !== session.version
   ) {
     return null;
   }

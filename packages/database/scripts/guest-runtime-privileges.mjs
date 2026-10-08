@@ -1,8 +1,10 @@
 import { verifyGuestBrowserPrivileges } from "./guest-browser-session-runtime-privileges.mjs";
+import { verifyGuestPushPrivileges } from "./guest-push-runtime-privileges.mjs";
 
 // Keep DEC-064 verification and T3's exact ephemeral grants in one Guest boundary.
 export async function verifyGuestRuntimePrivileges(client, runtimeRole) {
   await verifyGuestBrowserPrivileges(client, runtimeRole);
+  await verifyGuestPushPrivileges(client, runtimeRole);
   const result = await client.query(
     `SELECT has_column_privilege($1,'public.anti_abuse_events','request_class','INSERT') AS class_insert,
        has_column_privilege($1,'public.anti_abuse_events','group_key_hash','INSERT') AS group_insert,

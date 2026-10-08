@@ -15,6 +15,8 @@ import {
 } from '../features/deferred/screen-payment';
 import { ScreenHelp } from '../features/deferred/screen-service';
 import { GuestLiveRating } from '../features/rating/guest-live-rating';
+import { GuestPostVisitRoute, type GuestPostVisitSelection } from './guest-post-visit-route';
+import { GuestWebPushMount } from './guest-web-push-mount';
 import {
   ScreenNetworkUnavailable,
   ScreenExpired,
@@ -60,6 +62,7 @@ export function GuestAppRoot() {
   // Sub-screens for dev preview flows
   const [paymentSubScreen, setPaymentSubScreen] = useState<'overview' | 'tip' | 'receipt'>('overview');
   const [helpSubScreen, setHelpSubScreen] = useState<'help' | 'rate'>('help');
+  const [postVisit, setPostVisit] = useState<GuestPostVisitSelection | null>(null);
 
   useEffect(() => {
     registerServiceWorker();
@@ -231,6 +234,17 @@ export function GuestAppRoot() {
     );
   }
 
+  if (
+    postVisit && client && session.state === 'COMPLETED' &&
+    postVisit.visitId === session.valetSessionId && !isExpired
+  ) {
+    return (
+      <GuestPostVisitRoute client={client} session={session} surface={postVisit.surface}
+        tab={tab} onBack={() => setPostVisit(null)} onCloseMore={handleCloseMore} onMore={handleOpenMore}
+        onTab={setTab} showMoreMenu={showMoreMenu} />
+    );
+  }
+
   return (
     <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore}>
       <GuestLiveView
@@ -243,15 +257,8 @@ export function GuestAppRoot() {
         canMutate={isFresh && !isMutating}
         isRefreshing={isRefreshing}
         onViewDetails={() => setShowVehicleDetails(true)}
-        onViewReceipt={isDev ? () => setTab('payment') : undefined}
-        onRateExperience={
-          isDev
-            ? () => {
-                setTab('help');
-                setHelpSubScreen('rate');
-              }
-            : undefined
-        }
+        onViewReceipt={() => setPostVisit({ surface: 'payment', visitId: session.valetSessionId })}
+        onRateExperience={() => setPostVisit({ surface: 'rating', visitId: session.valetSessionId })}
       />
 
       {/* Production Overlays */}
@@ -275,6 +282,8 @@ export function GuestAppRoot() {
         isRefreshing={isRefreshing}
         onRefresh={() => void refreshSession()}
       />
+
+      <GuestWebPushMount enabled={Boolean(client && isTokenBootstrapComplete && !isExpired)} session={session} />
 
       {/* Dedicated Dev-Only Preview Overlays and Navigator */}
       {isDev && (

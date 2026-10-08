@@ -8,6 +8,7 @@ import { CheckInModule } from "./modules/check-in-api/check-in.module";
 import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { DispatchModule } from "./modules/dispatch/dispatch.module";
 import { GuestAccessModule } from "./modules/guest-access/guest-access.module";
+import { GuestPushRegistrationModule } from "./modules/guest-push-registration/guest-push-registration.module";
 import { KeyCustodyModule } from "./modules/keys/key-custody.module";
 import { MapSetupModule } from "./modules/map-setup/map-setup.module";
 import { ManagementModule } from "./modules/management/management.module";
@@ -24,6 +25,7 @@ import { TrackingModule } from "./modules/tracking/tracking.module";
     AuthModule,
     AntiAbuseModule,
     GuestAccessModule,
+    GuestPushRegistrationModule,
     HealthModule,
     CheckInModule,
     DashboardModule,

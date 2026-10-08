@@ -1,4 +1,5 @@
 import type { TranslationDictionary } from './types';
+import { guestPostVisitArTranslations } from './guest-post-visit-ar';
 import { previewArTranslations } from './preview-ar';
 
 export const arTranslations: TranslationDictionary = {
@@ -151,13 +152,13 @@ export const arTranslations: TranslationDictionary = {
   'completed.receiptPreview': 'معاينة الإيصال',
   'completed.ratingPreview': 'معاينة التقييم',
 
-  // تقييم الزيارة بعد اكتمالها؛ مخفي في الإنتاج حتى اعتماد الواجهة
+  // تقييم الزيارة بعد اكتمالها
   'rating.liveTitle': 'قيّم تجربتك',
   'rating.submit': 'إرسال التقييم',
-  'rating.submitting': 'جارٍ إرسال التقييم...',
+  'rating.submitting': 'جارٍ إرسال التقييم…',
   'rating.saved': 'شكرًا لملاحظاتك.',
   'rating.conflict': 'تم تسجيل تقييم لهذه الزيارة بالفعل.',
-  'rating.unknown': 'تعذّر تأكيد تسجيل التقييم، ولن نعيد إرساله تلقائيًا. يُرجى طلب المساعدة من الموظفين.',
+  'rating.unknown': 'تعذّر تأكيد تسجيل التقييم، ولن نعيد إرساله تلقائيًا.',
   'rating.unavailable': 'يتوفر التقييم فقط لزيارتك المكتملة والمصرّح بها.',
   'rating.failed': 'تعذّر إرسال تقييمك. حاول مرة أخرى.',
   'rating.selectStar': 'اختيار {star} من أصل 5 نجوم',
@@ -262,6 +263,7 @@ export const arTranslations: TranslationDictionary = {
   'demo.completed': '9. اكتملت الخدمة',
   'demo.networkUnavailable': 'انقطاع الاتصال',
   'demo.expired': 'انتهت الصلاحية',
+  ...guestPostVisitArTranslations,
   ...previewArTranslations,
 };
 

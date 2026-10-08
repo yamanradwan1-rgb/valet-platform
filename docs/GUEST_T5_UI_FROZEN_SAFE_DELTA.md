@@ -1,7 +1,13 @@
-# Guest T5 — UI-FROZEN SAFE DELTA Proposal
+# Guest T5 — Owner-approved UI-FROZEN SAFE DELTA contract
 
-Status: **OWNER UI REVIEW REQUIRED — NO PRODUCTION UI ACTIVATION**
+Status: **OWNER APPROVED — ALL FIVE T5-UI-01..05; CAPABILITY AND PHYSICAL GATES STILL APPLY**
 Baseline: `74cc7064a907bec79c154e2d1afc55288ceffb1a` (2026-10-08)
+
+Approval recorded in Accepted `decisions/DEC-101_GUEST_WEB_PUSH_V1_AND_PILOT_UI_ACTIVATION.md`.
+This authorizes implementing all five narrowly scoped visible deltas without
+redesign or reapproval. Actual Guest/session/Location eligibility and
+notification/provider/device proof must still gate display/success claims.
+The official/legal receipt is explicitly **deferred**.
 
 This packet defines the smallest visible T5 changes that can be reviewed without
 changing the frozen Guest/Native visual system. It records copy, trigger,
@@ -40,14 +46,15 @@ digital payment, or Guest incident intake.
   Receipt preview's “Standard Valet / Complimentary / 0.00” is fixture content
   and must never become live truth.
 
-No non-visual Help integration is authorized by the audited repository because
-there is no authoritative Guest-facing destination to integrate. Help remains
-an Owner/source gate rather than a code change in this task.
+Owner accepts **on-site valet staff assistance** as the minimum pilot
+destination. Do not expose operational Help for an individual Location until
+its on-site assistance availability has been verified from authorized facts.
+No Guest incident endpoint, phone, email or reception contact is approved.
 
 ## Delta T5-UI-01 — Native handoff Guest Access recovery
 
-**Approval:** proposed; exact visible entry requires Owner approval. The recovery
-domain behavior itself is already inside accepted T5 scope.
+**Approval:** **OWNER APPROVED (T5-UI-01)**. The existing exact-session
+recovery guards and Native UI primitives remain mandatory.
 
 **Trigger and placement:** while the exact Native retrieval session is
 `HANDOFF_PENDING` and handoff is still pending/unverified, add one secondary
@@ -76,10 +83,9 @@ again. No stale QR/link may remain visible after identity/session change.
 
 ## Delta T5-UI-02 — Guest READY background notification presentation
 
-**Approval:** copy proposal only. Activation remains blocked until the focused
-notification transport/provider, persistence/retention and supported browser/PWA
-matrix are accepted and implemented. Foreground polling/toast is not evidence of
-background delivery.
+**Approval:** **OWNER APPROVED (T5-UI-02)**. Implementation must be connected
+to the real reviewed transport/subscription contract; foreground READY
+polling/toast is not evidence of background delivery.
 
 Use the existing approved foreground READY message for the OS/background
 notification so foreground and background channels do not contradict each other:
@@ -99,16 +105,20 @@ the smallest proposed copy is:
 | Primary action | Enable notifications | تفعيل الإشعارات |
 | Secondary action | Not now | ليس الآن |
 | Denied/unavailable note | Notifications are off. Check your vehicle status here for updates. | الإشعارات متوقفة. تحقّق من حالة مركبتك هنا لمعرفة التحديثات. |
+| iPhone Safari Home Screen requirement | On iPhone, add this app to your Home Screen, open it there, then enable notifications. | على iPhone، أضف التطبيق إلى الشاشة الرئيسية وافتحه من هناك، ثم فعّل الإشعارات. |
 
-The notification click opens only the public Customer application origin. It
+The iPhone Safari tab shows the Home Screen requirement and dismiss action,
+not a non-functional Enable button; the install/permission guidance is
+explicitly required by the Owner's T5-PUSH-02 / T5 B12 approval. The
+notification click opens only the public Customer application origin. It
 must carry no Guest bearer, internal session/tenant identifier, handoff proof,
 plate, phone or payment data; the server reauthorizes the current Browser
 Session. Permission denial never weakens custody checks or fabricates delivery.
 
 ## Delta T5-UI-03 — Post-visit rating
 
-**Approval:** proposed; backend authority exists, production entry/success/error
-presentation still needs Owner approval.
+**Approval:** **OWNER APPROVED (T5-UI-03)**; production entry/success/error
+presentation must preserve server-authoritative 24-hour visit scope.
 
 **Trigger:** show only for an authorized `COMPLETED` visit within the U-06
 24-hour post-visit window. Start with no rating selected; do not preselect five.
@@ -131,14 +141,21 @@ overwritten.
 | Success | Thanks for your feedback. | شكرًا لملاحظاتك. |
 | Existing different rating | A rating has already been recorded for this visit. | تم تسجيل تقييم لهذه الزيارة بالفعل. |
 | Temporary failure | We couldn't submit your rating. Try again. | تعذّر إرسال تقييمك. حاول مرة أخرى. |
+| Ambiguous network result (no automatic repeat) | We cannot confirm whether your rating was recorded. It will not be sent again automatically. | تعذّر تأكيد تسجيل التقييم، ولن نعيد إرساله تلقائيًا. |
 
 There is no rating entry for `CANCELLED`, expired or revoked authority. A network
 failure does not show “Thanks” until canonical success/reconciliation is known.
+The ambiguous outcome gives no on-site assistance instruction because
+DEC-101 T5-UI-05 requires **verified** per-Location availability and the
+current Guest projection does not establish that fact. This minimal
+Owner-approved T5 no-fake-success/no-fake-Help copy corrects the preapproval
+draft's unsupported staff-help sentence.
 
 ## Delta T5-UI-04 — Source-backed payment summary
 
-**Approval:** proposed as a source-backed **Payment summary**. A legal/tax receipt
-designation and any download/email/share delivery remain unapproved.
+**Approval:** **OWNER APPROVED (T5-UI-04)** for source-backed
+**Payment summary** only. A legal/tax receipt designation and
+download/email/share delivery remain **deferred**.
 
 **Trigger:** authorized `COMPLETED` post-visit context only. Use only the DEC-057
 Guest payment projection; do not reuse preview fixture values and do not infer
@@ -169,8 +186,9 @@ defines those facts.
 
 ## Delta T5-UI-05 — Minimum truthful Guest staff assistance
 
-**Approval:** **BLOCKED ON OWNER SOURCE/OPERATING DECISION.** No production Help
-code is activated by this packet.
+**Approval:** **OWNER APPROVED (T5-UI-05)** for verified on-site valet
+staff assistance. Exact Location operational availability remains a
+required source-of-truth capability gate.
 
 The smallest repository-supported candidate requires no invented contact: an
 informational Help surface directing the Guest to on-site valet staff. Owner must
@@ -179,7 +197,7 @@ Location. If any pilot Location instead requires phone, desk, reception, chat or
 another destination, that destination needs an authoritative configured source
 before the UI can expose it.
 
-Candidate exact copy, if Owner accepts on-site staff as the pilot route:
+Exact Owner-approved on-site valet staff assistance copy:
 
 | Element | English | العربية |
 | --- | --- | --- |
@@ -189,8 +207,8 @@ Candidate exact copy, if Owner accepts on-site staff as the pilot route:
 
 Do not ship the preview “Contact hotel reception,” a fictional phone/email,
 “Report Issue,” incident-submitted confirmation, emergency-response promise or
-staff incident credential as Guest Help. If Owner rejects the on-site-only route,
-the Help surface stays hidden until a real destination contract exists.
+staff incident credential as Guest Help. If a Location lacks verified on-site
+assistance, Help stays unavailable until its operational source is confirmed.
 
 ## EN/AR, RTL/LTR and Light/Dark acceptance matrix
 
@@ -225,12 +243,10 @@ Additional invariants for the five deltas:
 
 ## Owner approval and screenshot gate
 
-Before any proposed visible delta is enabled in production, record Owner approval
-for that named delta and capture same-state evidence for English Light, English
-Dark, Arabic Light and Arabic Dark. Native T5-UI-01 additionally needs physical
-Android handoff evidence. T5-UI-02 additionally needs the supported real-device
-background/closed-app matrix. T5-UI-05 cannot advance until the assistance source
-decision above is explicit.
-
-Until those gates pass, existing production-visible Guest/Native UI remains
-unchanged and development previews remain previews.
+The five named UI deltas have Owner approval. Implementation must capture
+same-state evidence for English Light, English Dark, Arabic Light and Arabic
+Dark wherever tooling permits. Native T5-UI-01 additionally needs physical
+Android handoff evidence and T5-UI-02 requires supported real-device
+background/closed-app proof before a launch claim. T5-UI-05 remains unavailable
+on Locations without verified on-site staff assistance. The official/legal
+receipt preview stays development-only/deferred.

@@ -1,8 +1,14 @@
-# T5 — Guest background notification contract and Owner decision packet
+# T5 — Guest Web Push v1 accepted implementation contract
 
-Status: **PROPOSED — OWNER APPROVAL REQUIRED BEFORE IMPLEMENTATION**
+Status: **OWNER APPROVED — DEC-101 ACCEPTED; IMPLEMENTATION/PHYSICAL EVIDENCE SEPARATE**
 Date: 2026-10-08
 Scope: U-08 first-launch Guest background/closed-app notification only
+
+Owner approval: all nine T5-PUSH-01..09 decisions were accepted on
+2026-10-08 and recorded in `decisions/DEC-101_GUEST_WEB_PUSH_V1_AND_PILOT_UI_ACTIVATION.md`.
+This document is now the **binding accepted design**, not a new proposal or
+pending Owner decision. Actual implementation, production provider
+configuration, live sender and device receipt must be separately verified.
 
 ## 1. Why this packet exists
 
@@ -27,13 +33,15 @@ provide that capability:
   not suitable for browser push. Existing `StaffPush*` persistence and the FCM
   native adapter are Staff-session/native-specific and are not Guest authority.
 
-This packet proposes the smallest reliable extension of those facts. It does
-not itself authorize a provider/transport, dependency, schema, migration,
-production-visible UI, credentials, sender deployment or production rollout.
+The owner now authorizes the bounded **repository implementation** of this
+extension, including a reviewed Web Push library, forward migration, Guest
+authorization, sender, service worker and the already accepted UI delta.
+Deployment, real production credentials, production/staging migration
+execution and physical delivery are **not** authorized or verified here.
 
-## 2. Proposed decision
+## 2. Accepted decision
 
-Approve **standards-based Web Push** for one initial Guest notification kind:
+The owner approves **standards-based Web Push** for one initial Guest notification kind:
 
 ```text
 kind = GUEST_VEHICLE_READY
@@ -61,7 +69,7 @@ need their own product decision.
 The implementation must use feature detection and secure-context checks rather
 than browser-name detection.
 
-| Surface | Proposed first-launch background support | Contract |
+| Surface | Approved first-launch background support target | Contract |
 | --- | --- | --- |
 | Android Chrome on HTTPS | **Supported target** | Standards Web Push may wake the service worker while the page is not loaded. Notification permission and a valid subscription are required. Android/browser power policy can delay presentation, so no exact delivery-time guarantee is claimed. |
 | Installed Android Guest PWA | **Supported target** | Same origin/service-worker Web Push contract. Must be physically qualified independently from a normal Chrome tab because lifecycle/storage behavior can differ. |
@@ -91,7 +99,7 @@ The browser permission prompt must follow an explicit Guest gesture. Do not
 request notification permission automatically on page load, token exchange,
 polling, visibility change or READY transition.
 
-The minimal future UI needs one Owner-approved UI-FROZEN SAFE DELTA that can:
+The approved UI-FROZEN SAFE DELTA T5-UI-02 shall:
 
 1. offer `Enable notifications` only when the current platform can support the
    selected Web Push path;
@@ -102,8 +110,9 @@ The minimal future UI needs one Owner-approved UI-FROZEN SAFE DELTA that can:
 4. avoid promising guaranteed sound, exact timing or delivery while the OS has
    final presentation control.
 
-No exact layout/copy/control is approved here. Customer implementation is
-blocked until that UI delta is separately approved.
+The exact layout/copy/control scope is accepted in T5-UI-02. No permission
+dialog may open except after an explicit Guest gesture, and no UI may claim
+actual delivery until the required runtime/device evidence exists.
 
 ## 5. Subscription authorization and binding
 
@@ -258,6 +267,16 @@ crash-recovery, multi-replica lease or terminal-delivery truth.
 
 The sender stays inside the API modular-monolith deployment boundary as a
 separate worker process. More than one replica may run concurrently.
+
+The worker uses a **dedicated PostgreSQL LOGIN principal** and
+`GUEST_PUSH_WORKER_DATABASE_URL`; it must never create its pool from the
+ordinary HTTP API `DATABASE_URL`. Startup fails closed if the dedicated URL is
+missing/invalid or names the same PostgreSQL principal as the ordinary API.
+Ordinary API runtime authority is limited to registration/READY writer
+functions and cannot read delivery lease tokens or execute the lease-fenced
+subscription-secret resolver/cleanup functions. Conversely, the sender worker
+may lease/finalize deliveries and execute its resolver/cleanup functions but
+cannot execute Guest registration or READY business writers.
 
 The proven coordination shape is:
 
@@ -517,46 +536,48 @@ Implementation is incomplete until it proves at least:
 - EN/AR, lock-screen privacy, restart/reconnect and duplicate delivery are
   physically exercised with exact OS/browser versions recorded.
 
-## 18. Exact Owner approvals required to unblock implementation
+## 18. Recorded Owner approvals and separate deployment gates
 
-The following approvals are intentionally separate. Approval of U-08 alone did
-not select these implementation choices.
+The following nine approvals are **now Owner Accepted** under DEC-101.
+Previous decision-pending wording in this document is historical, not an
+implementation restriction. None of the nine constitutes authority for
+production infrastructure/secrets/migrations or physical acceptance.
 
-1. **Transport/platform:** approve standards-based Web Push as the v1 Guest
+1. **Transport/platform — APPROVED:** standards-based Web Push as the v1 Guest
    background transport for `GUEST_VEHICLE_READY`, with Android Chrome/PWA and
    iOS/iPadOS 16.4+ Home Screen as supported background targets.
-2. **iPhone Safari boundary:** approve Safari-tab foreground-only behavior and
+2. **iPhone Safari boundary — APPROVED:** Safari-tab foreground-only behavior and
    Home Screen install + permission as the iOS background-notification path. If
    Safari-tab closed-app notification is mandatory, select a different approved
    delivery channel instead; this Web Push plan cannot satisfy that requirement.
-3. **UI-FROZEN SAFE DELTA:** approve the exact notification enable/install/
+3. **UI-FROZEN SAFE DELTA — APPROVED:** the exact notification enable/install/
    denied/unsupported UI states and EN/AR copy before Customer UI changes.
-4. **Schema/migration:** approve dedicated `GuestPushRegistration`,
+4. **Schema/migration — APPROVED FOR AUTHORING:** dedicated `GuestPushRegistration`,
    `GuestPushIntent` and `GuestPushDelivery` persistence plus forward migration,
    constraints, runtime grants and retention/cleanup behavior.
-5. **Dependency:** approve the exact reviewed Web Push server dependency and
+5. **Dependency — APPROVED SUBJECT TO PACKAGE REVIEW:** exact reviewed Web Push server dependency and
    lockfile change, or explicitly approve a standards implementation without a
    new package.
-6. **Credential/config:** approve VAPID key ownership, environment separation,
+6. **Credential/config — APPROVED:** VAPID key ownership, environment separation,
    rotation/recovery, secret store and public-key distribution contract.
-7. **Delivery policy:** approve policy v1 values in section 11, especially the
+7. **Delivery policy — APPROVED:** policy v1 values in section 11, especially the
    30-minute READY TTL, four attempts, retry/lease bounds and retention.
-8. **Sender deployment:** approve a Guest Web Push worker process and replica
+8. **Sender architecture — APPROVED:** a Guest Web Push worker process and replica
    topology using DB leases/fencing, plus its production configuration/egress.
-9. **Physical release gate:** approve the exact Android/iOS device + OS/browser
+9. **Physical release gate — APPROVED:** the exact Android/iOS device + OS/browser
    matrix and require T6 physical delivery/dedupe/revoke/permission evidence
    before first-launch readiness is claimed.
 
-Until those decisions are approved, T5 may continue source/read-only auditing
-and test-contract design, but it must not add Customer/API push behavior, schema,
-migrations, dependencies, credentials, provider delivery or production-visible
-notification UI.
+**Implementation permission:** the Owner approved all nine choices; T5 may
+implement the Customer/API/schema/worker/dependency/permission UI on the
+existing branch. **Runtime restrictions:** no production credentials or
+infrastructure, deployment, shared/production migration or false device
+receipt. Real sender execution and physical push remain release gates.
 
-## 19. Decision packet recommendation
+## 19. Approved decision reference
 
-Recommended Owner choice: approve items 1–9 as one focused Guest Web Push v1
-sub-contract, with the iOS rule explicitly stating **Home Screen required for
-background notification**. This is the narrowest architecture that satisfies
-U-08 while preserving T1 Browser Session authority, DEC-070 foreground truth,
-the typed notification setting, modular-monolith deployment and T4/T6 evidence
-boundaries.
+Owner choice: items 1–9 are now approved as a focused Guest Web Push v1
+contract. The iOS rule explicitly states **Home Screen required for
+background notification**. T1 Browser Session authority, DEC-070 foreground
+truth, typed notification policy, modular-monolith deployment and T4/T6
+evidence boundaries remain in force. See Accepted DEC-101.

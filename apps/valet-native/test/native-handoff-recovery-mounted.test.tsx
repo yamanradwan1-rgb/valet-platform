@@ -56,8 +56,8 @@ function render(locale: "ar" | "en", onGuestAccessRecovery?: () => void, busy = 
   return elements(result).filter((node) => node.type === "EmployeeButton");
 }
 
-describe("T5 hidden-gated Native pending handoff Guest Access entry", () => {
-  it.each(["en", "ar"] as const)("never shows the recovery entry without approved gate in %s", (locale) => {
+describe("T5 approved Native pending handoff Guest Access entry", () => {
+  it.each(["en", "ar"] as const)("does not fabricate a recovery entry without composition callback in %s", (locale) => {
     const controls = render(locale);
     expect(controls.some((node) => String(node.props.label).includes(locale === "en" ? "Guest Access" : "وصول الضيف"))).toBe(false);
   });

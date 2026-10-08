@@ -105,6 +105,10 @@ describe("T5 Native contextual Guest Access recovery", () => {
       ...value,
       task: { ...value.task!, taskType: "PARKING" as const },
     })],
+    ["stale task session version", (value: EmployeeHandoffSnapshot) => ({
+      ...value,
+      task: { ...value.task!, valetSessionVersion: value.session!.version - 1 },
+    })],
     ["already verified proof", (value: EmployeeHandoffSnapshot) => ({
       ...value,
       session: {
@@ -123,16 +127,10 @@ describe("T5 Native contextual Guest Access recovery", () => {
     expect(nativeHandoffGuestAccessRecoveryTarget(mutate(snapshot()))).toBeNull();
   });
 
-  it("keeps the new visible entry point disabled until UI delta approval", () => {
+  it("enables the approved production entry and opens only exact Guest Access", () => {
     const open = vi.fn();
-    expect(NATIVE_HANDOFF_GUEST_ACCESS_RECOVERY_UI_ENABLED).toBe(false);
-    expect(openHandoffGuestAccessRecovery(snapshot(), open)).toBe(false);
-    expect(open).not.toHaveBeenCalled();
-  });
-
-  it("opens only Guest Access for the same HANDOFF session when explicitly enabled", () => {
-    const open = vi.fn();
-    expect(openHandoffGuestAccessRecovery(snapshot(), open, true)).toBe(true);
+    expect(NATIVE_HANDOFF_GUEST_ACCESS_RECOVERY_UI_ENABLED).toBe(true);
+    expect(openHandoffGuestAccessRecovery(snapshot(), open)).toBe(true);
     expect(open).toHaveBeenCalledWith("guest-access", "HANDOFF", sessionId);
   });
 });

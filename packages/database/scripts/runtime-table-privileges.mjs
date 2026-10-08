@@ -10,6 +10,7 @@ import { provisionManagementSettingsPrivileges } from "./management-settings-run
 import { provisionManagementFeaturePrivileges } from "./management-runtime-privileges.mjs";
 import { provisionShiftPresencePrivileges } from "./shift-presence-runtime-privileges.mjs";
 import { provisionGuestBrowserPrivileges } from "./guest-browser-session-runtime-privileges.mjs";
+import { provisionGuestPushPrivileges } from "./guest-push-runtime-privileges.mjs";
 
 const runtimeReadOnlyTables = [
   "organizations",
@@ -270,6 +271,7 @@ export async function provisionRuntimeTablePrivileges(
   );
   await provisionShiftPresencePrivileges(client, executeFormatted, runtimeRole);
   await provisionGuestBrowserPrivileges(client, executeFormatted, runtimeRole);
+  await provisionGuestPushPrivileges(client, executeFormatted, runtimeRole);
   for (const column of runtimeRefundInsertColumns) {
     await executeFormatted(client, "GRANT INSERT (%I) ON TABLE refunds TO %I", [
       column,

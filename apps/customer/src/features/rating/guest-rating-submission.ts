@@ -36,7 +36,9 @@ export class GuestRatingSubmission {
     } catch (error) {
       if (this.inFlight !== current) return true;
       const conflict = error instanceof GuestApiError && error.code === 'GUEST_RATING_CONFLICT';
-      const unavailable = error instanceof GuestApiError && error.code === 'GUEST_RATING_NOT_AVAILABLE';
+      const unavailable = error instanceof GuestApiError && (
+        error.code === 'GUEST_RATING_NOT_AVAILABLE' || error.code === 'GUEST_ACCESS_INVALID'
+      );
       const ambiguous = error instanceof GuestApiError && (
         error.code === 'MUTATION_OUTCOME_UNKNOWN' ||
         error.status === 408 || error.status >= 500

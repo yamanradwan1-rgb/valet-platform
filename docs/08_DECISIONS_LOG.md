@@ -4239,3 +4239,26 @@ Full contract:
 ### GPS-B implementation parity for Accepted DEC-099/100
 
 Issue #257 GPS-B implements the accepted backend contract on branch codex/native-257-presence-enforcement from verified fetched main 168da01e6822049ee0a45eebec4780c5b2b1fbd9. Forward migrations 060–063 supply early revocation expiry/minimal denial, narrow policy writes/closed strict gate, privileged retention execution, and protected commercial entitlement. Historical 058/059 and the Accepted Decision semantics are unchanged. Public transport U-002/U-003/U-004 is published in [GPS_B_PUBLIC_CONTRACT.md](validation/GPS_B_PUBLIC_CONTRACT.md); exact local/runtime/failure evidence and outstanding release gates are in [GPS_B_IMPLEMENTATION_REPORT.md](validation/GPS_B_IMPLEMENTATION_REPORT.md). This is implementation parity, not a new product decision, merge approval, strict activation or client-phase completion.
+## DEC-101 — Guest Web Push v1 and T5 pilot UI activation
+
+Status: Accepted
+Date: 2026-10-08
+Owner: VAYLET product owner
+
+The owner approves T5-PUSH-01..09 and T5-UI-01..05 for repository
+implementation on the existing T5 branch. Guest `GUEST_VEHICLE_READY`
+background delivery uses standards Web Push, durable scoped Guest-specific
+registration/intent/delivery, transactional first READY creation, multi-replica
+PostgreSQL leases, bounded v1 retry/retention, VAPID with secure sender-only
+private key, safe generic EN/AR service-worker presentation and click-time
+Guest Browser Session reauthorization. Android Chrome/PWA and supported
+iOS 16.4+ **Home Screen** apps are launch targets; iPhone Safari tabs remain
+foreground-only. Approved UI enables exact-session Native handoff recovery,
+real completed-visit rating, canonical read-only Payment Summary and verified
+on-site valet Help, plus notification permission controls, without redesign.
+Official receipt, digital checkout, tips, SMS/WhatsApp and full Guest incident
+intake remain deferred. Authorization is **not** physical proof, deployment,
+production migration or T6 readiness.
+
+Full focused contract:
+`docs/decisions/DEC-101_GUEST_WEB_PUSH_V1_AND_PILOT_UI_ACTIVATION.md`.
