@@ -13,12 +13,13 @@ export interface GuestCoordinatorState {
   readonly error: unknown;
   readonly isExpired: boolean;
   readonly cooldownUntil: number;
+  readonly mutationCooldownUntil: number;
   readonly failures: number;
 }
 
 export interface GuestMutationTicket {
   readonly isCurrent: () => boolean;
-  readonly finish: (session?: GuestSafeSession) => Promise<void>;
+  readonly finish: (session?: GuestSafeSession, failure?: unknown) => Promise<void>;
 }
 export type BeginGuestMutation = () => GuestMutationTicket | null;
 
@@ -50,6 +51,7 @@ export class GuestRequestCoordinator {
       error: null,
       isExpired: false,
       cooldownUntil: 0,
+      mutationCooldownUntil: 0,
       failures: 0,
     };
   }
@@ -63,7 +65,8 @@ export class GuestRequestCoordinator {
   }
 
   get isTrusted(): boolean {
-    return this.isFresh() && !this.state.isMutating;
+    return this.isFresh() && !this.state.isMutating &&
+      this.now() >= this.state.mutationCooldownUntil;
   }
 
   isFresh(maxAgeMilliseconds = GUEST_FOREGROUND_STALE_TARGET_MS): boolean {
@@ -77,6 +80,10 @@ export class GuestRequestCoordinator {
   // one logical refresh, even when the first server read is unusually fast.
   async triggerRead(): Promise<void> {
     const now = this.now();
+    // A rejected trigger during server cooldown is not a performed refresh.
+    // It must not delay the first permitted user retry after Retry-After ends.
+    if (this.disposed || this.state.isExpired || this.pendingMutation !== 0 ||
+        now < this.state.cooldownUntil) return;
     if (now - this.lastUserOrWakeTriggerAt < 2_000) {
       if (this.readPromise) await this.readPromise;
       return;
@@ -157,10 +164,20 @@ export class GuestRequestCoordinator {
     let finished = false;
     return {
       isCurrent,
-      finish: async (updated?: GuestSafeSession) => {
+      finish: async (updated?: GuestSafeSession, failure?: unknown) => {
         if (finished) return;
         finished = true;
         if (!isCurrent()) return;
+        if (failure instanceof GuestApiError && failure.status === 429) {
+          const seconds = failure.retryAfter;
+          // Mutation class throttling is independent of GET reconciliation.
+          // An authoritative read must never erase a protected POST cooldown.
+          const delayMs = seconds !== undefined && Number.isFinite(seconds) && seconds >= 0
+            ? seconds * 1_000 : 2_000;
+          this.setState({
+            mutationCooldownUntil: Math.max(this.state.mutationCooldownUntil, this.now() + delayMs),
+          });
+        }
         if (updated && updated.valetSessionId === clientSessionId) {
           const session = retainCurrentSessionBranding(this.state.session, updated);
           this.acceptSession(session);

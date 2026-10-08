@@ -48,6 +48,87 @@ describe('GuestRequestCoordinator session/mutation ordering', () => {
     expect(coordinator.isFresh()).toBe(true);
   });
 
+  it('coalesces fast sequential manual/wake triggers for two seconds, not only overlapping GETs', async () => {
+    const load = vi.fn().mockResolvedValue(parked);
+    const { coordinator, setTime } = harness(load);
+    await coordinator.read();
+    await coordinator.triggerRead();
+    expect(load).toHaveBeenCalledTimes(2);
+    setTime(1_500);
+    await coordinator.triggerRead();
+    setTime(2_999);
+    await coordinator.triggerRead();
+    expect(load).toHaveBeenCalledTimes(2);
+    setTime(3_000);
+    await coordinator.triggerRead();
+    expect(load).toHaveBeenCalledTimes(3);
+  });
+
+  it('manual triggers honor server cooldown and never bypass mutation reconciliation', async () => {
+    const requested = { ...parked, state: 'REQUESTED' } as GuestSafeSession;
+    const cooled = new GuestApiError({ status: 429, code: 'RATE_LIMITED',
+      message: 'Slow down', retryAfter: 6 });
+    const pendingReconcile = deferred<GuestSafeSession>();
+    const load = vi.fn().mockResolvedValueOnce(parked)
+      .mockRejectedValueOnce(cooled)
+      .mockImplementationOnce(() => pendingReconcile.promise);
+    const { coordinator, setTime } = harness(load);
+    await coordinator.read();
+    await coordinator.triggerRead();
+    expect(coordinator.isTrusted).toBe(false);
+    setTime(4_000);
+    await coordinator.triggerRead();
+    expect(load).toHaveBeenCalledTimes(2);
+    setTime(6_999);
+    await coordinator.triggerRead();
+    expect(load).toHaveBeenCalledTimes(2);
+    // The blocked attempt must not consume the two-second user trigger gate.
+    setTime(7_000);
+    const recovering = coordinator.triggerRead();
+    pendingReconcile.resolve(requested);
+    await recovering;
+    expect(coordinator.snapshot.session?.state).toBe('REQUESTED');
+    expect(coordinator.isTrusted).toBe(true);
+    expect(load).toHaveBeenCalledTimes(3);
+  });
+
+  it('does not start a manual GET during a protected mutation and reconciles afterward', async () => {
+    const requested = { ...parked, state: 'REQUESTED' } as GuestSafeSession;
+    const load = vi.fn().mockResolvedValueOnce(parked).mockResolvedValueOnce(requested);
+    const { coordinator } = harness(load);
+    await coordinator.read();
+    const ticket = coordinator.beginMutation();
+    expect(ticket).not.toBeNull();
+    await coordinator.triggerRead();
+    expect(load).toHaveBeenCalledTimes(1);
+    expect(coordinator.isTrusted).toBe(false);
+    await ticket!.finish(requested);
+    expect(load).toHaveBeenCalledTimes(2);
+    expect(coordinator.snapshot.session?.state).toBe('REQUESTED');
+    expect(coordinator.isTrusted).toBe(true);
+  });
+
+  it('honors protected POST 429 Retry-After even when reconciliation GET succeeds', async () => {
+    const load = vi.fn().mockResolvedValue(parked);
+    const { coordinator, setTime } = harness(load);
+    await coordinator.read();
+    const denied = new GuestApiError({ status: 429, code: 'GUEST_ACCESS_RATE_LIMITED',
+      retryAfter: 9, message: 'Wait before retrying' });
+    await coordinator.beginMutation()!.finish(undefined, denied);
+    expect(load).toHaveBeenCalledTimes(2);
+    expect(coordinator.isFresh()).toBe(true);
+    expect(coordinator.isTrusted).toBe(false);
+    expect(coordinator.snapshot.mutationCooldownUntil).toBe(10_000);
+    expect(coordinator.beginMutation()).toBeNull();
+    // Manual GETs are still allowed: class-A success must not erase class-C cooldown.
+    setTime(5_000);
+    await coordinator.triggerRead();
+    expect(load).toHaveBeenCalledTimes(3);
+    expect(coordinator.beginMutation()).toBeNull();
+    setTime(10_000);
+    expect(coordinator.beginMutation()).not.toBeNull();
+  });
+
   it('fences GET PARKED when a later retrieval mutation yields REQUESTED', async () => {
     const oldPoll = deferred<GuestSafeSession>();
     const afterMutation = deferred<GuestSafeSession>();
@@ -196,6 +277,9 @@ describe('Guest polling schedule constraints', () => {
     // 66 additional presentations as documented by Owner (initial/wake/manual,
     // projections + lifecycle/operation/proof), all concentrated in one window.
     for (let i = 0; i < 66; i += 1) events.push(450_000 + i);
+    // Also explicitly charge up to ten post-mutation canonical reconciliation
+    // GETs (four requests, four cancels, issue and rotate) conservatively.
+    for (let i = 0; i < 10; i += 1) events.push(500_000 + i);
     const sorted = events.sort((a, b) => a - b);
     let first = 0;
     let max = 0;
@@ -204,7 +288,7 @@ describe('Guest polling schedule constraints', () => {
       max = Math.max(max, last - first + 1);
     }
     expect(max).toBeLessThanOrEqual(180);
-    expect(180 - max).toBeGreaterThanOrEqual(22);
+    expect(180 - max).toBeGreaterThanOrEqual(12);
   });
 
   it('uses bounded jitter and never retries before a server cooldown', async () => {

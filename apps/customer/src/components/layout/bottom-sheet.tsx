@@ -4,6 +4,10 @@ import { useTranslation } from '../../i18n/use-translation';
 import { C } from '../../lib/theme/colors';
 import { IcX } from '../icons/action-icons';
 
+// A second sheet must never let an older sheet steal Escape/Tab or restore
+// focus behind the active modal. This stack is presentation-only, not state.
+const activeSheets: HTMLElement[] = [];
+
 export function BottomSheet({
   open,
   onClose,
@@ -27,14 +31,18 @@ export function BottomSheet({
     previousFocusRef.current = document.activeElement instanceof HTMLElement
       ? document.activeElement : null;
     const sheet = sheetRef.current;
+    if (!sheet) return;
+    activeSheets.push(sheet);
     const focusable = () => Array.from(sheet?.querySelectorAll<HTMLElement>(
       'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
     ) ?? []);
-    (focusable()[0] ?? sheet)?.focus();
+    (focusable()[0] ?? sheet).focus();
     const onKeyDown = (event: KeyboardEvent) => {
+      if (activeSheets[activeSheets.length - 1] !== sheet) return;
       if (event.key === 'Escape') {
         event.preventDefault();
         closeRef.current();
+        return;
       }
       if (event.key !== 'Tab') return;
       const elements = focusable();
@@ -45,7 +53,10 @@ export function BottomSheet({
       }
       const first = elements[0]!;
       const last = elements[elements.length - 1]!;
-      if (event.shiftKey && document.activeElement === first) {
+      if (!sheet.contains(document.activeElement)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      } else if (event.shiftKey && document.activeElement === first) {
         event.preventDefault(); last.focus();
       } else if (!event.shiftKey && document.activeElement === last) {
         event.preventDefault(); first.focus();
@@ -54,7 +65,16 @@ export function BottomSheet({
     document.addEventListener('keydown', onKeyDown);
     return () => {
       document.removeEventListener('keydown', onKeyDown);
-      previousFocusRef.current?.focus();
+      const index = activeSheets.lastIndexOf(sheet);
+      if (index >= 0) activeSheets.splice(index, 1);
+      const previous = previousFocusRef.current;
+      if (previous?.isConnected &&
+          (!activeSheets.length || activeSheets[activeSheets.length - 1]!.contains(previous))) {
+        previous.focus();
+      } else {
+        const active = activeSheets[activeSheets.length - 1];
+        (active?.querySelector<HTMLElement>('button:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? active)?.focus();
+      }
     };
   }, [open]);
 

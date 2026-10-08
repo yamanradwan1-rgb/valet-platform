@@ -42,7 +42,7 @@ export function GuestSessionProvider({
   const state = stateEnvelope?.client === client
     ? stateEnvelope.state : coordinator?.snapshot ?? null;
   const session = state?.session ?? null;
-  const isFresh = Boolean(coordinator?.isFresh(GUEST_FOREGROUND_STALE_TARGET_MS) &&
+  const isFresh = Boolean(coordinator?.isTrusted &&
     isDocumentVisible && isOnline && !isContextSwitchOutcomeAmbiguous);
   const isStale = Boolean(session && !isFresh);
   const errorValue = state?.error;
@@ -135,7 +135,10 @@ export function GuestSessionProvider({
     };
   }, [coordinator, isExpired]);
 
-  const refreshSession = useCallback(async () => { await coordinator?.read(); }, [coordinator]);
+  // Manual refresh shares the same 2-second trigger coalescing policy as wake
+  // events. A fast completed GET must not let rapid taps exhaust the legacy
+  // COMPATIBILITY credential budget.
+  const refreshSession = useCallback(async () => { await coordinator?.triggerRead(); }, [coordinator]);
   const beginMutation = useCallback(() => {
     if (!coordinator || !isDocumentVisible || !isOnline ||
         isContextSwitchOutcomeAmbiguous ||

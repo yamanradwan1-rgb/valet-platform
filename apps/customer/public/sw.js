@@ -14,6 +14,17 @@ function isPublicStatic(url) {
     /^\/_next\/static\/[a-zA-Z0-9/_\-\.]+$/.test(url.pathname);
 }
 
+function mayCacheRequest(request) {
+  return request.method === 'GET' && request.mode !== 'navigate' &&
+    !request.headers.has('authorization') && isPublicStatic(new URL(request.url));
+}
+
+function mayCacheResponse(response) {
+  return response?.ok && response.type === 'basic' &&
+    !response.headers.has('set-cookie') &&
+    !/private|no-store/i.test(response.headers.get('cache-control') || '');
+}
+
 async function prune(cache) {
   const requests = await cache.keys();
   const excess = Math.max(0, requests.length - MAX_ASSETS);
@@ -35,13 +46,21 @@ self.addEventListener('activate', (event) => {
     for (const key of migrations) {
       const source = await caches.open(key);
       for (const request of await source.keys()) {
-        if (!isPublicStatic(new URL(request.url))) continue;
+        if (!mayCacheRequest(request)) continue;
         const response = await source.match(request);
-        if (response?.ok && response.type === 'basic') {
+        if (mayCacheResponse(response)) {
           await target.put(request, response);
         }
       }
       await caches.delete(key);
+    }
+    // Earlier SW versions could have migrated a public URL with private or
+    // no-store headers; clean the current namespace as well as legacy imports.
+    for (const request of await target.keys()) {
+      const response = await target.match(request);
+      if (!mayCacheRequest(request) || !mayCacheResponse(response)) {
+        await target.delete(request);
+      }
     }
     await prune(target);
     await self.clients.claim();
@@ -50,10 +69,8 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const request = event.request;
-  if (request.method !== 'GET' || request.mode === 'navigate' ||
-      request.headers.has('authorization')) return;
+  if (!mayCacheRequest(request)) return;
   const url = new URL(request.url);
-  if (!isPublicStatic(url)) return;
 
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
@@ -62,10 +79,7 @@ self.addEventListener('fetch', (event) => {
     if (hashed && cached) return cached;
     try {
       const response = await fetch(request);
-      if (response.ok && response.type === 'basic' &&
-          !response.headers.has('set-cookie') &&
-          (!response.headers.has('cache-control') ||
-           !/private|no-store/i.test(response.headers.get('cache-control') || ''))) {
+      if (mayCacheResponse(response)) {
         await cache.put(request, response.clone());
         await prune(cache);
       }

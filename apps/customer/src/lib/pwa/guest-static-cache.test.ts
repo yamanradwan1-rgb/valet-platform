@@ -5,8 +5,8 @@ import { describe, expect, it, vi } from 'vitest';
 const sw = readFileSync(new URL('../../../public/sw.js', import.meta.url), 'utf8');
 const origin = 'https://guest.example.test';
 
-function browserResponse(content: string): Response {
-  const response = new Response(content, { status: 200 });
+function browserResponse(content: string, headers?: HeadersInit): Response {
+  const response = new Response(content, headers ? { status: 200, headers } : { status: 200 });
   Object.defineProperty(response, 'type', { value: 'basic' });
   return response;
 }
@@ -111,5 +111,35 @@ describe('Guest Service Worker public-only cache contract', () => {
     expect([...current.entries.keys()]).toEqual([origin + '/_next/static/chunks/older-hash.js']);
     expect(cachesByName.has('vaylet-static-v1')).toBe(false);
     expect(cachesByName.has('another-app-auth-cache')).toBe(true);
+  });
+
+  it('rejects private/no-store/set-cookie responses even at allowlisted paths during migration and fetch', async () => {
+    const { activate, get, cacheStorage, fetcher } = sandbox();
+    const old = await cacheStorage.open('vaylet-static-v1');
+    await old.put(new Request(origin + '/_next/static/chunks/private.js'),
+      browserResponse('not public', { 'Cache-Control': 'private, no-store' }));
+    await old.put(new Request(origin + '/icons/icon-192.png'),
+      browserResponse('credential-bearing', { 'Set-Cookie': 'session=hidden' }));
+    const current = await cacheStorage.open('vaylet-guest-public-static-r2');
+    await current.put(new Request(origin + '/_next/static/chunks/previously-migrated.js'),
+      browserResponse('bad old entry', { 'Cache-Control': 'no-store' }));
+    await activate();
+    expect(current.entries.size).toBe(0);
+    fetcher.mockResolvedValueOnce(browserResponse('private fresh', { 'Cache-Control': 'private' }));
+    expect(await get('/_next/static/chunks/sensitive.js')).not.toBeNull();
+    expect(current.entries.size).toBe(0);
+  });
+
+  it('prunes the application-owned public cache to at most 240 entries', async () => {
+    const { activate, cacheStorage, cachesByName } = sandbox();
+    const cache = await cacheStorage.open('vaylet-guest-public-static-r2');
+    for (let index = 0; index < 251; index += 1) {
+      await cache.put(new Request(`${origin}/_next/static/chunks/public-${index}.js`),
+        browserResponse(`chunk ${index}`));
+    }
+    await cacheStorage.open('unrelated-app');
+    await activate();
+    expect(cachesByName.get('vaylet-guest-public-static-r2')?.entries.size).toBe(240);
+    expect(cachesByName.has('unrelated-app')).toBe(true);
   });
 });

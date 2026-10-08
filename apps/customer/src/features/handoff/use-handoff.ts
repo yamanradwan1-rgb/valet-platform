@@ -4,74 +4,42 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { getLocalizedErrorMessage } from "../../i18n/error-translator";
 import { useTranslation } from "../../i18n/use-translation";
-import { GuestApiError } from "../../lib/api/api-error";
 import type {
   GuestHandoffMaterial,
   HandoffStandardMethod,
 } from "../../lib/api/guest-api-types";
 import { useGuestAuth } from "../auth/guest-auth-context";
-import type { BeginGuestMutation, GuestMutationTicket } from "../session/guest-request-coordinator";
+import type {
+  BeginGuestMutation,
+  GuestMutationTicket,
+} from "../session/guest-request-coordinator";
 import { useGuestSession } from "../session/use-guest-session";
+import {
+  classifyHandoffRecovery,
+  emptyUiState,
+  handoffSecondsRemaining,
+  type HandoffRecoveryState,
+  type HandoffUiState,
+} from "./handoff-ui-state";
 
-export type HandoffRecoveryState = "ALREADY_ISSUED" | "ALREADY_VERIFIED" | null;
+export { classifyHandoffRecovery, handoffSecondsRemaining } from "./handoff-ui-state";
+export type { HandoffRecoveryState } from "./handoff-ui-state";
 
 export type HandoffMutationOutcome =
   | { readonly kind: "SUCCESS"; readonly material: GuestHandoffMaterial }
-  | { readonly kind: "BUSY" }
-  | { readonly kind: "STALE" }
+  | { readonly kind: "BUSY" | "STALE" }
   | {
       readonly kind: "FAILED";
       readonly error: unknown;
       readonly recovery: HandoffRecoveryState;
     };
 
-interface HandoffUiState {
-  readonly client: ReturnType<typeof useGuestAuth>["client"];
-  readonly valetSessionId: string | undefined;
-  readonly method: HandoffStandardMethod;
-  readonly material: GuestHandoffMaterial | null;
-  readonly operation: "ISSUE" | "ROTATE" | null;
-  readonly error: string | null;
-  readonly recoveryState: HandoffRecoveryState;
-  readonly secondsRemaining: number | undefined;
-}
-function emptyUiState(
-  client: ReturnType<typeof useGuestAuth>["client"],
-  valetSessionId: string | undefined,
-  method: HandoffStandardMethod,
-): HandoffUiState {
-  return {
-    client,
-    valetSessionId,
-    method,
-    material: null,
-    operation: null,
-    error: null,
-    recoveryState: null,
-    secondsRemaining: undefined,
-  };
-}
-export function classifyHandoffRecovery(error: unknown): HandoffRecoveryState {
-  if (!(error instanceof GuestApiError)) return null;
-  if (error.code === "HANDOFF_VERIFICATION_ALREADY_ISSUED") {
-    return "ALREADY_ISSUED";
-  }
-  if (error.code === "HANDOFF_VERIFICATION_ALREADY_VERIFIED") {
-    return "ALREADY_VERIFIED";
-  }
-  return null;
-}
-export function handoffSecondsRemaining(
-  expiresAt: string,
-  now: number,
-): number {
-  return Math.max(0, Math.ceil((new Date(expiresAt).getTime() - now) / 1000));
-}
-async function settleTicket(ticket: GuestMutationTicket): Promise<void> {
+async function finishTicket(ticket: GuestMutationTicket, failure?: unknown) {
   try {
-    await ticket.finish();
-  } catch {
-    // Reconcile only. A failed/ambiguous POST is never replayed here.
+    await ticket.finish(undefined, failure);
+    return null;
+  } catch (error: unknown) {
+    return error;
   }
 }
 export async function runHandoffMutation(
@@ -88,55 +56,72 @@ export async function runHandoffMutation(
     material = await mutate();
   } catch (error: unknown) {
     const wasCurrent = ticket.isCurrent();
-    await settleTicket(ticket);
+    await finishTicket(ticket, error);
     if (!wasCurrent) return { kind: "STALE" };
     return { kind: "FAILED", error, recovery: classifyHandoffRecovery(error) };
   }
 
   if (!ticket.isCurrent()) {
-    await settleTicket(ticket);
+    await finishTicket(ticket);
     return { kind: "STALE" };
   }
-
-  try {
-    await ticket.finish();
-  } catch (error: unknown) {
+  const error = await finishTicket(ticket);
+  if (error !== null) {
     return { kind: "FAILED", error, recovery: null };
   }
   return { kind: "SUCCESS", material };
 }
-export function useHandoff(
-  preferredMethod: HandoffStandardMethod = "PICKUP_CODE",
-) {
+export function useHandoff(preferred: HandoffStandardMethod = "PICKUP_CODE") {
   const { t } = useTranslation();
   const { client } = useGuestAuth();
-  const { session, beginMutation } = useGuestSession();
+  const { session, beginMutation, isFresh } = useGuestSession();
   const visitId = session?.valetSessionId;
   const isPending = session?.state === "HANDOFF_PENDING";
 
   const mountedRef = useRef(true);
   const actionEpochRef = useRef(0);
+  const proofRevokedRef = useRef(false);
   const identityRef = useRef({ client, visitId, isPending });
   const pendingEntryRef = useRef<{
     client: typeof client;
     visitId: string;
   } | null>(null);
   const [uiState, setUiState] = useState<HandoffUiState>(() =>
-    emptyUiState(client, visitId, preferredMethod),
+    emptyUiState(client, visitId, preferred),
   );
   const visibleUi =
     uiState.client === client && uiState.valetSessionId === visitId
       ? uiState
       : null;
-  const material = isPending ? (visibleUi?.material ?? null) : null;
-  const activeMethod = isPending
-    ? (visibleUi?.method ?? preferredMethod)
-    : preferredMethod;
+  const recoveryState = visibleUi?.recoveryState ?? null;
+  const cachedProofLostTrust =
+    uiState.material !== null && (!isFresh || !isPending || visibleUi === null);
+  /* eslint-disable react-hooks/refs -- security fence must revoke cached plaintext in the trust-loss render */
+  if (cachedProofLostTrust) proofRevokedRef.current = true;
+  const proofRevoked = proofRevokedRef.current;
+  const material =
+    isPending && isFresh && !proofRevoked
+      ? (visibleUi?.material ?? null)
+      : null;
+  /* eslint-enable react-hooks/refs */
+  const needsTrustClear = !isFresh && uiState.material !== null;
+  const activeMethod = isPending ? (visibleUi?.method ?? preferred) : preferred;
   useEffect(() => {
     mountedRef.current = true;
+    const revoke = () => {
+      proofRevokedRef.current = true;
+      actionEpochRef.current += 1;
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") revoke();
+    };
+    window.addEventListener("offline", revoke);
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       mountedRef.current = false;
-      actionEpochRef.current += 1;
+      revoke();
+      window.removeEventListener("offline", revoke);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 
@@ -148,31 +133,34 @@ export function useHandoff(
       previous.isPending !== isPending;
     identityRef.current = { client, visitId, isPending };
     if (!isPending) pendingEntryRef.current = null;
-    if (!changed) return;
+    if (!changed && !needsTrustClear) return;
 
-    const clearEpoch = actionEpochRef.current;
+    const clearEpoch = changed
+      ? ++actionEpochRef.current
+      : actionEpochRef.current;
     queueMicrotask(() => {
       const current = identityRef.current;
       if (
         !mountedRef.current ||
-        actionEpochRef.current !== clearEpoch ||
+        (changed && actionEpochRef.current !== clearEpoch) ||
         current.client !== client ||
         current.visitId !== visitId ||
         current.isPending !== isPending
       ) {
         return;
       }
-      setUiState(emptyUiState(client, visitId, preferredMethod));
+      setUiState(emptyUiState(client, visitId, preferred));
     });
-  }, [client, isPending, preferredMethod, visitId]);
+  }, [client, isPending, needsTrustClear, preferred, visitId]);
 
   const fetchMaterial = useCallback(
     async (
       method: HandoffStandardMethod,
       rotate: boolean,
     ): Promise<HandoffMutationOutcome> => {
-      if (!client || !isPending || !visitId) return { kind: "STALE" };
-      if (visibleUi?.recoveryState === "ALREADY_VERIFIED" && rotate) {
+      if (!client || !isPending || !isFresh || !visitId)
+        return { kind: "STALE" };
+      if (recoveryState === "ALREADY_VERIFIED" && rotate) {
         return { kind: "STALE" };
       }
 
@@ -183,6 +171,7 @@ export function useHandoff(
           rotate ? client.rotateHandoff(method) : client.issueHandoff(method),
         () => {
           startedEpoch = ++actionEpochRef.current;
+          if (rotate) proofRevokedRef.current = true;
           if (!mountedRef.current) return;
           setUiState({
             ...emptyUiState(client, visitId, method),
@@ -208,6 +197,7 @@ export function useHandoff(
           outcome.material.expiresAt,
           Date.now(),
         );
+        proofRevokedRef.current = false;
         setUiState({
           ...emptyUiState(client, visitId, outcome.material.method),
           material: remaining > 0 ? outcome.material : null,
@@ -222,16 +212,16 @@ export function useHandoff(
       }
       return outcome;
     },
-    [beginMutation, client, isPending, t, visibleUi?.recoveryState, visitId],
+    [beginMutation, client, isFresh, isPending, recoveryState, t, visitId],
   );
 
   useEffect(() => {
-    if (!client || !isPending || !visitId) return;
+    if (!client || !isPending || !isFresh || !visitId) return;
     const claimed = pendingEntryRef.current;
     if (claimed?.client === client && claimed.visitId === visitId) return;
 
     pendingEntryRef.current = { client, visitId };
-    void fetchMaterial(preferredMethod, false).then((outcome) => {
+    void fetchMaterial(preferred, false).then((outcome) => {
       const current = identityRef.current;
       if (
         outcome.kind === "BUSY" &&
@@ -242,7 +232,7 @@ export function useHandoff(
         pendingEntryRef.current = null;
       }
     });
-  }, [client, fetchMaterial, isPending, preferredMethod, session, visitId]);
+  }, [client, fetchMaterial, isFresh, isPending, preferred, visitId]);
 
   useEffect(() => {
     if (!material) return undefined;
@@ -251,11 +241,7 @@ export function useHandoff(
       setUiState((current) => {
         if (current.material !== material) return current;
         if (remaining <= 0) {
-          return {
-            ...current,
-            material: null,
-            secondsRemaining: 0,
-          };
+          return { ...current, material: null, secondsRemaining: 0 };
         }
         return { ...current, secondsRemaining: remaining };
       });
@@ -280,7 +266,7 @@ export function useHandoff(
     isLoading: isPending ? visibleUi?.operation === "ISSUE" : false,
     isRotating: isPending ? visibleUi?.operation === "ROTATE" : false,
     error: isPending ? (visibleUi?.error ?? null) : null,
-    recoveryState: isPending ? (visibleUi?.recoveryState ?? null) : null,
+    recoveryState: isPending ? recoveryState : null,
     secondsRemaining: material ? visibleUi?.secondsRemaining : undefined,
     isExpired: isPending && visibleUi?.secondsRemaining === 0,
     switchMethod,

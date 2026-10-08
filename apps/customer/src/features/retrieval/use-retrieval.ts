@@ -25,9 +25,10 @@ interface RetrievalUiState {
 
 async function settleWithoutSnapshot(
   ticket: GuestMutationTicket,
+  failure?: unknown,
 ): Promise<void> {
   try {
-    await ticket.finish();
+    await ticket.finish(undefined, failure);
   } catch {
     // The coordinator owns reconciliation state and must still release its lock.
   }
@@ -47,7 +48,7 @@ export async function runRetrievalMutation(
     snapshot = await mutate();
   } catch (error: unknown) {
     const wasCurrent = ticket.isCurrent();
-    await settleWithoutSnapshot(ticket);
+    await settleWithoutSnapshot(ticket, error);
     return wasCurrent ? { kind: "FAILED", error } : { kind: "STALE" };
   }
 
