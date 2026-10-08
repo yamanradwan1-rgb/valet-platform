@@ -1,4 +1,9 @@
 import { incidentRecoveryMarkerSchema } from "@valet/contracts";
+import {
+  observeIncidentPreflight,
+  observeIncidentPreflightAsync,
+  type IncidentPreflightObserver,
+} from "./incident-recovery-preflight";
 
 import {
   INCIDENT_RECOVERY_LOCAL_DEADLINE_MS,
@@ -18,19 +23,27 @@ export function parseIncidentRecoveryMarker(
 export async function writeAndConfirmIncidentRecoveryMarker(
   store: IncidentRecoveryStore,
   marker: IncidentRecoveryMarker,
+  observer?: IncidentPreflightObserver,
 ): Promise<void> {
-  await store.write(marker);
-  const confirmed = parseIncidentRecoveryMarker(await store.read());
-  if (
-    confirmed === undefined ||
-    Object.keys(confirmed).length !== Object.keys(marker).length ||
-    !Object.entries(marker).every(
-      ([key, value]) =>
-        confirmed[key as keyof IncidentRecoveryMarker] === value,
-    )
-  ) {
-    throw new Error("Incident recovery marker durability was not confirmed.");
-  }
+  await observeIncidentPreflightAsync(observer, "storage-write", () =>
+    store.write(marker),
+  );
+  const readback = await observeIncidentPreflightAsync(
+    observer, "storage-readback", () => store.read(),
+  );
+  observeIncidentPreflight(observer, "marker-verify", () => {
+    const confirmed = parseIncidentRecoveryMarker(readback);
+    if (
+      confirmed === undefined ||
+      Object.keys(confirmed).length !== Object.keys(marker).length ||
+      !Object.entries(marker).every(
+        ([key, value]) =>
+          confirmed[key as keyof IncidentRecoveryMarker] === value,
+      )
+    ) {
+      throw new Error("Incident recovery marker durability was not confirmed.");
+    }
+  });
 }
 
 export async function deleteAndConfirmIncidentRecoveryMarker(

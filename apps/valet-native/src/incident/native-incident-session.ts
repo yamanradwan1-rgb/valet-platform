@@ -1,8 +1,4 @@
 import {
-  incidentRecoveryProtocol,
-  incidentRecoveryProtocolHeader,
-  reportIncidentRequestSchema,
-  reportIncidentResponseSchema,
   type EmployeeClient,
   type IncidentRecoveryContext,
   type IncidentRecoveryMarker,
@@ -17,6 +13,11 @@ import {
   submitLegacyIncident,
 } from "./native-incident-legacy-submit";
 import { loadNativeIncidentDetail } from "./native-incident-load";
+import {
+  recordNativeIncidentPreflight,
+  submitNativeIncidentReport,
+  validateNativeIncidentInput,
+} from "./native-incident-preflight";
 import { inactiveIncident as inactive } from "./native-incident-recovery-snapshot";
 import {
   applyNativeIncidentRecoveryResolution,
@@ -131,14 +132,14 @@ export class NativeIncidentSession {
       return this.submitLegacy(current, current.detail.sessionId, input);
     }
     if (this.context === null) {
+      recordNativeIncidentPreflight({ stage: "context", outcome: "error" });
       this.publish({ ...current, phase: "recovery-unavailable" });
       return false;
     }
+    recordNativeIncidentPreflight({ stage: "context", outcome: "success" });
     const generation = this.generation;
     try {
-      const validated = reportIncidentRequestSchema
-        .omit({ incidentId: true })
-        .parse(input);
+      const validated = validateNativeIncidentInput(input);
       this.publish({ ...current, error: null, phase: "reserving" });
       const marker = await this.recovery.prepare(
         this.context,
@@ -149,13 +150,9 @@ export class NativeIncidentSession {
       await this.recovery.reserve(marker);
       if (generation !== this.generation) return false;
       this.publish({ ...current, error: null, phase: "submitting" });
-      const raw = await this.client().request<unknown>({
-        body: { ...validated, incidentId: marker.incidentId },
-        headers: { [incidentRecoveryProtocolHeader]: incidentRecoveryProtocol },
-        method: "POST",
-        path: `/v1/staff/valet-sessions/${current.detail.sessionId}/incidents`,
-      });
-      const report = reportIncidentResponseSchema.parse(raw);
+      const report = await submitNativeIncidentReport(
+        this.client(), current.detail.sessionId, marker.incidentId, validated,
+      );
       if (generation !== this.generation) return false;
       this.publish({ ...current, error: null, phase: "success", report });
       return true;

@@ -5,6 +5,11 @@ import {
   reserveIncidentRecoveryResponseSchema,
 } from "@valet/contracts";
 import type { EmployeeClient } from "./employee-client";
+import {
+  observeIncidentPreflight,
+  observeIncidentPreflightAsync,
+  type IncidentPreflightObserver,
+} from "./incident-recovery-preflight";
 import type {
   IncidentRecoveryMarker,
   IncidentRecoveryTransport,
@@ -16,6 +21,7 @@ const path = (marker: IncidentRecoveryMarker) =>
 
 export function createIncidentRecoveryTransport(
   client: () => EmployeeClient,
+  observer?: IncidentPreflightObserver,
 ): IncidentRecoveryTransport {
   return {
     async read(marker) {
@@ -27,13 +33,18 @@ export function createIncidentRecoveryTransport(
       );
     },
     async reserve(marker) {
-      return reserveIncidentRecoveryResponseSchema.parse(
-        await client().request({
+      const response = await observeIncidentPreflightAsync(
+        observer, "reserve-transport",
+        () => client().request({
           body: {},
           headers,
           method: "POST",
           path: `${path(marker)}/recovery-intent`,
         }),
+      );
+      return observeIncidentPreflight(
+        observer, "reserve-response",
+        () => reserveIncidentRecoveryResponseSchema.parse(response),
       );
     },
     async retire(marker) {

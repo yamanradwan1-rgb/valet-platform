@@ -20,8 +20,6 @@ import {
   EmployeeShiftEndSession,
   EmployeeShiftStartSession,
   NativeAuthSession,
-  IncidentRecoveryState,
-  createIncidentRecoveryTransport,
 } from "@valet/employee-client";
 
 import { nativeIdentityState } from "./identity-state-boundary";
@@ -38,6 +36,7 @@ import {
 import { createNativeShiftRuntime } from "../shift/native-shift-runtime";
 import { NativeIncidentSession } from "../incident/native-incident-session";
 import { ExpoIncidentRecoveryStore } from "../incident/native-incident-recovery-store";
+import { createNativeIncidentRecoveryState } from "../incident/native-incident-recovery-runtime";
 import { resolveNativeIncidentRecoveryContext } from "../incident/native-incident-recovery-context";
 import { NativeGuestAccessSession } from "../guest-access/native-guest-access-session";
 import { ExpoNativeConnectivityAdapter } from "../shell/expo-native-connectivity-adapter";
@@ -92,11 +91,9 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
   );
   const incident = new NativeIncidentSession(
     () => createNativeEmployeeClient(apiOrigin, auth),
-    new IncidentRecoveryState(
+    createNativeIncidentRecoveryState(
       incidentStore,
-      createIncidentRecoveryTransport(() =>
-        createNativeEmployeeClient(apiOrigin, auth),
-      ),
+      () => createNativeEmployeeClient(apiOrigin, auth),
     ),
     () => operations.refresh(),
   );

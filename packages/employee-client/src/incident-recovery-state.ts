@@ -1,5 +1,13 @@
-import { incidentRecoveryProtocol } from "@valet/contracts";
+import {
+  incidentRecoveryIdSchema,
+  incidentRecoveryProtocol,
+} from "@valet/contracts";
 import { createIncidentRecoveryId } from "./incident-recovery-id";
+import {
+  observeIncidentPreflight,
+  observeIncidentPreflightAsync,
+  type IncidentPreflightObserver,
+} from "./incident-recovery-preflight";
 import {
   deleteAndConfirmIncidentRecoveryMarker,
   incidentRecoveryLocalDeadlineReached,
@@ -39,6 +47,7 @@ export class IncidentRecoveryState {
     private readonly transport: IncidentRecoveryTransport,
     private readonly createId: () => string = createIncidentRecoveryId,
     private readonly now: () => number = Date.now,
+    private readonly observe?: IncidentPreflightObserver,
   ) {}
 
   async prepare(
@@ -46,31 +55,41 @@ export class IncidentRecoveryState {
     sessionId: string,
   ): Promise<IncidentRecoveryMarker> {
     return this.serializeStorage(async () => {
-      const raw = await this.store.read();
-      const existing = parseIncidentRecoveryMarker(raw);
-      if (raw !== null && existing === undefined) {
-        throw new Error("Incident recovery storage cannot be decoded.");
-      }
-      if (existing !== undefined) {
-        throw new Error("An Incident recovery operation is already pending.");
-      }
+      const raw = await observeIncidentPreflightAsync(
+        this.observe, "storage-read", () => this.store.read(),
+      );
+      observeIncidentPreflight(this.observe, "marker-parse", () => {
+        const existing = parseIncidentRecoveryMarker(raw);
+        if (raw !== null && existing === undefined) {
+          throw new Error("Incident recovery storage cannot be decoded.");
+        }
+        if (existing !== undefined) {
+          throw new Error("An Incident recovery operation is already pending.");
+        }
+      });
       const marker: IncidentRecoveryMarker = {
         ...context,
         createdAt: new Date(this.now()).toISOString(),
-        incidentId: this.createId(),
+        incidentId: observeIncidentPreflight(
+          this.observe, "secure-uuid", () =>
+            incidentRecoveryIdSchema.parse(this.createId()),
+        ),
         protocol: incidentRecoveryProtocol,
         sessionId,
         version: 1,
       };
-      await writeAndConfirmIncidentRecoveryMarker(this.store, marker);
+      await writeAndConfirmIncidentRecoveryMarker(
+        this.store, marker, this.observe,
+      );
       return marker;
     });
   }
 
   async reserve(marker: IncidentRecoveryMarker) {
     const result = await this.transport.reserve(marker);
-    requireMatchingResolution(marker, result);
-    return result;
+    return observeIncidentPreflight(this.observe, "reserve-binding", () =>
+      requireMatchingResolution(marker, result),
+    );
   }
 
   async restore(

@@ -40,6 +40,7 @@ export const EMPLOYEE_TELEMETRY_CLASSIFICATIONS = {
     "channel-unavailable",
   ],
   recovery: [
+    "preflight",
     "reserved",
     "found",
     "retired",

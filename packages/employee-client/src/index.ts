@@ -82,6 +82,7 @@ export * from "./employee-handoff-flow-state";
 export * from "./employee-handoff-flow-transport";
 export * from "./employee-handoff-flow-types";
 export * from "./incident-recovery-id";
+export * from "./incident-recovery-preflight";
 export * from "./incident-recovery-store";
 export * from "./incident-recovery-state";
 export * from "./incident-recovery-transport";
