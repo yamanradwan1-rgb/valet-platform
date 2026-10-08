@@ -191,6 +191,29 @@ describe("Web-authoritative Native Tasks screen", () => {
     },
   );
 
+  it.each(["en", "ar"] as const)(
+    "does not present an earlier empty queue as confirmed after a failed GET in %s",
+    (locale) => {
+      const copy = getNativeTasksCopy(locale);
+      const nodes = taskElements(
+        NativeTasksPanel({
+          locale,
+          operations: { acceptTask: vi.fn() } as never,
+          snapshot: {
+            ...tasksOperationsFixture("ready"),
+            queueFailure: { code: "NETWORK_ERROR", message: "Offline" },
+            successfulQueueSnapshotCount: 1,
+            tasks: [],
+          },
+          textAlign: locale === "ar" ? "right" : "left",
+        }),
+      );
+      expect(nodes.some((node) => node.type === "FlatList")).toBe(false);
+      expect(nodes.some((node) => node.props.children === copy.error)).toBe(true);
+      expect(nodes.some((node) => node.props.children === copy.empty)).toBe(false);
+    },
+  );
+
   it("retains a verified queue during same-authority refresh", () => {
     const nodes = taskElements(
       NativeTasksPanel({

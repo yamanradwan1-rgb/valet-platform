@@ -13,6 +13,7 @@ import { NativeShiftDetachedScreen } from "../shift/native-shift-detached-screen
 import { shouldRenderDetachedShiftEnd } from "../shift/native-shift-protection";
 import { useNativeVehicleDirectoryRevalidation } from "../vehicles/use-native-vehicle-directory-revalidation";
 import { useNativeProductionLifecycle } from "./use-native-production-lifecycle";
+import { useNativeTasksRouteRevalidation } from "./use-native-tasks-route-revalidation";
 import {
   ProductionShellController,
   type ProductionDestination,
@@ -65,6 +66,11 @@ export function NativeProductionShell({
   );
   const onContextualBack = contextual.onSystemBack;
   const shell = controller.update(authSnapshot, operations);
+  useNativeTasksRouteRevalidation(
+    runtime?.operations,
+    shell,
+    authSnapshot.authGeneration,
+  );
   const activeVehicleScope =
     shell.kind === "active" && shell.destination === "vehicles"
       ? shell.scope

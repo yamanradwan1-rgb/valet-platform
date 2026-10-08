@@ -47,6 +47,7 @@ export class EmployeeTaskQueueOwner {
     | {
         readonly key: string;
         readonly promise: Promise<void>;
+        navigationFresh?: boolean;
       }
     | undefined;
   private abortController: AbortController | undefined;
@@ -143,6 +144,28 @@ export class EmployeeTaskQueueOwner {
     this.abortActive();
     this.retryNotBefore = 0;
     return this.refresh();
+  }
+
+  refreshForNavigation(): Promise<void> {
+    const target = this.scope;
+    if (
+      !this.foreground ||
+      target === undefined ||
+      this.hardStopped ||
+      this.suspended ||
+      Date.now() < this.retryNotBefore
+    ) {
+      return Promise.resolve();
+    }
+    if (this.active?.key === target.key && this.active.navigationFresh) {
+      return this.active.promise;
+    }
+    // A pre-entry GET cannot prove the queue after navigation. Keep
+    // Retry-After/hard-stop intact; replace only the in-flight read.
+    this.abortActive();
+    const promise = this.refresh();
+    if (this.active?.key === target.key) this.active.navigationFresh = true;
+    return promise;
   }
 
   private async load(

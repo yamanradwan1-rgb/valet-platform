@@ -107,6 +107,9 @@ export class EmployeeOperationalSession {
       ? this.queue.refreshAfterTerminalMutation()
       : this.queue.refresh();
   }
+  refreshQueueForNavigation(): Promise<void> {
+    return this.queue.refreshForNavigation();
+  }
 
   retireTaskAfterTerminalMutation(taskId: string): Promise<void> {
     this.publish({

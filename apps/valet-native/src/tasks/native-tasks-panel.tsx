@@ -215,5 +215,7 @@ function statusForUnavailablePhase(
   )
     return copy.loading;
   if (snapshot.queueLoading && snapshot.tasks.length === 0) return copy.loading;
+  if (snapshot.queueFailure !== null && snapshot.tasks.length === 0)
+    return copy.error;
   return null;
 }
