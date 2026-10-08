@@ -13,7 +13,8 @@ import {
   ScreenAddTip,
   ScreenReceipt,
 } from '../features/deferred/screen-payment';
-import { ScreenRate, ScreenHelp } from '../features/deferred/screen-service';
+import { ScreenHelp } from '../features/deferred/screen-service';
+import { GuestLiveRating } from '../features/rating/guest-live-rating';
 import {
   ScreenNetworkUnavailable,
   ScreenExpired,
@@ -130,7 +131,12 @@ export function GuestAppRoot() {
           <ScreenHelp onPaymentHelp={() => setTab('payment')} />
         )}
         {helpSubScreen === 'rate' && (
-          <ScreenRate onDone={() => setHelpSubScreen('help')} />
+          <GuestLiveRating
+            client={client}
+            visitId={session?.valetSessionId ?? null}
+            canRate={Boolean(client && session?.state === 'COMPLETED' && !isExpired && !isNetworkError)}
+            onBack={() => setHelpSubScreen('help')}
+          />
         )}
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
         <DevPreviewControls

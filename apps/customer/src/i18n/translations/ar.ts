@@ -151,6 +151,17 @@ export const arTranslations: TranslationDictionary = {
   'completed.receiptPreview': 'معاينة الإيصال',
   'completed.ratingPreview': 'معاينة التقييم',
 
+  // تقييم الزيارة بعد اكتمالها؛ مخفي في الإنتاج حتى اعتماد الواجهة
+  'rating.liveTitle': 'قيّم تجربتك',
+  'rating.submit': 'إرسال التقييم',
+  'rating.submitting': 'جارٍ إرسال التقييم...',
+  'rating.saved': 'شكرًا لملاحظاتك.',
+  'rating.conflict': 'تم تسجيل تقييم لهذه الزيارة بالفعل.',
+  'rating.unknown': 'تعذّر تأكيد تسجيل التقييم، ولن نعيد إرساله تلقائيًا. يُرجى طلب المساعدة من الموظفين.',
+  'rating.unavailable': 'يتوفر التقييم فقط لزيارتك المكتملة والمصرّح بها.',
+  'rating.failed': 'تعذّر إرسال تقييمك. حاول مرة أخرى.',
+  'rating.selectStar': 'اختيار {star} من أصل 5 نجوم',
+
   // System & Error Screens
   'system.networkUnavailableTitle': 'الاتصال غير متاح',
   'system.rateLimitedTitle': 'يرجى الانتظار قليلاً',

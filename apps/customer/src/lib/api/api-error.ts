@@ -30,6 +30,8 @@ const safeMessagesByCode: Readonly<Record<string, string>> = {
   ANTI_ABUSE_UNAVAILABLE: 'Service temporarily unavailable. Please try again in a few moments.',
   GUEST_ACCESS_INVALID: 'This valet session link is invalid or has expired.',
   GUEST_ACCESS_RATE_LIMITED: 'Too many requests. Please wait a moment and try again.',
+  GUEST_RATING_CONFLICT: 'A rating has already been recorded for this visit.',
+  GUEST_RATING_NOT_AVAILABLE: 'Rating is not available for this visit.',
   HANDOFF_VERIFICATION_FAILED: 'Verification failed. Please check your pickup code or QR code.',
   HANDOFF_VERIFICATION_RATE_LIMITED: 'Too many verification attempts. Please wait a moment.',
   HANDOFF_VERIFICATION_NOT_ACTIVE: 'Vehicle is not currently ready for handoff.',

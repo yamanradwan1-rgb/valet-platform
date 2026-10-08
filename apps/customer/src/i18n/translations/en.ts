@@ -151,6 +151,17 @@ export const enTranslations: TranslationDictionary = {
   'completed.receiptPreview': 'Receipt Preview',
   'completed.ratingPreview': 'Rating Preview',
 
+  // T5 real post-visit rating (dev-only until Owner UI approval)
+  'rating.liveTitle': 'Rate your experience',
+  'rating.submit': 'Submit rating',
+  'rating.submitting': 'Submitting...',
+  'rating.saved': 'Thanks for your feedback.',
+  'rating.conflict': 'A rating has already been recorded for this visit.',
+  'rating.unknown': 'We cannot confirm whether your rating was recorded. It will not be sent again automatically. Please ask staff for help.',
+  'rating.unavailable': 'Rating is available only for your completed authorized visit.',
+  'rating.failed': "We couldn't submit your rating. Try again.",
+  'rating.selectStar': 'Select {star} out of 5 stars',
+
   // System & Error Screens
   'system.networkUnavailableTitle': 'Network unavailable',
   'system.rateLimitedTitle': 'Please wait a moment',

@@ -5,11 +5,16 @@ import {
   guestBrowserSwitchReconcileResponseSchema,
   guestBrowserSwitchResponseSchema,
   guestHandoffMaterialResponseSchema,
+  guestPaymentProjectionResponseSchema,
+  guestRatingSubmissionRequestSchema,
+  guestRatingSubmissionResponseSchema,
   guestSafeSessionResponseSchema,
   guestSessionReadResponseSchema,
   type GuestBrowserPrepareResponse,
   type GuestBrowserSwitchReconcileResponse,
   type GuestBrowserSwitchResponse,
+  type GuestPaymentProjectionResponse,
+  type GuestRatingSubmissionResponse,
 } from "@valet/contracts";
 
 import { getGuestApiBaseUrl } from "./api-config";
@@ -220,6 +225,27 @@ export class GuestApiClient {
       body: {},
       signal,
     }, (raw) => guestSafeSessionResponseSchema.parse(raw));
+  }
+
+  async submitRating(
+    rating: number,
+    signal?: AbortSignal | undefined,
+  ): Promise<GuestRatingSubmissionResponse> {
+    const body = guestRatingSubmissionRequestSchema.parse({ rating });
+    return this.request<GuestRatingSubmissionResponse>('/session/rating', {
+      method: 'POST', body, signal,
+    }, (raw) => guestRatingSubmissionResponseSchema.parse(raw));
+  }
+
+  async loadPaymentProjection(
+    session: GuestSafeSession,
+    signal?: AbortSignal | undefined,
+  ): Promise<GuestPaymentProjectionResponse> {
+    return this.request<GuestPaymentProjectionResponse>(
+      `/valet-sessions/${encodeURIComponent(session.valetSessionId)}/payment`,
+      { signal },
+      (raw) => guestPaymentProjectionResponseSchema.parse(raw),
+    );
   }
 
   async issueHandoff(
