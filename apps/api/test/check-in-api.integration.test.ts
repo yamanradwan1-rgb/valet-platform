@@ -50,7 +50,7 @@ import {
 import { GuestAccessService } from "../src/modules/guest-access/guest-access.service";
 import { GuestBrowserSessionService } from "../src/modules/guest-access/guest-browser-session.service";
 import { GuestAuthOriginPolicy } from "../src/modules/guest-access/guest-browser-transport";
-import { GuestCredentialAuthorizer } from "../src/modules/guest-access/guest-credential-authorizer";
+import { guestAdmissionProviders } from "./guest-request-admission-test-providers";
 import { databaseUrlFor, runtimeDatabaseUrlFor } from "./database-url-test-utils";
 
 interface Fixture {
@@ -132,7 +132,7 @@ let testRuntimeUrl: string;
     GuestAccessService,
     GuestBrowserSessionService,
     GuestAuthOriginPolicy,
-    GuestCredentialAuthorizer,
+    ...guestAdmissionProviders,
     ApiOperationRunner,
     CheckInOperationRunner,
     AntiAbuseKeyDeriver,
@@ -1045,7 +1045,7 @@ describe("VAL-004I Check-In HTTP integration", () => {
       },
     );
     const rawToken = String(issued.body.rawToken);
-    for (let index = 0; index < 180; index += 1) {
+    for (let index = 0; index < 784; index += 1) {
       expect(await guestSession(`Bearer ${rawToken}`)).toMatchObject({
         status: 200,
       });
@@ -1071,12 +1071,12 @@ describe("VAL-004I Check-In HTTP integration", () => {
     );
     expect(states.rows[0]).toEqual({
       address_counted: "0",
-      address_ignored: "181",
-      token_counted: "180",
+      address_ignored: "0",
+      token_counted: "784",
     });
   }, 60_000);
 
-  it("returns no guest data when authoritative success finalization fails", async () => {
+  it("returns no guest data when durable authenticated accounting fails", async () => {
     const fixture = await createFixture();
     const created = await intake(fixture);
     const issued = await http(
@@ -1090,11 +1090,11 @@ describe("VAL-004I Check-In HTTP integration", () => {
     await adminPool.query(
       `CREATE FUNCTION test_block_guest_ignored() RETURNS trigger
        LANGUAGE plpgsql AS $$ BEGIN
-         IF NEW.state = 'IGNORED' THEN RAISE EXCEPTION 'blocked'; END IF;
+         IF NEW.request_class = 'A' THEN RAISE EXCEPTION 'blocked'; END IF;
          RETURN NEW;
        END $$;
        CREATE TRIGGER test_block_guest_ignored
-       BEFORE UPDATE ON anti_abuse_events
+       BEFORE INSERT ON anti_abuse_events
        FOR EACH ROW EXECUTE FUNCTION test_block_guest_ignored()`,
     );
     try {

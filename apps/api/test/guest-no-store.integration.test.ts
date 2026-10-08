@@ -30,7 +30,7 @@ import {
   StaffGuestAccessController,
 } from "../src/modules/guest-access/guest-access.controller";
 import { GuestAccessService } from "../src/modules/guest-access/guest-access.service";
-import { guestAuthorizerTestProviders } from "./guest-authorizer-test-providers";
+import { guestAuthorizerTestProviders, guestAdmissionQueryStub } from "./guest-authorizer-test-providers";
 
 const sessionId = randomUUID();
 const rawToken = "A".repeat(43);
@@ -90,7 +90,7 @@ const antiAbuse = {
     };
   },
   async transaction<T>(action: (transaction: unknown) => Promise<T>) {
-    return await action({});
+    return await action(guestAdmissionQueryStub(() => antiAbuse.reserve()));
   },
 };
 

@@ -55,7 +55,7 @@ export class HandoffGuestController {
     return guestHandoffMaterialResponseSchema.parse(
       await this.authorizer.authorize(
         request,
-        { mutation: true },
+        { mutation: true, requestClass: "D" },
         (reservation, credential) =>
           this.service.issueGuestMaterial(
             reservation,

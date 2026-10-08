@@ -28,12 +28,10 @@ import {
   type HeaderResponse,
 } from "../../common/http/no-store-response";
 import type { ApiRequest } from "../../common/http/api-request";
-import { AntiAbuseService } from "../anti-abuse/anti-abuse.service";
 import {
   STAFF_PRINCIPAL_RESOLVER,
   type StaffPrincipalResolver,
 } from "../auth/staff-principal";
-import { GuestAccessError } from "../valet-sessions/guest-access-command";
 import { GuestAccessService } from "./guest-access.service";
 import { GuestCredentialAuthorizer } from "./guest-credential-authorizer";
 
@@ -160,7 +158,6 @@ export class GuestAccessController {
   constructor(
     private readonly service: GuestAccessService,
     private readonly runner: ApiOperationRunner,
-    private readonly antiAbuse: AntiAbuseService,
     private readonly authorizer: GuestCredentialAuthorizer,
   ) {}
 
@@ -173,30 +170,8 @@ export class GuestAccessController {
     setNoStoreResponseHeaders(response);
     return this.runner.run("GUEST_SESSION_READ", request, async () => {
       parse(emptyRequestSchema, query ?? {});
-      return this.authorizer.authorize(
-        request,
-        { mutation: false },
-        async (reservation, credential) => {
-          const result = await this.antiAbuse.transaction(
-            async (transaction) => {
-              const resolved =
-                await this.service.resolveCredentialInTransaction(
-                  transaction,
-                  credential,
-                );
-              await this.antiAbuse.finalizeInTransaction(
-                transaction,
-                reservation,
-                resolved === undefined ? "COUNTED" : "IGNORED",
-              );
-              return resolved;
-            },
-          );
-          if (result === undefined) {
-            throw new GuestAccessError("GUEST_ACCESS_INVALID");
-          }
-          return guestSessionReadResponseSchema.parse(result.session);
-        },
+      return guestSessionReadResponseSchema.parse(
+        await this.authorizer.read(request),
       );
     });
   }

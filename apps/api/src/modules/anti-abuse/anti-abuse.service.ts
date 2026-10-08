@@ -1,3 +1,4 @@
+import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import { Inject, Injectable } from "@nestjs/common";
 
 import type {
@@ -13,17 +14,28 @@ import {
 
 export type AntiAbuseReservationState = "COUNTED" | "IGNORED";
 
-export interface AntiAbuseReservation {
+export interface AntiAbusePendingReservation {
   readonly id: string;
   readonly key: AntiAbuseKey;
+  readonly authenticatedAddressKey?: never;
 }
+export type AntiAbuseReservation =
+  | AntiAbusePendingReservation
+  | {
+      readonly id?: never;
+      readonly key: AntiAbuseKey;
+      readonly authenticatedAddressKey: AntiAbuseKey;
+    };
 
 export type AntiAbuseDecision =
   | { readonly allowed: true }
   | { readonly allowed: false; readonly retryAfter: number };
 
 export type AntiAbuseReservationDecision =
-  | { readonly allowed: true; readonly reservation: AntiAbuseReservation }
+  | {
+      readonly allowed: true;
+      readonly reservation: AntiAbusePendingReservation;
+    }
   | { readonly allowed: false; readonly retryAfter: number };
 
 interface CountRow {
@@ -65,14 +77,6 @@ export class AntiAbuseRateLimitError extends Error {
   }
 }
 
-async function rollback(transaction: PostgresTransaction): Promise<void> {
-  try {
-    await transaction.query("ROLLBACK");
-  } catch {
-    // Preserve the non-disclosing unavailable result.
-  }
-}
-
 @Injectable()
 export class AntiAbuseService {
   constructor(
@@ -91,25 +95,15 @@ export class AntiAbuseService {
   async transaction<T>(
     action: (transaction: PostgresTransaction) => Promise<T>,
   ): Promise<T> {
-    let transaction: PostgresTransaction | undefined;
     try {
-      transaction = await this.pool.connect();
-      await transaction.query("BEGIN");
-      await transaction.query("SET LOCAL lock_timeout = '2s'");
-      const result = await action(transaction);
-      await transaction.query("COMMIT");
-      return result;
+      return await inPostgresTransaction(this.pool, action);
     } catch (error) {
-      if (transaction !== undefined) await rollback(transaction);
       if (
         error instanceof AntiAbuseRateLimitError ||
         error instanceof AntiAbuseUnavailableError
-      ) {
+      )
         throw error;
-      }
       throw new AntiAbuseUnavailableError();
-    } finally {
-      transaction?.release();
     }
   }
 
@@ -205,7 +199,7 @@ export class AntiAbuseService {
     const result = await this.transaction((transaction) =>
       this.countInTransaction(transaction, key, threshold),
     );
-    await this.cleanup();
+
     return result;
   }
 
@@ -250,7 +244,7 @@ export class AntiAbuseService {
       if (id === undefined) throw new AntiAbuseUnavailableError();
       return { allowed: true as const, reservation: { id, key } };
     });
-    await this.cleanup();
+
     return result;
   }
 
@@ -270,7 +264,6 @@ export class AntiAbuseService {
     await this.transaction(async (transaction) => {
       await this.finalizeInTransaction(transaction, reservation, state);
     });
-    await this.cleanup();
   }
 
   async finalizeInTransaction(
@@ -278,6 +271,21 @@ export class AntiAbuseService {
     reservation: AntiAbuseReservation,
     state: AntiAbuseReservationState,
   ): Promise<void> {
+    if (reservation.authenticatedAddressKey !== undefined) {
+      if (state === "COUNTED") {
+        const decision = await this.countInTransaction(
+          transaction,
+          reservation.authenticatedAddressKey,
+          60,
+        );
+        if (!decision.allowed)
+          throw new AntiAbuseRateLimitError(
+            "GUEST_ACCESS_RATE_LIMITED",
+            decision.retryAfter,
+          );
+      }
+      return;
+    }
     const updated = await transaction.query(
       `UPDATE anti_abuse_events
        SET state = $1
@@ -288,13 +296,5 @@ export class AntiAbuseService {
       [state, reservation.id, reservation.key.scope, reservation.key.keyHash],
     );
     if (updated.rowCount !== 1) throw new AntiAbuseUnavailableError();
-  }
-
-  async cleanup(): Promise<void> {
-    try {
-      await this.pool.query("SELECT cleanup_expired_anti_abuse_events()");
-    } catch {
-      // Cleanup is retention maintenance; current-window enforcement stays authoritative.
-    }
   }
 }

@@ -196,3 +196,11 @@ Phase 4 now has the Blueprint-required pre-start escape path without weakening
 physical Retrieval safety. The current mutable projections return coherently to
 PARKED while cancelled operational history remains append-only and a later
 Retrieval request starts a new lifecycle.
+
+## Owner-approved U-07 / T3 amendment (2026-10-08)
+
+See the canonical DEC-024 amendment and
+[Guest T3 policy](../GUEST_T3_POLICY_AND_EVIDENCE.md). That amendment supersedes
+historical Guest quota/allocation and address-reservation mechanics only for
+T3 admission. It changes no credential, authorization, custody, business retry,
+audit, foreground notification or handoff-proof contract in this decision.

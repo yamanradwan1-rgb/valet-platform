@@ -24,7 +24,7 @@ import { verifyMfaPrivileges } from "./mfa-runtime-privilege-verification.mjs";
 import { verifyShiftForceEndPrivileges } from "./shift-force-end-runtime-privileges.mjs";
 import { verifyManagementSettingsPrivileges } from "./management-settings-runtime-privileges.mjs";
 import { verifyManagementFeaturePrivileges } from "./management-runtime-privileges.mjs";
-import { verifyGuestBrowserPrivileges } from "./guest-browser-session-runtime-privileges.mjs";
+import { verifyGuestRuntimePrivileges } from "./guest-runtime-privileges.mjs";
 
 const tablePrivileges = [
   ...incidentRecoveryPrivileges.table,
@@ -296,5 +296,5 @@ export async function verifyRuntimeTablePrivileges(client, runtimeRole) {
   await verifyShiftForceEndPrivileges(client, runtimeRole);
   await verifyManagementSettingsPrivileges(client, runtimeRole);
   await verifyManagementFeaturePrivileges(client, runtimeRole);
-  await verifyGuestBrowserPrivileges(client, runtimeRole);
+  await verifyGuestRuntimePrivileges(client, runtimeRole);
 }

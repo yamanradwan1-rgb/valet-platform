@@ -38,7 +38,8 @@ describe("actual disconnect, cash/open-work/audit rollback and minimized telemet
         session.token,
         { targetLocationId: f.locationId, presence: db.measured(challenge) },
       );
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(503);
+      expect(response.body.code).toBe("ANTI_ABUSE_UNAVAILABLE");
       expect(await db.facts(f)).toEqual({
         shifts: 0,
         decisions: 0,
@@ -56,7 +57,7 @@ describe("actual disconnect, cash/open-work/audit rollback and minimized telemet
             session.token,
           )
         ).status,
-      ).toBe(500);
+      ).toBe(503);
       expect(await db.facts(f)).toEqual({
         shifts: 0,
         decisions: 0,

@@ -1,3 +1,4 @@
+import { GuestRequestAdmission } from "../src/modules/guest-access/guest-request-admission";
 import { MiddlewareConsumer, Module, type NestModule } from "@nestjs/common";
 
 import type { PostgresPool } from "../src/common/database/postgres";
@@ -26,6 +27,7 @@ export function createGuestBrowserTestModule(runtimePool: PostgresPool) {
     ],
     imports: [HttpInfrastructureModule],
     providers: [
+      GuestRequestAdmission,
       AntiAbuseKeyDeriver,
       AntiAbuseService,
       GuestAccessService,

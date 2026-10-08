@@ -4,6 +4,13 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { createRuntimePostgresPool } from "../src/common/database/postgres.js";
 
+const productionCapacity = {
+  DATABASE_POOL_MAX: "4",
+  DATABASE_ALLOWED_CONNECTIONS: "100",
+  DATABASE_RESERVED_CONNECTIONS: "20",
+  DATABASE_MAX_API_INSTANCES: "4",
+};
+
 const pools: ReturnType<typeof createRuntimePostgresPool>[] = [];
 
 afterEach(async () => {
@@ -83,7 +90,7 @@ describe("application runtime PostgreSQL connection URL", () => {
   it("enables strict production TLS with system trust by default", () => {
     const pool = createRuntimePostgresPool(
       "postgresql://valet_runtime:secret@database.example/valet",
-      { NODE_ENV: "production" },
+      { ...productionCapacity, NODE_ENV: "production" },
     );
     pools.push(pool);
     expect(pool.options.ssl).toEqual({ rejectUnauthorized: true });
@@ -94,7 +101,11 @@ describe("application runtime PostgreSQL connection URL", () => {
     expect(ca).toBeDefined();
     const pool = createRuntimePostgresPool(
       "postgresql://valet_runtime:secret@database.example/valet",
-      { DATABASE_TLS_CA_PEM: ca, NODE_ENV: "production" },
+      {
+        ...productionCapacity,
+        DATABASE_TLS_CA_PEM: ca,
+        NODE_ENV: "production",
+      },
     );
     pools.push(pool);
     expect(pool.options.ssl).toEqual({ ca, rejectUnauthorized: true });
@@ -106,7 +117,11 @@ describe("application runtime PostgreSQL connection URL", () => {
       try {
         createRuntimePostgresPool(
           "postgresql://valet_runtime:secret@database.example/valet",
-          { DATABASE_TLS_CA_PEM: ca, NODE_ENV: "production" },
+          {
+            ...productionCapacity,
+            DATABASE_TLS_CA_PEM: ca,
+            NODE_ENV: "production",
+          },
         );
         throw new Error("Expected invalid CA rejection.");
       } catch (error) {

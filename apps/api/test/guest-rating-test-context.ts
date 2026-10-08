@@ -23,7 +23,7 @@ import { TrustedClientAddressResolver } from "../src/modules/anti-abuse/client-a
 import { GuestAccessService } from "../src/modules/guest-access/guest-access.service";
 import { GuestBrowserSessionService } from "../src/modules/guest-access/guest-browser-session.service";
 import { GuestAuthOriginPolicy } from "../src/modules/guest-access/guest-browser-transport";
-import { GuestCredentialAuthorizer } from "../src/modules/guest-access/guest-credential-authorizer";
+import { guestAdmissionProviders } from "./guest-request-admission-test-providers";
 import { GuestRatingController } from "../src/modules/guest-access/guest-rating.controller";
 import { GuestRatingService } from "../src/modules/guest-access/guest-rating.service";
 import { hashGuestAccessToken } from "../src/modules/valet-sessions/guest-access-command";
@@ -55,7 +55,7 @@ export class GuestRatingTestContext extends CompleteHandoffTestContext {
         GuestAccessService,
         GuestBrowserSessionService,
         GuestAuthOriginPolicy,
-        GuestCredentialAuthorizer,
+        ...guestAdmissionProviders,
         GuestRatingService,
         TrustedClientAddressResolver,
         RequestIdMiddleware,
@@ -70,7 +70,9 @@ export class GuestRatingTestContext extends CompleteHandoffTestContext {
         consumer.apply(RequestIdMiddleware).forRoutes(GuestRatingController);
       }
     }
-    this.app = await NestFactory.create(GuestRatingTestModule, { logger: false });
+    this.app = await NestFactory.create(GuestRatingTestModule, {
+      logger: false,
+    });
     await this.app.listen(0, "127.0.0.1");
     this.baseUrl = await this.app.getUrl();
   }
@@ -140,7 +142,11 @@ export class GuestRatingTestContext extends CompleteHandoffTestContext {
     if (options.duplicateAuthorization === undefined) {
       return this.fetchPost(body, options.authorization, options.query);
     }
-    return this.rawPost(body, options.authorization, options.duplicateAuthorization);
+    return this.rawPost(
+      body,
+      options.authorization,
+      options.duplicateAuthorization,
+    );
   }
 
   private async fetchPost(
@@ -148,7 +154,9 @@ export class GuestRatingTestContext extends CompleteHandoffTestContext {
     authorization?: string,
     query?: string,
   ): Promise<HttpResult> {
-    const headers: Record<string, string> = { "content-type": "application/json" };
+    const headers: Record<string, string> = {
+      "content-type": "application/json",
+    };
     if (authorization !== undefined) headers.authorization = authorization;
     const response = await fetch(
       `${this.baseUrl}/v1/guest/session/rating${query ?? ""}`,
@@ -198,7 +206,10 @@ export class GuestRatingTestContext extends CompleteHandoffTestContext {
             const headers = new Headers();
             for (const [name, value] of Object.entries(response.headers)) {
               if (value !== undefined) {
-                headers.set(name, Array.isArray(value) ? value.join(", ") : value);
+                headers.set(
+                  name,
+                  Array.isArray(value) ? value.join(", ") : value,
+                );
               }
             }
             resolve({

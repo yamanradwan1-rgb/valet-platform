@@ -61,3 +61,11 @@ not widen DEC-069 Employee recognition.
 `docs/02_DOMAIN_MODEL.md`, `docs/03_DATABASE_SCHEMA.md`,
 `docs/08_DECISIONS_LOG.md`, `docs/23_MANAGEMENT_BACKEND_216_EXECUTION_PLAN.md`,
 future Guest Access/customer/analytics implementation.
+
+## Owner-approved U-07 / T3 amendment (2026-10-08)
+
+See the canonical DEC-024 amendment and
+[Guest T3 policy](../GUEST_T3_POLICY_AND_EVIDENCE.md). That amendment supersedes
+historical Guest quota/allocation and address-reservation mechanics only for
+T3 admission. It changes no credential, authorization, custody, business retry,
+audit, foreground notification or handoff-proof contract in this decision.

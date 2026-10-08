@@ -1,0 +1,63 @@
+{
+  "instances": 2,
+  "poolMaxPerInstance": 6,
+  "synchronizedAuthorizedVisits": 100,
+  "crashedPendingSourceReservations": 60,
+  "legitimate200": 100,
+  "legitimate429": 0,
+  "legitimate503": 0,
+  "hostile401": 60,
+  "hostile429": 10,
+  "p50Ms": 239.7566999999981,
+  "p95Ms": 315.6381000000001,
+  "p99Ms": 316.1193999999996,
+  "poolAcquisitionBucketUpperMs": [
+    5,
+    25,
+    100,
+    500,
+    1000,
+    2000
+  ],
+  "primary": {
+    "acquisitions": 679,
+    "rejected": 0,
+    "acquisitionMs": 13502.062800000022,
+    "failures": 0,
+    "acquisitionBuckets": [
+      500,
+      15,
+      122,
+      42,
+      0,
+      0
+    ],
+    "lockTimeouts": 0,
+    "statementTimeouts": 0,
+    "transactionTimeouts": 0,
+    "total": 6,
+    "idle": 6,
+    "waiting": 0
+  },
+  "peer": {
+    "acquisitions": 582,
+    "rejected": 0,
+    "acquisitionMs": 14350.150900000006,
+    "failures": 0,
+    "acquisitionBuckets": [
+      403,
+      17,
+      119,
+      43,
+      0,
+      0
+    ],
+    "lockTimeouts": 0,
+    "statementTimeouts": 0,
+    "transactionTimeouts": 0,
+    "total": 6,
+    "idle": 6,
+    "waiting": 0
+  },
+  "evidence": "owned local PostgreSQL/Nest fixture; not staging capacity qualification"
+}

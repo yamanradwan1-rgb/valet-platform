@@ -1,0 +1,12 @@
+{
+  "expiredRows": 2501,
+  "preservedCurrentRows": 3,
+  "batchBound": 1000,
+  "concurrentWorkers": 2,
+  "heldExpiredRows": 1,
+  "backlogAfterUnlock": 0,
+  "samples": 7,
+  "p50Ms": 2.7386999999998807,
+  "observedP99Ms": 8.99749999999949,
+  "evidence": "small owned local batch/lock fixture; not retention soak qualification"
+}

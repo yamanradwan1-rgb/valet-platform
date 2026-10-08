@@ -1,3 +1,4 @@
+import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import { Inject, Injectable } from "@nestjs/common";
 
 import type {
@@ -97,7 +98,12 @@ export class RetrievalService {
     operation: GuestRetrievalOperation,
   ): Promise<GuestSafeSession> {
     const result = await this.inTransaction((transaction) =>
-      this.executeInTransaction(transaction, reservation, credential, operation),
+      this.executeInTransaction(
+        transaction,
+        reservation,
+        credential,
+        operation,
+      ),
     );
     if (result.kind === "INVALID_ACCESS") {
       throw new GuestAccessError("GUEST_ACCESS_INVALID");
@@ -112,10 +118,11 @@ export class RetrievalService {
     credential: GuestCredentialInput,
     operation: GuestRetrievalOperation,
   ): Promise<GuestOperationResult> {
-    const resolved = await this.guestAccess.resolveAndLockCredentialInTransaction(
-      transaction,
-      credential,
-    );
+    const resolved =
+      await this.guestAccess.resolveAndLockCredentialInTransaction(
+        transaction,
+        credential,
+      );
     if (resolved === undefined) {
       await this.finalize(transaction, reservation, "COUNTED");
       return { kind: "INVALID_ACCESS" };
@@ -155,21 +162,6 @@ export class RetrievalService {
   private async inTransaction<T>(
     operation: (transaction: PostgresTransaction) => Promise<T>,
   ): Promise<T> {
-    const transaction = await this.pool.connect();
-    try {
-      await transaction.query("BEGIN");
-      const result = await operation(transaction);
-      await transaction.query("COMMIT");
-      return result;
-    } catch (error) {
-      try {
-        await transaction.query("ROLLBACK");
-      } catch {
-        // Preserve the operation error.
-      }
-      throw error;
-    } finally {
-      transaction.release();
-    }
+    return inPostgresTransaction(this.pool, operation);
   }
 }

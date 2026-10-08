@@ -1,3 +1,4 @@
+import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import { Inject, Injectable } from "@nestjs/common";
 import type { HandoffStandardMethod } from "@valet/contracts";
 
@@ -69,10 +70,11 @@ export class HandoffService {
     rotate: boolean,
   ) {
     const outcome = await this.inTransaction(async (transaction) => {
-      const resolved = await this.guestAccess.resolveAndLockCredentialInTransaction(
-        transaction,
-        credential,
-      );
+      const resolved =
+        await this.guestAccess.resolveAndLockCredentialInTransaction(
+          transaction,
+          credential,
+        );
       if (resolved === undefined) {
         await this.finalize(transaction, reservation, "COUNTED");
         return {
@@ -119,21 +121,6 @@ export class HandoffService {
   private async inTransaction(
     operation: (transaction: PostgresTransaction) => Promise<GuestIssueOutcome>,
   ): Promise<GuestIssueOutcome> {
-    const transaction = await this.pool.connect();
-    try {
-      await transaction.query("BEGIN");
-      const result = await operation(transaction);
-      await transaction.query("COMMIT");
-      return result;
-    } catch (error) {
-      try {
-        await transaction.query("ROLLBACK");
-      } catch {
-        // Preserve the handoff error.
-      }
-      throw error;
-    } finally {
-      transaction.release();
-    }
+    return inPostgresTransaction(this.pool, operation);
   }
 }

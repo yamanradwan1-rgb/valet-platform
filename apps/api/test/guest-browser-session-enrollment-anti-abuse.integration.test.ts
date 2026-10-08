@@ -1,3 +1,4 @@
+import { AntiAbuseKeyDeriver } from "../src/modules/anti-abuse/anti-abuse-key";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
@@ -6,7 +7,7 @@ import {
 } from "./guest-browser-session-test-context";
 import { startGuestBrowserPeerApp } from "./guest-browser-session-peer-app";
 
-describe("Guest Browser Session T1 enrollment resource bound", () => {
+describe("Guest Browser Session T3 enrollment resource bound", () => {
   const context = new GuestBrowserSessionTestContext("enrollment_bound");
   let peer: Awaited<ReturnType<typeof startGuestBrowserPeerApp>>;
 
@@ -38,7 +39,15 @@ describe("Guest Browser Session T1 enrollment resource bound", () => {
       "SELECT count(*)::int AS count FROM guest_browser_enrollments",
     );
 
-    for (let attempt = 0; attempt < 59; attempt += 1) {
+    const key = new AntiAbuseKeyDeriver().derive(
+      "v1:guest-enrollment-address",
+      "127.0.0.1",
+    );
+    await context.adminPool.query(
+      "INSERT INTO anti_abuse_events(scope,key_hash,state) SELECT $1,$2,'COUNTED' FROM generate_series(1,3998)",
+      [key.scope, key.keyHash],
+    );
+    for (let attempt = 0; attempt < 1; attempt += 1) {
       const result = await context.request(
         "POST",
         "/v1/guest/browser-session/enroll",
@@ -60,7 +69,7 @@ describe("Guest Browser Session T1 enrollment resource bound", () => {
     const after = await context.adminPool.query<{ count: number }>(
       "SELECT count(*)::int AS count FROM guest_browser_enrollments",
     );
-    expect(after.rows[0]!.count - before.rows[0]!.count).toBe(60);
+    expect(after.rows[0]!.count - before.rows[0]!.count).toBe(2);
 
     const limiter = await context.adminPool.query<{
       counted: number;
@@ -69,9 +78,9 @@ describe("Guest Browser Session T1 enrollment resource bound", () => {
       `SELECT count(*) FILTER (WHERE state='COUNTED')::int AS counted,
               count(*) FILTER (WHERE state='PENDING')::int AS pending
        FROM anti_abuse_events
-       WHERE scope='v1:guest-client-address'`,
+       WHERE scope='v1:guest-enrollment-address'`,
     );
-    expect(limiter.rows[0]).toEqual({ counted: 60, pending: 0 });
+    expect(limiter.rows[0]).toEqual({ counted: 4000, pending: 0 });
 
     const limited = local.status === 429 ? local : remote;
     expect(limited.headers.get("retry-after")).toMatch(/^\d+$/);
@@ -81,7 +90,7 @@ describe("Guest Browser Session T1 enrollment resource bound", () => {
     await context.adminPool.query(
       `UPDATE anti_abuse_events
        SET occurred_at=clock_timestamp()-interval '16 minutes'
-       WHERE scope='v1:guest-client-address'`,
+       WHERE scope='v1:guest-enrollment-address'`,
     );
     expect((await enrollAtPeer()).status).toBe(204);
   });

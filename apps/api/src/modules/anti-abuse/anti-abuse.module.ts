@@ -1,3 +1,4 @@
+import { AntiAbuseMaintenance } from "./anti-abuse-maintenance";
 import { Module } from "@nestjs/common";
 
 import { RuntimeDatabaseModule } from "../../common/database/runtime-database.module";
@@ -8,6 +9,7 @@ import { TrustedClientAddressResolver } from "./client-address";
 @Module({
   imports: [RuntimeDatabaseModule],
   providers: [
+    AntiAbuseMaintenance,
     AntiAbuseKeyDeriver,
     AntiAbuseService,
     TrustedClientAddressResolver,

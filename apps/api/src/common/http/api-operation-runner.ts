@@ -7,6 +7,7 @@ import {
   type OperationMeasurement,
   type OperationObserver,
 } from "../observability/operation-observability";
+import { withDatabaseOperationDeadline } from "../database/runtime-database-deadline";
 import { apiHttpException, mapApiError } from "./api-errors";
 import type { ApiRequest } from "./api-request";
 
@@ -34,7 +35,7 @@ export class ApiOperationRunner {
     let outcome: "ERROR" | "SUCCESS" = "SUCCESS";
     let errorCode: string | undefined;
     try {
-      return await action();
+      return await withDatabaseOperationDeadline(action);
     } catch (error) {
       outcome = "ERROR";
       const mapped = mapApiError(error);

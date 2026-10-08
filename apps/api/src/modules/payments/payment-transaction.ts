@@ -1,3 +1,4 @@
+import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import type {
   PostgresPool,
   PostgresTransaction,
@@ -7,22 +8,7 @@ export async function inPaymentTransaction<T>(
   pool: PostgresPool,
   operation: (transaction: PostgresTransaction) => Promise<T>,
 ): Promise<T> {
-  const transaction = await pool.connect();
-  try {
-    await transaction.query("BEGIN");
-    const result = await operation(transaction);
-    await transaction.query("COMMIT");
-    return result;
-  } catch (error) {
-    try {
-      await transaction.query("ROLLBACK");
-    } catch {
-      // Preserve the original payment operation failure.
-    }
-    throw error;
-  } finally {
-    transaction.release();
-  }
+  return inPostgresTransaction(pool, operation);
 }
 
 export async function loadPaymentOperationTime(

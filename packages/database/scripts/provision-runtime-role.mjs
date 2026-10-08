@@ -221,12 +221,12 @@ async function provisionRuntimeRole() {
     );
     await executeFormatted(
       client,
-      "GRANT INSERT (scope, key_hash, state) ON TABLE anti_abuse_events TO %I",
+      "GRANT INSERT (scope, key_hash, state, request_class, group_key_hash) ON TABLE anti_abuse_events TO %I",
       [runtimeRole],
     );
     await executeFormatted(
       client,
-      "GRANT UPDATE (state) ON TABLE anti_abuse_events TO %I",
+      "GRANT UPDATE (state, group_key_hash) ON TABLE anti_abuse_events TO %I",
       [runtimeRole],
     );
     await client.query(

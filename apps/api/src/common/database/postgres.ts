@@ -2,6 +2,9 @@ import { X509Certificate } from "node:crypto";
 
 import { Pool, type PoolClient, type PoolConfig } from "pg";
 
+import { runtimePostgresPolicy } from "./runtime-postgres-policy";
+import { boundPostgresPool } from "./bounded-postgres-pool";
+
 export type PostgresPool = Pool;
 export type PostgresTransaction = PoolClient;
 
@@ -105,7 +108,12 @@ export function createRuntimePostgresPool(
         : { ca, rejectUnauthorized: true };
   }
 
-  return new Pool(poolConfig);
+  const policy = runtimePostgresPolicy(environment);
+  return boundPostgresPool(
+    new Pool({ ...poolConfig, ...policy.config }),
+    policy.config.max!,
+    policy.maxWaiters,
+  );
 }
 
 export async function inspectRuntimeDatabaseSafety(
@@ -176,7 +184,9 @@ export function assertProductionRuntimeTlsSafety(
     safety.tls_version === null ||
     !acceptedTlsVersions.has(safety.tls_version)
   ) {
-    throw new Error("Production database connection is not securely encrypted.");
+    throw new Error(
+      "Production database connection is not securely encrypted.",
+    );
   }
 }
 

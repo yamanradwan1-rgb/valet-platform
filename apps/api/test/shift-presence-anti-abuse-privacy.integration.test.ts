@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { AntiAbuseKeyDeriver } from "../src/modules/anti-abuse/anti-abuse-key";
+import { AntiAbuseMaintenance } from "../src/modules/anti-abuse/anti-abuse-maintenance";
 import { presenceAbuseLimits } from "../src/modules/shifts/shift-presence-anti-abuse";
 import { PresenceServerTestContext } from "./shift-presence-server-test-context";
 import { presenceHttp } from "./shift-presence-http-test-helper";
@@ -39,6 +40,7 @@ describe("presence quota privacy and authentication order", () => {
         })
       ).status,
     ).toBe(200);
+    await new AntiAbuseMaintenance(db.runtimePool).run();
     const remaining = (
       await db.adminPool.query(
         `SELECT count(*)::integer AS count FROM anti_abuse_events WHERE scope=$1 AND key_hash=$2`,
@@ -74,12 +76,18 @@ describe("presence quota privacy and authentication order", () => {
     ).rows;
     expect(rows).toHaveLength(1);
     expect(Object.keys(rows[0]).sort()).toEqual([
+      "group_key_hash",
       "id",
       "key_hash",
       "occurred_at",
+      "request_class",
       "scope",
       "state",
     ]);
+    expect(rows[0]).toMatchObject({
+      group_key_hash: null,
+      request_class: null,
+    });
     expect(rows[0].key_hash).toMatch(
       /^anti-abuse-hmac-sha256:v1:[0-9a-f]{64}$/,
     );

@@ -5,6 +5,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
   assertProductionRuntimeRoleSafety,
+  createRuntimePostgresPool,
   inspectRuntimeDatabaseSafety,
   verifyProductionRuntimeDatabaseSafety,
 } from "../src/common/database/postgres";
@@ -69,7 +70,7 @@ beforeAll(async () => {
   await adminPool.query(`REVOKE CREATE ON SCHEMA public FROM PUBLIC`);
   await adminPool.query(`REVOKE ALL ON SCHEMA public FROM "${runtimeRole}"`);
   await adminPool.query(`GRANT USAGE ON SCHEMA public TO "${runtimeRole}"`);
-  runtimePool = new Pool({ connectionString: testRuntimeUrl });
+  runtimePool = createRuntimePostgresPool(testRuntimeUrl);
 }, 30_000);
 
 afterAll(async () => {

@@ -284,3 +284,11 @@ release. Explicit initiation preserves the state-machine command boundary;
 supervisor override remains exceptional rather than becoming a hidden second
 transition. Dynamic policy evaluation makes configuration changes fail closed
 at both verification and final release.
+
+## Owner-approved U-07 / T3 amendment (2026-10-08)
+
+See the canonical DEC-024 amendment and
+[Guest T3 policy](../GUEST_T3_POLICY_AND_EVIDENCE.md). That amendment supersedes
+historical Guest quota/allocation and address-reservation mechanics only for
+T3 admission. It changes no credential, authorization, custody, business retry,
+audit, foreground notification or handoff-proof contract in this decision.

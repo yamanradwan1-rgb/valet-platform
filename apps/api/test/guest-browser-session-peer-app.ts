@@ -1,3 +1,5 @@
+import { GuestBrowserLimiter } from "../src/modules/guest-access/guest-browser-limiter";
+import { GuestRequestAdmission } from "../src/modules/guest-access/guest-request-admission";
 import {
   MiddlewareConsumer,
   Module,
@@ -32,6 +34,8 @@ export async function startGuestBrowserPeerApp(
     controllers: [GuestAccessController, GuestBrowserSessionController],
     imports: [HttpInfrastructureModule],
     providers: [
+      GuestBrowserLimiter,
+      GuestRequestAdmission,
       AntiAbuseKeyDeriver,
       AntiAbuseService,
       GuestAccessService,
@@ -50,7 +54,9 @@ export async function startGuestBrowserPeerApp(
     }
   }
 
-  const app = await NestFactory.create(GuestBrowserPeerModule, { logger: false });
+  const app = await NestFactory.create(GuestBrowserPeerModule, {
+    logger: false,
+  });
   await app.listen(0, "127.0.0.1");
   return { app, baseUrl: await app.getUrl() };
 }

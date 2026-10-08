@@ -24,7 +24,7 @@ import { GuestAccessController } from "../src/modules/guest-access/guest-access.
 import { GuestAccessService } from "../src/modules/guest-access/guest-access.service";
 import { GuestBrowserSessionService } from "../src/modules/guest-access/guest-browser-session.service";
 import { GuestAuthOriginPolicy } from "../src/modules/guest-access/guest-browser-transport";
-import { GuestCredentialAuthorizer } from "../src/modules/guest-access/guest-credential-authorizer";
+import { guestAdmissionProviders } from "./guest-request-admission-test-providers";
 import { hashGuestAccessToken } from "../src/modules/valet-sessions/guest-access-command";
 import { CompleteHandoffTestContext } from "./complete-handoff-test-context";
 
@@ -41,7 +41,7 @@ let baseUrl: string;
     GuestAccessService,
     GuestBrowserSessionService,
     GuestAuthOriginPolicy,
-    GuestCredentialAuthorizer,
+    ...guestAdmissionProviders,
     TrustedClientAddressResolver,
     RequestIdMiddleware,
     { provide: APP_FILTER, useClass: ApiExceptionFilter },

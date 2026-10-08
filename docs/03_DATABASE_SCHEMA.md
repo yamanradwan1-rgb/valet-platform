@@ -2758,3 +2758,33 @@ Pending allocation cannot carry it; exact result scope/action, current request
 binding and no Decision/challenge consumption remain enforced. END requires its
 exact stored cash result. Historical 067 and earlier migrations are unchanged.
 No generic payload, new audit/event, configuration or index is introduced.
+
+## Guest T3 resilience amendment — 2026-10-08
+
+The Owner-approved U-07 T3 policy is defined in
+[GUEST_T3_POLICY_AND_EVIDENCE.md](GUEST_T3_POLICY_AND_EVIDENCE.md).
+It supersedes historical Guest 180-request and anonymous 60-allocation budgets
+only through the classified, server-authorized T3 admission boundary. Production
+defaults to COMPATIBILITY and retains the 180 per-credential overlap floor until
+T4 verifies the ACTIVE transition after all replicas and windows drain. Staff and
+handoff proof thresholds remain unchanged. Limiter events gain an optional
+`request_class` (A/B/C/D); historical NULL values conservatively consume every
+class and the shared visit aggregate once bound. A nullable, validated visit HMAC
+`group_key_hash` carries the budget across transport and credential reissue while
+preserving original credential keys for mixed-version enforcement. Migration
+preserves all
+existing scopes and windows. Anonymous allocations use the separate shared
+source scope `v1:guest-enrollment-address`. Runtime has no new direct DELETE,
+TRUNCATE or credential-table authority. Cleanup remains fixed at older than
+one DB-authored hour and is now bounded to 1000 SKIP LOCKED candidates per call.
+PostgreSQL 17 server timeouts and validated finite pool/queue budgets follow the
+same policy. No domain/audit/lifecycle or Customer presentation change is made.
+T3 transport carry-over: ephemeral anti-abuse events also carry nullable
+`group_key_hash`, a validated visit HMAC. Original key/time/state remain intact;
+only exact Guest credential rows can be bound. Runtime may INSERT the group and
+UPDATE only its binding, never timestamps or keys. See the T3 policy above.
+
+Migration 077 adds `anti_abuse_events_guest_group_window_idx` on
+`(scope, group_key_hash, occurred_at)` for non-NULL groups in PENDING/COUNTED.
+Measured EXPLAIN/BUFFERS evidence supports this scoped lookup; no time-dependent
+partial predicate or per-row domain enrichment is introduced.

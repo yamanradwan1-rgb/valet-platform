@@ -1055,6 +1055,25 @@ PostgreSQL is the smallest already-selected shared mechanism that can enforce ex
 
 ---
 
+
+### 2026-10-08 Owner-approved U-07 / T3 amendment
+
+The Project Owner's T3 brief and U-07 authorize the derived request-class,
+reservation, maintenance and runtime parameters recorded in
+[GUEST_T3_POLICY_AND_EVIDENCE.md](GUEST_T3_POLICY_AND_EVIDENCE.md).
+That contract supersedes DEC-024's historical Guest token 180-request and
+anonymous enrollment 60-allocation clauses for T3 servers only. Production
+COMPATIBILITY retains the original credential cap during N/N-1 coexistence;
+T4 owns activation of the higher ACTIVE budgets after a full window drains. The shared
+source-failure threshold remains 60/900s; staff 30/address and five identifier
+failures, and independent handoff limits, remain unchanged. Classified events
+preserve existing HMAC identities/windows; no limiter reset or fail-open path
+is permitted. Authenticated admission is based on current persisted authority
+and commits before public disclosure; unknown requests retain conservative
+PENDING accounting. Maintenance is fixed, parameterless and bounded to 1000
+expired rows per invocation. DEC-025 TLS and runtime-role requirements remain
+unchanged; the same policy adds finite PostgreSQL 17 resource deadlines.
+
 ## DEC-025 — Production Database Connection / Credential Hardening
 
 Status: Accepted

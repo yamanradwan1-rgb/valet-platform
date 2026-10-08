@@ -1,79 +1,74 @@
 import { Injectable } from "@nestjs/common";
 
 import type { ApiRequest } from "../../common/http/api-request";
+import type { PostgresTransaction } from "../../common/database/postgres";
 import {
-  AntiAbuseRateLimitError,
   AntiAbuseService,
-  AntiAbuseUnavailableError,
   type AntiAbuseReservation,
 } from "../anti-abuse/anti-abuse.service";
+import { GuestRequestAdmission } from "./guest-request-admission";
 import {
-  ClientAddressUnavailableError,
-  TrustedClientAddressResolver,
-} from "../anti-abuse/client-address";
-
-type LimiterTransaction = Parameters<AntiAbuseService["transaction"]>[0] extends (
-  transaction: infer P,
-) => Promise<unknown>
-  ? P
-  : never;
+  readBrowserCookie,
+  hasInvalidBrowserCookieTarget,
+} from "./guest-browser-transport";
+import type { GuestCredential } from "./guest-credential";
 
 @Injectable()
 export class GuestBrowserLimiter {
   constructor(
     private readonly antiAbuse: AntiAbuseService,
-    private readonly clientAddresses: TrustedClientAddressResolver,
+    private readonly admission: GuestRequestAdmission,
   ) {}
+
+  async reconcileAbsent(request: ApiRequest, invalid: boolean): Promise<void> {
+    await this.run(
+      request,
+      undefined,
+      (transaction, reservation) =>
+        this.antiAbuse.finalizeInTransaction(
+          transaction,
+          reservation,
+          invalid || hasInvalidBrowserCookieTarget(request)
+            ? "COUNTED"
+            : "IGNORED",
+        ),
+      !invalid,
+    );
+  }
 
   async run<T>(
     request: ApiRequest,
     credentialSecret: string | undefined,
     operation: (
-      transaction: LimiterTransaction,
+      transaction: PostgresTransaction,
       reservation: AntiAbuseReservation,
     ) => Promise<T>,
+    allocation = false,
   ): Promise<T> {
-    let clientAddress: string;
-    try {
-      clientAddress = this.clientAddresses.resolve(request);
-    } catch (error) {
-      if (error instanceof ClientAddressUnavailableError) {
-        throw new AntiAbuseUnavailableError();
-      }
-      throw error;
-    }
-
-    const addressKey = this.antiAbuse.key(
-      "v1:guest-client-address",
-      clientAddress,
-    );
-    const tokenKey =
+    const browser = readBrowserCookie(request);
+    const credential: GuestCredential | undefined =
       credentialSecret === undefined
-        ? undefined
-        : this.antiAbuse.key("v1:guest-token", credentialSecret);
-    const addressDecision = await this.antiAbuse.reserve(addressKey, 60);
-    if (!addressDecision.allowed) {
-      const tokenRetry =
-        tokenKey === undefined
+        ? browser === undefined
           ? undefined
-          : await this.antiAbuse.blocker(tokenKey, 180);
-      throw new AntiAbuseRateLimitError(
-        "GUEST_ACCESS_RATE_LIMITED",
-        Math.max(addressDecision.retryAfter, tokenRetry ?? 0),
-      );
-    }
-    if (tokenKey !== undefined) {
-      const tokenDecision = await this.antiAbuse.count(tokenKey, 180);
-      if (!tokenDecision.allowed) {
-        await this.antiAbuse.finalize(addressDecision.reservation, "IGNORED");
-        throw new AntiAbuseRateLimitError(
-          "GUEST_ACCESS_RATE_LIMITED",
-          tokenDecision.retryAfter,
+          : { kind: "BROWSER_SESSION", secret: browser }
+        : {
+            kind: credentialSecret.startsWith("vgb1.")
+              ? "BROWSER_SESSION"
+              : "LEGACY_BEARER",
+            secret: credentialSecret,
+          };
+    const reservation = allocation
+      ? await this.admission.allocation(request, credential)
+      : await this.admission.admit(
+          request,
+          credential,
+          "B",
+          browser === undefined
+            ? undefined
+            : { kind: "BROWSER_SESSION", secret: browser },
         );
-      }
-    }
     return this.antiAbuse.transaction((transaction) =>
-      operation(transaction, addressDecision.reservation),
+      operation(transaction, reservation),
     );
   }
 }

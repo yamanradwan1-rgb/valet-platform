@@ -1371,3 +1371,24 @@ Deployment must supply a persistent protected base64 HMAC key of at least 32 byt
 ### GPS-B review correction: abuse and management recovery
 
 All new operational presence routes authenticate before existing user-scoped HMAC AntiAbuse enforcement and before allocation/selector lookup; no request material enters limiter keys. Challenges 30, exception requests 10 and shared status reads 180 per User per rolling 15 minutes. Standard concealed 429/Retry-After and safe 503 failure apply. Ordinary OFF Shift routes remain independent. Management results freshly prove exact current tenant/Location authority before null-zone UNKNOWN disclosure. Immutable typed management receipts prove successful no-op completion and reserve every successful mutation UUID, without fake change audits or raw request persistence. All repeated committed UUIDs conflict; GET reconciliation never replays a write.
+
+## Guest T3 resilience amendment — 2026-10-08
+
+The Owner-approved U-07 T3 policy is defined in
+[GUEST_T3_POLICY_AND_EVIDENCE.md](GUEST_T3_POLICY_AND_EVIDENCE.md).
+It supersedes historical Guest 180-request and anonymous 60-allocation budgets
+only through the classified, server-authorized T3 admission boundary. Production
+defaults to COMPATIBILITY and retains the 180 per-credential overlap floor until
+T4 verifies the ACTIVE transition after all replicas and windows drain. Staff and
+handoff proof thresholds remain unchanged. Limiter events gain an optional
+`request_class` (A/B/C/D); historical NULL values conservatively consume every
+class and the shared visit aggregate once bound. A nullable, validated visit HMAC
+`group_key_hash` carries the budget across transport and credential reissue while
+preserving original credential keys for mixed-version enforcement. Migration
+preserves all
+existing scopes and windows. Anonymous allocations use the separate shared
+source scope `v1:guest-enrollment-address`. Runtime has no new direct DELETE,
+TRUNCATE or credential-table authority. Cleanup remains fixed at older than
+one DB-authored hour and is now bounded to 1000 SKIP LOCKED candidates per call.
+PostgreSQL 17 server timeouts and validated finite pool/queue budgets follow the
+same policy. No domain/audit/lifecycle or Customer presentation change is made.

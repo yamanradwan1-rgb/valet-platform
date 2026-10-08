@@ -1,3 +1,4 @@
+import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import { Inject, Injectable } from "@nestjs/common";
 
 import type {
@@ -106,21 +107,6 @@ export class GuestRatingService {
   private async inTransaction<T>(
     operation: (transaction: PostgresTransaction) => Promise<T>,
   ): Promise<T> {
-    const transaction = await this.pool.connect();
-    try {
-      await transaction.query("BEGIN");
-      const result = await operation(transaction);
-      await transaction.query("COMMIT");
-      return result;
-    } catch (error) {
-      try {
-        await transaction.query("ROLLBACK");
-      } catch {
-        // Preserve the operation error.
-      }
-      throw error;
-    } finally {
-      transaction.release();
-    }
+    return inPostgresTransaction(this.pool, operation);
   }
 }

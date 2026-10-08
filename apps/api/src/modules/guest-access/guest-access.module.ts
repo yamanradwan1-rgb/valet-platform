@@ -1,3 +1,4 @@
+import { GuestRequestAdmission } from "./guest-request-admission";
 import { MiddlewareConsumer, Module, type NestModule } from "@nestjs/common";
 
 import { RuntimeDatabaseModule } from "../../common/database/runtime-database.module";
@@ -35,6 +36,7 @@ import { GuestCredentialAuthorizer } from "./guest-credential-authorizer";
     HttpInfrastructureModule,
   ],
   providers: [
+    GuestRequestAdmission,
     GuestAccessService,
     GuestBrowserSessionService,
     GuestBrowserContextService,

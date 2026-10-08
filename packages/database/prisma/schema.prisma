@@ -1702,6 +1702,8 @@ model AccountSecurityAuditEvent {
 }
 
 model AntiAbuseEvent {
+  groupKeyHash String? @map("group_key_hash")
+  requestClass String? @map("request_class")
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   scope      String
   keyHash    String   @map("key_hash")
@@ -1709,6 +1711,7 @@ model AntiAbuseEvent {
   state      String
 
   @@index([scope, keyHash, occurredAt], map: "anti_abuse_events_scope_key_hash_occurred_at_idx")
+  // SQL migration 077 owns the partial group/window index (non-null, protected states).
   @@index([occurredAt], map: "anti_abuse_events_occurred_at_idx")
   @@map("anti_abuse_events")
 }

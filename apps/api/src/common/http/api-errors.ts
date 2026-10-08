@@ -1,3 +1,4 @@
+import { isExpectedDatabaseExhaustion } from "../database/runtime-database-deadline";
 import {
   HttpException,
   HttpStatus,
@@ -177,6 +178,13 @@ const safeMessages: Readonly<Record<string, string>> = {
 };
 
 export function mapApiError(error: unknown): MappedApiError {
+  if (isExpectedDatabaseExhaustion(error)) {
+    return {
+      code: "ANTI_ABUSE_UNAVAILABLE",
+      message: "Service temporarily unavailable.",
+      status: HttpStatus.SERVICE_UNAVAILABLE,
+    };
+  }
   if (error instanceof ApiTransportValidationError) {
     return {
       code: "REQUEST_INVALID",
