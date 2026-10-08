@@ -1,6 +1,8 @@
 import type { ApplicationDrainState } from "./application-drain-state";
 
-type ShutdownSignal = "SIGTERM" | "SIGINT";
+/** Single source of truth for Nest hooks and synchronous readiness withdrawal. */
+export const applicationShutdownSignals = ["SIGTERM", "SIGINT"] as const;
+type ShutdownSignal = (typeof applicationShutdownSignals)[number];
 
 interface SignalSource {
   prependOnceListener(signal: ShutdownSignal, listener: () => void): unknown;
@@ -29,6 +31,7 @@ export function armEarlyShutdownWithdrawal(
   const withdraw = () => state.beginDrain();
   // Nest removes its own handler and re-sends the signal after close. A
   // persistent listener would catch that second signal and prevent exit.
-  signals.prependOnceListener("SIGTERM", withdraw);
-  signals.prependOnceListener("SIGINT", withdraw);
+  for (const signal of applicationShutdownSignals) {
+    signals.prependOnceListener(signal, withdraw);
+  }
 }

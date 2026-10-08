@@ -8,7 +8,10 @@ import { AppModule } from "./app.module";
 import { createHttpMetricsMiddleware } from "./common/observability/http-metrics.middleware";
 import { createApplicationDrainMiddleware } from "./health/application-drain-middleware";
 import { ApplicationDrainState } from "./health/application-drain-state";
-import { armEarlyShutdownWithdrawal } from "./health/early-shutdown-withdrawal";
+import {
+  applicationShutdownSignals,
+  armEarlyShutdownWithdrawal,
+} from "./health/early-shutdown-withdrawal";
 import { configureLocalMfaBypassPolicy } from "./modules/auth/mfa/local-mfa-bypass";
 import { readFcmHttpV1Config } from "./modules/staff-push/fcm-http-v1-config";
 import { readStaffPushOperationalPolicy } from "./modules/staff-push/staff-push-operational-policy";
@@ -43,7 +46,7 @@ async function bootstrap() {
     SwaggerModule.createDocument(app, swaggerConfig),
   );
 
-  app.enableShutdownHooks();
+  app.enableShutdownHooks([...applicationShutdownSignals]);
   armEarlyShutdownWithdrawal(app, app.get(ApplicationDrainState), process);
   const port = Number.parseInt(process.env.PORT ?? "3001", 10);
   await app.listen(port);

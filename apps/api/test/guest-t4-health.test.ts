@@ -9,7 +9,10 @@ import { verifyRuntimeDatabaseReadiness } from "../src/common/database/runtime-d
 import { RuntimeDatabaseUnavailableError } from "../src/common/database/runtime-database-deadline";
 import { createApplicationDrainMiddleware } from "../src/health/application-drain-middleware";
 import { ApplicationDrainState } from "../src/health/application-drain-state";
-import { armEarlyShutdownWithdrawal } from "../src/health/early-shutdown-withdrawal";
+import {
+  applicationShutdownSignals,
+  armEarlyShutdownWithdrawal,
+} from "../src/health/early-shutdown-withdrawal";
 import { HealthController } from "../src/health/health.controller";
 import { HealthReadinessService } from "../src/health/health-readiness.service";
 import { AntiAbuseKeyDeriver } from "../src/modules/anti-abuse/anti-abuse-key";
@@ -244,6 +247,7 @@ describe("Guest T4 health and drain boundary", () => {
   });
 
   it("withdraws readiness synchronously before Nest SIGTERM hooks or public app.close", async () => {
+    expect(applicationShutdownSignals).toEqual(["SIGTERM", "SIGINT"]);
     const state = new ApplicationDrainState();
     const signalSource = new EventEmitter();
     const seenAtNestSignal = vi.fn(() => state.isDraining());
@@ -253,6 +257,9 @@ describe("Guest T4 health and drain boundary", () => {
     });
     const application = { close };
     armEarlyShutdownWithdrawal(application, state, signalSource);
+    for (const signal of applicationShutdownSignals) {
+      expect(signalSource.listenerCount(signal)).toBeGreaterThan(0);
+    }
     signalSource.emit("SIGTERM");
     expect(seenAtNestSignal).toHaveReturnedWith(true);
     expect(signalSource.listenerCount("SIGTERM")).toBe(1); // Only Nest's original listener remains.
