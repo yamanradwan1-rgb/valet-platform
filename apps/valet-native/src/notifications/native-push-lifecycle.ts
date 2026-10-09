@@ -11,6 +11,8 @@ import {
 } from "./native-push-desired-state";
 import { NativePushForegroundAttentionOwner } from "./native-push-foreground-attention";
 import { pushRegistrationFailureState } from "./native-push-registration-failure";
+import { recordNativePushRegistrationConflict } from "./native-push-registration-diagnostics";
+import { NativePushReconcileScheduler } from "./native-push-reconcile-scheduler";
 import {
   emptyNativePushSnapshot,
   unauthenticatedNativePushAuth,
@@ -24,14 +26,13 @@ import {
 } from "./native-push-types";
 
 export class NativePushLifecycleOwner {
-  private active: Promise<void> | undefined;
   private auth: NativeAuthSnapshot = unauthenticatedNativePushAuth(0);
   private confirmed: ConfirmedNativePushState | undefined;
   private currentToken: string | undefined;
   private readonly attention = new NativePushForegroundAttentionOwner();
   private listeners = new Set<(snapshot: NativePushSnapshot) => void>();
   private locale: EmployeeLocale = "en";
-  private pending: PendingNativePushReconcile | undefined;
+  private readonly scheduler: NativePushReconcileScheduler;
   private removers: Array<() => void> = [];
   private snapshot = emptyNativePushSnapshot();
   private started = false;
@@ -40,7 +41,12 @@ export class NativePushLifecycleOwner {
     private readonly platform: NativePushPlatformAdapter,
     private readonly installation: NativePushInstallationId,
     private readonly transport: NativePushRegistrationTransport,
-  ) {}
+  ) {
+    this.scheduler = new NativePushReconcileScheduler(
+      (generation) => this.isCurrent(generation),
+      (pending) => this.perform(pending),
+    );
+  }
 
   current(): NativePushSnapshot {
     return this.snapshot;
@@ -68,7 +74,7 @@ export class NativePushLifecycleOwner {
     if (!this.started) return;
     this.started = false;
     for (const remove of this.removers.splice(0)) remove();
-    this.pending = undefined;
+    this.scheduler.retire();
     this.clearIdentity();
     this.listeners.clear();
   }
@@ -150,40 +156,21 @@ export class NativePushLifecycleOwner {
   }
 
   reconcile(reason: NativePushLifecycleReason): Promise<void> {
-    return this.queue({ generation: this.auth.authGeneration, reason });
+    return this.scheduler.enqueue({
+      generation: this.auth.authGeneration,
+      reason,
+    });
   }
 
   async receiveToken(token: string, generation: number): Promise<void> {
     if (!this.isCurrent(generation)) return;
     if (this.currentToken === token) return;
     this.currentToken = token;
-    await this.queue({
+    await this.scheduler.enqueue({
       generation,
       providedToken: token,
       reason: "token-change",
     });
-  }
-
-  private queue(next: PendingNativePushReconcile): Promise<void> {
-    if (!this.isCurrent(next.generation)) {
-      return Promise.resolve();
-    }
-    this.pending = next;
-    if (this.active !== undefined) return this.active;
-    const promise = this.drain().finally(() => {
-      if (this.active === promise) this.active = undefined;
-    });
-    this.active = promise;
-    return promise;
-  }
-
-  private async drain(): Promise<void> {
-    while (this.pending !== undefined) {
-      const pending = this.pending;
-      this.pending = undefined;
-      if (!this.isCurrent(pending.generation)) continue;
-      await this.perform(pending);
-    }
   }
 
   private async perform(pending: PendingNativePushReconcile): Promise<void> {
@@ -271,6 +258,7 @@ export class NativePushLifecycleOwner {
       this.publish({ registration: "confirmed" });
     } catch (error) {
       if (this.isCurrent(generation)) {
+        recordNativePushRegistrationConflict(error);
         this.publish({ registration: pushRegistrationFailureState(error) });
       }
     }
@@ -285,7 +273,7 @@ export class NativePushLifecycleOwner {
 
   private clearIdentity(): void {
     this.auth = unauthenticatedNativePushAuth(this.auth.authGeneration);
-    this.pending = undefined;
+    this.scheduler.retire();
     this.currentToken = undefined;
     this.confirmed = undefined;
     this.attention.clear();

@@ -31,6 +31,7 @@ export const EMPLOYEE_TELEMETRY_CLASSIFICATIONS = {
     "aborted",
   ],
   push: [
+    "registration-conflict",
     "registration-confirmed",
     "registration-unavailable",
     "registration-network-unavailable",

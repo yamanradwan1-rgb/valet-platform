@@ -53,13 +53,13 @@ function sessionIsLater(
   );
 }
 
-function sessionMayReplaceOwner(
+export function sessionMayReplaceOwner(
   session: LockedStaffSessionRow,
   owner: ActiveRegistrationRow,
 ): boolean {
   return (
     session.user_id === owner.owner_user_id &&
-    (!owner.owner_current || sessionIsLater(session, owner))
+    sessionIsLater(session, owner)
   );
 }
 
