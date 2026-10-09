@@ -4288,3 +4288,23 @@ U-004 visual approval, merge/deployment or issue closure.
 
 Full focused contract:
 [DEC-102_LIVE_OPERATIONS_HISTORICAL_STAFF_ATTRIBUTION.md](decisions/DEC-102_LIVE_OPERATIONS_HISTORICAL_STAFF_ATTRIBUTION.md).
+
+## DEC-103 — Issue #276 Audit evidence discovery index trial
+
+Status: Accepted (design and isolated-test authorization only)
+Date: 2026-10-09
+Owner: VAYLET product owner
+
+For the DEC-102 canonical history reader, the Owner approved the **direction**
+of retaining the existing Audit session index plus testing two partial
+`VALET_SESSION_PARKED` indexes on (Organization, entity ID) and
+(Organization, JSON `taskId` reference) in a **verified disposable PostgreSQL**
+database. Three same-Organization/page-scoped lookups must discover anomalous
+null-linked entity/Task references and conservatively return `UNVERIFIABLE`
+when inconsistent. Index existence is not performance or safety proof:
+EXPLAIN, query-budget, authorization concurrency and SQL negative cases remain
+mandatory. **No migration to shared QA/staging/production, data repair,
+PR/merge or deployment is authorized** by this approval.
+
+Full focused decision:
+[DEC-103_ISSUE_276_AUDIT_DISCOVERABILITY_VALIDATION.md](decisions/DEC-103_ISSUE_276_AUDIT_DISCOVERABILITY_VALIDATION.md).

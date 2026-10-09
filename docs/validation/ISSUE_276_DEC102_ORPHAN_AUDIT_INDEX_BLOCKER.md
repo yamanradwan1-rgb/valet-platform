@@ -1,6 +1,8 @@
 # Issue #276 — DEC-102 canonical Audit discoverability / PostgreSQL budget blocker
 
-**Status: BLOCKER P1 — REVIEWABLE DECISION REQUIRED. NOT A MIGRATION APPROVAL.**
+**Status: P1 — OWNER INDEX-DESIGN DECISION ACCEPTED (DEC-103); DISPOSABLE POSTGRESQL PROOF / QUERY BUDGET STILL BLOCKING. NO REAL-ENVIRONMENT MIGRATION APPROVAL.**
+
+**2026-10-09 decision update:** The Owner approved the direction of two additional partial `VALET_SESSION_PARKED` Audit indexes (Organization+entity reference and Organization+`metadata_json->>'taskId'`) alongside the existing session index. [DEC-103](../decisions/DEC-103_ISSUE_276_AUDIT_DISCOVERABILITY_VALIDATION.md) defines three bounded evidence lookup arms and strictly limits any index creation and measurement to a **verified disposable PostgreSQL environment** pending separate real-environment migration approval. The older `decision requested` language below documents the historical blocker, not a still-open choice between the recommended indexes. **No PostgreSQL execution, production migration, EXPLAIN, or WIP code commit has occurred as a result of this approval.**
 
 Date: 2026-10-09. Branch: `fix/issue-276-live-operations-staff-history`.
 Accepted authority: `docs/decisions/DEC-102_LIVE_OPERATIONS_HISTORICAL_STAFF_ATTRIBUTION.md` §§4–6, especially lines 41–43, 48–59.
