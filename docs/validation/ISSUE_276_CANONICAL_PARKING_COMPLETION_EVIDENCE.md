@@ -1,6 +1,8 @@
 # #276 Task 5 — canonical Parking completion evidence, read-only investigation
 
-**Status: PROPOSED / NOT ACCEPTED.** Repository `origin/main` = `698bcb6044f72844008ffa49ef085f11471f53e1`; isolated diagnostic parent = `e2221edd51ad754b5a1d536351c6ce8bbcbc2a54`. The proposed completion reader below has **not** been implemented or run on PostgreSQL.
+**Status: SOURCE INVESTIGATION / APPROVED READER POLICY IN DEC-102 / POSTGRESQL UNVERIFIED.** Repository `origin/main` at diagnostic time = `698bcb6044f72844008ffa49ef085f11471f53e1`; isolated diagnostic parent = `e2221edd51ad754b5a1d536351c6ce8bbcbc2a54`. The proposed completion reader below has **not** been implemented or run on PostgreSQL.
+
+**2026-10-09 Owner acceptance:** [DEC-102](../decisions/DEC-102_LIVE_OPERATIONS_HISTORICAL_STAFF_ATTRIBUTION.md) accepts strict paired Task + Dispatch + Audit coherence and matching Parker actor, conservative `UNVERIFIABLE` for contradictions/duplicates/unknown provenance and distinct maximal-time ties, no `Task.updated_at` chronology, and three-valued `parkingCompletionProof`. Any `NOT YET ACCEPTED` decision text further down is the archived analysis state. **Runtime DB privileges, actual event completeness, query boundedness/EXPLAIN and safe concurrent auth locks still require proof; the policy is Accepted, the implementation is not.**
 
 ## A. Evidence from the Accepted writer, not assumptions about Tasks
 

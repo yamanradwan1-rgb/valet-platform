@@ -1,6 +1,8 @@
 # Issue #276 — Live Operations staff history / Task 5 diagnostic report
 
-**Status: DIAGNOSTIC_READY — U003_SECURITY_PENDING + COMPLETION_CHRONOLOGY_PENDING.**
+**Status: DIAGNOSTIC_READY + OWNER SECURITY/CHRONOLOGY DECISIONS ACCEPTED IN DEC-102 — PRODUCTION IMPLEMENTATION/POSTGRESQL/U004 STILL PENDING.**
+
+**2026-10-09 decision update:** The Owner accepted the six recommendations for Issue #276; binding [DEC-102](../decisions/DEC-102_LIVE_OPERATIONS_HISTORICAL_STAFF_ATTRIBUTION.md) selects name-only historical read-time identity, Live-only API excluding Vehicles, exact CA/LM session-in-transaction reauthorization, paired Task/Dispatch/Audit proof with actor agreement, conservative event-time tie/conflict handling, and three-valued provenance. The later diagnostic paragraphs and original STOP/status table below are a **historic pre-acceptance snapshot**. No production query/contract/UI, database tests or U-004 approval was added by this documentation-only acceptance.
 
 Date: 2026-10-09. Source repository: `veletpro0-lgtm/valet-platform`; exact fetched `origin/main` and isolated branch base SHA: `698bcb6044f72844008ffa49ef085f11471f53e1`. Issue remains **OPEN**. Working branch `fix/issue-276-live-operations-staff-history`; worktree `D:\kndoom\valet-platform\tmp\issue-276-worktree`. Final pushed commit SHA is recorded by the final handoff/branch after commit, not inferred from this self-referential document.
 

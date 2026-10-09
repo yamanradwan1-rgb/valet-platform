@@ -1,6 +1,8 @@
 # Issue #276 — U-004 Live Operations visual-review packet
 
-**Status: REVIEW PROPOSAL — NOT OWNER SIGNED OFF.** Prepared 2026-10-09, current baseline `698bcb6044f72844008ffa49ef085f11471f53e1`.
+**Status: U-004 VISUAL REVIEW PROPOSAL — NOT OWNER SIGNED OFF.** Prepared 2026-10-09, current baseline `698bcb6044f72844008ffa49ef085f11471f53e1`.
+
+**2026-10-09 authorization boundary:** [Accepted DEC-102](../decisions/DEC-102_LIVE_OPERATIONS_HISTORICAL_STAFF_ATTRIBUTION.md) resolves U-003 privacy, chronology and Live-only API policy. The below language describing U-003 as DRAFT was true *before* DEC-102 and is retained as historical design context. No final role copy, pixels, drawer arrangement, screenshot or U-004 sign-off has been approved. Keep the shared Vehicles drawer unchanged.
 
 ## Gate and allowed surface
 

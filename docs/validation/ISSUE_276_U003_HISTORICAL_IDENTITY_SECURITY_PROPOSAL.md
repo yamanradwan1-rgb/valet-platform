@@ -1,6 +1,8 @@
 # Issue #276 — Issues272–278/U-003 historical identity security decision
 
-**Status: DRAFT — NOT ACCEPTED.** Prepared 2026-10-09 against `698bcb6044f72844008ffa49ef085f11471f53e1`. This text is a **proposal**, not a new Accepted DEC or permission to expand Live Operations API identity fields.
+**Status: HISTORICAL PROPOSAL — SUPERSEDED BY ACCEPTED DEC-102 (2026-10-09).** Prepared against `698bcb6044f72844008ffa49ef085f11471f53e1`. The original alternatives and open questions below remain as the *pre-acceptance reasoning record*, not current implementation authority.
+
+**Binding resolution:** [DEC-102 — Live Operations historical staff attribution](../decisions/DEC-102_LIVE_OPERATIONS_HISTORICAL_STAFF_ATTRIBUTION.md) records the Owner's explicit acceptance of six recommendations: canonical complete name-only read-time historical identities (including inactive subjects), no historical email/IDs, dedicated Live-only read API (Vehicles excluded), transaction-held exact CA/LM session/scope proof, strict paired Task+Dispatch+Audit Parker proof with actor equality and `occurred_at` ordering, conservative `UNVERIFIABLE` ties/conflicts, and strict `PROVEN | NO_RECORD | UNVERIFIABLE` provenance with nullable names. The older options and `DRAFT / NOT ACCEPTED` statements below describe **past** decision status only. No production code, PostgreSQL validation, U-004 visual signoff or merge has occurred through this documentation acceptance.
 
 ## Decision required and existing authority
 

@@ -4262,3 +4262,29 @@ production migration or T6 readiness.
 
 Full focused contract:
 `docs/decisions/DEC-101_GUEST_WEB_PUSH_V1_AND_PILOT_UI_ACTIVATION.md`.
+
+## DEC-102 — Live Operations historical staff attribution (#276)
+
+Status: Accepted
+Date: 2026-10-09
+Owner: VAYLET product owner
+
+Owner accepted the package-local `Issues272–278/U-003` historical-identity
+contract and canonical completion-proof policy for **Issue #276 only**.
+The new history reader is **Live Operations only** (separate API/strict DTO,
+no Vehicles API/history change): expose current canonical complete first and
+last names only when currently authorized, including inactive historical
+subjects, never historical email/IDs. Recheck exact CA/LM Staff session and
+viewer Organization/Location/capability/entitlement/current authority within
+the same transaction with writer-compatible locks; CA MFA remains required.
+The historical Parker requires coherent scoped completed Parking Task,
+Dispatch COMPLETED and canonical Parking Audit, actor agreement and
+`DispatchEvent.occurred_at` chronology. Missing/conflicting/duplicate/orphan
+evidence or distinct maximal timestamp ties fail closed as `UNVERIFIABLE`;
+the separate `PROVEN | NO_RECORD | UNVERIFIABLE` proof state and nullable
+name-only history fields cannot change active Task assignment. This is
+repository implementation authorization, **not** verified SQL/performance,
+U-004 visual approval, merge/deployment or issue closure.
+
+Full focused contract:
+[DEC-102_LIVE_OPERATIONS_HISTORICAL_STAFF_ATTRIBUTION.md](decisions/DEC-102_LIVE_OPERATIONS_HISTORICAL_STAFF_ATTRIBUTION.md).
