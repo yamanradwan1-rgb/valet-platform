@@ -35,6 +35,7 @@ function recordAppStateTransition(active: boolean): void {
 
 export function useNativeProductionLifecycle(
   runtime: NativeEmployeeRuntime | undefined,
+  onAppActive?: (active: boolean) => void,
 ): EmployeeConnectivityStatus {
   const [connectivity, setConnectivity] =
     useState<EmployeeConnectivityStatus>("unknown");
@@ -61,6 +62,7 @@ export function useNativeProductionLifecycle(
     recordAppStateTransition(active);
     lastActive = active;
     owner.setAppActive(active);
+    onAppActive?.(active);
     const disposeAppState = bindNativePermissionAwareAppState(
       AppState,
       (next) => {
@@ -69,6 +71,7 @@ export function useNativeProductionLifecycle(
           recordAppStateTransition(next);
         }
         owner.setAppActive(next);
+        onAppActive?.(next);
       },
     );
     return () => {
@@ -77,6 +80,6 @@ export function useNativeProductionLifecycle(
       disposeAppState();
       owner.dispose();
     };
-  }, [runtime]);
+  }, [runtime, onAppActive]);
   return connectivity;
 }

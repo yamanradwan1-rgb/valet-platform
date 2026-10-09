@@ -13,6 +13,7 @@ import { NativePushForegroundAttentionOwner } from "./native-push-foreground-att
 import { pushRegistrationFailureState } from "./native-push-registration-failure";
 import { recordNativePushRegistrationConflict } from "./native-push-registration-diagnostics";
 import { NativePushReconcileScheduler } from "./native-push-reconcile-scheduler";
+import { recordNativePushTimingStage } from "./native-push-timing-diagnostics";
 import {
   emptyNativePushSnapshot,
   unauthenticatedNativePushAuth,
@@ -148,6 +149,7 @@ export class NativePushLifecycleOwner {
   }
 
   receiveForeground(data: unknown, expectedGeneration: number): void {
+    if (this.isCurrent(expectedGeneration)) recordNativePushTimingStage("foreground-js-observed");
     const attentionIntentIds = this.attention.receive(
       data,
       this.isCurrent(expectedGeneration),

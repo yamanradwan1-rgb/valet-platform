@@ -114,6 +114,7 @@ function render(locale: "en" | "ar", handoff = handoffSnapshot(), contextual = c
   };
   const tree = NativeProductionWorkspace({
     authSnapshot: { authGeneration: 3, phase: "authenticated" },
+    battery: { status: "configured", openSettings: vi.fn(), onAppActive: vi.fn() },
     confirmParking: {} as never,
     connectivity: "online",
     contextual: contextual as never,

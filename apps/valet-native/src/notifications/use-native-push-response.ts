@@ -10,6 +10,7 @@ import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
 import type { ProductionShellController } from "../shell/production-shell-controller";
 import { nativePushResponseCapture } from "./native-push-response-bootstrap";
 import { NativePushRouteCoordinator } from "./native-push-route-coordinator";
+import { recordNativePushRouteObservation, recordNativePushTimingStage } from "./native-push-timing-diagnostics";
 
 export function useNativePushResponse(input: {
   readonly auth: NativeAuthSnapshot;
@@ -29,6 +30,7 @@ export function useNativePushResponse(input: {
       : new NativePushRouteCoordinator({
           auth: input.auth,
           operations: input.runtime.operations,
+          observe: recordNativePushRouteObservation,
           routeTasks: () => {
             const receipt = input.controller.receive({
               destination: "tasks",
@@ -42,9 +44,10 @@ export function useNativePushResponse(input: {
 
   useEffect(() => {
     if (coordinator === undefined) return;
-    const unsubscribeResponse = nativePushResponseCapture.subscribe((intent) =>
-      coordinator.receive(intent),
-    );
+    const unsubscribeResponse = nativePushResponseCapture.subscribe((intent) => {
+      recordNativePushTimingStage("notification-response-captured");
+      coordinator.receive(intent);
+    });
     const unregisterPurge = nativeIdentityState.register(() =>
       coordinator.purgeIdentityScoped(),
     );

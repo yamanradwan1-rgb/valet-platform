@@ -72,6 +72,13 @@ vi.mock("../src/notifications/use-native-push-attention", () => ({
     retrievalAttention: { attention: [], dismiss: vi.fn() },
   }),
 }));
+vi.mock("../src/notifications/use-native-battery-status", () => ({
+  useNativeBatteryStatus: () => ({
+    status: "configured",
+    onAppActive: vi.fn(),
+    openSettings: vi.fn(),
+  }),
+}));
 vi.mock("../src/shell/use-native-production-lifecycle", () => ({
   useNativeProductionLifecycle: () => "online",
 }));

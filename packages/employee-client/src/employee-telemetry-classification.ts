@@ -31,6 +31,13 @@ export const EMPLOYEE_TELEMETRY_CLASSIFICATIONS = {
     "aborted",
   ],
   push: [
+    "foreground-js-observed",
+    "notification-response-captured",
+    "route-held",
+    "route-dropped",
+    "route-resolved",
+    "canonical-refresh-succeeded",
+    "canonical-refresh-failed",
     "registration-conflict",
     "registration-confirmed",
     "registration-unavailable",

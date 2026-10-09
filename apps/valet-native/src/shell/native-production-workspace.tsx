@@ -37,9 +37,11 @@ import { NativeConnectivityBanner } from "./native-connectivity-banner";
 import type { NativeProductionWorkspaceProps } from "./native-production-workspace-types";
 import { nativeIncidentRecoveryVisible } from "../incident/native-incident-types";
 import { NativeTaskTrackingStatus } from "../tracking/native-task-tracking-status";
+import { NativeBatteryNotice } from "../notifications/native-battery-warning";
 
 export function NativeProductionWorkspace({
   authSnapshot,
+  battery,
   confirmParking,
   connectivity,
   contextual,
@@ -66,6 +68,7 @@ export function NativeProductionWorkspace({
     <EmployeeFrame direction={presentation.direction}>
       <NativeConnectivityBanner locale={locale} status={connectivity} />
       <NativeTaskTrackingStatus locale={locale} runtime={runtime.taskTracking} />
+      <NativeBatteryNotice locale={locale} status={battery.status} onOpenSettings={battery.openSettings} />
       <EmployeeAppHeader
         scope={shell.scope}
         textAlign={presentation.textAlign}

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { NativeLocalePreference } from "../i18n/native-locale-preference";
 import { useNativeEmployeeLocale } from "../i18n/use-native-employee-locale";
 import { useNativePushAttention } from "../notifications/use-native-push-attention";
+import { useNativeBatteryStatus } from "../notifications/use-native-battery-status";
 import { useNativeProductionBackHandler } from "./native-production-back-handler";
 import { useNativeContextualRoute } from "./use-native-contextual-route";
 import { NativeProductionWorkspace } from "./native-production-workspace";
@@ -76,7 +77,8 @@ export function NativeProductionShell({
       ? shell.scope
       : null;
   const workflowPurgeRevision = controller.currentWorkflowPurgeRevision();
-  const connectivity = useNativeProductionLifecycle(runtime);
+  const battery = useNativeBatteryStatus(shell.kind === "active", authSnapshot.authGeneration);
+  const connectivity = useNativeProductionLifecycle(runtime, battery.onAppActive);
   const { push, response, retrievalAttention } = useNativePushAttention(
     runtime,
     authSnapshot,
@@ -262,6 +264,7 @@ export function NativeProductionShell({
   return (
     <NativeProductionWorkspace
       authSnapshot={authSnapshot}
+      battery={battery}
       contextual={contextual}
       locale={locale}
       handoff={handoff}

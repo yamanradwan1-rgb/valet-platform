@@ -12,6 +12,7 @@ import type {
 import type { NativeEmployeeRuntime } from "../auth/native-auth-runtime";
 import type { FoundationLocale } from "../foundation/foundation-locale";
 import type { NativePushSnapshot } from "../notifications/native-push-types";
+import type { useNativeBatteryStatus } from "../notifications/use-native-battery-status";
 import type { NativeRetrievalAttentionItem } from "../tasks/native-retrieval-attention";
 import type { NativeContextualPresentation } from "./use-native-contextual-route";
 import type {
@@ -23,6 +24,7 @@ type ActiveShell = Extract<ProductionShellState, { readonly kind: "active" }>;
 
 export interface NativeProductionWorkspaceProps {
   readonly authSnapshot: NativeAuthSnapshot;
+  readonly battery: ReturnType<typeof useNativeBatteryStatus>;
   readonly confirmParking: EmployeeConfirmParkedSnapshot;
   readonly connectivity: EmployeeConnectivityStatus;
   readonly contextual: NativeContextualPresentation;
