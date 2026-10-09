@@ -25,6 +25,8 @@ Freeze: same six table columns, widths, row heights, header, sidebar, KPI cards,
 
 **Privacy note:** Proposed historical rows display canonical *read-time complete name only*; no email row is added. The existing active-assignee email remains unaffected unless the Owner separately approves a change. All names require new server DTO explicitly accepted under U-003.
 
+**Checked in by wording still needs Owner semantic approval:** this proposal points to the session's original `checked_in_by_membership_id` association. Per the accepted state machine, the actor who *completed* check-in can be different; do not silently relabel the original association as the final command actor. A requested different concept requires a separate provenance decision.
+
 ## Role-selection truth matrix
 
 | Scenario | Table staff cell | Drawer |
@@ -36,11 +38,15 @@ Freeze: same six table columns, widths, row heights, header, sidebar, KPI cards,
 | Active Retrieval Task assigned | Actual Retrieval assignee + Assigned to | Earlier Parking name stays historic |
 | QUEUED Retrieval, assignee null | Unassigned (never historic fallback) | Current Unassigned; earlier Parker separate |
 | Active Task missing projectable identity | Safe existing Unassigned/current fallback | Never borrow historic Parker |
-| COMPLETED/CANCELLED session | Only authoritative facts justified by state | Never imply active assignment or fabricated completion actor |
+| COMPLETED/CANCELLED session (defensive domain invariant, NOT current Live list fixture) | Only authoritative facts justified by state | Never imply active assignment or fabricated completion actor |
 | Historical subject inactive/subject grant revoked | Only under accepted U-003 | Canonical read-time identity, not event-time snapshot |
 | Current viewer scope revoked/changed | Protected row/name disappears | Old drawer teardown / ignore late response |
 
 **Provenance decision still required:** the proposed names-only nullable `parkedBy` cannot distinguish no verified completion from a verified completed Parking Task whose identity is unprojectable. Do **not** infer a completed-task fact from a null name or display the historic Parked By row as established without evidence. Before implementing these exact two drawer states, secure Owner/security acceptance of a minimal separate server-authoritative completion-provenance indicator (or an equally bounded reviewed alternative); if not approved, use one generic truthful Unknown presentation that does not assert Parking history. These are review scenarios, **not** currently expressible by the proposed DTO alone. Final copy and omission geometry require U-004 sign-off.
+
+**Testability restriction:** the current strict Live `SessionOverviewEntry` state enum omits `CANCELLED`, and its `sessionOverviewFilterStates.ALL` excludes `COMPLETED`; do not claim the defensive COMPLETED/CANCELLED row is a renderable list scenario without a separate accepted scope/state contract. The recommended new Live-only history DTO must not silently widen either cohort. Required visible cases are the states actually returned by the existing filters.
+
+**Approved-scope design candidate, not rendering approval:** use an explicit Live-only staff-cell selector (primary current active employee with secondary Assigned to; otherwise PROVEN Parking with named parker and secondary Parked by; never substitute an historic Parker for a queued/unassigned Retrieval), plus dedicated history-only drawer fact composition. The existing `SessionDrawer` is shared; keep Vehicles' exact existing facts/copy and focus semantics. Preserve two-line staff cells by replacing, **not adding**, the active email subtitle in Live only, while retaining the current-assignee email contract in non-historic authorized data/drawer. Require verified wrapping/clamp/bidi/row height and scroll captures.
 
 ## Exact before/after capture matrix (all **NOT CAPTURED**)
 
@@ -57,6 +63,8 @@ Capture with equal source/synthetic inputs, viewport/zoom, authorized viewer, Or
 9. Denied/revoked viewer and deferred old-scope response while drawer is open.
 10. Drawer with maximum fact list, scroll and close/focus restoration.
 11. Original Retrieval Queue unaffected in same scope.
+12. Vehicles table and **shared drawer remain unchanged** with the same input, EN/AR/theme/viewport.
+13. A→B→A and logout/revocation while a synthetic historical-name drawer is open: no stale A name, dialog or scope response may reappear.
 
 Record before screenshot artifact/checksum and after artifact/checksum for every combination; unexpected geometry delta is a blocker. Do not update unrelated visual snapshots.
 

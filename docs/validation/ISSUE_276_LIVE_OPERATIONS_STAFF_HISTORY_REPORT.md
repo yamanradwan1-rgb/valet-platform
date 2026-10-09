@@ -61,7 +61,7 @@ The existing query uses one authorized session page, fixed `LIMIT+1` and one act
 
 Required PostgreSQL disposable test cases after gates: two PARKED synthetic cases; distinct/same Checker and Parker; completed Parking plus assigned/queued Retrieval; newer cancelled Parking; no history; multiple completed Parking Tasks and exact timestamp ties; duplicate/missing/conflicting completion events; wrong Org/wrong Location task/member; subject inactive/grant lost/missing names; viewer LM grant/session revocation, CA MFA, Location inactive, Dashboard entitlement loss; exact row/cardinality/cursor parity, zero mutations, zero extra audit/dispatch writes. Synthetic fixtures only.
 
-**PostgreSQL and EXPLAIN: NOT RUN.** No `TEST_DATABASE_URL`, `DATABASE_URL`, or `POSTGRES_URL` was supplied to this isolated worktree, and `psql` was unavailable. No disposable representative database isolation was verified. The required `EXPLAIN (ANALYZE, BUFFERS)` and index/latency comparisons must be executed against a proven disposable PostgreSQL instance after Owner approval of completion event ordering. Existing task indexes are not efficiency proof. No production/shared QA write operations were attempted. The Accepted DEC requires an atomic **writer** pairing of Dispatch COMPLETED and canonical Audit VALET_SESSION_PARKED; whether every history reader must additionally JOIN the audit row is an unsettled query-security/performance design question, not an Accepted mandate.
+**PostgreSQL and EXPLAIN: NOT RUN.** No `TEST_DATABASE_URL`, `DATABASE_URL`, `POSTGRES_URL` or known disposable credentials were supplied to this isolated worktree. `psql` is not on PATH, although independent read-only host inspection found a PostgreSQL 17 installation and a ready localhost service. **Neither availability nor `pg_isready` proves an isolated disposable database, access rights or task authorization**. No database connection, test setup, migration, query or performance run was attempted. The required `EXPLAIN (ANALYZE, BUFFERS)` and index/latency comparisons must be executed against a proven disposable PostgreSQL instance after Owner approval of completion event ordering. Existing task indexes are not efficiency proof. No production/shared QA write operations were attempted. The Accepted DEC requires an atomic **writer** pairing of Dispatch COMPLETED and canonical Audit VALET_SESSION_PARKED; whether every history reader must additionally JOIN the audit row is an unsettled query-security/performance design question, not an Accepted mandate.
 
 ## 6. Current baseline tests and safe synthetic reproduction
 
@@ -83,6 +83,7 @@ See final handoff for the exact diagnostic/test, typecheck, lint, architecture a
 | Gate | Actual result |
 |---|---|
 | Synthetic #276 table SSR diagnostic | **3/3 PASS** (after correcting a test-only vehicle-label expectation) |
+| Synthetic #276 canonical writer SQL-call witness (no PostgreSQL) | **3/3 PASS** — validates existing Task update guard and writer SQL args/event-pair shape, NOT reader correctness or DB uniqueness |
 | Scoped ESLint on new diagnostic | **PASS** (zero warnings) |
 | Prettier on diagnostic file | **PASS** after formatting |
 | `@valet/contracts` typecheck | **PASS** |
@@ -92,6 +93,12 @@ See final handoff for the exact diagnostic/test, typecheck, lint, architecture a
 | `pnpm architecture:check` | **FAIL on existing unchanged files**: `packages/database/src/guest-browser-session-context-switch-failures.integration.test.ts` 328/300 lines, and `packages/employee-client/src/employee-shift-presence-local-provenance.test.ts` portable Employee global boundary; additional existing grandfathered oversized-file warnings |
 
 These global failures were reproduced in the isolated source baseline; **no affected lint/architecture paths were edited for #276**. No failing global test was reported as green. Focused code formatting, tests and typechecks did pass.
+
+### Continuation engineering evidence
+
+The more specific `ISSUE_276_CANONICAL_PARKING_COMPLETION_EVIDENCE.md` reconciles Accepted DEC-037/068 writer invariants with Task DB mutability, append-only-but-INSERT-able Dispatch/Audit history, exact Task/event FK, paired Audit metadata and missing/duplicate/tied event cases. A **Task-first** candidate scan (include completed Tasks without any Dispatch event), evidence cardinality/coherence aggregation and fail-closed result must precede choosing a Parker; an event-first JOIN could falsely select an older employee when a newer Task lacks event evidence. A page `LIMIT+1` does not prove historical per-session scan bounds, and the audit metadata JSON lookup has no measured cost proof. Whether a hard per-session history cap is needed remains a separately reviewed performance/domain choice. Proposed chronology and Parked By source are **not yet Accepted**.
+
+The **recommended** U-003 packet now favors a separate, strict, Live Operations-only history response so Vehicles does not receive extra historical PII through the shared `SessionOverviewEntry`. It proposes names-only read-time identity and explicit `PROVEN/NO_RECORD/UNVERIFIABLE` completion evidence, but nothing is implemented or silently approved. Exact Staff session lock/recheck must occur before CA MFA/session locking in the same read transaction; existing LM location dashboard reads do not yet provide it. Independent security/DB/UI design review identifies these as pre-implementation gates, not current fix verification.
 
 ## 7. UI freeze, scope replacement and QA
 
@@ -112,6 +119,7 @@ These global failures were reproduced in the isolated source baseline; **no affe
 | Issues272–278/U-004 exact visual sign-off | PENDING |
 | PostgreSQL isolation + EXPLAIN | NOT RUN |
 | Authorized local QA | NOT RUN |
+| Completed Parking reader and public history identity DTO | NOT IMPLEMENTED — formal policy/chronology approvals pending |
 | PR / merge / deploy / migrations / Issue closure | **NOT PERFORMED** |
 
 Independent reviewer findings and exact final validation are supplied in the final Task 5 handoff. No claim of complete fix, real-device verification, PostgreSQL execution or independent security PASS is made merely from this diagnostic.
