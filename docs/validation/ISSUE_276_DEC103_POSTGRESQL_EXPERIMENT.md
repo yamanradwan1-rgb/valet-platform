@@ -224,3 +224,172 @@ would require restarting the same verified isolated cluster under its exact
 `-D` directory and port. A directory cleanup must independently verify the
 exact new folder's resolved path before any file deletion. **No database DROP
 or file/directory deletion occurred in this run.**
+
+## 8. Owner-authorized Production Recovery SQL optimization experiment — 2026-10-09
+
+**Result: P1 QUERY-BUDGET BLOCKER REMAINS.** This is a *new*, SQL/EXPLAIN-only
+experiment after the prime restarted and reverified the original **disposable**
+PG17.11 cluster. It supersedes the preceding stopped-cluster state **for this
+experiment only**; it does not claim the cluster is still running at handoff.
+This is not a real-environment migration, production code fix, or validation
+of viewer revocation, concurrency, or U-004.
+
+### 8.1 Scope and exact commands
+
+The investigator independently checked
+`Get-NetTCPConnection -State Listen -LocalPort 55449` (localhost listener PID
+16500) and the Windows PostgreSQL process's
+`-D D:/kndoom/valet-platform/tmp/issue-276-disposable-pg-0d8a6d3a254e/data`
+command line. Every benchmark run executed this **read-only SQL identity
+check** on the same existing child database before any EXPLAIN:
+
+```powershell
+& 'C:\Program Files\PostgreSQL\17\bin\psql.exe' -h 127.0.0.1 -p 55449 -U valet276test -d valet276_dec103_w2_40c1a097d8 -w -X -A -t -v ON_ERROR_STOP=1 -c "SELECT current_database(),current_user,inet_server_addr(),inet_server_port(),current_setting('data_directory')"
+```
+
+The observed identity was exactly
+`valet276_dec103_w2_40c1a097d8|valet276test|127.0.0.1|55449|D:/kndoom/valet-platform/tmp/issue-276-disposable-pg-0d8a6d3a254e/data`.
+**No connection to 5432, no fixture/DB writes, no index changes or new history
+cap** occurred in this continuation.
+
+The PowerShell runner
+`D:\kndoom\valet-platform\tmp\issue-276-disposable-pg-0d8a6d3a254e\dec103-worker2-recovery-bench.ps1`
+is located **outside the repo/worktree** and reads the exact SQL from
+`apps/api/src/modules/dashboard/operational-history-audit-discovery.ts:36-87`
+before substituting an authorized-like *synthetic* bounded UUID page.
+Invocation:
+
+```powershell
+& 'D:\kndoom\valet-platform\tmp\issue-276-disposable-pg-0d8a6d3a254e\dec103-worker2-recovery-bench.ps1' -Mode run -Repetitions 3
+& 'D:\kndoom\valet-platform\tmp\issue-276-disposable-pg-0d8a6d3a254e\dec103-worker2-recovery-bench.ps1' -Mode fingerprints
+```
+
+Only `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` around **SELECT** projections
+and SELECT fingerprints were executed. Each of five shapes was measured three
+times in each of **four** regimes: sparse50, sparse100 (1 Parking Task/session),
+dense50, dense100 (40 Parking Tasks/session). This yields **60 plans** on
+the preserved dataset (200 sessions, 4,100 Parking Tasks, 24,105 synthetic
+Audit rows before the five-case extension; now 24,105 total after the earlier
+five canonical anomalies). Warm-cache results predominate; some first runs
+loaded additional shared buffers, which are reported in the raw CSV at
+`dec103-worker2-recovery-results.csv` alongside each plan's scan/loop data.
+All timing figures below are **single-host observed medians**, not SLAs.
+
+### 8.2 Five shapes, exact result-preserving three-arm discovery
+
+All shapes preserve **A** (session-reference), **B** (entity-reference), the
+`UNION ALL` C result, `DISTINCT (auditId, implicatedSessionId)`, final Audit
+join, the current exact organization/page/Task scoping, and safe JSON **text**
+comparison. No query discards a C-only orphan, a wrong-Location Audit, or a
+cross-session B/C linkage:
+
+1. **exact** — the unchanged current production WIP C equality join at
+   `operational-history-audit-discovery.ts:62-70`.
+2. **semi_hash** — C Audit subquery with
+   `EXISTS (SELECT 1 FROM page_parking_tasks WHERE taskId = audit.metadata_json->>'taskId')`
+   and rejoin to the scoped Tasks; permitted planner to choose hash/semi paths.
+3. **batch_agg** — aggregate all scoped Task UUID strings into one `text[]`,
+   indexed C predicate, then rejoin the Task for its exact page session:
+
+   ```sql
+   SELECT audit.id AS "auditId", task."sessionId" AS "implicatedSessionId"
+   FROM (SELECT array_agg("taskId") AS task_ids
+         FROM page_parking_tasks) AS batch
+   INNER JOIN audit_events AS audit
+     ON audit.organization_id = $1
+    AND audit.event_type = 'VALET_SESSION_PARKED'
+    AND (audit.metadata_json->>'taskId') = ANY(batch.task_ids)
+   INNER JOIN page_parking_tasks AS task
+     ON task."taskId" = (audit.metadata_json->>'taskId')
+   ```
+
+4. **indexed_lateral** — page Task keyed
+   `CROSS JOIN LATERAL (SELECT audit.id ... WHERE JSON taskId = taskId OFFSET 0)`;
+   `OFFSET 0` constrains flattening as an experiment, not a recommendation.
+5. **batch_materialized** — indexable Task-ID array filter inside a protected
+   C subquery with `OFFSET 0`, followed by the same page Task rejoin.
+
+### 8.3 Median measured runtime (milliseconds; three full EXPLAINs each)
+
+| Shape | Sparse 50 | Sparse 100 | Dense 50 | Dense 100 | Plan outcome |
+|---|---:|---:|---:|---:|---|
+| Exact WIP | 21.206 | 18.953 | 33.598 | 49.832 | Audit **Seq Scan 24,105 rows** in every plan |
+| Semi/hash EXISTS | 18.376 | 21.508 | 36.759 | 53.638 | Same Audit **Seq Scan 24,105** |
+| Batch array aggregation | **2.556** | **4.881** | 29.853 | **84.749** | No Audit Seq Scan; C task-ref index **52/102/2,000/4,000 rows in one index scan** |
+| Indexed lateral + OFFSET 0 | 14.610 | 16.183 | 44.725 | 88.157 | Full Audit Seq Scan **plus** C task-ref index 50/100/2,000/4,000 loops |
+| Batched materialized subquery | 3.026 | 6.150 | 31.350 | 71.550 | No Audit Seq Scan, C index **52/102/2,000/4,000 matching rows** |
+
+The batch candidate is immediately superior on the sparse fixture and **does
+eliminate the global Audit scan** without a new index. However, the dense100
+median is **84.749 ms versus 49.832 ms** for the full-scan baseline, with many
+index/heap buffers. The corresponding prior array-probe experiment (§5) also
+found severe dense-history regression. Consequently **none** of these shapes
+establishes an accepted performance budget across both sparse and dense
+histories; not even the no-Seq-Scan solutions warrant production release yet.
+The indexed-lateral shape is particularly unsuitable because PostgreSQL may
+retain both the global scan and thousands of Task-keyed probes.
+
+### 8.4 Exact evidence equivalence across all five shapes
+
+For each page regime, the runner executed the same SQL as a SELECT and
+computed the count plus MD5 of the **sorted full**
+`(auditId, implicatedSessionId)` pair list, not merely matching a count.
+All five variants produced exactly the same fingerprint in every regime:
+
+| Page | Pair count | Matching sorted-pair MD5 across all five variants |
+|---|---:|---|
+| Sparse 50 | 56 | `360c2fcf6350a0251c2913596d3cf805` |
+| Sparse 100 | 106 | `804cdd8c6058e75bdad5b243de121493` |
+| Dense 50 | 2,000 | `f6319eda9dc4b6ee8a2147de7be1ae30` |
+| Dense 100 | 4,000 | `6196c48febcde7605327fd58cec72b3f` |
+
+The sparse50 relation includes the two implications of the same malformed
+cross-link through B (session 3) and C (session 2), as evidenced in §6. This
+equality is **fixture-specific evidence of semantic parity**, not a proof that
+the SQL handles every possible database corruption or an authority/session
+revocation check.
+
+### 8.5 Decision and next allowed work
+
+**P1 remains at `apps/api/src/modules/dashboard/operational-history-audit-discovery.ts:62-70`.**
+The existing exact C query still violates the DEC-102:58-59 and
+DEC-103:41,49-56 global-scan/query-budget gate. The new batch_agg formulation
+is a concrete **SQL optimization candidate for further investigation**, not
+permission to ship: it removes unbounded Audit Seq Scan, but dense100 increased
+to 84.749 ms (median, 3 samples) and touches thousands of index results.
+Revisit the hash/bitmap/batched strategy with an explicitly reviewed dense
+query-budget target and production-representative distribution, and rerun
+`EXPLAIN (ANALYZE, BUFFERS)` on proven disposable PostgreSQL. A third index,
+schema change, fabricated cardinality cap, downgrading `UNVERIFIABLE`, or
+production DB change still requires its own Owner/security decision.
+
+**Worker-2 made no production TypeScript edits, no DB writes, no migrations,
+no additional indexes, no commit and no push** during this continuation.
+Prime received the exact timings, plans, and remaining P1 before handoff.
+
+### 8.6 One final Bitmap-vs-Index diagnostic (dense 100 only)
+
+At the prime's request, a **single** additional `batch_agg` query was
+benchmarked on the same verified child database within `BEGIN READ ONLY`
+and `ROLLBACK`, with **transaction-local**
+`SET LOCAL enable_indexscan=off` to inspect whether a bitmap alternative
+would substantially improve the 4,000-Task case. This configuration was
+**diagnostic only**, did not persist a server setting or change data, and is
+**not** a recommended production session policy.
+
+The measured `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` returned **62.868 ms**,
+**1,732 shared buffer hits**, zero reads. The plan chose multiple
+`Bitmap Heap Scan(audit_events)` operators (4,000 rows each), **but also a
+full `Seq Scan(audit_events)` of 24,105 rows** in the C discovery. It therefore
+**did not** demonstrate a safe no-global-scan, bounded-performance solution
+and does not lift the P1 at
+`apps/api/src/modules/dashboard/operational-history-audit-discovery.ts:62-70`.
+No more planner variants or DB actions were attempted after this finite test.
+
+### 8.7 Release gate and separate authority/visual evidence
+
+The SQL-only follow-up completed 60 repeated `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` plans plus the single transaction-local Bitmap diagnostic **without** a shippable candidate. Dense100 results remain worse for the indexable no-global-scan alternatives, although all measured shapes preserved the exact synthetic audit/session relation fingerprints. This is an implementation **P1 STOP** under Accepted DEC-102/103, not a request to reapprove U-003, a performance SLA claim, or permission to install a third/modified index in shared environments.
+
+The separately prepared Live authority PostgreSQL concurrency test had **zero completed race cases**. Test harness preflights and a subsequent interrupted run did not prove staff-session revocation, LM grant, entitlement, CA MFA or Location lifecycle serialization. An isolated test child DB `valet_mob007_auth_23212_d86d8019` was left within the task-owned 55449 cluster alongside the existing benchmark DB; no shared/production database was touched. Live-only Chromium functional tests **5/5 PASS** (including a corrected A→B→A scope test and portal-based fix for original invalid `tbody` nesting), but no Owner U-004 screenshot/pixel sign-off exists. All production source remains **uncommitted WIP**.
+
+**Final isolated cluster lifecycle:** Once the PostgreSQL, security and UI investigators finished, prime reverified the exact PG17.11 data directory and owning server process on loopback port 55449, confirmed no active external client backends, and executed `pg_ctl -D <task-owned-exact-data-directory> -m fast -w stop`. PostgreSQL returned `server stopped`. Port **55449 is closed**; original independent **5432 listener remains present**. The experiment database `valet276_dec103_w2_40c1a097d8`, interrupted-concurrency child `valet_mob007_auth_23212_d86d8019`, fixture scripts and entire disposable directory were **preserved rather than dropped/deleted** so the test evidence can be reviewed. No additional DB action is authorized by this report.
