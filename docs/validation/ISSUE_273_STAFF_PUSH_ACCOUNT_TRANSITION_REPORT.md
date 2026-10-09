@@ -12,8 +12,9 @@ Verified starting origin/main and local main SHA:
 
 Main checkout initially had unrelated local Dashboard configuration and
 `docs/plans/issues-272-278` modifications. All are preserved; no changes
-were made to other task worktrees. Final SHA/remote status must be recorded
-separately after delivery gates, never inferred from this draft.
+were made to other task worktrees. The Owner subsequently authorized a
+code-only fast-forward merge after the additional PostgreSQL regression gate;
+the actual merge/remote status must be verified separately on GitHub.
 
 ## 1. Evidence ownership and original physical observation
 
@@ -102,8 +103,9 @@ User remains denied regardless of old-owner currentness.
 The service still resolves and locks the exact current Staff session before
 its existing logical installation/token keys and registration rows. The
 same-User predicate change uses no new role/tenant/Location authority and
-does not modify partial uniqueness or DB schema. Real PostgreSQL race
-confirmation is still outstanding.
+does not modify partial uniqueness or DB schema. Existing PostgreSQL
+registration/concurrency suites subsequently passed, and the precise
+noncurrent newer-owner case was added as a separate real-PostgreSQL regression.
 
 ### C. Conflict did not have a bounded diagnostic class
 
@@ -179,19 +181,43 @@ git diff --check
 ```
 
 Observed focused checks: **43/43 portable auth PASS**, **39/39 Native push
-PASS**, **42/42 non-PostgreSQL API PASS**. Final lint/typecheck runs are
-required after all edits. Existing baseline before changes:
+PASS**, **42/42 non-PostgreSQL API PASS**. Employee Client, Native and API
+lint/typecheck passed on the implementation branch; ESLint also passed on
+the additional PostgreSQL test. Existing baseline before changes:
 38 portable auth and 34 Native Push PASS. Native auth and native push
 source-level negative cases are not substitutes for real server truth.
 
-**PostgreSQL integration: NOT RUN.** Existing API suites include
-`staff-push-registration-lifecycle`, `concurrency`, `authority`,
-`logout`, `stale-confirmation-race`, `worker-eligibility` and
-`stale-maintenance`; these are mutating suites. The tester found neither
-an explicitly authorized disposable PostgreSQL cluster nor a verified
-isolated `TEST_DATABASE_URL`; configured environment credentials may
-refer to a shared database. Do **not** run them on default development,
-production or staging infrastructure or claim any SQL race passed.
+**Real PostgreSQL follow-up: 60/60 PASS, across seven focused suites/files.**
+The independent operator verified the local loopback-only test bootstrap,
+current DB role, uniquely created child databases, restricted child runtime
+roles and harness cleanup before running tests. No shared/staging/production
+database was modified. Commands below run from `apps/api`:
+
+```text
+pnpm exec vitest run --config vitest.config.mjs --project api-postgres-standard test/staff-push-registration-lifecycle.integration.test.ts test/staff-push-registration-authority.integration.test.ts test/staff-push-logout.integration.test.ts test/staff-push-worker-eligibility.integration.test.ts
+pnpm exec vitest run --config vitest.config.mjs --project api-postgres-race test/staff-push-registration-concurrency.integration.test.ts test/staff-push-stale-confirmation-race.integration.test.ts
+pnpm exec vitest run --config vitest.config.mjs --project api-postgres-standard test/staff-push-inactive-newer-owner.integration.test.ts
+```
+
+- Standard suites: **52/52 PASS** (lifecycle 9, authority 23, logout 3,
+  worker eligibility 17).
+- Concurrency suites: **6/6 PASS** (registration concurrency 4, stale
+  confirmation race 2).
+- New `staff-push-inactive-newer-owner.integration.test.ts`: **2/2 PASS**.
+  It deterministically backdates only the older same-User session, makes
+  the newer session own an ACTIVE registration, then independently tests
+  newer-owner revocation and absolute expiry without registration deletion.
+  The still-valid older session must receive a non-disclosing **409**, and
+  cannot alter the ACTIVE newer-owned row. The absolute-expiry fixture was
+  corrected after one failed setup-only attempt to respect the actual
+  `staff_auth_sessions_expiry_check`; final rerun passed both cases.
+- All three harness run teardowns reported `db=0 roles=0 children=0` for
+  their owned resources. Unrelated historical test resources present on
+  this local cluster were not modified.
+
+These tests prove the existing and newly added source/SQL coverage; they do
+**not** prove the unimplemented U-001 release capability or physical Android
+FCM receipt. No production migrations were executed.
 
 The architecture checker fails on **the same two unrelated preexisting
 base violations**: a 328-line
@@ -214,19 +240,20 @@ API ownership 5/5. Exact sources include
 `staff-push-registration.service.ts:44-64,134-169` and
 `native-push-registration-diagnostics.ts:5-21`.
 
-An independent read-only **API/PostgreSQL investigator B reviewed the
-original source contract before the fix** and confirmed current session/
-logical lock ordering, partial uniqueness and provider-version fence.
-It identified the older-session reclaim discrepancy fixed here. It
-did **not** complete a fresh final review of the resulting code.
+An independent final **Reviewer B (SQL/authorization): PASS** on the
+current implementation diff. Reviewer B verified same-User chronology,
+cross-user 409, session/registration locks, partial unique constraints,
+server-side owner source and logout semantics. It later independently
+reviewed the new PostgreSQL regression and gave **PASS** after the
+absolute-expiry fixture was corrected to satisfy the actual DB CHECK.
 
-Two new Reviewer B/C chat launches for fresh final SQL concurrency and
-Native/UI check failed due the tool/browser's composer startup error.
-**INDEPENDENT_REVIEW = PARTIAL**: one current-diff security PASS plus
-the earlier API investigator, not three independent final PASS results.
-This is an external review-completion gate and never evidence of a code
-test failure. UI/source scope has separately been checked by the
-implementing agent; no visual files changed.
+Independent final **Reviewer C (Native/UI): PASS** on the current diff,
+including auth-generation scheduler isolation, stale-A response fencing,
+request-generation transport authority, 409 telemetry privacy and unchanged
+UI/localizations. Reviewer C reran Native Push 39/39 and portable Auth
+43/43 plus focused lint/typecheck. **INDEPENDENT_REVIEW = PASS** on the
+limited code changes; the new U-001 security protocol remains unimplemented
+and has not received final acceptance.
 
 **U-001 security-design Reviewer A:** draft correctly preserves proof
 theft, old-session recreation and legacy PUT/rollback threats, but cannot
@@ -301,14 +328,17 @@ provider payload or exception message may be included in shared evidence.
 ## 8. Current decision/release gates
 
 - U-001: **DRAFT_PENDING_APPROVAL**, not an Accepted DEC amendment.
-- Independent reviewers: **PARTIAL**, final B/C startup failed.
+- Independent code reviewers: **PASS** (Security A, SQL B, Native/UI C).
 - Code: limited, existing-contract regression repairs and diagnostics only.
 - Different-User takeover: **DENIED**; current 409 remains intentional.
 - API / DB / contracts / migrations: only existing owner-policy code changed,
   no new public transport or schema.
 - UI: **FROZEN_UNCHANGED**.
-- PostgreSQL races: **NOT RUN (no safe isolated instance)**.
+- PostgreSQL existing and added focused suites: **60/60 PASS**, on
+  verified disposable local child databases, with owned cleanup.
 - Physical Android/FCM receipt: **PENDING**, not a test PASS.
 - APK/AAB: **NOT BUILT**.
-- PR/merge/deploy: **NOT PERFORMED**.
+- PR/deploy/APK: **NOT PERFORMED**. Owner authorized a separate
+  code-only fast-forward merge after the test gate; verify its result from
+  the actual GitHub refs rather than interpreting this report as proof.
 - Issue #273: **OPEN**, full trusted release still blocked on security decision.
