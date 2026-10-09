@@ -393,3 +393,231 @@ The SQL-only follow-up completed 60 repeated `EXPLAIN (ANALYZE, BUFFERS, FORMAT 
 The separately prepared Live authority PostgreSQL concurrency test had **zero completed race cases**. Test harness preflights and a subsequent interrupted run did not prove staff-session revocation, LM grant, entitlement, CA MFA or Location lifecycle serialization. An isolated test child DB `valet_mob007_auth_23212_d86d8019` was left within the task-owned 55449 cluster alongside the existing benchmark DB; no shared/production database was touched. Live-only Chromium functional tests **5/5 PASS** (including a corrected A→B→A scope test and portal-based fix for original invalid `tbody` nesting), but no Owner U-004 screenshot/pixel sign-off exists. All production source remains **uncommitted WIP**.
 
 **Final isolated cluster lifecycle:** Once the PostgreSQL, security and UI investigators finished, prime reverified the exact PG17.11 data directory and owning server process on loopback port 55449, confirmed no active external client backends, and executed `pg_ctl -D <task-owned-exact-data-directory> -m fast -w stop`. PostgreSQL returned `server stopped`. Port **55449 is closed**; original independent **5432 listener remains present**. The experiment database `valet276_dec103_w2_40c1a097d8`, interrupted-concurrency child `valet_mob007_auth_23212_d86d8019`, fixture scripts and entire disposable directory were **preserved rather than dropped/deleted** so the test evidence can be reviewed. No additional DB action is authorized by this report.
+
+## 9. Focused P1 Recovery — A1–A5 cost and index attribution (2026-10-09, later continuation)
+
+**Decision: NO-GO / P1 NOT RESOLVED.** Unlike the 60 full-query plans in §8,
+these new measurements isolate individual read costs, inspect the underlying
+Audit heap/index access, replace *one existing candidate index on the disposable
+child only* for an `INCLUDE(id)` experiment, and try a batched Audit-primary-key
+hydration strategy. There were **no production TypeScript changes, no commit,
+no push, no migration on a shared environment, no third production index,
+no numerical history cap, and no connection to port 5432**.
+
+### 9.1 Identity and method
+
+The prime independently restarted and reverified the previously preserved
+disposable PostgreSQL 17.11 cluster before any new SQL was permitted. Worker-2
+then checked the exact identity by **explicit** `psql -h 127.0.0.1 -p 55449
+-U valet276test -d valet276_dec103_w2_40c1a097d8 -X -w`:
+
+```text
+valet276_dec103_w2_40c1a097d8|valet276test|127.0.0.1|55449|D:/kndoom/valet-platform/tmp/issue-276-disposable-pg-0d8a6d3a254e/data
+```
+
+All A1 SQL uses the same existing **200 completely synthetic sessions**, 4,100
+PARKING Tasks and 24,105 Audit rows, including the original orphan, malformed,
+wrong-Location and cross-session test cases. The test constructs the same
+authorized-like scope and sparse/dense **50/100** pages as earlier, without
+claiming it has replayed the actual CA/LM authorization transaction. It measures
+**three EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) SELECT runs** per shape/page and
+reports the true median and maximum read from the raw CSV, not an estimated
+or fabricated budget. Reproducibility script and CSVs are *outside the Git
+worktree*, under the previously verified disposable cluster directory:
+
+```text
+dec103-worker2-a1-cost.ps1
+dec103-worker2-a1-cost.csv
+dec103-worker2-a1-cost-abc_bulk_pk.csv
+dec103-worker2-a1-cost-c_ids.csv
+dec103-worker2-a5-classifier.cjs
+```
+
+### A1. Page, A/B/C discovery, DISTINCT and final wide Audit hydration
+
+With the **temporary, disposable-only `INCLUDE(id)` Task-ref candidate index**
+installed (see A2), measured medians and maxima were:
+
+| Scoped stage | Sparse100 median / max ms | Dense100 median / max ms | Dense100 max shared hits | Observable Access |
+|---|---:|---:|---:|---|
+| Authorized-like bounded session-ID page only | 1.163 / 1.260 | 0.813 / 0.838 | 5 | 100 session rows, **not actual authorization transaction** |
+| A: Audit `valet_session_id` IDs | 1.149 / 1.393 | 2.482 / 2.487 | 310 | 4,000 Audit matches in dense100 |
+| B: Audit `entity_id` IDs | 0.867 / 0.997 | 2.533 / 3.378 | 343 | 4,000 Audit matches in dense100 |
+| C: Audit JSON Task-ref IDs, after scoped Task batch | 2.029 / 2.038 | **26.264 / 39.441** | 4,167 | Task-ref expression index, **4,000 rows**, not index-only |
+| A+B+C `UNION ALL` and pair `DISTINCT` IDs | 3.308 / 3.387 | **34.183 / 38.652** | 4,820 | All A/B/C paths; preserve multi-session implications |
+| All discovered pairs joined back to wide Audit rows | 4.139 / 5.928 | **52.574 / 54.777** | **16,826** | Final `audit_events_pkey` **1 row × 4,000 loops** |
+
+This decomposition shows a real dominant C expression lookup and an additional
+wide Audit hydration cost: **~18.4 ms and ~12,006 additional shared hits**
+between the two adjacent dense100 median end-to-end stages in the same
+fixture. These are **cumulative query stage differences**, not isolated
+operator CPU timers; they cannot establish causality or production latency
+without plan-level comparisons and the actual full Live transaction. On the
+original non-`INCLUDE` index, another A1 run had dense100 C IDs ~28.0 ms,
+pair DISTINCT ~40.4 ms and full Audit ~67.8 ms; cross-run variance and
+warm caches prevent claiming a clean A/B speedup from `INCLUDE`.
+
+### A2. Narrow covering ID / heap-fetch hypothesis
+
+Before the experiment `pg_class` reported `audit_events.relpages=706`,
+`relallvisible=706`, favorable for possible index-only scans. Worker-2
+recorded the original partial index DDL and **only in the verified disposable
+child** temporarily replaced it with:
+
+```sql
+-- Disposable cluster experiment; NOT a proposed shared deployment.
+DROP INDEX CONCURRENTLY public.audit_events_parked_org_task_ref_idx;
+CREATE INDEX CONCURRENTLY audit_events_parked_org_task_ref_idx
+  ON public.audit_events (organization_id, (metadata_json->>'taskId'))
+  INCLUDE (id) WHERE event_type='VALET_SESSION_PARKED';
+```
+
+`EXPLAIN (ANALYZE, BUFFERS, VERBOSE)` of the *narrow* query `SELECT
+audit.id ... WHERE audit.metadata_json->>'taskId' =
+ANY(ARRAY(SELECT 4000 matching synthetic task UUID strings))` **still chose
+`Index Scan`, NOT `Index Only Scan`**. It returned 4,000 rows, with
+~4,044 shared hits and ~33.4 ms. No `Heap Fetches` index-only counter was
+available because it was not an Index Only Scan; it would be incorrect to
+report a measured zero heap fetch or infer that the visibility map alone solves
+the access cost. `INCLUDE(id)` alone is **not** a demonstrated index-only
+solution for the current expression predicate.
+
+### A3. Split narrow discovery and bounded bulk PK hydration
+
+The second step rehydrates final Audit details by one ID-array predicate
+instead of 4,000 repeated PK lookups, while retaining the prior A/B/C
+discovery and `DISTINCT (auditId, implicatedSessionId)`:
+
+```sql
+WITH page_parking_tasks AS MATERIALIZED (...),
+     task_batch AS MATERIALIZED (...),
+     deduplicated AS MATERIALIZED (
+       SELECT DISTINCT "auditId", "implicatedSessionId"
+       FROM (SELECT ... /* A */ UNION ALL SELECT ... /* B */
+             UNION ALL SELECT ... /* C */) AS discovered
+     ),
+     fetched AS MATERIALIZED (
+       SELECT a.id,a.metadata_json,a.location_id,a.actor_membership_id,
+              a.entity_type,a.entity_id,a.occurred_at
+       FROM public.audit_events AS a
+       WHERE a.id = ANY(ARRAY(SELECT DISTINCT "auditId" FROM deduplicated))
+     )
+SELECT d."auditId",d."implicatedSessionId",
+       a.metadata_json,a.location_id,a.actor_membership_id,
+       a.entity_type,a.entity_id,a.occurred_at
+FROM deduplicated AS d JOIN fetched AS a ON a.id = d."auditId"
+ORDER BY d."implicatedSessionId",d."auditId";
+```
+
+The complete reproducible SQL, including the exact A/B/C arms, appears in
+`dec103-worker2-a1-cost.ps1` (shape `abc_bulk_pk`). PostgreSQL did replace
+the final 4,000 one-by-one `audit_events_pkey` lookups by a **Bitmap Heap Scan
+over the 4,000 selected Audit IDs**, reducing dense100 total buffers from
+~16,826 to ~5,284 hits in the final repeat. **However, latency remained
+unproven:** the final three repeats with the original index restored returned
+**dense100 median 56.402 ms, max 60.950 ms** versus the historical exact
+current-query median 49.832 ms; an earlier independent run with the temporary
+`INCLUDE(id)` index saw a **maximum of 85.882 ms**. This is a measured
+variance, **not** a consistent gain. The two-stage approach cannot pass solely
+on buffer-hit reduction; CPU, sorting and materialization overhead remain.
+
+| Latest batched PK SQL | Median / max ms | Max shared hits | Returned Audit IDs |
+|---|---:|---:|---:|
+| Sparse 50 | 2.732 / 2.875 | 342 | 56 |
+| Sparse 100 | 4.324 / 4.518 | 522 | 106 |
+| Dense 50 | 28.186 / 29.003 | 2,864 | 2,000 |
+| Dense 100 | **56.402 / 60.950** | **5,284** | **4,000** |
+
+Dense50→dense100 approximately doubles the number of real Audit candidates
+and the PK heap workload; timings also roughly double, rather than
+demonstrating a fixed upper bound on historic work. The query deliberately
+includes **all** same-scope history, because the accepted DEC explicitly
+forbids a speculative one-completion cap.
+
+This candidate's **exact sorted full-pair fingerprints** match the previously
+verified three-arm relation (§8.4), across all four regimes:
+
+| Page | Pairs | MD5 over sorted `(auditId,implicatedSessionId)` |
+|---|---:|---|
+| Sparse50 | 56 | `360c2fcf6350a0251c2913596d3cf805` |
+| Sparse100 | 106 | `804cdd8c6058e75bdad5b243de121493` |
+| Dense50 | 2,000 | `f6319eda9dc4b6ee8a2147de7be1ae30` |
+| Dense100 | 4,000 | `6196c48febcde7605327fd58cec72b3f` |
+
+This proves **fixture-level reference preservation, including the cross-linked
+B/C Audit ID**, not full authorization/classification/revocation correctness.
+The actual read must continue matching every Task/Dispatch/Audit and classify
+anomalies fail-closed under DEC-102.
+
+### A4. Expression statistics / cardinality estimation
+
+On the disposable child **only**, worker-2 evaluated:
+
+```sql
+CREATE STATISTICS dec103_sandbox_audit_taskref_stats
+ (mcv,ndistinct,dependencies)
+ ON organization_id,event_type,(metadata_json->>'taskId')
+ FROM public.audit_events;
+ANALYZE public.audit_events;
+```
+
+The dynamic 4,000-element `ANY(ARRAY(SELECT ...))` C index predicate was
+still cardinality-misestimed: `EXPLAIN` estimated **2 rows**, but
+`EXPLAIN ANALYZE` returned **4,000** actual rows (Task-ref Index Scan,
+4,044 shared hits, ~38.7 ms). The earlier no-extra-stats plan estimated ~201
+for 4,000 actual matches. Extended stats did **not** demonstrate a fix; do not
+promote this ephemeral statistics object to production on speculation.
+
+### A5. JS classifier CPU and end-to-end budget limitation
+
+A separate **no-DB**, local CPU experiment transpiled the exact existing
+`apps/api/src/modules/dashboard/operational-history-evidence-classifier.ts`
+source in memory (without modifying it) and ran `classifyParkingHistory`
+over synthetic canonical Task/Dispatch/Audit objects for 100 sessions.
+Ten warm-ups preceded 30 measured batches:
+
+| Batch | Canonical evidence records | Median JS time | p90 | Max |
+|---|---:|---:|---:|---:|
+| Sparse100, 1 Parking Task/session | 200 | 0.048 ms | 0.267 ms | 0.858 ms |
+| Dense100, 40 Parking Tasks/session | 8,000 | **1.624 ms** | 2.569 ms | 4.345 ms |
+
+The production classifier returned `PROVEN` with the correct actor for these
+well-formed mock inputs. This is **not** the actual server HTTP + PostgreSQL
+transaction, transport payload, security lock waits, or cross-linked anomaly
+classification benchmark. The rough order of magnitude suggests that SQL
+fetching/dedup/wide Audit hydration dominates under these fixtures, but no
+Live end-to-end performance claim is warranted. Do **not** cap repeated
+terminal PARKING operations at one: the current DB does not enforce that
+limit and DEC-034 permits future completed task history.
+
+### 9.2 Cleanup, residual P1 and release answer
+
+Worker-2 **restored the disposable test child to the original candidate
+index** with `DROP INDEX CONCURRENTLY` + the exact prior
+`CREATE INDEX CONCURRENTLY ... (organization_id,metadata_json->>'taskId')
+WHERE event_type='VALET_SESSION_PARKED'` **without `INCLUDE(id)`**.
+`pg_get_indexdef` confirmed the original index definition, and
+`DROP STATISTICS public.dec103_sandbox_audit_taskref_stats` was confirmed
+with **zero remaining statistic objects by that name**. No fixture, schema
+data, production database or shared index was changed. The disposable server
+was **not** stopped, dropped or deleted in this continuation; the prime owns
+its lifecycle.
+
+**FINAL NO-GO / P1 remains.** Existing production WIP
+`apps/api/src/modules/dashboard/operational-history-audit-discovery.ts:62-70`
+retains a global Audit scan under the measured plan, while alternative
+index-based solutions still examine **4,000 distinct Task/Audit candidates**
+and perform expensive wide-row hydration in dense100. Owner-required
+DEC-102:58-59 and DEC-103:49-56 query budget plus the separate real concurrency
+authorization proof are **not satisfied**. This investigation provides a
+finite, reproducible attribution and candidate strategies, **not** an
+implemented production optimization, permission for another index/migration,
+U-004 sign-off, PR, merge, deployment or issue closure.
+
+## 10. Final Focused P1 Recovery status (latest, 2026-10-09)
+
+The previous historical benchmark and stop-state snapshots remain preserved above. The latest complete cross-functional handoff is **ISSUE_276_FOCUSED_P1_RECOVERY_OUTCOME.md**, supported by the cost decomposition in §9, independent Domain cardinality review, and DRAFT index/schema decision proposal. The SQL P1 is **NOT RESOLVED**: C Task-reference lookup and wide Audit hydration still fail the jointly required no-global-scan / acceptable dense-history cost proof. No production SQL/index/migration is authorized or committed.
+
+The earlier 0/8 PostgreSQL concurrency snapshot in §8.7 has now been superseded by **16/16 real PostgreSQL Lock-wait interleaving tests PASS** on fresh isolated children, including Staff revoke/refresh, Location grant, role loss, entitlement, CA MFA, Location lifecycle and Organization-status mutation. Native production writer fidelity was not verified for direct entitlement/Organization-status changes. An independent security reviewer identified a stale CA hint MFA-response oracle in the uncommitted authorization WIP; a narrow deferred-error fix passed **7/7 focused unit tests** and **independent read-only security re-review PASS**, preserving the accepted lock order. All source/test code remains **uncommitted and unshipped**.
+
+The dedicated Live Chromium 5/5 cases do not verify the standalone Retrieval Queue view or U-004 before/after pixel screenshots; Owner U-004 signoff remains **PENDING**. The final read/test and experiment child databases were kept within the specifically isolated 55449 cluster; no original 5432 connection, real-environment migration, PR, merge, deployment or Issue close occurred.

@@ -14,6 +14,8 @@ Source starting point: `6073df68569e3829d37b6ac6415a29a0c098b412`.
 
 ## Verified static evidence
 
+**Latest Focused P1 Recovery (2026-10-09):** See ISSUE_276_FOCUSED_P1_RECOVERY_OUTCOME.md for actual A1–A5 PostgreSQL cost decomposition, independent domain and Audit-reference oracle, 16/16 real current-authority concurrency tests, a separately reviewed fix for a Live-only stale-CA MFA error-response oracle, and the remaining query-performance P1. A separate **DRAFT, NOT ACCEPTED** design alternative is in ISSUE_276_AUDIT_QUERY_DESIGN_DECISION_PROPOSAL.md. Current production WIP remains uncommitted; the older snapshots below are historical.
+
 1. `packages/database/prisma/migrations/20260808000700_audit_event_foundation/migration.sql:6-18` allows `audit_events.valet_session_id NULL`, while `event_type`, `entity_type`, and independent `entity_id` are populated without an event-specific CHECK requiring canonical Parking Audit's session reference.
 2. `migration.sql:39-43` only enforces the composite Session FK *when the nullable session reference is supplied*. `entity_id` itself is not an exact-scoped Session FK.
 3. `schema.prisma:1803-1828` includes an index on `(valet_session_id,occurred_at)` and a general Organization/occurredAt index; no dedicated `VALET_SESSION_PARKED` index on `entity_id` or `metadata_json->>'taskId'`.
