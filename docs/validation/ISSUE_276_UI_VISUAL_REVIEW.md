@@ -78,4 +78,4 @@ Current main table header reads “Assigned To”/“المسند إليه” an
 
 No visual before/after comparison is claimed. No browser screenshot or fully mounted interaction evidence was collected. U-003 forbids introducing the new identities yet; separate chronology risk also blocks implementing the eventual historic candidate selection.
 
-**Owner U-004 sign-off: PENDING.** Do not merge, deploy or close Issue #276 based on this packet.
+**Owner U-004 sign-off: PENDING.** The Accepted DEC-102 semantic permission enabled a narrow, **uncommitted Live-only UI prototype** (six columns, current assigned staff separate from proven Parker and original check-in, Vehicles drawer unaffected by design), but this prototype has **NO matched screenshots, mounted/E2E authorization race proof or Owner pixel sign-off**. A separate P1 Audit discoverability / query-budget blocker stops implementation before production review: `ISSUE_276_DEC102_ORPHAN_AUDIT_INDEX_BLOCKER.md`. Do not merge, deploy or close Issue #276 based on this packet.

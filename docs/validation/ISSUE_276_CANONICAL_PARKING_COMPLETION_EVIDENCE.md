@@ -128,4 +128,10 @@ Run the proposed query with 50/100 result sessions, history-heavy and sparse cas
 4. **Equal-time distinct Tasks:** conservative `UNVERIFIABLE` (recommended) or explicitly accepted UUID tie convention without physical chronology claim.
 5. **Missing/suspect candidate:** `NO_RECORD` vs `UNVERIFIABLE`, fail-closed semantics and minimum non-PII provenance DTO.
 
-Do not introduce history API/DTO/UI until these and Issues272–278/U-003 are formally accepted. **TASK 5 Phase A only.**
+**Historical proposal snapshot above.** The Owner subsequently Accepted the canonical actor/proof/tie/privacy/API semantics in [DEC-102](../decisions/DEC-102_LIVE_OPERATIONS_HISTORICAL_STAFF_ATTRIBUTION.md) (2026-10-09). That acceptance authorizes implementation, but does **not** certify audit-record discoverability, row-lock/revoker safety or PostgreSQL query plans.
+
+## H. Post-acceptance implementation-time P1 finding
+
+The exact schema permits `VALET_SESSION_PARKED` AuditEvent with `valet_session_id=NULL` and `entity_id=` an authorized session UUID: `packages/database/prisma/migrations/20260808000700_audit_event_foundation/migration.sql:6-18,39-43`. The existing `audit_events_valet_session_id_occurred_at_idx` (`:23-25`) does not support efficient lookup of these otherwise relevant orphan/malformed rows by `entity_id` or `metadata_json.taskId`. A Task-first completion reader that subsequently selects only Audits by `valet_session_id=ANY(scoped_page_ids)` could miss contradiction and misclassify `NO_RECORD/PROVEN`. General Organization/occurredAt index existence is not measured proof of bounded entity lookup.
+
+**DEC-102 §58–59 requires stopping** rather than silently weakening orphan classification or selecting a new arbitrary per-session history cap. No new index/migration was approved. The focused alternatives, proposed partial-index shape, required disposable PostgreSQL `EXPLAIN (ANALYZE, BUFFERS)`, and remaining tests are in `ISSUE_276_DEC102_ORPHAN_AUDIT_INDEX_BLOCKER.md`. The uncommitted SQL/API/UI code is **not released**. No DB fixtures or production/QA data were touched.

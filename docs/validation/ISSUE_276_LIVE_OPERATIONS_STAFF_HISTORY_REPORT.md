@@ -1,6 +1,6 @@
 # Issue #276 — Live Operations staff history / Task 5 diagnostic report
 
-**Status: DIAGNOSTIC_READY + OWNER SECURITY/CHRONOLOGY DECISIONS ACCEPTED IN DEC-102 — PRODUCTION IMPLEMENTATION/POSTGRESQL/U004 STILL PENDING.**
+**Status: DEC-102 ACCEPTED — IMPLEMENTATION STOPPED AT P1 ORPHAN AUDIT DISCOVERABILITY / UNMEASURED QUERY COST.**
 
 **2026-10-09 decision update:** The Owner accepted the six recommendations for Issue #276; binding [DEC-102](../decisions/DEC-102_LIVE_OPERATIONS_HISTORICAL_STAFF_ATTRIBUTION.md) selects name-only historical read-time identity, Live-only API excluding Vehicles, exact CA/LM session-in-transaction reauthorization, paired Task/Dispatch/Audit proof with actor agreement, conservative event-time tie/conflict handling, and three-valued provenance. The later diagnostic paragraphs and original STOP/status table below are a **historic pre-acceptance snapshot**. No production query/contract/UI, database tests or U-004 approval was added by this documentation-only acceptance.
 
@@ -126,4 +126,14 @@ The **recommended** U-003 packet now favors a separate, strict, Live Operations-
 
 Independent reviewer findings and exact final validation are supplied in the final Task 5 handoff. No claim of complete fix, real-device verification, PostgreSQL execution or independent security PASS is made merely from this diagnostic.
 
-**TASK 5 DIAGNOSTIC READY — U003 APPROVAL REQUIRED; CANONICAL COMPLETION EVENT ORDERING ALSO REQUIRES APPROVAL.**
+**Historical snapshot above:** original pre-DEC-102 U003/chronology approval warnings were superseded by Accepted DEC-102. The following continuation records the later, *different implementation-time* blocker.
+
+## 9. DEC-102 authorized implementation continuation, stopped at new P1
+
+**Source:** Accepted DEC-102 / branch HEAD `6073df68569e3829d37b6ac6415a29a0c098b412`; current `origin/main` `698bcb6044f72844008ffa49ef085f11471f53e1` unchanged; primary Owner checkout dirty files preserved. An isolated #276 worktree has **uncommitted, unshipped prototype changes** in the Live-only strict Contracts, API read, shared-page transaction refactor, purpose-specific Staff-session authorization, history projection and Live-only table/drawer. Existing Vehicles response and Retrieval Queue are intended to remain unaffected, but final integration/parity is **not** established without PostgreSQL and mounted/E2E evidence.
+
+**P1 blocker:** canonical Audit table allows `VALET_SESSION_PARKED` rows with null `valet_session_id` but `entity_id` equal to an authorized session or `metadata_json.taskId` referring to its Task. `audit_events(valet_session_id,occurred_at)` index cannot discover these with the prototype's current indexed scan, so an orphan/contradiction could be missed, violating DEC-102 §§4–6. No approved or proven bounded partial index or PostgreSQL query plan is available. **Separate decision-ready proposal:** `ISSUE_276_DEC102_ORPHAN_AUDIT_INDEX_BLOCKER.md`. Do **not** weaken `UNVERIFIABLE` semantics, introduce an arbitrary cap, add an unapproved schema migration or ship the incomplete reader.
+
+**Actual safe checks on the uncommitted prototype:** Contracts old/new strict tests 8/8 PASS; API cursor 2/2 PASS; canonical projection mock tests 15/15 PASS; Live API fake-transaction tests 3/3 PASS after the authorization module was created; authorization fake-transaction tests 5/5 PASS; Dashboard staff selector 5/5, Live transport 1/1, existing synthetic diagnostic 3/3 PASS. API/Contracts/Dashboard TypeScript typechecks PASS after new authorization file appeared. These checks do **not** execute the SQL reader, prove lock/revoker interleavings, query budget, or visual U-004. Pre-existing stale Dashboard presentation assertion remains 7/8 at base main. **No isolated PG connection**, EXPLAIN, mounted/E2E, local QA or screenshots were run; no migration, PR, merge, deploy or Issue close occurred.
+
+**STOP result:** DEC-102 remains **Accepted**, but the intended production source is **not review-ready, committed or pushed**. Implementation security/performance and three independent final production reviews are incomplete; U-004 sign-off pending. The primary Owner checkout is unchanged.
