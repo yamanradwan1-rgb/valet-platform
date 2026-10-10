@@ -28,6 +28,8 @@ export function PhysicalResourcesPanel(props: {
   readonly identityGeneration: number;
   readonly location: ManagementLocation;
   readonly scopeKey: string;
+  /** Only the authorized Keys workspace opts into its contextual help. */
+  readonly fromKeysWorkspace?: boolean | undefined;
 }) {
   const { locale } = useDashboardLocale();
   const t = physicalResourcesCopy(locale);
@@ -190,6 +192,7 @@ export function PhysicalResourcesPanel(props: {
       </div>
       {zoneOpen ? (
         <ParkingZoneCreateDialog
+          fromKeysWorkspace={props.fromKeysWorkspace}
           api={props.api}
           identityGeneration={props.identityGeneration}
           key={props.scopeKey}
@@ -211,6 +214,7 @@ export function PhysicalResourcesPanel(props: {
       ) : null}
       {createOpen ? (
         <PhysicalResourceCreateDialog
+          fromKeysWorkspace={props.fromKeysWorkspace}
           api={props.api}
           identityGeneration={props.identityGeneration}
           key={`${props.scopeKey}:create:${family}`}
@@ -228,6 +232,7 @@ export function PhysicalResourcesPanel(props: {
       ) : null}
       {labelTarget ? (
         <ResourceLabelDialog
+          fromKeysWorkspace={props.fromKeysWorkspace}
           api={props.api}
           key={`${props.scopeKey}:label:${labelTarget.kind}:${labelTarget.id}`}
           kind={labelTarget.kind}

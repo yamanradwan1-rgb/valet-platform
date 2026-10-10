@@ -6,7 +6,7 @@ import type {
   SessionOverviewEntry,
 } from "@valet/contracts";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { SessionDrawer } from "./session-drawer";
 import { operationsVehicleSecondary } from "../operations-presentation";
@@ -26,6 +26,7 @@ import {
 } from "./live-operations-presentation";
 
 interface LiveOperationsTableProps {
+  readonly help?: ReactNode;
   readonly canNext: boolean;
   readonly canPrevious: boolean;
   readonly error: Error | null;
@@ -78,6 +79,7 @@ export function LiveOperationsTable(props: LiveOperationsTableProps) {
             ) : (
               rows.map((item) => (
                 <LiveOperationsRow
+                  help={props.help}
                   item={item}
                   key={item.sessionId}
                   locale={props.locale}
@@ -104,10 +106,12 @@ function StateRow({ text }: { readonly text: string }) {
 }
 
 function LiveOperationsRow({
+  help,
   item,
   locale,
   location,
 }: {
+  readonly help?: ReactNode;
   readonly item: LiveSessionOverviewEntry | SessionOverviewEntry;
   readonly locale: DashboardLocale;
   readonly location: ManagementLocation;
@@ -182,6 +186,7 @@ function LiveOperationsRow({
       {open && typeof document !== "undefined"
         ? createPortal(
             <SessionDrawer
+              help={help}
               {...(hasLiveSessionHistory(item) ? { history: item } : {})}
               item={item}
               locale={locale}

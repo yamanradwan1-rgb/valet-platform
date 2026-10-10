@@ -3,6 +3,7 @@ import type {
   ManagementLocation,
   SessionOverviewEntry,
 } from "@valet/contracts";
+import type { ReactNode } from "react";
 import type { DashboardLocale } from "../../../lib/i18n/locale";
 import { operationsCopy } from "../operations-copy";
 import { sessionTone } from "../operations-labels";
@@ -27,12 +28,14 @@ function resourceLabel(resource: SessionOverviewEntry["parkingSpot"]): string {
 }
 
 export function SessionDrawer({
+  help,
   history,
   item,
   locale,
   location,
   onClose,
 }: {
+  readonly help?: ReactNode;
   // Only Live explicitly supplies protected history. Vehicles never passes it.
   readonly history?: Pick<
     LiveSessionOverviewEntry,
@@ -59,6 +62,7 @@ export function SessionDrawer({
     .join(" · ");
   return (
     <OperationsDrawer
+      help={help}
       label={t.details}
       onClose={onClose}
       subtitle={<bdi>{vehicle}</bdi>}

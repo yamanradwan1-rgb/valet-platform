@@ -10,7 +10,7 @@ import type {
   UpdateLocationMapPointRequest,
 } from "@valet/contracts";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
@@ -28,6 +28,7 @@ import { useMapParkingZones } from "./use-map-parking-zones";
 import type { MapSetupReloadResult } from "./use-map-setup-state";
 
 export function MapSetupPanel(props: {
+  readonly help?: ReactNode;
   readonly api: DashboardApiClient;
   readonly areas: readonly LocationMapArea[];
   readonly error: Error | null;
@@ -77,6 +78,7 @@ export function MapSetupPanel(props: {
     <aside className={reference.panel} aria-label={t.mapSetup} hidden={props.hidden} role="region">
       <div className={reference.panelHeader}>
         <h2>{t.zonesAreas}</h2>
+        {props.help}
         <span className={reference.panelCount}>{props.points.length + props.areas.length}</span>
       </div>
       <div className={reference.panelBody}>

@@ -1,4 +1,5 @@
 import type { ManagementLocation, TaskOverviewEntry } from "@valet/contracts";
+import type { ReactNode } from "react";
 import { operationsCopy } from "../operations-copy";
 import {
   formatOperationsTime,
@@ -15,6 +16,7 @@ import {
 } from "../operations-ui";
 
 export function TaskDrawer(props: {
+  readonly help?: ReactNode;
   readonly item: TaskOverviewEntry;
   readonly locale: "en" | "ar";
   readonly location: ManagementLocation;
@@ -25,6 +27,7 @@ export function TaskDrawer(props: {
     formatOperationsTime(value, props.location.timezone, props.locale);
   return (
     <OperationsDrawer
+      help={props.help}
       label={t.details}
       onClose={props.onClose}
       subtitle={operationsTaskTypeLabel(props.item.taskType, props.locale)}

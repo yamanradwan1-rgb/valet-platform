@@ -5,6 +5,7 @@ import { Download, Printer, X } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { FocusDialog } from "../../../components/presentation/focus-dialog";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { administrationErrorMessage } from "../administration-error";
@@ -27,6 +28,7 @@ export function ResourceLabelDialog(props: {
   readonly onClose: () => void;
   readonly resourceId: string;
   readonly scopeKey: string;
+  readonly fromKeysWorkspace?: boolean | undefined;
 }) {
   const { locale } = useDashboardLocale();
   const t = physicalResourcesCopy(locale);
@@ -127,7 +129,8 @@ export function ResourceLabelDialog(props: {
       <FocusDialog label={t.resourceLabel} onClose={props.onClose}>
         <div className={styles.toolbar}>
           <h2 className={styles.dialogTitle}>{t.resourceLabel}</h2>
-          <button aria-label={t.cancel} className={styles.quiet} onClick={props.onClose} type="button"><X aria-hidden="true" size={16} /></button>
+          <button aria-label={t.cancel} className={`${styles.quiet} ${presentation.resourceClose}`} onClick={props.onClose} type="button"><X aria-hidden="true" size={16} /></button>
+          {props.fromKeysWorkspace ? <span className={presentation.resourceHelp}><ScopedContextHelp helpKey="keys.resourceDetails" /></span> : null}
         </div>
         {busy && label === null ? <div className={styles.empty}>…</div> : null}
         {error ? <div className={styles.error} role="alert">{error}</div> : null}

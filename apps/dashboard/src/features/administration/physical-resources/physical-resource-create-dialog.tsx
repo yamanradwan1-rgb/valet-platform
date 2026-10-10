@@ -4,6 +4,7 @@ import type { ParkingZoneSelector } from "@valet/contracts";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { FocusDialog } from "../../../components/presentation/focus-dialog";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import {
@@ -32,6 +33,7 @@ export function PhysicalResourceCreateDialog(props: {
   readonly onCreated: (resourceId: string) => void;
   readonly onReconcile: () => void;
   readonly scopeKey: string;
+  readonly fromKeysWorkspace?: boolean | undefined;
 }) {
   const { locale } = useDashboardLocale();
   const t = physicalResourcesCopy(locale);
@@ -44,6 +46,7 @@ export function PhysicalResourceCreateDialog(props: {
     null,
   );
   const [zoneOpen, setZoneOpen] = useState(false);
+  const [helpMounted, setHelpMounted] = useState(false);
   const addZoneRef = useRef<HTMLButtonElement>(null);
   const restoreZoneFocus = useRef(false);
   const zonePage = useParkingZonePage(
@@ -62,6 +65,13 @@ export function PhysicalResourceCreateDialog(props: {
   const [mfaOpen, setMfaOpen] = useState(false);
   const mountedRef = useRef(true);
   const currentScopeKeyRef = useRef(props.scopeKey);
+
+  useEffect(() => {
+    let active = true;
+    // Keep FocusDialog's original first-field focus before the help mounts.
+    queueMicrotask(() => { if (active) setHelpMounted(true); });
+    return () => { active = false; };
+  }, []);
 
   useLayoutEffect(() => {
     currentScopeKeyRef.current = props.scopeKey;
@@ -150,6 +160,7 @@ export function PhysicalResourceCreateDialog(props: {
   if (zoneOpen)
     return (
       <ParkingZoneCreateDialog
+        fromKeysWorkspace={props.fromKeysWorkspace}
         api={props.api}
         identityGeneration={props.identityGeneration}
         locationId={props.locationId}
@@ -173,7 +184,10 @@ export function PhysicalResourceCreateDialog(props: {
   return (
     <div className={presentation.dialogHost}>
       <FocusDialog label={title} onClose={props.onClose}>
-        <h2>{title}</h2>
+        <div className={presentation.headingRow}>
+          <h2>{title}</h2>
+          {props.fromKeysWorkspace && helpMounted ? <ScopedContextHelp helpKey="keys.resourceDetails" /> : null}
+        </div>
         <form
           className={presentation.form}
           onSubmit={(event) => {

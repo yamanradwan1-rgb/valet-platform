@@ -1,6 +1,7 @@
 "use client";
 
 import type { LiveOperationsMapResponse } from "@valet/contracts";
+import type { ReactNode } from "react";
 
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { operationsCopy } from "../operations-copy";
@@ -11,6 +12,7 @@ import reference from "./maps-reference.module.css";
 type LiveMapItem = LiveOperationsMapResponse["items"][number];
 
 export function LiveMapPanel(props: {
+  readonly help?: ReactNode;
   readonly canNext: boolean;
   readonly canPrevious: boolean;
   readonly hidden: boolean;
@@ -25,6 +27,7 @@ export function LiveMapPanel(props: {
     <aside className={reference.panel} aria-label={t.liveMode} hidden={props.hidden}>
       <div className={reference.panelHeader}>
         <h2>{t.liveMode}</h2>
+        {props.help}
         <span className={reference.panelCount}>{props.items.length} · {t.currentPageOnly}</span>
       </div>
       <div className={reference.panelBody}>

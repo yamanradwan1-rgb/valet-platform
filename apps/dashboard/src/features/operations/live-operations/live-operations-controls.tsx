@@ -11,6 +11,7 @@ type LiveOperationsView = "SESSIONS" | "RETRIEVAL_QUEUE";
 export function LiveFilters({
   countsError,
   filter,
+  help,
   locale,
   onChange,
   onRetrieval,
@@ -19,6 +20,7 @@ export function LiveFilters({
 }: {
   readonly countsError: Error | null;
   readonly filter: LiveOperationsFilter;
+  readonly help?: ReactNode;
   readonly locale: "en" | "ar";
   readonly onChange: (filter: LiveOperationsFilter) => void;
   readonly onRetrieval: () => void;
@@ -66,6 +68,7 @@ export function LiveFilters({
               : "Filters apply across this Location"}
         </span>
       )}
+      {help}
     </div>
   );
 }

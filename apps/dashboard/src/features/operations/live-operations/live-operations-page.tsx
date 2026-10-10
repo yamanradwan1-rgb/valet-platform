@@ -16,6 +16,7 @@ import { OperationsPage, styles } from "../operations-ui";
 import { useCursorPage } from "../use-cursor-page";
 import { useOperationsContext } from "../use-operations-context";
 import { useAuthoritativeRead } from "../../administration/use-authoritative-read";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import {
   liveOperationsKpis,
   type LiveOperationsFilter,
@@ -97,8 +98,11 @@ function LiveOperationsContent() {
     <div className={styles.liveOperations}>
       <OperationsPage
         action={
-          <span aria-hidden="true" className={styles.liveHeaderActionSpace} />
+          <span className={styles.liveHeaderActionSpace}>
+            <ScopedContextHelp helpKey="live.kpis" />
+          </span>
         }
+        help={<ScopedContextHelp helpKey="live.page" />}
         subtitle={t.liveSubtitle}
         title={t.liveTitle}
       >
@@ -129,6 +133,7 @@ function LiveOperationsContent() {
           />
         </div>
         <LiveFilters
+          help={<ScopedContextHelp helpKey={view === "RETRIEVAL_QUEUE" ? "live.retrieval" : "live.sessions"} />}
           countsError={counts.error}
           filter={filter}
           locale={locale}
@@ -169,6 +174,7 @@ function LiveOperationsContent() {
           />
         ) : (
           <LiveOperationsTable
+            help={<ScopedContextHelp helpKey="live.sessionDetail" />}
             key={`sessions:${listRevision}:${filter}:${page.cursor}`}
             canNext={Boolean(sessions.data?.nextCursor)}
             canPrevious={page.canPrevious}

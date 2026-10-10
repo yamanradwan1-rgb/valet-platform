@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { PhysicalResourcesPanel } from "../../administration/physical-resources/physical-resources-panel";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import localStyles from "../accountability.module.css";
 import { selectedOperationsLocation } from "../operations-location";
 import { operationsCopy } from "../operations-copy";
@@ -28,6 +29,7 @@ export function KeysPage() {
 
   return (
     <OperationsPage
+      help={location && (exactLocation || configurationAllowed) ? <ScopedContextHelp helpKey="keys.page" /> : undefined}
       referenceHeader
       subtitle={t.keysSubtitle}
       title={t.keysTitle}
@@ -56,8 +58,10 @@ export function KeysPage() {
               <span>
                 {location.status === "ACTIVE" ? t.operational : t.inactive}
               </span>
+              <ScopedContextHelp helpKey="keys.configuration" />
             </div>
             <PhysicalResourcesPanel
+              fromKeysWorkspace
               api={dashboard.api}
               identityGeneration={dashboard.identityGeneration}
               key={`${scopeKey}:physical:${location.locationId}`}

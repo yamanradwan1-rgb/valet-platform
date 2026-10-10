@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import type { IncidentOverviewEntry } from "@valet/contracts";
 
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { readIncidents } from "../operations-api";
 import { selectedOperationsLocation } from "../operations-location";
 import { formatOperationsTime } from "../operations-presentation";
@@ -70,6 +71,7 @@ function IncidentsContent() {
     );
   return (
     <OperationsPage
+      help={<ScopedContextHelp helpKey="incidents.page" />}
       referenceHeader
       subtitle={t.incidentsSubtitle}
       subtitleMargin="half"
@@ -83,6 +85,7 @@ function IncidentsContent() {
         <span>
           <bdi dir="ltr">{timezone}</bdi>
         </span>
+        <ScopedContextHelp helpKey="incidents.list" />
       </div>
       <ReadState
         empty={read.data?.items.length === 0}
@@ -193,6 +196,7 @@ function IncidentDrawer({
   const copy = incidentCopy(locale);
   return (
     <OperationsDrawer
+      help={<ScopedContextHelp helpKey="incidents.detail" />}
       label={`${t.details}: ${incidentTypeLabel(item.type, locale)}`}
       onClose={onClose}
     >
