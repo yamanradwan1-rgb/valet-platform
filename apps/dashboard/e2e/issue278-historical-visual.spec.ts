@@ -103,6 +103,13 @@ for (const route of routes) {
       await setAppearance(page, variant);
       await page.waitForLoadState("networkidle", { timeout: 14_000 });
       await capture(page, route, variant.name);
+      if (route === "/analytics" && variant.width === 390) {
+        const charts = page.getByTestId("analytics-chart-panel");
+        await charts.first().scrollIntoViewIfNeeded();
+        await capture(page, route, variant.name + "-activity-scrolled");
+        await charts.last().scrollIntoViewIfNeeded();
+        await capture(page, route, variant.name + "-duration-scrolled");
+      }
     }
     await setAppearance(page, variants[0]);
     if (route === "/maps-zones") {

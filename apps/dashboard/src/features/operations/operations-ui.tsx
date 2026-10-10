@@ -34,7 +34,7 @@ export function OperationsPage(props: {
           ) : (
             <><h1 className={styles.title}>{props.title}</h1><p className={subtitleClass}>{props.subtitle}</p></>
           )}
-          {props.help}
+          {props.help ? <span className={styles.pageHelpAnchor}>{props.help}</span> : null}
         </div>
         {props.action}
       </div>
