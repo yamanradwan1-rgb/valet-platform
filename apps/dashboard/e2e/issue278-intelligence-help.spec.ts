@@ -133,6 +133,12 @@ test("loaded authorized report displays export help without triggering an export
   await enterManagerReports(page);
   const dialog = await loadReport(page, "DAILY");
   await expect(dialog.getByTestId("report-preview-content")).toBeVisible();
+  await page.waitForLoadState("networkidle", { timeout: 12_000 });
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") errors.push(message.text());
+  });
   const before = [...fixture.counts.entries()].sort();
   const key = "reports.export";
   await trigger(page, key).click();
@@ -142,4 +148,5 @@ test("loaded authorized report displays export help without triggering an export
   await page.keyboard.press("Escape");
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("button", { name: /Export CSV/i })).toBeEnabled();
+  expect(errors).toEqual([]);
 });

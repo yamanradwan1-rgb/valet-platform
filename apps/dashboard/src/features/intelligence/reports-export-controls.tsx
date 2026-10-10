@@ -1,6 +1,5 @@
 import type { ExportFormat, ReportKind } from "@valet/contracts";
 import { ScopedContextHelp } from "../help/scoped-context-help";
-import helpStyles from "./intelligence-help.module.css";
 
 import { reportsCopy } from "./reports-copy";
 import dialogStyles from "./report-preview-dialog.module.css";
@@ -34,9 +33,6 @@ export function ReportsExportControls(props: {
       <div className={dialogStyles.exportCopy}>
         <p>
           {props.t.pdfNeutral}
-          <span className={helpStyles.inlineHelp}>
-            <ScopedContextHelp helpKey="reports.export" />
-          </span>
         </p>
         {!props.advisoryPending && !props.available ? (
           <p role="status">{props.t.exportUnavailable}</p>
@@ -46,6 +42,7 @@ export function ReportsExportControls(props: {
         ) : null}
       </div>
       <div className={dialogStyles.exportActions}>
+        {props.available ? <ScopedContextHelp helpKey="reports.export" /> : null}
         <button
           aria-label={`${props.t.exportCsv}: ${reportName(props.kind, props.t)}`}
           className={dialogStyles.dialogSecondaryButton}
