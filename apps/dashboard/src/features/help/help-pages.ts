@@ -1,0 +1,136 @@
+import type { ContextHelpCopy } from "./context-help-types";
+
+export const helppages = {
+  "workspace.page": {
+    en: { title: "Workspace",
+      body: "This entry confirms that your management workspace is available. Select an authorized organization or Location before using operational pages; this panel alone is not proof of vehicle, employee or payment activity." },
+    ar: { title: "مساحة العمل",
+      body: "تؤكد هذه الصفحة أن مساحة الإدارة متاحة لك. اختر الشركة أو الموقع المخوّل قبل استخدام صفحات التشغيل؛ ظهور هذه اللوحة وحده لا يثبت وجود نشاط للمركبات أو الموظفين أو المدفوعات." },
+  },
+  "overview.page": {
+    en: { title: "Overview",
+      body: "View operational indicators for the selected company or Location and calendar period. Company totals and individual-Location figures may represent different authorized scopes; figures are reports, not live commands or proof of payment settlement." },
+    ar: { title: "نظرة عامة",
+      body: "اطّلع على مؤشرات التشغيل للشركة أو الموقع المحدد وخلال الفترة المختارة. قد تختلف بيانات الشركة عن بيانات موقع واحد بحسب نطاق صلاحيتك؛ المؤشرات تقارير وليست أوامر مباشرة أو إثباتاً لتسوية المدفوعات." },
+  },
+  "live.page": {
+    en: { title: "Live Operations",
+      body: "Watch the authorized Location's current session states and retrieval queue. A session status describes vehicle workflow; an active task assignee is separate from a historical Parking actor, who is identified only where completion evidence is verified. Refresh and filters do not themselves dispatch work." },
+    ar: { title: "العمليات المباشرة",
+      body: "راقب حالات جلسات المركبات وطابور الاسترجاع في الموقع المخوّل. حالة الجلسة تصف سير المركبة؛ الموظف المكلّف بمهمة نشطة منفصل عن فاعل الركن التاريخي الذي لا تُثبت هويته إلا عند تحقق دليل الإتمام. التحديث والفلاتر لا يرسلان مهاماً بحد ذاتهما." },
+  },
+  "vehicles.page": {
+    en: { title: "Vehicles",
+      body: "Browse the loaded vehicle-session page, filter its displayed states and open details for an authorized Location. Search and state filtering operate on the currently loaded page; they are not a search across all historical records." },
+    ar: { title: "المركبات",
+      body: "استعرض صفحة جلسات المركبات المحمّلة، وصفِّ الحالات وافتح التفاصيل للموقع المخوّل. البحث وتصفية الحالة يطبّقان على الصفحة المحمّلة حالياً، وليس على جميع السجلات التاريخية." },
+  },
+  "tasks.page": {
+    en: { title: "Tasks",
+      body: "Review Parking and Retrieval task records, their types, statuses and associated session details. Assignment and acceptance are task workflow facts; a physically parked, retrieved or released vehicle must be confirmed by its separate session state." },
+    ar: { title: "المهام",
+      body: "راجع مهام الركن والاسترجاع وأنواعها وحالاتها وتفاصيل جلساتها. الإسناد والقبول يخصّان سير المهمة؛ أما ركن المركبة أو استرجاعها أو تسليمها فعلياً فتثبته حالة الجلسة المنفصلة." },
+  },
+  "maps.page": {
+    en: { title: "Maps & Zones",
+      body: "The Live view shows permitted task-scoped positions when a valid signal exists; stale or missing points are not real-time tracking. Setup shows the Location's configurable parking geography where your role allows it. Never infer continuous employee tracking." },
+    ar: { title: "الخرائط والمناطق",
+      body: "تعرض الخريطة المباشرة المواقع المسموح بها أثناء المهام عند توفر إشارة صالحة؛ النقطة القديمة أو المفقودة ليست تتبعاً لحظياً. ويعرض وضع الإعداد مناطق الموقع القابلة للضبط بحسب صلاحيتك. لا تفترض وجود تتبع دائم للموظف." },
+  },
+  "keys.page": {
+    en: { title: "Keys & Spots",
+      body: "Review key-slot custody and parking resources for the selected Location. Operational status is not the same as configuration: editing physical resources is limited to roles allowed in the Configuration tab and does not rewrite past custody." },
+    ar: { title: "المفاتيح والمواقف",
+      body: "راجع حالة خانات المفاتيح وموارد المواقف للموقع المحدد. الحالة التشغيلية ليست إعدادات؛ تعديل الموارد محصور بالأدوار المخوّلة في تبويب التهيئة ولا يغيّر سجل حيازة المفاتيح السابق." },
+  },
+  "incidents.page": {
+    en: { title: "Incidents",
+      body: "Read incident records and the authorized details linked to operational sessions. An incident record is evidence of a report, not an automatic determination of fault or an automatic change of vehicle custody state." },
+    ar: { title: "البلاغات",
+      body: "استعرض بلاغات الحوادث وتفاصيلها المخوّل بعرضها ضمن الجلسات التشغيلية. البلاغ توثيق لواقعة مُبلّغ عنها، وليس حكماً تلقائياً بالمسؤولية أو تغييراً لحالة حيازة المركبة." },
+  },
+  "staff.page": {
+    en: { title: "Employees & Shifts",
+      body: "View staff records or Shift history in separate tabs. Visibility and actions depend on your current Organization/Location authority; employee membership, active Shift and task assignment are different facts." },
+    ar: { title: "الموظفون والورديات",
+      body: "استعرض سجلات الموظفين أو سجل الورديات من تبويبين منفصلين. تعتمد البيانات والإجراءات على صلاحيتك الحالية للشركة أو الموقع؛ عضوية الموظف والوردية النشطة والتكليف بالمهمة أمور مختلفة." },
+  },
+  "locations.page": {
+    en: { title: "Locations",
+      body: "Review managed Locations and their operational details. Creating a Location or changing lifecycle status, where offered, requires the existing authorized flow and may require current MFA; selection alone changes no Location record." },
+    ar: { title: "المواقع",
+      body: "استعرض المواقع المُدارة وتفاصيلها التشغيلية. إنشاء موقع أو تغيير حالته، عند إتاحة ذلك، يمر بالإجراء المخوّل وقد يتطلب تحققاً متعدد العوامل؛ اختيار الموقع لا يعدّل سجله." },
+  },
+  "policies.page": {
+    en: { title: "Policies & Settings",
+      body: "Settings control typed, authorized company defaults and Location overrides. A displayed effective value may be inherited; a Save changes only its own setting after validation, while Service Status is informational and does not enable infrastructure." },
+    ar: { title: "السياسات والإعدادات",
+      body: "تتحكم الإعدادات بالقيم الافتراضية للشركة واستثناءات الموقع المصرّح بها. قد تكون القيمة الفعلية موروثة؛ زر الحفظ يغيّر إعداداً محدداً فقط بعد التحقق، بينما حالة الخدمات معلوماتية ولا تُفعّل البنية التحتية." },
+  },
+  "roles.page": {
+    en: { title: "Roles & Permissions",
+      body: "This page explains the existing fixed staff roles, their scope and conditions. It is a reference table, not a role builder or permission editor; actual access also depends on membership, Location grant, Shift and other security checks." },
+    ar: { title: "الأدوار والصلاحيات",
+      body: "تشرح الصفحة أدوار الموظفين الثابتة ونطاق كل دور وشروطه. هي جدول مرجعي وليست أداة إنشاء أدوار أو تعديل صلاحيات؛ الوصول الفعلي يعتمد أيضاً على العضوية ومنح الموقع والوردية وفحوص الأمان الأخرى." },
+  },
+  "branding.page": {
+    en: { title: "Branding",
+      body: "Configure the approved branding fields for company defaults or an individual Location, as available to your role and plan. Preview or editor values do not grant a feature that the subscription or delivery channel does not support." },
+    ar: { title: "الهوية البصرية",
+      body: "اضبط حقول الهوية البصرية المسموح بها للشركة أو للموقع بحسب الدور والخطة. قيم المعاينة أو المحرر لا تمنح ميزة غير متاحة في الاشتراك أو قناة الإرسال." },
+  },
+  "billing.page": {
+    en: { title: "Billing & Subscription",
+      body: "View the current plan code, subscription state and read-only capability flags. An entitlement says which capabilities are allowed; it does not guarantee that external payment, messaging or maps providers are configured and working." },
+    ar: { title: "الفوترة والاشتراك",
+      body: "استعرض رمز الخطة وحالة الاشتراك والصلاحيات المتاحة للقراءة فقط. السماح بميزة يحدد ما هو متاح تعاقدياً، ولا يضمن تهيئة مزوّد الدفع أو الرسائل أو الخرائط أو عمله." },
+  },
+  "payments.page": {
+    en: { title: "Payments",
+      body: "Review financial summaries and breakdowns for the selected period and authorized company or Location. Service fees, tips and payment-method summaries represent reported data; do not treat them as automatic bank reconciliation or settled-provider proof." },
+    ar: { title: "المدفوعات",
+      body: "راجع الملخصات المالية وتفصيلاتها خلال الفترة المختارة وللشركة أو الموقع المخوّل. الرسوم والإكراميات وملخصات طرق الدفع بيانات تقريرية، وليست مطابقة بنكية تلقائية أو إثبات تسوية لدى مزود الدفع." },
+  },
+  "analytics.page": {
+    en: { title: "Analytics",
+      body: "Compare vehicle activity and duration trends over an authorized calendar period. Coverage and missing-data indications matter when interpreting charts; the visualized period and company/Location scope limit each comparison." },
+    ar: { title: "التحليلات",
+      body: "قارن نشاط المركبات واتجاهات المدد خلال فترة تقويمية مخوّل بعرضها. يجب مراعاة تغطية البيانات والتنبيهات الخاصة بنقصها عند تفسير الرسوم؛ كل مقارنة محدودة بالفترة وبنطاق الشركة أو الموقع المحدد." },
+  },
+  "reports.page": {
+    en: { title: "Reports",
+      body: "Choose an available report, inspect its preview for the selected period and export only when your entitlement permits. A preview is not an exported file; if an export outcome is unknown, verify the result before submitting another download request." },
+    ar: { title: "التقارير",
+      body: "اختر تقريراً متاحاً واعرض معاينته للفترة المحددة، ولا تصدّر إلا إذا سمح الاشتراك. المعاينة ليست ملفاً مُصدّراً؛ وعندما تكون نتيجة التصدير غير مؤكدة تحقّق من النتيجة قبل إعادة الطلب." },
+  },
+  "audit.page": {
+    en: { title: "Audit Log",
+      body: "Read authorized append-only management and operational events with their recorded time, type and permitted technical identifiers. Details depend on the current role and Location; hidden event types stay hidden. Technical actor identifiers are not a historical name snapshot." },
+    ar: { title: "سجل التدقيق",
+      body: "استعرض أحداث الإدارة والتشغيل المسموح بها في سجل تدقيق لا يُعدّل بصمت، مع الوقت والنوع والمعرّفات الفنية المخوّلة. تعتمد التفاصيل على الدور والموقع الحاليين وتبقى الأنواع المحجوبة مخفية. المعرّفات الفنية للفاعل ليست نسخة محفوظة لاسمه التاريخي." },
+  },
+  "contacts.page": {
+    en: { title: "Customers / Visit Contacts",
+      body: "Find authorized customer or vehicle contact references related to visits. Search and any available correction follow existing privacy, reason and permission checks; this is not an unrestricted marketing directory or a way to view another Location's guests." },
+    ar: { title: "العملاء وجهات تواصل الزيارات",
+      body: "ابحث عن مراجع التواصل المصرّح بها للعملاء أو المركبات المرتبطة بالزيارات. يخضع البحث وأي تصحيح متاح لضوابط الخصوصية والسبب والصلاحيات؛ هذه ليست قائمة تسويقية مفتوحة ولا وسيلة لعرض ضيوف موقع آخر." },
+  },
+  "security.page": {
+    en: { title: "Account Security",
+      body: "Manage security for your own signed-in account, including available authentication and session protections. This page operates without requiring a selected operational Location; actions do not grant company role or Location access." },
+    ar: { title: "أمان الحساب",
+      body: "أدر إعدادات أمان حسابك المسجّل، بما فيها وسائل التحقق وحماية الجلسات المتاحة. تعمل هذه الصفحة دون اشتراط اختيار موقع تشغيلي، ولا تمنح إجراءاتها صلاحية شركة أو وصولاً لموقع." },
+  },
+  "help.page": {
+    en: { title: "Help",
+      body: "Read the existing workspace guidance, frequently asked questions and account-security link when eligible. Guidance explains use of the current product but cannot override the server's permissions or provide access to hidden sections." },
+    ar: { title: "المساعدة",
+      body: "اقرأ إرشادات مساحة العمل والأسئلة الشائعة ورابط أمان الحساب عند إتاحته. تشرح الإرشادات الاستخدام الحالي ولا تتجاوز صلاحيات الخادم أو تمنح وصولاً إلى أقسام محجوبة." },
+  },
+  "activation.page": {
+    en: { title: "Activate staff account",
+      body: "Use an authorized invitation to set your account credentials. Invitation data is consumed privately from the link and must not appear in help text, screenshots or error messages; failed or expired invitations require the existing authorized recovery path." },
+    ar: { title: "تفعيل حساب الموظف",
+      body: "استخدم دعوة مخوّلة لإعداد بيانات دخول حساب الموظف. تُقرأ بيانات الدعوة بصورة خاصة من الرابط ولا تظهر في المساعدة أو الصور أو الأخطاء؛ الدعوات غير الصالحة أو المنتهية تتبع مسار المعالجة المخوّل الحالي." },
+  },
+} as const satisfies Record<string, ContextHelpCopy>;
