@@ -2,10 +2,6 @@ name: Manual Security Audit
 
 # This workflow is intentionally NOT triggered by pushes or pull requests.
 on:
-  # One-time bootstrap event exists ONLY in security-audit-bootstrap-once.
-  # The main branch keeps workflow_dispatch only.
-  push:
-    branches: [security-audit-bootstrap-once]
   workflow_dispatch:
     inputs:
       scope:
@@ -225,7 +221,7 @@ jobs:
         continue-on-error: true
         run: |
           options=(-t http://127.0.0.1:3001/docs-json -f openapi -T 16 -I -J api.json -r api.html)
-          if [ '${{ inputs.active_api_scan }}' != 'true' ] && [ '${{ github.event_name }}' != 'push' ]; then options+=(-S); fi
+          if [ '${{ inputs.active_api_scan }}' != 'true' ]; then options+=(-S); fi
           set +e
           timeout 23m docker run --rm --network host \
             -v "$PWD/security-reports:/zap/wrk/:rw" \
