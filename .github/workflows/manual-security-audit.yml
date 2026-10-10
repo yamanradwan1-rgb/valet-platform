@@ -1,0 +1,248 @@
+name: Manual Security Audit
+
+# This workflow is intentionally NOT triggered by pushes or pull requests.
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: Scans to run
+        type: choice
+        required: true
+        default: all
+        options: [all, static, dast]
+      active_api_scan:
+        description: Allow ZAP active requests against disposable local test API
+        type: boolean
+        required: true
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manual-security-audit
+  cancel-in-progress: false
+
+jobs:
+  static:
+    if: inputs.scope != 'dast'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Prepare reports
+        run: mkdir -p security-reports
+
+      - name: Semgrep Community SAST
+        id: semgrep
+        continue-on-error: true
+        run: |
+          pipx install semgrep
+          "$HOME/.local/bin/semgrep" scan --config p/security-audit --config p/owasp-top-ten \
+            --metrics=off --disable-version-check --json \
+            --output security-reports/semgrep.json \
+            --exclude '**/node_modules/**' --exclude '**/dist/**' \
+            --exclude '**/.next/**' apps packages scripts infra
+
+      - name: Trivy dependencies and IaC
+        id: trivy
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,misconfig
+          format: json
+          output: security-reports/trivy.json
+          exit-code: '0'
+
+      - name: Gitleaks Git history (sanitized report)
+        id: gitleaks
+        continue-on-error: true
+        run: |
+          docker run --rm -v "$PWD:/src:ro" -v "$RUNNER_TEMP:/out" -w /src \
+            ghcr.io/gitleaks/gitleaks:v8.30.1 git \
+            --log-opts=--all --redact=100 --exit-code 0 \
+            --report-format json --report-path /out/gitleaks-raw.json /src
+          python3 - <<'PY'
+          import json, os, pathlib
+          raw = pathlib.Path(os.environ['RUNNER_TEMP']) / 'gitleaks-raw.json'
+          findings = json.loads(raw.read_text())
+          # Never upload raw excerpts, secret matches, authors, or credential values.
+          allowed = ('RuleID', 'Description', 'File', 'StartLine', 'Commit', 'Fingerprint')
+          filtered = [{k: item[k] for k in allowed if k in item} for item in findings]
+          pathlib.Path('security-reports/gitleaks.json').write_text(json.dumps(filtered, indent=2))
+          PY
+
+      - name: OSV Scanner dependencies
+        id: osv
+        continue-on-error: true
+        run: |
+          set +e
+          docker run --rm -v "$PWD:/src:ro" ghcr.io/google/osv-scanner:v2.3.3 \
+            scan source --recursive --format=json /src > security-reports/osv.json
+          code=$?
+          set -e
+          python3 -m json.tool security-reports/osv.json > /dev/null
+          test "$code" -le 1
+
+      - name: pnpm audit
+        id: pnpm_audit
+        continue-on-error: true
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.34.5 --activate
+          set +e
+          pnpm audit --json > security-reports/pnpm-audit.json
+          code=$?
+          set -e
+          python3 -m json.tool security-reports/pnpm-audit.json > /dev/null
+          test "$code" -le 1
+
+      - name: Summarize and check reports
+        if: always()
+        env:
+          SEMGREP_OUTCOME: ${{ steps.semgrep.outcome }}
+          TRIVY_OUTCOME: ${{ steps.trivy.outcome }}
+          GITLEAKS_OUTCOME: ${{ steps.gitleaks.outcome }}
+          OSV_OUTCOME: ${{ steps.osv.outcome }}
+          PNPM_AUDIT_OUTCOME: ${{ steps.pnpm_audit.outcome }}
+        run: python3 scripts/security/summarize_audit.py static
+
+      - name: Save private static reports (7 days)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-security-${{ github.run_id }}
+          path: security-reports/
+          retention-days: 7
+          if-no-files-found: error
+
+  dast:
+    if: inputs.scope != 'static'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    env:
+      NODE_ENV: development
+      PORT: '3001'
+      DATABASE_URL: postgresql://valet_runtime:valet_runtime_e2e@127.0.0.1:5432/valet
+      MIGRATION_DATABASE_URL: postgresql://valet:valet@127.0.0.1:5432/valet
+      TEST_DATABASE_URL: postgresql://valet:valet@127.0.0.1:5432/valet
+      API_ORIGIN: http://127.0.0.1:3001
+      STAFF_AUTH_ALLOWED_ORIGINS: http://localhost:3003,http://127.0.0.1:3003
+      ANTI_ABUSE_HMAC_SECRET_B64URL: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      HANDOFF_VERIFIER_HMAC_SECRET_B64URL: AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE
+      MFA_TOTP_ENCRYPTION_KEY_B64URL: AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI
+      MFA_RECOVERY_HMAC_SECRET_B64URL: AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM
+      STAFF_PUSH_RETRIEVAL_CREATION_ENABLED: 'false'
+      STAFF_PUSH_WORKER_SENDING_ENABLED: 'false'
+      GUEST_PUSH_REGISTRATION_ENABLED: 'false'
+      GUEST_PUSH_WORKER_SENDING_ENABLED: 'false'
+      PAYMENT_PROVIDER: disabled
+      SMS_PROVIDER: mock
+      VAYLET_LOCAL_DISABLE_MFA: 'false'
+      STAFF_PUSH_RETRIEVAL_POLICY_VERSION: '1'
+      STAFF_PUSH_RETRIEVAL_INTENT_TTL_SECONDS: '300'
+      STAFF_PUSH_RETRIEVAL_MAX_ATTEMPTS: '4'
+      STAFF_PUSH_PROVIDER_CALL_TIMEOUT_SECONDS: '10'
+      STAFF_PUSH_LEASE_DURATION_SECONDS: '30'
+      STAFF_PUSH_RETRY_MINIMUM_SECONDS: '10'
+      STAFF_PUSH_RETRY_CAP_SECONDS: '60'
+      STAFF_PUSH_INTENT_DELIVERY_RETENTION_DAYS: '7'
+      STAFF_PUSH_TERMINAL_REGISTRATION_RETENTION_DAYS: '30'
+      STAFF_PUSH_ACTIVE_REGISTRATION_STALE_DAYS: '30'
+      STAFF_PUSH_CLEANUP_INTERVAL_HOURS: '24'
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: valet
+          POSTGRES_PASSWORD: valet
+          POSTGRES_DB: valet
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U valet -d valet"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+          run_install: false
+      - name: Prepare disposable PostgreSQL and apps
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter @valet/database migrate:deploy
+          pnpm --filter @valet/database runtime:provision
+          pnpm --filter @valet/api build
+
+      - name: Start localhost API and Dashboard
+        run: |
+          mkdir -p security-reports
+          chmod 777 security-reports
+          nohup pnpm --filter @valet/api start > "$RUNNER_TEMP/api.log" 2>&1 &
+          for i in $(seq 1 90); do
+            curl -fsS http://127.0.0.1:3001/health/live > /dev/null 2>&1 && break
+            sleep 1
+          done
+          curl --fail --silent --show-error http://127.0.0.1:3001/docs-json > /dev/null
+          nohup pnpm --filter @valet/dashboard dev > "$RUNNER_TEMP/dashboard.log" 2>&1 &
+          for i in $(seq 1 90); do
+            curl -fsS http://127.0.0.1:3003/ > /dev/null 2>&1 && break
+            sleep 1
+          done
+          curl --fail --silent --show-error http://127.0.0.1:3003/ > /dev/null
+
+      - name: ZAP Dashboard passive baseline
+        id: zap_dashboard
+        continue-on-error: true
+        run: |
+          set +e
+          timeout 12m docker run --rm --network host \
+            -v "$PWD/security-reports:/zap/wrk/:rw" \
+            ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+            -t http://127.0.0.1:3003/ -m 2 -T 8 -I \
+            -J dashboard.json -r dashboard.html
+          code=$?
+          set -e
+          echo "ZAP Dashboard exit: $code" >> "$GITHUB_STEP_SUMMARY"
+          test "$code" -le 2
+
+      - name: ZAP API (active only against disposable localhost)
+        id: zap_api
+        continue-on-error: true
+        run: |
+          options=(-t http://127.0.0.1:3001/docs-json -f openapi -T 16 -I -J api.json -r api.html)
+          if [ '${{ inputs.active_api_scan }}' != 'true' ]; then options+=(-S); fi
+          set +e
+          timeout 23m docker run --rm --network host \
+            -v "$PWD/security-reports:/zap/wrk/:rw" \
+            ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py "${options[@]}"
+          code=$?
+          set -e
+          echo "ZAP API exit: $code" >> "$GITHUB_STEP_SUMMARY"
+          test "$code" -le 2
+
+      - name: Summarize and check ZAP reports
+        if: always()
+        env:
+          ZAP_DASHBOARD_OUTCOME: ${{ steps.zap_dashboard.outcome }}
+          ZAP_API_OUTCOME: ${{ steps.zap_api.outcome }}
+        run: python3 scripts/security/summarize_audit.py dast
+
+      - name: Save private ZAP HTML and JSON (7 days)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dast-security-${{ github.run_id }}
+          path: security-reports/
+          retention-days: 7
+          if-no-files-found: error
