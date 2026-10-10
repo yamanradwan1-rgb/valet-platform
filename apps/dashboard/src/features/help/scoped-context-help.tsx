@@ -1,6 +1,6 @@
 "use client";
 
-import type { RefObject } from "react";
+import { useMemo, type RefObject } from "react";
 
 import { useProtectedDashboard } from "../../components/foundation/protected-dashboard-context";
 import { selectedScopeAuthorityKey } from "../../components/foundation/selected-scope-revalidation-policy";
@@ -22,6 +22,25 @@ export function ScopedContextHelp({
 }) {
   const dashboard = useProtectedDashboard();
   const { locale } = useDashboardLocale();
+  // A route-owned heading can detach together with the old help trigger.
+  // Resolve an existing, connected control at cleanup time instead of
+  // capturing an obsolete element. The shell topbar survives normal route
+  // transitions; a newly mounted page control covers shell teardown.
+  const connectedFallbackRef = useMemo<RefObject<HTMLElement | null>>(
+    () => ({
+      get current() {
+        if (typeof document === "undefined") return null;
+        const candidates = document.querySelectorAll<HTMLElement>(
+          ".topbar button:not([disabled]), main button:not([disabled]), " +
+          "main input:not([disabled])",
+        );
+        return Array.from(candidates).find((element) =>
+          element.isConnected && element.getClientRects().length > 0
+        ) ?? null;
+      },
+    }),
+    [],
+  );
   const scopeIdentity = [
     helpKey,
     dashboard.identityGeneration,
@@ -35,7 +54,7 @@ export function ScopedContextHelp({
       helpKey={helpKey}
       locale={locale}
       scopeIdentity={scopeIdentity}
-      returnFocusFallbackRef={returnFocusFallbackRef}
+      returnFocusFallbackRef={returnFocusFallbackRef ?? connectedFallbackRef}
     />
   );
 }
