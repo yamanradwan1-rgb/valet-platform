@@ -66,6 +66,7 @@ export function OverviewMetrics(props: {
       <OverviewMetricCard
         available={data !== null}
         context={data ? `${count(data.activeEmployeeCount, props.locale)} ${t.activeEmployees}` : fallback}
+        helpKey="overview.metrics"
         icon={<Car size={20} />}
         label={t.carsHandled}
         tone={data ? "positive" : "info"}

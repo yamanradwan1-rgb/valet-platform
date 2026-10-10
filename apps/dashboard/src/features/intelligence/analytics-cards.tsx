@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import type { CSSProperties } from "react";
 import { BidiText } from "../../components/presentation/panel";
+import { ScopedContextHelp } from "../help/scoped-context-help";
 import type { DashboardLocale } from "../../lib/i18n/locale";
 import { analyticsCopy } from "./analytics-copy";
 import type { AnalyticsPresentation } from "./analytics-presentation";
@@ -69,6 +70,7 @@ export function AnalyticsCards(props: {
   return (
     <div className={styles.cards} data-testid="analytics-card-grid">
       <MetricCard
+        helpKey="analytics.cards"
         evidenceLabel={t.viewEvidence}
         context={
           p ? <CarsEvidence locale={props.locale} presentation={p} /> : null
@@ -162,6 +164,7 @@ export function AnalyticsCards(props: {
 
 function MetricCard(props: {
   readonly context: React.ReactNode;
+  readonly helpKey?: "analytics.cards";
   readonly evidenceLabel: string;
   readonly Icon: LucideIcon;
   readonly label: string;
@@ -186,6 +189,7 @@ function MetricCard(props: {
             {props.label}
           </div>
         </div>
+        {props.helpKey ? <ScopedContextHelp helpKey={props.helpKey} /> : null}
         <div
           className={[styles.cardIcon, toneClass].filter(Boolean).join(" ")}
           data-testid="analytics-card-icon"

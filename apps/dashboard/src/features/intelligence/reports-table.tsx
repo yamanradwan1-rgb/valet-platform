@@ -1,5 +1,6 @@
 import type { ReportKind } from "@valet/contracts";
 import { BarChart3 } from "lucide-react";
+import { ScopedContextHelp } from "../help/scoped-context-help";
 
 import { reportsCopy } from "./reports-copy";
 import {
@@ -18,6 +19,7 @@ export function ReportsTable(props: {
     <div className={styles.mainContainer}>
       <div className={styles.tabs}>
         <span>{props.t.standardReports}</span>
+        <ScopedContextHelp helpKey="reports.catalog" />
       </div>
       <div
         aria-label={props.t.standardReports}

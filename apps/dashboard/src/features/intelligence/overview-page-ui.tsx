@@ -1,12 +1,14 @@
 import type { ReactNode } from "react";
 
 import { BidiText } from "../../components/presentation/panel";
+import { ScopedContextHelp } from "../help/scoped-context-help";
 import styles from "./overview.module.css";
 
 export function OverviewMetricCard(props: {
   readonly available: boolean;
   readonly context: string;
   readonly danger?: boolean;
+  readonly helpKey?: "overview.metrics";
   readonly icon: ReactNode;
   readonly label: string;
   readonly tone?: "positive" | "info" | "danger";
@@ -26,6 +28,7 @@ export function OverviewMetricCard(props: {
           </div>
           <div className={styles.metricLabel}>{props.label}</div>
         </div>
+        {props.helpKey ? <ScopedContextHelp helpKey={props.helpKey} /> : null}
         <div
           className={`${styles.metricIcon} ${props.danger ? styles.metricIconDanger : ""}`}
         >
