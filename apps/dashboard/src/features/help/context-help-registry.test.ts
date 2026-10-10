@@ -1,13 +1,33 @@
 import { describe, expect, it } from "vitest";
 import { dashboardLocales } from "../../lib/i18n/locale";
 import { contextHelpFor, contextHelpRegistry, isContextHelpKey } from "./context-help-registry";
-import { inspectHelpCatalog } from "./context-help-coverage-contract";
+import { inspectHelpCatalog, inspectRawHelpKeys } from "./context-help-coverage-contract";
 import type { ContextHelpCopy } from "./context-help-types";
+import { helppages } from "./help-pages";
+import { helpoperations } from "./help-operations";
+import { helpintelligence } from "./help-intelligence";
+import { helpadministration } from "./help-administration";
+import { helpsettings } from "./help-settings";
+import { helppresence } from "./help-presence";
+import { helpaccount } from "./help-account";
 
 const entries = Object.entries(contextHelpRegistry);
 const keys = entries.map(([key]) => key);
+const rawCatalogs = [
+  helppages, helpoperations, helpintelligence, helpadministration,
+  helpsettings, helppresence, helpaccount,
+] as const;
 
 describe("contextual help bilingual static catalog", () => {
+  it("rejects duplicate keys across raw source modules before object spreading", () => {
+    expect(inspectRawHelpKeys(rawCatalogs)).toEqual([]);
+    const rawKeys = rawCatalogs.flatMap((catalog) => Object.keys(catalog));
+    expect(rawKeys).toHaveLength(111);
+    expect(rawKeys.slice().sort()).toEqual(keys.slice().sort());
+    const collision = { "live.page": helpoperations["live.kpis"] };
+    expect(inspectRawHelpKeys([helppages, collision]))
+      .toEqual(["Duplicate raw help key: live.page"]);
+  });
   it("provides exactly one substantial English and Arabic explanation for all 111 semantic IDs", () => {
     expect(keys).toHaveLength(111);
     expect(new Set(keys).size).toBe(keys.length);
