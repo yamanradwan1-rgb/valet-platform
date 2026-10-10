@@ -1,6 +1,8 @@
 .section { margin-top: 1.25rem; border-top: 1px solid var(--border); padding-top: 1.25rem; display: grid; gap: 1rem; min-width: 0; }
 .headingRow { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
 .headingRow h3 { margin: 0; color: var(--text); font-size: .95rem; font-weight: 800; }
+.resourceHelp { display:inline-flex; order:1; }
+.resourceClose { order:2; }
 .headingRow p { margin: .2rem 0 0; color: var(--muted); font-size: .72rem; line-height: 1.45; }
 .panel { min-width: 0; border: 1px solid var(--border); border-radius: .75rem; overflow: hidden; background: var(--surface); }
 .panelHeader { padding: 1rem 1.25rem 0; }

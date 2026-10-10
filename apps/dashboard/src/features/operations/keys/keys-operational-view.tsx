@@ -4,6 +4,7 @@ import type { KeySlotOverviewEntry } from "@valet/contracts";
 import { useCallback, useState } from "react";
 
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { ResourceVehicleIdentity } from "../../../lib/presentation/resource-vehicle-identity-text";
 import localStyles from "../accountability.module.css";
 import { readKeys } from "../operations-api";
@@ -60,6 +61,7 @@ export function KeysOperationalView() {
           <bdi>{location?.name}</bdi>
         </span>
         <span>{copy.allStatuses}</span>
+        <ScopedContextHelp helpKey="keys.operational" />
       </div>
       <ReadState
         empty={read.data?.items.length === 0}

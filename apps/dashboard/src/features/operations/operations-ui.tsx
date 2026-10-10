@@ -16,6 +16,7 @@ export function OperationsPage(props: {
   readonly action?: ReactNode;
   readonly children: ReactNode;
   readonly compact?: boolean;
+  readonly help?: ReactNode;
   readonly referenceHeader?: boolean;
   readonly subtitleMargin?: "full" | "half";
   readonly subtitle: string;
@@ -27,7 +28,14 @@ export function OperationsPage(props: {
   return (
     <div className={pageClass} data-testid="md03-page">
       <div className={headerClass}>
-        <div><h1 className={styles.title}>{props.title}</h1><p className={subtitleClass}>{props.subtitle}</p></div>
+        <div className={props.help ? styles.helpHeading : undefined}>
+          {props.help ? (
+            <div><h1 className={styles.title}>{props.title}</h1><p className={subtitleClass}>{props.subtitle}</p></div>
+          ) : (
+            <><h1 className={styles.title}>{props.title}</h1><p className={subtitleClass}>{props.subtitle}</p></>
+          )}
+          {props.help}
+        </div>
         {props.action}
       </div>
       {props.children}
@@ -104,11 +112,13 @@ export function DetailAction(props: { readonly label: string; readonly onClick: 
 
 export function OperationsDrawer(props: {
   readonly children: ReactNode;
+  readonly help?: ReactNode;
   readonly label: string;
   readonly onClose: () => void;
   readonly subtitle?: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
   const { locale } = useDashboardLocale();
   const t = operationsCopy(locale);
@@ -116,8 +126,11 @@ export function OperationsDrawer(props: {
   useEffect(() => {
     returnFocus.current = document.activeElement as HTMLElement | null;
     const node = ref.current;
-    node?.querySelector<HTMLElement>(focusable)?.focus();
+    // Preserve the drawer's existing initial Close focus after adding a help control.
+    closeRef.current?.focus();
     const keydown = (event: KeyboardEvent) => {
+      const topDialog = Array.from(document.querySelectorAll('[role="dialog"][aria-modal="true"]')).at(-1);
+      if (topDialog !== node) return;
       if (event.key === "Escape") { event.preventDefault(); onClose(); return; }
       if (event.key !== "Tab" || !node) return;
       const items = Array.from(node.querySelectorAll<HTMLElement>(focusable));
@@ -142,7 +155,8 @@ export function OperationsDrawer(props: {
       <div aria-label={props.label} aria-modal="true" className={styles.drawer} onMouseDown={(event) => event.stopPropagation()} ref={ref} role="dialog">
         <div className={styles.drawerHeader}>
           <div><h2>{props.label}</h2>{props.subtitle ? <div className={styles.drawerSubtitle}>{props.subtitle}</div> : null}</div>
-          <button aria-label={t.close} className={styles.quiet} onClick={onClose} type="button"><X size={18} /></button>
+          {props.help}
+          <button aria-label={t.close} className={styles.quiet} onClick={onClose} ref={closeRef} type="button"><X size={18} /></button>
         </div>
         <div className={styles.drawerBody}>{props.children}</div>
       </div>

@@ -9,6 +9,7 @@ import { useCallback, useState } from "react";
 import { SessionDrawer as VehicleDrawer } from "../live-operations/session-drawer";
 
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { readSessions } from "../operations-api";
 import { selectedOperationsLocation } from "../operations-location";
 import { operationsCopy } from "../operations-copy";
@@ -102,9 +103,8 @@ function VehiclesContent() {
 
   return (
     <OperationsPage
-      action={
-        <span aria-hidden="true" className={listStyles.headerActionSpace} />
-      }
+      help={<ScopedContextHelp helpKey="vehicles.page" />}
+      action={<span className={styles.headerHelpSlot}><ScopedContextHelp helpKey="vehicles.search" /></span>}
       subtitle={t.vehiclesSubtitle}
       title={t.vehiclesTitle}
     >
@@ -136,9 +136,12 @@ function VehiclesContent() {
             ))}
           </select>
         </div>
-        <span className={listStyles.scopeNote} id="vehicles-loaded-page-note">
-          {r04.loadedPageOnly}
-        </span>
+        <div className={styles.helpInline}>
+          <span className={listStyles.scopeNote} id="vehicles-loaded-page-note">
+            {r04.loadedPageOnly}
+          </span>
+          <ScopedContextHelp helpKey="vehicles.table" />
+        </div>
       </div>
       <div className={listStyles.tableCard}>
         <div className={listStyles.tableWrap}>
@@ -178,6 +181,7 @@ function VehiclesContent() {
       </div>
       {selected ? (
         <VehicleDrawer
+          help={<ScopedContextHelp helpKey="vehicles.drawer" />}
           item={selected}
           locale={locale}
           location={location}

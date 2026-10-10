@@ -1,8 +1,9 @@
 "use client";
 
 import type { ParkingZoneSelector } from "@valet/contracts";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { FocusDialog } from "../../../components/presentation/focus-dialog";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
 import { DashboardApiError } from "../../../lib/api/dashboard-api-error";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
@@ -28,6 +29,7 @@ export function ParkingZoneCreateDialog(props: {
   readonly onClose: () => void;
   readonly onCreated: (zone: ParkingZoneSelector) => void;
   readonly onReconcile: () => void;
+  readonly fromKeysWorkspace?: boolean | undefined;
 }) {
   const { locale } = useDashboardLocale();
   const t = physicalResourcesCopy(locale);
@@ -36,8 +38,15 @@ export function ParkingZoneCreateDialog(props: {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mfaOpen, setMfaOpen] = useState(false);
+  const [helpMounted, setHelpMounted] = useState(false);
   const busyRef = useRef(false);
   const ticket = useRef<string | null>(props.scopeKey);
+  useEffect(() => {
+    let active = true;
+    // Preserve the original first input focus before the optional help appears.
+    queueMicrotask(() => { if (active) setHelpMounted(true); });
+    return () => { active = false; };
+  }, []);
   useLayoutEffect(() => {
     ticket.current = props.scopeKey;
     return () => {
@@ -115,7 +124,10 @@ export function ParkingZoneCreateDialog(props: {
   return (
     <div className={presentation.dialogHost}>
       <FocusDialog label={t.addParkingZone} onClose={props.onClose}>
-        <h2>{t.addParkingZone}</h2>
+        <div className={presentation.headingRow}>
+          <h2>{t.addParkingZone}</h2>
+          {props.fromKeysWorkspace && helpMounted ? <ScopedContextHelp helpKey="keys.resourceDetails" /> : null}
+        </div>
         <form
           className={presentation.form}
           onSubmit={(event) => {

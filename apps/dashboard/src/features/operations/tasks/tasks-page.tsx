@@ -6,6 +6,7 @@ import { TaskTableBody } from "./task-table-body";
 import { TaskDrawer } from "./task-drawer";
 
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { readTasks } from "../operations-api";
 import { selectedOperationsLocation } from "../operations-location";
 import { operationsCopy } from "../operations-copy";
@@ -97,7 +98,7 @@ function TasksContent() {
   }
 
   return (
-    <OperationsPage subtitle={t.tasksSubtitle} title={t.tasksTitle}>
+    <OperationsPage help={<ScopedContextHelp helpKey="tasks.page" />} subtitle={t.tasksSubtitle} title={t.tasksTitle}>
       <div className={listStyles.toolbar}>
         <div className={listStyles.filters}>
           <span className={listStyles.locationControl}>{location.name}</span>
@@ -128,9 +129,13 @@ function TasksContent() {
             ))}
           </select>
         </div>
-        <span className={listStyles.scopeNote}>
-          {r04.filtersLoadedPageOnly}
-        </span>
+        <div className={styles.helpInline}>
+          <ScopedContextHelp helpKey="tasks.filters" />
+          <span className={listStyles.scopeNote}>
+            {r04.filtersLoadedPageOnly}
+          </span>
+          <ScopedContextHelp helpKey="tasks.table" />
+        </div>
       </div>
       <div className={listStyles.tableCard}>
         <div className={listStyles.tableWrap}>
@@ -171,6 +176,7 @@ function TasksContent() {
       </div>
       {selected ? (
         <TaskDrawer
+          help={<ScopedContextHelp helpKey="tasks.drawer" />}
           item={selected}
           locale={locale}
           location={location}

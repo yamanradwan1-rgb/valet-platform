@@ -7,6 +7,7 @@ import type { LiveOperationsMapResponse } from "@valet/contracts";
 import type { SelectedDashboardScope } from "../../../components/scope";
 import { DashboardApiError } from "../../../lib/api/dashboard-api-error";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { readLocationManagerSubscription } from "../../../lib/scope/dashboard-scope";
 import { useDashboardTheme } from "../../../lib/theme/theme-provider";
 import { readLiveMap } from "../operations-api";
@@ -98,7 +99,7 @@ function MapsContent() {
   const refreshing = setupMode ? setup.loading : live.loading;
 
   return (
-    <OperationsPage compact referenceHeader subtitle={t.mapsSubtitle} subtitleMargin="half" title={t.mapsTitle}>
+    <OperationsPage compact help={<ScopedContextHelp helpKey="maps.page" />} referenceHeader subtitle={t.mapsSubtitle} subtitleMargin="half" title={t.mapsTitle}>
       <div className={reference.controlStrip} data-testid="map-reference-toolbar">
         <div className={reference.controlGroup}>
           <div className={reference.scopeControl} title={location.name}>
@@ -129,6 +130,7 @@ function MapsContent() {
               </button>
             ) : null}
           </div>
+          <ScopedContextHelp helpKey="maps.mode" />
         </div>
         <button
           className={reference.refreshButton}
@@ -194,6 +196,7 @@ function MapsContent() {
                   {t.inactiveLegend}
                 </span>
               ) : null}
+              {liveEnabled && !setupMode ? <ScopedContextHelp helpKey="maps.legend" /> : null}
             </div>
           </section>
           {!setupMode && liveEnabled && !live.loading && !live.error && liveItems.length === 0 ? (
@@ -204,6 +207,7 @@ function MapsContent() {
         {locationManager ? (
           <>
             <MapSetupPanel
+              help={setupMode ? <ScopedContextHelp helpKey="maps.setup" /> : undefined}
               api={dashboard.api}
               areas={setup.areas}
               error={setup.error}
@@ -215,6 +219,7 @@ function MapsContent() {
               scopeKey={scopeKey}
             />
             <LiveMapPanel
+              help={liveEnabled && !setupMode ? <ScopedContextHelp helpKey="maps.live" /> : undefined}
               canNext={Boolean(live.data?.nextCursor)}
               canPrevious={page.canPrevious}
               hidden={setupMode}
@@ -226,6 +231,7 @@ function MapsContent() {
           </>
         ) : (
           <LiveMapPanel
+            help={liveEnabled ? <ScopedContextHelp helpKey="maps.live" /> : undefined}
             canNext={Boolean(live.data?.nextCursor)}
             canPrevious={page.canPrevious}
             hidden={false}
