@@ -1,0 +1,136 @@
+import type { ContextHelpCopy } from "./context-help-types";
+
+export const helpadministration = {
+  "staff.employees": {
+    en: { title: "Employees tab",
+      body: "Manage or inspect authorized staff membership and grants according to your role. An employee's membership does not itself establish an active Shift or availability for dispatch." },
+    ar: { title: "تبويب الموظفين",
+      body: "أدر أو استعرض عضويات الموظفين ومنحهم بحسب دورك. وجود عضوية للموظف لا يثبت وردية نشطة أو أهليته لتوزيع المهام." },
+  },
+  "staff.shifts": {
+    en: { title: "Shifts tab",
+      body: "Read current and historical Shift facts for your authorized scope. Ending another employee's Shift follows its own permission/confirmation and open-task safeguards." },
+    ar: { title: "تبويب الورديات",
+      body: "راجع بيانات الورديات الحالية والتاريخية ضمن نطاقك. إنهاء وردية موظف آخر يخضع لصلاحية وتأكيد وضوابط المهام المفتوحة الخاصة به." },
+  },
+  "staff.details": {
+    en: { title: "Employee and Shift drawers",
+      body: "Inspect the selected employee/Shift without assuming that a staff profile grants every Location. Available management actions may require fresh authorization." },
+    ar: { title: "تفاصيل الموظف والوردية",
+      body: "افحص الموظف أو الوردية المحددة دون افتراض أن ملف الموظف يتيح كل المواقع. قد تتطلب إجراءات الإدارة المتاحة تحققاً جديداً من الصلاحيات." },
+  },
+  "locations.list": {
+    en: { title: "Location selector",
+      body: "Select a managed Location to read its configuration and lifecycle details. The selected list item changes your view, not the stored Location." },
+    ar: { title: "قائمة المواقع",
+      body: "اختر موقعاً مُداراً لعرض تهيئته وتفاصيل حالته. اختيار عنصر القائمة يغيّر العرض ولا يعدّل الموقع المخزّن." },
+  },
+  "locations.detail": {
+    en: { title: "Location detail",
+      body: "This panel describes the authorized Location and its status; values such as timezone and currency provide context for operations and reports." },
+    ar: { title: "تفاصيل الموقع",
+      body: "تعرض اللوحة بيانات الموقع المخوّل وحالته؛ وتحدد قيم مثل المنطقة الزمنية والعملة سياق التشغيل والتقارير." },
+  },
+  "locations.lifecycle": {
+    en: { title: "Lifecycle management",
+      body: "Activating or deactivating a Location is a protected action and can affect operational eligibility. Check confirmation and MFA requirements; never use it simply to change a filter." },
+    ar: { title: "حالة الموقع التشغيلية",
+      body: "تفعيل الموقع أو تعطيله إجراء محمي قد يؤثر في أهلية التشغيل. راجع التأكيد ومتطلبات التحقق متعدد العوامل؛ ولا تستخدمه كتبديل لفلتر العرض." },
+  },
+  "locations.create": {
+    en: { title: "Create a Location",
+      body: "Create a Location only with its required identifying and geographic/business settings. This does not automatically set up maps, key slots, staff or payment providers." },
+    ar: { title: "إنشاء موقع",
+      body: "أنشئ الموقع ببياناته التعريفية والجغرافية والتشغيلية المطلوبة فقط. الإنشاء لا يهيّئ الخرائط أو خانات المفاتيح أو الموظفين أو مزودي الدفع تلقائياً." },
+  },
+  "policies.company": {
+    en: { title: "Company defaults tab",
+      body: "Defaults are starting values for the company's Locations. A Location override can change an effective value where the typed policy allows it; edits require explicit Save." },
+    ar: { title: "القيم الافتراضية للشركة",
+      body: "القيم الافتراضية للشركة هي نقطة البداية لمواقعها. يمكن لاستثناء الموقع تغيير القيمة الفعلية حيث تسمح السياسة المحددة بذلك؛ ويتطلب التعديل حفظاً صريحاً." },
+  },
+  "policies.location": {
+    en: { title: "Location overrides tab",
+      body: "Compare company default, local override and effective value before changing a Location policy. Clearing an override restores inheritance rather than setting an arbitrary zero or false." },
+    ar: { title: "استثناءات إعدادات الموقع",
+      body: "قارن القيمة الافتراضية للشركة والاستثناء المحلي والقيمة الفعلية قبل التغيير. إزالة الاستثناء تعيد الوراثة ولا تضبط القيمة عشوائياً إلى صفر أو «لا»." },
+  },
+  "policies.services": {
+    en: { title: "Service Status tab",
+      body: "Read the reported availability/configuration of dependent services. These facts are informational; there is no Save button here and a green display does not authorize an otherwise disabled capability." },
+    ar: { title: "تبويب حالة الخدمات",
+      body: "اقرأ حالة توفر الخدمات التابعة وتهيئتها كما يعرضها النظام. هذه معلومات فقط ولا يوجد زر حفظ هنا؛ الحالة الإيجابية لا تمنح صلاحية لميزة معطلة." },
+  },
+  "roles.reference": {
+    en: { title: "Fixed role table",
+      body: "Compare fixed role capabilities, Location scope and conditions. The table does not create custom permission sets or bypass Company Admin MFA." },
+    ar: { title: "مرجع الأدوار الثابتة",
+      body: "قارن إمكانات الأدوار الثابتة ونطاق الموقع وشروط كل دور. لا ينشئ الجدول مجموعات صلاحيات مخصصة ولا يتجاوز تحقق مدير الشركة." },
+  },
+  "branding.company": {
+    en: { title: "Company branding",
+      body: "Company branding defines defaults for supported surfaces. Entering a logo or color here does not create a new domain, white-label tier or message provider." },
+    ar: { title: "هوية الشركة البصرية",
+      body: "تحدد هوية الشركة القيم الافتراضية للأسطح المدعومة. إدخال شعار أو لون هنا لا ينشئ نطاقاً جديداً أو خطة علامة خاصة أو مزود رسائل." },
+  },
+  "branding.location": {
+    en: { title: "Location branding",
+      body: "A Location's branding may differ from company defaults where authorized. Existing inheritance and entitlement restrictions still apply after Save." },
+    ar: { title: "هوية الموقع البصرية",
+      body: "قد تختلف هوية الموقع عن قيم الشركة الافتراضية عند السماح بذلك. تظل قيود الوراثة والاشتراك سارية بعد الحفظ." },
+  },
+  "billing.status": {
+    en: { title: "Plan and subscription status",
+      body: "The plan and subscription state describe commercial access, not a payment receipt or uptime guarantee. This page is read-only." },
+    ar: { title: "حالة الخطة والاشتراك",
+      body: "تصف الخطة وحالة الاشتراك الوصول التجاري، وليستا إيصال دفع أو ضماناً لتوفر الخدمة. هذه الصفحة للقراءة فقط." },
+  },
+  "billing.entitlements": {
+    en: { title: "Capability table",
+      body: "Enabled flags permit specific capabilities but do not promise provider configuration. Disabled flags cannot be overridden by clicking help." },
+    ar: { title: "جدول الميزات المسموح بها",
+      body: "تسمح العلامات المفعّلة بإمكانات محددة لكنها لا تعد بتهيئة المزود. لا يمكن تجاوز العلامات المعطلة بالضغط على المساعدة." },
+  },
+  "audit.filters": {
+    en: { title: "Event filters",
+      body: "Available filters are restricted by your role and location. A Supervisor may see a narrower operational event set, not all company/security history." },
+    ar: { title: "فلاتر سجل التدقيق",
+      body: "تتحدد الفلاتر المتاحة بحسب الدور والموقع. قد يرى المشرف مجموعة أضيق من أحداث التشغيل، لا كامل سجل الشركة أو أمان الحساب." },
+  },
+  "audit.table": {
+    en: { title: "Event rows and paging",
+      body: "Events retain recorded type/time/identifiers across cursor pages. Redacted or UNKNOWN events intentionally omit protected actor/entity detail; filtering cannot recover it." },
+    ar: { title: "صفوف سجل التدقيق",
+      body: "تحتفظ الأحداث بنوعها ووقتها ومعرّفاتها المسجّلة عبر الصفحات. تُحجب تفاصيل الفاعل أو الكيان في الأحداث المنقّحة أو غير المعروفة عمداً؛ ولا تستعيدها الفلاتر." },
+  },
+  "audit.detail": {
+    en: { title: "Audit event details",
+      body: "Review the selected event's recorded time, type, technical references and other facts allowed for your current role and Location. Audit events remain append-only; staff and vehicle details that are not authorized or available remain hidden." },
+    ar: { title: "تفاصيل الحدث",
+      body: "راجع وقت الحدث المحدد ونوعه ومراجعه الفنية والوقائع الأخرى المسموح بها لدورك وموقعك الحاليين. تبقى أحداث التدقيق محفوظة دون تعديل؛ وتُحجب بيانات الموظف أو المركبة غير المصرّح بها أو غير المتاحة." },
+  },
+  "contacts.search": {
+    en: { title: "Visit contact search",
+      body: "Search is constrained to permitted visit contact/vehicle information; lack of results may reflect scope or privacy limits, not absence of a real customer." },
+    ar: { title: "بحث جهات التواصل",
+      body: "يقتصر البحث على بيانات تواصل الزيارات أو المركبات المسموح بها؛ عدم ظهور نتيجة قد يعود للنطاق أو قيود الخصوصية وليس لعدم وجود عميل." },
+  },
+  "contacts.results": {
+    en: { title: "Search result list",
+      body: "Result rows identify permitted references; opening one reads only facts within your current authorization. Do not copy contact data into unrelated workflows." },
+    ar: { title: "نتائج البحث",
+      body: "تحدد النتائج المراجع المسموح بها؛ فتح النتيجة يعرض فقط البيانات ضمن صلاحيتك الحالية. لا تنسخ بيانات التواصل إلى إجراءات لا تخصها." },
+  },
+  "contacts.detail": {
+    en: { title: "Contact drawer",
+      body: "Review the authorized visit/vehicle association and its recorded context. A contact value is not an access credential or handoff-verification substitute." },
+    ar: { title: "تفاصيل جهة التواصل",
+      body: "راجع ارتباط الزيارة بالمركبة وسياقه المسجل والمصرّح به. بيانات التواصل ليست بيانات دخول ولا بديلاً عن التحقق عند تسليم المركبة." },
+  },
+  "contacts.correction": {
+    en: { title: "Correction dialog",
+      body: "A correction requires the current permitted actor, intended target and existing reason/revision checks. Help does not save drafts or retry unknown mutations." },
+    ar: { title: "تصحيح البيانات",
+      body: "يتطلب التصحيح جهة مخوّلة حالياً وهدفاً محدداً وفحوص السبب والإصدار الموجودة. المساعدة لا تحفظ المسودات ولا تعيد تلقائياً العمليات مجهولة النتيجة." },
+  },
+} as const satisfies Record<string, ContextHelpCopy>;
