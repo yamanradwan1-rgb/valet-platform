@@ -29,6 +29,12 @@ test("route ownership unmounts stale Help, restores connected focus, and opens o
   await manager(page, "/vehicles", fixture);
   await help(page, "vehicles.page").click();
   await expect(page.getByRole("dialog", { name: contextHelpRegistry["vehicles.page"].en.title })).toBeVisible();
+  // Simulate an obsolete/hidden shell candidate during a route transition.
+  // Focus fallback must skip it even if it retains a nonempty layout rect.
+  await page.locator(".topbar button").first().evaluate((button) => {
+    button.style.visibility = "hidden";
+    button.setAttribute("aria-hidden", "true");
+  });
   // Simulates a real Next client navigation while a modal is open. A
   // permissions refresh can produce the same owner unmount asynchronously.
   await page.getByRole("link", { name: "Tasks", exact: true })
@@ -39,7 +45,9 @@ test("route ownership unmounts stale Help, restores connected focus, and opens o
   await expect(help(page, "tasks.page")).toBeVisible();
   await expect.poll(() => page.evaluate(() => {
     const active = document.activeElement;
-    return !!active && active !== document.body && active.isConnected;
+    return active instanceof HTMLElement && active !== document.body &&
+      active.isConnected && !active.closest('[inert], [aria-hidden="true"]') &&
+      window.getComputedStyle(active).visibility === "visible";
   })).toBe(true);
   await help(page, "tasks.page").click();
   await expect(page.getByRole("dialog", { name: contextHelpRegistry["tasks.page"].en.title })).toBeVisible();

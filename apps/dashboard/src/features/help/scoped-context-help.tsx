@@ -34,9 +34,13 @@ export function ScopedContextHelp({
           ".topbar button:not([disabled]), main button:not([disabled]), " +
           "main input:not([disabled])",
         );
-        return Array.from(candidates).find((element) =>
-          element.isConnected && element.getClientRects().length > 0
-        ) ?? null;
+        return Array.from(candidates).find((element) => {
+          if (!element.isConnected || element.tabIndex < 0 ||
+              element.closest('[inert], [aria-hidden="true"]')) return false;
+          const style = window.getComputedStyle(element);
+          return style.display !== "none" && style.visibility === "visible" &&
+            style.opacity !== "0" && element.getClientRects().length > 0;
+        }) ?? null;
       },
     }),
     [],

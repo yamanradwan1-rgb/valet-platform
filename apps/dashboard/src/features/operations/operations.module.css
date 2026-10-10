@@ -1,7 +1,12 @@
 .page { display:grid; gap:1.5rem; animation:operationsFade 180ms ease-out; }
 .pageCompact { gap:1.25rem; }
 .header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem; }
-.helpHeading { display:flex; flex:1 1 auto; align-items:flex-start; justify-content:space-between; gap:.75rem; min-width:0; }
+.helpHeading { display:block; position:relative; flex:1 1 auto; min-width:0; }
+.pageHelpAnchor { position:absolute; inset-block-start:0; inset-inline-end:0; display:inline-flex; width:2rem; height:2rem; align-items:center; justify-content:center; }
+@media (max-width:350px) {
+  .referenceHeader .helpHeading { display:flex; align-items:flex-start; justify-content:space-between; gap:.75rem; }
+  .referenceHeader .pageHelpAnchor { position:static; flex:0 0 2rem; }
+}
 .helpInline { display:inline-flex; align-items:center; gap:.5rem; min-width:0; }
 .headerHelpSlot { display:inline-flex; width:2.25rem; height:2.25rem; flex:0 0 auto; align-items:center; justify-content:center; }
 .title { margin:0; color:#0f172a; font-size:1.5rem; line-height:1.3; font-weight:700; letter-spacing:-.025em; }
