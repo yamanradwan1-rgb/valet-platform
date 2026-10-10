@@ -1,6 +1,21 @@
 import type { ContextHelpCopy } from "./context-help-types";
 import type { HelpRoute } from "./help-route-manifest";
 
+// Inspect raw source catalogs before object spreads can silently overwrite IDs.
+export function inspectRawHelpKeys(
+  sources: readonly Readonly<Record<string, ContextHelpCopy>>[],
+): string[] {
+  const seen = new Set<string>();
+  const duplicates: string[] = [];
+  for (const source of sources) {
+    for (const key of Object.keys(source)) {
+      if (seen.has(key)) duplicates.push("Duplicate raw help key: " + key);
+      seen.add(key);
+    }
+  }
+  return duplicates;
+}
+
 // Pure checks make negative omission/duplication tests meaningful independently
 // of TypeScript object-literal constraints.
 export function inspectHelpCatalog(
