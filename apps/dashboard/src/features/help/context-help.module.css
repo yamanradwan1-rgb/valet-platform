@@ -1,0 +1,63 @@
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  inline-size: 2rem;
+  block-size: 2rem;
+  min-inline-size: 24px;
+  min-block-size: 24px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.trigger:focus-visible,
+.close:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.dialogHost :global(.dialog-panel) {
+  box-sizing: border-box;
+  max-inline-size: 100%;
+}
+
+.content {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.title {
+  margin-block: 0 1rem;
+  color: var(--text);
+  font-size: 1.25rem;
+  line-height: 1.4;
+}
+
+.body {
+  margin-block: 0 1.5rem;
+  color: var(--text);
+  line-height: 1.65;
+  white-space: pre-line;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.close {
+  min-inline-size: 44px;
+  min-block-size: 36px;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
