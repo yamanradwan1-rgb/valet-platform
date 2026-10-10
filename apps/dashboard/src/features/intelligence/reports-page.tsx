@@ -15,6 +15,8 @@ import { useSelectedScope } from "../../components/foundation/selected-scope-pro
 import { readCompanySubscription, readLocationSubscription } from "../administration/commercial/commercial-api";
 import { DashboardApiError } from "../../lib/api/dashboard-api-error";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../help/scoped-context-help";
+import helpStyles from "./intelligence-help.module.css";
 import { currentReportSelector, scopeCalendarTimezone } from "./dashboard-period-calendar";
 import { intelligenceScope } from "./intelligence-scope";
 import {
@@ -249,7 +251,10 @@ export function ReportsPage() {
     <div className={styles.page} data-testid="md05-reports-page">
       <header className={styles.header}>
         <div>
-          <h1>{t.title}</h1>
+          <div className={helpStyles.headingRow}>
+            <h1>{t.title}</h1>
+            <ScopedContextHelp helpKey="reports.page" />
+          </div>
           <p>{t.subtitle}</p>
         </div>
       </header>

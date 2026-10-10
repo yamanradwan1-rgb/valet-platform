@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { X } from "lucide-react";
 
 import { FocusDialog } from "../../components/presentation/focus-dialog";
+import { ScopedContextHelp } from "../help/scoped-context-help";
 import { ReportPreviewRows } from "./report-preview-rows";
 import type {
   ReportResponse,
@@ -58,6 +59,9 @@ export function ReportPreviewDialog(props: {
           >
             <X aria-hidden="true" size={20} />
           </button>
+          <span className={dialogStyles.previewHelp}>
+            <ScopedContextHelp helpKey="reports.preview" />
+          </span>
         </header>
         <div className={dialogStyles.dialogBody}>
           <form className={dialogStyles.selectorForm} onSubmit={props.onSubmit}>

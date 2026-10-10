@@ -3,6 +3,8 @@
 import { useProtectedDashboard } from "../../components/foundation/protected-dashboard-context";
 import { DashboardApiError } from "../../lib/api/dashboard-api-error";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../help/scoped-context-help";
+import helpStyles from "./intelligence-help.module.css";
 import {
   readCompanyAnalytics,
   readLocationIncidentAnalytics,
@@ -99,9 +101,12 @@ export function OverviewPage() {
   return (
     <div className={styles.page} data-testid="md05-overview-page">
       <div className={styles.header}>
-        <h1>{t.title}</h1>
+        <div className={helpStyles.headingRow}>
+          <h1>{t.title}</h1>
+          <ScopedContextHelp helpKey="overview.page" />
+        </div>
         <p>{scope.kind === "COMPANY" ? t.companySubtitle : t.locationSubtitle}</p>
-        <DashboardPeriodControl onRefresh={retryPeriod} refreshing={periodLoading && Boolean(presentation)} scopeKind={scope.kind} state={periodState} />
+        <DashboardPeriodControl helpKey="overview.period" onRefresh={retryPeriod} refreshing={periodLoading && Boolean(presentation)} scopeKind={scope.kind} state={periodState} />
       </div>
       <OverviewMetrics
         error={periodReadError}
@@ -114,6 +119,7 @@ export function OverviewPage() {
         <section className={[styles.panel, styles.activityPanel].join(" ")}>
           <div className={styles.panelHeader}>
             <h2>{t.activity}</h2>
+            <ScopedContextHelp helpKey="overview.activity" />
           </div>
           {!period ? (
             <OverviewPanelState message={validation.kind === "required" ? t.periodRequired : t.invalidPeriod} />

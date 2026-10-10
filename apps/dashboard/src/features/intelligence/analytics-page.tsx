@@ -9,6 +9,8 @@ import { useSelectedScope } from "../../components/foundation/selected-scope-pro
 import { BidiText } from "../../components/presentation/panel";
 import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../help/scoped-context-help";
+import helpStyles from "./intelligence-help.module.css";
 import { AnalyticsActivityChart } from "./analytics-activity-chart";
 import { AnalyticsCoverage } from "./analytics-coverage";
 import { AnalyticsCards } from "./analytics-cards";
@@ -104,11 +106,14 @@ export function AnalyticsPage() {
     <div className={styles.page} data-testid="md05-analytics-page">
       <header className={styles.header}>
         <div className={styles.headerCopy}>
-          <h1>{t.title}</h1>
+          <div className={helpStyles.headingRow}>
+            <h1>{t.title}</h1>
+            <ScopedContextHelp helpKey="analytics.page" />
+          </div>
           <p>{t.subtitle}</p>
         </div>
         <div className={styles.headerActions} data-testid="analytics-header-selectors">
-          <DashboardPeriodControl onRefresh={retry} refreshing={loading && Boolean(presentation)} scopeKind={scope.kind} state={periodState} />
+          <DashboardPeriodControl helpKey="analytics.period" onRefresh={retry} refreshing={loading && Boolean(presentation)} scopeKind={scope.kind} state={periodState} />
           <button
             aria-label={`${uiCopy("changeScope")}: ${scopeLabel}`}
             className={styles.scopeButton}
@@ -124,12 +129,12 @@ export function AnalyticsPage() {
       <AnalyticsCards message={message} presentation={presentation} locale={locale} />
 
       <div className={styles.charts} data-testid="analytics-chart-grid">
-        <ChartPanel title={t.vehicleActivity} period={period}>
+        <ChartPanel helpKey="analytics.activity" title={t.vehicleActivity} period={period}>
           {message ? <ChartState message={message} onRetry={readError ? retry : undefined} retry={t.retry} /> : presentation ? (
             <AnalyticsActivityChart data={presentation.activity} locale={locale} />
           ) : null}
         </ChartPanel>
-        <ChartPanel title={t.durationComparison} period={period}>
+        <ChartPanel helpKey="analytics.durations" title={t.durationComparison} period={period}>
           {message ? <ChartState message={message} onRetry={readError ? retry : undefined} retry={t.retry} /> : presentation ? (
             <>
               <AnalyticsSecondaryChart data={presentation.durations} locale={locale} />
@@ -167,13 +172,17 @@ function useLocationRead<T>(
 
 function ChartPanel(props: {
   readonly children: ReactNode;
+  readonly helpKey: "analytics.activity" | "analytics.durations";
   readonly period: { readonly from: string; readonly to: string } | null;
   readonly title: string;
 }) {
   return (
     <section className={styles.chartPanel} data-testid="analytics-chart-panel">
       <div className={styles.chartHeader}>
-        <h2>{props.title}</h2>
+        <div className={helpStyles.headingRow}>
+          <h2>{props.title}</h2>
+          <ScopedContextHelp helpKey={props.helpKey} />
+        </div>
         {props.period ? <BidiText kind="number">{props.period.from} – {props.period.to}</BidiText> : null}
       </div>
       {props.children}

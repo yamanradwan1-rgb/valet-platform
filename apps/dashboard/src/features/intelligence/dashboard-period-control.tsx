@@ -6,6 +6,7 @@ import { RefreshCw, X } from "lucide-react";
 import { FocusDialog } from "../../components/presentation/focus-dialog";
 import { BidiText } from "../../components/presentation/panel";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../help/scoped-context-help";
 import { dashboardPeriodPresets } from "./dashboard-period-calendar";
 import {
   validateAnalyticsPeriod,
@@ -71,6 +72,7 @@ export function DashboardPeriodControl(props: {
   readonly scopeKind: "COMPANY" | "LOCATION";
   readonly onRefresh: () => void;
   readonly refreshing: boolean;
+  readonly helpKey?: "overview.period" | "payments.period" | "analytics.period";
 }) {
   const { locale } = useDashboardLocale();
   const copy = labels[locale];
@@ -134,6 +136,7 @@ export function DashboardPeriodControl(props: {
         >
           <RefreshCw aria-hidden="true" size={14} />
         </button>
+        {props.helpKey ? <ScopedContextHelp helpKey={props.helpKey} /> : null}
       </div>
       <div className={styles.detail}>
         {props.state.period ? (

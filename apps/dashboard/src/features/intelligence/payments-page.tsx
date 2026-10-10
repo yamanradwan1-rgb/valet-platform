@@ -3,6 +3,8 @@
 import { useProtectedDashboard } from "../../components/foundation/protected-dashboard-context";
 import { DashboardApiError } from "../../lib/api/dashboard-api-error";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../help/scoped-context-help";
+import helpStyles from "./intelligence-help.module.css";
 import {
   readCompanyAnalytics,
   readLocationFinancialAnalytics,
@@ -76,11 +78,14 @@ export function PaymentsPage() {
     <div className={styles.page} data-testid="md05-payments-page">
       <div className={styles.header}>
         <div className={styles.headerCopy}>
-          <h1>{t.title}</h1>
+          <div className={helpStyles.headingRow}>
+            <h1>{t.title}</h1>
+            <ScopedContextHelp helpKey="payments.page" />
+          </div>
           <p>{scope.kind === "COMPANY" ? t.companySubtitle : t.locationSubtitle}</p>
         </div>
         <div className={styles.headerActions}>
-          <DashboardPeriodControl onRefresh={retryPeriod} refreshing={periodLoading && Boolean(periodPresentation)} scopeKind={scope.kind} state={periodState} />
+          <DashboardPeriodControl helpKey="payments.period" onRefresh={retryPeriod} refreshing={periodLoading && Boolean(periodPresentation)} scopeKind={scope.kind} state={periodState} />
         </div>
       </div>
       <PaymentsSummaryGrid

@@ -2,6 +2,7 @@ import type { CompanyAnalyticsResponse } from "@valet/contracts";
 import { Building2, Car, CircleCheck, CirclePause, Clock3, Globe2, ListTodo } from "lucide-react";
 
 import { useProtectedDashboard } from "../../components/foundation/protected-dashboard-context";
+import { ScopedContextHelp } from "../help/scoped-context-help";
 import { BidiText } from "../../components/presentation/panel";
 import type { DashboardLocale } from "../../lib/i18n/locale";
 import {
@@ -57,7 +58,10 @@ export function OverviewCurrentPanel(props: {
   const title = props.mode === "COMPANY" ? t.coverage : t.current;
   return (
     <section className={`${styles.panel} ${styles.secondaryPanel}`}>
-      <div className={styles.panelHeader}><h2>{title}</h2></div>
+      <div className={styles.panelHeader}>
+        <h2>{title}</h2>
+        <ScopedContextHelp helpKey="overview.current" />
+      </div>
       {props.errorMessage ? (
         <State message={props.errorMessage} onRetry={props.onRetry} retryLabel={t.retry} />
       ) : props.loading ? (

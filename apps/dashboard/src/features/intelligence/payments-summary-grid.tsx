@@ -2,6 +2,7 @@ import { BarChart2, CreditCard, DollarSign, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { BidiText } from "../../components/presentation/panel";
+import { ScopedContextHelp } from "../help/scoped-context-help";
 import type { DashboardLocale } from "../../lib/i18n/locale";
 import { formatExactDecimal } from "./intelligence-format";
 import type { PaymentsPeriodPresentation } from "./payments-presentation";
@@ -25,7 +26,7 @@ export function PaymentsSummaryGrid(props: {
 
   return (
     <div className={styles.summaryGrid}>
-      <SummaryCard icon={<DollarSign size={20} />} label={t.collected}>
+      <SummaryCard helpKey="payments.summary" icon={<DollarSign size={20} />} label={t.collected}>
         <CurrencyValues
           currencies={currencies}
           empty={state}
@@ -60,6 +61,7 @@ type CurrencyGroup = PaymentsPeriodPresentation["currencies"][number];
 
 function SummaryCard(props: {
   readonly children: ReactNode;
+  readonly helpKey?: "payments.summary";
   readonly icon: ReactNode;
   readonly label: string;
 }) {
@@ -68,9 +70,12 @@ function SummaryCard(props: {
       <div className={styles.summaryTop}>
         <div className={styles.summaryBody}>
           <div className={styles.summaryValues}>{props.children}</div>
-          <div className={styles.summaryLabel}>{props.label}</div>
+          <div className={styles.summaryLabel}>
+            {props.label}
+          </div>
           <div aria-hidden="true" className={styles.summaryTrendSpace} />
         </div>
+        {props.helpKey ? <ScopedContextHelp helpKey={props.helpKey} /> : null}
         <div className={styles.summaryIcon}>{props.icon}</div>
       </div>
     </section>

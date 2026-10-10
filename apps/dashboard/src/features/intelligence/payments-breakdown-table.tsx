@@ -1,4 +1,5 @@
 import { BidiText } from "../../components/presentation/panel";
+import { ScopedContextHelp } from "../help/scoped-context-help";
 import type { DashboardLocale } from "../../lib/i18n/locale";
 import {
   PeriodTable,
@@ -17,6 +18,7 @@ export function PaymentsBreakdownTable(props: PaymentsBreakdownProps) {
     <section className={styles.breakdownPanel}>
       <div className={styles.breakdownHeader}>
         <h2>{t.breakdown}</h2>
+        <ScopedContextHelp helpKey="payments.breakdown" />
       </div>
       <section
         className={styles.breakdownSection}
