@@ -1,14 +1,19 @@
 "use client";
 
 import type {
+  LiveSessionOverviewEntry,
   ManagementLocation,
   SessionOverviewEntry,
 } from "@valet/contracts";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { SessionDrawer } from "./session-drawer";
-import { OperationalStaff } from "../operational-staff";
 import { operationsVehicleSecondary } from "../operations-presentation";
+import {
+  hasLiveSessionHistory,
+  liveStaffCell,
+} from "./session-staff-attribution";
 
 import type { DashboardLocale } from "../../../lib/i18n/locale";
 import { operationsCopy } from "../operations-copy";
@@ -24,7 +29,7 @@ interface LiveOperationsTableProps {
   readonly canNext: boolean;
   readonly canPrevious: boolean;
   readonly error: Error | null;
-  readonly items: readonly SessionOverviewEntry[];
+  readonly items: readonly (LiveSessionOverviewEntry | SessionOverviewEntry)[];
   readonly loading: boolean;
   readonly locale: DashboardLocale;
   readonly location: ManagementLocation;
@@ -43,7 +48,7 @@ export function LiveOperationsTable(props: LiveOperationsTableProps) {
           <thead>
             <tr>
               <th>{t.vehicle}</th>
-              <th>{t.assignee}</th>
+              <th>{t.liveStaff}</th>
               <th>{t.location}</th>
               <th>{t.state}</th>
               <th>{t.updated}</th>
@@ -103,13 +108,14 @@ function LiveOperationsRow({
   locale,
   location,
 }: {
-  readonly item: SessionOverviewEntry;
+  readonly item: LiveSessionOverviewEntry | SessionOverviewEntry;
   readonly locale: DashboardLocale;
   readonly location: ManagementLocation;
 }) {
   const t = operationsCopy(locale);
   const [open, setOpen] = useState(false);
   const vehicle = liveVehicleLabel(item) ?? t.plateUnavailable;
+  const staff = liveStaffCell(item, locale);
   return (
     <>
       <tr className={styles.row}>
@@ -124,10 +130,27 @@ function LiveOperationsRow({
           ) : null}
         </td>
         <td>
-          <OperationalStaff
-            assignee={item.activeTask?.assignee ?? null}
-            locale={locale}
-          />
+          <div className={styles.primaryText}>
+            <bdi
+              dir="auto"
+              style={{
+                display: "block",
+                maxWidth: "12rem",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {staff.primary}
+            </bdi>
+          </div>
+          {staff.secondary !== null ? (
+            <div className={styles.muted}>
+              <bdi dir="auto" style={{ display: "block", whiteSpace: "nowrap" }}>
+                {staff.secondary}
+              </bdi>
+            </div>
+          ) : null}
         </td>
         <td>
           <div className={styles.primaryText}>{location.name}</div>
@@ -156,14 +179,18 @@ function LiveOperationsRow({
           />
         </td>
       </tr>
-      {open ? (
-        <SessionDrawer
-          item={item}
-          locale={locale}
-          location={location}
-          onClose={() => setOpen(false)}
-        />
-      ) : null}
+      {open && typeof document !== "undefined"
+        ? createPortal(
+            <SessionDrawer
+              {...(hasLiveSessionHistory(item) ? { history: item } : {})}
+              item={item}
+              locale={locale}
+              location={location}
+              onClose={() => setOpen(false)}
+            />,
+            document.body,
+          )
+        : null}
     </>
   );
 }

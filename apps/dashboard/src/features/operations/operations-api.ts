@@ -1,6 +1,7 @@
 import {
   incidentOverviewResponseSchema,
   keySlotOverviewResponseSchema,
+  liveSessionOverviewListResponseSchema,
   liveOperationsMapResponseSchema,
   retrievalQueueOverviewResponseSchema,
   sessionOverviewListResponseSchema,
@@ -8,6 +9,7 @@ import {
   taskOverviewListResponseSchema,
   type IncidentOverviewEntry,
   type KeySlotOverviewEntry,
+  type LiveSessionOverviewEntry,
   type LiveOperationsMapResponse,
   type RetrievalQueueEntry,
   type SessionOverviewEntry,
@@ -52,6 +54,25 @@ export function readSessions(
   return api.request(
     overviewPath(locationId, "sessions"),
     sessionOverviewListResponseSchema,
+    {
+      method: "GET",
+      query: { limit: 50, filter, ...(cursor === null ? {} : { cursor }) },
+      signal,
+    },
+  );
+}
+
+// History is deliberately absent from the shared /sessions DTO used by Vehicles.
+export function readLiveSessions(
+  api: DashboardApiClient,
+  locationId: string,
+  cursor: string | null,
+  signal?: AbortSignal,
+  filter: SessionOverviewFilter = "ALL",
+): Promise<CursorPage<LiveSessionOverviewEntry>> {
+  return api.request(
+    overviewPath(locationId, "live-sessions"),
+    liveSessionOverviewListResponseSchema,
     {
       method: "GET",
       query: { limit: 50, filter, ...(cursor === null ? {} : { cursor }) },

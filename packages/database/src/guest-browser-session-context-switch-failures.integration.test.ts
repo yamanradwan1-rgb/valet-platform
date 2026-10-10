@@ -1,5 +1,11 @@
 import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import {
+  prepareGuestBrowserContext,
+  resolveGuestBrowserContext,
+  switchGuestBrowserContext,
+  type BrowserPair,
+} from "./guest-browser-session-context-switch-helpers.js";
 
 import {
   applyBaselineMigrations,
@@ -11,15 +17,6 @@ import {
   seedT1Session,
   seedT1SiblingSession,
 } from "./guest-browser-session-test-fixture.js";
-
-interface BrowserPair {
-  readonly browser: string;
-  readonly enrollment: string;
-}
-
-interface PreparedSwitch extends BrowserPair {
-  readonly marker: string;
-}
 
 const secret = (prefix: "vgb1." | "vge1.", char: string): string =>
   `${prefix}${char.repeat(43)}`;
@@ -60,32 +57,8 @@ async function enrollAndExchange(
   return pair;
 }
 
-async function prepare(
-  targetToken: string,
-  sourceBrowser: string,
-): Promise<{
-  readonly result: string;
-  readonly scope: string | null;
-  readonly transition: PreparedSwitch;
-}> {
-  const transition = nextPair();
-  const result = await client.query<{
-    authority_scope: string | null;
-    browser_context_marker: string | null;
-    result_code: string;
-  }>(
-    `SELECT result_code, authority_scope, browser_context_marker
-     FROM guest_browser_prepare_context($1,$2,$3,$4)`,
-    [targetToken, sourceBrowser, transition.enrollment, transition.browser],
-  );
-  return {
-    result: result.rows[0]?.result_code ?? "MISSING",
-    scope: result.rows[0]?.authority_scope ?? null,
-    transition: {
-      ...transition,
-      marker: result.rows[0]?.browser_context_marker ?? "",
-    },
-  };
+function prepare(targetToken: string, sourceBrowser: string) {
+  return prepareGuestBrowserContext(client, targetToken, sourceBrowser, nextPair());
 }
 
 async function switchContext(
@@ -94,25 +67,11 @@ async function switchContext(
   transition: BrowserPair,
   target: Client = client,
 ): Promise<string> {
-  const result = await target.query<{ result_code: string }>(
-    `SELECT result_code FROM guest_browser_switch_context($1,$2,$3,$4)`,
-    [targetToken, sourceBrowser, transition.enrollment, transition.browser],
-  );
-  return result.rows[0]?.result_code ?? "MISSING";
+  return switchGuestBrowserContext(target, targetToken, sourceBrowser, transition);
 }
 
-async function resolve(browser: string): Promise<string> {
-  const result = await client.query<{
-    authority_scope: string | null;
-    result_code: string;
-  }>(
-    "SELECT result_code,authority_scope FROM guest_browser_resolve($1,TRUE)",
-    [browser],
-  );
-  const row = result.rows[0];
-  return row?.result_code === "OK"
-    ? `OK:${row.authority_scope}`
-    : (row?.result_code ?? "MISSING");
+function resolve(browser: string): Promise<string> {
+  return resolveGuestBrowserContext(client, browser);
 }
 
 beforeAll(async () => {

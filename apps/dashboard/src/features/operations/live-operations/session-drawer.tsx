@@ -1,4 +1,5 @@
 import type {
+  LiveSessionOverviewEntry,
   ManagementLocation,
   SessionOverviewEntry,
 } from "@valet/contracts";
@@ -17,6 +18,7 @@ import {
   liveSessionStateLabel,
   liveVehicleLabel,
 } from "./live-operations-presentation";
+import { historicalStaffName } from "./session-staff-attribution";
 
 function resourceLabel(resource: SessionOverviewEntry["parkingSpot"]): string {
   return resource === null
@@ -25,11 +27,17 @@ function resourceLabel(resource: SessionOverviewEntry["parkingSpot"]): string {
 }
 
 export function SessionDrawer({
+  history,
   item,
   locale,
   location,
   onClose,
 }: {
+  // Only Live explicitly supplies protected history. Vehicles never passes it.
+  readonly history?: Pick<
+    LiveSessionOverviewEntry,
+    "checkedInBy" | "parkedBy" | "parkingCompletionProof"
+  >;
   readonly item: SessionOverviewEntry;
   readonly locale: DashboardLocale;
   readonly location: ManagementLocation;
@@ -63,13 +71,41 @@ export function SessionDrawer({
           value={literal(item.vehicle.color)}
         />
         <Fact
-          label={t.assignee}
-          value={literal(operationalStaffName(assignee, locale))}
+          label={history === undefined ? t.assignee : t.liveCurrentAssignee}
+          value={
+            history === undefined
+              ? literal(operationalStaffName(assignee, locale))
+              : literal(
+                  assignee === null
+                    ? item.activeTask === null
+                      ? t.liveNoActiveAssignment
+                      : t.unassigned
+                    : operationalStaffName(assignee, locale),
+                )
+          }
         />
         <Fact
           label={locale === "ar" ? "البريد الإلكتروني" : "Email"}
           value={literal(assignee?.identity.email ?? null)}
         />
+        {history !== undefined ? (
+          <>
+            <Fact
+              label={t.liveOriginalCheckIn}
+              value={literal(
+                historicalStaffName(history.checkedInBy) ?? t.liveUnknownStaff,
+              )}
+            />
+            {history.parkingCompletionProof === "PROVEN" ? (
+              <Fact
+                label={t.liveParkedBy}
+                value={literal(
+                  historicalStaffName(history.parkedBy) ?? t.liveUnknownStaff,
+                )}
+              />
+            ) : null}
+          </>
+        ) : null}
         <Fact
           label={t.state}
           value={

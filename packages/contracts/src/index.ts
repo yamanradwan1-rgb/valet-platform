@@ -16,6 +16,7 @@ export * from "./guest-browser-auth.js";
 export * from "./handoff.js";
 export * from "./key-custody.js";
 export * from "./live-operations-map.js";
+export * from "./live-session-overview.js";
 export * from "./location-analytics-common.js";
 export * from "./location-analytics-financial.js";
 export * from "./location-analytics-incidents.js";

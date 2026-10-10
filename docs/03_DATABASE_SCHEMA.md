@@ -2848,3 +2848,41 @@ Migration 077 adds `anti_abuse_events_guest_group_window_idx` on
 `(scope, group_key_hash, occurred_at)` for non-NULL groups in PENDING/COUNTED.
 Measured EXPLAIN/BUFFERS evidence supports this scoped lookup; no time-dependent
 partial predicate or per-row domain enrichment is introduced.
+
+## Live Operations historical Parking Audit discoverability — DEC-102/103 / #276
+
+The DEC-103 operator rollout for migration `079` adds two
+**non-unique partial B-tree indexes** on
+`audit_events` for the canonical `VALET_SESSION_PARKED` event family:
+`(organization_id, entity_id)` and
+`(organization_id, (metadata_json->>'taskId'))`. The original
+`valet_session_id` historical index remains unchanged. Together they make
+all three DEC-103 candidate-discovery arms indexable for the already
+authorized Organization's bounded Live Operations page. They do not
+alter/repair any historic Audit, Task, Dispatch or Session row, reveal a
+historical identity outside authorized scope, or cap relevant evidence
+cardinality to the number of visible sessions.
+
+The standalone operator SQL
+`packages/database/scripts/dec103-online-index-rollout.sql` uses
+`CREATE INDEX CONCURRENTLY` **outside transactions**, executed with
+`psql -f`, for safe online forward rollout. Where an approved development
+operator had previously installed exactly the same indexes, it checks
+full PostgreSQL index definitions and `indisvalid/indisready` before a
+guarded `IF NOT EXISTS`. A mismatched, wrong-table or INVALID index aborts
+instead of silently passing. Postflight repeats strict definition checks.
+The version-controlled Prisma migration `079` uses one transactional-safe
+`DO` statement: on an **empty** fresh-install Audit table it locks out
+concurrent writes, creates missing ordinary indexes and checks exact catalog
+definitions. On a **nonempty** existing Audit table it refuses to register
+until both indexes were preinstalled via the online operator script. No
+non-concurrent index build is allowed by 079 on a nonempty table.
+This split is required because the repository's PostgreSQL migration test
+harness uses one `client.query(migrationSql)` per migration, which cannot
+execute concurrent index DDL. A partially
+failed rollout requires explicit index ownership/catalog verification and
+bounded `DROP INDEX CONCURRENTLY` outside transactions, per
+[Windows development rollout evidence](validation/ISSUE_276_DEC103_WINDOWS_DEV_APPLIED_2026_10_10.md)
+and [DEC-103](decisions/DEC-103_ISSUE_276_AUDIT_DISCOVERABILITY_VALIDATION.md).
+The source-level migration must be deployed and recorded independently per
+environment; a successful disposable rehearsal never authorizes production.

@@ -5,11 +5,15 @@ import type {
   SessionStateCountsResponse,
 } from "@valet/contracts";
 
-import type { PostgresPool } from "../../common/database/postgres";
+import type {
+  PostgresPool,
+  PostgresTransaction,
+} from "../../common/database/postgres";
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import type { StaffSessionContext } from "../auth/staff-session-context";
 import { authorizeDashboardReadLocation } from "./dashboard-read-authorization";
 import { assertAuthorized } from "./dashboard-overview-error";
+import type { DashboardLocationScope } from "./dashboard-location-authorization";
 import { sessionOverviewCursor } from "./session-overview-cursor";
 import {
   operationalAssigneeColumn,
@@ -82,32 +86,51 @@ export async function listDashboardSessions(
       targetLocationId: input.locationId,
     });
     assertAuthorized(scope);
-    const filter = input.filter ?? "ALL";
-    const cursorCodec = sessionOverviewCursor({
+    return dashboardSessionsInTransaction(transaction, scope, input);
+  });
+}
+
+// Reuse the existing page projection inside DEC-102's single, independently
+// authorized history-read transaction; keep Vehicles' response unchanged.
+export async function dashboardSessionsInTransaction(
+  transaction: PostgresTransaction,
+  scope: DashboardLocationScope,
+  input: {
+    readonly cursor?: string;
+    readonly filter?: SessionOverviewFilter;
+    readonly limit: number;
+    readonly locationId: string;
+    readonly cursorCodec?: ReturnType<typeof sessionOverviewCursor>;
+  },
+): Promise<{ items: SessionOverviewEntry[]; nextCursor: string | null }> {
+  const filter = input.filter ?? "ALL";
+  const cursorCodec =
+    input.cursorCodec ??
+    sessionOverviewCursor({
       organizationId: scope.organizationId,
       locationId: input.locationId,
       filter,
     });
-    const cursor = cursorCodec.decode(input.cursor);
-    const predicates = [
-      "session.organization_id = $1",
-      "session.location_id = $2",
-      "session.state::text = ANY($3::text[])",
-    ];
-    const parameters: unknown[] = [
-      scope.organizationId,
-      input.locationId,
-      sessionOverviewFilterStates[filter],
-    ];
-    if (cursor !== null) {
-      parameters.push(cursor.sortKey, cursor.tiebreakerId);
-      predicates.push(
-        `(session.created_at, session.id) < ($${parameters.length - 1}::timestamptz, $${parameters.length}::uuid)`,
-      );
-    }
-    parameters.push(input.limit + 1);
-    const rows = await transaction.query<SessionRow>(
-      `SELECT session.id::text AS "sessionId",
+  const cursor = cursorCodec.decode(input.cursor);
+  const predicates = [
+    "session.organization_id = $1",
+    "session.location_id = $2",
+    "session.state::text = ANY($3::text[])",
+  ];
+  const parameters: unknown[] = [
+    scope.organizationId,
+    input.locationId,
+    sessionOverviewFilterStates[filter],
+  ];
+  if (cursor !== null) {
+    parameters.push(cursor.sortKey, cursor.tiebreakerId);
+    predicates.push(
+      `(session.created_at, session.id) < ($${parameters.length - 1}::timestamptz, $${parameters.length}::uuid)`,
+    );
+  }
+  parameters.push(input.limit + 1);
+  const rows = await transaction.query<SessionRow>(
+    `SELECT session.id::text AS "sessionId",
               session.state::text AS state,
               session.created_at AS "createdAt",
               session.updated_at AS "updatedAt",
@@ -141,43 +164,42 @@ export async function listDashboardSessions(
        WHERE ${predicates.join(" AND ")}
        ORDER BY session.created_at DESC, session.id DESC
        LIMIT $${parameters.length}`,
-      parameters,
-    );
-    const items = rows.rows.slice(0, input.limit).map((row) => ({
-      createdAt: row.createdAt.toISOString(),
-      currentAssigneeMembershipId: row.currentAssigneeMembershipId,
-      activeTask:
-        row.activeTaskId === null
-          ? null
-          : { taskId: row.activeTaskId, assignee: row.assignee },
-      keySlot: row.keySlot,
-      parkingSpot: row.parkingSpot,
-      parkingZone: row.parkingZone,
-      keySlotId: row.keySlotId,
-      parkingSpotId: row.parkingSpotId,
-      sessionId: row.sessionId,
-      state: row.state as SessionOverviewEntry["state"],
-      updatedAt: row.updatedAt.toISOString(),
-      vehicle: {
-        make: row.make,
-        model: row.model,
-        color: row.color,
-        plateCountry: row.plateCountry,
-        plateNumberNormalized: row.plateNumberNormalized,
-        temporaryDescriptor: row.temporaryDescriptor,
-        vehicleId: row.vehicleId,
-      },
-    }));
-    const last = rows.rows[input.limit - 1];
-    const nextCursor =
-      rows.rows.length > input.limit && last !== undefined
-        ? cursorCodec.encode({
-            sortKey: last.createdAt.toISOString(),
-            tiebreakerId: last.sessionId,
-          })
-        : null;
-    return { items, nextCursor };
-  });
+    parameters,
+  );
+  const items = rows.rows.slice(0, input.limit).map((row) => ({
+    createdAt: row.createdAt.toISOString(),
+    currentAssigneeMembershipId: row.currentAssigneeMembershipId,
+    activeTask:
+      row.activeTaskId === null
+        ? null
+        : { taskId: row.activeTaskId, assignee: row.assignee },
+    keySlot: row.keySlot,
+    parkingSpot: row.parkingSpot,
+    parkingZone: row.parkingZone,
+    keySlotId: row.keySlotId,
+    parkingSpotId: row.parkingSpotId,
+    sessionId: row.sessionId,
+    state: row.state as SessionOverviewEntry["state"],
+    updatedAt: row.updatedAt.toISOString(),
+    vehicle: {
+      make: row.make,
+      model: row.model,
+      color: row.color,
+      plateCountry: row.plateCountry,
+      plateNumberNormalized: row.plateNumberNormalized,
+      temporaryDescriptor: row.temporaryDescriptor,
+      vehicleId: row.vehicleId,
+    },
+  }));
+  const last = rows.rows[input.limit - 1];
+  const nextCursor =
+    rows.rows.length > input.limit && last !== undefined
+      ? cursorCodec.encode({
+          sortKey: last.createdAt.toISOString(),
+          tiebreakerId: last.sessionId,
+        })
+      : null;
+  return { items, nextCursor };
 }
 
 export async function dashboardSessionStateCounts(

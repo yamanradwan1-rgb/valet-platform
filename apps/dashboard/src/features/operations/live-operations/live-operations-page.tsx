@@ -8,7 +8,7 @@ import { LiveFilters, Metric } from "./live-operations-controls";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import {
   readRetrievalQueue,
-  readSessions,
+  readLiveSessions,
   readStateCounts,
 } from "../operations-api";
 import { operationsCopy } from "../operations-copy";
@@ -48,7 +48,7 @@ function LiveOperationsContent() {
       scope.authority === "LOCATION_MANAGER");
   const loadSessions = useCallback(
     (signal: AbortSignal) =>
-      readSessions(dashboard.api, locationId, page.cursor, signal, filter),
+      readLiveSessions(dashboard.api, locationId, page.cursor, signal, filter),
     [dashboard.api, locationId, page.cursor, filter],
   );
   const loadCounts = useCallback(

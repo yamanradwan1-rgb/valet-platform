@@ -7,6 +7,7 @@ import { DashboardConfigurationController } from "./dashboard-configuration.cont
 import { DashboardConfigurationService } from "./dashboard-configuration-command";
 import { DashboardAnalyticsController } from "./analytics.controller";
 import { DashboardOverviewController } from "./overview.controller";
+import { DashboardLiveSessionsController } from "./live-sessions.controller";
 import { DashboardBrandingSubscriptionController } from "./branding.controller";
 import { DashboardReportController } from "./report.controller";
 import { DashboardScopeDiscoveryController } from "./dashboard-scope-discovery.controller";
@@ -32,6 +33,7 @@ import {
     PresenceLmExceptionController,
     DashboardConfigurationController,
     DashboardOverviewController,
+    DashboardLiveSessionsController,
     DashboardAnalyticsController,
     DashboardReportController,
     DashboardBrandingSubscriptionController,
@@ -61,6 +63,7 @@ export class DashboardModule implements NestModule {
         PresenceLmExceptionController,
         DashboardConfigurationController,
         DashboardOverviewController,
+        DashboardLiveSessionsController,
         DashboardAnalyticsController,
         DashboardReportController,
         DashboardBrandingSubscriptionController,

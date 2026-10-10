@@ -52,12 +52,12 @@ it("failure after acquisition completed cannot fabricate acquisition-failure pro
 
 it.each(["before", "during"])(
   "crash %s acquisition has no invented failure and requires explicit fresh acquisition",
-  async (window) => {
+  async (crashPhase) => {
     const s = presenceFixture("REQUIRE_OR_OVERRIDE");
     const acquisition =
       deferred<Awaited<ReturnType<typeof s.acquisition.acquire>>>();
     const challenge = deferred<ReturnType<typeof s.challenge>>();
-    if (window === "before") {
+    if (crashPhase === "before") {
       s.transport.challenge.mockImplementationOnce(async (intent) => {
         await challenge.promise;
         return { ...s.challenge(), operationId: intent.operationId };
@@ -68,7 +68,7 @@ it.each(["before", "during"])(
     await settlePresence();
     const descriptor = s.session.descriptor()!;
     s.session.suspend();
-    if (window === "before") challenge.resolve(s.challenge());
+    if (crashPhase === "before") challenge.resolve(s.challenge());
     else acquisition.reject(new Error("process lost"));
     await caught;
     expect(s.transport.submit).not.toHaveBeenCalled();

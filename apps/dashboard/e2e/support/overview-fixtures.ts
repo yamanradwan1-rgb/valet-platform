@@ -68,6 +68,7 @@ export function retrievalItem() {
       taskId: OP_IDS.task,
       status: "QUEUED",
       currentAssigneeMembershipId: null,
+      assignee: null,
     },
   };
 }
