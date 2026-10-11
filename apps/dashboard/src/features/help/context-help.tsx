@@ -2,6 +2,7 @@
 
 import { HelpCircle } from "lucide-react";
 import { useEffect, useRef, useState, type RefObject } from "react";
+import { createPortal } from "react-dom";
 
 import { FocusDialog } from "../../components/presentation/focus-dialog";
 import type { DashboardLocale } from "../../lib/i18n/locale";
@@ -100,8 +101,14 @@ function ContextHelpInstance({
       >
         <HelpCircle aria-hidden="true" focusable="false" size={16} />
       </button>
-      {open ? (
-        <div className={styles.dialogHost} dir={isArabic ? "rtl" : "ltr"} lang={locale}>
+      {open ? createPortal(
+        <div
+          className={styles.dialogHost}
+          dir={isArabic ? "rtl" : "ltr"}
+          lang={locale}
+          onClick={(event) => event.stopPropagation()}
+          onMouseDown={(event) => event.stopPropagation()}
+        >
           <FocusDialog label={copy.title} onClose={() => setOpen(false)}>
             <div className={styles.content} dir={isArabic ? "rtl" : "ltr"} lang={locale}>
               <h2 className={styles.title}>{copy.title}</h2>
@@ -117,7 +124,8 @@ function ContextHelpInstance({
               </div>
             </div>
           </FocusDialog>
-        </div>
+        </div>,
+        document.body,
       ) : null}
     </>
   );
