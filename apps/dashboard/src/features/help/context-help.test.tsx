@@ -194,6 +194,28 @@ describe("ContextHelp real-browser mounted accessibility and lifecycle", () => {
       .evaluate((el) => el === document.activeElement)).toBe(true);
   });
 
+  it("renders full-screen help from transformed clipped hosts without dismissing the parent", async () => {
+    await page.getByRole("button", { name: "Help: Task list" }).click();
+    const dialog = page.getByRole("dialog", { name: "Task list" });
+    const rect = await dialog.boundingBox();
+    expect(rect!.width).toBeGreaterThanOrEqual(300);
+    const backdrop = await page.locator(".dialog-backdrop").last().boundingBox();
+    expect(backdrop!.width).toBe(1100);
+    expect(backdrop!.height).toBe(780);
+    await page.keyboard.press("Escape");
+
+    await clickHarness("nested-mode");
+    await clickHarness("open-parent");
+    const parent = page.getByRole("dialog", { name: "Parent editor" });
+    await parent.getByRole("button", { name: "Help: Session details" }).click();
+    const nested = await page.getByRole("dialog", { name: "Session details" }).boundingBox();
+    expect(nested!.width).toBeGreaterThanOrEqual(300);
+    await page.locator(".dialog-backdrop").last().click({ position: { x: 2, y: 2 } });
+    expect(await parent.isVisible()).toBe(true);
+    expect(await parent.getByLabel("Parent draft").inputValue()).toBe("parent draft");
+    expect((await counters()).parentClose).toBe(0);
+  });
+
   it("closes stale help immediately on identity changes and falls back after route unmount", async () => {
     await openHelp();
     await clickHarness("scope-b");

@@ -82,6 +82,14 @@ function BrowserHarness() {
                 scopeIdentity={scope}
                 returnFocusFallbackRef={pageHeading}
               />
+              <div data-test="transformed-help-host" style={{ transform: "translateY(-50%)", overflow: "hidden", width: 32 }}>
+                <ContextHelp
+                  helpKey="tasks.table"
+                  locale={locale}
+                  scopeIdentity={scope}
+                  returnFocusFallbackRef={pageHeading}
+                />
+              </div>
             </>
           ) : null}
           <button type="submit" data-test="submit">Save</button>
@@ -100,12 +108,14 @@ function BrowserHarness() {
             onChange={(event) => setParentDraft(event.target.value)}
           />
           {shown ? (
-            <ContextHelp
-              helpKey="live.sessionDetail"
-              locale={locale}
-              scopeIdentity={scope}
-              returnFocusFallbackRef={pageHeading}
-            />
+            <div data-test="transformed-parent-help" style={{ transform: "translateY(-50%)", overflow: "hidden", width: 32 }}>
+              <ContextHelp
+                helpKey="live.sessionDetail"
+                locale={locale}
+                scopeIdentity={scope}
+                returnFocusFallbackRef={pageHeading}
+              />
+            </div>
           ) : null}
           <button type="button" data-test="parent-close"
             onClick={() => { window.helpCounters.parentClose += 1; setParentOpen(false); }}>
