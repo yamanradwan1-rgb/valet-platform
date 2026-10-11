@@ -50,25 +50,25 @@ export function LiveFilters({
         >
           {t.retrievalQueue}
         </button>
+        {countsError ? (
+          <button
+            className={styles.liveFilterRetry}
+            onClick={onRetryCounts}
+            type="button"
+          >
+            {t.metricsUnavailable}
+          </button>
+        ) : (
+          <span className={styles.liveFilterScope}>
+            {view === "RETRIEVAL_QUEUE"
+              ? t.retrievalPageOnly
+              : locale === "ar"
+                ? "التصفية على جميع جلسات الموقع"
+                : "Filters apply across this Location"}
+          </span>
+        )}
       </div>
-      {countsError ? (
-        <button
-          className={styles.liveFilterRetry}
-          onClick={onRetryCounts}
-          type="button"
-        >
-          {t.metricsUnavailable}
-        </button>
-      ) : (
-        <span className={styles.liveFilterScope}>
-          {view === "RETRIEVAL_QUEUE"
-            ? t.retrievalPageOnly
-            : locale === "ar"
-              ? "التصفية على جميع جلسات الموقع"
-              : "Filters apply across this Location"}
-        </span>
-      )}
-      {help}
+      {help ? <span className={styles.liveFilterHelpSlot}>{help}</span> : null}
     </div>
   );
 }

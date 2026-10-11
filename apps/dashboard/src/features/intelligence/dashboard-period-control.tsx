@@ -136,8 +136,12 @@ export function DashboardPeriodControl(props: {
         >
           <RefreshCw aria-hidden="true" size={14} />
         </button>
-        {props.helpKey ? <ScopedContextHelp helpKey={props.helpKey} /> : null}
       </div>
+      {props.helpKey ? (
+        <span className={styles.helpSlot}>
+          <ScopedContextHelp helpKey={props.helpKey} />
+        </span>
+      ) : null}
       <div className={styles.detail}>
         {props.state.period ? (
           <BidiText kind="number">

@@ -71,7 +71,11 @@ function IncidentsContent() {
     );
   return (
     <OperationsPage
-      help={<ScopedContextHelp helpKey="incidents.page" />}
+      help={<span className={styles.incidentPageHelpPair}>
+        <ScopedContextHelp helpKey="incidents.page" />
+        <ScopedContextHelp helpKey="incidents.list" />
+      </span>}
+      pairedHelp
       referenceHeader
       subtitle={t.incidentsSubtitle}
       subtitleMargin="half"
@@ -85,7 +89,6 @@ function IncidentsContent() {
         <span>
           <bdi dir="ltr">{timezone}</bdi>
         </span>
-        <ScopedContextHelp helpKey="incidents.list" />
       </div>
       <ReadState
         empty={read.data?.items.length === 0}

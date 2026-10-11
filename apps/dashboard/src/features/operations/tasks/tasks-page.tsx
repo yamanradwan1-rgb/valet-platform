@@ -129,12 +129,14 @@ function TasksContent() {
             ))}
           </select>
         </div>
-        <div className={styles.helpInline}>
-          <ScopedContextHelp helpKey="tasks.filters" />
+        <div className={[styles.helpNoteRow, styles.helpNoteRowPair].join(" ")}>
           <span className={listStyles.scopeNote}>
             {r04.filtersLoadedPageOnly}
           </span>
-          <ScopedContextHelp helpKey="tasks.table" />
+          <span className={styles.helpNoteAnchor}>
+            <ScopedContextHelp helpKey="tasks.filters" />
+            <ScopedContextHelp helpKey="tasks.table" />
+          </span>
         </div>
       </div>
       <div className={listStyles.tableCard}>

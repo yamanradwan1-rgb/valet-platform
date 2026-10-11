@@ -17,6 +17,7 @@ export function OperationsPage(props: {
   readonly children: ReactNode;
   readonly compact?: boolean;
   readonly help?: ReactNode;
+  readonly pairedHelp?: boolean;
   readonly referenceHeader?: boolean;
   readonly subtitleMargin?: "full" | "half";
   readonly subtitle: string;
@@ -28,7 +29,7 @@ export function OperationsPage(props: {
   return (
     <div className={pageClass} data-testid="md03-page">
       <div className={headerClass}>
-        <div className={props.help ? styles.helpHeading : undefined}>
+        <div className={props.help ? [styles.helpHeading, props.pairedHelp ? styles.pairedHelp : ""].filter(Boolean).join(" ") : undefined}>
           {props.help ? (
             <div><h1 className={styles.title}>{props.title}</h1><p className={subtitleClass}>{props.subtitle}</p></div>
           ) : (

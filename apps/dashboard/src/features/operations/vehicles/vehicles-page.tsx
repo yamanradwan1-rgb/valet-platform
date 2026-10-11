@@ -136,11 +136,11 @@ function VehiclesContent() {
             ))}
           </select>
         </div>
-        <div className={styles.helpInline}>
+        <div className={styles.helpNoteRow}>
           <span className={listStyles.scopeNote} id="vehicles-loaded-page-note">
             {r04.loadedPageOnly}
           </span>
-          <ScopedContextHelp helpKey="vehicles.table" />
+          <span className={styles.helpNoteAnchor}><ScopedContextHelp helpKey="vehicles.table" /></span>
         </div>
       </div>
       <div className={listStyles.tableCard}>
