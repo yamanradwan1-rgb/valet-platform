@@ -130,8 +130,10 @@ function MapsContent() {
               </button>
             ) : null}
           </div>
-          <ScopedContextHelp helpKey="maps.mode" />
         </div>
+        <span className={reference.modeHelpAnchor}>
+          <ScopedContextHelp helpKey="maps.mode" />
+        </span>
         <button
           className={reference.refreshButton}
           disabled={refreshing || (!setupMode && !liveEnabled)}

@@ -18,7 +18,9 @@ export function PaymentsBreakdownTable(props: PaymentsBreakdownProps) {
     <section className={styles.breakdownPanel}>
       <div className={styles.breakdownHeader}>
         <h2>{t.breakdown}</h2>
-        <ScopedContextHelp helpKey="payments.breakdown" />
+        <span className={styles.breakdownHelpAnchor}>
+          <ScopedContextHelp helpKey="payments.breakdown" />
+        </span>
       </div>
       <section
         className={styles.breakdownSection}

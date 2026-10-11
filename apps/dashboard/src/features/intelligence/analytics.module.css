@@ -118,10 +118,21 @@
 
 .card,
 .chartPanel {
+  position: relative;
   border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
   background: #ffffff;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* The card border has a 24px exterior gap; its Help slot uses that gap,
+   not chart-title/date/plot space. Keep this owned by the chart card. */
+.chartHelpAnchor {
+  position: absolute;
+  inset-block-start: -1rem;
+  inset-inline-end: 1.25rem;
+  display: inline-flex;
+  z-index: 1;
 }
 
 .card {

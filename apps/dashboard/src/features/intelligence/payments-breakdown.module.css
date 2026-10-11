@@ -12,10 +12,19 @@
 }
 
 .breakdownHeader {
+  position: relative;
+  padding-inline-end: 4.25rem;
   padding: 1rem;
   border-bottom: 1px solid #f1f5f9;
   display: flex;
   align-items: center;
+}
+
+.breakdownHelpAnchor {
+  position: absolute;
+  inset-block-start: 0.75rem;
+  inset-inline-end: 1rem;
+  display: inline-flex;
 }
 
 .breakdownHeader h2,

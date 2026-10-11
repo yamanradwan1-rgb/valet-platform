@@ -176,9 +176,21 @@
     align-items: center;
     justify-content: space-between;
   }
+  /* Retain the 318px historical medium-width period action slot after Help
+     moves outside the scrolling preset group. */
+  .headerActions {
+    flex: 0 0 19.875rem;
+    max-width: 19.875rem;
+  }
 
   .summaryGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .headerActions {
+    flex: 0 1 auto;
+    max-width: none;
   }
 }
 

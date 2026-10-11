@@ -179,12 +179,12 @@ function ChartPanel(props: {
   return (
     <section className={styles.chartPanel} data-testid="analytics-chart-panel">
       <div className={styles.chartHeader}>
-        <div className={helpStyles.headingRow}>
-          <h2>{props.title}</h2>
-          <ScopedContextHelp helpKey={props.helpKey} />
-        </div>
+        <h2>{props.title}</h2>
         {props.period ? <BidiText kind="number">{props.period.from} – {props.period.to}</BidiText> : null}
       </div>
+      <span className={styles.chartHelpAnchor}>
+        <ScopedContextHelp helpKey={props.helpKey} />
+      </span>
       {props.children}
     </section>
   );
