@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { PresenceLocation } from "./shift-presence-api";
 import { presenceCopy } from "./shift-presence-copy";
 import type { DashboardLocale } from "../../../lib/i18n/locale";
@@ -5,9 +6,11 @@ import { styles } from "../administration-ui";
 
 export function ShiftPresenceReadiness({
   data,
+  help,
   locale,
 }: {
   readonly data: PresenceLocation;
+  readonly help?: ReactNode;
   readonly locale: DashboardLocale;
 }) {
   const t = presenceCopy(locale);
@@ -21,9 +24,12 @@ export function ShiftPresenceReadiness({
         : "notReady";
   return (
     <div className={styles.cardPad} data-testid="presence-readiness">
-      <h3 className={styles.sectionTitle}>
-        {t("readiness")}: {t(status)}
-      </h3>
+      <div className={styles.actions}>
+        <h3 className={styles.sectionTitle}>
+          {t("readiness")}: {t(status)}
+        </h3>
+        {help}
+      </div>
       <p className={styles.sectionText}>
         {t("start")}: {t(data.effective.startMode)} · {t("end")}:{" "}
         {t(data.effective.endMode)}

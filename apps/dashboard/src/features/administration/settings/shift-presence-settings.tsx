@@ -30,6 +30,7 @@ import feature from "./shift-presence.module.css";
 import { usePresenceApi } from "./use-presence-api";
 import { isPresenceDenied } from "./shift-presence-errors";
 import { usePresenceForeground } from "./use-presence-foreground";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 
 /** Keyed full administration lifetime, identical Location composition for CA and LM. */
 export function ShiftPresenceSettings({
@@ -129,14 +130,17 @@ function PresenceScope({ company }: { readonly company: boolean }) {
       data-testid="shift-presence"
     >
       <div className={styles.cardPad}>
-        <h2
-          className={styles.sectionTitle}
-          id="shift-presence-heading"
-          tabIndex={-1}
-          ref={heading}
-        >
-          {t("title")}
-        </h2>
+        <div className={styles.actions}>
+          <h2
+            className={styles.sectionTitle}
+            id="shift-presence-heading"
+            tabIndex={-1}
+            ref={heading}
+          >
+            {t("title")}
+          </h2>
+          <ScopedContextHelp helpKey="policies.presence" />
+        </div>
         {company ? <p className={styles.sectionText}>{t("defaults")}</p> : null}
         <PresenceReadFeedback locale={locale} {...read} onRefresh={refresh} />
         <PresenceMutationFeedback mutation={mutation} locale={locale} />
@@ -144,7 +148,11 @@ function PresenceScope({ company }: { readonly company: boolean }) {
       {data ? (
         <>
           {location ? (
-            <ShiftPresenceReadiness data={location} locale={locale} />
+            <ShiftPresenceReadiness
+              data={location}
+              help={<ScopedContextHelp helpKey="presence.readiness" />}
+              locale={locale}
+            />
           ) : null}
           <ShiftPresencePolicy
             api={api}

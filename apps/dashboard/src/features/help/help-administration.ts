@@ -51,9 +51,9 @@ export const helpadministration = {
   },
   "policies.location": {
     en: { title: "Location overrides tab",
-      body: "Compare company default, local override and effective value before changing a Location policy. Clearing an override restores inheritance rather than setting an arbitrary zero or false." },
+      body: "Compare company default, local override and effective value before changing a Location policy. Clearing an ordinary setting override restores Company inheritance, rather than zero or false. The Location-only SLA target is different: Clear removes that target without inheriting a Company SLA." },
     ar: { title: "استثناءات إعدادات الموقع",
-      body: "قارن القيمة الافتراضية للشركة والاستثناء المحلي والقيمة الفعلية قبل التغيير. إزالة الاستثناء تعيد الوراثة ولا تضبط القيمة عشوائياً إلى صفر أو «لا»." },
+      body: "قارن قيمة الشركة الافتراضية واستثناء الموقع والقيمة الفعلية قبل تعديل سياسة الموقع. إزالة استثناء إعداد عادي تعيد وراثة قيمة الشركة دون ضبطه عشوائياً إلى صفر أو «لا». يختلف هدف SLA الخاص بالموقع: إزالته تحذف الهدف ولا تورث هدفاً من الشركة." },
   },
   "policies.services": {
     en: { title: "Service Status tab",
@@ -69,9 +69,9 @@ export const helpadministration = {
   },
   "branding.company": {
     en: { title: "Company branding",
-      body: "Company branding defines defaults for supported surfaces. Entering a logo or color here does not create a new domain, white-label tier or message provider." },
+      body: "Company branding configures the display name and primary color for supported surfaces. Logo/assets are not editable in this Basic branding form; these values do not activate white-label features or message providers." },
     ar: { title: "هوية الشركة البصرية",
-      body: "تحدد هوية الشركة القيم الافتراضية للأسطح المدعومة. إدخال شعار أو لون هنا لا ينشئ نطاقاً جديداً أو خطة علامة خاصة أو مزود رسائل." },
+      body: "تضبط هوية الشركة اسم العرض واللون الأساسي للأسطح المدعومة. لا يتيح نموذج الهوية الأساسية تعديل الشعار أو الملفات؛ كما لا تُفعّل هذه القيم ميزات العلامة الخاصة أو مزودي الرسائل." },
   },
   "branding.location": {
     en: { title: "Location branding",

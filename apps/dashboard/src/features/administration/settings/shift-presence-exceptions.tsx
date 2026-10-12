@@ -13,6 +13,7 @@ import {
   presenceTime,
 } from "./shift-presence-list-ui";
 import { usePresenceExpiry } from "./use-presence-expiry";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 
 export function ShiftPresenceExceptions(props: {
   readonly api: PresenceApi;
@@ -27,7 +28,10 @@ export function ShiftPresenceExceptions(props: {
   const [view, setView] = useState<"PENDING" | "HISTORY">("PENDING");
   return (
     <div className={styles.cardPad} data-testid="presence-exceptions">
-      <h3 className={styles.sectionTitle}>{t("exceptions")}</h3>
+      <div className={styles.actions}>
+        <h3 className={styles.sectionTitle}>{t("exceptions")}</h3>
+        <ScopedContextHelp helpKey="presence.exceptions" />
+      </div>
       <div className={styles.actions} role="group" aria-label={t("exceptions")}>
         {(["PENDING", "HISTORY"] as const).map((value) => (
           <button

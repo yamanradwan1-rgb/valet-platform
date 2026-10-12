@@ -6,6 +6,7 @@ import { useCallback, useMemo, useState } from "react";
 
 import { useProtectedDashboard } from "../../../components/foundation/protected-dashboard-context";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { administrationCopy } from "../administration-copy";
 import { administrationErrorMessage } from "../administration-error";
 import {
@@ -88,15 +89,21 @@ export function ServiceStatusPanel() {
   return (
     <>
       <div className={styles.toolbar}>
-        <span className={styles.muted}>{t.integrationsSubtitle}</span>
-        <button
-          className={`${styles.secondary} ${styles.integrationRefresh}`}
-          disabled={state.loading}
-          onClick={state.refresh}
-          type="button"
-        >
-          <RefreshCw size={16} /> {t.refresh}
-        </button>
+        <div className={styles.actions}>
+          <span className={styles.muted}>{t.integrationsSubtitle}</span>
+          <ScopedContextHelp helpKey="services.status" />
+        </div>
+        <div className={styles.actions}>
+          <ScopedContextHelp helpKey="policies.services" />
+          <button
+            className={`${styles.secondary} ${styles.integrationRefresh}`}
+            disabled={state.loading}
+            onClick={state.refresh}
+            type="button"
+          >
+            <RefreshCw size={16} /> {t.refresh}
+          </button>
+        </div>
       </div>
       <ReadState
         error={

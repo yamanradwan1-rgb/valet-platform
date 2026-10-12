@@ -18,6 +18,8 @@ import type { PresenceMutation } from "./use-shift-presence-mutation";
 import type { PresenceCopyKey } from "./shift-presence-copy";
 import { presenceCopy } from "./shift-presence-copy";
 import type { DashboardLocale } from "../../../lib/i18n/locale";
+import { presencePolicyHelpKeys } from "../../help/help-setting-manifest";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 
 import {
   presenceFields,
@@ -201,6 +203,7 @@ function PresencePolicyRow(props: Props & { readonly definition: Field }) {
           >
             {t("save")}
           </button>
+          <ScopedContextHelp helpKey={presencePolicyHelpKeys[d.field]} />
           {location ? (
             <button
               className={styles.secondary}

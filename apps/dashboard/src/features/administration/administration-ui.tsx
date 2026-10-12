@@ -16,6 +16,7 @@ export function AdministrationPage(props: {
   readonly title: string;
   readonly titleTracking?: "tight";
   readonly action?: ReactNode;
+  readonly helpInGap?: boolean;
 }) {
   const Icon = props.icon;
   const titleClassName = `${styles.title} ${props.titleTracking === "tight" ? styles.titleTight : ""}`;
@@ -25,7 +26,7 @@ export function AdministrationPage(props: {
     props.subtitleMargin === "half" ? styles.subtitleHalf : "",
   ].filter(Boolean).join(" ");
   return (
-    <div className={styles.page} data-testid="md02-page">
+    <div className={`${styles.page} ${props.helpInGap ? styles.pageHelpInGap : ""}`} data-testid="md02-page">
       <div className={styles.header}>
         <div>
           <div className={styles.heading}>
@@ -34,8 +35,9 @@ export function AdministrationPage(props: {
           </div>
           <p className={subtitleClassName}>{props.subtitle}</p>
         </div>
-        {props.action}
+        {props.helpInGap ? null : props.action}
       </div>
+      {props.helpInGap ? <div className={styles.helpGapRow}>{props.action}</div> : null}
       {props.children}
     </div>
   );

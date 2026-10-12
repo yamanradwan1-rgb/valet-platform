@@ -13,6 +13,7 @@ import { formatStaffTime } from "./staff-presentation";
 import { staffRoleLabel } from "./staff-labels";
 import { staffShiftHistoryCopy } from "./staff-shift-history-copy";
 import { shiftDuration } from "./staff-shift-time";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 export function StaffShiftDrawer(props: {
   readonly item: StaffShiftHistoryEntry | null;
   readonly loading: boolean;
@@ -87,7 +88,10 @@ export function StaffShiftDrawer(props: {
               label={h.duration}
               value={shiftDuration(item, props.now, locale)}
             />
-            {props.action}
+            <div className={styles.actions}>
+              {props.action}
+              <ScopedContextHelp helpKey="staff.details" />
+            </div>
           </div>
         ) : null}
       </ReadState>

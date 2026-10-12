@@ -12,6 +12,7 @@ import {
   PresencePagination,
   PresenceReadFeedback,
 } from "./shift-presence-list-ui";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 
 export function ShiftPresenceZones(props: {
   readonly api: PresenceApi;
@@ -38,7 +39,10 @@ export function ShiftPresenceZones(props: {
   return (
     <div className={styles.cardPad} data-testid="presence-zones">
       <div className={styles.toolbar}>
-        <h3 className={styles.sectionTitle}>{t("zones")}</h3>
+        <div className={styles.actions}>
+          <h3 className={styles.sectionTitle}>{t("zones")}</h3>
+          <ScopedContextHelp helpKey="presence.zones" />
+        </div>
         <button
           className={styles.primary}
           disabled={props.disabled}

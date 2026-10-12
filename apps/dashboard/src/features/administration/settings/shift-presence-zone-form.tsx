@@ -20,6 +20,7 @@ import type { PresenceMutation } from "./use-shift-presence-mutation";
 import feature from "./shift-presence.module.css";
 import { usePresenceDialogFocus } from "./use-presence-dialog-focus";
 import { PresenceMutationFeedback } from "./shift-presence-feedback";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 
 const fields = [
   { key: "label", label: "label", help: "labelHelp", max: 200 },
@@ -281,6 +282,7 @@ export function ShiftPresenceZoneForm(props: {
         >
           {t(props.mode === "edit" ? "save" : props.mode)}
         </button>
+        <ScopedContextHelp helpKey="presence.zoneForm" />
       </div>
     </form>
   );

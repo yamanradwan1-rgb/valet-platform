@@ -4,6 +4,7 @@ import { useCallback, useState, type ReactNode } from "react";
 
 import { useProtectedDashboard } from "../../../components/foundation/protected-dashboard-context";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { ReferenceAdministrationPage as AdministrationPage } from "../reference-administration-page";
 import { administrationCopy } from "../administration-copy";
 import { administrationErrorMessage } from "../administration-error";
@@ -119,6 +120,15 @@ export function SettingsPage({
   if (!companyAdmin && !locationManager) return null;
   return (
     <AdministrationPage
+      helpInGap
+      action={
+        <span className={styles.actions}>
+          <ScopedContextHelp helpKey="policies.page" />
+          {locationManager && lm.data ? (
+            <ScopedContextHelp helpKey="policies.location" />
+          ) : null}
+        </span>
+      }
       subtitle={t.policiesSubtitle}
       subtitleMargin="half"
       subtitleSize="sm"
@@ -126,7 +136,8 @@ export function SettingsPage({
     >
       <div className={styles.card}>
         {companyAdmin ? (
-          <AdministrationTabs
+          <div className={styles.policyTabRow}>
+            <AdministrationTabs
             active={activeTab}
             id="settings"
             inset
@@ -140,7 +151,13 @@ export function SettingsPage({
             ]}
             label={copy.tabsLabel}
             onSelect={setTab}
-          />
+            />
+            {activeTab === "company" || (activeTab === "location" && scope.locationId !== null) ? (
+              <span className={styles.policyTabHelp}>
+                <ScopedContextHelp helpKey={activeTab === "company" ? "policies.company" : "policies.location"} />
+              </span>
+            ) : null}
+          </div>
         ) : null}
         {companyAdmin && activeTab === "services" ? (
           <div

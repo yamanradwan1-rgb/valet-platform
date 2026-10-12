@@ -9,6 +9,7 @@ import { MoreHorizontal, Search } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useProtectedDashboard } from "../../../components/foundation/protected-dashboard-context";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { administrationCopy } from "../administration-copy";
 import { administrationErrorMessage } from "../administration-error";
 import {
@@ -144,7 +145,8 @@ export function StaffEmployeesBody() {
               onChange={(locationId) => query.changeFilters({ locationId })}
             />
           </div>
-          <div className={referenceStyles.onboardingAction}>
+          <div className={`${referenceStyles.onboardingAction} ${styles.actions}`}>
+            <ScopedContextHelp helpKey="staff.employees" />
             <button
               className={styles.primary}
               onClick={() => setCreateOpen(true)}

@@ -15,6 +15,7 @@ import { PresenceReadFeedback } from "./shift-presence-list-ui";
 import { PresenceMutationFeedback } from "./shift-presence-feedback";
 import { usePresenceExpiry } from "./use-presence-expiry";
 import { usePresenceForeground } from "./use-presence-foreground";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 
 export function ShiftPresenceReviewDialog(props: {
   readonly id: string;
@@ -157,9 +158,12 @@ export function ShiftPresenceReviewDialog(props: {
           ) : null}
         </>
       ) : null}
-      <button className={styles.secondary} onClick={props.onClose}>
-        {t("close")}
-      </button>
+      <div className={styles.actions}>
+        <button className={styles.secondary} onClick={props.onClose}>
+          {t("close")}
+        </button>
+        <ScopedContextHelp helpKey="presence.review" />
+      </div>
     </FocusDialog>
   );
 }

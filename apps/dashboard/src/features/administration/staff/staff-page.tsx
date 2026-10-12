@@ -10,6 +10,7 @@ import {
 } from "./staff-force-end-recovery";
 import { useProtectedDashboard } from "../../../components/foundation/protected-dashboard-context";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { administrationCopy } from "../administration-copy";
 import {
   administrationScope,
@@ -79,6 +80,8 @@ function StaffPageContent(props: {
   if (!companyAdmin && !locationManager) return null;
   return (
     <AdministrationPage
+      helpInGap
+      action={<ScopedContextHelp helpKey="staff.page" />}
       subtitle={
         tab === "shifts"
           ? staffShiftHistoryCopy(locale).subtitle

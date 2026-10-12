@@ -9,6 +9,7 @@ import { useState } from "react";
 
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { administrationCopy } from "../administration-copy";
 import { SensitiveMfaDialog } from "../sensitive-mfa-dialog";
 import { styles } from "../administration-ui";
@@ -91,6 +92,7 @@ export function LocationLifecyclePanel(props: {
     >
       <LocationLifecycleFacts location={props.location} />
       <div className={styles.actions}>
+        <ScopedContextHelp helpKey="locations.lifecycle" />
         {props.location.status === "INACTIVE" ? (
           <button
             className={styles.primary}

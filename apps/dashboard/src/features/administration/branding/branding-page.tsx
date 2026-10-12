@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 
 import { useProtectedDashboard } from "../../../components/foundation/protected-dashboard-context";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { ReferenceAdministrationPage as AdministrationPage } from "../reference-administration-page";
 import { administrationCopy } from "../administration-copy";
 import { administrationErrorMessage } from "../administration-error";
@@ -91,6 +92,8 @@ export function BrandingPage() {
   if (!companyAdmin && !locationManager) return null;
   return (
     <AdministrationPage
+      helpInGap
+      action={<ScopedContextHelp helpKey="branding.page" />}
       icon={Palette}
       subtitle={t.brandingSubtitle}
       title={t.brandingTitle}

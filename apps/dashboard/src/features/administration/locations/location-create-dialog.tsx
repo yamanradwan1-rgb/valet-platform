@@ -5,6 +5,7 @@ import { useState, type FormEvent } from "react";
 import { FocusDialog } from "../../../components/presentation/focus-dialog";
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { administrationCopy } from "../administration-copy";
 import { SensitiveMfaDialog } from "../sensitive-mfa-dialog";
 import { styles } from "../administration-ui";
@@ -120,6 +121,7 @@ export function LocationCreateDialog(props: {
             </div>
           ) : null}
           <div className={styles.formFooter}>
+            <ScopedContextHelp helpKey="locations.create" />
             <button
               className={styles.secondary}
               onClick={props.onClose}

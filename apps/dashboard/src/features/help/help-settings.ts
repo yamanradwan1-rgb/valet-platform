@@ -1,6 +1,6 @@
 import type { ContextHelpCopy } from "./context-help-types";
 
-export const helpsettings = {
+const ordinarySettingDescriptions = {
   "setting.checkInPhotosRequired": {
     en: { title: "Check-in photos required",
       body: "Require or do not require condition photos during check-in. When off, the condition check still exists and optional photos may be captured; changing the flag does not erase previously stored evidence." },
@@ -51,15 +51,15 @@ export const helpsettings = {
   },
   "setting.validationEnabled": {
     en: { title: "Validation enabled",
-      body: "Enable supported venue validation behavior for authorized service charges. Validation is a fee/payer rule and does not itself prove payment completion or override vehicle release checks." },
+      body: "Enable supported authorized venue validation adjustments that can recalculate the amount due. Validation is separate from the configured payer and does not prove payment completion or override vehicle release checks." },
     ar: { title: "تفعيل المصادقة",
-      body: "فعّل سلوك المصادقة على الرسوم الذي تدعمه المنشأة. المصادقة قاعدة للرسوم أو الجهة الدافعة، ولا تثبت اكتمال الدفع وحدها ولا تتجاوز شروط تسليم المركبة." },
+      body: "فعّل تعديلات المصادقة المخوّلة التي تدعمها المنشأة، والتي قد تعيد حساب المبلغ المستحق. المصادقة منفصلة عن إعداد الجهة الدافعة، ولا تثبت اكتمال الدفع وحدها ولا تتجاوز شروط تسليم المركبة." },
   },
   "setting.releaseRequiresPayment": {
     en: { title: "Release requires payment",
-      body: "Require payment completion before release under the site's existing authorized handoff policy. This does not disable pickup-code/QR identity verification or permit manual unaudited release." },
+      body: "Require a financially satisfied release before handoff: either the charge is fully paid or the authorized amount due is zero and payment is NOT_REQUIRED. Pickup-code/QR identity verification remains mandatory; this does not permit unaudited release." },
     ar: { title: "الدفع مطلوب قبل التسليم",
-      body: "اشترط اكتمال الدفع قبل التسليم ضمن سياسة الاستلام المخوّلة للموقع. لا يعطّل ذلك التحقق بالرمز أو QR ولا يسمح بتسليم يدوي غير مسجّل." },
+      body: "اشترط استيفاء الوضع المالي قبل تسليم المركبة: إما دفع الرسوم بالكامل، أو أن تكون القيمة المستحقة صفراً وحالة الدفع «غير مطلوب». يبقى التحقق برمز الاستلام أو QR إلزامياً ولا يُسمح بتسليم غير مدقق." },
   },
   "setting.languageDefault": {
     en: { title: "Default language",
@@ -92,3 +92,21 @@ export const helpsettings = {
       body: "تحكم في إشعار الضيف عند بلوغ المركبة حالة الجاهزية المعنية. يعتمد وصول الرسالة على القناة المتاحة والموافق عليها والمزود؛ ولا تكشف مكان الركن الدقيق أو خانة المفتاح." },
   },
 } as const satisfies Record<string, ContextHelpCopy>;
+
+// Every ordinary setting shares the same typed Company-default / Location-
+// override lifecycle. Keep that explanation with its own field-specific copy
+// so each row's help is complete regardless of the currently selected tab.
+const savedValueContext = {
+  en: "The Effective value may be inherited from a Company default or set by an authorized Location override. Editing creates an unsaved draft until Save. Clear override, when offered, restores the Company default. A saved change applies to subsequent policy checks; it does not rewrite historical sessions, tasks, payments, validations or audit records.",
+  ar: "قد تكون القيمة الفعلية موروثة من القيمة الافتراضية للشركة أو محددة باستثناء مخوّل للموقع. التعديل يبقى مسودة غير محفوظة حتى الضغط على حفظ. إزالة الاستثناء، عند إتاحتها، تعيد قيمة الشركة. يسري التغيير المحفوظ على فحوص السياسة اللاحقة، ولا يعيد كتابة سجلات الجلسات أو المهام أو المدفوعات أو المصادقات أو التدقيق السابقة.",
+} as const;
+
+export const helpsettings = Object.fromEntries(
+  Object.entries(ordinarySettingDescriptions).map(([key, copy]) => [
+    key,
+    {
+      en: { ...copy.en, body: `${copy.en.body}\n\n${savedValueContext.en}` },
+      ar: { ...copy.ar, body: `${copy.ar.body}\n\n${savedValueContext.ar}` },
+    },
+  ]),
+) as Record<keyof typeof ordinarySettingDescriptions, ContextHelpCopy>;

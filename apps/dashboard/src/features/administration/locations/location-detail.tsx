@@ -5,6 +5,7 @@ import { MapPin } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { administrationCopy } from "../administration-copy";
 import { StatusBadge } from "../administration-ui";
 import reference from "./locations-reference.module.css";
@@ -28,6 +29,7 @@ export function LocationDetail(props: {
           <StatusBadge good={location.status === "ACTIVE"}>
             {location.status === "ACTIVE" ? t.active : t.inactive}
           </StatusBadge>
+          <ScopedContextHelp helpKey="locations.detail" />
         </div>
         {props.addressText ? (
           <p className={reference.address}>

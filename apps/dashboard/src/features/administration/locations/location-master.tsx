@@ -4,6 +4,7 @@ import type { ManagementLocation } from "@valet/contracts";
 import { Building, MapPin } from "lucide-react";
 
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { administrationCopy } from "../administration-copy";
 import { styles } from "../administration-ui";
 import reference from "./locations-reference.module.css";
@@ -27,9 +28,22 @@ export function LocationMaster(props: {
       data-testid="location-master"
       aria-label={t.locationsTitle}
     >
-      <div className={reference.listHeader}>
+      <div
+        className={reference.listHeader}
+        style={{ position: "relative", paddingInlineEnd: "3rem" }}
+      >
         <Building aria-hidden="true" size={16} />
         {t.allLocations}
+        <span
+          style={{
+            position: "absolute",
+            insetBlockStart: "50%",
+            insetInlineEnd: ".5rem",
+            transform: "translateY(-50%)",
+          }}
+        >
+          <ScopedContextHelp helpKey="locations.list" />
+        </span>
       </div>
       <div className={reference.list}>
         {props.items.map((location) => {

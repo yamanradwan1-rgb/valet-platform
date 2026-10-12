@@ -1,11 +1,11 @@
 import type { ContextHelpCopy } from "./context-help-types";
 
-export const helppresence = {
+const presenceDescriptions = {
   "setting.operatingHours": {
     en: { title: "Weekly operating hours",
-      body: "Configure each weekday's open/closed state and opening/closing times, then Save the seven-day schedule as one operation. A closed day is not an absent record; a Location override may be cleared to inherit company hours, and hours do not start/end staff Shifts automatically." },
+      body: "Configure each weekday's open/closed state and opening/closing times, then Save the seven-day schedule as one operation. A closed day is not an absent record; a Location override may be cleared to inherit company hours, while clearing the Company default removes its saved schedule. These hours are informational and do not automatically block check-in/retrieval or start/end Shifts." },
     ar: { title: "ساعات العمل الأسبوعية",
-      body: "اضبط حالة الفتح والإغلاق وأوقاتهما لكل يوم، ثم احفظ الجدول الأسبوعي بأكمله بعملية واحدة. اليوم المغلق ليس سجلاً مفقوداً؛ ويمكن إزالة استثناء الموقع ليرث ساعات الشركة، ولا تبدأ ساعات العمل ورديات الموظفين أو تنهيها تلقائياً." },
+      body: "اضبط حالة الفتح والإغلاق وأوقاتهما لكل يوم، ثم احفظ الجدول الأسبوعي بأكمله بعملية واحدة. اليوم المغلق ليس سجلاً مفقوداً؛ وإزالة استثناء الموقع تعيد وراثة ساعات الشركة، بينما إزالة القيمة الافتراضية للشركة تحذف جدولها المحفوظ. الساعات معلوماتية ولا تمنع دخول المركبة أو استرجاعها تلقائياً ولا تبدأ الورديات أو تنهيها." },
   },
   "setting.slaTargetSeconds": {
     en: { title: "Location SLA target",
@@ -27,9 +27,9 @@ export const helppresence = {
   },
   "presence.shiftEndPresenceMode": {
     en: { title: "Shift end presence check",
-      body: "Choose the supported presence-check mode for ending a Shift. Ending a Shift remains subject to open-task handoff and supervisor authorization even if a location reading passes." },
+      body: "Choose the supported presence-check mode for ending one's own Shift. Normal Shift end still follows open-task handoff guards; a strict-presence exception needs an authorized Company Admin or exact Location Manager approval. Forced Shift end has separate safeguards." },
     ar: { title: "التحقق عند إنهاء الوردية",
-      body: "اختر وضع التحقق من الحضور المدعوم عند إنهاء الوردية. يبقى إنهاء الوردية خاضعاً لتسليم المهام المفتوحة وصلاحيات المشرف حتى عند نجاح قراءة الموقع." },
+      body: "اختر وضع التحقق من الحضور عند إنهاء الموظف ورديته بنفسه. يظل إنهاء الوردية العادي خاضعاً لضوابط تسليم المهام المفتوحة؛ واستثناء الحضور الصارم يتطلب موافقة مدير الشركة أو مدير الموقع المخوّل. الإنهاء القسري له ضوابط منفصلة." },
   },
   "presence.shiftPresenceMaxAccuracyMeters": {
     en: { title: "Maximum location uncertainty",
@@ -39,9 +39,9 @@ export const helppresence = {
   },
   "presence.shiftPresenceMaxFixAgeSeconds": {
     en: { title: "Maximum location fix age",
-      body: "Set the maximum age, in seconds, of a location fix accepted for presence. Older cached readings are not proof of present attendance; this does not change the schedule of background tracking." },
+      body: "Set the maximum age, in seconds, of a location fix accepted at the shift presence check. Older cached readings are not proof of current attendance; this setting does not enable continuous or background employee tracking." },
     ar: { title: "الحد الأقصى لعمر قراءة الموقع",
-      body: "حدّد أقصى عمر مسموح لقراءة الموقع بالثواني عند التحقق من الحضور. القراءة المخزّنة القديمة لا تثبت الحضور الحالي؛ ولا يغيّر هذا الجدول الزمني لأي تتبع خلفي." },
+      body: "حدّد أقصى عمر مسموح لقراءة الموقع بالثواني عند فحص حضور الوردية. القراءة المخزّنة القديمة لا تثبت الحضور الحالي؛ وهذا الإعداد لا يفعّل تتبع الموظف المستمر أو في الخلفية." },
   },
   "presence.readiness": {
     en: { title: "Presence readiness",
@@ -80,3 +80,20 @@ export const helppresence = {
       body: "حالة الخدمة هي ملاحظة تقنية وليست مفتاح تشغيل خاصاً بالشركة. لا يوجد حفظ هنا؛ قد تحتاج الخدمة السليمة إلى بيانات اعتماد أو اشتراك أو تهيئة خاصة بالموقع في موضع آخر." },
   },
 } as const satisfies Record<string, ContextHelpCopy>;
+
+const policyContext = {
+  en: "Company defaults may be overridden only in an authorized Location; Effective can be inherited or overridden. A modified field remains an unsaved draft until Save. Clear Location override restores Company inheritance. Saved policy revisions affect subsequent point-in-time Shift checks, without rewriting historical attendance, evidence or audit records.",
+  ar: "يمكن استثناء قيم الشركة الافتراضية في الموقع المخوّل فقط، وقد تكون القيمة الفعلية موروثة أو متجاوزة. يبقى تعديل الحقل مسودة غير محفوظة حتى الضغط على حفظ. إزالة استثناء الموقع تعيد وراثة قيمة الشركة. تؤثر إصدارات السياسة المحفوظة على فحوص حضور الوردية اللحظية اللاحقة، دون إعادة كتابة سجلات الحضور أو الأدلة أو التدقيق السابقة.",
+} as const;
+
+export const helppresence = Object.fromEntries(
+  Object.entries(presenceDescriptions).map(([key, copy]) => [
+    key,
+    key.startsWith("presence.shift")
+      ? {
+          en: { ...copy.en, body: `${copy.en.body}\n\n${policyContext.en}` },
+          ar: { ...copy.ar, body: `${copy.ar.body}\n\n${policyContext.ar}` },
+        }
+      : copy,
+  ]),
+) as Record<keyof typeof presenceDescriptions, ContextHelpCopy>;

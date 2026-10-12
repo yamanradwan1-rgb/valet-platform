@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import type { DashboardLocale } from "../../../lib/i18n/locale";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { administrationCopy } from "../administration-copy";
 import { styles } from "../administration-ui";
 import { settingsTableCopy } from "./settings-copy";
@@ -33,6 +34,7 @@ export function SlaSettingRow(props: {
       <td><div className={styles.actions}>
         <button className={styles.primary} disabled={props.disabled || !valid || parsed === props.value}
           onClick={() => props.onSet(parsed)} type="button">{t.save}</button>
+        <ScopedContextHelp helpKey="setting.slaTargetSeconds" />
         <button className={styles.secondary} disabled={props.disabled || props.value === null}
           onClick={props.onClear} type="button">{t.clearOverride}</button>
       </div></td>

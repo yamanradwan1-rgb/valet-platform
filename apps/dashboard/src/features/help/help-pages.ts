@@ -57,9 +57,9 @@ export const helppages = {
   },
   "locations.page": {
     en: { title: "Locations",
-      body: "Review managed Locations and their operational details. Creating a Location or changing lifecycle status, where offered, requires the existing authorized flow and may require current MFA; selection alone changes no Location record." },
+      body: "Review managed Locations and their operational details. Offered Location creation and protected lifecycle changes require authorized flows and fresh five-minute MFA; selection alone changes no Location record." },
     ar: { title: "المواقع",
-      body: "استعرض المواقع المُدارة وتفاصيلها التشغيلية. إنشاء موقع أو تغيير حالته، عند إتاحة ذلك، يمر بالإجراء المخوّل وقد يتطلب تحققاً متعدد العوامل؛ اختيار الموقع لا يعدّل سجله." },
+      body: "استعرض المواقع المُدارة وتفاصيلها التشغيلية. إنشاء الموقع أو تغيير حالته المحمي، عند إتاحته، يتطلب إجراءً مخوّلاً وتحققاً متعدد العوامل سارياً خلال خمس دقائق؛ اختيار الموقع لا يعدّل سجله." },
   },
   "policies.page": {
     en: { title: "Policies & Settings",
@@ -69,9 +69,9 @@ export const helppages = {
   },
   "roles.page": {
     en: { title: "Roles & Permissions",
-      body: "This page explains the existing fixed staff roles, their scope and conditions. It is a reference table, not a role builder or permission editor; actual access also depends on membership, Location grant, Shift and other security checks." },
+      body: "This page explains the existing fixed staff roles, their scope and conditions. It is a reference table, not a role builder or permission editor; actual access depends on active membership, relevant Location grants, and operation-specific security checks such as Shift eligibility where applicable." },
     ar: { title: "الأدوار والصلاحيات",
-      body: "تشرح الصفحة أدوار الموظفين الثابتة ونطاق كل دور وشروطه. هي جدول مرجعي وليست أداة إنشاء أدوار أو تعديل صلاحيات؛ الوصول الفعلي يعتمد أيضاً على العضوية ومنح الموقع والوردية وفحوص الأمان الأخرى." },
+      body: "تشرح الصفحة أدوار الموظفين الثابتة ونطاق كل دور وشروطه. هي جدول مرجعي وليست أداة إنشاء أدوار أو تعديل صلاحيات؛ الوصول الفعلي يعتمد على العضوية النشطة ومنح المواقع المعنية وفحوص الأمان الخاصة بكل عملية، ومنها أهلية الوردية حيث تنطبق." },
   },
   "branding.page": {
     en: { title: "Branding",

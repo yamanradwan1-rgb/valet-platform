@@ -5,6 +5,7 @@ import { useCallback } from "react";
 
 import { useProtectedDashboard } from "../../../components/foundation/protected-dashboard-context";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { ReferenceAdministrationPage as AdministrationPage } from "../reference-administration-page";
 import { administrationCopy } from "../administration-copy";
 import { administrationErrorMessage } from "../administration-error";
@@ -78,6 +79,8 @@ export function SubscriptionPage() {
         : t.suspended;
   return (
     <AdministrationPage
+      helpInGap
+      action={<ScopedContextHelp helpKey="billing.page" />}
       icon={Receipt}
       subtitle={t.billingSubtitle}
       title={t.billingTitle}
@@ -100,7 +103,13 @@ export function SubscriptionPage() {
             <div className={styles.grid3}>
               <div
                 className={`${styles.card} ${styles.billingCardPad} ${styles.span2}`}
+                style={{ position: "relative", paddingInlineEnd: "4rem" }}
               >
+                <span
+                  style={{ position: "absolute", insetBlockStart: "1rem", insetInlineEnd: "1rem" }}
+                >
+                  <ScopedContextHelp helpKey="billing.status" />
+                </span>
                 <div className={styles.muted}>{t.planCode}</div>
                 <h2 className={styles.planTitle}>
                   <bdi dir="ltr">{subscription.planCode}</bdi>
@@ -116,8 +125,21 @@ export function SubscriptionPage() {
               </div>
             </div>
             <div className={styles.card}>
-              <div className={styles.billingSectionHeader}>
+              <div
+                className={styles.billingSectionHeader}
+                style={{ position: "relative", paddingInlineEnd: "4rem" }}
+              >
                 <h2 className={styles.billingSectionTitle}>{t.entitlements}</h2>
+                <span
+                  style={{
+                    position: "absolute",
+                    insetBlockStart: "50%",
+                    insetInlineEnd: "1rem",
+                    transform: "translateY(-50%)",
+                  }}
+                >
+                  <ScopedContextHelp helpKey="billing.entitlements" />
+                </span>
               </div>
               <div
                 aria-label={t.entitlements}

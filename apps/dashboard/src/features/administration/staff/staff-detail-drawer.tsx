@@ -14,6 +14,7 @@ import { SensitiveMfaDialog } from "../sensitive-mfa-dialog";
 import { useSensitiveMutation } from "../use-sensitive-mutation";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { setStaffRole, setStaffStatus } from "./staff-api";
 import { staffRoleLabel, staffStatusLabel } from "./staff-labels";
 import { StaffLocationAccessPanel } from "./staff-location-access-panel";
@@ -52,25 +53,36 @@ export function StaffDetailDrawer(props: {
   return (
     <AdministrationDrawer label={t.details} onClose={props.onClose}>
       <div className={styles.stack}>
-        <div>
-          <div className={styles.muted}>{t.name}</div>
-          <bdi
-            className={styles.strong}
-            dir={
-              props.detail.identity.firstName !== null &&
-              props.detail.identity.lastName !== null
-                ? "auto"
-                : "ltr"
-            }
+        <div style={{ position: "relative", paddingInlineEnd: "2.5rem" }}>
+          <div>
+            <div className={styles.muted}>{t.name}</div>
+            <bdi
+              className={styles.strong}
+              dir={
+                props.detail.identity.firstName !== null &&
+                props.detail.identity.lastName !== null
+                  ? "auto"
+                  : "ltr"
+              }
+            >
+              {staffManagementDisplayName(props.detail.identity)}
+            </bdi>
+            {props.detail.identity.firstName !== null &&
+            props.detail.identity.lastName !== null ? (
+              <div className={styles.muted}>
+                <bdi dir="ltr">{props.detail.identity.email}</bdi>
+              </div>
+            ) : null}
+          </div>
+          <span
+            style={{
+              position: "absolute",
+              insetBlockStart: 0,
+              insetInlineEnd: 0,
+            }}
           >
-            {staffManagementDisplayName(props.detail.identity)}
-          </bdi>
-          {props.detail.identity.firstName !== null &&
-          props.detail.identity.lastName !== null ? (
-            <div className={styles.muted}>
-              <bdi dir="ltr">{props.detail.identity.email}</bdi>
-            </div>
-          ) : null}
+            <ScopedContextHelp helpKey="staff.details" />
+          </span>
         </div>
         <div className={styles.grid2}>
           <div>

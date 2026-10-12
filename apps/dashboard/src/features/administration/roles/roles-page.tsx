@@ -5,6 +5,7 @@ import type { StaffManagementRole } from "@valet/contracts";
 
 import { useProtectedDashboard } from "../../../components/foundation/protected-dashboard-context";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { ReferenceAdministrationPage as AdministrationPage } from "../reference-administration-page";
 import { administrationCopy } from "../administration-copy";
 import { styles } from "../administration-ui";
@@ -26,12 +27,17 @@ export function RolesPage() {
 
   return (
     <AdministrationPage
+      helpInGap
+      action={<ScopedContextHelp helpKey="roles.page" />}
       subtitle={t.rolesSubtitle}
       subtitleMargin="half"
       subtitleSize="sm"
       title={t.rolesTitle}
     >
       <p className={styles.subtitle}>{reference.explanation}</p>
+      <div className={styles.roleReferenceHelpGap}>
+        <ScopedContextHelp helpKey="roles.reference" />
+      </div>
       <div className={styles.card}>
         <div
           aria-label={t.fixedRoles}

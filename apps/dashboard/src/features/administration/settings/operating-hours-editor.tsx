@@ -4,6 +4,7 @@ import type { OperatingHoursValue } from "@valet/contracts";
 import { useState } from "react";
 
 import type { DashboardLocale } from "../../../lib/i18n/locale";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { administrationCopy } from "../administration-copy";
 import { styles } from "../administration-ui";
 import { settingsTableCopy, weekdayLabel } from "./settings-copy";
@@ -138,6 +139,7 @@ export function OperatingHoursEditor(props: {
           >
             {t.save}
           </button>
+          <ScopedContextHelp helpKey="setting.operatingHours" />
           {props.canClear && props.onClear ? (
             <button
               className={styles.secondary}

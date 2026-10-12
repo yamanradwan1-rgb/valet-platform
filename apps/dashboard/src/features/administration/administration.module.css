@@ -1,4 +1,11 @@
 .page { display: grid; gap: 1.5rem; animation: adminFade 180ms ease-out; }
+.pageHelpInGap { row-gap: 0; }
+.pageHelpInGap > :nth-child(n+4) { margin-block-start: 1.5rem; }
+.helpGapRow { block-size: 1.5rem; display: flex; justify-content: flex-end; align-items: center; }
+.helpGapRow button[aria-label^="Help:"], .helpGapRow button[aria-label^="مساعدة:"] { inline-size: 1.5rem; block-size: 1.5rem; }
+.pageHelpInGap > .roleReferenceHelpGap, .pageHelpInGap > .roleReferenceHelpGap + .card { margin-block-start: 0; }
+.roleReferenceHelpGap { block-size: 1.5rem; display: flex; align-items: center; justify-content: flex-end; }
+.roleReferenceHelpGap button[aria-label^="Help:"], .roleReferenceHelpGap button[aria-label^="مساعدة:"] { inline-size: 1.5rem; block-size: 1.5rem; }
 .header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
 .heading { display: flex; align-items: center; gap: .625rem; }
 .headingIcon { width: 1.75rem; height: 1.75rem; color: var(--accent); }
@@ -20,6 +27,10 @@
 .referenceTabs { border-bottom-color: #f1f5f9; }
 .referenceTab { padding-bottom: .75rem; color: #64748b; }
 .referenceTabActive { color: #1e60f0; }
+.policyTabRow { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; min-inline-size: 0; border-bottom: 1px solid #f1f5f9; }
+.policyTabRow .referenceTabs { min-inline-size: 0; inline-size: 100%; border-bottom: 0; }
+.policyTabHelp { padding: .25rem .5rem; }
+:global([data-theme="dark"]) .policyTabRow { border-bottom-color: #172346; }
 .brandingTabs { gap: 1.5rem; border-bottom-color: #e2e8f0; }
 .brandingTab { padding-bottom: .75rem; color: #64748b; font-weight: 600; }
 :global([data-theme="dark"]) .brandingTabs { border-bottom-color: #172346; }

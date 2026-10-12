@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 
 import { useProtectedDashboard } from "../../../components/foundation/protected-dashboard-context";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { administrationCopy } from "../administration-copy";
 import {
   administrationErrorMessage,
@@ -97,16 +98,19 @@ function LocationsPageContent() {
     <div className={reference.page}>
       <AdministrationPage
         action={
-          companyAdmin ? (
-            <button
-              className={reference.add}
-              onClick={() => setCreateOpen(true)}
-              type="button"
-            >
-              <Plus aria-hidden="true" size={16} />
-              {t.addLocation}
-            </button>
-          ) : undefined
+          <div className={styles.actions}>
+            {companyAdmin ? (
+              <button
+                className={reference.add}
+                onClick={() => setCreateOpen(true)}
+                type="button"
+              >
+                <Plus aria-hidden="true" size={16} />
+                {t.addLocation}
+              </button>
+            ) : null}
+            <ScopedContextHelp helpKey="locations.page" />
+          </div>
         }
         subtitle={t.locationsSubtitle}
         subtitleSize="sm"

@@ -3,6 +3,8 @@
 import { useState } from "react";
 
 import type { DashboardLocale } from "../../../lib/i18n/locale";
+import { ordinarySettingHelpKeys } from "../../help/help-setting-manifest";
+import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { administrationCopy } from "../administration-copy";
 import { styles } from "../administration-ui";
 import type { SettingDefinition } from "./setting-definitions";
@@ -108,6 +110,7 @@ export function SettingRow(props: {
           >
             {t.save}
           </button>
+          <ScopedContextHelp helpKey={ordinarySettingHelpKeys[props.definition.key as keyof typeof ordinarySettingHelpKeys]} />
           {props.canClear && props.onClear ? (
             <button
               className={styles.secondary}
