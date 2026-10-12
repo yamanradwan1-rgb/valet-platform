@@ -78,15 +78,22 @@ for (const locale of ["en", "ar"] as const)
           const expected = JSON.parse(
             readFileSync(join(output, `${name}-baseline.json`), "utf8"),
           );
-          // The isolated main checkout changes generated CSS scope hashes only.
-          // Keep all markup, geometry and computed styles in the comparison.
+          // #278-D adds accessible, non-mutating Help triggers by design.
+          // Normalize only their DOM subtree; retain the frozen geometry,
+          // computed styles, original Save/Clear/input markup and every other
+          // node, so actual presentation changes still fail this comparison.
+          const ignoreAdditiveHelp = (html: string) =>
+            html.replace(
+              /<button\b(?=[^>]*\baria-label="(?:Help:|مساعدة:))[^>]*>[\s\S]*?<\/button>/gu,
+              "",
+            );
           const comparable = (items: typeof frozen) =>
             items.map((item) => ({
               ...item,
-              html: item.html.replace(
+              html: ignoreAdditiveHelp(item.html.replace(
                 /-module__[A-Za-z0-9_-]{6}__/g,
                 "-module__SCOPE__",
-              ),
+              )),
             }));
           expect(comparable(frozen)).toEqual(comparable(expected));
           await expect(
