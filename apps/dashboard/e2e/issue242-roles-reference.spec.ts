@@ -52,7 +52,9 @@ test("Company Admin has a fixed read-only EN/AR role reference with zero feature
   ).toBeVisible();
   await expect(content.getByRole("tablist")).toHaveCount(0);
   await expect(content.getByRole("tab")).toHaveCount(0);
-  await expect(content.getByRole("button")).toHaveCount(0);
+  // #278-D adds two informational controls to the otherwise read-only role reference.
+  await expect(content.getByRole("button", { name: /^Help:/u })).toHaveCount(2);
+  await expect(content.getByRole("button")).toHaveCount(2);
   await expect(content.locator("input, select, textarea")).toHaveCount(0);
   await expect(content.getByRole("columnheader")).toHaveText([
     "Role",

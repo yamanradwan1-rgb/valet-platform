@@ -111,8 +111,9 @@ for (const [status, label] of [
     await expect(
       page.getByRole("row").filter({ hasText: "Basic branding" }),
     ).toContainText("Enabled");
-    await expect(page.getByTestId("md02-page").getByRole("button")).toHaveCount(
-      0,
-    );
+    const content = page.getByTestId("md02-page");
+    // Billing stays read-only: #278-D adds only three informational Help buttons.
+    await expect(content.getByRole("button", { name: /^Help:/u })).toHaveCount(3);
+    await expect(content.getByRole("button")).toHaveCount(3);
   });
 }
