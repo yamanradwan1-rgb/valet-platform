@@ -12,6 +12,8 @@ import {
   type AuditTimeContext,
 } from "./audit-presentation";
 import { auditActorLabel, auditEntityLabel } from "./audit-event-labels";
+import { ScopedContextHelp } from "../help/scoped-context-help";
+import helpSlot from "../help/help-slot.module.css";
 import styles from "./audit.module.css";
 
 export function AuditTable(props: {
@@ -95,8 +97,11 @@ export function AuditTable(props: {
         </table>
       </div>
       <div className={styles.pagination}>
-        <span>
-          {t.loaded} {props.items.length} {t.events}
+        <span className={helpSlot.anchor}>
+          <span>{t.loaded} {props.items.length} {t.events}</span>
+          <span className={helpSlot.afterInline}>
+            <ScopedContextHelp helpKey="audit.table" />
+          </span>
         </span>
         <div className={styles.buttons}>
           <button

@@ -6,6 +6,8 @@ import type { ManagementAuditEvent } from "@valet/contracts";
 import { useProtectedDashboard } from "../../components/foundation/protected-dashboard-context";
 import { useSelectedScope } from "../../components/foundation/selected-scope-provider";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../help/scoped-context-help";
+import helpSlot from "../help/help-slot.module.css";
 import { AuditDetailDrawer } from "./audit-detail-drawer";
 import { auditCopy } from "./audit-copy";
 import { auditErrorMessage } from "./audit-errors";
@@ -37,12 +39,13 @@ function AuditContent() {
   const showEventType = audit.scope?.role !== "SUPERVISOR";
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
+      <div className={`${styles.header} ${helpSlot.anchor}`}>
         <div>
           <h1 className={styles.title}>{t.title}</h1>
           <p className={styles.subtitle}>{t.subtitle}</p>
         </div>
         <span className={styles.scopeBadge}>{scopeLabel}</span>
+        <span className={helpSlot.corner}><ScopedContextHelp helpKey="audit.page" /></span>
       </div>
       <AuditFilters
         eventType={audit.eventType}

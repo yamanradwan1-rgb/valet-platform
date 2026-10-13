@@ -7,6 +7,8 @@ import type { VisitContactCopy } from "./visit-contact-copy";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
 import { VisitContactTime } from "./visit-contact-time";
 import { visitContactPhoneText } from "./visit-contact-presentation";
+import { ScopedContextHelp } from "../help/scoped-context-help";
+import helpSlot from "../help/help-slot.module.css";
 import baseStyles from "./visit-contacts.module.css";
 import tableStyles from "./visit-contact-table.module.css";
 const styles = { ...baseStyles, ...tableStyles };
@@ -28,12 +30,15 @@ export function VisitContactResults(props: {
   if (data.matchState === "NONE") {
     return (
       <div className={styles.card}>
-        <div className={styles.state}>{t.none}</div>
+        <div className={styles.state}>
+          <span className={helpSlot.row}>
+            <span>{t.none}</span>
+            <ScopedContextHelp helpKey="contacts.results" />
+          </span>
+        </div>
         {data.mode !== "PLATE" ? (
           <div className={styles.pagination}>
-            <span>
-              {t.loaded} 0 {t.results}
-            </span>
+            <span>{t.loaded} 0 {t.results}</span>
             <div className={styles.cursorButtons}>
               <button
                 className={styles.secondary}
@@ -149,8 +154,9 @@ export function VisitContactResults(props: {
           </table>
         </div>
         <div className={styles.pagination}>
-          <span>
-            {t.loaded} {data.items.length} {t.results}
+          <span className={helpSlot.row}>
+            <span>{t.loaded} {data.items.length} {t.results}</span>
+            <ScopedContextHelp helpKey="contacts.results" />
           </span>
           {data.mode !== "PLATE" ? (
             <div className={styles.cursorButtons}>

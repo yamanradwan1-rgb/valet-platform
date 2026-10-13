@@ -8,6 +8,8 @@ import {
 import type { AuditCopy } from "./audit-copy";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
 import { auditEventLabel } from "./audit-event-copy";
+import { ScopedContextHelp } from "../help/scoped-context-help";
+import helpSlot from "../help/help-slot.module.css";
 import styles from "./audit.module.css";
 
 export function AuditFilters(props: {
@@ -18,7 +20,8 @@ export function AuditFilters(props: {
 }) {
   const { locale } = useDashboardLocale();
   return (
-    <div className={styles.filters}>
+    <div className={`${styles.filters} ${helpSlot.anchor}`}>
+      <span className={helpSlot.corner}><ScopedContextHelp helpKey="audit.filters" /></span>
       {props.showEventType ? (
         <label className={styles.field}>
           <span className={styles.label}>{props.t.eventType}</span>

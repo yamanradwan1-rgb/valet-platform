@@ -2,6 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useStaffAuth } from "../../lib/auth/staff-auth-context";
+import { useDashboardLocale } from "../../lib/i18n/locale-provider";
+import { ContextHelp } from "../../features/help/context-help";
+import helpSlot from "../../features/help/help-slot.module.css";
+import { useConnectedHelpFallback } from "../../features/help/use-connected-help-fallback";
 
 import {
   resolveRootProductLanding,
@@ -24,6 +29,9 @@ export function RootProductLanding({
   readonly unavailableLabel: string;
 }) {
   const router = useRouter();
+  const auth = useStaffAuth();
+  const { locale } = useDashboardLocale();
+  const returnFocusFallbackRef = useConnectedHelpFallback();
   const decision = resolveRootProductLanding(navigationStatus, navigation);
   const destination = decision.kind === "redirect" ? decision.href : null;
 
@@ -39,7 +47,12 @@ export function RootProductLanding({
 
   return (
     <Panel>
-      <p className="muted">{unavailableLabel}</p>
+      <div className={helpSlot.heading}>
+        <p className="muted">{unavailableLabel}</p>
+        {navigationStatus === "valid" ? (
+          <ContextHelp helpKey="workspace.page" locale={locale} returnFocusFallbackRef={returnFocusFallbackRef} scopeIdentity={`${authorityKey}:${auth.identityGeneration}:${auth.sessionGeneration}`} />
+        ) : null}
+      </div>
     </Panel>
   );
 }

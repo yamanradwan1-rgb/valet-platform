@@ -21,16 +21,21 @@ export function VisitContactDrawer(props: {
   readonly closeLabel: string;
   readonly label: string;
   readonly onClose: () => void;
+  readonly headerAction?: ReactNode;
   readonly subtitle?: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
   const { onClose } = props;
   useEffect(() => {
     returnFocus.current = document.activeElement as HTMLElement | null;
     const node = ref.current;
-    node?.querySelector<HTMLElement>(focusable)?.focus();
+    closeRef.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
+      // Help is portaled above this drawer and manages its own keyboard trap.
+      const topDialog = Array.from(document.querySelectorAll('[role="dialog"][aria-modal="true"]')).at(-1);
+      if (topDialog !== node) return;
       if (event.key === "Escape") {
         event.preventDefault();
         onClose();
@@ -74,14 +79,18 @@ export function VisitContactDrawer(props: {
             <h2>{props.label}</h2>
             {props.subtitle}
           </div>
-          <button
-            aria-label={props.closeLabel}
-            className={styles.quiet}
-            onClick={onClose}
-            type="button"
-          >
-            <X aria-hidden="true" size={18} />
-          </button>
+          <div className={styles.headerActions}>
+            {props.headerAction}
+            <button
+              aria-label={props.closeLabel}
+              className={styles.quiet}
+              onClick={onClose}
+              ref={closeRef}
+              type="button"
+            >
+              <X aria-hidden="true" size={18} />
+            </button>
+          </div>
         </div>
         <div className={styles.drawerBody}>{props.children}</div>
       </div>

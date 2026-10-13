@@ -6,6 +6,7 @@ import { useProtectedDashboard } from "../../components/foundation/protected-das
 import { useSelectedScope } from "../../components/foundation/selected-scope-provider";
 import { FocusDialog } from "../../components/presentation/focus-dialog";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../help/scoped-context-help";
 import { visitContactCopy } from "./visit-contact-copy";
 import type { VisitContactCorrectionIntent } from "./visit-contact-correction-intent";
 import {
@@ -184,7 +185,10 @@ export function VisitContactCorrectionDialog(props: {
   return (
     <FocusDialog label={t.correctionTitle} onClose={props.onClose}>
       <div className={styles.dialogBody}>
-        <div className={styles.dialogHeader}><h2>{t.correctionTitle}</h2></div>
+        <div className={styles.dialogHeader}>
+          <h2>{t.correctionTitle}</h2>
+          <ScopedContextHelp helpKey="contacts.correction" />
+        </div>
         <div className={styles.dialogContent}>
           <label className={styles.field}>
             <span className={styles.label}>

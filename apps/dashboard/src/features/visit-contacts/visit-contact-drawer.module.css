@@ -34,6 +34,12 @@
   color: #0f172a;
   font-size: 1.125rem;
 }
+.headerActions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.5rem;
+}
 :global([data-theme="dark"]) .drawerHeader {
   background: #0d152f;
   border-color: #172346;

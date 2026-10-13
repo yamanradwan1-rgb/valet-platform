@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useProtectedDashboard } from "../../components/foundation/protected-dashboard-context";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../help/scoped-context-help";
 import { VisitContactCorrectionDialog } from "./visit-contact-correction-dialog";
 import type { VisitContactCorrectionIntent } from "./visit-contact-correction-intent";
 import { visitContactCopy } from "./visit-contact-copy";
@@ -122,6 +123,7 @@ export function VisitContactDetailDrawer(props: {
       {correction === null ? (
         <VisitContactDrawer
           closeLabel={t.close}
+          headerAction={<ScopedContextHelp helpKey="contacts.detail" />}
           label={title}
           onClose={props.onClose}
           subtitle={

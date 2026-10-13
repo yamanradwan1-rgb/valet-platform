@@ -4,6 +4,8 @@ import type { FormEvent } from "react";
 
 import type { VisitContactCopy } from "./visit-contact-copy";
 import type { VisitSearchMode } from "./visit-contacts-api";
+import { ScopedContextHelp } from "../help/scoped-context-help";
+import helpSlot from "../help/help-slot.module.css";
 import baseStyles from "./visit-contacts.module.css";
 import searchStyles from "./visit-contact-search.module.css";
 const styles = { ...baseStyles, ...searchStyles };
@@ -33,7 +35,8 @@ export function VisitContactSearch(props: {
     props.onSubmit();
   }
   return (
-    <form className={styles.searchCard} onSubmit={submit}>
+    <form className={`${styles.searchCard} ${helpSlot.anchor}`} onSubmit={submit}>
+      <span className={helpSlot.corner}><ScopedContextHelp helpKey="contacts.search" /></span>
       <div className={styles.searchRow}>
         <label className={`${styles.field} ${styles.searchField}`}>
           <span className={styles.label}>{t.searchMode}</span>

@@ -13,6 +13,8 @@ import { Button } from "../../../components/presentation/button";
 import { Panel } from "../../../components/presentation/panel";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { useDashboardTheme } from "../../../lib/theme/theme-provider";
+import { ContextHelp } from "../../help/context-help";
+import helpSlot from "../../help/help-slot.module.css";
 import {
   activateStaffAccount,
   StaffActivationPageError,
@@ -143,7 +145,12 @@ export function StaffActivationPage() {
               </Button>
             </div>
             <p className="eyebrow">VAYLET</p>
-            <h1>{complete ? t.complete : t.activate}</h1>
+            <h1 aria-label={complete ? t.complete : t.activate} className={helpSlot.anchor}>
+              {complete ? t.complete : t.activate}
+              <span className={helpSlot.corner}>
+                <ContextHelp helpKey="activation.page" locale={locale} scopeIdentity={complete ? "activation-complete" : available ? "activation-form" : "activation-unavailable"} />
+              </span>
+            </h1>
             {complete ? (
               <Link href="/">{t.signIn}</Link>
             ) : available ? (
@@ -152,8 +159,11 @@ export function StaffActivationPage() {
                   {t.guidance}
                 </p>
                 <p className="muted">{t.passwordPolicy}</p>
-                <div className="field">
+                <div className={`field ${helpSlot.anchor}`}>
                   <label htmlFor="activation-password">{t.password}</label>
+                  <span className={helpSlot.corner}>
+                    <ContextHelp helpKey="activation.invitation" locale={locale} scopeIdentity="activation-form" />
+                  </span>
                   <input
                     id="activation-password"
                     aria-describedby="activation-guidance activation-feedback"

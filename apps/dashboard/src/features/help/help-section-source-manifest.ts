@@ -62,7 +62,7 @@ export const helpSectionSourceFiles = {
   "contacts.detail": "src/features/visit-contacts/visit-contact-detail-drawer.tsx",
   "contacts.correction": "src/features/visit-contacts/visit-contact-correction-dialog.tsx",
   "security.auth": "src/components/security/account-security-panel.tsx",
-  "security.sessions": "src/components/security/account-security-panel.tsx",
+  "security.sessions": "src/components/security/account-security-workspace.tsx",
   "help.guides": "src/components/foundation/help-foundation.tsx",
   "help.security": "src/components/foundation/help-foundation.tsx",
   "help.faq": "src/components/foundation/help-foundation.tsx",

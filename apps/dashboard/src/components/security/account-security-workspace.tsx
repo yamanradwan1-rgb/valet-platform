@@ -8,6 +8,8 @@ import { Button } from "../presentation/button";
 import { styles as administrationStyles } from "../../features/administration/administration-ui";
 import helpStyles from "../foundation/help-foundation.module.css";
 import { useAccountSecurityAccess } from "./account-security-access-provider";
+import { AccountContextHelp } from "../../features/help/account-context-help";
+import helpSlot from "../../features/help/help-slot.module.css";
 import { AccountSecurityPanel } from "./account-security-panel";
 import { useAccountSecurityCeremony } from "./use-account-security-ceremony";
 
@@ -28,6 +30,7 @@ export function AccountSecurityWorkspace({ ready = true }: { readonly ready?: bo
     titleRef.current?.focus();
   }, []);
   const snapshot = ready ? access.snapshot : null;
+  const sensitiveDisclosure = Boolean(ceremony.enrollment || ceremony.recoveryCodes);
   const status =
     snapshot?.status === "eligible"
       ? t(stateKey[snapshot.state])
@@ -43,14 +46,20 @@ export function AccountSecurityWorkspace({ ready = true }: { readonly ready?: bo
 
   return (
     <div className={helpStyles.page}>
-      <header>
+      <header className={helpSlot.anchor}>
         <h1 ref={titleRef} tabIndex={-1}>{t("security")}</h1>
+        {snapshot?.status === "eligible" && !sensitiveDisclosure ? (
+          <span className={helpSlot.corner}><AccountContextHelp helpKey="security.page" /></span>
+        ) : null}
         <p>{t("securityIntro")}</p>
       </header>
       <section className={helpStyles.card}>
         <div className="stack">
-          <div>
+          <div className={helpSlot.anchor}>
             <h2>{t("mfaStatus")}</h2>
+            {snapshot?.status === "eligible" && !sensitiveDisclosure ? (
+              <span className={helpSlot.corner}><AccountContextHelp helpKey="security.sessions" /></span>
+            ) : null}
             <p className="muted" role="status">
               {t("mfaStatus")}: {status}
             </p>

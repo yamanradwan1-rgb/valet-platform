@@ -7,6 +7,8 @@ import { useDashboardLocale } from "../../lib/i18n/locale-provider";
 import { Button } from "../presentation/button";
 import { styles as administrationStyles } from "../../features/administration/administration-ui";
 import helpStyles from "../foundation/help-foundation.module.css";
+import { AccountContextHelp } from "../../features/help/account-context-help";
+import helpSlot from "../../features/help/help-slot.module.css";
 import {
   EnrollmentCeremony,
   RecoveryCodesDisclosure,
@@ -35,8 +37,11 @@ export function AccountSecurityPanel({
   return (
     <section className={helpStyles.card}>
       <div className="stack">
-        <div>
+        <div className={helpSlot.anchor}>
           <h2>{t("mfa")}</h2>
+          {!ceremony.recoveryCodes && !ceremony.enrollment ? (
+            <span className={helpSlot.corner}><AccountContextHelp helpKey="security.auth" /></span>
+          ) : null}
           <p className="muted">{t("mfaIntro")}</p>
         </div>
         {ceremony.errorKey ? (

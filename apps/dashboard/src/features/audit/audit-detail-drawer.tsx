@@ -9,6 +9,8 @@ import { auditCopy } from "./audit-copy";
 import { AuditDetailRenderer } from "./audit-detail-renderer";
 import { auditActorLabel, auditEntityLabel } from "./audit-event-labels";
 import { auditEventLabel } from "./audit-event-copy";
+import { ScopedContextHelp } from "../help/scoped-context-help";
+import helpSlot from "../help/help-slot.module.css";
 import {
   auditScopeLabel,
   formatAuditTime,
@@ -33,13 +35,17 @@ export function AuditDetailDrawer(props: {
   const { locale } = useDashboardLocale();
   const t = auditCopy(locale);
   const ref = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
   const { onClose } = props;
   useEffect(() => {
     returnFocus.current = document.activeElement as HTMLElement | null;
     const node = ref.current;
-    node?.querySelector<HTMLElement>(focusable)?.focus();
+    closeRef.current?.focus();
     const keydown = (event: KeyboardEvent) => {
+      // A portaled nested Help dialog owns Escape and Tab while it is topmost.
+      const topDialog = Array.from(document.querySelectorAll('[role="dialog"][aria-modal="true"]')).at(-1);
+      if (topDialog !== node) return;
       if (event.key === "Escape") {
         event.preventDefault();
         onClose();
@@ -90,14 +96,18 @@ export function AuditDetailDrawer(props: {
               {props.event.eventType}
             </bdi>
           </div>
-          <button
-            aria-label={t.close}
-            className={styles.quiet}
-            onClick={onClose}
-            type="button"
-          >
-            <X aria-hidden="true" size={18} />
-          </button>
+          <div className={helpSlot.row}>
+            <ScopedContextHelp helpKey="audit.detail" />
+            <button
+              aria-label={t.close}
+              className={styles.quiet}
+              onClick={onClose}
+              ref={closeRef}
+              type="button"
+            >
+              <X aria-hidden="true" size={18} />
+            </button>
+          </div>
         </div>
         <div className={styles.drawerBody}>
           <div className={styles.detailSection}>

@@ -5,6 +5,8 @@ import { useCallback, useState } from "react";
 import { useProtectedDashboard } from "../../components/foundation/protected-dashboard-context";
 import { useSelectedScope } from "../../components/foundation/selected-scope-provider";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
+import { ScopedContextHelp } from "../help/scoped-context-help";
+import helpSlot from "../help/help-slot.module.css";
 import { VisitContactDetailDrawer } from "./visit-contact-detail-drawer";
 import type { VisitContactCorrectionIntent } from "./visit-contact-correction-intent";
 import { consumeVisitContactCorrectionRecovery } from "./visit-contact-correction-recovery";
@@ -116,12 +118,13 @@ function VisitContactsContentInner(props: {
 
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
+      <div className={`${styles.header} ${helpSlot.anchor}`}>
         <div>
           <h1 className={styles.title}>{t.title}</h1>
           <p className={styles.subtitle}>{t.subtitle}</p>
         </div>
         <span className={styles.scopeBadge}>{scopeLabel}</span>
+        <span className={helpSlot.corner}><ScopedContextHelp helpKey="contacts.page" /></span>
       </div>
       <VisitContactSearch
         draft={search.draft}

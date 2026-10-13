@@ -1,0 +1,47 @@
+.row {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-inline-size: 0;
+}
+
+.end {
+  margin-inline-start: auto;
+  flex: 0 0 auto;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-inline-size: 0;
+}
+
+.anchor {
+  position: relative;
+}
+
+.corner {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  z-index: 1;
+  display: inline-flex;
+}
+
+.insetCorner {
+  position: absolute;
+  inset-block-start: 1.5rem;
+  inset-inline-end: 1.5rem;
+  z-index: 1;
+  display: inline-flex;
+}
+
+.afterInline {
+  position: absolute;
+  inset-block-start: -0.5rem;
+  inset-inline-start: calc(100% + 0.5rem);
+  display: inline-flex;
+}
