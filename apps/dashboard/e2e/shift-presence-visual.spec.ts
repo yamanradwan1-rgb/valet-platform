@@ -86,16 +86,26 @@ for (const locale of ["en", "ar"] as const)
             html.replace(
               /<button\b(?=[^>]*\baria-label="(?:Help:|مساعدة:))[^>]*>[\s\S]*?<\/button>/gu,
               "",
+            ).replace(
+              /<span\b[^>]*\bdata-mobile-setting-help=""[^>]*><\/span>/gu,
+              "",
             );
-          const comparable = (items: typeof frozen) =>
+          const comparable = (items: typeof frozen, current: boolean) =>
             items.map((item) => ({
               ...item,
+              // Owner accepted the existing 48px tab scrollport allocation
+              // and 1px moved border for the separate Policies section Help.
+              // Compare every other rect exactly against the pinned baseline.
+              geometry: current && item.selector === '[role="tablist"]'
+                ? [item.geometry[0]! - (locale === "ar" ? 48 : 0), item.geometry[1],
+                    item.geometry[2]! + 48, item.geometry[3]! + 1]
+                : item.geometry,
               html: ignoreAdditiveHelp(item.html.replace(
                 /-module__[A-Za-z0-9_-]{6}__/g,
                 "-module__SCOPE__",
               )),
             }));
-          expect(comparable(frozen)).toEqual(comparable(expected));
+          expect(comparable(frozen, true)).toEqual(comparable(expected, false));
           await expect(
             page.getByTestId("shift-presence").locator("[data-presence-field]"),
           ).toHaveCount(4);
@@ -135,10 +145,11 @@ for (const locale of ["en", "ar"] as const)
           expect(footer!.y + footer!.height).toBeLessThanOrEqual(900);
           await page.screenshot({ path: join(output, `${name}-dialog.png`) });
           await page.keyboard.press("Shift+Tab");
+          // The already-approved zone-form Help follows Save in tab order.
+          // Reverse Tab from the first input must wrap to that final control.
           await expect(
             dialog.getByRole("button", {
-              name: locale === "ar" ? "إلغاء" : "Cancel",
-              exact: true,
+              name: /^(Help:|مساعدة:)/u,
             }),
           ).toBeFocused();
           await page.keyboard.press("Escape");

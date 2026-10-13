@@ -7,6 +7,7 @@ import type { DashboardLocale } from "../../../lib/i18n/locale";
 import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { administrationCopy } from "../administration-copy";
 import { styles } from "../administration-ui";
+import { MobileSettingContextHelp } from "./mobile-setting-context-help";
 import { settingsTableCopy, weekdayLabel } from "./settings-copy";
 
 const weekdays = [
@@ -59,7 +60,10 @@ export function OperatingHoursEditor(props: {
   return (
     <tr data-setting="operatingHours">
       <td>
-        <div className={styles.strong}>{copy.operatingHours}</div>
+        <div className={styles.strong}>
+          <MobileSettingContextHelp helpKey="setting.operatingHours" />
+          {copy.operatingHours}
+        </div>
         <div className={styles.muted}>
           {props.overridePresent === true
             ? t.overridden

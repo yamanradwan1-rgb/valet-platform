@@ -6,6 +6,10 @@ import { signInOnCurrentPage } from "./support/foundation-ui";
 import { locationIntelligenceReply } from "./support/md05-intelligence-fixtures";
 import { operationsReadReply, sessionItem } from "./support/operations-fixtures";
 import { contextHelpRegistry } from "../src/features/help/context-help-registry";
+import {
+  companySettings,
+  managementLocationSettings,
+} from "./support/administration-fixtures";
 
 async function enter(page: Page, route: string) {
   const fixture = new DashboardApiFixture({
@@ -86,4 +90,76 @@ test("narrow RTL browser layout at 200% CSS zoom preserves help focus and record
   await page.keyboard.press("Escape");
   await expect(trigger).toBeFocused();
   expect([...fixture.counts.entries()].sort()).toEqual(before);
+});
+
+test("Administration mobile label Help remains usable at real Chromium 200% page scale", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 760 });
+  const writes: string[] = [];
+  const companyPath = `/v1/staff/management/organizations/${ORG_A.organizationId}/settings`;
+  const locationPath = `/v1/staff/management/organizations/${ORG_A.organizationId}/locations/${LOCATION_A.locationId}/settings`;
+  const fixture = new DashboardApiFixture({
+    companyOrganizations: [ORG_A],
+    companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
+    override: (path, request) => {
+      if (request.method() !== "GET" && !path.startsWith("/v1/staff/auth/")) writes.push(path);
+      if (path === companyPath && request.method() === "GET") return { body: companySettings() };
+      if (path === locationPath && request.method() === "GET") {
+        return { body: managementLocationSettings() };
+      }
+      return undefined;
+    },
+  });
+  await fixture.install(page);
+  await page.goto("/policies");
+  await signInOnCurrentPage(page);
+  await page.getByRole("button", { name: ORG_A.name }).click();
+  await page.getByRole("button", { name: LOCATION_A.name }).click();
+  await page.getByRole("tab", { name: "Location overrides" }).click();
+
+  const client = await page.context().newCDPSession(page);
+  await client.send("Emulation.setPageScaleFactor", { pageScaleFactor: 2 });
+  await expect.poll(() => page.evaluate(() => window.visualViewport?.scale)).toBe(2);
+
+  const row = page.locator('tr[data-setting="trackingEnabled"]');
+  const trigger = row.locator("td").first().getByRole("button", {
+    name: "Help: " + contextHelpRegistry["setting.trackingEnabled"].en.title,
+    exact: true,
+  });
+  await trigger.scrollIntoViewIfNeeded();
+  const geometry = await trigger.evaluate((element: HTMLButtonElement) => {
+    const rect = element.getBoundingClientRect();
+    const hit = document.elementFromPoint(
+      rect.left + rect.width / 2,
+      rect.top + rect.height / 2,
+    );
+    return {
+      width: rect.width,
+      height: rect.height,
+      left: rect.left,
+      right: rect.right,
+      viewportWidth: innerWidth,
+      hit: hit === element || element.contains(hit),
+    };
+  });
+  expect(geometry.width).toBeGreaterThanOrEqual(24);
+  expect(geometry.height).toBeGreaterThanOrEqual(24);
+  expect(geometry.left).toBeGreaterThanOrEqual(0);
+  expect(geometry.right).toBeLessThanOrEqual(geometry.viewportWidth);
+  expect(geometry.hit).toBe(true);
+
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  const dialog = page.getByRole("dialog", {
+    name: contextHelpRegistry["setting.trackingEnabled"].en.title,
+  });
+  await expect(dialog).toContainText(
+    contextHelpRegistry["setting.trackingEnabled"].en.body,
+  );
+  await page.keyboard.press("Escape");
+  await expect(trigger).toBeFocused();
+  expect(writes).toEqual([]);
+  await client.send("Emulation.setPageScaleFactor", { pageScaleFactor: 1 });
+  await client.detach();
 });

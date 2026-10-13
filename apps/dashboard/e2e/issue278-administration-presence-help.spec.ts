@@ -173,3 +173,67 @@ test("review help stays nested, preserves parent dialog, and performs no review 
   ).toBeEnabled();
   expect(f.writes).toEqual([]);
 });
+
+test("narrow Shift Presence rows expose label Help without losing drafts or invoking mutations", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 760 });
+  const f = new PresenceFixture("LM");
+  await f.open(page);
+
+  for (const [field, key] of policyFields) {
+    const row = page.locator(`[data-presence-field="${field}"]`);
+    const name = "Help: " + contextHelpRegistry[key].en.title;
+    const mobile = row.locator("td").first().getByRole("button", { name, exact: true });
+    const action = row.locator("td").last().getByRole("button", { name, exact: true });
+    await expect(mobile).toHaveCount(1);
+    await expect(action).toHaveCount(1);
+    await mobile.scrollIntoViewIfNeeded();
+    const state = await mobile.evaluate((element: HTMLButtonElement) => {
+      let scrollport: HTMLElement | null = null;
+      for (let parent = element.parentElement; parent; parent = parent.parentElement) {
+        if (/auto|scroll/u.test(getComputedStyle(parent).overflowX)) {
+          scrollport = parent;
+          break;
+        }
+      }
+      if (scrollport) scrollport.scrollLeft = 0;
+      const rect = element.getBoundingClientRect();
+      const bounds = scrollport?.getBoundingClientRect();
+      const hit = document.elementFromPoint(
+        rect.left + rect.width / 2,
+        rect.top + rect.height / 2,
+      );
+      return {
+        width: rect.width,
+        height: rect.height,
+        left: rect.left,
+        right: rect.right,
+        portLeft: bounds?.left ?? 0,
+        portRight: bounds?.right ?? innerWidth,
+        hit: hit === element || element.contains(hit),
+      };
+    });
+    expect(state.width).toBeGreaterThanOrEqual(24);
+    expect(state.height).toBeGreaterThanOrEqual(24);
+    expect(state.left).toBeGreaterThanOrEqual(state.portLeft - 0.5);
+    expect(state.right).toBeLessThanOrEqual(state.portRight + 0.5);
+    expect(state.hit).toBe(true);
+  }
+
+  const row = page.locator(
+    '[data-presence-field="shiftPresenceMaxAccuracyMeters"]',
+  );
+  const input = row.getByRole("textbox");
+  await input.fill("70");
+  const mobile = row.locator("td").first().getByRole("button", {
+    name: "Help: " +
+      contextHelpRegistry["presence.shiftPresenceMaxAccuracyMeters"].en.title,
+    exact: true,
+  });
+  await mobile.click();
+  await page.getByRole("dialog").getByRole("button", { name: "Close" }).click();
+  await expect(input).toHaveValue("70");
+  await expect(row.getByRole("button", { name: "Save", exact: true })).toBeEnabled();
+  expect(f.writes).toEqual([]);
+});

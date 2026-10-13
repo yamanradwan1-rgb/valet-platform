@@ -7,6 +7,7 @@ import { ordinarySettingHelpKeys } from "../../help/help-setting-manifest";
 import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { administrationCopy } from "../administration-copy";
 import { styles } from "../administration-ui";
+import { MobileSettingContextHelp } from "./mobile-setting-context-help";
 import type { SettingDefinition } from "./setting-definitions";
 import {
   settingDisplayValue,
@@ -31,6 +32,10 @@ export function SettingRow(props: {
   const [draft, setDraft] = useState(() => settingEditorValue(props.value));
   const id = `setting-${props.definition.key}`;
   const label = props.definition.labels[props.locale];
+  const helpKey =
+    ordinarySettingHelpKeys[
+      props.definition.key as keyof typeof ordinarySettingHelpKeys
+    ];
   function commit() {
     if (props.definition.kind === "boolean") props.onSet(draft === "true");
     else if (props.definition.kind === "integer") props.onSet(Number(draft));
@@ -39,7 +44,10 @@ export function SettingRow(props: {
   return (
     <tr data-setting={props.definition.key}>
       <td>
-        <div className={styles.strong}>{label}</div>
+        <div className={styles.strong}>
+          <MobileSettingContextHelp helpKey={helpKey} />
+          {label}
+        </div>
         <div className={styles.muted}>
           {props.overridePresent === true
             ? t.overridden
@@ -110,7 +118,7 @@ export function SettingRow(props: {
           >
             {t.save}
           </button>
-          <ScopedContextHelp helpKey={ordinarySettingHelpKeys[props.definition.key as keyof typeof ordinarySettingHelpKeys]} />
+          <ScopedContextHelp helpKey={helpKey} />
           {props.canClear && props.onClear ? (
             <button
               className={styles.secondary}

@@ -6,6 +6,7 @@ import type { DashboardLocale } from "../../../lib/i18n/locale";
 import { ScopedContextHelp } from "../../help/scoped-context-help";
 import { administrationCopy } from "../administration-copy";
 import { styles } from "../administration-ui";
+import { MobileSettingContextHelp } from "./mobile-setting-context-help";
 import { settingsTableCopy } from "./settings-copy";
 
 export function SlaSettingRow(props: {
@@ -23,7 +24,10 @@ export function SlaSettingRow(props: {
   return (
     <tr data-setting="slaTargetSeconds">
       <td>
-        <div className={styles.strong}>{copy.slaTarget}</div>
+        <div className={styles.strong}>
+          <MobileSettingContextHelp helpKey="setting.slaTargetSeconds" />
+          {copy.slaTarget}
+        </div>
         <div className={styles.muted}>{props.value === null ? "—" : props.value} · {copy.slaRange}</div>
       </td>
       <td>

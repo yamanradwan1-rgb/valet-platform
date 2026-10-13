@@ -20,6 +20,7 @@ import { presenceCopy } from "./shift-presence-copy";
 import type { DashboardLocale } from "../../../lib/i18n/locale";
 import { presencePolicyHelpKeys } from "../../help/help-setting-manifest";
 import { ScopedContextHelp } from "../../help/scoped-context-help";
+import { MobileSettingContextHelp } from "./mobile-setting-context-help";
 
 import {
   presenceFields,
@@ -103,6 +104,7 @@ function PresencePolicyRow(props: Props & { readonly definition: Field }) {
   return (
     <tr data-presence-field={d.field}>
       <td>
+        <MobileSettingContextHelp helpKey={presencePolicyHelpKeys[d.field]} />
         <label className={styles.strong} htmlFor={id}>
           {t(d.label)}
         </label>
