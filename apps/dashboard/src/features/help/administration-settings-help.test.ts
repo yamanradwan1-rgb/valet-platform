@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { chromium, type Browser, type Page } from "@playwright/test";
+import { chromium, type Browser, type BrowserServer, type Page } from "@playwright/test";
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -22,6 +22,7 @@ const css = [
 ].join("\n");
 
 let browser: Browser;
+let browserServer: BrowserServer;
 let page: Page;
 let script: string;
 
@@ -59,10 +60,15 @@ describe("278-D Administration settings mounted help", () => {
       }],
     });
     script = bundled.outputFiles[0]!.text;
-    browser = await chromium.launch({ headless: true });
+    browserServer = await chromium.launchServer({ headless: true });
+    browser = await chromium.connect(browserServer.wsEndpoint());
   }, 45_000);
 
-  afterAll(async () => { await page?.context().close(); await browser?.close(); });
+  afterAll(async () => {
+    await page?.context().close();
+    await browser?.close();
+    await browserServer?.kill();
+  }, 90_000);
 
   async function mount() {
     await page?.context().close();

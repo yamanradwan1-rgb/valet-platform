@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { chromium, type Browser, type Page } from "@playwright/test";
+import { chromium, type Browser, type BrowserServer, type Page } from "@playwright/test";
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -20,6 +20,7 @@ const { build } = nodeRequire(esbuildPath) as {
 };
 
 let browser: Browser;
+let browserServer: BrowserServer;
 let page: Page;
 let browserScript: string;
 const styles = [
@@ -68,7 +69,10 @@ describe("ContextHelp real-browser mounted accessibility and lifecycle", () => {
       }],
     });
     browserScript = compiled.outputFiles[0]!.text;
-    browser = await chromium.launch({ headless: true });
+    // A separate Playwright server keeps protocol shutdown independent from
+    // slow Windows Chromium process termination during suite teardown.
+    browserServer = await chromium.launchServer({ headless: true });
+    browser = await chromium.connect(browserServer.wsEndpoint());
   }, 40_000);
 
   beforeEach(async () => {
@@ -95,7 +99,8 @@ describe("ContextHelp real-browser mounted accessibility and lifecycle", () => {
 
   afterAll(async () => {
     await browser?.close();
-  });
+    await browserServer?.kill();
+  }, 90_000);
 
   it("mounts exactly the requested English key, a named icon button and correct dialog semantics", async () => {
     const trigger = page.getByRole("button", { name: "Help: Raw GPS retention days" });
