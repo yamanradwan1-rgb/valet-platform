@@ -31,7 +31,7 @@ async function enterContacts(page: Page) {
   await signInOnCurrentPage(page, "admin@example.com");
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByLabel("Name").fill("Alex");
-  await page.getByRole("button", { name: "Search" }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
 }
 
 test("Visit Contacts drawer and correction are keyboard-safe and restore focus", async ({ page }) => {
@@ -75,14 +75,14 @@ test("Arabic MD-04 keeps mixed protected values safely LTR", async ({ page }) =>
   await page.getByLabel("Search mode").selectOption("PLATE");
   await page.getByLabel("Plate country").fill("JO");
   await page.getByLabel("Plate", { exact: true }).fill("10-12345");
-  await page.getByRole("button", { name: "Search" }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   await expect(page.getByRole("button", {
     name: "Details for result 1: 10-12345",
     exact: true,
   })).toHaveCount(1);
   await page.getByLabel("Search mode").selectOption("NAME");
   await page.getByLabel("Name").fill("Alex");
-  await page.getByRole("button", { name: "Search" }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   await page.getByRole("button", { name: "Language" }).click();
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   await expect(page.getByRole("heading", { name: "جهات اتصال الزيارات", level: 1 })).toBeVisible();

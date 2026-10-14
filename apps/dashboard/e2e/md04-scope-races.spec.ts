@@ -38,13 +38,20 @@ async function chooseOrganization(page: Page, name: string) {
 }
 
 async function changeScope(page: Page) {
-  await page.locator(".topbar").getByRole("button", { name: "Change scope" }).click();
+  const organizationSwitch = page.locator(".sidebar-scope");
+  // External scope change can invalidate an open modal; dispatch the shell's
+  // actual organization-switch action even when its backdrop blocks pointer input.
+  if (await page.getByRole("dialog").count()) {
+    await organizationSwitch.evaluate((button: HTMLButtonElement) => button.click());
+  } else {
+    await organizationSwitch.click();
+  }
 }
 
 async function searchName(page: Page, name: string) {
   await page.getByLabel("Search mode").selectOption("NAME");
   await page.getByLabel("Name").fill(name);
-  await page.getByRole("button", { name: "Search" }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
 }
 
 test("Visit Contacts fences stale A cursor response across A to B to A scope lifecycles", async ({ page }) => {
@@ -96,10 +103,7 @@ test("Visit Contacts fences stale A cursor response across A to B to A scope lif
     exact: true,
   }).click();
   await expect(page.getByRole("dialog", { name: "A Initial" })).toBeVisible();
-  await page.locator(".topbar").getByRole(
-    "button",
-    { name: "Change scope" },
-  ).evaluate((button: HTMLButtonElement) => button.click());
+  await changeScope(page);
   await expect(page.getByRole("dialog", { name: "A Initial" })).toHaveCount(0);
   await chooseOrganization(page, ORG_B.name);
   await changeScope(page);

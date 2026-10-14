@@ -36,7 +36,7 @@ async function enterCorrection(page: Page, fixture: DashboardApiFixture) {
   await signInOnCurrentPage(page, "admin@example.com");
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByLabel("Name").fill("Correction");
-  await page.getByRole("button", { name: "Search" }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   const row = page.locator("tbody tr").filter({ hasText: "Correction Contact" });
   await row.getByRole("button", { name: "Details" }).click();
   await page.getByRole("dialog", { name: "Correction Contact" })
@@ -179,7 +179,7 @@ test("unknown write outcome never retries and preserves draft through deliberate
   await expect(page.getByRole("dialog")).toHaveCount(0);
 
   await page.getByLabel("Name").fill("Renamed");
-  await page.getByRole("button", { name: "Search" }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   const row = page.locator("tbody tr").filter({ hasText: "Renamed Elsewhere" });
   await row.getByRole("button", { name: "Details" }).click();
   dialog = page.getByRole("dialog", { name: "Correct Visit Contact" });

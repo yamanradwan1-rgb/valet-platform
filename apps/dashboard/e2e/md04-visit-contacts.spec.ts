@@ -37,7 +37,7 @@ function contactsOverride(viewer: "CA" | "LM") {
 async function submitName(page: Page, value: string) {
   await page.getByLabel("Search mode").selectOption("NAME");
   await page.getByLabel("Name").fill(value);
-  await page.getByRole("button", { name: "Search" }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
 }
 
 test("Visit Contacts renders truthful search states, history, customerless visits and cursors", async ({ page }) => {
@@ -57,7 +57,7 @@ test("Visit Contacts renders truthful search states, history, customerless visit
   await page.getByLabel("Search mode").selectOption("PHONE");
   await expect(page.getByText("Alex One", { exact: true })).toHaveCount(0);
   await page.getByLabel("Phone").fill("079");
-  await page.getByRole("button", { name: "Search" }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   await expect(page.getByText("Phone One", { exact: true })).toBeVisible();
   await expect(page.getByText("Phone Two", { exact: true })).toBeVisible();
   await submitName(page, "Alex");
@@ -84,7 +84,7 @@ test("Visit Contacts renders truthful search states, history, customerless visit
   await page.getByLabel("Search mode").selectOption("PLATE");
   await page.getByLabel("Plate country").fill("JO");
   await page.getByLabel("Plate", { exact: true }).fill("10-12345");
-  await page.getByRole("button", { name: "Search" }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   await expect(page.getByText("10-12345", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Next", exact: true })).toHaveCount(0);
 
@@ -200,15 +200,15 @@ test("late Visit Contact success and failure cannot repaint a newer query", asyn
   await enterContacts(page, fixture, "admin@example.com");
   await submitName(page, "Slow");
   await page.getByLabel("Name").fill("Fast");
-  await page.getByRole("button", { name: "Search" }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   await expect(page.getByText("New Fast", { exact: true })).toBeVisible();
   await page.waitForTimeout(550);
   await expect(page.getByText("Old Slow", { exact: true })).toHaveCount(0);
 
   await page.getByLabel("Name").fill("Fail");
-  await page.getByRole("button", { name: "Search" }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   await page.getByLabel("Name").fill("Fast2");
-  await page.getByRole("button", { name: "Search" }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   await expect(page.getByText("New Fast", { exact: true })).toBeVisible();
   await page.waitForTimeout(550);
   await expect(page.getByText("The request could not be completed.", { exact: true })).toHaveCount(0);

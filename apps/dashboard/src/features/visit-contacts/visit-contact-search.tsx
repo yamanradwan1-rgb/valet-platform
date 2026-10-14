@@ -36,7 +36,7 @@ export function VisitContactSearch(props: {
   }
   return (
     <form className={`${styles.searchCard} ${helpSlot.anchor}`} onSubmit={submit}>
-      <span className={helpSlot.corner}><ScopedContextHelp helpKey="contacts.search" /></span>
+      <span className={helpSlot.searchCorner}><ScopedContextHelp helpKey="contacts.search" /></span>
       <div className={styles.searchRow}>
         <label className={`${styles.field} ${styles.searchField}`}>
           <span className={styles.label}>{t.searchMode}</span>

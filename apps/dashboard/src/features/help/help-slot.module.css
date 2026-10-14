@@ -39,9 +39,24 @@
   display: inline-flex;
 }
 
-.afterInline {
+.tableCorner {
   position: absolute;
-  inset-block-start: -0.5rem;
-  inset-inline-start: calc(100% + 0.5rem);
+  inset-block-start: 0.5rem;
+  inset-inline-end: 0;
+  z-index: 1;
   display: inline-flex;
+}
+
+.searchCorner {
+  position: absolute;
+  inset-block-start: -1rem;
+  inset-inline-end: 6rem;
+  z-index: 1;
+  display: inline-flex;
+}
+
+@media (max-width: 720px) {
+  .searchCorner {
+    inset-inline-end: 0;
+  }
 }

@@ -64,7 +64,7 @@ test("auth reconciliation never auto-replays correction and keeps the draft", as
   await signInOnCurrentPage(page, "admin@example.com");
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByLabel("Name").fill("Correction");
-  await page.getByRole("button", { name: "Search" }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   const row = page.locator("tbody tr").filter({ hasText: "Correction Contact" });
   await row.getByRole("button", { name: "Details" }).click();
   await page.getByRole("dialog", { name: "Correction Contact" })
@@ -80,7 +80,7 @@ test("auth reconciliation never auto-replays correction and keeps the draft", as
   expect(refreshes).toBeGreaterThanOrEqual(1);
 
   await page.getByLabel("Name").fill("Correction");
-  await page.getByRole("button", { name: "Search" }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   const recoveredRow = page.locator("tbody tr").filter({ hasText: "Correction Contact" });
   await recoveredRow.getByRole("button", { name: "Details" }).click();
   const recovered = page.getByRole("dialog", { name: "Correct Visit Contact" });

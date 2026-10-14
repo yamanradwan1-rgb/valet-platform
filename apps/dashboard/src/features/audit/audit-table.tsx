@@ -29,7 +29,8 @@ export function AuditTable(props: {
   const { t } = props;
   const { locale } = useDashboardLocale();
   return (
-    <div className={styles.card}>
+    <div className={`${styles.card} ${helpSlot.anchor}`}>
+      <span className={helpSlot.tableCorner}><ScopedContextHelp helpKey="audit.table" /></span>
       <div
         aria-label={t.title}
         className={styles.tableWrap}
@@ -97,12 +98,7 @@ export function AuditTable(props: {
         </table>
       </div>
       <div className={styles.pagination}>
-        <span className={helpSlot.anchor}>
-          <span>{t.loaded} {props.items.length} {t.events}</span>
-          <span className={helpSlot.afterInline}>
-            <ScopedContextHelp helpKey="audit.table" />
-          </span>
-        </span>
+        <span>{t.loaded} {props.items.length} {t.events}</span>
         <div className={styles.buttons}>
           <button
             className={styles.secondary}
