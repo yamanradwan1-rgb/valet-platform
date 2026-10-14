@@ -49,7 +49,9 @@
 
 .tableCorner {
   position: absolute;
-  inset-block-start: 0.5rem;
+  /* Keep the 32px trigger alongside the timestamp heading, above the
+     second-line timezone (which can be much wider than UTC). */
+  inset-block-start: 0;
   inset-inline-start: 7rem;
   z-index: 1;
   display: inline-flex;
