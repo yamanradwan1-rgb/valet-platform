@@ -19,6 +19,14 @@
   min-inline-size: 0;
 }
 
+.pageTitleRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+}
+
 .anchor {
   position: relative;
 }
@@ -42,9 +50,15 @@
 .tableCorner {
   position: absolute;
   inset-block-start: 0.5rem;
-  inset-inline-end: 0;
+  inset-inline-start: 7rem;
   z-index: 1;
   display: inline-flex;
+}
+
+/* Put Help in the visible timestamp header's free inline space for both
+   reading directions, away from the horizontally scrolled trailing columns. */
+:global([dir="rtl"]) .tableCorner {
+  inset-inline-start: 4.5rem;
 }
 
 .searchCorner {

@@ -117,10 +117,52 @@ async function evidence(page: Page, label: string, variant: typeof variants[numb
       const r = node.getBoundingClientRect();
       return { x: +r.x.toFixed(2), y: +r.y.toFixed(2), w: +r.width.toFixed(2), h: +r.height.toFixed(2) };
     };
-    const locate = (selector: string) => Array.from(document.querySelectorAll(selector)).slice(0, 35).map((n) => ({
-      text: ((n as HTMLElement).innerText ?? n.getAttribute("aria-label") ?? "").slice(0, 90), rect: bounds(n),
-    }));
-    return { path: location.pathname, locale: document.documentElement.lang, theme: document.documentElement.dataset.theme,
+    const visibleBounds = (node: Element) => {
+      const b = node.getBoundingClientRect();
+      let r = { left: Math.max(0, b.left), top: Math.max(0, b.top),
+        right: Math.min(innerWidth, b.right), bottom: Math.min(innerHeight, b.bottom) };
+      for (let ancestor = node.parentElement; ancestor; ancestor = ancestor.parentElement) {
+        const css = getComputedStyle(ancestor);
+        if (!/(auto|scroll|hidden|clip)/u.test(css.overflow + css.overflowX + css.overflowY)) continue;
+        const a = ancestor.getBoundingClientRect();
+        r = { left: Math.max(r.left, a.left), top: Math.max(r.top, a.top),
+          right: Math.min(r.right, a.right), bottom: Math.min(r.bottom, a.bottom) };
+      }
+      const style = getComputedStyle(node);
+      if (!node.getClientRects().length || style.display === "none" || style.visibility === "hidden") return null;
+      if (r.right <= r.left || r.bottom <= r.top) return null;
+      return { x: +r.left.toFixed(2), y: +r.top.toFixed(2),
+        w: +(r.right - r.left).toFixed(2), h: +(r.bottom - r.top).toFixed(2) };
+    };
+    const measure = (n: Element) => {
+      const r = n.getBoundingClientRect();
+      const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      const walker = document.createTreeWalker(n, NodeFilter.SHOW_TEXT);
+      const painted: DOMRect[] = [];
+      while (walker.nextNode()) {
+        const node = walker.currentNode;
+        if (!node.textContent?.trim() || node.parentElement?.closest("button")) continue;
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        painted.push(...Array.from(range.getClientRects()));
+      }
+      const paintedTextRect = painted.length ? {
+        x: +Math.min(...painted.map((item) => item.left)).toFixed(2),
+        y: +Math.min(...painted.map((item) => item.top)).toFixed(2),
+        w: +(Math.max(...painted.map((item) => item.right)) - Math.min(...painted.map((item) => item.left))).toFixed(2),
+        h: +(Math.max(...painted.map((item) => item.bottom)) - Math.min(...painted.map((item) => item.top))).toFixed(2),
+      } : null;
+      return { text: ((n as HTMLElement).innerText ?? n.getAttribute("aria-label") ?? "").slice(0, 90),
+        rect: bounds(n), visibleRect: visibleBounds(n),
+        paintedTextRect,
+        hitTarget: top === n || n.contains(top),
+      };
+    };
+    const locate = (selector: string) => Array.from(document.querySelectorAll(selector)).slice(0, 35).map(measure);
+    const firstHeading = document.querySelector("main h1");
+    const pageHeader = firstHeading?.closest('[class*="header"]');
+    const headerSubtitle = pageHeader?.querySelector('[class*="subtitle"]');
+    return { semanticSchemaVersion: 2, path: location.pathname, locale: document.documentElement.lang, theme: document.documentElement.dataset.theme,
       cssZoom: document.documentElement.style.zoom || "100%",
       viewport: { w: window.innerWidth, h: window.innerHeight },
       horizontalOverflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
@@ -129,8 +171,14 @@ async function evidence(page: Page, label: string, variant: typeof variants[numb
       rows: locate("main table tbody tr"), tabs: locate("main [role='tablist']"),
       saves: locate("button[type='submit'], button[aria-label*='Save'], button[aria-label*='Clear']"),
       controls: locate('main button:not([aria-label^="Help:"]):not([aria-label^="مساعدة:"])'),
+      scopeBadges: locate('main [class*="scopeBadge"]'),
+      pageTitles: firstHeading ? [measure(firstHeading)] : [],
+      pageSubtitles: headerSubtitle ? [measure(headerSubtitle)] : [],
+      tableHeaders: locate("main th"),
       help: Array.from(document.querySelectorAll('button[aria-label^="Help:"],button[aria-label^="مساعدة:"]')).map((n) => ({
-        label: n.getAttribute("aria-label"), rect: bounds(n), visible: (n as HTMLElement).getClientRects().length > 0,
+        label: n.getAttribute("aria-label"), rect: bounds(n),
+        visibleRect: visibleBounds(n), hitTarget: measure(n).hitTarget,
+        visible: (n as HTMLElement).getClientRects().length > 0,
       })),
     };
   });

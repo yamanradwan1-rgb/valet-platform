@@ -39,13 +39,15 @@ function AuditContent() {
   const showEventType = audit.scope?.role !== "SUPERVISOR";
   return (
     <div className={styles.page}>
-      <div className={`${styles.header} ${helpSlot.anchor}`}>
+      <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>{t.title}</h1>
+          <div className={helpSlot.pageTitleRow}>
+            <h1 className={styles.title}>{t.title}</h1>
+            <ScopedContextHelp helpKey="audit.page" />
+          </div>
           <p className={styles.subtitle}>{t.subtitle}</p>
         </div>
         <span className={styles.scopeBadge}>{scopeLabel}</span>
-        <span className={helpSlot.corner}><ScopedContextHelp helpKey="audit.page" /></span>
       </div>
       <AuditFilters
         eventType={audit.eventType}

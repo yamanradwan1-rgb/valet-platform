@@ -36,6 +36,28 @@ async function assertNoOverlaps(page: Page, locale: "en" | "ar", width: number) 
   expect(h.x + h.width).toBeLessThanOrEqual(bounds.x + bounds.width + 1);
   expect(h.y).toBeGreaterThanOrEqual(bounds.y);
   expect(h.y + h.height).toBeLessThanOrEqual(bounds.y + bounds.height + 1);
+  const collisions = await page.locator("main table th").evaluateAll((headers, box) => {
+    const intersections: string[] = [];
+    for (const header of headers) {
+      const walker = document.createTreeWalker(header, NodeFilter.SHOW_TEXT);
+      while (walker.nextNode()) {
+        const node = walker.currentNode;
+        if (!node.textContent?.trim()) continue;
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        for (const textRect of Array.from(range.getClientRects())) {
+          const wrap = header.closest('[class*="tableWrap"]')?.getBoundingClientRect();
+          const x0 = Math.max(textRect.left, box.x, wrap?.left ?? 0, 0);
+          const x1 = Math.min(textRect.right, box.x + box.width, wrap?.right ?? innerWidth, innerWidth);
+          const y0 = Math.max(textRect.top, box.y, wrap?.top ?? 0, 0);
+          const y1 = Math.min(textRect.bottom, box.y + box.height, wrap?.bottom ?? innerHeight, innerHeight);
+          if (x1 > x0 && y1 > y0) intersections.push(node.textContent.trim());
+        }
+      }
+    }
+    return intersections;
+  }, h);
+  expect(collisions, `${locale} ${width}: no visible table-header text covered`).toEqual([]);
   await help.click();
   await expect(page.getByRole("dialog", { name: title, exact: true })).toBeVisible();
   await page.keyboard.press("Escape");
@@ -54,10 +76,13 @@ test("Audit table Help avoids pagination hit targets at 320 and 390 in both lang
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: "All Locations" }).click();
   await expect(page.getByText("Loaded 4 events", { exact: true })).toBeVisible();
-  for (const width of [320, 390]) await assertNoOverlaps(page, "en", width);
+  for (const width of [320, 390, 768, 1440]) await assertNoOverlaps(page, "en", width);
   await page.getByRole("button", { name: "Language" }).click();
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-  for (const width of [320, 390]) await assertNoOverlaps(page, "ar", width);
+  for (const width of [320, 390, 768, 1440]) await assertNoOverlaps(page, "ar", width);
+  await page.setViewportSize({ width: 768, height: 800 });
+  await page.evaluate(() => { document.documentElement.style.zoom = "200%"; });
+  await assertNoOverlaps(page, "ar", 768);
 });
 
 test("Contacts search Help does not cover Search or search fields at 320/390/768/1440 and RTL zoom", async ({ page }) => {

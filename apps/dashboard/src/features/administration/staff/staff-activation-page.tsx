@@ -5,9 +5,11 @@ import Link from "next/link";
 import {
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type FormEvent,
+  type RefObject,
 } from "react";
 import { Button } from "../../../components/presentation/button";
 import { Panel } from "../../../components/presentation/panel";
@@ -29,6 +31,11 @@ export function StaffActivationPage() {
   const token = useRef<string | null>(null);
   const submitting = useRef(false);
   const active = useRef(true);
+  const completedSignInRef = useRef<HTMLAnchorElement>(null);
+  const stableHeadingRef = useRef<HTMLHeadingElement>(null);
+  const helpFocusFallback = useMemo<RefObject<HTMLElement | null>>(() => ({
+    get current() { return completedSignInRef.current ?? stableHeadingRef.current; },
+  }), []);
   const request = useRef<AbortController | null>(null);
   const generation = useRef(0);
   const [available, setAvailable] = useState(false);
@@ -145,14 +152,14 @@ export function StaffActivationPage() {
               </Button>
             </div>
             <p className="eyebrow">VAYLET</p>
-            <h1 aria-label={complete ? t.complete : t.activate} className={helpSlot.anchor}>
+            <h1 aria-label={complete ? t.complete : t.activate} className={helpSlot.anchor} ref={stableHeadingRef} tabIndex={-1}>
               {complete ? t.complete : t.activate}
               <span className={helpSlot.corner}>
-                <ContextHelp helpKey="activation.page" locale={locale} scopeIdentity={complete ? "activation-complete" : available ? "activation-form" : "activation-unavailable"} />
+                <ContextHelp helpKey="activation.page" locale={locale} returnFocusFallbackRef={helpFocusFallback} scopeIdentity={complete ? "activation-complete" : available ? "activation-form" : "activation-unavailable"} />
               </span>
             </h1>
             {complete ? (
-              <Link href="/">{t.signIn}</Link>
+              <Link href="/" ref={completedSignInRef}>{t.signIn}</Link>
             ) : available ? (
               <form className="stack" onSubmit={(event) => void submit(event)}>
                 <p className="muted" id="activation-guidance">
@@ -162,7 +169,7 @@ export function StaffActivationPage() {
                 <div className={`field ${helpSlot.anchor}`}>
                   <label htmlFor="activation-password">{t.password}</label>
                   <span className={helpSlot.corner}>
-                    <ContextHelp helpKey="activation.invitation" locale={locale} scopeIdentity="activation-form" />
+                    <ContextHelp helpKey="activation.invitation" locale={locale} returnFocusFallbackRef={helpFocusFallback} scopeIdentity="activation-form" />
                   </span>
                   <input
                     id="activation-password"
