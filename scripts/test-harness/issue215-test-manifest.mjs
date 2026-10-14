@@ -10,6 +10,7 @@ export const issue215PostgresFiles = Object.freeze([
   "condition-photo-p1-owned-target.test.ts",
   "condition-photo-p1-stored.integration.test.ts",
   "condition-photo-p1-upgrade.integration.test.ts",
+  "condition-photo-p2-anti-abuse.integration.test.ts",
   "condition-photo-runtime-privileges.integration.test.ts",
 ]);
 

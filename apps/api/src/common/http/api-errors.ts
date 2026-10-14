@@ -26,6 +26,14 @@ export interface MappedApiError {
 }
 
 const statusByCode: Readonly<Record<string, number>> = {
+  CONDITION_PHOTO_NOT_FOUND: HttpStatus.NOT_FOUND,
+  CONDITION_PHOTO_TOO_LARGE: HttpStatus.PAYLOAD_TOO_LARGE,
+  CONDITION_PHOTO_INVALID_IMAGE: HttpStatus.UNPROCESSABLE_ENTITY,
+  CONDITION_PHOTO_OPERATION_CONFLICT: HttpStatus.CONFLICT,
+  CONDITION_PHOTO_LIMIT_REACHED: HttpStatus.CONFLICT,
+  CONDITION_PHOTO_EXPIRED: HttpStatus.CONFLICT,
+  CONDITION_PHOTO_RATE_LIMITED: HttpStatus.TOO_MANY_REQUESTS,
+  CONDITION_PHOTO_STORAGE_UNAVAILABLE: HttpStatus.SERVICE_UNAVAILABLE,
   SHIFT_ALREADY_ENDED: HttpStatus.CONFLICT,
   ACTIVE_SHIFT_CONFLICT: HttpStatus.CONFLICT,
   ACTIVE_VALET_SESSION_CONFLICT: HttpStatus.CONFLICT,
@@ -136,6 +144,14 @@ const statusByCode: Readonly<Record<string, number>> = {
 };
 
 const safeMessages: Readonly<Record<string, string>> = {
+  CONDITION_PHOTO_NOT_FOUND: "The requested photo operation is not available.",
+  CONDITION_PHOTO_TOO_LARGE: "The image exceeds the allowed size.",
+  CONDITION_PHOTO_INVALID_IMAGE: "The image could not be verified.",
+  CONDITION_PHOTO_OPERATION_CONFLICT: "The upload operation conflicts with a prior request.",
+  CONDITION_PHOTO_LIMIT_REACHED: "The photo limit for this session has been reached.",
+  CONDITION_PHOTO_EXPIRED: "The upload operation has expired.",
+  CONDITION_PHOTO_RATE_LIMITED: "Too many photo requests. Try again later.",
+  CONDITION_PHOTO_STORAGE_UNAVAILABLE: "Photo storage is temporarily unavailable.",
   SHIFT_ALREADY_ENDED: "The Shift has already ended.",
   ANTI_ABUSE_UNAVAILABLE: "Service temporarily unavailable.",
   AUTHORIZATION_DENIED: "The requested resource is not available.",

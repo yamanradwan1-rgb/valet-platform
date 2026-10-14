@@ -4,6 +4,10 @@ import { RuntimeDatabaseModule } from "../../common/database/runtime-database.mo
 import { HttpInfrastructureModule } from "../../common/http/http-infrastructure.module";
 import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AuthModule } from "../auth/auth.module";
+import { ConditionPhotoAdmissionModule } from "../vehicle-photos/condition-photo-admission.module";
+import { ConditionPhotoBackendService } from "../vehicle-photos/condition-photo-backend.service";
+import { ConditionPhotoController } from "./condition-photo.controller";
+import { ConditionPhotoAuthGuard } from "./condition-photo-auth.guard";
 import { CancelCheckInController } from "./cancel-check-in.controller";
 import { CancelCheckInService } from "./cancel-check-in.service";
 import { StaffCheckInController } from "./check-in-api.controller";
@@ -24,14 +28,17 @@ import { PlateRecognizerSnapshotProvider } from "./plate-recognizer-snapshot.pro
     CancelCheckInController,
     ReturningCheckInController,
     PlateOcrController,
+    ConditionPhotoController,
   ],
-  imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule],
+  imports: [AuthModule, ConditionPhotoAdmissionModule, RuntimeDatabaseModule, HttpInfrastructureModule],
   providers: [
     CheckInApiService,
     CancelCheckInService,
     CheckInOperationRunner,
     PlateOcrAuthGuard,
     PlateOcrService,
+    ConditionPhotoBackendService,
+    ConditionPhotoAuthGuard,
     {
       provide: PlateOcrCostGuard,
       useFactory: () =>
@@ -56,5 +63,6 @@ export class CheckInModule implements NestModule {
     consumer.apply(RequestIdMiddleware).forRoutes(CancelCheckInController);
     consumer.apply(RequestIdMiddleware).forRoutes(ReturningCheckInController);
     consumer.apply(RequestIdMiddleware).forRoutes(PlateOcrController);
+    consumer.apply(RequestIdMiddleware).forRoutes(ConditionPhotoController);
   }
 }

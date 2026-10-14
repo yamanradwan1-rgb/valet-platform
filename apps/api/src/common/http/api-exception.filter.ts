@@ -27,6 +27,7 @@ import { staffAuthOperationRoutes } from "./staff-auth-operation-routes";
 import { staffOnboardingOperationRoutes } from "./staff-onboarding-operation-routes";
 import { staffShiftForceEndOperationRoutes } from "./staff-shift-force-end-operation-routes";
 import { presenceOperationRoutes } from "./presence-operation-routes";
+import { conditionPhotoOperationRoutes } from "./condition-photo-operation-routes";
 
 interface FilterRequest extends ApiRequest {
   readonly method: string;
@@ -50,6 +51,7 @@ const operationRoutes: ReadonlyArray<{
   ...staffOnboardingOperationRoutes,
   ...staffShiftForceEndOperationRoutes,
   ...presenceOperationRoutes,
+  ...conditionPhotoOperationRoutes,
   ...guestOperationRoutes,
   {
     method: "PUT",
@@ -202,7 +204,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
       response.setHeader("Cache-Control", "no-store");
       response.setHeader("Pragma", "no-cache");
     }
-    if (guestAccessOperations.has(operation)) {
+    if (guestAccessOperations.has(operation) || operation.startsWith("CHECK_IN_CONDITION_PHOTO_")) {
       setNoStoreResponseHeaders(response);
     }
 
