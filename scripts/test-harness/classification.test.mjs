@@ -10,6 +10,44 @@ import {
   classifyPackageTests,
   discoverTests,
 } from "./test-classification.mjs";
+import {
+  preflightIssue215BeforeHarnessCleanup,
+  requiresIssue215Preflight,
+} from "./issue215-target-preflight.mjs";
+
+test("Issue 215 P1 preflight precedes every relevant PostgreSQL harness cleanup entry", () => {
+  assert.equal(requiresIssue215Preflight("focused-database", ["node", "src/condition-photo-runtime-privileges.integration.test.ts"]), true);
+  assert.equal(requiresIssue215Preflight("focused-database", ["node", "src/unrelated.integration.test.ts"]), false);
+  assert.equal(requiresIssue215Preflight("database-postgres-provision", ["node", "src/condition-photo-p1-integrity.integration.test.ts"]), true);
+  assert.equal(requiresIssue215Preflight("database-postgres-provision", ["node", "--exclude", "src/unrelated.test.ts"]), true);
+  assert.equal(requiresIssue215Preflight("database-postgres-provision", ["node", "--changed", "src/unrelated.test.ts"]), true);
+  assert.equal(requiresIssue215Preflight("database-postgres-provision", ["node", "src/unrelated.test.ts"]), true);
+  assert.equal(requiresIssue215Preflight("database-postgres-provision", ["node", "--reporter=json", "--outputFile", "src/unrelated.test.ts"]), true);
+  assert.equal(requiresIssue215Preflight("database-postgres-direct", ["node", "src/condition-photo-p1-owned-target.test.ts"]), true);
+  assert.equal(requiresIssue215Preflight("database-postgres-provision", ["node"]), true);
+  assert.equal(requiresIssue215Preflight("postgres-projects-database-postgres-direct-database-postgres-provision"), true);
+  assert.equal(requiresIssue215Preflight("database-package-tests"), true);
+  assert.equal(requiresIssue215Preflight("root-tests", ["node", "--postgres-only"]), true);
+  assert.equal(requiresIssue215Preflight("root-tests", ["node", "--non-postgres-only"]), false);
+});
+
+test("Issue 215 P1 rejects missing target despite a migration URL before acquiring a cluster lease", async () => {
+  const before = process.env.TEST_DATABASE_URL;
+  const migration = process.env.MIGRATION_DATABASE_URL;
+  try {
+    delete process.env.TEST_DATABASE_URL;
+    process.env.MIGRATION_DATABASE_URL = "postgresql://fake:fake@db.example.invalid:5432/valet";
+    await assert.rejects(
+      preflightIssue215BeforeHarnessCleanup("focused-database", ["node", "src/condition-photo-runtime-privileges.integration.test.ts"]),
+      /Issue 215 test target/,
+    );
+  } finally {
+    if (before === undefined) delete process.env.TEST_DATABASE_URL;
+    else process.env.TEST_DATABASE_URL = before;
+    if (migration === undefined) delete process.env.MIGRATION_DATABASE_URL;
+    else process.env.MIGRATION_DATABASE_URL = migration;
+  }
+});
 
 test("current API and database tests each have exactly one owner", () => {
   const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
@@ -26,8 +64,8 @@ test("current API and database tests each have exactly one owner", () => {
     Object.values(database).flat().length,
     discoverTests(databaseRoot).length,
   );
-  assert.equal(database["database-non-postgres"].length, 6);
-  assert.equal(database["database-postgres-direct"].length, 41);
+  assert.equal(database["database-non-postgres"].length, 7);
+  assert.equal(database["database-postgres-direct"].length, 42);
   assert.equal(database["database-postgres-provision"].length, 47);
   assert.ok(api["api-non-postgres"].includes("postgres.test.ts"));
   assert.ok(

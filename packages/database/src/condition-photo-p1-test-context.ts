@@ -4,28 +4,14 @@ import { cpSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } fr
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { Client, Pool } from "pg";
+import { Pool } from "pg";
+
+import { ConditionPhotoP1OwnedTarget } from "./condition-photo-p1-owned-target.js";
 
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
 const migrations = join(packageRoot, "prisma/migrations");
 const photoMigration = "20261014008000_issue_215_verified_condition_photo_p1";
 const prismaCli = join(packageRoot, "node_modules/prisma/build/index.js");
-
-function requireTaskOnlyDatabase(): string {
-  const value = process.env.TEST_DATABASE_URL;
-  if (!value) throw new Error("Issue 215 PostgreSQL tests require explicit TEST_DATABASE_URL.");
-  const url = new URL(value);
-  if (
-    url.protocol !== "postgresql:" && url.protocol !== "postgres:" ||
-    !["localhost", "127.0.0.1"].includes(url.hostname) ||
-    url.port !== "58487" ||
-    url.pathname !== "/issue215_empty" ||
-    url.username !== "issue215_owner"
-  ) {
-    throw new Error("Issue 215 test target must be task-owned 127.0.0.1:58487/issue215_empty.");
-  }
-  return value;
-}
 
 export interface PhotoTestScope {
   readonly orgId: string;
@@ -44,18 +30,16 @@ export interface ReservedPhoto {
 }
 
 export class ConditionPhotoP1TestContext {
-  readonly name = `vlt_t_db_215_${randomUUID().replaceAll("-", "")}`;
-  readonly dbUrl: string;
+  name = "";
+  dbUrl = "";
   readonly bootstrapUrl: string;
   pool!: Pool;
+  private readonly target: ConditionPhotoP1OwnedTarget;
   private scratch?: string;
-  private created = false;
 
   constructor() {
-    this.bootstrapUrl = requireTaskOnlyDatabase();
-    const url = new URL(this.bootstrapUrl);
-    url.pathname = `/${this.name}`;
-    this.dbUrl = url.toString();
+    this.target = new ConditionPhotoP1OwnedTarget();
+    this.bootstrapUrl = this.target.bootstrapUrl;
   }
 
   private deploy(configPath?: string): void {
@@ -78,22 +62,9 @@ export class ConditionPhotoP1TestContext {
   }
 
   async start(upgradeBaseline = false): Promise<void> {
-    const admin = new Client({ connectionString: this.bootstrapUrl });
-    await admin.connect();
-    try {
-      const identity = await admin.query<{ database: string; owner: string; port: number }>(
-        "SELECT current_database() AS database, current_user AS owner, inet_server_port() AS port",
-      );
-      if (identity.rows[0]?.database !== "issue215_empty" ||
-          identity.rows[0]?.owner !== "issue215_owner" ||
-          identity.rows[0]?.port !== 5432) {
-        throw new Error("Issue 215 task container identity mismatch.");
-      }
-      await admin.query(`CREATE DATABASE "${this.name}"`);
-      this.created = true;
-    } finally {
-      await admin.end();
-    }
+    const disposable = await this.target.createDatabase();
+    this.name = disposable.name;
+    this.dbUrl = disposable.url;
 
     if (upgradeBaseline) {
       const scratchRoot = join(packageRoot, "tmp");
@@ -213,16 +184,11 @@ export class ConditionPhotoP1TestContext {
   }
 
   async stop(): Promise<void> {
-    await this.pool?.end();
-    if (this.created) {
-      const admin = new Client({ connectionString: this.bootstrapUrl });
-      await admin.connect();
-      try {
-        await admin.query(`DROP DATABASE "${this.name}" WITH (FORCE)`);
-      } finally {
-        await admin.end();
-      }
+    try {
+      await this.pool?.end();
+    } finally {
+      try { await this.target.close(); }
+      finally { if (this.scratch) rmSync(this.scratch, { recursive: true, force: true }); }
     }
-    if (this.scratch) rmSync(this.scratch, { recursive: true, force: true });
   }
 }

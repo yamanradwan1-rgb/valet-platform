@@ -195,3 +195,137 @@ User, membership, Organization, Location, access and session locks throughout
 T2, with refresh/logout/revoke/disable races proved under two transactions.
 P2 also owns actual object-store read-back and unknown-provider outcomes. P5
 owns approved retention/legal holds and cleanup; P6 owns Android/visual proof.
+
+## P1 final-review remediation — test target and actual connected roles
+
+Review findings `P1-REVIEW-001`/`002` were raised **after** the implementation
+commit `dc7975387cd0668c84d51aeccd5b8f7c509e4b6e`. That commit's 4/4 role
+tests were mainly owner-led PostgreSQL privilege-catalog assertions and did not
+establish the privilege behavior through separate authenticated connections.
+More seriously, the role test imported `guest-browser-session-test-fixture.ts`,
+whose admin URL could fall back from `TEST_DATABASE_URL` to
+`MIGRATION_DATABASE_URL` or a generic local development database. This made its
+CREATE/DROP DATABASE and CREATE/DROP ROLE lifecycle unsafe under wrong config.
+The legacy fixture itself is unchanged; **P1 no longer imports it**.
+
+The shared task-only boundary is now:
+
+- `condition-photo-p1-test-target.mjs` (with typed `.ts` export) refuses missing `TEST_DATABASE_URL`,
+  non-PostgreSQL protocol, anything other than the explicit
+  `127.0.0.1:58487/issue215_empty` with `issue215_owner`, query/fragment
+  overrides, ambient `PG*` target overrides, invalid test/project classification
+  or a missing harness run identity. No fallback URL is consulted. Errors do
+  not print passwords or a rejected URL.
+- The same canonical guard is imported into the standard harness, not copied
+  into an inconsistent allowlist. `invocation-lease.mjs` and
+  `vitest-postgres-global.mjs` now verify Docker and live PostgreSQL **before
+  any lease acquisition or stale-owner DROP recovery** on P1-containing lanes.
+  Both the direct Vitest and owned-runner entrypoints fail closed on missing
+  `TEST_DATABASE_URL` even if a migration URL or generic fallback is present.
+- Before any P1 lifecycle SQL, the guard checks Docker's **running named task
+  container** (`postgres:16-alpine`), exact localhost-bound port and private
+  Docker volume, then connects read-only and checks PostgreSQL 16, bootstrap
+  DB and login/owner identity, internal port, primary/connection state and
+  required bootstrap CREATE capabilities. A string-matching URL by itself
+  is explicitly **not** accepted as sufficient identity.
+- The approved task Docker container ID and its task-only PostgreSQL volume
+  identifier are pinned to prevent a swapped/reused container passing solely
+  through mutable name/image/port matches; replacing this disposable instance
+  requires a reviewed test-target policy update.
+- `condition-photo-p1-owned-target.ts` generates fresh UUID-scoped database and
+  role names, verifies the bootstrap before each lifecycle operation, rejects
+  pre-existing role collisions, and records ownership **only after successful
+  CREATE**. Teardown does nothing if setup never created a resource; otherwise
+  it re-verifies the target, checks current DB/role ownership attributes,
+  drops only named tracked databases first and then tracked roles. Failed
+  identity rechecks fail closed rather than dropping. Cleanup failure remains
+  an error (never silently reclassified as successful cleanup).
+- Both the original P1 integrity/upgrade fixture and the P1 connected-role
+  suite share this target and resource guard; the unrelated guest-browser
+  fixture, production migration, existing SQL integrity constraints and
+  application UI were not modified.
+
+**Fresh test evidence** (2026-10-14, exact approved local disposable PostgreSQL
+16/Docker environment): `@valet/database` lint and typecheck PASS;
+non-PostgreSQL 7 files / **64/64 PASS** (20 target-policy cases),
+test-harness classification/ownership **14/14 PASS**, including pre-harness
+fallback rejection. An actual restricted-role PostgreSQL test completed
+**6/6 PASS**: runtime and maintenance connected clients plus a PUBLIC-only
+login execute allowed and denied SQL. The runtime identity successfully
+reserved an operation, committed STORED bytes, finalized immutable evidence,
+changed availability, and was denied forged reserved audit insertion.
+Catalog grants, duplicate provisioning,
+and stale PUBLIC/column grants remain checked. The owned PostgreSQL harness
+reported `db=0 roles=0 children=0` after the successful role run.
+In the latest single owned PostgreSQL run the six affected provision suites
+passed **27/27** (`21/21` integrity/upgrade plus `6/6` connected roles), and
+the harness reported `db=0 roles=0 children=0` on teardown.
+
+The approved task-local target is pinned to the reviewed PG16 Docker ID and
+private volume. The repository's existing GitHub Actions database job uses a
+separate disposable PG17 service: `.github/workflows/ci.yml` now attaches
+`vaylet.issue215.disposable` and exact `github.run_id` Docker labels and injects
+the exact service container ID for its database lane. CI mode requires this
+run-labeled inspected service, a GitHub-hosted postgres job, the exact local
+`localhost:5432/valet` target, its named bootstrap login/owner, and live PG17
+identity before any stale-run cleanup. This is a **separate, explicit target
+class**, never an implicit migration/default-URL fallback. The ordinary API
+CI lane is not given CI-mode target selection. Synthetic CI-mode policy tests
+passed, but a real GitHub-hosted run has not yet verified that mode; do not
+claim CI green until its workflow executes successfully.
+Negative lifecycle tests inject creation/setup/ownership failure in memory;
+they do **not** send destructive SQL to unsafe real databases. A refused target
+always has zero resource lifecycle mutations. The fixture intentionally does
+not infer ownership or issue DROP after an ambiguous/unconfirmed CREATE result;
+such an outcome is an investigation item, not a license to delete a similarly
+named existing resource.
+
+### Remaining phase-specific dependencies (not implemented in P1)
+
+**P2-AUTH-001:** SQL's `condition_photo_authorized_scope()` verifies persisted
+scope without proving the current bearer/session or holding the full protection
+lock set. P2 must prove exact StaffAuthSession/access-token current state,
+expiry/logout/refresh/revocation, active User/membership/Organization/Location
+and explicit Location grants, exact session state and consistent transaction
+lock order for both revoker-first and finalizer-first races across replicas.
+Existing refresh and logout use different lock prefixes; no global lock-order
+claim is made here. External private S3 JPEG re-encode/write-once and exact
+HEAD/GET byte read-back, unknown PUT outcomes and no DB lock during provider
+I/O remain P2 responsibilities.
+
+**P2 REJECTED transition:** The persisted enum supports `REJECTED`, but P1
+does not expose a dedicated controlled terminal rejection entrypoint. P2 must
+define/review durable rejection of permanently invalid bytes without permitting
+an arbitrary operation status mutation. No rejection behavior was added here.
+
+**P5-AVAILABILITY-001:** The existing staff-scoped
+`condition_photo_set_availability` cannot record objectively lost/corrupted
+verified bytes after all staff access is revoked or a Location is inactive.
+P5 needs separate narrow service/maintenance authority tied to the exact
+verification and photo, immutable historical evidence, append-only SYSTEM
+audit without impersonating an employee, and no generic status toggling or
+broad role escalation; retention/legal holds and orphan cleanup remain open.
+
+**P6:** Physical Android and QR-pattern Native UI evidence is still required.
+The P1 remediation changes no UI or Check-In behavior.
+
+### Additional verification limitations observed during final review
+
+The final root `pnpm test:non-postgres` attempt on this Windows worktree
+ran shared contracts and database-only suites, but then the concurrent Turbo
+employee-client, Customer, and Dashboard Vitest forks exhausted available
+memory (`JavaScript heap out of memory`, Windows `VirtualAlloc failed`, exit
+134). The broad run was stopped after these process failures; this is NOT a
+green regression suite. No application/UI source was changed to mask it.
+
+An overlapping six-file PostgreSQL attempt completed the connected-role and
+most SQL cases, but one predecessor-upgrade test exceeded its 5-second timeout
+and a later STORED test fixture rejected its Docker inspection during the
+system-wide memory pressure. This combined attempt is recorded as **failed**
+rather than counted as 27/27. After pressure ended, the verified-PG16 P1
+integrity, negative, STORED, audit/availability and upgrade suites passed
+**21/21 in five files** when run sequentially; a distinct actual restricted-role
+execution passed **6/6 in one file**. Both owned runs reported
+`db=0 roles=0 children=0` at teardown. These final isolated successes do not
+erase the contended run failure. A real GitHub-hosted PG17 matrix execution
+remains unverified.

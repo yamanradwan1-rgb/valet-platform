@@ -5,11 +5,14 @@ import { fileURLToPath } from "node:url";
 import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { ConditionPhotoP1OwnedTarget } from "./condition-photo-p1-owned-target.js";
 import {
-  createDisposableDatabase,
-  databaseAdminUrl,
-  dropDisposableDatabase,
-} from "./guest-browser-session-test-fixture.js";
+  proveConnectedMaintenanceRole,
+  proveConnectedPublicRole,
+  proveConnectedRuntimeRole,
+  proveConnectedRuntimeEvidenceFlow,
+} from "./condition-photo-p1-connected-role-proof.js";
+import { seedConnectedPhotoScope } from "./condition-photo-p1-connected-role-seed.js";
 import {
   photoMaintenanceFunctions,
   photoPrivateTables,
@@ -23,15 +26,16 @@ const packageRoot = fileURLToPath(new URL("../", import.meta.url));
 const prismaCli = fileURLToPath(
   new URL("../node_modules/prisma/build/index.js", import.meta.url),
 );
-const suffix = randomUUID().replaceAll("-", "").slice(0, 12);
-const runtimeRole = `photo_api_${suffix}`;
-const maintenanceRole = `photo_maint_${suffix}`;
+let runtimeRole = "";
+let maintenanceRole = "";
+let publicRole = "";
 const runtimePassword = `runtime-${randomUUID()}`;
 const maintenancePassword = `maint-${randomUUID()}`;
+const publicPassword = `public-${randomUUID()}`;
 
-let databaseName = "";
 let migrationUrl = "";
 let client: Client;
+let target: ConditionPhotoP1OwnedTarget | undefined;
 
 function roleUrl(role: string, password: string): string {
   const result = new URL(migrationUrl);
@@ -71,20 +75,15 @@ async function functionPrivilege(role: string, signature: string) {
 }
 
 beforeAll(async () => {
-  const disposable = await createDisposableDatabase("issue215_photo_priv");
-  databaseName = disposable.databaseName;
-  migrationUrl = disposable.databaseUrl;
+  target = new ConditionPhotoP1OwnedTarget();
+  const disposable = await target.createDatabase();
+  migrationUrl = disposable.url;
   runScript([prismaCli, "migrate", "deploy"]);
   client = new Client({ connectionString: migrationUrl });
   await client.connect();
-  for (const [role, password] of [
-    [maintenanceRole, maintenancePassword],
-  ]) {
-    await client.query(
-      `CREATE ROLE "${role}" WITH LOGIN PASSWORD '${password}'
-       NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS`,
-    );
-  }
+  runtimeRole = await target.createRole(runtimePassword);
+  maintenanceRole = await target.createRole(maintenancePassword);
+  publicRole = await target.createRole(publicPassword);
   for (let i = 0; i < 2; i += 1) {
     runScript(["scripts/provision-runtime-role.mjs"]);
     runScript(["scripts/provision-condition-photo-maintenance-role.mjs"], {
@@ -97,19 +96,29 @@ beforeAll(async () => {
 }, 120_000);
 
 afterAll(async () => {
-  await client?.end();
-  if (databaseName !== "") await dropDisposableDatabase(databaseName);
-  const bootstrap = new Client({ connectionString: databaseAdminUrl });
-  await bootstrap.connect();
-  try {
-    await bootstrap.query(`DROP ROLE IF EXISTS "${runtimeRole}"`);
-    await bootstrap.query(`DROP ROLE IF EXISTS "${maintenanceRole}"`);
-  } finally {
-    await bootstrap.end();
-  }
+  try { await client?.end(); }
+  finally { await target?.close(); }
 }, 60_000);
 
 describe("Issue #215 condition-photo restricted PostgreSQL roles", () => {
+  it("executes allowed and denied SQL under actual connected runtime, maintenance and PUBLIC-only roles", async () => {
+    await proveConnectedRuntimeRole(roleUrl(runtimeRole, runtimePassword));
+    await proveConnectedMaintenanceRole(roleUrl(maintenanceRole, maintenancePassword));
+    await proveConnectedPublicRole(roleUrl(publicRole, publicPassword));
+  }, 30_000);
+
+  it("reserves, persists STORED, finalizes and audits exact evidence via authenticated PostgreSQL runtime role", async () => {
+    const scope = await seedConnectedPhotoScope(client);
+    const verifiedPhoto = await proveConnectedRuntimeEvidenceFlow(
+      roleUrl(runtimeRole, runtimePassword), scope,
+    );
+    const evidence = await client.query<{ count: number }>(
+      `SELECT count(*)::integer AS count
+       FROM vehicle_photo_verifications WHERE vehicle_photo_id=$1::uuid`,
+      [verifiedPhoto],
+    );
+    expect(evidence.rows[0]?.count).toBe(1);
+  }, 30_000);
   it("retains legacy metadata photo INSERT without granting evidence mutations", async () => {
     expect(await rolePrivilege(runtimeRole, "public.vehicle_photos", "SELECT"))
       .toBe(true);

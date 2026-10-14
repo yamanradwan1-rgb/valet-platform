@@ -8,6 +8,7 @@ import {
   createRunId,
   releaseClusterLease,
 } from "./ownership-state.mjs";
+import { preflightIssue215BeforeHarnessCleanup } from "./issue215-target-preflight.mjs";
 import { createPostgresCleanupAdapter } from "./postgres-cleanup-adapter.mjs";
 
 export const DEFAULT_TEST_DATABASE_URL =
@@ -22,6 +23,7 @@ export function testDatabaseUrl() {
 }
 
 export async function acquireInvocationLease(label) {
+  await preflightIssue215BeforeHarnessCleanup(label);
   const inheritedRunId = process.env.VAYLET_TEST_CLUSTER_RUN_ID;
   if (inheritedRunId) {
     const databaseUrl = testDatabaseUrl();

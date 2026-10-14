@@ -106,6 +106,8 @@ jobs:
         ports:
           - 5432:5432
         options: >-
+          --label "vaylet.issue215.disposable=true"
+          --label "vaylet.issue215.run-id=${{ github.run_id }}"
           --health-cmd "pg_isready -U valet -d valet"
           --health-interval 5s
           --health-timeout 5s
@@ -131,6 +133,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run bounded PostgreSQL lane
+        env:
+          VAYLET_ISSUE215_TEST_TARGET: ${{ matrix.lane == 'database' && 'ci' || '' }}
+          VAYLET_ISSUE215_CI_POSTGRES_CONTAINER_ID: ${{ matrix.lane == 'database' && job.services.postgres.id || '' }}
         run: pnpm run test:postgres:${{ matrix.lane }}
 
   platform:

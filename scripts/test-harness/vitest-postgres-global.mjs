@@ -9,6 +9,7 @@ import {
   releaseClusterLease,
 } from "./ownership-state.mjs";
 import { testDatabaseUrl } from "./invocation-lease.mjs";
+import { preflightIssue215BeforeHarnessCleanup } from "./issue215-target-preflight.mjs";
 import {
   createPostgresCleanupAdapter,
   readClusterBudgetSettings,
@@ -28,6 +29,9 @@ export default async function setup(project) {
       "PostgreSQL Vitest global setup could not resolve the project name.",
     );
   }
+  // Global stale-owner recovery can DROP resources: task target attestation
+  // must precede the lease and its recovery path, not merely test beforeAll.
+  await preflightIssue215BeforeHarnessCleanup(projectName);
   const profile = postgresProfileForProject(projectName);
   const inheritedRunId = process.env.VAYLET_TEST_CLUSTER_RUN_ID;
   if (inheritedRunId !== undefined) {

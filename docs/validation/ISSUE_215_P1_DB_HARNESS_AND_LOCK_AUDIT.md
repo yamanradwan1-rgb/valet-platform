@@ -82,3 +82,88 @@ The new T2 must revalidate the **exact bearer credential** before finalization a
 5. **Legacy upgrade:** run real recorded migrations through predecessor, persist representative metadata-only `vehicle_photos`, run actual `migrate:deploy` plus role provisioning, prove old data/queries unchanged and no verification/availability child backfilled. Compare against an empty fresh deployment; never rewrite migration 15 or use schema synchronization.
 
 All 21 worker-4 P1 integrity, STORED, audit/availability, negative, concurrency and historical-upgrade tests pass against real PostgreSQL 16. Independently, worker-3 reviewed the current SQL/schema and ran real role tests: **4/4** connected API/maintenance/PUBLIC privilege tests and **3/3** focused privilege-policy unit tests passed, including repeat provisioning, all six API entrypoints, two maintenance entrypoints and denied PUBLIC grants. The final atomic `BEGIN`/`COMMIT` migration also deployed all **80/80** migrations from empty to the separate verified `issue215_atomic_final` test DB; repeating deploy reported no pending migrations. No SQL-level P0/P1 remained in these reviews. The explicit outstanding release gate is P2's exact bearer/authority lock-order and revocation race proof, plus real byte/provider verification; the P1 foundation is conditionally review-ready and the feature remains disabled. These results are not production release evidence.
+
+## Review-001 post-implementation harness remediation (2026-10-14)
+
+The historical fixture-only preflight was insufficient for the role suite: the
+legacy guest-browser helper selected `TEST_DATABASE_URL` then
+`MIGRATION_DATABASE_URL` and finally a local development fallback. More
+importantly, the standard Postgres harness itself could perform **stale-owner
+DROP cleanup before P1's test `beforeAll`** via
+`invocation-lease.mjs`/`vitest-postgres-global.mjs`. Both paths were identified
+by separate independent read-only reviewers as P1 acceptance blockers.
+
+P1 tests now use `ConditionPhotoP1OwnedTarget`, shared with the P1 integrity
+fixture, instead of the legacy guest fixture. The canonical guard in
+`condition-photo-p1-test-target.mjs` is used **before** lease acquisition and
+stale recovery on P1-containing invocations; it refuses any fallback, requires
+exact 127.0.0.1:58487/issue215_empty and bootstrap issue215_owner, pins the
+approved Docker container ID and private volume ID, and verifies read-only
+PostgreSQL 16 primary/live login/database owner before any lifecycle SQL.
+Its strict target parser and Docker/live checks are exercised by 20 pure tests.
+The original P1 owner context and actual role suite both use randomized
+task-owned database and role identifiers and re-verify identity before cleanup;
+the main ownership harness still records planned-before-create resource events
+to recover an uncertain CREATE acknowledgement.
+
+| Test-target scenario | Observed result |
+| --- | --- |
+| Explicit approved disposable target | Docker, URL and PostgreSQL live identity pass before CREATE |
+| Missing URL, despite forged `MIGRATION_DATABASE_URL` | Direct Vitest global setup errors **before** lease/stale cleanup; no test executes |
+| Wrong host, non-loopback, port, database, role, protocol | Parser unit tests reject, zero mutation callback |
+| Unexpected query, fragment, PG override, wrong NODE_ENV/project/run marker | Parser unit tests reject, zero mutation callback |
+| Wrong PostgreSQL user, owner, version, port, recovery state | Live-identity unit tests reject |
+| Swapped Docker identity or volume, incorrect bind | Docker-identity unit tests reject |
+| Setup never completed / CREATE DB failed | Mocked close emits zero DROP |
+| DB created, next role CREATE fails | Mocked cleanup drops only recorded owned database |
+| One role created, second CREATE fails | Mocked cleanup drops only acknowledged role/database |
+| Pre-existing matching-prefix role | Collision rejected, no mutation / no DROP |
+| Identity changed before cleanup | No destructive SQL, error reported |
+| Repeated successful run | Exactly own two resource sets cleaned, no orphan in mock |
+| Actual restricted PostgreSQL run | **6/6 PASS**, including connected runtime, maintenance, PUBLIC-only SQL and successful server-side runtime VERIFIED evidence |
+| Actual old P1 integrity/upgrade suites | **21/21 PASS**, five files |
+| Actual P1-owned lifecycle tests | **8/8 PASS**, owned harness |
+| PostgreSQL harness classification/ownership | **14/14 PASS**, including prelease fallback refusal |
+| Successful PostgreSQL teardown | Observed `db=0 roles=0 children=0` in each completed focused PG invocation |
+
+The negative cases use isolated in-memory/mocked SQL for rejected targets; no
+destructive operation is issued to a deliberately unsafe real database. Fresh
+non-Postgres database tests: **7 files, 64/64 PASS**; shared contracts:
+**449/449 PASS**, lint/typecheck PASS; database lint/typecheck, Prisma schema
+validation, architecture check and `git diff --check` PASS. The architecture
+check reports only grandfathered source-size warnings outside this change.
+
+The full repository `pnpm test:non-postgres` still fails in the isolated
+worktree: missing `react`, `@valet/contracts`, NestJS/API and employee-client
+workspace dependencies prevented many suites from loading. One Dashboard
+`operations-presentation.test.ts` localization expectation also failed and
+cannot be classified as green or assumed environment-only; no Dashboard code
+was changed. This broader suite is **not green** and remains a CI/dependency
+validation gate. Initial Prisma validate without the required config URL
+failed configuration loading; the subsequent schema-only validation with the
+approved test-local migration URL passed without executing a database write.
+
+The latest root reattempt also encountered Windows VirtualAlloc and Node heap
+out-of-memory failures in concurrent Customer, employee-client and Dashboard
+Vitest processes (Turbo reported `memory-pressure`, exit 134). An overlapping
+six-file PostgreSQL run was consequently not green: one upgrade test timed out
+under load, and the STORED file's bootstrap identity inspection failed during
+resource exhaustion. No suspect target was mutated by the failing STORED
+fixture. The earlier isolated 27/27 result remains separate evidence; never
+count this contended run as passing. Resource pressure requires isolated rerun
+and the full cross-package suite requires a capable/complete CI environment.
+
+After the competing processes ended, the verified isolated recheck passed
+**21/21** P1 integrity/STORED/negative/audit/upgrade cases in five files using
+`--no-file-parallelism`, followed by **6/6** connected restricted-role tests in
+a separate owned PG16 run. The harness reported `db=0 roles=0 children=0`
+for both runs. These are the final functional focused test results, without
+misreporting the separate resource-contention failure as a pass.
+
+No P1 SQL/migration/schema or UI was changed by this remediation. Existing
+`Promise.all`/sleep PostgreSQL races are useful integrity tests but are **not**
+equivalent to deterministic barrier-controlled two-transaction HTTP/refresh
+interleavings; those comprehensive credential/provider conflicts remain P2.
+The future P5 integrity worker needs a narrow separate service authority to
+mark unavailable bytes after staff/Location deactivation with append-only
+SYSTEM audit, without impersonation, forged trust, or broad privileges.
