@@ -1,5 +1,24 @@
 # Employee Native Execution Plan — v2 Rebaseline
 
+## Issue #215 — focused P0 acceptance update (2026-10-14)
+
+The owner's accepted [DEC-104 verified condition-photo decision](decisions/DEC-104_VERIFIED_CONDITION_PHOTO_BYTE_EVIDENCE.md)
+and [P0 source/baseline handoff](validation/ISSUE_215_P0_BASELINE_AND_HANDOFF.md)
+resolve the historical MOB-011C photo architecture decision gate, **not** the
+MOB-011D byte-upload implementation or production proof. The complete
+[Issue #215 execution plan](plans/ISSUE_215_VERIFIED_CONDITION_PHOTO_MASTER_PLAN.md)
+contains P1–P6 Coding Agent packages.
+
+**UI-X1:** owner approved precisely the existing Native QR-camera interaction
+look and feel for new Vehicle Condition JPEG capture. Strict UI-FROZEN remains
+binding everywhere else; new visual/photo behavior still requires EN/AR,
+Light/Dark, geometry, navigation/accessibility and physical Android evidence.
+Existing QR/plate images cannot qualify as condition evidence. The active
+required-photo guard continues to fail closed until real verified bytes exist.
+Provider, retention/holds, lock-race tests and production signoffs remain
+separate gates. Older MOB-011C/U-002 `UNRESOLVED` rows below are historical
+planning snapshots; **DEC-104 controls current owner decision status**.
+
 ## 1. Repository facts discovered
 
 ### A–C. Status, authority, outcome and merged baseline

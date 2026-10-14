@@ -3,6 +3,20 @@
 > Operational handoff snapshot only. This file is not a binding product/domain contract.
 > For current repository facts, GitHub wins. For accepted behavior, use the authority order in `AGENTS.md`, the Founder & Product Blueprint v1.0, binding docs, and Accepted decisions.
 
+## Issue #215 — verified condition photos (2026-10-14)
+
+- **P0 owner architecture/UI-pattern decision accepted** in
+  [DEC-104](decisions/DEC-104_VERIFIED_CONDITION_PHOTO_BYTE_EVIDENCE.md);
+  P0 source/lock/UI baseline and next-agent conditions are recorded in
+  [the P0 handoff](validation/ISSUE_215_P0_BASELINE_AND_HANDOFF.md).
+- **P1–P6 not delivered by P0.** Actual byte-upload storage, verification,
+  schema/API, Native JPEG capture, retries, physical Android QA, and full
+  UI-FROZEN proof are still future work under the
+  [36-section master plan](plans/ISSUE_215_VERIFIED_CONDITION_PHOTO_MASTER_PLAN.md).
+- UI-X1 reuses the existing QR-camera interaction pattern only; no unrelated
+  visual redesign. Required photos remain fail-closed; provider/retention and
+  release gates remain open. This update does **not** close Issue #215.
+
 ## Employee Native Program
 
 The canonical Employee Native order, scope, gates, evidence, and status plan is
