@@ -122,6 +122,7 @@
   font-weight: 600;
   white-space: nowrap;
 }
+.table .timestampHeader { padding-block-end: 0.625rem; }
 .table td {
   height: 4.0625rem;
   padding: 0.875rem 1.5rem;
@@ -239,7 +240,9 @@
 
 .timezone {
   display: block;
-  margin-top: 0.125rem;
+  /* Reserve a clear vertical lane beneath the table Help control. The equal
+     reduction in header bottom padding preserves the existing row height. */
+  margin-top: 0.375rem;
   font-size: 0.6875rem;
   font-weight: 400;
 }

@@ -40,7 +40,7 @@ export function AuditTable(props: {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>
+              <th className={styles.timestampHeader}>
                 {t.timestamp}
                 <span className={styles.timezone}>
                   <bdi dir="ltr">{props.context.timezone}</bdi>

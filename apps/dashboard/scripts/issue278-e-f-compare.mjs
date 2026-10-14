@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
-import { measuredIntersections, newlyIntroducedOverlaps, measuredKinds } from "./issue278-overlap-geometry.mjs";
+import { measuredIntersections, newlyIntroducedOverlaps, measuredKinds, visibleControlObstructions } from "./issue278-overlap-geometry.mjs";
 
 const folder = process.argv[2];
 if (!folder) throw new Error("Usage: node scripts/issue278-e-f-compare.mjs <evidence-directory>");
@@ -64,7 +64,8 @@ for (const id of all) {
     newHelp: (newer?.help ?? []).filter((item) => !(older?.help ?? []).some((prior) => prior.label === item.label)).map((item) => item.label),
     allHelpVisible: newer?.help.every((item) => item.visible) ?? false,
     overflowBefore: older?.horizontalOverflow ?? null, overflowAfter: newer?.horizontalOverflow ?? null,
-    changes, helpControlOverlaps: overlaps, baselineHelpOverlaps: baselineOverlaps,
+    changes, rawHelpControlOverlaps: overlaps,
+    helpControlOverlaps: visibleControlObstructions(semanticAfter), baselineHelpOverlaps: baselineOverlaps,
     newlyIntroducedHelpOverlaps: newOverlaps,
     semanticBefore, semanticAfter, semanticIntroduced,
   });
@@ -79,8 +80,10 @@ const summary = {
   geometryDifferent: differences.map((entry) => entry.id),
   totalGeometryChanges: differences.reduce((count, entry) => count + entry.changes.length, 0),
   mismatchedHelpVisibility: complete.filter((entry) => !entry.allHelpVisible).map((entry) => entry.id),
-  helpHitTargetCollisions: measured.filter((entry) => entry.helpControlOverlaps.length).map((entry) => entry.id),
-  introducedHelpHitTargetCollisions: measured.filter((entry) => entry.newlyIntroducedHelpOverlaps.length).map((entry) => entry.id),
+  helpHitTargetCollisions: measured.filter((entry) => entry.helpControlOverlaps?.length).map((entry) => entry.id),
+  introducedHelpHitTargetCollisions: measured.filter((entry) =>
+    visibleControlObstructions(entry.semanticIntroduced)?.length).map((entry) => entry.id),
+  rawHelpControlIntersectionCases: measured.filter((entry) => entry.rawHelpControlOverlaps.length).map((entry) => entry.id),
   semanticPaired: measured.filter((entry) => entry.semanticBefore !== null && entry.semanticAfter !== null).length,
   semanticUnknown: measured.filter((entry) => entry.semanticBefore === null || entry.semanticAfter === null).map((entry) => entry.id),
   newSemanticCollisionCases: measured.filter((entry) => entry.semanticIntroduced?.length).map((entry) => entry.id),
@@ -100,21 +103,24 @@ const findings = [
   `Baseline: ${summary.baselineSHA}. Comparison uses independent checked-out main and Phase E/F dev servers, synthetic fixture data.`,
   `Before screenshot/geometry sets: **${summary.before}**. After sets: **${summary.after}**. Paired: **${summary.paired}**.`,
   `Cases with any measured non-Help geometry change over 2px: **${differences.length}**; changed anchors: **${summary.totalGeometryChanges}**.`,
-  `Cases with Help-versus-control rectangle intersections (review individually): **${summary.helpHitTargetCollisions.length}**.`,
-  `Cases with new Help/control intersections relative to the measured baseline: **${summary.introducedHelpHitTargetCollisions.length}**.`,
+  `Cases with visible Help-versus-control obstruction: **${summary.helpHitTargetCollisions.length}**.`,
+  `Cases with newly introduced visible Help/control obstruction: **${summary.introducedHelpHitTargetCollisions.length}**.`,
+  `Cases with raw Help/control rectangle intersections, including clipped scroll items (diagnostics only): **${summary.rawHelpControlIntersectionCases.length}**.`,
   `Equivalent schema semantic evidence pairs: **${summary.semanticPaired}**. Unknown/missing semantic schema cases: **${summary.semanticUnknown.length}**.`,
   `Cases with introduced visible semantic intersections: **${summary.newSemanticCollisionCases.length}**.`,
   "", "## Important limitations", "",
   "Measurements are deterministic single-browser Playwright renderings, but are not proof of all production account states. Inspect each delta in comparison.json and HTML before classifying a new U-004 deviation.",
   "The zoom200-css captures use DOM CSS zoom; the separate issue278-help-zoom.spec.ts tests real Chromium page-scale zoom.",
-  "Help/control intersections are raw bounding-box intersections and can include clipped/invisible regions of scrollable controls; inspect actual screenshots and whether the same pairing existed on baseline.",
+  "Actionable Help/control collisions require a painted clip-aware intersection, regardless of whether the raw-rectangle center is clickable. Raw overlaps include invisible scrolled content and are retained as diagnostics.",
   "The semantic collision computation covers buttons, scope badges, page titles, subtitles, table headers; each record stores raw and viewport/scroll-clipped visible areas, hit targeting and baseline provenance. Missing schema stays UNKNOWN.",
   "", "## Missing/mismatched captures", "", ...missing.map((item) => `- ${item.id}`),
   "", "## Cases with measured geometry changes", "",
   ...differences.map((item) => `- ${item.id}: ${item.changes.map((change) => change.selector + " (" + change.kind + ")").join(", ")}`),
   "", "## Help visibility issues", "", ...summary.mismatchedHelpVisibility.map((id) => `- ${id}`), "",
-  "## Help-versus-action collisions", "",
-  ...measured.filter((item) => item.helpControlOverlaps.length).map((item) => `- ${item.id}: ${item.helpControlOverlaps.map((hit) => `${hit.help} / ${hit.control} (${hit.area}px²)`).join("; ")} — baseline ${item.baselineHelpOverlaps.length}, introduced ${item.newlyIntroducedHelpOverlaps.length}`), "",
+  "## Visible Help-versus-action obstructions", "",
+  ...measured.filter((item) => item.helpControlOverlaps?.length).map((item) => `- ${item.id}: ${item.helpControlOverlaps.map((hit) => `${hit.help} / ${hit.target} (${hit.visibleArea}px²)`).join("; ")}`), "",
+  "## Raw rectangle intersections (diagnostic only)", "",
+  ...measured.filter((item) => item.rawHelpControlOverlaps.length).map((item) => `- ${item.id}: ${item.rawHelpControlOverlaps.map((hit) => `${hit.help} / ${hit.control} (${hit.area}px² raw)`).join("; ")} — baseline ${item.baselineHelpOverlaps.length}, introduced ${item.newlyIntroducedHelpOverlaps.length}`), "",
   "## Newly introduced visible semantic collisions", "",
   ...measured.filter((item) => item.semanticIntroduced?.length).map((item) =>
     `- ${item.id} (${item.currentRoute}, ${item.lang}, ${item.theme}): ${item.semanticIntroduced.map((hit) => `${hit.kind} ${hit.target} (${hit.visibleArea}px², raw ${hit.rawArea}px²)`).join("; ")}`), "",

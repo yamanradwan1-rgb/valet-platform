@@ -135,8 +135,8 @@ async function evidence(page: Page, label: string, variant: typeof variants[numb
         w: +(r.right - r.left).toFixed(2), h: +(r.bottom - r.top).toFixed(2) };
     };
     const measure = (n: Element) => {
-      const r = n.getBoundingClientRect();
-      const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      const clipped = visibleBounds(n);
+      const top = clipped ? document.elementFromPoint(clipped.x + clipped.w / 2, clipped.y + clipped.h / 2) : null;
       const walker = document.createTreeWalker(n, NodeFilter.SHOW_TEXT);
       const painted: DOMRect[] = [];
       while (walker.nextNode()) {

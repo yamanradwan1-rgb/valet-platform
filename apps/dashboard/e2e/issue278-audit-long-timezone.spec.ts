@@ -68,7 +68,13 @@ test("Audit table Help does not cover a real Location's long timezone label", as
       });
     }, rect!);
     expect(overlaps, `${item.locale} ${item.width} CSS zoom ${item.zoom}: long timezone not rendered`).not.toBeNull();
-    expect(overlaps!.every((area) => area === 0), `${item.locale} ${item.width}: table Help obscures timezone`).toBe(true);
+    const placement = await help.evaluate((node) => {
+      const parent = node.parentElement!;
+      const b = node.getBoundingClientRect();
+      return { inset: getComputedStyle(parent).insetBlockStart, helpTop: b.top, helpBottom: b.bottom };
+    });
+    expect(overlaps!.every((area) => area === 0),
+      `${item.locale} ${item.width}: table Help obscures timezone; ${JSON.stringify({ placement, overlaps })}`).toBe(true);
     const evidenceDir = process.env.ISSUE278_TZ_EVIDENCE_DIR;
     if (evidenceDir && item.zoom === false && [1440, 390].includes(item.width)) {
       mkdirSync(evidenceDir, { recursive: true });
