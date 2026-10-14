@@ -3,6 +3,16 @@ import {
   readOwnershipEvents,
   removeRunState,
 } from "./ownership-state.mjs";
+import { preflightIssue215BeforeHarnessCleanup } from "./issue215-target-preflight.mjs";
+import { ISSUE215_PROJECT } from "./issue215-test-manifest.mjs";
+
+export function hasIssue215OwnedResources(events) {
+  return events.some((event) =>
+    event.type === "issue215-protected-run" ||
+    (["resource-created", "resource-planned"].includes(event.type) &&
+      ((event.kind === "database" && /^vlt_t_db_215_[a-f0-9]{32}$/.test(event.name)) ||
+        (event.kind === "role" && /^vlt_t_role_215_[a-f0-9]{32}$/.test(event.name)))));
+}
 
 export function buildOwnedCleanupPlan(events) {
   const resources = new Map();
@@ -66,6 +76,13 @@ export async function cleanupOwnedRun({
   runId,
   stateRoot,
 }) {
+  // An unrelated project's global setup may recover a stale P1 run before
+  // the P1 global setup starts during direct mixed Vitest execution. Never
+  // terminate its child or DROP any task-owned P1 artifact without attesting
+  // the actual Issue215 target, even when the new project was not selected.
+  if (hasIssue215OwnedResources(readOwnershipEvents({ databaseUrl, runId, stateRoot }))) {
+    await preflightIssue215BeforeHarnessCleanup([ISSUE215_PROJECT]);
+  }
   const childCount = await quiesceOwnedChildren({
     adapter,
     databaseUrl,
@@ -73,9 +90,11 @@ export async function cleanupOwnedRun({
     runId,
     stateRoot,
   });
-  const plan = buildOwnedCleanupPlan(
-    readOwnershipEvents({ databaseUrl, runId, stateRoot }),
-  );
+  const postQuiescenceEvents = readOwnershipEvents({ databaseUrl, runId, stateRoot });
+  if (hasIssue215OwnedResources(postQuiescenceEvents)) {
+    await preflightIssue215BeforeHarnessCleanup([ISSUE215_PROJECT]);
+  }
+  const plan = buildOwnedCleanupPlan(postQuiescenceEvents);
   for (const database of plan.databases)
     await adapter.dropDatabase(database.name);
   for (const role of plan.roles) await adapter.dropRole(role.name);

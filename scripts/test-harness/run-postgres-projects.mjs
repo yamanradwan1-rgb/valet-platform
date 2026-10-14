@@ -10,6 +10,7 @@ if (!config || projects.length === 0) {
 
 const lease = await acquireInvocationLease(
   `postgres-projects-${projects.join("-")}`,
+  { selectedProjects: projects },
 );
 let failed = false;
 try {

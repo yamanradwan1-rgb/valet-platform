@@ -167,3 +167,99 @@ interleavings; those comprehensive credential/provider conflicts remain P2.
 The future P5 integrity worker needs a narrow separate service authority to
 mark unavailable bytes after staff/Location deactivation with append-only
 SYSTEM audit, without impersonation, forged trust, or broad privileges.
+
+## P1-HARNESS-SCOPE-001 — task-only preflight ownership correction
+
+The prior fix at `8975fc5d` secured P1 against fallback and pre-lease stale
+cleanup, but required the **P1-only pinned Docker/CI target** for every
+`database-postgres-direct`/`database-postgres-provision` project (including
+41+41 unrelated database files), as well as their full package/root wrappers.
+Focused ordinary PostgreSQL tests therefore failed on otherwise permitted
+legacy test environments without ever exercising condition-photo code.
+
+The corrected model has an authoritative 7-file exact manifest in
+`issue215-test-manifest.mjs`. Test classification assigns these tests to
+`database-postgres-issue215` exclusively; 41 direct, 41 provisioning and 7
+non-Postgres files retain their normal project/lease/resource-profile behavior.
+The classifier rejects missing protected files and any newly DB-backed
+condition-photo test or transitive P1 mutation fixture outside that manifest.
+Vitest config retains all original tests, registers the dedicated project with
+the bounded provisioning resource profile, and `test:postgres` executes all
+three database projects. No test is hidden behind an opt-in switch.
+
+The P1 attestation predicate receives **resolved project identity** from the
+actual owning Vitest global setup, or from an explicit project list produced by
+the authoritative package/owned-test dispatch. It never reads CLI filenames,
+`--exclude`, `--changed`, reporter or output-file args. Ordinary-only
+direct/provisioning and API PostgreSQL projects do not require Issue215 Docker
+identity. Mixed/full commands whose owned project list contains Issue215
+preflight **before the outer lease**; direct protected Vitest runs preflight
+in their own global setup **before recovery**. An unrelated global setup
+recovering a stale run containing proven `vlt_t_db_215_*` or
+`vlt_t_role_215_*` resources must also attest P1 before terminating a child
+or issuing any DROP. This is conditional fencing, not a change to the
+existing ownership-record and ordinary cleanup model.
+
+Full database/package/root suites **contain P1 tests** and therefore still
+require an approved target for those tests; this is deliberate and cannot
+be avoided without silently skipping them. A focused unrelated test or an
+ordinary direct/provision project does **not** have that requirement. The
+existing CI database PostgreSQL matrix retains its explicitly attested PG17
+service and now discovers the new P1 project; the API matrix does not run P1.
+The `main`/PR-only CI triggers mean that pushing this branch alone does not
+establish a green GitHub Actions run. P2/P5/P6 remain deferred unchanged.
+
+### Focused execution matrix after scope split
+
+- All seven Issue215 PostgreSQL tests in the new guarded project:
+  **35/35 PASS**, including authenticated runtime/maintenance/PUBLIC role SQL
+  and immutable evidence/upgrade verification; owned cleanup
+  `db=0 roles=0 children=0`.
+- Unrelated direct constraints **23/23 PASS** and unrelated provisioning
+  guest rating **5/5 PASS**, each under an intentionally invalid Issue215-only
+  mode (thus its strict Docker guard was not imposed on unrelated work).
+- Mixed owned dispatch: ordinary Direct **23/23** plus guarded P1 mocked
+  lifecycle **8/8 PASS**, on one verified parent lease, with 0 residual
+  databases/roles/children. Mixed missing-target selection rejected *before*
+  lease, even when a poisoned migration URL was provided.
+- Focused database-non-postgres policy **3/3 PASS**, with no TEST_DATABASE_URL
+  and poisoned MIGRATION_DATABASE_URL. The focused runner previously used
+  `.includes("postgres")`, which wrongly treated `non-postgres` as PG and
+  started a potentially destructive lease; its project detection is corrected.
+- Every newly started protected run now emits `issue215-protected-run`
+  to its durable ownership ledger before child work. Lease metadata records
+  `issue215Protected` for all new invocations; legacy unmarked root/database
+  labels which could have run P1 require P1 attestation before stale recovery.
+  Cleanup rechecks the post-quiescence resource ledger before any DROP.
+  Unit tests reject P1 stale records or marker-only recovery without a
+  target; the original owned-only DROP semantics remain intact.
+- The database focused coordinator now resolves PostgreSQL's `pg` driver
+  from its own package rather than an absent isolated API workspace install.
+- Harness/classification/ownership **19/19 PASS** at the final scope checks;
+  database nonPG **64/64 PASS**, no migration/schema/UI edits.
+
+Additional stale-recovery hardening: each new lease now records
+`issue215RecoveryRequired` when a stale owner or pending ancestor could
+have executed protected P1 tests. A failed stale-P1 preflight parks its
+lease with the complete owner/recoveryRunIds ledger intact instead of deleting
+it. A synthetic three-generation legacy → ordinary → ordinary chain verifies
+that the protection and deferred resources remain recoverable. The focused
+park helper lives in a small separate file to preserve the 300-line code rule.
+
+Independent read-only final review (worker-3, post-recovery corrections):
+**GO for the scoped P1 test harness remediation; no demonstrated P0/P1**.
+The reviewer inspected manifest/project segregation, pre-lease attestation,
+legacy recovery flags, parked ledger preservation and dual-stage cleanup
+fencing, without modifying source or running database commands. A known
+non-security retry constraint remains: a parked lease may be considered active
+for the normal startedAt fallback window of up to 30 seconds before it can be
+reclaimed; the original pending recovery records are retained. The successful
+focused tests above are executor-run, not independently rerun by this reviewer.
+
+An unrelated legacy audit-foundation provisioning suite ran but returned
+**3/4 PASS** because it hardcodes 46 migrations while the immutable current
+baseline now has 80; no unrelated test or schema was changed to hide this.
+The complete 82-file unrelated PostgreSQL lane and real GitHub-hosted PG17
+workflow remain **unverified** (not PASS). Branch push alone does not trigger
+this main/PR-only workflow. Previously documented broad root memory failures
+remain separate from this test-selection remediation.

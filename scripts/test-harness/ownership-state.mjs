@@ -12,6 +12,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { requiresIssue215StaleOwnerPreflight } from "./issue215-target-preflight.mjs";
 
 import {
   isLeaseHeartbeatFresh,
@@ -74,6 +75,7 @@ export function createOwnedResourceName({
 
 export function acquireClusterLease({
   databaseUrl,
+  issue215Protected = false,
   projectName,
   runId,
   stateRoot = STATE_ROOT,
@@ -94,6 +96,8 @@ export function acquireClusterLease({
         tempPath,
         JSON.stringify({
           cluster: clusterIdentity(databaseUrl),
+          issue215Protected,
+          issue215RecoveryRequired: requiresIssue215StaleOwnerPreflight(staleOwner),
           pid: process.pid,
           projectName,
           recoveryRunIds:
@@ -253,6 +257,10 @@ function readOwner(path) {
     !Number.isInteger(value?.pid) ||
     typeof value?.runId !== "string" ||
     typeof value?.cluster !== "string" ||
+    (value?.issue215Protected !== undefined &&
+      typeof value.issue215Protected !== "boolean") ||
+    (value?.issue215RecoveryRequired !== undefined &&
+      typeof value.issue215RecoveryRequired !== "boolean") ||
     (value?.recoveryRunIds !== undefined &&
       (!Array.isArray(value.recoveryRunIds) ||
         value.recoveryRunIds.some((item) => typeof item !== "string")))

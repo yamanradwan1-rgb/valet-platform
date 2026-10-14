@@ -17,7 +17,7 @@ const expectedVolume = "83d0792c7318ace85d94f3824619542a4f8344226b0ff16d091d307e
 export function requireIssue215TestUrl(env = process.env) {
   if (env.VAYLET_ISSUE215_TEST_TARGET === "ci") {
     if (env.NODE_ENV !== "test" ||
-        !["database-postgres-direct", "database-postgres-provision"].includes(env.VAYLET_TEST_PROJECT) ||
+        env.VAYLET_TEST_PROJECT !== "database-postgres-issue215" ||
         !env.VAYLET_TEST_RUN_ID) throw new Error(targetError);
     return requireIssue215CiUrl(env);
   }
@@ -32,8 +32,7 @@ export function requireIssue215TestUrl(env = process.env) {
     url.pathname !== "/issue215_empty" || url.username !== "issue215_owner" ||
     !url.password || url.search !== "" || url.hash !== "" ||
     env.NODE_ENV !== "test" ||
-    env.VAYLET_TEST_PROJECT !== "database-postgres-provision" &&
-      env.VAYLET_TEST_PROJECT !== "database-postgres-direct" ||
+    env.VAYLET_TEST_PROJECT !== "database-postgres-issue215" ||
     !env.VAYLET_TEST_RUN_ID ||
     ["PGHOST", "PGPORT", "PGDATABASE", "PGUSER", "PGSERVICE", "PGOPTIONS", "PGSSLMODE", "PGSERVICEFILE"].some(
       (key) => Boolean(env[key]),

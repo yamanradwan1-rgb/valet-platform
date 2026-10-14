@@ -1,5 +1,6 @@
 import { runHarnessCommand } from "./command-runner.mjs";
 import { acquireInvocationLease } from "./invocation-lease.mjs";
+import { ISSUE215_PROJECT } from "./issue215-test-manifest.mjs";
 
 const postgresOnly = process.argv.includes("--postgres-only");
 const nonPostgresOnly = process.argv.includes("--non-postgres-only");
@@ -9,7 +10,7 @@ if (postgresOnly && nonPostgresOnly)
 const results = [];
 const lease = nonPostgresOnly
   ? { release: async () => {} }
-  : await acquireInvocationLease("root-tests");
+  : await acquireInvocationLease("root-tests", { selectedProjects: [ISSUE215_PROJECT] });
 try {
   if (!postgresOnly) {
     results.push(

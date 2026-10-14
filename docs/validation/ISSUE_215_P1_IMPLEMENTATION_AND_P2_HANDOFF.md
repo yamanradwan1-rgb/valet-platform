@@ -329,3 +329,40 @@ execution passed **6/6 in one file**. Both owned runs reported
 `db=0 roles=0 children=0` at teardown. These final isolated successes do not
 erase the contended run failure. A real GitHub-hosted PG17 matrix execution
 remains unverified.
+
+### Post-8975fc5d harness scope repair (P1-HARNESS-SCOPE-001)
+
+The safe target check at `8975fc5d` accidentally applied to both shared
+database PostgreSQL Vitest projects even for unrelated tests. The new seven-file
+`database-postgres-issue215` project carries the unaltered local PG16
+container+volume and CI PG17 live-identity attestation. Ordinary database
+`database-postgres-direct` and `database-postgres-provision` no longer
+require P1-only Docker identity. Every database test has exactly one project;
+the `test:postgres` script explicitly includes the new project, so full
+execution cannot silently omit it. Mixed and full parent leases attest P1
+before stale cleanup. Direct protected project setup attests before its own
+lease, while stale P1-owned resources encountered by any project trigger
+attestation prior to recovery. The selector is project-based, not parsed from
+`--changed`, `--exclude`, filenames or reporter/output options.
+
+Production persistence/schema/migration, runtime ACLs, connected-role
+assertions, contracts, application code and UI are untouched. Existing P2
+bearer/refresh/logout/revocation races, actual S3/JPEG readback and durable
+`REJECTED` design, P5 service-owned availability authority, and P6 physical
+Android/strict UI-FROZEN evidence remain separately required.
+
+**Final scope-fix verification:** protected P1 **35/35 PASS** in seven files,
+unrelated direct **23/23**, unrelated provisioning guest-rating **5/5**,
+mixed focused dispatch **23/23 + 8/8**, pure focused **3/3** with no PG URL,
+database nonPG **64/64**, harness **19/19**, all owned PG run cleanup
+`db=0 roles=0 children=0`. The focused runner's previous
+`includes("postgres")` bug (matching `database-non-postgres`) is fixed,
+and P1-ledger markers plus typed stale lease metadata fence recovery,
+including previously ambiguous older P1 project labels. Failed legacy
+stale-P1 attestation now parks, rather than destroys, ownership metadata
+and transitive recovery IDs; a durable `issue215RecoveryRequired` flag
+follows protected ancestors across successive stale-owner takeovers.
+An unrelated legacy audit-foundation test failed its frozen 46-migration count (current
+80), so its **3/4** outcome is not declared green. CI PG17 branch evidence
+and the complete 82-file unrelated database suite are pending; branch push
+does not trigger the main/PR-only CI workflow.

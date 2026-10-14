@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,22 +13,85 @@ import {
 import {
   preflightIssue215BeforeHarnessCleanup,
   requiresIssue215Preflight,
+  requiresIssue215StaleOwnerPreflight,
 } from "./issue215-target-preflight.mjs";
+import {
+  ISSUE215_PROJECT,
+  issue215PostgresFiles,
+} from "./issue215-test-manifest.mjs";
+import { cleanupOwnedRun, hasIssue215OwnedResources } from "./owned-cleanup.mjs";
+import {
+  acquireClusterLease,
+  appendOwnershipEvent,
+  clusterKey,
+} from "./ownership-state.mjs";
+import { parkClusterLeaseForRecovery } from "./park-cluster-lease.mjs";
 
-test("Issue 215 P1 preflight precedes every relevant PostgreSQL harness cleanup entry", () => {
-  assert.equal(requiresIssue215Preflight("focused-database", ["node", "src/condition-photo-runtime-privileges.integration.test.ts"]), true);
-  assert.equal(requiresIssue215Preflight("focused-database", ["node", "src/unrelated.integration.test.ts"]), false);
-  assert.equal(requiresIssue215Preflight("database-postgres-provision", ["node", "src/condition-photo-p1-integrity.integration.test.ts"]), true);
-  assert.equal(requiresIssue215Preflight("database-postgres-provision", ["node", "--exclude", "src/unrelated.test.ts"]), true);
-  assert.equal(requiresIssue215Preflight("database-postgres-provision", ["node", "--changed", "src/unrelated.test.ts"]), true);
-  assert.equal(requiresIssue215Preflight("database-postgres-provision", ["node", "src/unrelated.test.ts"]), true);
-  assert.equal(requiresIssue215Preflight("database-postgres-provision", ["node", "--reporter=json", "--outputFile", "src/unrelated.test.ts"]), true);
-  assert.equal(requiresIssue215Preflight("database-postgres-direct", ["node", "src/condition-photo-p1-owned-target.test.ts"]), true);
-  assert.equal(requiresIssue215Preflight("database-postgres-provision", ["node"]), true);
-  assert.equal(requiresIssue215Preflight("postgres-projects-database-postgres-direct-database-postgres-provision"), true);
-  assert.equal(requiresIssue215Preflight("database-package-tests"), true);
-  assert.equal(requiresIssue215Preflight("root-tests", ["node", "--postgres-only"]), true);
-  assert.equal(requiresIssue215Preflight("root-tests", ["node", "--non-postgres-only"]), false);
+test("Issue 215 target preflight depends only on authoritative test-project ownership", () => {
+  assert.equal(requiresIssue215Preflight([ISSUE215_PROJECT]), true);
+  assert.equal(requiresIssue215Preflight(["database-postgres-direct"]), false);
+  assert.equal(requiresIssue215Preflight(["database-postgres-provision"]), false);
+  assert.equal(requiresIssue215Preflight(["api-postgres-standard"]), false);
+  assert.equal(requiresIssue215Preflight(["database-non-postgres"]), false);
+  assert.equal(requiresIssue215Preflight([]), false);
+  assert.equal(
+    requiresIssue215Preflight(["database-postgres-direct", ISSUE215_PROJECT, "database-postgres-provision"]),
+    true,
+  );
+  // No argv-based inference: Vitest can interpret file-like values as
+  // exclusions, output paths, changed filters or reporter configuration.
+  for (const option of ["--exclude", "--changed", "--outputFile", "--reporter", "--related"]) {
+    assert.equal(requiresIssue215Preflight([ISSUE215_PROJECT], ["node", option, "src/foreign.test.ts"]), true);
+    assert.equal(requiresIssue215Preflight(["database-postgres-direct"], ["node", option, "src/condition-photo-p1-integrity.integration.test.ts"]), false);
+  }
+});
+
+test("stale owner attestation fences old mixed P1 runs without pinning unrelated new leases", () => {
+  for (const projectName of [
+    "root-tests", "database-package-tests", "focused-database",
+    "database-postgres-direct", "database-postgres-provision",
+    "postgres-projects-database-postgres-direct-database-postgres-provision",
+  ]) {
+    assert.equal(requiresIssue215StaleOwnerPreflight({ projectName }), true);
+    assert.equal(requiresIssue215StaleOwnerPreflight({ projectName, issue215Protected: false }), false);
+  }
+  assert.equal(requiresIssue215StaleOwnerPreflight({ projectName: "api-postgres-standard" }), false);
+  assert.equal(requiresIssue215StaleOwnerPreflight({ issue215Protected: true, projectName: "ordinary" }), true);
+  assert.equal(requiresIssue215StaleOwnerPreflight(undefined), false);
+});
+
+test("failed preflight parks recovery ancestry instead of deleting old owned resource metadata", () => {
+  const root = mkdtempSync(join(tmpdir(), "vaylet-issue215-recovery-chain-"));
+  const databaseUrl = "postgresql://fake:fake@127.0.0.1:5432/valet";
+  const path = join(root, clusterKey(databaseUrl), "owner.json");
+  const retire = (runId) => {
+    parkClusterLeaseForRecovery({ databaseUrl, runId, stateRoot: root });
+    const previous = JSON.parse(readFileSync(path, "utf8"));
+    writeFileSync(path, JSON.stringify({
+      ...previous, pid: 99999999, startedAt: "2000-01-01T00:00:00Z",
+    }));
+  };
+  try {
+    acquireClusterLease({ databaseUrl, projectName: "database-postgres-provision",
+      runId: "legacy-old", stateRoot: root });
+    retire("legacy-old");
+    const legacy = JSON.parse(readFileSync(path, "utf8"));
+    delete legacy.issue215Protected;
+    delete legacy.issue215RecoveryRequired;
+    writeFileSync(path, JSON.stringify(legacy));
+    const second = acquireClusterLease({ databaseUrl, projectName: "ordinary-new",
+      runId: "ordinary-new", stateRoot: root });
+    assert.equal(requiresIssue215StaleOwnerPreflight(second.staleOwner), true);
+    retire("ordinary-new");
+    const third = acquireClusterLease({ databaseUrl, projectName: "ordinary-next",
+      runId: "ordinary-next", stateRoot: root });
+    assert.equal(third.staleOwner.issue215RecoveryRequired, true);
+    assert.deepEqual(third.staleOwner.recoveryRunIds, ["legacy-old"]);
+    assert.equal(requiresIssue215StaleOwnerPreflight(third.staleOwner), true);
+    parkClusterLeaseForRecovery({ databaseUrl, runId: "ordinary-next", stateRoot: root });
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test("Issue 215 P1 rejects missing target despite a migration URL before acquiring a cluster lease", async () => {
@@ -38,7 +101,7 @@ test("Issue 215 P1 rejects missing target despite a migration URL before acquiri
     delete process.env.TEST_DATABASE_URL;
     process.env.MIGRATION_DATABASE_URL = "postgresql://fake:fake@db.example.invalid:5432/valet";
     await assert.rejects(
-      preflightIssue215BeforeHarnessCleanup("focused-database", ["node", "src/condition-photo-runtime-privileges.integration.test.ts"]),
+      preflightIssue215BeforeHarnessCleanup([ISSUE215_PROJECT]),
       /Issue 215 test target/,
     );
   } finally {
@@ -46,6 +109,80 @@ test("Issue 215 P1 rejects missing target despite a migration URL before acquiri
     else process.env.TEST_DATABASE_URL = before;
     if (migration === undefined) delete process.env.MIGRATION_DATABASE_URL;
     else process.env.MIGRATION_DATABASE_URL = migration;
+  }
+});
+
+test("an unrelated stale-owner cleanup refuses known Issue215 resources before any SQL/child cleanup", async () => {
+  const root = mkdtempSync(join(tmpdir(), "vaylet-issue215-recovery-"));
+  const databaseUrl = "postgresql://fake:fake@127.0.0.1:5432/valet";
+  const runId = "test-unrelated-stale-recovery";
+  const resource = "vlt_t_db_215_" + "a".repeat(32);
+  const observed = [];
+  const oldUrl = process.env.TEST_DATABASE_URL;
+  try {
+    appendOwnershipEvent({
+      databaseUrl, runId, stateRoot: root,
+      event: { type: "resource-planned", kind: "database", name: resource, absentBeforeCreate: true },
+    });
+    assert.equal(hasIssue215OwnedResources([{ type: "resource-planned", kind: "database", name: resource }]), true);
+    delete process.env.TEST_DATABASE_URL;
+    await assert.rejects(cleanupOwnedRun({
+      databaseUrl, runId, stateRoot: root,
+      adapter: {
+        killProcess: async () => observed.push("kill"),
+        dropDatabase: async () => observed.push("drop"),
+        dropRole: async () => observed.push("role"),
+      },
+    }), /Issue 215 test target/);
+    assert.deepEqual(observed, []);
+  } finally {
+    if (oldUrl === undefined) delete process.env.TEST_DATABASE_URL;
+    else process.env.TEST_DATABASE_URL = oldUrl;
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("a protected run marker fences stale recovery even before its first CREATE", async () => {
+  const root = mkdtempSync(join(tmpdir(), "vaylet-issue215-marked-"));
+  const databaseUrl = "postgresql://fake:fake@127.0.0.1:5432/valet";
+  const runId = "test-protected-run-without-resource";
+  const observed = [];
+  const oldUrl = process.env.TEST_DATABASE_URL;
+  try {
+    appendOwnershipEvent({
+      databaseUrl, runId, stateRoot: root,
+      event: { type: "issue215-protected-run" },
+    });
+    delete process.env.TEST_DATABASE_URL;
+    await assert.rejects(cleanupOwnedRun({
+      databaseUrl, runId, stateRoot: root,
+      adapter: {
+        killProcess: async () => observed.push("kill"),
+        dropDatabase: async () => observed.push("drop-db"),
+        dropRole: async () => observed.push("drop-role"),
+      },
+    }), /Issue 215 test target/);
+    assert.deepEqual(observed, []);
+  } finally {
+    if (oldUrl === undefined) delete process.env.TEST_DATABASE_URL;
+    else process.env.TEST_DATABASE_URL = oldUrl;
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("a PostgreSQL test importing an Issue215 mutation fixture must join the protected manifest", () => {
+  const root = mkdtempSync(join(tmpdir(), "vaylet-issue215-dependency-"));
+  try {
+    writeFileSync(join(root, "ordinary-name.integration.test.ts"),
+      'import "./condition-photo-p1-owned-target.js";\n');
+    writeFileSync(join(root, "condition-photo-p1-owned-target.ts"),
+      'import { Client } from "pg";\nconst connection = new Client();\n');
+    assert.throws(
+      () => classifyPackageTests({ packageKind: "database", rootDir: root }),
+      /Unregistered Issue 215 PostgreSQL fixture usage/,
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
   }
 });
 
@@ -65,8 +202,9 @@ test("current API and database tests each have exactly one owner", () => {
     discoverTests(databaseRoot).length,
   );
   assert.equal(database["database-non-postgres"].length, 7);
-  assert.equal(database["database-postgres-direct"].length, 42);
-  assert.equal(database["database-postgres-provision"].length, 47);
+  assert.equal(database["database-postgres-direct"].length, 41);
+  assert.equal(database["database-postgres-provision"].length, 41);
+  assert.deepEqual(database[ISSUE215_PROJECT], issue215PostgresFiles);
   assert.ok(api["api-non-postgres"].includes("postgres.test.ts"));
   assert.ok(
     api["api-non-postgres"].includes("shift-test-context-names.test.ts"),

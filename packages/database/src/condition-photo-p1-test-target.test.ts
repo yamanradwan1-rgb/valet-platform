@@ -15,7 +15,7 @@ const goodUrl = "postgresql://issue215_owner:fake@127.0.0.1:58487/issue215_empty
 const environment = {
   TEST_DATABASE_URL: goodUrl,
   NODE_ENV: "test",
-  VAYLET_TEST_PROJECT: "database-postgres-provision",
+  VAYLET_TEST_PROJECT: "database-postgres-issue215",
   VAYLET_TEST_RUN_ID: "owned-test-fixture",
 };
 

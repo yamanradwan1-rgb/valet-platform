@@ -4,11 +4,17 @@ import { fileURLToPath } from "node:url";
 import { cleanupOwnedRun } from "./owned-cleanup.mjs";
 import {
   acquireClusterLease,
+  appendOwnershipEvent,
   assertClusterLeaseOwner,
   createRunId,
   releaseClusterLease,
 } from "./ownership-state.mjs";
-import { preflightIssue215BeforeHarnessCleanup } from "./issue215-target-preflight.mjs";
+import { parkClusterLeaseForRecovery } from "./park-cluster-lease.mjs";
+import {
+  preflightIssue215BeforeHarnessCleanup,
+  requiresIssue215Preflight,
+  requiresIssue215StaleOwnerPreflight,
+} from "./issue215-target-preflight.mjs";
 import { createPostgresCleanupAdapter } from "./postgres-cleanup-adapter.mjs";
 
 export const DEFAULT_TEST_DATABASE_URL =
@@ -22,13 +28,19 @@ export function testDatabaseUrl() {
   );
 }
 
-export async function acquireInvocationLease(label) {
-  await preflightIssue215BeforeHarnessCleanup(label);
+export async function acquireInvocationLease(label, { selectedProjects = [] } = {}) {
+  await preflightIssue215BeforeHarnessCleanup(selectedProjects);
   const inheritedRunId = process.env.VAYLET_TEST_CLUSTER_RUN_ID;
   if (inheritedRunId) {
     const databaseUrl = testDatabaseUrl();
     assertClusterLeaseOwner({ databaseUrl, runId: inheritedRunId });
-    const adapter = createCleanupAdapter(databaseUrl);
+    if (requiresIssue215Preflight(selectedProjects)) {
+      appendOwnershipEvent({
+        databaseUrl, runId: inheritedRunId,
+        event: { type: "issue215-protected-run" },
+      });
+    }
+    const adapter = createCleanupAdapter(databaseUrl, label);
     return {
       owned: false,
       runId: inheritedRunId,
@@ -45,9 +57,25 @@ export async function acquireInvocationLease(label) {
 
   const databaseUrl = testDatabaseUrl();
   const runId = createRunId(label);
-  const lease = acquireClusterLease({ databaseUrl, projectName: label, runId });
-  const adapter = createCleanupAdapter(databaseUrl);
+  const lease = acquireClusterLease({
+    databaseUrl, projectName: label, runId,
+    issue215Protected: requiresIssue215Preflight(selectedProjects),
+  });
+  if (requiresIssue215Preflight(selectedProjects)) {
+    appendOwnershipEvent({
+      databaseUrl, runId, event: { type: "issue215-protected-run" },
+    });
+  }
+  const adapter = createCleanupAdapter(databaseUrl, label);
   if (lease.staleOwner !== undefined) {
+    if (requiresIssue215StaleOwnerPreflight(lease.staleOwner)) {
+      try {
+        await preflightIssue215BeforeHarnessCleanup([ "database-postgres-issue215" ]);
+      } catch (error) {
+        parkClusterLeaseForRecovery({ databaseUrl, runId, stateRoot: lease.stateRoot });
+        throw error;
+      }
+    }
     const recoveryRunIds = [
       lease.staleOwner.runId,
       ...(lease.staleOwner.recoveryRunIds ?? []),
@@ -87,14 +115,21 @@ export async function acquireInvocationLease(label) {
   };
 }
 
-function createCleanupAdapter(databaseUrl) {
+function createCleanupAdapter(databaseUrl, label) {
   const repositoryRoot = fileURLToPath(new URL("../../", import.meta.url));
-  const requireFromApi = createRequire(
-    fileURLToPath(new URL("../../apps/api/package.json", import.meta.url)),
+  const databaseInvocation = label === "database-package-tests" ||
+    label === "focused-database" || label.startsWith("postgres-projects-database-");
+  const requireFromOwner = createRequire(
+    fileURLToPath(new URL(
+      databaseInvocation
+        ? "../../packages/database/package.json"
+        : "../../apps/api/package.json",
+      import.meta.url,
+    )),
   );
   return createPostgresCleanupAdapter({
     adminDatabaseUrl: databaseUrl,
-    pg: requireFromApi("pg"),
+    pg: requireFromOwner("pg"),
     repositoryRoot,
   });
 }

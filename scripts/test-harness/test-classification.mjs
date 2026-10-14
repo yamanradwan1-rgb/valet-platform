@@ -1,5 +1,11 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, extname, join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import {
+  ISSUE215_PROJECT,
+  isIssue215PostgresFile,
+  issue215PostgresFiles,
+} from "./issue215-test-manifest.mjs";
 
 const testFilePattern = /\.(?:test|spec)\.(?:[cm]?[jt]sx?)$/;
 const dbSignalPattern =
@@ -18,9 +24,25 @@ const lazyPostgresOnlyTests = new Set([
   "postgres.test.ts",
   "shift-test-context-names.test.ts",
 ]);
+const issue215MutationFixtures = new Set([
+  "condition-photo-p1-owned-target.ts",
+  "condition-photo-p1-test-context.ts",
+  "condition-photo-p1-connected-role-proof.ts",
+]);
 
 export function classifyPackageTests({ packageKind, rootDir }) {
   const discovered = discoverTests(rootDir);
+  const repositoryDatabaseSource = fileURLToPath(
+    new URL("../../packages/database/src/", import.meta.url),
+  );
+  if (packageKind === "database" && resolve(rootDir) === resolve(repositoryDatabaseSource)) {
+    const known = new Set(discovered.map((file) => normalize(relative(rootDir, file))));
+    for (const file of issue215PostgresFiles) {
+      if (!known.has(file)) {
+        throw new Error(`Issue 215 protected PostgreSQL test missing from discovery: ${file}.`);
+      }
+    }
+  }
   const ownership = new Map();
   for (const file of discovered) {
     const relativeFile = normalize(relative(rootDir, file));
@@ -33,8 +55,19 @@ export function classifyPackageTests({ packageKind, rootDir }) {
     const dbBacked =
       !lazyPostgresOnlyTests.has(relativeFile) &&
       graph.some((entry) => dbSignalPattern.test(entry.source));
+    if (packageKind === "database" && dbBacked &&
+        !isIssue215PostgresFile(relativeFile) &&
+        (relativeFile.startsWith("condition-photo-") ||
+          graph.some((item) => issue215MutationFixtures.has(item.basename)))) {
+      throw new Error(`Unregistered Issue 215 PostgreSQL fixture usage: ${relativeFile}.`);
+    }
+    if (packageKind === "database" && isIssue215PostgresFile(relativeFile) && !dbBacked) {
+      throw new Error(`Issue 215 protected test ${relativeFile} lost PostgreSQL ownership.`);
+    }
     const project =
-      packageKind === "api"
+      packageKind === "database" && isIssue215PostgresFile(relativeFile)
+        ? ISSUE215_PROJECT
+        : packageKind === "api"
         ? classifyApi(file, graph, dbBacked)
         : classifyDatabase(graph, dbBacked);
     addOwnership(ownership, relativeFile, project);
@@ -100,9 +133,9 @@ function dependencyGraph(entry, rootDir) {
 function localImportSpecifiers(source) {
   const values = [];
   const expression =
-    /(?:from\s+["'](\.[^"']+)["']|import\s*\(\s*["'](\.[^"']+)["']\s*\)|require\s*\(\s*["'](\.[^"']+)["']\s*\))/g;
+    /(?:from\s+["'](\.[^"']+)["']|import\s*\(\s*["'](\.[^"']+)["']\s*\)|require\s*\(\s*["'](\.[^"']+)["']\s*\)|import\s+["'](\.[^"']+)["'])/g;
   for (const match of source.matchAll(expression)) {
-    values.push(match[1] ?? match[2] ?? match[3]);
+    values.push(match[1] ?? match[2] ?? match[3] ?? match[4]);
   }
   return values;
 }
@@ -143,7 +176,8 @@ function isSupportFile(file, rootDir) {
   const rel = normalize(relative(rootDir, file));
   if (rel.startsWith("../")) return false;
   const name = file.split(/[\\/]/).at(-1) ?? "";
-  return /(?:test|fixture|context|harness|helper|assertion|case)/i.test(name);
+  return issue215MutationFixtures.has(name) ||
+    /(?:test|fixture|context|harness|helper|assertion|case)/i.test(name);
 }
 
 function addOwnership(ownership, file, project) {

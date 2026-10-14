@@ -19,7 +19,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node ../../scripts/test-harness/run-package-tests.mjs database",
     "test:non-postgres": "vitest run --config vitest.config.mjs --project database-non-postgres",
-    "test:postgres": "node ../../scripts/test-harness/run-postgres-projects.mjs vitest.config.mjs database-postgres-direct database-postgres-provision"
+    "test:postgres": "node ../../scripts/test-harness/run-postgres-projects.mjs vitest.config.mjs database-postgres-direct database-postgres-provision database-postgres-issue215"
   },
   "dependencies": {
     "@prisma/client": "7.9.1",

@@ -13,6 +13,7 @@ const PROJECT_PROFILES = Object.freeze({
   "api-postgres-race": "api-race",
   "database-postgres-direct": "database-direct",
   "database-postgres-provision": "database-provision",
+  "database-postgres-issue215": "database-provision",
 });
 
 function profile(

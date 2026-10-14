@@ -4,6 +4,7 @@ import { defineConfig } from "vitest/config";
 
 import { postgresProfile } from "../../scripts/test-harness/resource-budget.mjs";
 import { classifyPackageTests } from "../../scripts/test-harness/test-classification.mjs";
+import { ISSUE215_PROJECT } from "../../scripts/test-harness/issue215-test-manifest.mjs";
 
 const sourceRoot = fileURLToPath(new URL("./src/", import.meta.url));
 const harnessRoot = fileURLToPath(
@@ -53,6 +54,7 @@ export default defineConfig({
       },
       postgresProject("database-postgres-direct", "database-direct"),
       postgresProject("database-postgres-provision", "database-provision"),
+      postgresProject(ISSUE215_PROJECT, "database-provision"),
     ],
   },
 });

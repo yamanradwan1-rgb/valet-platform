@@ -36,10 +36,12 @@ for (const file of normalized) {
 
 let failed = false;
 const needsPostgres = [...groups.keys()].some((project) =>
-  project.includes("postgres"),
+  !project.endsWith("-non-postgres"),
 );
 const lease = needsPostgres
-  ? await acquireInvocationLease(`focused-${packageKind}`)
+  ? await acquireInvocationLease(`focused-${packageKind}`, {
+      selectedProjects: [...groups.keys()],
+    })
   : { cleanup: async () => {}, release: async () => {} };
 try {
   for (const [project, files] of groups) {
@@ -59,7 +61,7 @@ try {
       );
       if (result.code !== 0) failed = true;
     } finally {
-      if (project.includes("postgres")) await lease.cleanup();
+      if (!project.endsWith("-non-postgres")) await lease.cleanup();
     }
   }
 } finally {
