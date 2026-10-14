@@ -1,13 +1,11 @@
 import { paymentCollectionPrivileges } from "./payment-collection-runtime-privileges.mjs";
 import { providerEventPrivileges } from "./provider-event-runtime-privileges.mjs";
-import { verifyLocationConfigurationPrivileges } from "./location-configuration-runtime-privileges.mjs";
 import {
   customerPrivileges,
   runtimeMaintenanceFunctions as maintenanceFunctions,
   runtimeMapSetupFunctions as mapSetupFunctions,
   runtimePrivateMapSetupFunctions as privateMapSetupFunctions,
 } from "./runtime-table-privileges.mjs";
-import { verifyBasicBrandingPrivileges } from "./basic-branding-runtime-privileges.mjs";
 import { staffPushPrivileges } from "./staff-push-runtime-privileges.mjs";
 import {
   incidentReadPolicies,
@@ -19,12 +17,7 @@ import {
   columnPrivilegeMatches,
   tablePrivilegeMatches,
 } from "./runtime-privilege-verification-helpers.mjs";
-import { verifyAuditFoundationPrivileges } from "./audit-foundation-runtime-privilege-verification.mjs";
-import { verifyMfaPrivileges } from "./mfa-runtime-privilege-verification.mjs";
-import { verifyShiftForceEndPrivileges } from "./shift-force-end-runtime-privileges.mjs";
-import { verifyManagementSettingsPrivileges } from "./management-settings-runtime-privileges.mjs";
-import { verifyManagementFeaturePrivileges } from "./management-runtime-privileges.mjs";
-import { verifyGuestRuntimePrivileges } from "./guest-runtime-privileges.mjs";
+import { verifyRuntimeFeaturePrivileges } from "./runtime-feature-privilege-verification.mjs";
 
 const tablePrivileges = [
   ...incidentRecoveryPrivileges.table,
@@ -289,12 +282,5 @@ export async function verifyRuntimeTablePrivileges(client, runtimeRole) {
       throw new Error("Runtime maintenance function privileges are unsafe.");
     }
   }
-  await verifyLocationConfigurationPrivileges(client, runtimeRole);
-  await verifyBasicBrandingPrivileges(client, runtimeRole);
-  await verifyAuditFoundationPrivileges(client, runtimeRole);
-  await verifyMfaPrivileges(client, runtimeRole);
-  await verifyShiftForceEndPrivileges(client, runtimeRole);
-  await verifyManagementSettingsPrivileges(client, runtimeRole);
-  await verifyManagementFeaturePrivileges(client, runtimeRole);
-  await verifyGuestRuntimePrivileges(client, runtimeRole);
+  await verifyRuntimeFeaturePrivileges(client, runtimeRole);
 }

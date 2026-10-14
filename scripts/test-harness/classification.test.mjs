@@ -26,9 +26,9 @@ test("current API and database tests each have exactly one owner", () => {
     Object.values(database).flat().length,
     discoverTests(databaseRoot).length,
   );
-  assert.equal(database["database-non-postgres"].length, 3);
-  assert.equal(database["database-postgres-direct"].length, 30);
-  assert.equal(database["database-postgres-provision"].length, 22);
+  assert.equal(database["database-non-postgres"].length, 6);
+  assert.equal(database["database-postgres-direct"].length, 41);
+  assert.equal(database["database-postgres-provision"].length, 47);
   assert.ok(api["api-non-postgres"].includes("postgres.test.ts"));
   assert.ok(
     api["api-non-postgres"].includes("shift-test-context-names.test.ts"),

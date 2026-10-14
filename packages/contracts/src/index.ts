@@ -6,6 +6,7 @@ export * from "./api-errors.js";
 export * from "./check-in.js";
 export * from "./company-analytics.js";
 export * from "./company-report.js";
+export * from "./condition-photo-upload.js";
 export * from "./complete-handoff.js";
 export * from "./confirm-parked.js";
 export * from "./dispatch.js";

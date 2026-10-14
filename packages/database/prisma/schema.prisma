@@ -185,6 +185,31 @@ enum VehiclePhotoPurpose {
   @@map("vehicle_photo_purpose")
 }
 
+enum ConditionPhotoUploadStatus {
+  PENDING
+  VERIFIED
+  EXPIRED
+  REJECTED
+
+  @@map("condition_photo_upload_status")
+}
+
+enum ConditionPhotoAttemptStatus {
+  WRITING
+  STORED
+  SELECTED
+  ABANDONED
+
+  @@map("condition_photo_attempt_status")
+}
+
+enum ConditionPhotoAvailabilityState {
+  AVAILABLE
+  UNAVAILABLE
+
+  @@map("condition_photo_availability_state")
+}
+
 enum RetrievalRequesterType {
   CUSTOMER
   STAFF
@@ -518,6 +543,10 @@ model Organization {
   notifications               Notification[]
   conditionNotes              ConditionNote[]
   vehiclePhotos               VehiclePhoto[]
+  conditionPhotoUploadOperations ConditionPhotoUploadOperation[]
+  conditionPhotoUploadAttempts ConditionPhotoUploadAttempt[]
+  vehiclePhotoVerifications VehiclePhotoVerification[]
+  vehiclePhotoAvailability VehiclePhotoAvailability[]
   intakeOperations            IntakeOperation[]
   locationMapPoints           LocationMapPoint[]
   locationMapAreas            LocationMapArea[]
@@ -588,6 +617,10 @@ model Location {
   incidentRecoveryIntents  IncidentRecoveryIntent[]
   conditionNotes           ConditionNote[]
   vehiclePhotos            VehiclePhoto[]
+  conditionPhotoUploadOperations ConditionPhotoUploadOperation[]
+  conditionPhotoUploadAttempts ConditionPhotoUploadAttempt[]
+  vehiclePhotoVerifications VehiclePhotoVerification[]
+  vehiclePhotoAvailability VehiclePhotoAvailability[]
   intakeOperations         IntakeOperation[]
   locationMapPoints        LocationMapPoint[]
   locationMapAreas         LocationMapArea[]
@@ -652,6 +685,7 @@ model User {
   lastLoginAt  DateTime?  @map("last_login_at") @db.Timestamptz(3)
 
   memberships                  OrganizationMembership[]
+  conditionPhotoUploadAdmission ConditionPhotoUploadAdmission?
   staffAuthSessions            StaffAuthSession[]
   mfaTotpFactors               UserMfaTotpFactor[]
   accountSecuritySubjectEvents AccountSecurityAuditEvent[] @relation("AccountSecuritySubjectUser")
@@ -770,6 +804,9 @@ model OrganizationMembership {
   resolvedIncidents           Incident[]                 @relation("IncidentResolvedBy")
   recordedConditionNotes      ConditionNote[]
   capturedVehiclePhotos       VehiclePhoto[]
+  conditionPhotoUploadOperations ConditionPhotoUploadOperation[]
+  conditionPhotoUploadAttempts ConditionPhotoUploadAttempt[]
+  verifiedConditionPhotos VehiclePhotoVerification[]
   completedConditionChecks    ValetSession[]             @relation("ValetSessionCheckInConditionCompletedBy")
   keyCustodyEvents            KeyCustodyEvent[]
   currentTasks                Task[]                     @relation("TaskCurrentAssignee")
@@ -1026,6 +1063,10 @@ model ValetSession {
   notifications               Notification[]
   conditionNotes              ConditionNote[]
   vehiclePhotos               VehiclePhoto[]
+  conditionPhotoUploadOperations ConditionPhotoUploadOperation[]
+  conditionPhotoUploadAttempts ConditionPhotoUploadAttempt[]
+  vehiclePhotoVerifications VehiclePhotoVerification[]
+  vehiclePhotoAvailability VehiclePhotoAvailability[]
   intakeOperations            IntakeOperation[]
   keyCustodyEvents            KeyCustodyEvent[]
   tasks                       Task[]
@@ -1362,9 +1403,144 @@ model VehiclePhoto {
   location             Location               @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "vehicle_photos_org_location_id_fkey")
   valetSession         ValetSession           @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "vehicle_photos_org_location_session_id_fkey")
   capturedByMembership OrganizationMembership @relation(fields: [organizationId, capturedByMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "vehicle_photos_org_captured_by_membership_id_fkey")
+  verification VehiclePhotoVerification?
+  availability VehiclePhotoAvailability?
 
+  @@unique([id, organizationId, locationId, valetSessionId, capturedByMembershipId, purpose, storageObjectKey], map: "vehicle_photos_verification_scope_key")
+  @@unique([id, organizationId, locationId, valetSessionId], map: "vehicle_photos_availability_scope_key")
   @@index([valetSessionId, purpose, createdAt], map: "vehicle_photos_valet_session_id_purpose_created_at_idx")
   @@map("vehicle_photos")
+}
+
+model ConditionPhotoUploadOperation {
+  id                  String @id @default(uuid()) @db.Uuid
+  clientOperationId   String @map("client_operation_id") @db.Uuid
+  organizationId      String @map("organization_id") @db.Uuid
+  locationId          String @map("location_id") @db.Uuid
+  valetSessionId      String @map("valet_session_id") @db.Uuid
+  actorMembershipId   String @map("actor_membership_id") @db.Uuid
+  purpose             VehiclePhotoPurpose @default(CHECK_IN_CONDITION)
+  sourceSha256        Bytes @map("source_sha256")
+  sourceByteSize      Int @map("source_byte_size")
+  normalizationVersion Int @map("normalization_version")
+  status              ConditionPhotoUploadStatus @default(PENDING)
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  expiresAt           DateTime @map("expires_at") @db.Timestamptz(3)
+  updatedAt           DateTime @default(now()) @map("updated_at") @db.Timestamptz(3)
+  verifiedPhotoId     String? @unique(map: "condition_photo_operations_verified_photo_key") @map("verified_photo_id") @db.Uuid
+  lastFailureCode     String? @map("last_failure_code")
+  nextAttemptNumber   BigInt @default(1) @map("next_attempt_number")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "condition_photo_operations_organization_fkey")
+  location Location @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "condition_photo_operations_location_fkey")
+  valetSession ValetSession @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "condition_photo_operations_session_fkey")
+  actorMembership OrganizationMembership @relation(fields: [organizationId, actorMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "condition_photo_operations_actor_fkey")
+  attempts ConditionPhotoUploadAttempt[]
+  verification VehiclePhotoVerification? @relation("UploadOperationVerification")
+
+  @@unique([actorMembershipId, clientOperationId], map: "condition_photo_operations_member_client_key")
+  @@unique([id, organizationId, locationId, valetSessionId, actorMembershipId, purpose], map: "condition_photo_operations_scope_key")
+  @@unique([id, organizationId, locationId, valetSessionId, actorMembershipId], map: "condition_photo_operations_attempt_scope_key")
+  @@index([organizationId, locationId, valetSessionId, actorMembershipId, createdAt(sort: Desc), id(sort: Desc)], map: "condition_photo_operations_recovery_idx")
+  @@map("condition_photo_upload_operations")
+}
+
+model ConditionPhotoUploadAttempt {
+  id                   String @id @default(uuid()) @db.Uuid
+  operationId          String @map("operation_id") @db.Uuid
+  organizationId       String @map("organization_id") @db.Uuid
+  locationId           String @map("location_id") @db.Uuid
+  valetSessionId       String @map("valet_session_id") @db.Uuid
+  actorMembershipId    String @map("actor_membership_id") @db.Uuid
+  attemptNumber        BigInt @map("attempt_number")
+  objectKey            String @unique(map: "condition_photo_attempts_object_key_key") @map("object_key")
+  bucketAlias          String @map("bucket_alias")
+  objectVersion        String? @map("object_version")
+  status               ConditionPhotoAttemptStatus @default(WRITING)
+  leaseOwner           String? @map("lease_owner") @db.Uuid
+  leaseExpiresAt       DateTime? @map("lease_expires_at") @db.Timestamptz(3)
+  canonicalSha256      Bytes? @map("canonical_sha256")
+  canonicalByteSize    Int? @map("canonical_byte_size")
+  width                Int?
+  height               Int?
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  storedAt             DateTime? @map("stored_at") @db.Timestamptz(3)
+  selectedAt           DateTime? @map("selected_at") @db.Timestamptz(3)
+  abandonedAt          DateTime? @map("abandoned_at") @db.Timestamptz(3)
+  lastCleanupCheckedAt DateTime? @map("last_cleanup_checked_at") @db.Timestamptz(3)
+  normalizationVersion Int @map("normalization_version")
+
+  operation ConditionPhotoUploadOperation @relation(fields: [operationId, organizationId, locationId, valetSessionId, actorMembershipId], references: [id, organizationId, locationId, valetSessionId, actorMembershipId], onDelete: Restrict, onUpdate: Restrict, map: "condition_photo_attempts_operation_fkey")
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "condition_photo_attempts_organization_fkey")
+  location Location @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "condition_photo_attempts_location_fkey")
+  valetSession ValetSession @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "condition_photo_attempts_session_fkey")
+  actorMembership OrganizationMembership @relation(fields: [organizationId, actorMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "condition_photo_attempts_actor_fkey")
+  verification VehiclePhotoVerification? @relation("UploadAttemptVerification")
+
+  @@unique([operationId, attemptNumber], map: "condition_photo_attempts_operation_number_key")
+  @@unique([id, operationId, organizationId, locationId, valetSessionId, actorMembershipId, objectKey], map: "condition_photo_attempts_verification_scope_key")
+  @@index([actorMembershipId, status, leaseExpiresAt], map: "condition_photo_attempts_live_lease_idx")
+  @@map("condition_photo_upload_attempts")
+}
+
+model VehiclePhotoVerification {
+  vehiclePhotoId        String @id @map("vehicle_photo_id") @db.Uuid
+  operationId           String @unique(map: "vehicle_photo_verifications_operation_key") @map("operation_id") @db.Uuid
+  attemptId             String @unique(map: "vehicle_photo_verifications_attempt_key") @map("attempt_id") @db.Uuid
+  organizationId        String @map("organization_id") @db.Uuid
+  locationId            String @map("location_id") @db.Uuid
+  valetSessionId        String @map("valet_session_id") @db.Uuid
+  capturedByMembershipId String @map("captured_by_membership_id") @db.Uuid
+  purpose               VehiclePhotoPurpose
+  objectKey             String @map("object_key")
+  verifiedAt            DateTime @default(now()) @map("verified_at") @db.Timestamptz(3)
+  byteSize              Int @map("byte_size")
+  contentSha256         Bytes @map("content_sha256")
+  width                 Int
+  height                Int
+  normalizationVersion  Int @map("normalization_version")
+
+  photo VehiclePhoto @relation(fields: [vehiclePhotoId, organizationId, locationId, valetSessionId, capturedByMembershipId, purpose, objectKey], references: [id, organizationId, locationId, valetSessionId, capturedByMembershipId, purpose, storageObjectKey], onDelete: Restrict, onUpdate: Restrict, map: "vehicle_photo_verifications_photo_scope_fkey")
+  operation ConditionPhotoUploadOperation @relation("UploadOperationVerification", fields: [operationId, organizationId, locationId, valetSessionId, capturedByMembershipId, purpose], references: [id, organizationId, locationId, valetSessionId, actorMembershipId, purpose], onDelete: Restrict, onUpdate: Restrict, map: "vehicle_photo_verifications_operation_scope_fkey")
+  attempt ConditionPhotoUploadAttempt @relation("UploadAttemptVerification", fields: [attemptId, operationId, organizationId, locationId, valetSessionId, capturedByMembershipId, objectKey], references: [id, operationId, organizationId, locationId, valetSessionId, actorMembershipId, objectKey], onDelete: Restrict, onUpdate: Restrict, map: "vehicle_photo_verifications_attempt_scope_fkey")
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "vehicle_photo_verifications_organization_fkey")
+  location Location @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "vehicle_photo_verifications_location_fkey")
+  valetSession ValetSession @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "vehicle_photo_verifications_session_fkey")
+  capturedByMembership OrganizationMembership @relation(fields: [organizationId, capturedByMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "vehicle_photo_verifications_actor_fkey")
+  availability VehiclePhotoAvailability?
+
+  @@unique([operationId, vehiclePhotoId], map: "vehicle_photo_verifications_op_photo_key")
+  @@unique([vehiclePhotoId, organizationId, locationId, valetSessionId, capturedByMembershipId, purpose, objectKey], map: "vehicle_photo_verifications_photo_relation_key")
+  @@unique([operationId, organizationId, locationId, valetSessionId, capturedByMembershipId, purpose], map: "vehicle_photo_verifications_operation_relation_key")
+  @@unique([attemptId, operationId, organizationId, locationId, valetSessionId, capturedByMembershipId, objectKey], map: "vehicle_photo_verifications_attempt_relation_key")
+  @@index([organizationId, locationId, valetSessionId, purpose], map: "vehicle_photo_verifications_scope_idx")
+  @@map("vehicle_photo_verifications")
+}
+
+model VehiclePhotoAvailability {
+  vehiclePhotoId String @id @map("vehicle_photo_id") @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  locationId String @map("location_id") @db.Uuid
+  valetSessionId String @map("valet_session_id") @db.Uuid
+  state ConditionPhotoAvailabilityState @default(AVAILABLE)
+  changedAt DateTime @default(now()) @map("changed_at") @db.Timestamptz(3)
+  reason String?
+
+  photo VehiclePhoto @relation(fields: [vehiclePhotoId, organizationId, locationId, valetSessionId], references: [id, organizationId, locationId, valetSessionId], onDelete: Restrict, onUpdate: Restrict, map: "vehicle_photo_availability_photo_scope_fkey")
+  verification VehiclePhotoVerification @relation(fields: [vehiclePhotoId], references: [vehiclePhotoId], onDelete: Restrict, onUpdate: Restrict, map: "vehicle_photo_availability_verified_photo_fkey")
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "vehicle_photo_availability_organization_fkey")
+  location Location @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "vehicle_photo_availability_location_fkey")
+  valetSession ValetSession @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "vehicle_photo_availability_session_fkey")
+
+  @@unique([vehiclePhotoId, organizationId, locationId, valetSessionId], map: "vehicle_photo_availability_photo_relation_key")
+  @@map("vehicle_photo_availability")
+}
+
+model ConditionPhotoUploadAdmission {
+  userId String @id @map("user_id") @db.Uuid
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "condition_photo_upload_admission_user_fkey")
+
+  @@map("condition_photo_upload_admission")
 }
 
 model RetrievalRequest {

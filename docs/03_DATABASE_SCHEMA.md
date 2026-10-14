@@ -1,5 +1,83 @@
 # Database Schema — Logical Design
 
+## Issue #215 P1 — verified condition-photo persistence foundation
+
+Status: **P1 implementation pending independent acceptance; uploading and
+Check-In qualification are not enabled.** Accepted architecture: DEC-104 and
+`docs/plans/ISSUE_215_VERIFIED_CONDITION_PHOTO_MASTER_PLAN.md`, section 12.
+New forward migration:
+`20261014008000_issue_215_verified_condition_photo_p1`.
+
+`ConditionPhotoUploadOperation` (`condition_photo_upload_operations`) persists
+the original, server-fingerprinted operation UUID, exact Organization/Location/
+ValetSession/uploading membership and `CHECK_IN_CONDITION` purpose. Status is
+`PENDING | VERIFIED | EXPIRED | REJECTED`; a single PENDING operation is allowed
+per membership/session/purpose. The `(actor_membership_id, client_operation_id)`
+unique key fences duplicate client requests. Immutable source SHA-256, byte
+length and normalization version bind any retry to its original bytes. A verified
+photo reference exists only in VERIFIED state.
+
+`ConditionPhotoUploadAttempt` (`condition_photo_upload_attempts`) records distinct
+server-owned object keys and increasing attempt numbers, an exact composite
+scope/operation FK, lease owner and database-time expiry, and the controlled
+`WRITING | STORED | SELECTED | ABANDONED` lifecycle. Unique indexes protect
+the object key, operation/attempt number, one active/open attempt and one
+SELECTED attempt per operation. The selected attempt's canonical 32-byte digest,
+positive bounded size and dimensions, version and immutable key are matched
+against its verification. The initial bounds are 8 MiB, 4096 pixels per side,
+12 million pixels and a 120-second lease; actual JPEG decoding/read-back is
+the later trusted API's responsibility.
+
+`VehiclePhotoVerification` (`vehicle_photo_verifications`) is the authoritative,
+immutable one-to-one evidence child. Composite FKs bind the exact existing
+`VehiclePhoto` identity, Organization, Location, session, actor, purpose and
+storage key to the exact operation and selected attempt; deferred transaction
+coherence verifies that a VERIFIED operation has a matching verification and
+SELECTED canonical attempt, together with the unique session-scoped
+`CHECK_IN_CONDITION_PHOTO_VERIFIED` audit event. The audit entity is
+`ValetSession` and contains fixed safe classification metadata. One operation
+commits at most one photo, selected attempt and audit event.
+
+`VehiclePhotoAvailability` (`vehicle_photo_availability`) stores current
+`AVAILABLE | UNAVAILABLE` separately from immutable verification history;
+state changes use the narrow guarded function and coded reasons. A verified
+upload does not establish permanent object availability. Availability and
+verification history remain separate from Check-In state and the old VehiclePhoto
+analytics. Legacy metadata-only VehiclePhoto rows are never backfilled or
+promoted into verification.
+
+`ConditionPhotoUploadAdmission` (`condition_photo_upload_admission`) stores one
+durable synchronization row per actual User. Its restrictive User FK and
+serialized row lock protect a global cap of two database-time-live leases across
+the User's memberships, Locations and application replicas. It stores no media,
+quota claim supplied by the client, or customer data. Reservation and recovery
+take this row before operation/attempt locks.
+
+The runtime role may read only the required photo relations and execute
+`condition_photo_reserve_upload`, `condition_photo_claim_upload`,
+`condition_photo_mark_stored`, `condition_photo_record_failure`,
+`condition_photo_finalize_upload` and `condition_photo_set_availability`.
+The independent `WRITING -> STORED` claim records trusted canonical byte facts
+after object read-back; finalization requires exactly that persisted STORED
+attempt and matching lease/object version/digest/size/dimensions. Classified
+provider failure is bounded, remains PENDING, and never proves the object absent.
+It cannot directly mutate new evidence, verification or admission tables.
+Separate maintenance authority is limited to `condition_photo_expire_operation`
+and `condition_photo_abandon_attempt`; it cannot finalize verification.
+`PUBLIC` table/function access is revoked, and functions have a fixed
+`search_path`. Database-level audit triggers reserve the photo VERIFIED and
+UNAVAILABLE event names to trusted definer commands, reject runtime audit
+forgery/pre-seeding, and verify corresponding facts at COMMIT. Existing runtime
+`vehicle_photos` SELECT/INSERT and append-only
+UPDATE/DELETE/TRUNCATE protection are preserved. Provisioning is explicit and
+must be repeated safely after migrations.
+
+The current condition-photo guard remains fail-closed. P2 must prove current
+exact bearer authorization at the protected transaction boundary and validate,
+normalize and read back real private JPEG bytes. P3 alone will consume trusted
+verification plus live object availability in condition completion. Missing
+provider, retention and physical acceptance gates remain open.
+
 ## DEC-101 — Guest Web Push v1 durable registration, READY intent and delivery
 
 Status: **Owner architecture approved** (2026-10-08); **not a production
