@@ -2,9 +2,9 @@
 
 Planning date: 2026-10-14 (Asia/Amman). Repository: `yamanradwan1-rgb/valet-platform`.
 
-Document status: **COMPLETE PLANNING PROPOSAL — DECISION REQUIRED BEFORE IMPLEMENTATION**.
+Document status: **COMPLETE MASTER PLAN — OWNER C1/U-001–U-007 DIRECTION ACCEPTED IN DEC-104; TECHNICAL/PRODUCTION GATES STILL OPEN**.
 
-This document is a reviewable architecture and execution proposal, not an Accepted Decision, runtime implementation, security signoff, or authorization to change the UI. The owner requested concrete proposed contracts; consequently the conditional candidate below is intentionally specific. Every new route, field, limit, event, privilege, and recovery behavior marked **C1** applies **only if the owner accepts the corresponding U-ID in section 30**. The coding prompts stop at those gates. Approval of document delivery is not approval of C1.
+**Owner decision addendum (2026-10-14):** [DEC-104](../decisions/DEC-104_VERIFIED_CONDITION_PHOTO_BYTE_EVIDENCE.md) records acceptance of U-001–U-007, including provisional resource limits subject to measured validation, and approval of UI-X1 specifically **using the existing Native QR camera visual/interaction pattern**. The original plan below preserves its historical investigation and requirements; older statements that U/UI-X1 are `unresolved` describe its *initial planning delivery*, not the later owner decision. DEC-104 controls approval status. **Provider selection, legal retention/holds, operational ownership, exact UI regression evidence, test results and production readiness remain unverified/open.** No runtime code, migration, API contract, UI implementation, PR, merge, deployment or issue closure is authorized by this document update.
 
 ## 1. Executive Summary
 
@@ -15,7 +15,7 @@ Recommend **C1: bounded server-mediated JPEG upload**, private S3-compatible sto
 Two blocking findings materially affect execution:
 
 1. The historical photo `DEC-075_VERIFIED_CONDITION_PHOTO_BYTE_EVIDENCE.md` is **Proposed**, on historical branch `glm/mob-011c-condition-photo-decision`. Current main uses DEC-075 for **Accepted Staff Push Operational Policy**. The photo proposal needs a newly allocated decision identifier and explicit acceptance; do not overwrite the push decision.
-2. Native Vehicle Condition has three condition choices, optional-photo text, error handling and Continue, but **no condition-photo capture/review/upload affordance**. Strictly unchanged presentation cannot deliver a usable required-photo flow. **UI-X1 requires owner approval**; backend and portable work can remain nonvisual. No hidden capture, reuse of a plate snapshot, or misleading Continue behavior is permitted.
+2. Native Vehicle Condition has three condition choices, optional-photo text, error handling and Continue, but **no condition-photo capture/review/upload affordance**. Strictly unchanged presentation cannot deliver a usable required-photo flow. **DEC-104 subsequently approved UI-X1 only in the existing Native QR-camera visual pattern**; backend and portable work remain nonvisual. No hidden capture, reuse of a plate snapshot, or misleading Continue behavior is permitted.
 
 Seven implementation phases, P0–P6, and seven standalone coding-agent prompts are provided. P0 is the first executable decision/baseline work package after the owner assigns it. Runtime implementation is gated on the new Accepted contract. Required-photo rollout additionally needs provider/retention ownership, UI-X1, real storage and PostgreSQL failure proof, physical Android, independent review and remote CI. Optional-photo behavior remains unchanged.
 
@@ -586,6 +586,8 @@ Restart: restore auth through existing NativeAuthSession, hydrate exact eligible
 
 ## 19. STRICT UI-FROZEN Contract and Verification Matrix
 
+**Owner addendum — approved UI-X1 reference:** The owner approved the natural look and flow of the **existing Native QR camera**, not a new bespoke design. In particular review `scanner/native-qr-panel.tsx`, `parking/native-parking-qr-input.tsx` and `handoff/native-handoff-scanner.tsx`; reuse their familiar camera open/close, permissions, existing controls and error/status visual conventions for a new **still JPEG condition photo**. Keep all unaffected Check-In geometry/branding/buttons frozen. A photo is not a QR/plate scan; do not reuse QR/plate bytes or scanning acceptance semantics. Any visual difference exceeding the minimal QR-pattern capture/review/upload affordance needs another owner decision. EN/AR, Light/Dark, RTL/LTR, accessibility and physical BEFORE/AFTER evidence remain mandatory. See [DEC-104](../decisions/DEC-104_VERIFIED_CONDITION_PHOTO_BYTE_EVIDENCE.md).
+
 **Unauthorized UI regression = NO-GO.** Protected: layout, geometry, padding, spacing, typography, themes/colors, icons, borders/shadows, headers/logo, button dimensions, component positions, navigation presentation, modal/sheet/safe areas, responsive rules, wrapping, accessibility/focus and existing loading/error/retry treatment. No cleanup refactor of presentation is authorized.
 
 UI-X1 exact conflict: there is no condition-photo initiation control, preview/review, retry or verified indication in the current condition render tree. Continue currently submits a condition note/marker/final completion; silently changing it to take/upload a photo changes interaction and cannot pass as unchanged behavior. Existing plate camera represents a different purpose and DEC-074 prohibits retaining its image.
@@ -605,7 +607,7 @@ Baseline capture comes from pinned reviewed main, with matching build/device/fon
 
 ## 20. Detailed Phase-by-Phase Implementation Roadmap
 
-The following is a conditional execution envelope for C1, not permission to implement unresolved choices. Each phase requires a named human owner and its own approved task scope. Freeze the accepted contract in P0; if the owner chooses B or changes C1 materially, revise dependent phase contracts/tests before coding. Do not mechanically execute incompatible prompts.
+The following remains a gated execution envelope, not permission to implement unassigned tasks. DEC-104 has accepted C1/U-001–U-007 and the QR-pattern UI-X1 direction. Each phase still requires a named human owner, a reviewed current code base, and approved task scope. If the owner changes C1 materially, revise dependent contracts/tests first. Do not mechanically execute incompatible prompts; operational/provider/retention and tested UI-evidence gates remain binding.
 
 ### Shared validation commands (actual repository scripts)
 
@@ -659,7 +661,7 @@ Add proposed new test filenames to the command only after creating and registeri
 | Database effects | None in P0; approve P1 additive design and migration ownership |
 | Concurrency | Review all section 14 races and proof ownership; verify lock-order candidate using current writer code, not memory |
 | Error/recovery | Ratify strict response/error union and mutation-vs-read semantics; no auto replay |
-| UI-FROZEN | Capture old states; UI-X1 concrete mockup/copy/bounds/interaction approval required; do not edit production UI |
+| UI-FROZEN | Capture old states; DEC-104 accepts existing QR-camera pattern, but exact EN/AR copy/bounds/focus and parity evidence are required; no production UI edits during P0 |
 | Negative tests | Decision review rejects any metadata qualification, client scope/key trust, hidden capture, direct signed authority or generic queue |
 | Integration tests | None executed as implementation; specify actual provider/test target and credentials owner without revealing secrets |
 | Commands | `git fetch origin`, `git rev-parse origin/main`, `git status --short`, scoped diff and `git diff --check`; documentation audit script |
@@ -669,7 +671,7 @@ Add proposed new test filenames to the command only after creating and registeri
 | Rollback | Revise proposed docs before acceptance; never rewrite accepted history silently |
 | Complexity | M, dominated by decisions and evidence gathering |
 | Parallelism | Read-only backend/security and UI baseline investigations may run independently; one writer per worktree; shared docs single owner |
-| GO / NO-GO | GO for agreed documentation task; runtime NO-GO until U gates resolved; UI NO-GO until explicit UI-X1 approval |
+| GO / NO-GO | GO for P0 owner-approved documentation; implementation remains under phase review and operational gates; UI-X1 QR-pattern approved in DEC-104, not unchecked novel UI changes |
 
 ### P1 — Shared contracts, journal, verification persistence and privileges
 
@@ -897,7 +899,7 @@ Each phase: implement -> focused tests -> local diff/self-review -> commit/push 
 
 ## 23. Standalone Coding Agent Prompts for Every Phase
 
-These are complete future task prompts, not active implementation authorization. Each can be copied without this conversation; the canonical plan and Accepted decision remain required repository inputs. Suggested model is **GPT-6 Astra, high effort** for architectural/security work; model availability must be checked by the invoking owner. A prompt cannot accept its own unresolved decisions. The phase owner supplies the approved predecessor commit through the task record; where absent the agent must resolve it from reviewed Git history and stop if approval cannot be established, never invent a SHA.
+These are complete future task prompts, not active implementation authorization. Each can be copied without this conversation; every agent **must first read DEC-104**, which records acceptance of U-001–U-007 and the exact QR-camera-style UI-X1 limitation after this original plan was authored. Remaining operational/provider/retention proofs are NOT waived. Suggested model is **GPT-6 Astra, high effort** for architectural/security work; model availability must be checked by the invoking owner. The phase owner supplies the approved predecessor commit through the task record; where absent the agent must resolve it from reviewed Git history and stop if approval cannot be established, never invent a SHA.
 
 ### Prompt P0 — Acceptance and baseline
 
@@ -935,10 +937,11 @@ reconcile and GET exact-session photo-state. Freeze schemas/errors/transaction
 ordering only after acceptance. Existing metadata remains nonqualifying,
 optional zero-photo succeeds, and no upload changes custody/Task state.
 
-Resolve UI-X1 separately: current Vehicle Condition has no capture control.
-Prepare reviewable minimal capture/review/status/EN-AR/focus bounds, without
-editing production UI. Obtain explicit exception approval or report it blocked.
-Do not promise strict zero-delta required-photo completion without that approval.
+UI-X1 owner direction is now DEC-104's existing QR-camera visual pattern;
+verify and specify the minimal capture/review/status/EN-AR/focus bounds without
+editing production UI in P0. Do not interpret this as a new bespoke design
+license or promise zero-delta required-photo completion. Escalate any visible
+deviation from the QR pattern or the minimum condition-area exception.
 Record provider, retention, secret, incident-preservation and release owners.
 
 Security review must cover current tenant/location/member authority before
@@ -1458,7 +1461,9 @@ Priority means release triage, not an unsupported CVSS rating. P0 = false author
 
 ## 30. Owner Decisions and Approval Gates
 
-All seven U items below are **UNRESOLVED new task policy**, not existing runtime facts. C1 recommendations are concrete so the owner can accept/reject them without another architecture guessing exercise. Owner may approve as a named bundle; any exception must specify the replacement contract and affected sections/tests.
+**Owner decision resolved 2026-10-14:** U-001 through U-007 and the **QR-camera-pattern** limitation of UI-X1 were approved in [DEC-104](../decisions/DEC-104_VERIFIED_CONDITION_PHOTO_BYTE_EVIDENCE.md). The table below is the **original proposal/choice record**, not an assertion that these choices remain undecided. Initial numeric limits still require operational measurement; provider/retention/legal holds/owners, exact technical proof and any non-QR-pattern UI expansion remain separately gated.
+
+At the **original planning delivery**, all seven U items below were unresolved. **DEC-104 subsequently approved their C1 directions and conditional limits.** This table preserves the original choice record; any proposed deviation must specify the replacement contract and affected sections/tests.
 
 | ID | Choice/options | Recommended candidate | Blocking scope |
 | --- | --- | --- | --- |
@@ -1470,7 +1475,7 @@ All seven U items below are **UNRESOLVED new task policy**, not existing runtime
 | U-006 | New upload roles/Shift/ownership and exact credential semantics; restart recovery | Preserve current photo employee/supervisor explicit-access no-Shift/no-intake-owner authority; operation owner is uploading membership; fresh same-member session may reconcile; GET history allowed after lifecycle advance with current read authority; no auto replay/local persistence | P1/P2/P4 |
 | U-007 | Native-only capability vs Employee Web required-photo scope; user-facing photo retrieval | Native required-photo in #215; Web stays unchanged/fail-closed; no public viewing/download endpoint in this slice; any required Web rollout is a separately approved package | P2/P4/P6 release envelope |
 
-Separate **UI-X1 — OWNER APPROVAL REQUIRED**: approve concrete minimal condition capture/review/status/retry interaction, copy, geometry and accessibility deltas described in section 19. Without it, strict UI-FROZEN allows nonvisual infrastructure but not a usable complete Native required-photo experience. Do not present an exception proposal as accepted.
+**UI-X1 — QR VISUAL PATTERN OWNER-APPROVED IN DEC-104:** minimal condition capture/review/status/retry behavior must reuse the existing Native QR camera style and controls, as constrained in section 19. Exact new layout/wording/focus and comparisons must be documented; any non-QR-pattern extension requires a new approval. Do not treat approval of the visual pattern as physical or visual QA signoff.
 
 Deployment acceptance must name provider/environment, credential custodian, data retention/incident owner, physical QA owner, release/rollback owner and review approver. These are accountable inputs, not secrets. No legal advice or universal retention duration is implied. If scanning beyond strict decode is mandatory, specify provider-neutral scanner result/timeout/quarantine contract and include it before T2; no fail-open scan bypass.
 
@@ -1542,6 +1547,8 @@ Closure requires all of:
 
 ## 34. Outstanding Unknowns and Blockers
 
+**Current status after DEC-104:** owner choice of C1 and QR-pattern UI-X1 is accepted. Still open: provider/environment/credential custodian, contractual retention and incident/legal holds, threat-model/scanning decision, named QA/release/rollback owners, capacity benchmark outcomes, implementation proof, real integration/CI, physical Android and exact visual-difference evidence. These are not inferred from acceptance of the architecture.
+
 At planning delivery, U-001–U-007 and UI-X1 are unresolved; no acceptance is inferred from the request to write/push a proposal. Provider environment, retention/hold values, named deployment/release owners, physical devices and real failure/CI proof are not supplied. The original Founder Blueprint PDF is not present in the reviewed reference tree; the approved repository bridge governs.
 
 Current code gaps are verified at the pinned main, not hypothetical. Runtime behavior of the future pipeline is unverified because it does not exist. Current tests were inspected but not rerun for a documentation-only task. No blanket claim of passing repository tests, security scan, production storage or device behavior is made.
@@ -1552,13 +1559,17 @@ No acceptance of arbitrary file retention, malware-scan exemption, new role over
 
 ## 35. Final Architecture Recommendation
 
+**Accepted owner direction:** DEC-104 adopts the C1 technical direction and the existing-QR-camera UI-X1 pattern. The recommendations below remain subject to implementation tests, security/DB reviews and production gates; no pre-implementation design approval proves the feature works.
+
 Adopt C1 after explicit acceptance: server-mediated bounded JPEG bytes, canonical private immutable attempt objects, PostgreSQL operation journal with fencing, append-only verification and atomic audit, exact credential/scope revalidation, trusted required-completion object preflight, narrow authoritative recovery, and bounded orphan maintenance. This is the smallest architecture grounded in the current missing feature boundary and existing Check-In/Native foundations that covers the requested failure cases without trusting metadata.
 
 Do not ship a shortcut that flips the current FALSE predicate, trusts S3 metadata/ETag/client hash, reuses OCR images, holds a DB transaction over upload, retries POST automatically, or deletes objects after an ambiguous DB result. Do not hide the missing UI interaction behind the phrase UI-FROZEN. The interface exception is a separate explicit gate.
 
-Planning verdict: **DECISION REQUIRED**. The plan is complete for owner review and contains conditional executable work packages; it is **not yet unconditional READY TO IMPLEMENT**, and Issue #215 is **NOT READY FOR CLOSURE**.
+Current verdict following DEC-104: **OWNER ARCHITECTURE DIRECTION ACCEPTED; EXECUTION STILL SUBJECT TO STAGED IMPLEMENTATION/OPERATIONAL GATES**. The plan contains conditional executable work packages, but no implementation tests, real storage integration or Native device/UI proof have been provided. Issue #215 is **NOT READY FOR CLOSURE**.
 
 ## 36. Complete Implementation Agent Handoff Summary
+
+**Post-planning handoff:** The first P0 approval record is [DEC-104](../decisions/DEC-104_VERIFIED_CONDITION_PHOTO_BYTE_EVIDENCE.md). Future agents must read it *before* the original P0–P6 prompts: the accepted design and QR visual reference supersede only prior approval-status placeholders. Unproved implementation details/real provider, retention and device evidence remain explicit GO/NO-GO prerequisites.
 
 Canonical deliverable is this single Markdown document on `plan/issue-215-verified-condition-photo-upload`. Its delivery commit is obtained from Git; no self-referential or invented SHA is embedded in the file. Reviewed main: `923b5ce595fd2a2df9eadc6c7aa5041bd0bb7a93`. Historical proposed photo branch tip: `28af88914edd3a56c51e38fb724766de611ab2af`.
 

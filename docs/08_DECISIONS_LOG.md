@@ -2,6 +2,22 @@
 
 Important decisions must not live only in chat.
 
+## DEC-104 — Verified condition-photo byte evidence / Native QR-pattern capture
+
+Status: Accepted — design/architecture and scoped UI-X1 pattern; implementation and production proofs pending
+Date: 2026-10-14
+Issue: #215
+
+Owner accepted U-001–U-007, selecting the bounded server-mediated JPEG
+byte pipeline, private S3-compatible evidence, scoped durable upload journal,
+server-verification-only qualification, fail-closed current policy, bounded
+retries/reconciliation and Native-first delivery. Initial caps require actual
+benchmark proof, and provider/retention/holds/release ownership remains a
+production gate. UI-X1 is approved only in the existing Native QR-camera
+visual/interaction pattern with strictly frozen unrelated UI. Historical
+proposed photo DEC-075 does not replace the accepted Staff Push DEC-075.
+Full contract: [DEC-104](decisions/DEC-104_VERIFIED_CONDITION_PHOTO_BYTE_EVIDENCE.md).
+
 ## DEC-098 — Pre-custody Parking cancellation
 
 Status: Accepted
