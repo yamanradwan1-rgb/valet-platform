@@ -16,6 +16,45 @@ describe("Meta provider response classification and uncertain dispatch", () => {
     }
   });
 
+  it("accepts bounded padded Meta wamid identifiers without permitting arbitrary suffixes", () => {
+    const acceptedIds = [
+      "wamid.HBgLMTIzNDU2Nzg5MA==",
+      "wamid.HBgLMTIzNDU2Nzg5MA=",
+      "wamid.HBgLMTIzNDU2Nzg5MA+/",
+      `wamid.${"A".repeat(247)}==`,
+    ];
+    for (const id of acceptedIds) {
+      expect(classifyMetaReply(200, {
+        messaging_product: "whatsapp", messages: [{ id }],
+      }, null)).toEqual({ kind: "ACCEPTED", providerMessageId: id });
+    }
+    const rejectedIds = [
+      "wamid.==", "wamid.Ab=C", "wamid.Ab===", "wamid.Ab\nC",
+      `wamid.${"A".repeat(248)}==`,
+      "wamid.Ab bearer-token", "wamid.Ab?token=secret",
+    ];
+    for (const id of rejectedIds) {
+      expect(classifyMetaReply(200, {
+        messaging_product: "whatsapp", messages: [{ id }],
+      }, null)).toEqual({ kind: "UNKNOWN", reason: "MALFORMED_RESPONSE" });
+    }
+  });
+
+  it("preserves a padded accepted wamid through the one-shot HTTP adapter", async () => {
+    const id = "wamid.HBgLMTIzNDU2Nzg5MA==";
+    const fetcher = vi.fn(async () => new Response(JSON.stringify({
+      messaging_product: "whatsapp", messages: [{ id }],
+    }), { status: 200 }));
+    const provider = createMetaCloudProvider({
+      resolveAuthorizedAttempt: async () => syntheticAccount(), mode: "test",
+      globallyEnabled: true, fetchImpl: fetcher,
+    });
+    const result = await provider.send(syntheticInput());
+    expect(result).toEqual({ kind: "ACCEPTED", providerMessageId: id });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(result)).not.toContain("synthetic-meta-test-credential");
+  });
+
   it("uses narrowly allowlisted rejection codes; 5xx/unknown codes never retry", () => {
     const cases = [
       [400, 130429, { kind: "NOT_ACCEPTED", reason: "RATE_LIMIT", retryAfterSeconds: 90 }],

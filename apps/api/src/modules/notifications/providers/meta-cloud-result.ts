@@ -5,6 +5,9 @@ const recipientCodes = new Set([131026]);
 const templateCodes = new Set([132000, 132001, 132012, 132015, 132016]);
 const authCodes = new Set([190, 10, 200]);
 const policyCodes = new Set([131047, 131048]);
+// Meta may return a Base64-style wamid with one or two trailing '=' padding bytes.
+// Bound the full ID to 255 characters, matching persisted provider-message fields.
+const providerMessageIdPattern = new RegExp("^wamid\\.[A-Za-z0-9._:+/-]{1,249}={0,2}$");
 
 function record(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === "object" && !Array.isArray(value)
@@ -25,7 +28,7 @@ export function classifyMetaReply(status: number, body: unknown, retryAfter: str
     const first = Array.isArray(messages) && messages.length === 1 ? record(messages[0]) : null;
     const id = first?.id;
     if (json?.messaging_product === "whatsapp" && typeof id === "string" &&
-        /^wamid\.[A-Za-z0-9._:-]{1,250}$/.test(id)) {
+        id.length <= 255 && providerMessageIdPattern.test(id)) {
       return { kind: "ACCEPTED", providerMessageId: id };
     }
     return { kind: "UNKNOWN", reason: "MALFORMED_RESPONSE" };
