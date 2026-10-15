@@ -1,4 +1,5 @@
 import type { ReactElement } from "react";
+import "./native-condition-photo-test-boundary";
 import { describe, expect, it, vi } from "vitest";
 import type {
   EmployeeCheckInSnapshot,

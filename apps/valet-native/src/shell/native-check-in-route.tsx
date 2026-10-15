@@ -64,6 +64,7 @@ export function NativeCheckInRoute({
       onOpenParking={onOpenParking}
       session={checkIn}
       snapshot={snapshot}
+      scope={scope}
     />
   );
 }

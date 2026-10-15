@@ -1,4 +1,5 @@
 import type { ReactElement } from "react";
+import { conditionPhotoTestScope } from "./native-condition-photo-test-scope";
 import { describe, expect, it, vi } from "vitest";
 import type {
   EmployeeCheckInAuthoritativeSession,
@@ -29,6 +30,17 @@ vi.mock("react-native", () => ({
 }));
 vi.mock("../src/check-in/native-plate-camera-step", () => ({
   NativePlateCameraStep: "NativePlateCameraStep",
+}));
+vi.mock("../src/check-in/native-condition-photo-owner", () => ({
+  useNativeConditionPhotoOwner: () => ({
+    photo: {}, files: {}, photoSnapshot: {
+      scope: null, phase: "loading", required: null, qualifying: false,
+      captureRevision: 0, status: null, error: null, hasCapture: false,
+    },
+  }),
+}));
+vi.mock("../src/check-in/native-condition-photo-status", () => ({
+  NativeConditionPhotoStatus: "NativeConditionPhotoStatus",
 }));
 const { NativeCheckInWorkflow } =
   await import("../src/check-in/native-check-in-workflow");
@@ -84,6 +96,7 @@ function render(
   const nodes = expand(
     NativeCheckInWorkflow({
       auth: {} as NativeAuthSession,
+      scope: conditionPhotoTestScope,
       locale,
       onClose,
       session,
