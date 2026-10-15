@@ -4,11 +4,13 @@ import type {
 } from "@valet/contracts";
 import type { PostgresPool } from "../../common/database/postgres";
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
+import type { StaffSessionContext } from "../auth/staff-session-context";
 import { appendCustodyAuditEvent } from "../audit/custody-audit-event-writer";
 import { CustodyMutationError } from "./protected-custody-command";
 import {
   authorizeAndLockCancelTarget,
   assertCoherentCancellation,
+  recheckCancellationCredential,
   type CancelCheckInAuthorityInput,
 } from "./cancel-check-in-authorization";
 
@@ -18,11 +20,13 @@ export function createCancelCheckInCommandExecutor(
 ) {
   return (
     input: CancelCheckInAuthorityInput & CancelCheckInRequest,
+    credential?: StaffSessionContext,
   ): Promise<CancelCheckInResponse> =>
     inPostgresTransaction(pool, async (transaction) => {
       const { actor, session } = await authorizeAndLockCancelTarget(
         transaction,
         input,
+        credential,
       );
       const result = {
         sessionId: session.id,
@@ -32,6 +36,7 @@ export function createCancelCheckInCommandExecutor(
       };
       if (session.state === "CANCELLED") {
         await assertCoherentCancellation(transaction, session);
+        await recheckCancellationCredential(transaction, input, credential);
         return result;
       }
       if (session.version !== input.expectedVersion)
@@ -88,6 +93,7 @@ export function createCancelCheckInCommandExecutor(
         },
         options.auditEventIdFactory,
       );
+      await recheckCancellationCredential(transaction, input, credential);
       return { ...result, version };
     });
 }
