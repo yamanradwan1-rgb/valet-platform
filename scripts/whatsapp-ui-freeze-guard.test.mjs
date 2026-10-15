@@ -33,6 +33,7 @@ test("allowlist is narrow and rejects generic dashboard/settings files", () => {
     "docs/validation/whatsapp/W1_DATABASE_MIGRATION_PROOF.md",
     "docs/validation/whatsapp/W4_WORKER_DELIVERY_EVIDENCE.md",
     "docs/validation/whatsapp/PRIME_DELIVERY_EVIDENCE.md",
+    "docs/validation/whatsapp/PRIME_FINAL_QA_REMEDIATION.md",
   ];
   assert.ok(paths.every((p) => approvedChange(p, pinnedPaths)));
   assert.equal(approvedChange("apps/dashboard/src/features/administration/settings/theme.tsx", pinnedPaths), false);

@@ -4,9 +4,43 @@ Repository: `yamanradwan1-rgb/valet-platform`
 Starting main/origin/main: `1ecdbeff1c4b7b011a1af00c843f7930e515cea4`
 C0 contracts: `a087ad38cb249840389e5aefaefbecb47333373f`
 Integration: `feat/automatic-whatsapp-guest-access`
-Status: **BLOCKED FOR INDEPENDENT ACCEPTANCE AND EXTERNAL ACTIVATION**.
+Status: **BLOCKED FOR FINAL ENGINEERING ACCEPTANCE AND EXTERNAL ACTIVATION**.
 This is source delivery and synthetic test evidence, **not** permission to send
 WhatsApp messages or declare production readiness.
+
+## Independent QA remediation update — October 16, 2026
+
+The initial delivery entries below are **historical checkpoint evidence** for
+the first feature commit 6b1810d3, not the final QA sign-off. Independent
+replacement W7 was assigned in a separate read-only worktree, reproduced two
+P1 and three P2 security/correctness defects, and independently authored
+W7_INDEPENDENT_SECURITY_ACCEPTANCE.md (source QA commit 6f25ddd1), explicitly
+returning FIX REQUIRED on the old candidate. The original W7 chat never ran;
+its Prime-authored UI guard is not counted as independent QA approval.
+
+Focused corrections prepared in isolated branches:
+
+- W1 forward-only 090: restrict API binding INSERT columns; actual SQL
+  role-based forged-verification INSERT now rejected (42501).
+- W3/W5: accept bounded padded Meta wamid identifiers in both provider
+  acceptance and authenticated webhook parser without unsafe replay.
+- W2: reject sender PRIVATE PEM submitted as issuer PUBLIC key.
+- W1 forward-only 091: preserve authenticated positive delivery proof across
+  sender process crash and lease cleanup; unknown/no proof remains UNKNOWN.
+- W1 forward-only 092: Customer phone edit atomically suppresses undispatched
+  queued/leased intents and purges transport envelopes; DISPATCHING remains
+  uncertain until signed evidence/terminal recovery.
+- W4 additional real PostgreSQL tests cover phone edit, no-op, permit, lease,
+  expiry and two lock races (6/6 on W1 092 isolated PG).
+
+**Fresh post-remediation evidence:** 92 pristine forward-only migrations in a
+disposable PostgreSQL 17 database PASS. All restricted role/PUBLIC ACL checks,
+090 forgery negatives, 091 callback-crash reconcile and 092 phone-change
+suppression/cleanup checks PASS. Padded provider/webhook tests 21/21 PASS;
+issuer public/private RSA key tests 4/4 PASS. This does **not** replace root
+full PostgreSQL or an independent W7 exact-final-SHA verdict. The separate
+QA/remediation ledger PRIME_FINAL_QA_REMEDIATION.md records baseline comparison
+and required outstanding evidence. The original SHA remains safe default OFF.
 
 ## Worker accounting
 
