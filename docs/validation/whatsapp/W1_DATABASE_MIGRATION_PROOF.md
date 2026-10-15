@@ -2,9 +2,9 @@
 
 Baseline: C0 `a087ad38cb249840389e5aefaefbecb47333373f`.
 Scope: isolated `/valet-platform/tmp/wa-w1` worktree, branch
-`feat/wa-w1-database`. New migration heads 086, 087, 088 and follow-up
-forward-only 089 and the W7 P1 binding-insert ACL hardening 090; the existing
-85 baseline migration files and 086-089 remain unchanged.
+`feat/wa-w1-database`. New migration heads 086, 087, 088, forward-only
+089, W7 P1 binding-insert ACL hardening 090 and W7 F11 authenticated crash
+recovery 091; existing migration files 086-090 remain unchanged.
 
 ## Reproducible verification
 
@@ -26,10 +26,11 @@ PASS: callback after NOT_SENT/RETRY_WAIT cancels resend and purges ciphertext.
 PASS: revoked consent suppresses PENDING delivery and purges ciphertext.
 PASS: forward-only 090 repairs previously provisioned full-table API INSERT in place.
 PASS: API Meta binding forged/explicit verification, enable, version and timestamp INSERT 42501; safe disabled onboarding and scoped edit PASS.
-PASS: 90 pristine migrations on disposable PG; 12 outbound tables; control OFF/OFF.
+PASS: signed SENT/DELIVERED/READ callback crash -> ACCEPTED; FAILED/forged timestamp/bare ID/no proof -> UNKNOWN; purge, no resend, idempotent.
+PASS: 91 pristine migrations on disposable PG; 12 outbound tables; control OFF/OFF.
 ```
 
-The runner creates a unique local database, applies all 90 SQL migrations
+The runner creates a unique local database, applies all 91 SQL migrations
 in order and drops it in a finally block. It creates and drops three fresh,
 no-inheritance synthetic API, sender and webhook PostgreSQL roles. Catalog
 ACL checks verify PUBLIC, effective role table/function permissions and
@@ -61,6 +62,32 @@ prove denied verified/enabled/explicit-default/version/timestamp INSERT with
 SQLSTATE 42501. Valid unverified, disabled provider onboarding and a scoped
 config revision update still succeed. Operator-only verification remains
 outside the API runtime role.
+
+W7 F11 independent regression (before 091) reproduced SQL-level corruption:
+after an authenticated `SENT` callback with immutable event evidence, the
+delivery remained `DISPATCHING`; expired-lease recovery changed its state and
+attempt to `UNKNOWN` although `sent_at` and the correlated event existed.
+Forward-only migration 091 updates `outbound_cleanup_stale(integer)` to lock
+each stale delivery, inspect correlated immutable event and matching attempt
+for `SENT`, `DELIVERED` or `READ`, and terminally reconcile deliveries and
+proven attempts as `ACCEPTED`, with `accepted_at` set and leases cleared.
+It deletes encrypted envelopes and never makes a delivery retryable. Without
+signed positive event the conservative `UNKNOWN` fallback remains: `FAILED`
+events, a fabricated `delivered_at` timestamp, a bare provider ID without
+an immutable positive event, and no callback are
+explicit negative real-SQL cases. The regression executes recovery under
+the restricted sender role, verifies repeated recovery is a no-op, and
+never queues any recovered delivery for another send. It introduces no new
+function, role or table grant.
+
+W7 F33 (cross-owner follow-up): Customer phone edits can leave a PENDING
+message/envelope even though W4's HMAC-based preflight prevents wrong-phone
+sends. Early purge should run in the authorized Customer phone mutation path
+or a proven-safe DB trigger, scoped to the exact organization and customer,
+and atomically suppress undelivered intent(s) and delete ciphertext. SQL
+cannot reconstruct the HMAC without the application secret and must not
+store raw phone as a workaround. Any Customer-row -> Delivery-row lock order
+must be checked against sender transactions before a trigger is deployed.
 
 Schema validation (requires a local test MIGRATION_DATABASE_URL and NODE_ENV
 set to test): `pnpm exec prisma validate --schema prisma/schema.prisma`.

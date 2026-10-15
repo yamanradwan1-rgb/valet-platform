@@ -8,6 +8,7 @@ import { runOutboundLateOverrideSmoke } from "./outbound-late-override-smoke.mjs
 import { runOutboundLateCallbackSmoke } from "./outbound-late-callback-smoke.mjs";
 import { runOutboundOptoutSmoke } from "./outbound-optout-smoke.mjs";
 import { runOutboundBindingInsertSmoke } from "./outbound-binding-insert-smoke.mjs";
+import { runOutboundCallbackCrashSmoke } from "./outbound-callback-crash-smoke.mjs";
 import { verifyOutboundRuntimePrivileges } from "./outbound-runtime-privileges.mjs";
 
 const baseUrl = process.env.TEST_DATABASE_URL ??
@@ -69,6 +70,7 @@ try {
     await runOutboundBindingInsertSmoke(client,principals.runtime,fixture.org);
     await runOutboundLateOverrideSmoke(client,fixture);
     await runOutboundRecoverySmoke(client,fixture);
+    await runOutboundCallbackCrashSmoke(client,fixture,principals.sender);
     await runOutboundLateCallbackSmoke(client,fixture);
     await runOutboundOptoutSmoke(client,fixture);
     console.log(`PASS: ${count} pristine migrations on disposable PG; 12 outbound tables; control OFF/OFF.`);
