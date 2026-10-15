@@ -31,6 +31,7 @@ test("#283, #284 and #285 exact API tests alone enter the protected Issue215 Pos
   assert.deepEqual(issue215ApiPostgresFiles, [
     "issue215-real-http-integration.test.ts",
     "issue215-real-http-negative.test.ts",
+    "issue215-real-nest-hardkill.integration.test.ts",
     "issue215-recovery-real-s3.integration.test.ts",
     "issue215-recovery.integration.test.ts",
     "issue215-staff-credential-races.test.ts",

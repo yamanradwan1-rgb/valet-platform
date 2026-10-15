@@ -12,7 +12,9 @@ import sharp from "sharp";
 
 import { CheckInModule } from "../src/modules/check-in-api/check-in.module";
 import { S3PrivatePhotoStore } from "../src/modules/vehicle-photos/s3-private-photo-store";
-import { assertRecoveryMinioDocker } from "./issue215-recovery-minio-target";
+import {
+  assertRecoveryMinioDocker, pinnedRecoveryMinioImageId,
+} from "./issue215-recovery-minio-target";
 import {
   openIssue215HttpDatabase,
   type Issue215HttpDatabase,
@@ -29,7 +31,7 @@ const envKeys = [
   "CONDITION_PHOTO_P3_QUALIFICATION_ENABLED", "ANTI_ABUSE_HMAC_SECRET_B64URL",
 ] as const;
 
-interface S3Fixture {
+export interface S3Fixture {
   readonly endpoint: string;
   readonly bucket: string;
   readonly region: string;
@@ -75,8 +77,9 @@ export function sha256(bytes: Buffer): Buffer {
   return createHash("sha256").update(bytes).digest();
 }
 
-export async function openIssue215HttpFixture(): Promise<Issue215HttpFixture> {
-  if (process.env.ISSUE215_REAL_HTTP_ENABLED !== "true" || process.env.NODE_ENV !== "test")
+export function readAttestedIssue215Minio(): S3Fixture {
+  if (process.env.ISSUE215_REAL_HTTP_ENABLED !== "true" ||
+      process.env.NODE_ENV !== "test")
     throw new Error("Explicit Issue 215 local HTTP qualification gate required.");
   const fixturePath = resolve(__dirname, "../../../scripts/issue215-local-s3/.runtime.json");
   const s3 = JSON.parse(readFileSync(fixturePath, "utf8")) as S3Fixture;
@@ -98,11 +101,17 @@ export async function openIssue215HttpFixture(): Promise<Issue215HttpFixture> {
     const inspected: unknown = JSON.parse(execFileSync("docker", [
       "inspect", ids[0]!,
     ], { encoding: "utf8", timeout: 5_000, windowsHide: true, stdio: "pipe" }));
-    assertRecoveryMinioDocker(inspected, s3);
+    assertRecoveryMinioDocker(inspected, {
+      ...s3, imageId: pinnedRecoveryMinioImageId(),
+    });
   } catch {
     throw new Error("The live task-owned private MinIO container is not attested.");
   }
+  return s3;
+}
 
+export async function openIssue215HttpFixture(): Promise<Issue215HttpFixture> {
+  const s3 = readAttestedIssue215Minio();
   const db = await openIssue215HttpDatabase();
   const oldEnv = new Map(envKeys.map((key) => [key, process.env[key]]));
   let app: INestApplication | undefined;

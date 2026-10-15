@@ -7,6 +7,11 @@ import {
   assertIssue215CiLiveIdentity,
   requireIssue215CiUrl,
 } from "./condition-photo-p1-ci-target.mjs";
+import {
+  assertWorker9DatabaseIdentity,
+  inspectWorker9Database,
+  requireWorker9DatabaseUrl,
+} from "../../../scripts/test-harness/issue215-worker9-pg-target.mjs";
 
 const targetError = "Issue 215 test target is not the verified task-owned disposable PostgreSQL container.";
 const protectedProjects = new Set(["database-postgres-issue215", "api-postgres-issue215"]);
@@ -16,6 +21,8 @@ const expectedContainerId = "9e5631c9cbd28ed1885923e2bfdd2ae3442f25bc3fa63f80b57
 const expectedVolume = "83d0792c7318ace85d94f3824619542a4f8344226b0ff16d091d307e428dc72e";
 
 export function requireIssue215TestUrl(env = process.env) {
+  if (env.VAYLET_ISSUE215_TEST_TARGET === "worker9")
+    return requireWorker9DatabaseUrl(env).databaseUrl;
   if (env.VAYLET_ISSUE215_TEST_TARGET === "ci") {
     if (env.NODE_ENV !== "test" ||
         !protectedProjects.has(env.VAYLET_TEST_PROJECT) ||
@@ -61,6 +68,16 @@ export function assertIssue215DockerTarget(targets) {
 
 export function inspectIssue215DockerTarget() {
   try {
+    if (process.env.VAYLET_ISSUE215_TEST_TARGET === "worker9") {
+      // Vitest preflight runs before the project runner injects its test env;
+      // requireIssue215TestUrl already proved the exact protected API scope.
+      inspectWorker9Database({
+        ...process.env,
+        VAYLET_TEST_PROJECT: "api-postgres-issue215",
+        VAYLET_TEST_RUN_ID: process.env.VAYLET_TEST_RUN_ID ?? "preflight-read-only",
+      });
+      return;
+    }
     const ci = process.env.VAYLET_ISSUE215_TEST_TARGET === "ci";
     const identifier = ci ? process.env.VAYLET_ISSUE215_CI_POSTGRES_CONTAINER_ID : "vaylet_issue215_p1_local";
     if (!identifier) throw new Error(targetError);
@@ -100,6 +117,8 @@ export async function verifyIssue215Bootstrap(client) {
     WHERE database.datname=current_database()`);
   const identity = result.rows.length === 1 ? result.rows[0] : undefined;
   if (process.env.VAYLET_ISSUE215_TEST_TARGET === "ci") assertIssue215CiLiveIdentity(identity);
+  else if (process.env.VAYLET_ISSUE215_TEST_TARGET === "worker9")
+    assertWorker9DatabaseIdentity(identity);
   else assertIssue215LiveIdentity(identity);
 }
 
