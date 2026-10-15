@@ -121,6 +121,64 @@ describe.runIf(waPgAvailable)("WA-W4 F33: changed Customer phone never leaves a 
     expect(await pg.claim(1)).toEqual([]);
   });
 
+  it("F33: changed phone after DISPATCHING + definitive NOT_ACCEPTED must suppress and purge, never retry", async () => {
+    const seed = await pg.seed();
+    const claim = (await pg.claim(0))[0]!;
+    const permit = await pg.permit(0, seed, claim);
+    expect(await delivery(seed)).toMatchObject({
+      state: "DISPATCHING", attempt_count: 1, attempts: "1", envelopes: "1",
+    });
+    await changePhone(seed);
+    // A permitted attempt is irreversible; wait for its definitive result.
+    expect(await delivery(seed)).toMatchObject({
+      state: "DISPATCHING", attempt_count: 1, attempts: "1", envelopes: "1",
+    });
+    const { rows } = await pg.replicas[0]!.query<{ finished: boolean }>(
+      "SELECT outbound_finish_attempt($1,$2,$3,'DEFINITIVE_FAILURE',NULL,'REJECTED') AS finished",
+      [seed.delivery, claim.lease_token, permit.attempt_id]);
+    expect(rows[0]?.finished).toBe(true);
+    expect(await delivery(seed)).toMatchObject({
+      state: "SUPPRESSED", attempt_count: 1, attempts: "1", envelopes: "0",
+    });
+    const due = await pg.replicas[2]!.query<{ next_attempt_at: Date | null }>(
+      "SELECT next_attempt_at FROM outbound_message_deliveries WHERE id=$1", [seed.delivery]);
+    expect(due.rows[0]?.next_attempt_at).toBeNull();
+    await pg.replicas[2]!.query("SELECT outbound_recover_expired(100)");
+    expect(await pg.claim(1)).toEqual([]);
+  });
+
+  it("F33: unchanged phone retains bounded retry for definitive NOT_ACCEPTED", async () => {
+    const seed = await pg.seed();
+    const claim = (await pg.claim(0))[0]!;
+    const permit = await pg.permit(0, seed, claim);
+    const { rows } = await pg.replicas[0]!.query<{ finished: boolean }>(
+      "SELECT outbound_finish_attempt($1,$2,$3,'DEFINITIVE_FAILURE',NULL,'REJECTED') AS finished",
+      [seed.delivery, claim.lease_token, permit.attempt_id]);
+    expect(rows[0]?.finished).toBe(true);
+    expect(await delivery(seed)).toMatchObject({
+      state: "RETRY_WAIT", attempt_count: 1, attempts: "1", envelopes: "1",
+    });
+    const due = await pg.replicas[2]!.query<{ next_attempt_at: Date | null }>(
+      "SELECT next_attempt_at FROM outbound_message_deliveries WHERE id=$1", [seed.delivery]);
+    expect(due.rows[0]?.next_attempt_at).not.toBeNull();
+    expect(await pg.claim(1)).toEqual([]);
+  });
+
+  it("F33: changed phone after DISPATCHING + UNKNOWN is terminal and cannot retry", async () => {
+    const seed = await pg.seed();
+    const claim = (await pg.claim(0))[0]!;
+    const permit = await pg.permit(0, seed, claim);
+    await changePhone(seed);
+    const { rows } = await pg.replicas[0]!.query<{ finished: boolean }>(
+      "SELECT outbound_finish_attempt($1,$2,$3,'UNKNOWN',NULL,'UNKNOWN') AS finished",
+      [seed.delivery, claim.lease_token, permit.attempt_id]);
+    expect(rows[0]?.finished).toBe(true);
+    expect(await delivery(seed)).toMatchObject({
+      state: "UNKNOWN", attempt_count: 1, attempts: "1", envelopes: "0",
+    });
+    expect(await pg.claim(1)).toEqual([]);
+  });
+
   it("held Customer lock serializes competing permit and phone update without send", async () => {
     const seed = await pg.seed();
     const current = await customer(seed);
