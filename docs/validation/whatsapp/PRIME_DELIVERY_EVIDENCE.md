@@ -8,7 +8,37 @@ Status: **BLOCKED FOR FINAL ENGINEERING ACCEPTANCE AND EXTERNAL ACTIVATION**.
 This is source delivery and synthetic test evidence, **not** permission to send
 WhatsApp messages or declare production readiness.
 
+**Latest remediation production-source SHA (supersedes older dated checkpoints):**
+`500a5f6802437370251cfba7d5eb8dbbfe51de77`, including the forward-only
+093 finalizer/phone-change fence after W7-F33-R2 was reproduced on real
+PostgreSQL. W4 new negative/positive tests were RED 7/9 on the pre-093 source
+and GREEN 9/9 on exact 500a; combined race/admin real-PG selection passed
+21/21, Intake atomics passed 9/9 with its verified-W1 migration switch,
+callback-first passed 1/1. W7 independently retested exact 500a using its
+own PG17 smoke (93 pristine migrations), W4 9/9 race harness, full WhatsApp
+API focused 93/93, Meta/RSA negative probes and UI guard, and documented
+its findings in `W7_INDEPENDENT_SECURITY_ACCEPTANCE.md` via owner W7 QA
+commit `d3f49f86` (cherry-picked as `13f31cda`). **W7 outcome remains
+BLOCKED / NOT GO** because protected root full PostgreSQL and the differential
+full-root non-PG gates have not been conclusively closed. Scoped success
+does not waive full test requirements or external activation decisions.
+
 ## Independent QA remediation update — October 16, 2026
+
+**Integration progress:** nine focused remediation commits were fast-forward
+integrated locally to exact `3edbd9369839bf3d979b52af25fb5fee732059e0`.
+W3 peer review then exposed an additional P2 inconsistency in callback status
+message-ID grammar; targeted RED/GREEN fix `767964267ac822aa032111b743c15149cb0c402c`
+made the status parser require the same bounded `wamid` as the sender.
+Current local production source is `76796426` pending W7 independent retest.
+On this integrated source, PostgreSQL 17 92-migration security smoke PASS,
+WhatsApp API 93/93 PASS, Dashboard typed API 3/3 PASS, architecture PASS,
+original UI-freeze 3/3 and 125-path guard PASS, and root build 10/10 PASS.
+Pinned-main baseline failures remain on root lint and typecheck. Root full
+PostgreSQL/non-PostgreSQL suite and W7 independent final-SHA re-review remain
+required; the feature-branch remote is still at the historical `6b1810d3`
+checkpoint pending engineering gates. See PRIME_FINAL_QA_REMEDIATION.md for
+exact verification and remaining holds. This update does not activate Meta.
 
 The initial delivery entries below are **historical checkpoint evidence** for
 the first feature commit 6b1810d3, not the final QA sign-off. Independent
