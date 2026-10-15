@@ -13,6 +13,12 @@ function digestFactory(env: NodeJS.ProcessEnv) {
     .update(phone, "utf8").digest("base64url")}`;
 }
 
+/** Gate Meta subscription until callback evidence can be committed durably. */
+export function canReconcileMetaWebhooks(env: NodeJS.ProcessEnv): boolean {
+  const mode = env.OUTBOUND_MESSAGING_MODE;
+  return (mode === "test" || mode === "production") && digestFactory(env) !== null;
+}
+
 /** Webhook may only infer a tenant through the database's persisted sender binding. */
 export async function applyMetaEvents(
   pool: PostgresPool,
