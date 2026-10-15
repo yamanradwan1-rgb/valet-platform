@@ -72,7 +72,7 @@ try {
     await runOutboundLateOverrideSmoke(client,fixture);
     await runOutboundRecoverySmoke(client,fixture);
     await runOutboundCallbackCrashSmoke(client,fixture,principals.sender);
-    await runOutboundPhoneChangeSmoke(client,fixture);
+    await runOutboundPhoneChangeSmoke(client,fixture,principals.sender);
     await runOutboundLateCallbackSmoke(client,fixture);
     await runOutboundOptoutSmoke(client,fixture);
     console.log(`PASS: ${count} pristine migrations on disposable PG; 12 outbound tables; control OFF/OFF.`);

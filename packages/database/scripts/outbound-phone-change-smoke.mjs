@@ -26,17 +26,22 @@ async function makeDelivery(client, f, customer, kind) {
     VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
   [f.org,intent,kind,inFlight?null:new Date(),inFlight?randomUUID():null,
     inFlight?new Date(Date.now()+120000):null,dispatch?1:0])).rows[0].id;
+  let attempt;
   if (dispatch) {
-    await client.query(`INSERT INTO outbound_message_attempts(
+    attempt=(await client.query(`INSERT INTO outbound_message_attempts(
       organization_id,delivery_id,provider_binding_id,ordinal)
-      VALUES($1,$2,$3,1)`,[f.org,delivery,f.binding]);
+      VALUES($1,$2,$3,1) RETURNING id,callback_handle`,
+    [f.org,delivery,f.binding])).rows[0];
   }
   await client.query(`INSERT INTO outbound_message_envelopes(
     organization_id,intent_id,ciphertext,aad_label,key_version,purge_at)
     VALUES($1,$2,$3,$4,'synthetic-key',clock_timestamp()+interval '20 minutes')`,
   [f.org,intent,Buffer.alloc(384,7),
     Buffer.from(JSON.stringify({synthetic:true,scenario:kind,session}))]);
-  return {delivery,intent,kind};
+  const lease= inFlight?(await client.query(
+    "SELECT lease_token FROM outbound_message_deliveries WHERE id=$1",[delivery]
+  )).rows[0]?.lease_token:null;
+  return {delivery,intent,kind,attempt,lease};
 }
 
 async function assertCase(client,item,state,envelopes) {
@@ -51,7 +56,7 @@ async function assertCase(client,item,state,envelopes) {
   }
 }
 
-export async function runOutboundPhoneChangeSmoke(client, fixture) {
+export async function runOutboundPhoneChangeSmoke(client, fixture, senderRole) {
   const otherCustomer=randomUUID();
   await client.query(`INSERT INTO customers(
     id,organization_id,phone_normalized,updated_at)
@@ -94,5 +99,82 @@ export async function runOutboundPhoneChangeSmoke(client, fixture) {
   await client.query(`UPDATE customers SET phone_normalized='+15555550277'
     WHERE id=$1`,[otherCustomer]);
   await assertCase(client,unaffected,"SUPPRESSED",0);
+
+  // F33 regression: previously DISPATCHING never got a persisted phone-change
+  // fence. After a definitive HTTP rejection it was wrongly retried with
+  // ciphertext belonging to the old phone. UNKNOWN is not a proven rejection.
+  const changedDefinitive=await makeDelivery(client,fixture,fixture.customer,"DISPATCHING");
+  const changedNotSent=await makeDelivery(client,fixture,fixture.customer,"DISPATCHING");
+  const changedUnknown=await makeDelivery(client,fixture,fixture.customer,"DISPATCHING");
+  const changedAccepted=await makeDelivery(client,fixture,fixture.customer,"DISPATCHING");
+  const callbackFirst=await makeDelivery(client,fixture,fixture.customer,"DISPATCHING");
+  const samePhoneDefinitive=await makeDelivery(client,fixture,otherCustomer,"DISPATCHING");
+  const samePhoneNotSent=await makeDelivery(client,fixture,otherCustomer,"DISPATCHING");
+  // An arbitrary DISPATCHING->RETRY_WAIT is never allowed without a finalized,
+  // currently matching negative attempt. A 086 regression must remain blocked.
+  let unsafelyRequeued=false;
+  try {
+    await client.query(`UPDATE outbound_message_deliveries
+       SET state='RETRY_WAIT',lease_token=NULL,lease_expires_at=NULL,
+           next_attempt_at=clock_timestamp() WHERE id=$1`,
+    [samePhoneDefinitive.delivery]);
+    unsafelyRequeued=true;
+  } catch (error) {
+    if (error.code!=="23514") throw error;
+  }
+  if (unsafelyRequeued) throw new Error("Unsafe unproven DISPATCHING requeue succeeded.");
+  await client.query(`UPDATE customers SET phone_normalized='+15555550978'
+    WHERE id=$1`,[fixture.customer]);
+  let cleared=false;
+  try {
+    await client.query(`UPDATE outbound_message_attempts SET
+      recipient_routing_uncertain=false WHERE id=$1`,
+    [changedDefinitive.attempt.id]);
+    cleared=true;
+  } catch (error) {
+    if (error.code!=="23514") throw error;
+  }
+  if (cleared) throw new Error("Monotone phone-drift evidence was cleared.");
+  for (const item of [changedDefinitive,changedNotSent,changedUnknown,changedAccepted,callbackFirst]) {
+    await assertCase(client,item,"DISPATCHING",1);
+  }
+
+  async function finish(item,outcome,messageId,safeCode,retryAfter=null) {
+    await client.query(`SET ROLE "${senderRole}"`);
+    let result;
+    try {
+      result=await client.query(
+        "SELECT outbound_finish_attempt($1,$2,$3,$4,$5,$6,$7) AS ok",
+        [item.delivery,item.lease,item.attempt.id,outcome,messageId,safeCode,retryAfter]
+      );
+    } finally {
+      await client.query("RESET ROLE");
+    }
+    if (result.rows[0]?.ok!==true) throw new Error(`F33 finalize ${outcome} rejected`);
+  }
+  await finish(changedDefinitive,"DEFINITIVE_FAILURE",null,"REJECTED");
+  await assertCase(client,changedDefinitive,"SUPPRESSED",0);
+  await finish(changedNotSent,"NOT_SENT",null,"NOT_SENT",15);
+  await assertCase(client,changedNotSent,"SUPPRESSED",0);
+  await finish(changedUnknown,"UNKNOWN",null,"TIMEOUT");
+  await assertCase(client,changedUnknown,"UNKNOWN",0);
+  await finish(changedAccepted,"ACCEPTED",`wamid.${randomUUID()}`,null);
+  await assertCase(client,changedAccepted,"ACCEPTED",0);
+  const callback=await client.query(
+    "SELECT outbound_record_provider_event($1,$2,$3,$4,'DELIVERED',clock_timestamp(),$5,NULL) AS ok",
+    [fixture.binding,callbackFirst.attempt.callback_handle,`wamid.${randomUUID()}`,
+      fixture.digest,randomBytes(32).toString("hex")]);
+  if (callback.rows[0]?.ok!==true) throw new Error("Signed positive callback fixture rejected.");
+  await finish(callbackFirst,"DEFINITIVE_FAILURE",null,"REJECTED");
+  await assertCase(client,callbackFirst,"ACCEPTED",0);
+  await finish(samePhoneDefinitive,"DEFINITIVE_FAILURE",null,"REJECTED");
+  await assertCase(client,samePhoneDefinitive,"RETRY_WAIT",1);
+  await finish(samePhoneNotSent,"NOT_SENT",null,"NOT_SENT",15);
+  await assertCase(client,samePhoneNotSent,"RETRY_WAIT",1);
+  await client.query(`UPDATE customers SET phone_normalized='+15555550278'
+    WHERE id=$1`,[otherCustomer]);
+  await assertCase(client,samePhoneDefinitive,"SUPPRESSED",0);
+  await assertCase(client,samePhoneNotSent,"SUPPRESSED",0);
+  console.log("PASS: post-dispatch changed-phone definitive/NOT_SENT -> SUPPRESSED, UNKNOWN/ACCEPTED preserved, same-phone retry retained.");
   console.log("PASS: phone drift transactional rollback, no-op, 3 undispatched suppression/purge, in-flight UNKNOWN recovery, customer scope.");
 }

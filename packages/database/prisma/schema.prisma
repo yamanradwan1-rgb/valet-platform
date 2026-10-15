@@ -2165,6 +2165,7 @@ model OutboundMessageAttempt {
   transportStartedAt DateTime? @map("transport_started_at") @db.Timestamptz(3)
   providerMessageId String? @map("provider_message_id")
   safeCode String? @map("safe_code")
+  recipientRoutingUncertain Boolean @default(false) @map("recipient_routing_uncertain")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   delivery OutboundMessageDelivery @relation(fields:[organizationId,deliveryId],references:[organizationId,id],onDelete:Restrict)
   providerBinding OutboundProviderBinding @relation(fields:[organizationId,providerBindingId],references:[organizationId,id],onDelete:Restrict)

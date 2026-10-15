@@ -4,8 +4,8 @@ Baseline: C0 `a087ad38cb249840389e5aefaefbecb47333373f`.
 Scope: isolated `/valet-platform/tmp/wa-w1` worktree, branch
 `feat/wa-w1-database`. New migration heads 086, 087, 088, forward-only
 089, W7 P1 binding-insert ACL hardening 090, W7 F11 authenticated crash
-recovery 091 and W7 F33 phone-change suppression 092; prior migrations
-086-091 remain unchanged.
+recovery 091, W7 F33 phone-change suppression 092, and F33 post-result
+fencing 093; prior migrations 086-092 remain unchanged.
 
 ## Reproducible verification
 
@@ -29,10 +29,11 @@ PASS: forward-only 090 repairs previously provisioned full-table API INSERT in p
 PASS: API Meta binding forged/explicit verification, enable, version and timestamp INSERT 42501; safe disabled onboarding and scoped edit PASS.
 PASS: signed SENT/DELIVERED/READ callback crash -> ACCEPTED; FAILED/forged timestamp/bare ID/no proof -> UNKNOWN; purge, no resend, idempotent.
 PASS: phone drift transactional rollback, no-op, 3 undispatched suppression/purge, in-flight UNKNOWN recovery, customer scope.
-PASS: 92 pristine migrations on disposable PG; 12 outbound tables; control OFF/OFF.
+PASS: post-dispatch changed-phone definitive/NOT_SENT -> SUPPRESSED, UNKNOWN/ACCEPTED preserved, same-phone retry retained.
+PASS: 93 pristine migrations on disposable PG; 12 outbound tables; control OFF/OFF.
 ```
 
-The runner creates a unique local database, applies all 92 SQL migrations
+The runner creates a unique local database, applies all 93 SQL migrations
 in order and drops it in a finally block. It creates and drops three fresh,
 no-inheritance synthetic API, sender and webhook PostgreSQL roles. Catalog
 ACL checks verify PUBLIC, effective role table/function permissions and
@@ -105,6 +106,44 @@ No deadlock or redispatch occurred. W1's 92-migration smoke independently
 asserts rollback restores state and envelopes, successful same-Customer
 suppression across three statuses, other-Customer isolation, and UNKNOWN
 recovery of a previously dispatched attempt.
+
+W7 F33 post-result P2 follow-up: 092 conservatively left DISPATCHING
+unchanged. A new real PostgreSQL negative test on 092 showed the 089
+six-argument finalizer attempting a definitive NOT_SENT/DEFINITIVE_FAILURE
+transition to RETRY_WAIT but raising PostgreSQL 23514 OUTBOUND_NO_REQUEUE
+from the original 086 delivery guard. The transaction rolls back, retaining
+DISPATCHING and its envelope until UNKNOWN-on-expiry. This masks the
+potential post-phone-change retry and also prevents legitimate
+unchanged-phone retries that 089 intended.
+
+Forward-only 093 adds monotone `recipient_routing_uncertain` evidence to
+the sender-owned `outbound_message_attempts` table (NOT NULL). Existing
+pre-upgrade attempts default to TRUE because any in-flight 092-era phone
+change is unknowable; the column's default is then changed to FALSE for
+freshly issued, known-current attempts. A pre-upgrade definitive negative
+thus fails closed rather than reusing a potentially stale recipient, even
+if that conservatively forgoes one legitimate retry. The Customer phone
+trigger now sets this flag for in-flight
+DISPATCHING attempts while holding Customer -> Delivery -> Attempt locks,
+without changing the in-flight state or retaining phone/HMAC material. The
+089 finalizer's established signed-positive callback/ACCEPTED precedence
+remains untouched. A definitively NOT_SENT or DEFINITIVE_FAILURE result
+with the drift flag now becomes terminal SUPPRESSED, clears the lease and
+purges the sealed envelope. UNKNOWN still goes terminal UNKNOWN; accepted
+messages remain ACCEPTED. On an unchanged phone, the original bounded
+RETRY_WAIT outcome remains supported for new, unchanged-phone attempts.
+
+093 fixes the contradictory 086 trigger with an intentionally narrow,
+**proof-backed** exception: only a DISPATCHING -> RETRY_WAIT transition
+whose *current ordinal* attempt belongs to the same delivery and tenant,
+has persisted NOT_SENT/DEFINITIVE_FAILURE, has no provider message ID,
+has no matching positive signed callback, and has no phone-drift flag can
+proceed. The immutable terminal states remain blocked. W1's actual
+restricted sender role and real SQL assert both six- and seven-argument
+finalization, positive/callback precedence, unknown safety, the matching
+attempt requirement, a denied unproven direct retry (SQLSTATE 23514),
+flag monotonicity (SQLSTATE 23514), and envelope purge. No existing role
+grants are expanded and no original migration was rewritten.
 
 Schema validation (requires a local test MIGRATION_DATABASE_URL and NODE_ENV
 set to test): `pnpm exec prisma validate --schema prisma/schema.prisma`.
