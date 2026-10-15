@@ -59,6 +59,12 @@ is deliberately restricted to OFF-mode recovery/cleanup pending Meta/consent
 activation; a request to send real WhatsApp rejects at startup. No shared
 provider credentials or onboarding-success state are fabricated.
 
+The existing `apps/api/test/feature-module-ownership.test.ts` expects the
+exact AppModule import list. Prime alone updated that accepted-module
+assertion to include the new dedicated `NotificationsModule` at the exact
+position used by AppModule. This is the minimal production-composition
+test registration; all other module invariants remain in force.
+
 ## C0 contract change 01 — company policy revision fence
 
 W1/W2 notified Prime that the original intent carried only the governing

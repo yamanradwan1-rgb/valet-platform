@@ -34,6 +34,7 @@ import { MapSetupController } from "../src/modules/map-setup/map-setup.controlle
 import { MapSetupModule } from "../src/modules/map-setup/map-setup.module";
 import { MapSetupService } from "../src/modules/map-setup/map-setup.service";
 import { ManagementModule } from "../src/modules/management/management.module";
+import { NotificationsModule } from "../src/modules/notifications/notifications.module";
 import { StartParkingController } from "../src/modules/parking/start-parking.controller";
 import { CancelBeforeParkingController } from "../src/modules/parking/cancel-before-parking.controller";
 import { CancelBeforeParkingService } from "../src/modules/parking/cancel-before-parking.service";
@@ -113,6 +114,7 @@ describe("accepted feature module ownership", () => {
       KeyCustodyModule,
       MapSetupModule,
       ManagementModule,
+      NotificationsModule,
       DispatchModule,
       StartParkingModule,
       PaymentsModule,
