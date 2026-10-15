@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 
 export const guestAccessContract = {
   hashPrefix: "sha256:v1:",
@@ -35,4 +35,18 @@ export function hashGuestAccessToken(rawToken: string): string {
   return `${guestAccessContract.hashPrefix}${createHash("sha256")
     .update(rawToken, "utf8")
     .digest("hex")}`;
+}
+
+export function generateGuestAccessToken(
+  tokenBytesFactory: () => Buffer = () => randomBytes(guestAccessContract.tokenEntropyBytes),
+): string {
+  const entropy = tokenBytesFactory();
+  if (!Buffer.isBuffer(entropy) || entropy.length !== guestAccessContract.tokenEntropyBytes) {
+    throw new GuestAccessError("GUEST_ACCESS_GENERATION_FAILED");
+  }
+  const rawToken = entropy.toString("base64url");
+  if (!/^[A-Za-z0-9_-]{43}$/.test(rawToken)) {
+    throw new GuestAccessError("GUEST_ACCESS_GENERATION_FAILED");
+  }
+  return rawToken;
 }

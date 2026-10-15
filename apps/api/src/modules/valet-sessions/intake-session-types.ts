@@ -1,5 +1,6 @@
 import type { VehicleIdentityInput } from "../vehicles/vehicle-identity-command";
 import type { VehicleDetailsInput } from "../vehicles/vehicle-details-normalization";
+import type { InitialGuestIssuanceHook } from "../notifications/issuance/initial-guest-runtime";
 
 export type IntakeSessionCommandErrorCode =
   | "ACTIVE_VALET_SESSION_CONFLICT"
@@ -72,6 +73,7 @@ export interface IntakeSessionCommandOptions {
   readonly auditEventIdFactory?: () => string;
   readonly customerIdFactory?: () => string;
   readonly disabledGuestEntropyFactory?: () => Buffer;
+  readonly initialGuestIssuance?: InitialGuestIssuanceHook;
   readonly sessionIdFactory?: () => string;
   readonly vehicleIdFactory?: () => string;
 }

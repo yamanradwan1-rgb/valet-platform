@@ -4,6 +4,11 @@ import type { DatabaseError } from "pg";
 
 import type { PostgresPool } from "../../common/database/postgres";
 import { authorizeCheckInLocation } from "../check-in-api/check-in-location-authorization";
+import {
+  createInitialGuestIssuanceFromEnv,
+  type InitialGuestIssuanceHook,
+} from "../notifications/issuance/initial-guest-runtime";
+import { GuestAccessError } from "./guest-access-token";
 import { resolveIntakeCustomer } from "./intake-customer-resolution";
 import {
   intakeRequestFingerprint,
@@ -49,6 +54,7 @@ async function executeOnce(
   pool: PostgresPool,
   normalized: NormalizedIntakeRequest,
   options: IntakeSessionCommandOptions,
+  initialGuestIssuance: InitialGuestIssuanceHook | null,
 ): Promise<IntakeSessionCommandResult> {
   const transaction = await pool.connect();
   try {
@@ -113,6 +119,15 @@ async function executeOnce(
       scope,
       vehicle,
     });
+    if (row.customer_id !== null && initialGuestIssuance !== null) {
+      await initialGuestIssuance(transaction, {
+        organizationId: scope.organizationId,
+        locationId: row.location_id,
+        sessionId: row.valet_session_id,
+        customerId: row.customer_id,
+        actorMembershipId: scope.actor.membershipId,
+      });
+    }
     await transaction.query("COMMIT");
     return intakeResultFromRow(row);
   } catch (error) {
@@ -124,6 +139,11 @@ async function executeOnce(
     if (isActiveSessionConflict(error)) {
       throw new IntakeSessionCommandError("ACTIVE_VALET_SESSION_CONFLICT");
     }
+    if (isDatabaseError(error, "23505") &&
+      (error as Partial<DatabaseError>).constraint ===
+        "valet_sessions_customer_access_token_hash_key") {
+      throw new GuestAccessError("GUEST_ACCESS_GENERATION_FAILED");
+    }
     throw error;
   } finally {
     transaction.release();
@@ -134,6 +154,8 @@ export function createIntakeSessionCommandExecutor(
   pool: PostgresPool,
   options: IntakeSessionCommandOptions = {},
 ) {
+  const initialGuestIssuance = options.initialGuestIssuance ??
+    createInitialGuestIssuanceFromEnv();
   return async (
     request: IntakeSessionCommandRequest,
   ): Promise<IntakeSessionCommandResult> => {
@@ -144,7 +166,7 @@ export function createIntakeSessionCommandExecutor(
       attempt += 1
     ) {
       try {
-        return await executeOnce(pool, normalized, options);
+        return await executeOnce(pool, normalized, options, initialGuestIssuance);
       } catch (error) {
         if (!isDatabaseError(error, "40001")) throw error;
         if (attempt === maximumSerializationAttempts) {

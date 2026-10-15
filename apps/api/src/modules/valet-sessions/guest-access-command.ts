@@ -1,5 +1,6 @@
 import {
   GuestAccessError,
+  generateGuestAccessToken,
   guestAccessContract,
   hashGuestAccessToken,
 } from "./guest-access-token";
@@ -9,7 +10,7 @@ export {
   hashGuestAccessToken,
   type GuestAccessErrorCode,
 } from "./guest-access-token";
-import { randomBytes, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 
 import type { DatabaseError } from "pg";
 
@@ -70,7 +71,6 @@ interface GuestAccessCommandOptions {
 
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const rawTokenPattern = /^[A-Za-z0-9_-]{43}$/;
 
 function invalidStaffRequest(): never {
   throw new GuestAccessError("GUEST_ACCESS_REQUEST_INVALID");
@@ -147,21 +147,6 @@ function normalizeIssueRequest(
     intent,
     valetSessionId: normalizeUuid(request.valetSessionId),
   };
-}
-
-function generateRawToken(tokenBytesFactory: () => Buffer): string {
-  const entropy = tokenBytesFactory();
-  if (
-    !Buffer.isBuffer(entropy) ||
-    entropy.length !== guestAccessContract.tokenEntropyBytes
-  ) {
-    throw new GuestAccessError("GUEST_ACCESS_GENERATION_FAILED");
-  }
-  const rawToken = entropy.toString("base64url");
-  if (!rawTokenPattern.test(rawToken)) {
-    throw new GuestAccessError("GUEST_ACCESS_GENERATION_FAILED");
-  }
-  return rawToken;
 }
 
 async function loadSessionScope(
@@ -300,10 +285,7 @@ export function createIssueGuestAccessCommandExecutor(
       }
       const operationTime = await serverTime(transaction);
       const mutationKind = isDisabledPlaceholder ? "ISSUED" : "ROTATED";
-      const rawToken = generateRawToken(
-        options.tokenBytesFactory ??
-          (() => randomBytes(guestAccessContract.tokenEntropyBytes)),
-      );
+      const rawToken = generateGuestAccessToken(options.tokenBytesFactory);
       const tokenHash = hashGuestAccessToken(rawToken);
       if (tokenHash === scope.customer_access_token_hash) {
         throw new GuestAccessError("GUEST_ACCESS_GENERATION_FAILED");
