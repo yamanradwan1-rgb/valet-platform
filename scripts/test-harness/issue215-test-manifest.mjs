@@ -6,6 +6,7 @@ export const ISSUE215_PROJECT = "database-postgres-issue215";
 export const ISSUE215_API_PROJECT = "api-postgres-issue215";
 export const issue215ApiPostgresFiles = Object.freeze([
   "issue215-real-http-integration.test.ts",
+  "issue215-real-http-negative.test.ts",
   "issue215-recovery-real-s3.integration.test.ts",
   "issue215-recovery.integration.test.ts",
   "issue215-staff-credential-races.test.ts",

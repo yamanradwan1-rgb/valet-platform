@@ -8,11 +8,15 @@ import {
 import { GuestAccessModule } from "../src/modules/guest-access/guest-access.module";
 import { GuestAccessService } from "../src/modules/guest-access/guest-access.service";
 import { GuestBrowserSessionController } from "../src/modules/guest-access/guest-browser-session.controller";
+import { GuestBrowserContextController } from "../src/modules/guest-access/guest-browser-context.controller";
+import { GuestBrowserContextService } from "../src/modules/guest-access/guest-browser-context.service";
+import { GuestBrowserLimiter } from "../src/modules/guest-access/guest-browser-limiter";
 import { GuestBrowserSessionService } from "../src/modules/guest-access/guest-browser-session.service";
 import { GuestAuthOriginPolicy } from "../src/modules/guest-access/guest-browser-transport";
 import { GuestCredentialAuthorizer } from "../src/modules/guest-access/guest-credential-authorizer";
 import { GuestRatingController } from "../src/modules/guest-access/guest-rating.controller";
 import { GuestRatingService } from "../src/modules/guest-access/guest-rating.service";
+import { GuestRequestAdmission } from "../src/modules/guest-access/guest-request-admission";
 
 function metadata<T>(key: string): T[] {
   return (Reflect.getMetadata(key, GuestAccessModule) as T[] | undefined) ?? [];
@@ -25,10 +29,14 @@ describe("MGT-BE-09 Guest Rating module ownership", () => {
       GuestAccessController,
       GuestRatingController,
       GuestBrowserSessionController,
+      GuestBrowserContextController,
     ]);
     expect(metadata(MODULE_METADATA.PROVIDERS)).toEqual([
+      GuestRequestAdmission,
       GuestAccessService,
       GuestBrowserSessionService,
+      GuestBrowserContextService,
+      GuestBrowserLimiter,
       GuestAuthOriginPolicy,
       GuestCredentialAuthorizer,
       GuestRatingService,

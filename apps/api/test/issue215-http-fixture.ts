@@ -1,6 +1,7 @@
 import "reflect-metadata";
 
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -11,6 +12,7 @@ import sharp from "sharp";
 
 import { CheckInModule } from "../src/modules/check-in-api/check-in.module";
 import { S3PrivatePhotoStore } from "../src/modules/vehicle-photos/s3-private-photo-store";
+import { assertRecoveryMinioDocker } from "./issue215-recovery-minio-target";
 import {
   openIssue215HttpDatabase,
   type Issue215HttpDatabase,
@@ -84,6 +86,22 @@ export async function openIssue215HttpFixture(): Promise<Issue215HttpFixture> {
       !/^issue215app[a-f0-9]{10}$/.test(s3.accessKeyId) ||
       !/^[a-f0-9]{56}$/.test(s3.secretAccessKey))
     throw new Error("The task-owned private versioned S3 fixture is not attested.");
+
+  // The fixture file is only a claim: prove its port, image, temporary volume
+  // and ownership against Docker before provisioning a disposable test DB.
+  try {
+    const ids = execFileSync("docker", [
+      "ps", "-q", "--filter", `label=com.docker.compose.project=${ownedProject}`,
+    ], { encoding: "utf8", timeout: 5_000, windowsHide: true, stdio: "pipe" })
+      .trim().split(/\s+/).filter(Boolean);
+    if (ids.length !== 1) throw new Error("Unexpected MinIO identity.");
+    const inspected: unknown = JSON.parse(execFileSync("docker", [
+      "inspect", ids[0]!,
+    ], { encoding: "utf8", timeout: 5_000, windowsHide: true, stdio: "pipe" }));
+    assertRecoveryMinioDocker(inspected, s3);
+  } catch {
+    throw new Error("The live task-owned private MinIO container is not attested.");
+  }
 
   const db = await openIssue215HttpDatabase();
   const oldEnv = new Map(envKeys.map((key) => [key, process.env[key]]));

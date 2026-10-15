@@ -34,10 +34,10 @@ describe("T3 derived envelope and finite capacity", () => {
   });
 
   it("maps every actual Guest surface without separate transport quotas", () => {
-    expect(Object.keys(guestRouteClasses)).toHaveLength(14);
+    expect(Object.keys(guestRouteClasses)).toHaveLength(16);
     expect(
       Object.values(guestRouteClasses).filter((value) => value === "A"),
-    ).toHaveLength(2);
+    ).toHaveLength(3);
     expect(
       Object.values(guestRouteClasses).filter((value) => value === "D"),
     ).toHaveLength(2);
