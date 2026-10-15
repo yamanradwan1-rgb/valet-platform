@@ -5,6 +5,7 @@ import type {
   EmployeeCheckInSession,
   EmployeeCheckInSnapshot,
   EmployeeLocale,
+  EmployeeOperationalScope,
   NativeAuthSession,
 } from "@valet/employee-client";
 import { emptyCheckInContinuation } from "@valet/employee-client";
@@ -39,6 +40,7 @@ import {
   NativeRecoverablesStep,
 } from "./native-check-in-state-steps";
 import { checkInStylesTheme as sTheme } from "./native-check-in-styles";
+import { useNativeConditionPhotoOwner } from "./native-condition-photo-owner";
 
 interface NativeCheckInWorkflowProps {
   readonly auth: NativeAuthSession;
@@ -49,6 +51,7 @@ interface NativeCheckInWorkflowProps {
     ((sessionId: string) => Promise<boolean>) | undefined;
   readonly session: EmployeeCheckInSession;
   readonly snapshot: EmployeeCheckInSnapshot;
+  readonly scope: EmployeeOperationalScope;
 }
 
 export function NativeCheckInWorkflow({
@@ -59,6 +62,7 @@ export function NativeCheckInWorkflow({
   onOpenParking,
   session,
   snapshot,
+  scope,
 }: NativeCheckInWorkflowProps) {
   const s = useEmployeeStyles(sTheme);
 
@@ -77,6 +81,8 @@ export function NativeCheckInWorkflow({
         },
       };
   const textAlign: NativeTextAlign = locale === "ar" ? "right" : "left";
+  const { photo, photoSnapshot, files } =
+    useNativeConditionPhotoOwner(auth, scope, resolvedSnapshot);
   const [capturePresentation, setCapturePresentation] = useState(() =>
     initialCheckInCapturePresentation(snapshot),
   );
@@ -142,6 +148,9 @@ export function NativeCheckInWorkflow({
   };
   const props = {
     auth,
+    files,
+    photo,
+    photoSnapshot,
     conditionCopy,
     continuationCopy,
     copy,

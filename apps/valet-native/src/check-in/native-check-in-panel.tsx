@@ -96,6 +96,7 @@ export function NativeCheckInPanel({
             onClose={close}
             session={checkIn}
             snapshot={snapshot}
+            scope={scope}
           />
         </EmployeeFrame>
       </Modal>

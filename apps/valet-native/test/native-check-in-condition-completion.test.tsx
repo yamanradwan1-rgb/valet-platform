@@ -4,8 +4,10 @@ import {
   type EmployeeCheckInSnapshot,
   type NativeAuthSession,
 } from "@valet/employee-client";
+import { conditionPhotoTestScope } from "./native-condition-photo-test-boundary";
 
 vi.mock("react", () => ({
+  useCallback: (callback: unknown) => callback,
   useEffect: vi.fn(),
   useRef: (initial: unknown) => ({ current: initial }),
   useState: (initial: unknown) => [
@@ -69,6 +71,7 @@ function render(
   return elements(
     NativeCheckInWorkflow({
       auth: {} as NativeAuthSession,
+      scope: conditionPhotoTestScope,
       locale,
       onClose: vi.fn(),
       onOpenParking,
@@ -94,7 +97,7 @@ describe("MOB-011B Native completion continuation", () => {
       "Foreground location tracking may run only while this Parking movement is active",
     );
     expect(content(nodes)).toContain("12-34567");
-    expect(content(nodes)).toContain("Start Parking");
+    expect(content(nodes)).toContain("Open Parking");
     expect(content(nodes)).not.toMatch(/parking spot|key slot|خانة/i);
   });
 
@@ -108,12 +111,12 @@ describe("MOB-011B Native completion continuation", () => {
       ),
     ).toHaveLength(1);
     expect(content(nodes)).toContain("قد يعمل تتبّع الموقع في الواجهة الأمامية فقط");
-    expect(content(nodes)).toContain("بدء الإيقاف");
+    expect(content(nodes)).toContain("فتح مهمة الصف");
   });
 
   it("uses the same Parking Task composition for restored authority", () => {
     const restoredNodes = render(completedSnapshot("view"));
-    expect(content(restoredNodes)).toContain("Start Parking");
+    expect(content(restoredNodes)).toContain("Open Parking");
     const completedNodes = render(completedSnapshot());
     expect(content(completedNodes)).toBe(content(restoredNodes));
   });
@@ -121,7 +124,7 @@ describe("MOB-011B Native completion continuation", () => {
   it("renders no pre-parking key action", () => {
     const nodes = render(completedSnapshot());
     const copy = content(nodes);
-    expect(copy).toContain("Start Parking");
+    expect(copy).toContain("Open Parking");
     expect(copy).not.toMatch(/key slot|خانة المفتاح/i);
   });
 
@@ -129,7 +132,7 @@ describe("MOB-011B Native completion continuation", () => {
     const onOpenParking = vi.fn(async () => true);
     const nodes = render(completedSnapshot(), "en", onOpenParking);
     const action = nodes.find(
-      (node) => node.props.accessibilityLabel === "Start Parking",
+      (node) => node.props.accessibilityLabel === "Open Parking",
     )!;
     (action.props.onPress as () => void)();
     expect(onOpenParking).toHaveBeenCalledWith(conditionActive.sessionId);

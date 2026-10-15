@@ -1,7 +1,10 @@
 import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { Pressable, Text, View } from "react-native";
 import type {
+  ConditionPhotoSnapshot,
+  EmployeeConditionPhotoSession,
   EmployeeCheckInConditionSelection,
+  EmployeeLocale,
   EmployeeCheckInSession,
   EmployeeCheckInSnapshot,
 } from "@valet/employee-client";
@@ -18,6 +21,8 @@ import {
 import { checkInTextStyle } from "./native-check-in-presentation";
 import { checkInStylesTheme as sTheme } from "./native-check-in-styles";
 import { EmployeeCheckIcon } from "../employee-ui/employee-icons";
+import { NativeConditionPhotoStatus } from "./native-condition-photo-status";
+import type { NativeConditionPhotoFiles } from "./native-condition-photo-files";
 
 export interface ConditionStepProps {
   readonly conditionCopy: NativeCheckInConditionCopy;
@@ -25,6 +30,10 @@ export interface ConditionStepProps {
   readonly session: EmployeeCheckInSession;
   readonly snapshot: EmployeeCheckInSnapshot;
   readonly textAlign: NativeTextAlign;
+  readonly locale: EmployeeLocale;
+  readonly photo: EmployeeConditionPhotoSession;
+  readonly photoSnapshot: ConditionPhotoSnapshot;
+  readonly files: NativeConditionPhotoFiles;
 }
 
 const OPTIONS: ReadonlyArray<{
@@ -51,6 +60,10 @@ export function NativeCheckInConditionStep({
   session,
   snapshot,
   textAlign,
+  locale,
+  photo,
+  photoSnapshot,
+  files,
 }: ConditionStepProps) {
   const s = useEmployeeStyles(sTheme);
 
@@ -61,6 +74,8 @@ export function NativeCheckInConditionStep({
   const submitting = continuation.mode === "submitting";
   const ambiguous = continuation.mode === "ambiguous";
   const photoRequired = isPhotoRequiredError(snapshot);
+  const photoBlocked = (photoSnapshot.required === true || photoRequired) &&
+    !photoSnapshot.qualifying;
   const failure = conditionErrorMessage(c, snapshot);
   return (
     <>
@@ -86,17 +101,16 @@ export function NativeCheckInConditionStep({
               accessibilityLabel={`${label}${isSelected ? `, ${c.selected}` : ""}`}
               accessibilityRole="button"
               accessibilityState={{ selected: isSelected }}
-              disabled={submitting || photoRequired}
+              disabled={submitting || (photoRequired && !photoSnapshot.qualifying)}
               key={option.value}
               onPress={
-                photoRequired
-                  ? undefined
-                  : () => session.setConditionSelection(option.value)
+                photoRequired && !photoSnapshot.qualifying ? undefined :
+                  () => session.setConditionSelection(option.value)
               }
               style={[
                 s.option,
                 isSelected && s.optionSelected,
-                (submitting || photoRequired) && s.optionDisabled,
+                (submitting || (photoRequired && !photoSnapshot.qualifying)) && s.optionDisabled,
               ]}
             >
               <View
@@ -118,23 +132,12 @@ export function NativeCheckInConditionStep({
           );
         })}
       </View>
-      {!photoRequired ? (
-        <View style={s.policyNotice}>
-          <Text
-            style={[
-              s.policyNoticeText,
-              checkInTextStyle("human", textAlign),
-              { textAlign: "center" },
-            ]}
-          >
-            {c.photoPolicyNotice}
-          </Text>
-        </View>
-      ) : null}
+      <NativeConditionPhotoStatus files={files} locale={locale}
+        photo={photo} snapshot={photoSnapshot} />
       {failure ? (
         <CheckInError textAlign={textAlign}>{failure}</CheckInError>
       ) : null}
-      {photoRequired ? null : ambiguous ? (
+      {photoRequired && !photoSnapshot.qualifying ? null : ambiguous ? (
         <CheckInButton
           label={copy.checkServer}
           onPress={() => void session.retryConditionRecovery()}
@@ -142,7 +145,7 @@ export function NativeCheckInConditionStep({
       ) : (
         <CheckInButton
           busy={submitting}
-          disabled={submitting}
+          disabled={submitting || photoBlocked}
           label={submitting ? c.completingCondition : copy.continueLabel}
           onPress={() => void session.submitConditionCompletion()}
         />

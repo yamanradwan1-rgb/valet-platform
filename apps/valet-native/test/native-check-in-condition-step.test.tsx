@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import type { NativeAuthSession } from "@valet/employee-client";
+import { conditionPhotoTestScope } from "./native-condition-photo-test-boundary";
 
 vi.mock("react", () => ({
+  useCallback: (callback: unknown) => callback,
   useEffect: vi.fn(),
   useRef: (initial: unknown) => ({ current: initial }),
   useState: (initial: unknown) => [
@@ -44,6 +46,7 @@ function render(snapshot: Node, locale: "en" | "ar" = "en") {
   const nodes = elements(
     NativeCheckInWorkflow({
       auth: {} as NativeAuthSession,
+      scope: conditionPhotoTestScope,
       locale,
       onClose,
       session: checkIn,
@@ -220,7 +223,7 @@ describe("MOB-011B Native condition and check-in completion", () => {
       const copy = content(nodes);
       expect(copy).toContain(explanation);
       expect(copy).not.toMatch(/Photos optional|الصور اختيارية/);
-      expect(copy).not.toMatch(/uploaded|verified|photoComplete/i);
+      expect(copy).not.toMatch(/server verified the photo|تم التحقق من الصورة|photoComplete/i);
       expect(
         nodes.some(
           (node) => node.type === "Pressable" && label(node) === continueLabel,

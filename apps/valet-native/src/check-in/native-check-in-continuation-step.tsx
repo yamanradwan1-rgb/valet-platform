@@ -1,9 +1,13 @@
 import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { Text } from "react-native";
 import type {
+  ConditionPhotoSnapshot,
+  EmployeeConditionPhotoSession,
   EmployeeCheckInSession,
   EmployeeCheckInSnapshot,
+  EmployeeLocale,
 } from "@valet/employee-client";
+import type { NativeConditionPhotoFiles } from "./native-condition-photo-files";
 
 import type { NativeCheckInConditionCopy } from "./native-check-in-condition-copy";
 import { NativeCheckInConditionStep } from "./native-check-in-condition-step";
@@ -36,6 +40,10 @@ export interface ContinuationStepProps {
   readonly session: EmployeeCheckInSession;
   readonly snapshot: EmployeeCheckInSnapshot;
   readonly textAlign: NativeTextAlign;
+  readonly locale: EmployeeLocale;
+  readonly files: NativeConditionPhotoFiles;
+  readonly photo: EmployeeConditionPhotoSession;
+  readonly photoSnapshot: ConditionPhotoSnapshot;
 }
 
 export function NativeCheckInContinuationStep(props: ContinuationStepProps) {
