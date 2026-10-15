@@ -18,14 +18,16 @@ export async function persistInitialGuestOutbox(
        (id, organization_id, location_id, valet_session_id, customer_id,
         purpose, credential_generation, recipient_digest, permission_id,
         permission_revision, policy_id, policy_revision, provider_binding_id,
-        binding_revision, template_catalog_version, language, created_at, expires_at)
+        binding_revision, template_catalog_version, language,
+        company_policy_revision, created_at, expires_at)
      VALUES ($1, $2, $3, $4, $5, 'INITIAL_GUEST_ACCESS', $6, $7, $8,
-             $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+             $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
     [intent.id, scope.organizationId, scope.locationId, scope.sessionId,
       scope.customerId, intent.credentialGeneration, intent.recipientDigest,
       intent.permissionId, intent.permissionRevision, policyId,
       intent.policyRevision, intent.bindingId, intent.bindingRevision,
-      intent.templateVersion, intent.locale, intent.createdAt, intent.expiresAt],
+      intent.templateVersion, intent.locale, intent.companyPolicyRevision,
+      intent.createdAt, intent.expiresAt],
   );
   await transaction.query(
     `INSERT INTO outbound_message_deliveries

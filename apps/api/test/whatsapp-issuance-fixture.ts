@@ -31,9 +31,11 @@ export async function configureVerifiedIssuance(
   await admin.query(
     `INSERT INTO outbound_provider_bindings
        (id, organization_id, purpose, provider, environment,
-        waba_id, phone_number_id, config_alias, enabled)
+        waba_id, phone_number_id, config_alias, enabled,
+        provider_verified_at, provider_evidence_reference)
      VALUES ($1, $2, 'INITIAL_GUEST_ACCESS', 'META_CLOUD', 'test',
-             $3, $4, 'mock-connector', TRUE)`,
+             $3, $4, 'mock-connector', TRUE,
+             clock_timestamp() - interval '1 minute', 'synthetic-provider-verification')`,
     [bindingId, fixture.organizationId, `synthetic-${randomUUID()}`,
       `synthetic-${randomUUID()}`],
   );

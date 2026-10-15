@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import type { PostgresTransaction } from "../src/common/database/postgres";
 import type { SealedOutboundEnvelope } from "../src/modules/notifications/contracts/outbound-envelope";
 import type { OutboundMessageIntent } from "../src/modules/notifications/contracts/outbound-intent";
+import { persistInitialGuestOutbox } from "../src/modules/notifications/issuance/initial-guest-outbox";
 import {
   issueInitialGuestAccessInTransaction,
   type EligibleInitialGuestRecipient,
@@ -28,6 +29,7 @@ const eligible: EligibleInitialGuestRecipient = {
   bindingId: randomUUID(),
   bindingRevision: 2,
   policyRevision: 3,
+  companyPolicyRevision: 2,
   templateVersion: "approved-v1",
   locale: "ar",
 };
@@ -100,6 +102,7 @@ describe("initial Guest issuing inside the existing Intake transaction", () => {
       credentialGeneration: 1,
       scope,
       recipientDigest: eligible.recipientDigest,
+      companyPolicyRevision: 2,
       expiresAt: new Date("2026-10-15T20:30:00.000Z"),
     });
     expect(policyId).toBe(eligible.policyId);
@@ -148,5 +151,18 @@ describe("initial Guest issuing inside the existing Intake transaction", () => {
     const deps = makeDependencies({ ...eligible, permissionExpiresAt: issuedAt });
     expect(await issueInitialGuestAccessInTransaction(db.tx, scope, deps)).toBe(false);
     expect(deps.seal).not.toHaveBeenCalled();
+  });
+
+  it("persists the independent company revision with a Location override intent", async () => {
+    const db = fixture();
+    const deps = makeDependencies();
+    deps.persist.mockImplementation(persistInitialGuestOutbox);
+    expect(await issueInitialGuestAccessInTransaction(db.tx, scope, deps)).toBe(true);
+    const insert = db.calls.find(({ sql }) => sql.includes("INSERT INTO outbound_message_intents"));
+    expect(insert?.sql).toContain("company_policy_revision");
+    expect(insert?.params[15]).toBe(eligible.companyPolicyRevision);
+    expect(insert?.params[10]).toBe(eligible.policyRevision);
+    expect(db.calls.filter(({ sql }) => sql.includes("INSERT INTO outbound_message_")))
+      .toHaveLength(3);
   });
 });

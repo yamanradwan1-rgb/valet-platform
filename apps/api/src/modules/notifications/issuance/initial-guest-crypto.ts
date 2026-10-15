@@ -15,6 +15,11 @@ import type {
 const keyVersionPattern = /^[a-zA-Z0-9._-]{1,64}$/;
 const normalizedPhonePattern = /^\+[1-9][0-9]{7,14}$/;
 
+/** Mirrors the digest input contract for an already canonical E.164 recipient. */
+export function isCanonicalOutboundRecipient(phone: unknown): phone is string {
+  return typeof phone === "string" && normalizedPhonePattern.test(phone);
+}
+
 /** JSON property ordering is part of the frozen OAEP label scheme. */
 export function canonicalOutboundEnvelopeLabel(aad: OutboundEnvelopeAAD): Buffer {
   if (
@@ -62,7 +67,7 @@ export function createRecipientDigestFactory(
     throw new Error("Recipient HMAC configuration is invalid.");
   }
   return (phone) => {
-    if (!normalizedPhonePattern.test(phone)) {
+    if (!isCanonicalOutboundRecipient(phone)) {
       throw new Error("Canonical recipient is invalid.");
     }
     return `hmac:${keyVersion}:${createHmac("sha256", key)

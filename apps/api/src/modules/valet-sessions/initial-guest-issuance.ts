@@ -29,6 +29,7 @@ export interface EligibleInitialGuestRecipient {
   readonly bindingId: string;
   readonly bindingRevision: number;
   readonly policyRevision: number;
+  readonly companyPolicyRevision: number;
   readonly templateVersion: string;
   readonly locale: "ar" | "en";
 }
@@ -97,6 +98,7 @@ export async function issueInitialGuestAccessInTransaction(
     bindingId: recipient.bindingId,
     bindingRevision: recipient.bindingRevision,
     policyRevision: recipient.policyRevision,
+    companyPolicyRevision: recipient.companyPolicyRevision,
     templateVersion: recipient.templateVersion,
     locale: recipient.locale,
     createdAt: issuedAt,

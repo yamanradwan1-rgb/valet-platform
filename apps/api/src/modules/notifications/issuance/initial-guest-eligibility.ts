@@ -1,10 +1,9 @@
-import { jordanCheckInMobilePhoneSchema } from "@valet/contracts";
-
 import type { PostgresTransaction } from "../../../common/database/postgres";
 import type {
   EligibleInitialGuestRecipient,
   InitialGuestScope,
 } from "../../valet-sessions/initial-guest-issuance";
+import { isCanonicalOutboundRecipient } from "./initial-guest-crypto";
 
 interface PolicyRow {
   id: string;
@@ -21,6 +20,7 @@ interface BindingRow {
   enabled: boolean;
   revision: number;
   environment: string;
+  provider_verified_at: Date | null;
 }
 
 interface PermissionRow {
@@ -47,7 +47,7 @@ export function createInitialGuestEligibilityResolver(
       [scope.organizationId, scope.customerId],
     );
     const phone = customer.rows[0]?.phone_normalized;
-    if (phone === undefined || !jordanCheckInMobilePhoneSchema.safeParse(phone).success) {
+    if (!isCanonicalOutboundRecipient(phone)) {
       return null;
     }
     const digest = recipientDigest(phone);
@@ -100,7 +100,7 @@ export function createInitialGuestEligibilityResolver(
     }
 
     const binding = await transaction.query<BindingRow>(
-      `SELECT id::text, enabled, revision, environment
+      `SELECT id::text, enabled, revision, environment, provider_verified_at
        FROM outbound_provider_bindings
        WHERE organization_id = $1 AND id = $2
          AND purpose = 'INITIAL_GUEST_ACCESS' AND provider = 'META_CLOUD'
@@ -109,7 +109,9 @@ export function createInitialGuestEligibilityResolver(
     );
     const authorizedBinding = binding.rows[0];
     if (authorizedBinding?.enabled !== true ||
-        authorizedBinding.environment !== environment) return null;
+        authorizedBinding.environment !== environment ||
+        !(authorizedBinding.provider_verified_at instanceof Date) ||
+        !Number.isFinite(authorizedBinding.provider_verified_at.getTime())) return null;
 
     const control = await transaction.query<{ issue_enabled: boolean }>(
       `SELECT issue_enabled FROM outbound_messaging_control
@@ -122,7 +124,8 @@ export function createInitialGuestEligibilityResolver(
       "SELECT clock_timestamp() AS now",
     );
     const now = wallTime.rows[0]?.now;
-    if (!(now instanceof Date) || grant.collected_at > now || grant.expires_at <= now) {
+    if (!(now instanceof Date) || grant.collected_at > now || grant.expires_at <= now ||
+        authorizedBinding.provider_verified_at > now) {
       return null;
     }
     const governingPolicy = location ?? company;
@@ -135,6 +138,7 @@ export function createInitialGuestEligibilityResolver(
       bindingId: authorizedBinding.id,
       bindingRevision: authorizedBinding.revision,
       policyRevision: governingPolicy.revision,
+      companyPolicyRevision: company.revision,
       templateVersion,
       locale: language,
     };
