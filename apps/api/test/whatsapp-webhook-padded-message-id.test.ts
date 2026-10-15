@@ -35,7 +35,7 @@ describe("Meta signed delivery identifiers with Base64 padding", () => {
 
   it("continues to reject controls, separators and oversized provider identifiers", () => {
     for (const id of ["wamid.invalid token", "wamid.x\ninvalid", "bad/x/unsafe", "wamid.A=B",
-      "wamid." + "A".repeat(252)]) {
+      "not_a_wamid", "foo", "123456789", "wamid." + "A".repeat(252)]) {
       expect(() => normalizeMetaStatusPayload(callback(id))).toThrow(
         "META_WEBHOOK_INVALID",
       );
