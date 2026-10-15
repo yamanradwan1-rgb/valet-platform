@@ -1,11 +1,17 @@
-import { spawn } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
-import { resolve } from "node:path";
 
 import { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { createRuntimePostgresPool } from "../src/common/database/postgres";
+import { RuntimeDatabaseLifecycle } from "../src/common/database/runtime-database.module";
+import { inPostgresTransaction } from "../src/common/database/postgres-transaction";
+import { withDatabaseOperationDeadline } from "../src/common/database/runtime-database-deadline";
+import {
+  reportIssue215MigrationTimings,
+  runIssue215FixturePnpm,
+  timedIssue215FixtureStage,
+} from "./issue215-fixture-timing";
 import type { MembershipRole } from "../src/modules/staff/custody-staff-authorizer";
 import {
   checkInConditionLimits,
@@ -72,8 +78,6 @@ const uniqueSuffix = `${process.pid}_${Date.now()}_${randomBytes(4).toString("he
 const testDatabaseName = `valet_004g_app_${uniqueSuffix}`;
 const runtimeRole = `valet_runtime_condition_${uniqueSuffix}`;
 const runtimePassword = `runtime-${randomUUID()}`;
-const repositoryRoot = resolve(process.cwd(), "../..");
-const pnpmExecutable = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 
 let adminPool: Pool;
 let databaseCreated = false;
@@ -94,64 +98,6 @@ function runtimeUrlFor(databaseName: string): string {
   url.username = runtimeRole;
   url.password = runtimePassword;
   return url.toString();
-}
-
-function redactDatabaseDetails(value: string): string {
-  let redacted = value;
-  for (const secret of [
-    adminDatabaseUrl,
-    testMigrationUrl,
-    testRuntimeUrl,
-    runtimePassword,
-  ]) {
-    if (secret !== undefined && secret !== "") {
-      redacted = redacted.replaceAll(secret, "[REDACTED]");
-    }
-  }
-  return redacted;
-}
-
-async function runPnpm(
-  args: string[],
-  environment: NodeJS.ProcessEnv,
-): Promise<void> {
-  const npmExecPath = process.env.npm_execpath;
-  const command = npmExecPath === undefined ? pnpmExecutable : process.execPath;
-  const commandArgs = npmExecPath === undefined ? args : [npmExecPath, ...args];
-  const childEnvironment = { ...process.env };
-  for (const [key, value] of Object.entries(environment)) {
-    if (value === undefined) delete childEnvironment[key];
-    else childEnvironment[key] = value;
-  }
-  await new Promise<void>((resolvePromise, reject) => {
-    const child = spawn(command, commandArgs, {
-      cwd: repositoryRoot,
-      env: childEnvironment,
-      shell: npmExecPath === undefined && process.platform === "win32",
-      windowsHide: true,
-    });
-    let stdout = "";
-    let stderr = "";
-    child.stdout.on("data", (chunk: Buffer | string) => {
-      stdout += chunk.toString();
-    });
-    child.stderr.on("data", (chunk: Buffer | string) => {
-      stderr += chunk.toString();
-    });
-    child.on("error", reject);
-    child.on("close", (code) => {
-      if (code === 0) resolvePromise();
-      else {
-        reject(
-          new Error(
-            redactDatabaseDetails(
-              `pnpm ${args.join(" ")} failed with exit code ${String(code)}.\n${stdout}\n${stderr}`,
-            ),
-          ),
-        );
-      }
-    });
-  });
 }
 
 async function createFixture(options: FixtureOptions = {}): Promise<Fixture> {
@@ -446,25 +392,48 @@ beforeAll(async () => {
   testMigrationUrl = connectionUrlFor(testDatabaseName);
   testRuntimeUrl = runtimeUrlFor(testDatabaseName);
   const bootstrapPool = new Pool({ connectionString: adminDatabaseUrl });
-  try {
-    await bootstrapPool.query(`CREATE DATABASE "${testDatabaseName}"`);
-    databaseCreated = true;
-  } finally {
-    await bootstrapPool.end();
-  }
-  await runPnpm(["--filter", "@valet/database", "migrate:deploy"], {
+  await timedIssue215FixtureStage("create-db", async () => {
+    try {
+      await bootstrapPool.query(`CREATE DATABASE "${testDatabaseName}"`);
+      databaseCreated = true;
+    } finally {
+      await bootstrapPool.end();
+    }
+  });
+  await timedIssue215FixtureStage("migrate", () => runIssue215FixturePnpm(
+    ["--filter", "@valet/database", "migrate:deploy"], {
     DATABASE_URL: undefined,
     MIGRATION_DATABASE_URL: testMigrationUrl,
     NODE_ENV: "test",
-  });
-  await runPnpm(["--filter", "@valet/database", "runtime:provision"], {
+  }, [adminDatabaseUrl, testMigrationUrl, testRuntimeUrl, runtimePassword]));
+  await reportIssue215MigrationTimings(testMigrationUrl);
+  await timedIssue215FixtureStage("provision", () => runIssue215FixturePnpm(
+    ["--filter", "@valet/database", "runtime:provision"], {
     DATABASE_URL: testRuntimeUrl,
     MIGRATION_DATABASE_URL: testMigrationUrl,
     NODE_ENV: "test",
-  });
+  }, [adminDatabaseUrl, testMigrationUrl, testRuntimeUrl, runtimePassword]));
   runtimeRoleCreated = true;
-  adminPool = new Pool({ connectionString: testMigrationUrl });
-  runtimePool = createRuntimePostgresPool(testRuntimeUrl);
+  await timedIssue215FixtureStage("runtime-pools", async () => {
+    adminPool = new Pool({ connectionString: testMigrationUrl });
+    runtimePool = createRuntimePostgresPool(testRuntimeUrl);
+    const rawProbe = new Pool({ connectionString: testRuntimeUrl, max: 1 });
+    try {
+      await rawProbe.query("SELECT current_user");
+      await runtimePool.query("SELECT current_user");
+      await new RuntimeDatabaseLifecycle(runtimePool).onApplicationBootstrap();
+      await withDatabaseOperationDeadline(() =>
+        inPostgresTransaction(runtimePool, async (tx) => {
+          await tx.query("SELECT 1 AS supports_pg16_guest_budget");
+        }),
+      );
+    } catch (error) {
+      const code = (error as { code?: string }).code ?? "NO_SQLSTATE";
+      throw new Error(`Runtime connection probe failed (SQLSTATE=${code})`, { cause: error });
+    } finally {
+      await rawProbe.end();
+    }
+  });
 }, 120_000);
 
 afterAll(async () => {

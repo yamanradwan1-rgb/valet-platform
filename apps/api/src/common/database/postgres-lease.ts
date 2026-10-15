@@ -18,7 +18,8 @@ export async function configureGeneralLease(
   const config = {
     text:
       "SELECT set_config('statement_timeout',$1,false), " +
-      "set_config('transaction_timeout',$2,false), " +
+      "CASE WHEN current_setting('server_version_num')::int >= 170000 " +
+      "THEN set_config('transaction_timeout',$2,false) ELSE NULL END, " +
       "set_config('idle_in_transaction_session_timeout',$3,false), " +
       "set_config('lock_timeout',$4,false)",
     values: [
@@ -68,8 +69,10 @@ export function ownPostgresLease(
     }
     const reset = {
       text:
-        "RESET statement_timeout; RESET transaction_timeout; " +
-        "RESET idle_in_transaction_session_timeout; RESET lock_timeout",
+        "RESET statement_timeout; RESET idle_in_transaction_session_timeout; " +
+        "RESET lock_timeout; SELECT CASE WHEN " +
+        "current_setting('server_version_num')::int >= 170000 " +
+        "THEN set_config('transaction_timeout','0',false) ELSE NULL END",
       query_timeout: runtimeDatabaseBudgets.acquireMs,
     };
     void client.query(reset).then(

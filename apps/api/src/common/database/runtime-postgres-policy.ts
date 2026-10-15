@@ -100,7 +100,9 @@ export function runtimePostgresPolicy(environment: NodeJS.ProcessEnv): {
       lock_timeout: runtimeDatabaseBudgets.lockMs,
       idle_in_transaction_session_timeout:
         runtimeDatabaseBudgets.idleTransactionMs,
-      options: `-c transaction_timeout=${runtimeDatabaseBudgets.transactionMs}`,
+      // PostgreSQL 16 has no transaction_timeout GUC (introduced in 17).
+      // The lease watchdog below enforces this budget on older servers,
+      // while configureGeneralLease installs the native GUC on PG17+.
     },
   };
 }

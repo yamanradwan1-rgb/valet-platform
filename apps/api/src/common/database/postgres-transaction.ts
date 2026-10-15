@@ -8,7 +8,6 @@ import {
   isGuestDatabaseOperation,
   remainingDatabaseOperationMs,
 } from "./runtime-database-deadline";
-import { runtimeDatabaseBudgets } from "./runtime-postgres-policy";
 
 export async function inPostgresTransaction<T>(
   pool: PostgresPool,
@@ -21,14 +20,18 @@ export async function inPostgresTransaction<T>(
   beginTransactionOutcomes(transaction);
   try {
     const remaining = remainingDatabaseOperationMs();
-    if (
-      isGuestDatabaseOperation() &&
-      remaining < runtimeDatabaseBudgets.transactionMs
-    ) {
-      shortened = true;
-      // PostgreSQL arms transaction_timeout at transaction start, not a later SET LOCAL.
-      // A separate autocommit SET must finish before BEGIN starts the protected work.
-      await transaction.query(`SET transaction_timeout = '${remaining}ms'`);
+    if (isGuestDatabaseOperation()) {
+      // PG16 lacks transaction_timeout. Its bounded lease and operation
+      // watchdog still terminate this connection at the request deadline;
+      // PG17+ always arms its server-native 5s-or-shorter limit before BEGIN,
+      // including early guest requests with their full remaining budget.
+      const capability = await transaction.query<{ supports_timeout: boolean }>(
+        "SELECT current_setting('server_version_num')::int >= 170000 AS supports_timeout",
+      );
+      if (capability.rows[0]?.supports_timeout) {
+        shortened = true;
+        await transaction.query(`SET transaction_timeout = '${remaining}ms'`);
+      }
     }
     await transaction.query("BEGIN");
     const result = await action(transaction);

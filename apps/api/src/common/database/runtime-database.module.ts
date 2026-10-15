@@ -31,27 +31,30 @@ export class RuntimeDatabaseLifecycle
     const result = await withDatabaseOperationDeadline(() =>
       this.pool.query<{
         version: number;
-        transaction_timeout: string;
+        transaction_timeout: string | null;
         statement_timeout: string;
         lock_timeout: string;
         idle_timeout: string;
       }>(
         `SELECT current_setting('server_version_num')::int AS version,
-       current_setting('transaction_timeout') AS transaction_timeout,
+       current_setting('transaction_timeout', true) AS transaction_timeout,
        current_setting('statement_timeout') AS statement_timeout,
        current_setting('lock_timeout') AS lock_timeout,
        current_setting('idle_in_transaction_session_timeout') AS idle_timeout`,
       ),
     );
     if (
-      (result.rows[0]?.version ?? 0) < 170000 ||
-      result.rows[0]?.transaction_timeout !== "5s" ||
+      (result.rows[0]?.version ?? 0) < 160000 ||
+      (result.rows[0]?.version ?? 0) >= 170000 &&
+        !["0", "0ms", "5s"].includes(result.rows[0]?.transaction_timeout ?? "") ||
+      (result.rows[0]?.version ?? 0) < 170000 &&
+        result.rows[0]?.transaction_timeout !== null ||
       result.rows[0]?.statement_timeout !== "3s" ||
       result.rows[0]?.lock_timeout !== "2s" ||
       result.rows[0]?.idle_timeout !== "2s"
     )
       throw new Error(
-        "Runtime database requires verified PostgreSQL 17 transaction deadlines.",
+        "Runtime database requires PostgreSQL 16+ with verified supported deadlines.",
       );
     if (process.env.NODE_ENV === "production") {
       await verifyProductionRuntimeDatabaseSafety(this.pool);
