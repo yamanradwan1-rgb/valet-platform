@@ -78,6 +78,36 @@ normalize and read back real private JPEG bytes. P3 alone will consume trusted
 verification plus live object availability in condition completion. Missing
 provider, retention and physical acceptance gates remain open.
 
+### Issue #215 / #292 — required-policy recovery after optional marker
+
+Forward migrations
+`20261015008200_issue_215_condition_photo_policy_recovery` and
+`20261015008300_issue_215_condition_photo_policy_recovery_finish` replace the
+same five restricted photo mutation function signatures and their internal
+`condition_photo_authorized_scope` predicate. Upload/reconcile/mark/failure/
+finalize remains authorized only for an active, scoped Staff member while the
+ValetSession is `CHECKING_IN` and either its condition marker is absent or its
+**current** effective Organization-default/Location-override photo policy is
+`REQUIRED`. The latter repairs the historical OPTIONAL marker followed by an
+authorized policy change to REQUIRED. The new internal
+`condition_photo_session_open_for_upload(uuid)` helper locks both policy rows
+with `FOR SHARE` after the existing session row lock until transaction commit;
+later changes to OPTIONAL cannot race an already accepted upload transition.
+The helper is `SECURITY DEFINER` with fixed `search_path` and PUBLIC EXECUTE
+revoked. Existing Staff role/location authorization and current final Check-In
+policy/object proof remain authoritative. Prior marker timestamp, audit event,
+custody version, session lifecycle, Task state, and immutable photo evidence are
+unchanged.
+
+Issue #286 disposition: `REJECTED` remains a reserved terminal state until an
+owner-approved **conclusive post-reservation** failure class and public reason
+exist. Invalid JPEG bytes are rejected **before** T1 and need no operation row.
+Provider timeouts, uncertain writes/read-back, delayed object versions and other
+unknown outcomes remain fenced `PENDING` until explicit authorized reconciliation
+or the existing DB-time expiry/lease-safe maintenance marks them `EXPIRED`.
+Neither a generic PENDING-to-REJECTED mutation nor a fabricated public rejection
+reason is authorized in this migration.
+
 ## DEC-101 — Guest Web Push v1 durable registration, READY intent and delivery
 
 Status: **Owner architecture approved** (2026-10-08); **not a production
