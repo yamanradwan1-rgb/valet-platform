@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
@@ -116,6 +116,10 @@ export class WaPgMultiReplicaFixture {
     const { org, member, location, binding, policy } = scope;
     const customer = randomUUID(), vehicle = randomUUID(), session = randomUUID();
     const digest = `hmac:v1:${Buffer.from(randomUUID().replaceAll("-", "")).toString("base64url")}`;
+    // Unique, test-only SHA-256 fingerprint derived from the synthetic session ID.
+    // No bearer token is generated or retained; keep the DB uniqueness invariant.
+    const tokenHash = `sha256:v1:${createHash("sha256")
+      .update(`w4-multireplica-test:${session}`).digest("hex")}`;
     await db.query(`INSERT INTO customers(id,organization_id,phone_normalized,updated_at)
       VALUES($1,$2,$3,clock_timestamp())`,
     [customer, org, `+1555${Math.floor(Math.random() * 8999999 + 1000000)}`]);
@@ -126,7 +130,7 @@ export class WaPgMultiReplicaFixture {
       customer_access_generation,state,checked_in_by_membership_id,updated_at)
       VALUES($1,$2,$3,$4,$5,$6,clock_timestamp()+interval '1 day',1,
         'CHECKING_IN',$7,clock_timestamp())`,
-    [session, org, location, vehicle, customer, `sha256:v1:${"a".repeat(64)}`, member]);
+    [session, org, location, vehicle, customer, tokenHash, member]);
     const { rows: permissions } = await db.query<{ id: string }>(`
       SELECT outbound_permission_change($1,$2,'synthetic-optin-proof',
         clock_timestamp()-interval '10 seconds',clock_timestamp()+interval '1 hour',
