@@ -1,11 +1,13 @@
 # W7 — Independent security and integration acceptance (provisional)
 
-**CURRENT VERDICT: FIX REQUIRED / BLOCKED — NOT GO.** The formerly scoped
-five-defect PASS on `767964267ac822aa032111b743c15149cb0c402c`
-is **superseded for acceptance purposes** by a newly W1-verified real-PG
-dispatch-finalization defect (**W7-F33-R2**) affecting legitimate retries,
-plus its changed-phone state transition. See the appended defect register.
-There is **no W7 security acceptance on 767 or earlier source**.
+**LATEST INDEPENDENT VERDICT on exact source
+`500a5f6802437370251cfba7d5eb8dbbfe51de77`:
+SCOPED REMEDIATION PASS; FINAL ACCEPTANCE BLOCKED — NOT GO.**
+W7 independently reproduced positive and adversarial acceptance probes for
+the 093 retry/phone-change correction and the five prior security findings.
+The **root protected PostgreSQL suite is not proven complete**, so this is
+not a release or production approval. The former 767 source remains
+superseded and explicitly not approved.
 
 The historical original-source verdict at `6b1810d3` remains
 **FIX REQUIRED**. The historical defect reproductions below are preserved;
@@ -22,7 +24,8 @@ the new exact-SHA re-review and its distinct test evidence are at the end.
 | QA workspace | `/valet-platform/tmp/wa-w7-independent-review` |
 | Scope | Complete feature diff, adversarial source checks and selected independent synthetic PostgreSQL/TypeScript negative tests |
 | Status of follow-up fixes | Original 6b source: absent; second-pass 767 source: implemented and scoped independently retested, subject to global QA gates |
-| New finalization defect | `W7-F33-R2`: W1 **real PostgreSQL VERIFIED** SQLSTATE `23514`; W7 independently confirmed contradictory source conditions; prospective migration 093 and W4 regression pending |
+| New finalization defect | `W7-F33-R2`: historical 767 real-PG 23514 defect; migration 093 on exact 500a **PASS scoped W7 retests**, see final section; root acceptance still blocked |
+| Latest W7 exact SHA | `500a5f6802437370251cfba7d5eb8dbbfe51de77`, tested from separate clean QA worktree |
 
 This report records findings on the **original** reviewed SHA only. It is intentionally
 separate from Prime's evidence ledger and does not reproduce a claim of independent
@@ -403,3 +406,79 @@ message or operational enablement is authorized by this W7 report.
 **Present status: FIX REQUIRED / BLOCKED — pending exact 093-containing SHA,
 W4 real-PG negative/race evidence, W7 independent re-test, full cumulative
 suite outcomes and previously documented external gates.**
+
+---
+
+## W7 post-093 independent re-review — 500a5f68 (latest evidence)
+
+**Frozen production-source commit independently checked:**
+`500a5f6802437370251cfba7d5eb8dbbfe51de77`
+(`feat/automatic-whatsapp-guest-access`). This section supersedes the
+historical *open* status of W7-F33-R2 at 767 **for scoped remediation only**.
+The prior source findings and dated reports above remain traceable; they
+must not be used to describe an unresolved bug as fixed on 767 itself.
+W7 switched its own QA worktree directly to exact 500a before evaluating
+the patch. No Prime changes, operator credentials, live recipients,
+provider traffic, production settings, or production databases were used.
+
+### Independently inspected source delta and threat fence
+
+Diff `767964267ac822aa032111b743c15149cb0c402c..500a5f6802437370251cfba7d5eb8dbbfe51de77`:
+the forward-only
+`20261015009300_outbound_post_result_phone_fence/migration.sql`,
+`packages/database/prisma/schema.prisma` matching the new attempt
+flag, W4 nine-case real-PG regression, broadened migration smoke,
+and validation docs. Historical migrations 086–092 were **not rewritten**.
+No new Meta transport/Guest browser/UI application surface is modified.
+
+| Security/reliability invariant | W7 evidence at exact 500a | Result |
+|---|---|---|
+| **W7-F33-R2: stale `DISPATCHING -> RETRY_WAIT` SQLSTATE 23514** | 093 replaces the 086 delivery guard with a narrow exception requiring the same-tenant delivery's **current ordinal** attempt to be durably `NOT_SENT`/`DEFINITIVE_FAILURE`, no provider message ID, no positive correlated callback, and no routing-uncertainty flag. W7's PG17 smoke and W4 nine-case real PG tests confirm legitimate unchanged-phone negative outcomes commit `RETRY_WAIT` with ciphertext, while direct unproven requeue still receives 23514. | **PASS scoped** |
+| **Upgrading pre-existing in-flight attempts** | 093 first adds NOT NULL `recipient_routing_uncertain DEFAULT true` so old rows fail closed, then sets column DEFAULT false for new attempts. W7 authored its own *separate* pre-093 database upgrade probe: apply **92 historical migrations**; create real synthetic attempt; apply 093; old row reads **true**, new attempt reads **false**, catalog default is `false`, and forced `true -> false` UPDATE is **denied 23514**. | **PASS independent upgrade proof** |
+| **Customer phone changes during `DISPATCHING`** | 093 Customer UPDATE trigger locks linked deliveries/attempts in Customer→Delivery→Attempt order and irreversibly marks active attempt routing uncertain, without leaking canonical phone or HMAC. Proven negative `DEFINITIVE_FAILURE`/`NOT_SENT` finalization becomes `SUPPRESSED`; lease and future claim cleared, ciphertext purged. W7's PG17 smoke and nine-case W4 race suite directly confirm this. | **PASS scoped** |
+| **No double-send/false acceptance from uncertain transport** | `UNKNOWN` after phone drift stays terminal, envelope purged, no retry; no-proof `DISPATCHING -> RETRY_WAIT` is rejected. Pre-existing uncertain attempts are not treated as safe retry candidates. | **PASS scoped** |
+| **Signed callback-first and accepted precedence** | 093 preserves 089/091's authenticated `SENT`/`DELIVERED`/`READ` precedence, including positive callback before negative HTTP completion and terminal `ACCEPTED` with envelope purge. Invalid bare ID, forged delivery timestamp, `FAILED` and absent proof cannot create a resend. | **PASS scoped** |
+| **W7-P1-01, API impersonates verified provider** | Actual PostgreSQL restricted API-runtime INSERT supplying enabled/verified/evidence/revision/timestamp rejected with **42501**; legacy full-table grant repaired by 090, safe unverified onboarding and scoped updates preserved, PUBLIC grants and sender/webhook isolation checked. | **PASS scoped** |
+| **W7-P1-02 and subsequent W3-P2 Meta webhook grammar** | Independent direct TypeScript probe on exact 500a: **3** bounded padded `wamid` accepted by both provider and webhook; **8** malformed/foreign/oversized IDs rejected by **both**; signed webhook WABA and phone authority IDs stay strict. | **PASS scoped** |
+| **W7-F11 callback-before-crash** | PG17 signed `SENT`/`DELIVERED`/`READ` recovery `ACCEPTED`; negative/forged evidence recovery `UNKNOWN`; purge, idempotence and no replay. | **PASS scoped** |
+| **W7-F33 original queued phone-drift bug** | `PENDING`/`LEASED`/`RETRY_WAIT` phone edits immediately suppress and purge, no-op/rollback and unrelated customer isolation; after permit, no stale sender confirm. | **PASS scoped** |
+| **W7-K01 issuer wrongly accepts private RSA PEM** | Independent RSA-3072 public-key success and private PKCS#8, private PKCS#1 and concatenated public+private PEM fail closed. | **PASS scoped** |
+
+### Exact W7 commands and results (own worktree, not Prime's)
+
+| Executed validation | Result |
+|---|---|
+| `git rev-parse HEAD` before tests | **500a5f6802437370251cfba7d5eb8dbbfe51de77** |
+| `node packages/database/scripts/outbound-migration-smoke.mjs` | **Exit 0**: **93 pristine migrations** on unique disposable local PG17 database; restricted role ACL / forged Meta binding 42501 / tenant scope / 091 crash / 092 phone drift / **093 legal retry, drift suppression, signed callback priority, UNKNOWN, no-proof deny** / purges all PASS; OFF/OFF controls |
+| `pnpm exec vitest run --config vitest.config.mjs --project api-postgres-race test/whatsapp-worker-phone-change-pg.test.ts` (from `apps/api`) | **Exit 0: 9/9 PASS**, 1 file, 23.06 seconds tests, 24.20 seconds total; includes both new definitive-negative changed-vs-unchanged phone scenarios, UNKNOWN terminal, permit/confirm and two Customer/Delivery lock race tests |
+| PostgreSQL test harness cleanup | `db=0 roles=0 children=0`, independent test run `run_api-postgres-race_mq0_f5c799d65571`; safe local target `127.0.0.1:5432/valet`, synthetic database names |
+| `pnpm --filter @valet/api exec vitest run --config vitest.config.mjs --project api-non-postgres whatsapp-` | **Exit 0, 93/93 PASS**, 16 files |
+| `node --test scripts/whatsapp-ui-freeze-guard.test.mjs` | **Exit 0, 3/3 PASS** |
+| `node scripts/whatsapp-ui-freeze-guard.mjs` | **Exit 0, 126 changed paths PASS**; manifest guard unchanged |
+| W7 independent stdin `node --experimental-strip-types --input-type=module -` | **Exit 0**, provider+webhook three accepted padded IDs, eight rejected malformed IDs, two invalid padded authority IDs rejected, RSA private-key negatives PASS |
+| W7 independently authored **pre-093 → 093** schema/ACL negative fixture via `node --input-type=module -` | **Exit 0**, 92 migrations + 093, **old routing flag true**, **new false**, **default false**, attempts to clear old flag **23514**; disposable database and synthetic role cleanup |
+
+W7 reviewed and invoked the **shipped SQL smoke**; W7 also independently
+authored the separate upgrade-edge and TS-boundary probes through stdin.
+The **W4 nine-case PG suite was actually independently run by W7**, not
+merely read from Prime's report. Its run used the repository's real
+`api-postgres-race` harness with its own cluster lease on localhost
+5432. The protected Issue #215 full PostgreSQL suite was **not** run
+or bypassed by W7. No new confirmed P0/P1 was identified in the
+post-767 delta; the absence of a discovered issue does not establish
+complete vulnerability coverage.
+
+### Final decision boundary
+
+**Security fixes against the named W7 P1/P2 findings: independently PASS
+the scoped and negative real-PostgreSQL tests on exact 500a.**
+**Overall final acceptance: BLOCKED / NOT GO.** At this reporting point
+there is no verified successful **full root PostgreSQL** run on exact
+500a and no final comprehensive root non-PG differential acceptance
+from W7. Prime reports the protected root PG run remains unresolved;
+it is not replaced by 93-migration SQL smoke or 9/9 W4 focused races.
+Physical Native validation, real Meta onboarding/template/recipient
+fragment, consent governance, key custody/backup/restore, F01–F45 full
+matrix and separate activation/deployment approvals also remain outside
+this scoped QA. Do not enable sending or initial issuance, push to
+production, merge/deploy or interpret this report as a GO.
