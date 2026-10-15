@@ -8,6 +8,7 @@ export const photoReadTables = [
 export const photoPrivateTables = [
   ...photoReadTables,
   "public.condition_photo_upload_admission",
+  "public.condition_photo_cleanup_claims",
 ];
 
 export const photoRuntimeFunctions = [
@@ -22,6 +23,12 @@ export const photoRuntimeFunctions = [
 export const photoMaintenanceFunctions = [
   "public.condition_photo_expire_operation(uuid)",
   "public.condition_photo_abandon_attempt(uuid)",
+  "public.condition_photo_maintenance_expired_candidates(integer)",
+  "public.condition_photo_maintenance_abandoned_candidates(integer)",
+  "public.condition_photo_maintenance_claim_abandoned(uuid,uuid,text)",
+  "public.condition_photo_maintenance_finish_claim(uuid,uuid)",
+  "public.condition_photo_maintenance_available_candidates(integer,uuid)",
+  "public.condition_photo_maintenance_mark_unavailable(uuid,text)",
 ];
 
 export async function listPhotoFunctions(client) {

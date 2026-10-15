@@ -8,6 +8,7 @@
     "start": "node dist/main.js",
     "start:push-worker": "node dist/staff-push-worker.js",
     "start:guest-push-worker": "node dist/guest-push-worker.js",
+    "start:photo-maintenance-worker": "node dist/condition-photo-maintenance-worker.js",
     "lint": "eslint src test tools --max-warnings=0",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node ../../scripts/test-harness/run-package-tests.mjs api",

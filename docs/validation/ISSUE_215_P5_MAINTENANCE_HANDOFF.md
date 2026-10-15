@@ -1,6 +1,6 @@
 # Issue #215 P5 — Maintenance and privacy handoff
 
-Status: **SOURCE READY FOR INTEGRATION; AUTOMATIC CLEANUP DISABLED; RELEASE NO-GO**.
+Status: **P5 CODE DELIVERED; AUTOMATIC CLEANUP DISABLED; RELEASE NO-GO**.
 This record applies to branch `codex/issue-215-p5-maintenance` after the
 independently assigned #288/#290 work, not to production or a released worker.
 
@@ -38,25 +38,35 @@ independently assigned #288/#290 work, not to production or a released worker.
 
 ## Ordered forward-migration dependency
 
-The currently pinned P1 migration provides `condition_photo_expire_operation`
-and `condition_photo_abandon_attempt` as SECURITY DEFINER functions, but the
-maintenance DB role has **no candidate discovery** and no durable claim token.
-It also has no independent SYSTEM availability writer: the existing
-`condition_photo_set_availability` takes a current Staff user/membership, which
-scheduled maintenance must never impersonate. Until the migration owner and
-prime authorize the next ordered additive migration, these libraries have no
-production DB adapter or scheduled entrypoint and cannot run an autonomous
-sweep. Do not add generic direct table SELECT/UPDATE grants as a shortcut.
+Forward-only migrations `20261015008400` and `20261015008500` supply bounded
+SECURITY DEFINER candidate discovery, durable generation/lease claims, strict
+object alias exclusion, SYSTEM integrity audit and role-only function grants.
+They extend deferred coherence/audit triggers with SECURITY DEFINER while
+retaining the original fixed `search_path` and denying EXECUTE to PUBLIC,
+maintenance and runtime roles. Actual PG16/17 tests verified these boundaries.
 
-The approved migration must supply least-privileged bounded read functions,
-atomic operation/attempt claims with persisted owner/lease generation,
-verification/selection/incident-preservation checks, fenced cleanup check
-updates, and a trusted SYSTEM availability transition + append-only audit.
-Every function must have a fixed safe `search_path`, PUBLIC EXECUTE revoked,
-no generic finalize/grants and real restricted-role tests. After it is
-integrated, add a dedicated offline process/entrypoint, stop signal, DB pool
-with maintenance credentials, and provider cleanup principal. The API's normal
-upload identity must never have DeleteObjectVersion permission.
+`PostgresConditionPhotoMaintenanceJournal` and
+`PostgresConditionPhotoIntegrityJournal` use only the dedicated role's SQL
+entrypoints. The independent `condition-photo-maintenance-worker` executes
+expiry by database time and optionally exact version integrity reads.
+Deletion is never invoked: the worker has a throwing no-delete storage and
+rejects `CONDITION_PHOTO_MAINTENANCE_DELETE_ENABLED=true` at startup. A restart
+preserves DB tombstones/claims; stop signals close the DB pool cleanly.
+
+The work cannot unblock deletion until approved independent incident/reference
+ingress serialization and verified retention/hold ownership. A positive
+`pairedRestoreProved` input in dormant S3 cleanup helpers is not production
+proof. Never add broad SELECT/UPDATE grants as a shortcut.
+
+The maintenance service requires its own deployment process with
+`CONDITION_PHOTO_MAINTENANCE_ENABLED=true`, `CONDITION_PHOTO_MAINTENANCE_ROLE`,
+`CONDITION_PHOTO_MAINTENANCE_DATABASE_URL`, and optional bounded
+`CONDITION_PHOTO_MAINTENANCE_BATCH_SIZE` (1–100). The integrity mode is opt-in
+with `CONDITION_PHOTO_MAINTENANCE_INTEGRITY_ENABLED=true` and separate approved
+private storage configuration/READ IAM. A failed startup cannot silently use
+the API database account. Invoke the built worker with
+`pnpm --filter @valet/api start:photo-maintenance-worker` only in reviewed
+nonproduction qualification or after formal release approval.
 
 ## Deployment checklist and policy authority
 
@@ -86,10 +96,19 @@ verify paired DB+S3 backup identity and exact immutable version, and use only
 an approved restore procedure. Never synthesize a new VERIFIED row, silently
 mark an unknown object AVAILABLE, or erase history to make a restore pass.
 
-Local non-PostgreSQL tests simulate concurrent sweepers, late PUT following
+`node packages/database/scripts/verify-issue215-p5-local.mjs` creates and
+attests two task-owned PG16 and PG17 Docker containers, each digest-pinned
+from the local image, uniquely labeled and backed by tmpfs with an isolated
+loopback port. It performs all 85 migrations in each container and passes
+23 real assertions in each: candidate expiry, two claims, fenced completion,
+legacy reference, incident, strict restricted roles, SYSTEM integrity/audit
+exactly once, and deferred trigger security. Both test containers are removed
+on success or failure after live identity attestation. There is no shared DB
+target, and Docker images are not pulled implicitly.
+
+The API focused tests pass 26/26 non-PostgreSQL cases. They simulate concurrent sweepers, late PUT following
 deletion, restart after DB acknowledgement loss, selected/held protection,
 foreign references, provider/backup gates, unversioned safety, integrity
 uncertainty and backup mismatch. Real hard crash, read/write S3 consistency,
-IAM denial, actual PostgreSQL concurrency and paired restore remain required
-before #288/#290 acceptance. No production command is documented because the
-requisite migration/isolated worker wiring and provider have not been approved.
+actual IAM denial, approved retention/holds and paired backup restore remain
+required before production #288/#290 acceptance. No object deletion is approved.

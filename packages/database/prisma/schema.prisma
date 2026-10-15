@@ -1476,11 +1476,25 @@ model ConditionPhotoUploadAttempt {
   valetSession ValetSession @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "condition_photo_attempts_session_fkey")
   actorMembership OrganizationMembership @relation(fields: [organizationId, actorMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "condition_photo_attempts_actor_fkey")
   verification VehiclePhotoVerification? @relation("UploadAttemptVerification")
+  cleanupClaim ConditionPhotoCleanupClaim?
 
   @@unique([operationId, attemptNumber], map: "condition_photo_attempts_operation_number_key")
   @@unique([id, operationId, organizationId, locationId, valetSessionId, actorMembershipId, objectKey], map: "condition_photo_attempts_verification_scope_key")
   @@index([actorMembershipId, status, leaseExpiresAt], map: "condition_photo_attempts_live_lease_idx")
   @@map("condition_photo_upload_attempts")
+}
+
+model ConditionPhotoCleanupClaim {
+  attemptId String @id @map("attempt_id") @db.Uuid
+  claimId String @unique @map("claim_id") @db.Uuid
+  generation BigInt @default(1)
+  leaseExpiresAt DateTime @map("lease_expires_at") @db.Timestamptz(3)
+  changedAt DateTime @default(now()) @map("changed_at") @db.Timestamptz(3)
+
+  attempt ConditionPhotoUploadAttempt @relation(fields: [attemptId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([leaseExpiresAt, attemptId], map: "condition_photo_cleanup_claims_lease_idx")
+  @@map("condition_photo_cleanup_claims")
 }
 
 model VehiclePhotoVerification {
