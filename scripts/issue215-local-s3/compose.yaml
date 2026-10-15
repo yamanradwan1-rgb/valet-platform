@@ -14,3 +14,4 @@ services:
       vaylet.issue: "215"
       vaylet.task: "282"
       vaylet.owner: "issue215-s3-worker4"
+      vaylet.run: ${ISSUE215_S3_RUN_ID:?required}

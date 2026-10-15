@@ -118,7 +118,8 @@ describe("#284 actual Nest HTTP rejection, tenant authority and custody isolatio
     const result = await h.upload(
       scope.sessionId, authorization, randomUUID(), await syntheticJpeg(),
     );
-    expect(result.status).toBe(409);
+    // The completed session is deliberately hidden by current-scope authorization.
+    expect(result.status).toBe(404);
     expect(await evidenceCount(scope.sessionId)).toEqual({
       operations: 0, verifications: 0, audits: 2,
     });

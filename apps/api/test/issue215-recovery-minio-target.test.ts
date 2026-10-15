@@ -23,6 +23,7 @@ const environment = {
 };
 const container = {
   Id: "3aabca66b44715267505e7222e0e55602675c8a2518c0bd64755737c730752ea",
+  Image: "sha256:2136d593beacf4461187035eca949fe49abd589d5079735025c711ca58fee0c8",
   Name: "/issue215-s3-worker4-minio-1",
   Config: {
     Image: "cgr.dev/chainguard/minio@sha256:2136d593beacf4461187035eca949fe49abd589d5079735025c711ca58fee0c8",
@@ -47,6 +48,28 @@ describe("#285 live MinIO owner attestation gates database setup", () => {
     const accepted = assertRecoveryMinioRuntime(environment, runtime);
     expect(accepted.endpoint).toBe(runtime.endpoint);
     expect(() => assertRecoveryMinioDocker([container], accepted)).not.toThrow();
+  });
+
+  it("accepts a newly minted run only with matching exact container ID and run label", () => {
+    const fresh = { ...runtime, runId: "a".repeat(32), containerId: "b".repeat(64) };
+    const accepted = assertRecoveryMinioRuntime(environment, fresh);
+    const attested = {
+      ...container, Id: fresh.containerId,
+      Config: { ...container.Config, Labels: {
+        ...container.Config.Labels, "vaylet.run": fresh.runId,
+      } },
+    };
+    expect(() => assertRecoveryMinioDocker([attested], accepted)).not.toThrow();
+    expect(() => assertRecoveryMinioDocker([{
+      ...attested, Config: { ...attested.Config, Labels: {
+        ...attested.Config.Labels, "vaylet.run": "c".repeat(32),
+      } },
+    }], accepted)).toThrow();
+    expect(() => assertRecoveryMinioDocker([{ ...attested, Id: "c".repeat(64) }],
+      accepted)).toThrow();
+    expect(() => assertRecoveryMinioDocker([
+      { ...attested, Mounts: [{ Type: "volume" }] },
+    ], accepted)).toThrow();
   });
 
   it.each([
