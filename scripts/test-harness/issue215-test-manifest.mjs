@@ -3,6 +3,13 @@
 // Keep this list explicit: filename globs and arbitrary CLI flags are not
 // authoritative test selection.
 export const ISSUE215_PROJECT = "database-postgres-issue215";
+export const ISSUE215_API_PROJECT = "api-postgres-issue215";
+export const issue215ApiPostgresFiles = Object.freeze([
+  "issue215-real-http-integration.test.ts",
+  "issue215-recovery-real-s3.integration.test.ts",
+  "issue215-recovery.integration.test.ts",
+  "issue215-staff-credential-races.test.ts",
+]);
 export const issue215PostgresFiles = Object.freeze([
   "condition-photo-p1-audit-availability.integration.test.ts",
   "condition-photo-p1-integrity.integration.test.ts",
@@ -16,4 +23,12 @@ export const issue215PostgresFiles = Object.freeze([
 
 export function isIssue215PostgresFile(file) {
   return issue215PostgresFiles.includes(file);
+}
+
+export function isIssue215ApiPostgresFile(file) {
+  return issue215ApiPostgresFiles.includes(file);
+}
+
+export function isIssue215ProtectedProject(projectName) {
+  return projectName === ISSUE215_PROJECT || projectName === ISSUE215_API_PROJECT;
 }

@@ -1,12 +1,12 @@
 import { createRequire } from "node:module";
 
 import { preflightIssue215TestTarget } from "../../packages/database/src/condition-photo-p1-test-target.mjs";
-import { ISSUE215_PROJECT } from "./issue215-test-manifest.mjs";
+import { ISSUE215_API_PROJECT, ISSUE215_PROJECT, isIssue215ProtectedProject } from "./issue215-test-manifest.mjs";
 
 export function requiresIssue215Preflight(selectedProjects = []) {
   // Callers pass project ownership as resolved by the test manifest / runner,
   // not tokens from process.argv, filenames in --exclude or output-file flags.
-  return selectedProjects.includes(ISSUE215_PROJECT);
+  return selectedProjects.some(isIssue215ProtectedProject);
 }
 
 export function requiresIssue215StaleOwnerPreflight(staleOwner) {
@@ -23,6 +23,7 @@ export function requiresIssue215StaleOwnerPreflight(staleOwner) {
   const name = staleOwner.projectName;
   return name === "root-tests" || name === "database-package-tests" ||
     name === "focused-database" || name === ISSUE215_PROJECT ||
+    name === ISSUE215_API_PROJECT ||
     name === "database-postgres-direct" ||
     name === "database-postgres-provision" ||
     (typeof name === "string" && name.startsWith("postgres-projects-database-"));
@@ -32,5 +33,7 @@ export async function preflightIssue215BeforeHarnessCleanup(selectedProjects = [
   if (!requiresIssue215Preflight(selectedProjects)) return;
   const requireFromDatabase = createRequire(new URL("../../packages/database/package.json", import.meta.url));
   const pg = requireFromDatabase("pg");
-  await preflightIssue215TestTarget(pg.Client, ISSUE215_PROJECT);
+  const projectName = selectedProjects.includes(ISSUE215_PROJECT)
+    ? ISSUE215_PROJECT : ISSUE215_API_PROJECT;
+  await preflightIssue215TestTarget(pg.Client, projectName);
 }

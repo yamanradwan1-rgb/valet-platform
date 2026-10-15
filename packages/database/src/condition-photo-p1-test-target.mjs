@@ -9,6 +9,7 @@ import {
 } from "./condition-photo-p1-ci-target.mjs";
 
 const targetError = "Issue 215 test target is not the verified task-owned disposable PostgreSQL container.";
+const protectedProjects = new Set(["database-postgres-issue215", "api-postgres-issue215"]);
 // Fixed identity of the explicitly reviewed Issue-215-only Docker/volume pair.
 // Recreating the container requires a new reviewed test-target attestation.
 const expectedContainerId = "9e5631c9cbd28ed1885923e2bfdd2ae3442f25bc3fa63f80b57c8327bf4c46cc";
@@ -17,7 +18,7 @@ const expectedVolume = "83d0792c7318ace85d94f3824619542a4f8344226b0ff16d091d307e
 export function requireIssue215TestUrl(env = process.env) {
   if (env.VAYLET_ISSUE215_TEST_TARGET === "ci") {
     if (env.NODE_ENV !== "test" ||
-        env.VAYLET_TEST_PROJECT !== "database-postgres-issue215" ||
+        !protectedProjects.has(env.VAYLET_TEST_PROJECT) ||
         !env.VAYLET_TEST_RUN_ID) throw new Error(targetError);
     return requireIssue215CiUrl(env);
   }
@@ -32,7 +33,7 @@ export function requireIssue215TestUrl(env = process.env) {
     url.pathname !== "/issue215_empty" || url.username !== "issue215_owner" ||
     !url.password || url.search !== "" || url.hash !== "" ||
     env.NODE_ENV !== "test" ||
-    env.VAYLET_TEST_PROJECT !== "database-postgres-issue215" ||
+    !protectedProjects.has(env.VAYLET_TEST_PROJECT) ||
     !env.VAYLET_TEST_RUN_ID ||
     ["PGHOST", "PGPORT", "PGDATABASE", "PGUSER", "PGSERVICE", "PGOPTIONS", "PGSSLMODE", "PGSERVICEFILE"].some(
       (key) => Boolean(env[key]),

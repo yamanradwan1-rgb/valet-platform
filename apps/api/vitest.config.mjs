@@ -54,6 +54,7 @@ export default defineConfig({
       postgresProject("api-postgres-standard", "api-standard"),
       postgresProject("api-postgres-compound", "api-compound"),
       postgresProject("api-postgres-race", "api-race"),
+      postgresProject("api-postgres-issue215", "api-race"),
     ],
   },
 });

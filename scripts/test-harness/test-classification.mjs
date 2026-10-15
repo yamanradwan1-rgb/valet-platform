@@ -2,14 +2,17 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, extname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  ISSUE215_API_PROJECT,
   ISSUE215_PROJECT,
+  isIssue215ApiPostgresFile,
   isIssue215PostgresFile,
+  issue215ApiPostgresFiles,
   issue215PostgresFiles,
 } from "./issue215-test-manifest.mjs";
 
 const testFilePattern = /\.(?:test|spec)\.(?:[cm]?[jt]sx?)$/;
 const dbSignalPattern =
-  /(?:new\s+(?:(?:pg\.)?(?:Pool|Client))\s*\(|createRuntimePostgresPool\s*\(|CREATE\s+DATABASE|DROP\s+DATABASE)/i;
+  /(?:new\s+(?:(?:pg\.)?(?:Pool|Client)|fixture\.ConditionPhotoP1TestContext|target\.ConditionPhotoP1OwnedTarget)\s*\(|createRuntimePostgresPool\s*\(|CREATE\s+DATABASE|DROP\s+DATABASE)/i;
 const raceSignalPattern =
   /(?:race|concurren|waitFor(?:Lock|Advisory)|pg_advisory|LOCK\s+TABLE|FOR\s+UPDATE|Promise\.all\s*\()/i;
 const subprocessSignalPattern =
@@ -35,11 +38,22 @@ export function classifyPackageTests({ packageKind, rootDir }) {
   const repositoryDatabaseSource = fileURLToPath(
     new URL("../../packages/database/src/", import.meta.url),
   );
+  const repositoryApiTests = fileURLToPath(
+    new URL("../../apps/api/test/", import.meta.url),
+  );
   if (packageKind === "database" && resolve(rootDir) === resolve(repositoryDatabaseSource)) {
     const known = new Set(discovered.map((file) => normalize(relative(rootDir, file))));
     for (const file of issue215PostgresFiles) {
       if (!known.has(file)) {
         throw new Error(`Issue 215 protected PostgreSQL test missing from discovery: ${file}.`);
+      }
+    }
+  }
+  if (packageKind === "api" && resolve(rootDir) === resolve(repositoryApiTests)) {
+    const known = new Set(discovered.map((file) => normalize(relative(rootDir, file))));
+    for (const file of issue215ApiPostgresFiles) {
+      if (!known.has(file)) {
+        throw new Error(`Issue 215 protected API PostgreSQL test missing from discovery: ${file}.`);
       }
     }
   }
@@ -55,6 +69,9 @@ export function classifyPackageTests({ packageKind, rootDir }) {
     const dbBacked =
       !lazyPostgresOnlyTests.has(relativeFile) &&
       graph.some((entry) => dbSignalPattern.test(entry.source));
+    if (packageKind === "api" && isIssue215ApiPostgresFile(relativeFile) && !dbBacked) {
+      throw new Error(`Issue 215 protected API test ${relativeFile} lost PostgreSQL ownership.`);
+    }
     if (packageKind === "database" && dbBacked &&
         !isIssue215PostgresFile(relativeFile) &&
         (relativeFile.startsWith("condition-photo-") ||
@@ -67,6 +84,8 @@ export function classifyPackageTests({ packageKind, rootDir }) {
     const project =
       packageKind === "database" && isIssue215PostgresFile(relativeFile)
         ? ISSUE215_PROJECT
+        : packageKind === "api" && isIssue215ApiPostgresFile(relativeFile)
+        ? ISSUE215_API_PROJECT
         : packageKind === "api"
         ? classifyApi(file, graph, dbBacked)
         : classifyDatabase(graph, dbBacked);

@@ -11,6 +11,7 @@ const PROJECT_PROFILES = Object.freeze({
   "api-postgres-standard": "api-standard",
   "api-postgres-compound": "api-compound",
   "api-postgres-race": "api-race",
+  "api-postgres-issue215": "api-race",
   "database-postgres-direct": "database-direct",
   "database-postgres-provision": "database-provision",
   "database-postgres-issue215": "database-provision",
