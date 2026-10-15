@@ -21,6 +21,8 @@ export interface OutboundMessageIntent {
   readonly bindingId: string;
   readonly bindingRevision: number;
   readonly policyRevision: number;
+  /** Locks the company default independently of a nullable Location override. */
+  readonly companyPolicyRevision: number;
   readonly templateVersion: string;
   readonly locale: "ar" | "en";
   readonly createdAt: Date;

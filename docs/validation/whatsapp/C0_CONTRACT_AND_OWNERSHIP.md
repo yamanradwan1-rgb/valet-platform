@@ -50,3 +50,23 @@ W1 migration head 085; W1 reserves the next free forward-only timestamp. Work ag
 Three assigned worker sessions (W5, W6 and W7) failed before receiving a composer; the worker runtime reports `failed` and `revivable=false`. They produced no source changes or independent review. Prime temporarily performed their approved work in the **existing** `tmp/wa-w5`, `tmp/wa-w6` and `tmp/wa-w7` isolated worktrees, retaining the same task branches, exclusive path restrictions and task identifiers. These are explicitly Prime-authored patches, not worker-completed reports. W7's acceptance remains **BLOCKED** until an independent reviewer validates the integrated SHA.
 
 Prime's already-owned `notifications.module.ts` is extended with new, dedicated `apps/api/src/modules/notifications/whatsapp-settings-{controller,service,validation}.ts` to implement typed authorized Dashboard settings. Those exact three additional paths are Prime-exclusive. The existing protected Dashboard change remains the sole specified `settings-page.tsx` file plus new sibling WhatsApp components. No other UI exception is authorized.
+
+## C0 contract change 01 — company policy revision fence
+
+W1/W2 notified Prime that the original intent carried only the governing
+Location-policy revision. A nullable Location override inherits typed values
+from the company default; comparing the raw Location row rejects valid inherited
+configuration, and omitting the default revision could enable stale queued
+material after an administrator changes company policy. Prime approves adding
+`companyPolicyRevision: number` to the internal `OutboundMessageIntent` and
+the matching new, forward-only W1 migration column. The issuer pins **both**
+the company default and governing Location revision (or the company revision
+twice for a company-only policy). Dispatch/confirm lock both current rows,
+resolve each effective field using Location override before Company default,
+and reject any changed revision/recipient/template/binding before send.
+
+Consumers: W1 migration/permission SQL, W2 issuance/outbox, W4 dispatch
+and W7 tests. No public Intake/Native/Guest contract changes. No historical
+backfill. This change is a necessary correction to WA-D04/WA-D06 security,
+not an expansion of Owner product semantics. Workers may proceed only against
+the exact Prime-committed interface and report focused tests.
