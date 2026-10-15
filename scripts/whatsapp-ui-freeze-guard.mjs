@@ -27,7 +27,7 @@ export function approvedChange(path, pinnedPaths) {
   }
   if (/^packages\/employee-client\/src\/whatsapp-compat-[a-z0-9-]+\.test\.ts$/.test(path)) return true;
   if (/^apps\/valet-native\/test\/whatsapp-compat-(?:[a-z0-9-]+\.test\.ts|fixture[a-z0-9-]*\.ts)$/.test(path)) return true;
-  if (/^docs\/validation\/whatsapp\/(?:C0_CONTRACT_AND_OWNERSHIP|W[1-7][-_][A-Za-z0-9_-]+)\.md$/.test(path)) return true;
+  if (/^docs\/validation\/whatsapp\/(?:C0_CONTRACT_AND_OWNERSHIP|PRIME_DELIVERY_EVIDENCE|W[1-7][-_][A-Za-z0-9_-]+)\.md$/.test(path)) return true;
   return false;
 }
 
