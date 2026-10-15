@@ -5,6 +5,8 @@ import { runOutboundRoleSmoke } from "./outbound-role-smoke.mjs";
 import { runOutboundConstraintSmoke } from "./outbound-constraint-smoke.mjs";
 import { runOutboundRecoverySmoke } from "./outbound-recovery-smoke.mjs";
 import { runOutboundLateOverrideSmoke } from "./outbound-late-override-smoke.mjs";
+import { runOutboundLateCallbackSmoke } from "./outbound-late-callback-smoke.mjs";
+import { runOutboundOptoutSmoke } from "./outbound-optout-smoke.mjs";
 
 const baseUrl = process.env.TEST_DATABASE_URL ??
   "postgresql://valet:valet@127.0.0.1:5432/valet";
@@ -49,10 +51,12 @@ try {
       || flags.rows.some((item) => item.issue_enabled || item.send_enabled)) {
       throw new Error("Outbound migration schema/control invariant mismatch.");
     }
-    await runOutboundRoleSmoke(client, database, roles);
-    const fixture=await runOutboundConstraintSmoke(client);
+    const principals=await runOutboundRoleSmoke(client, database, roles);
+    const fixture=await runOutboundConstraintSmoke(client,principals.runtime);
     await runOutboundLateOverrideSmoke(client,fixture);
     await runOutboundRecoverySmoke(client,fixture);
+    await runOutboundLateCallbackSmoke(client,fixture);
+    await runOutboundOptoutSmoke(client,fixture);
     console.log(`PASS: ${count} pristine migrations on disposable PG; 12 outbound tables; control OFF/OFF.`);
   } finally {
     await client.end();

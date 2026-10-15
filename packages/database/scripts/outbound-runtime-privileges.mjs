@@ -21,6 +21,9 @@ const runtimeInsert = [
 
 const permittedRuntimeFunctions = [
   "public.outbound_permission_change(uuid,text,text,timestamptz,timestamptz,integer,text)",
+  "public.outbound_read_intake_customer(uuid,uuid,uuid)",
+  "public.outbound_read_intake_permission(uuid,text)",
+  "public.outbound_read_intake_issue_control(text)",
 ];
 
 const allFunctions = [
@@ -30,11 +33,13 @@ const allFunctions = [
   "public.outbound_dispatch_permit(uuid,uuid,text)",
   "public.outbound_confirm_dispatch(uuid,uuid,uuid,text,text)",
   "public.outbound_finish_attempt(uuid,uuid,uuid,text,text,text)",
+  "public.outbound_finish_attempt(uuid,uuid,uuid,text,text,text,integer)",
   "public.outbound_record_provider_event(uuid,uuid,text,text,text,timestamptz,text,text)",
   "public.outbound_resolve_meta_binding(text,text,text)",
   "public.outbound_purge_expired_envelopes(integer)",
   "public.outbound_cleanup_stale(integer)",
   "public.outbound_recover_expired(integer)",
+  "public.outbound_suppress_ineligible(integer)",
   ...permittedRuntimeFunctions,
 ];
 

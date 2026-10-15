@@ -11,7 +11,7 @@ async function fails(client, sql, params, code) {
   }
 }
 
-export async function runOutboundConstraintSmoke(client) {
+export async function runOutboundConstraintSmoke(client, runtimeRole) {
   const org=id(), foreignOrg=id(), location=id(), user=id(), member=id();
   const vehicle=id(), customer=id(), visit=id();
   await client.query("INSERT INTO organizations(id,name,status,timezone,updated_at) VALUES($1,'Outbound Synthetic','ACTIVE','Asia/Amman',clock_timestamp())", [org]);
@@ -45,6 +45,38 @@ export async function runOutboundConstraintSmoke(client) {
   const permission=(await client.query(`SELECT outbound_permission_change(
     $1,$2,'synthetic-optin-proof',clock_timestamp()-interval '10 seconds',
     clock_timestamp()+interval '1 hour',0,'GRANT') AS id`,[org,digest])).rows[0].id;
+  await client.query(`SET ROLE "${runtimeRole}"`);
+  try {
+    const permissionSnapshot=await client.query(
+      "SELECT * FROM outbound_read_intake_permission($1,$2)",[org,digest]);
+    const p=permissionSnapshot.rows[0];
+    if (permissionSnapshot.rows.length!==1 || p.id!==permission || p.revision!==1
+      || p.action!=="GRANT" || p.latest_evidence_reference!=="synthetic-optin-proof"
+      || p.evidence_reference!=="synthetic-optin-proof" || p.withdrawn_at!==null) {
+      throw new Error("API restricted consent helper did not return coherent immutable evidence.");
+    }
+    const customerSnapshot=await client.query(
+      "SELECT * FROM outbound_read_intake_customer($1,$2,$3)",[org,visit,customer]);
+    const issueSnapshot=await client.query(
+      "SELECT * FROM outbound_read_intake_issue_control('test')");
+    if (customerSnapshot.rows.length!==1 || customerSnapshot.rows[0].phone_normalized!=="+15555550199"
+      || issueSnapshot.rows.length!==1 || issueSnapshot.rows[0].issue_enabled!==false) {
+      throw new Error("API Customer/issue-control helpers did not return scoped snapshots.");
+    }
+    const denied=await client.query("SELECT * FROM outbound_read_intake_permission($1,$2)",[foreignOrg,digest]);
+    if (denied.rows.length!==0) throw new Error("Cross-organization consent leaked through function.");
+    for (const sql of [
+      "SELECT * FROM outbound_messaging_permissions FOR SHARE",
+      "SELECT * FROM outbound_messaging_control FOR SHARE",
+      "SELECT * FROM customers FOR SHARE",
+      "SELECT * FROM outbound_permission_events",
+    ]) {
+      await fails(client,sql,[],"42501");
+    }
+  } finally {
+    await client.query("RESET ROLE");
+  }
+  console.log("PASS: issuer scoped customer/consent/event/control FOR SHARE helpers, forbidden direct access.");
   const intent=(await client.query(`INSERT INTO outbound_message_intents(
     organization_id,location_id,valet_session_id,customer_id,credential_generation,
     recipient_digest,permission_id,permission_revision,policy_id,policy_revision,company_policy_revision,
@@ -114,8 +146,8 @@ export async function runOutboundConstraintSmoke(client) {
     if (event.rows[0].ok!==true) throw new Error("Signed callback idempotency failed.");
   }
   const ended=await client.query(
-    "SELECT outbound_finish_attempt($1,$2,$3,'ACCEPTED',$4,NULL) AS ok",
-    [delivery,lease.lease_token,dispatched.attempt_id,"wamid.synthetic"]);
+    "SELECT outbound_finish_attempt($1,$2,$3,'NOT_SENT',NULL,NULL) AS ok",
+    [delivery,lease.lease_token,dispatched.attempt_id]);
   if (ended.rows[0].ok!==true) throw new Error("Accepted attempt finalization failed.");
   const check=await client.query(`SELECT d.state,d.delivered_at,
     (SELECT count(*)::int FROM outbound_message_events WHERE delivery_id=$1) AS events,
@@ -123,7 +155,7 @@ export async function runOutboundConstraintSmoke(client) {
     FROM outbound_message_deliveries d WHERE id=$1`,[delivery,intent.id]);
   const row=check.rows[0];
   if (row.state!=="ACCEPTED" || !row.delivered_at || row.events!==1 || row.envelopes!==0) {
-    throw new Error("Callback-first acceptance, dedupe, or ciphertext purge failed.");
+    throw new Error("Callback-first signed DELIVERED was downgraded to NOT_SENT/retry.");
   }
   console.log("PASS: tenant FK, uniqueness, switch, consent, inherited policy permit, phone/revision fence, callback dedupe, purge.");
   return { org, location, customer, permission, policy, binding, digest, member };

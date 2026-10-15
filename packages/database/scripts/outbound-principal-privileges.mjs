@@ -6,7 +6,9 @@ const senderFunctions = [
   "public.outbound_release_lease(uuid,uuid,timestamptz)",
   "public.outbound_finish_attempt(uuid,uuid,uuid,text,text,text)",
   "public.outbound_purge_expired_envelopes(integer)",
+  "public.outbound_finish_attempt(uuid,uuid,uuid,text,text,text,integer)",
   "public.outbound_cleanup_stale(integer)",
+  "public.outbound_suppress_ineligible(integer)",
   "public.outbound_recover_expired(integer)",
 ];
 const webhookFunctions = [

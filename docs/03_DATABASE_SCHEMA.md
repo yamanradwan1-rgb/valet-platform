@@ -3041,10 +3041,24 @@ timestamp facts monotonically without changing any visit state.
 
 Run `node packages/database/scripts/outbound-migration-smoke.mjs` on the local
 PostgreSQL 17 test server. The script creates one random disposable database
-on loopback, runs all 88 ordered migrations, checks synthetic tenant/consent/
+on loopback, runs all 89 ordered migrations, checks synthetic tenant/consent/
 send/callback invariants and three fresh restricted database roles, and then
 drops only its disposable resources. Tests never access staging or production.
 See `docs/validation/whatsapp/W1_DATABASE_MIGRATION_PROOF.md`. Production
 activation remains blocked on verified opt-in, number ownership, approved
 templates, backup/key lifecycle and the separately authorized operational
 release gates.
+### Stage C callback and intake-lock hardening (migration 089)
+
+Migration 089 makes an authenticated provider SENT/DELIVERED/READ callback
+monotonic even when it arrives before the transport response or after a
+NOT_SENT retry was queued. It cancels pending resend and purges recoverable
+ciphertext. Bounded recovery suppresses outstanding undelivered messages
+following permission withdrawal, visit cancellation, credential consumption or
+generation revocation. API issuance obtains narrow database FOR SHARE
+snapshots with EXECUTE-only SECURITY DEFINER functions:
+`outbound_read_intake_customer(uuid,uuid,uuid)`,
+`outbound_read_intake_permission(uuid,text)` (including current-revision
+immutable GRANT/WITHDRAW evidence), and
+`outbound_read_intake_issue_control(text)`. No additional raw table locking
+or Customer UPDATE privilege is granted to the runtime principal.

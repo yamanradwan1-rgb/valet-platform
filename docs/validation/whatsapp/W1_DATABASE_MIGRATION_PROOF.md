@@ -2,8 +2,8 @@
 
 Baseline: C0 `a087ad38cb249840389e5aefaefbecb47333373f`.
 Scope: isolated `/valet-platform/tmp/wa-w1` worktree, branch
-`feat/wa-w1-database`. New migration heads 086, 087, 088 only; the
-existing 85 migration files remain unchanged.
+`feat/wa-w1-database`. New migration heads 086, 087, 088 and follow-up
+forward-only 089; the existing 85 baseline migration files remain unchanged.
 
 ## Reproducible verification
 
@@ -17,13 +17,16 @@ Observed on local Windows PostgreSQL 17, disposable database:
 
 ```text
 PASS: API/sender/webhook effective privileges, PUBLIC guards, envelope/custody denial.
+PASS: issuer scoped customer/consent/event/control FOR SHARE helpers, forbidden direct access.
 PASS: tenant FK, uniqueness, switch, consent, inherited policy permit, phone/revision fence, callback dedupe, purge.
 PASS: Location override inserted after company-only issuance suppresses send.
 PASS: stale DISPATCHING -> UNKNOWN, attempt fenced, envelope purged, no repeat claim.
-PASS: 88 pristine migrations on disposable PG; 12 outbound tables; control OFF/OFF.
+PASS: callback after NOT_SENT/RETRY_WAIT cancels resend and purges ciphertext.
+PASS: revoked consent suppresses PENDING delivery and purges ciphertext.
+PASS: 89 pristine migrations on disposable PG; 12 outbound tables; control OFF/OFF.
 ```
 
-The runner creates a unique local database, applies all 88 SQL migrations
+The runner creates a unique local database, applies all 89 SQL migrations
 in order and drops it in a finally block. It creates and drops three fresh,
 no-inheritance synthetic API, sender and webhook PostgreSQL roles. Catalog
 ACL checks verify PUBLIC, effective role table/function permissions and
@@ -36,7 +39,8 @@ An effective Location override added after company-only issuance suppresses
 its original intent; override creation synchronizes through a company policy
 row lock. Crash recovery makes a previously dispatched but expired lease
 UNKNOWN, retains its attempt ordinal, purges ciphertext and never reclaims
-the uncertain send.
+the uncertain send. Signed late callbacks cancel queued retries, and
+withdrawn permission suppresses unsent deliveries and purges their envelopes.
 Callback-first DELIVERED deduplicates; ACCEPTED retains facts and purges
 encrypted envelope. No network provider calls or real recipients are used.
 
@@ -61,6 +65,14 @@ is the exact canonical phone), `outbound_finish_attempt`,
 `outbound_record_provider_event(uuid,uuid,text,text,text,timestamptz,text,text)`.
 These are migration-owner SECURITY DEFINER functions, available only to
 the relevant provisioned role with an explicit safe search_path.
+The runtime issuer additionally calls
+`outbound_read_intake_customer(uuid,uuid,uuid)`,
+`outbound_read_intake_permission(uuid,text)` and
+`outbound_read_intake_issue_control(text)` to acquire three narrow
+transactionally locked snapshots. The permission helper returns the
+immutable evidence event matching the current permission revision.
+Restricted PostgreSQL roles can execute these three helpers while direct
+Customer/permission/control FOR SHARE and permission-event SELECT are denied.
 
 API runtime can update company-owned policy/binding fields after the
 separate Company Admin/MFA HTTP authority gate, but cannot edit global

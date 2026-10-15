@@ -57,4 +57,5 @@ export async function runOutboundRoleSmoke(client, database, generatedRoles) {
   }
   if (!denied) throw new Error("SQL sender arbitrary envelope SELECT was not denied.");
   console.log("PASS: API/sender/webhook effective privileges, PUBLIC guards, envelope/custody denial.");
+  return { runtime, sender, webhook };
 }
