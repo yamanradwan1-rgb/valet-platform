@@ -1,0 +1,16 @@
+services:
+  minio:
+    image: cgr.dev/chainguard/minio@sha256:2136d593beacf4461187035eca949fe49abd589d5079735025c711ca58fee0c8
+    command: ["server", "/data", "--address", ":9000"]
+    environment:
+      MINIO_ROOT_USER: ${ISSUE215_S3_ROOT_USER:?required}
+      MINIO_ROOT_PASSWORD: ${ISSUE215_S3_ROOT_PASSWORD:?required}
+      MINIO_KMS_SECRET_KEY: ${ISSUE215_S3_KMS_SECRET_KEY:?required}
+    ports:
+      - "127.0.0.1::9000"
+    tmpfs:
+      - /data:size=134217728,mode=1777
+    labels:
+      vaylet.issue: "215"
+      vaylet.task: "282"
+      vaylet.owner: "issue215-s3-worker4"
