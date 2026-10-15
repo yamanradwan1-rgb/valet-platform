@@ -1,3 +1,5 @@
+import { performance } from "node:perf_hooks";
+
 import type {
   AbandonedPhotoClaim,
   PhotoMaintenanceJournal,
@@ -79,7 +81,7 @@ export async function sweepConditionPhotoMaintenance(
     try {
       // The accepted 60s upload envelope is also the upper bound on external
       // cleanup work while the future DB claim's 120s lease is live.
-      const deadlineAtMs = Date.now() + 60_000;
+      const deadlineAtMs = performance.now() + 60_000;
       const versions = await storage.listExactVersions(claim.objectKey, deadlineAtMs);
       if (versions.length > 20 || versions.some(
         (version) => version.key !== claim.objectKey ||
@@ -91,7 +93,8 @@ export async function sweepConditionPhotoMaintenance(
       // Each version is deleted explicitly. Never issue an unversioned DELETE
       // which merely creates a delete marker or obscures surviving bytes.
       for (const version of versions) {
-        if (Date.now() >= deadlineAtMs) throw new Error("Cleanup claim deadline expired.");
+        if (performance.now() >= deadlineAtMs)
+          throw new Error("Cleanup claim deadline expired.");
         await storage.deleteExactVersion(version, deadlineAtMs);
         count.exactVersionsDeleted++;
       }

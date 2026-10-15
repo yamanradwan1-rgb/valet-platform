@@ -1,3 +1,5 @@
+import { performance } from "node:perf_hooks";
+
 import {
   DeleteObjectCommand,
   ListObjectVersionsCommand,
@@ -18,7 +20,7 @@ export class S3AbandonedPhotoMaintenanceStore implements PhotoMaintenanceStorage
     deadlineAtMs: number,
     work: (signal: AbortSignal) => Promise<T>,
   ): Promise<T> {
-    const remaining = Math.min(15_000, deadlineAtMs - Date.now());
+    const remaining = Math.min(15_000, deadlineAtMs - performance.now());
     if (remaining <= 0) throw new Error("Cleanup claim deadline expired.");
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), remaining);

@@ -1,3 +1,5 @@
+import { performance } from "node:perf_hooks";
+
 import {
   DeleteObjectCommand, ListObjectVersionsCommand,
   type S3Client,
@@ -27,12 +29,12 @@ describe("P5 versioned S3 cleanup identity", () => {
     const adapter = new S3AbandonedPhotoMaintenanceStore(config, {
       send,
     } as unknown as Pick<S3Client, "send">);
-    const versions = await adapter.listExactVersions(key, Date.now() + 60_000);
+    const versions = await adapter.listExactVersions(key, performance.now() + 60_000);
     expect(versions).toEqual([
       { key, version: "immutable-version-1" },
       { key, version: "delete-marker" },
     ]);
-    for (const version of versions) await adapter.deleteExactVersion(version, Date.now() + 60_000);
+    for (const version of versions) await adapter.deleteExactVersion(version, performance.now() + 60_000);
     expect(send).toHaveBeenCalledTimes(3);
     expect(send.mock.calls[0]?.[0]).toBeInstanceOf(ListObjectVersionsCommand);
     const deletes = send.mock.calls.slice(1).map(([command]) => command);
@@ -47,12 +49,12 @@ describe("P5 versioned S3 cleanup identity", () => {
     const unversioned = new S3AbandonedPhotoMaintenanceStore(config, {
       send: async () => ({ Versions: [{ Key: key, VersionId: "null" }] }),
     } as unknown as Pick<S3Client, "send">);
-    await expect(unversioned.listExactVersions(key, Date.now() + 60_000)).rejects.toThrow(/Unversioned/);
+    await expect(unversioned.listExactVersions(key, performance.now() + 60_000)).rejects.toThrow(/Unversioned/);
     const badPagination = new S3AbandonedPhotoMaintenanceStore(config, {
       send: async () => ({ IsTruncated: true, Versions: [] }),
     } as unknown as Pick<S3Client, "send">);
-    await expect(badPagination.listExactVersions(key, Date.now() + 60_000)).rejects.toThrow(/continuation/);
-    await expect(badPagination.deleteExactVersion({ key, version: "null" }, Date.now() + 60_000))
+    await expect(badPagination.listExactVersions(key, performance.now() + 60_000)).rejects.toThrow(/continuation/);
+    await expect(badPagination.deleteExactVersion({ key, version: "null" }, performance.now() + 60_000))
       .rejects.toThrow(/Invalid exact/);
   });
 });
