@@ -110,18 +110,20 @@ describe.skipIf(process.env.WHATSAPP_W1_MIGRATED !== "1")(
       const fixture = await harness.createFixture();
       await configureVerifiedIssuance(harness.adminPool, fixture, "+447911123456");
       const execute = issue();
-      const first = await execute(harness.temporaryRequest(fixture, {
+      const first = await execute({
+        ...harness.confirmedRequest(fixture),
         customer: { intent: "DIFFERENT_CUSTOMER", phone: "+962790000009" },
-      }));
+      });
       await harness.completeSession(fixture, first.valetSessionId);
       await harness.adminPool.query(
         `UPDATE customers SET phone_normalized = $3, updated_at = clock_timestamp()
          WHERE id = $1 AND organization_id = $2`,
         [first.customerId, fixture.organizationId, "+447911123456"],
       );
-      const returning = await execute(harness.temporaryRequest(fixture, {
+      const returning = await execute({
+        ...harness.confirmedRequest(fixture),
         customer: { intent: "USE_SAVED_CUSTOMER", customerId: first.customerId! },
-      }));
+      });
       expect((await readIssuedRows(harness.adminPool, returning.valetSessionId)).intents)
         .toHaveLength(1);
     });
@@ -141,9 +143,10 @@ describe.skipIf(process.env.WHATSAPP_W1_MIGRATED !== "1")(
         [fixture.organizationId, fixture.locationId],
       );
       const execute = issue();
-      const issued = await execute(harness.temporaryRequest(fixture, {
+      const issued = await execute({
+        ...harness.confirmedRequest(fixture),
         customer: { intent: "DIFFERENT_CUSTOMER", phone: "+962790000008" },
-      }));
+      });
       const intents = await harness.adminPool.query<{
         id: string;
         provider_binding_id: string;
@@ -192,9 +195,10 @@ describe.skipIf(process.env.WHATSAPP_W1_MIGRATED !== "1")(
 
       // Create a new queued intent under exactly the same effective policy.
       await harness.completeSession(fixture, issued.valetSessionId);
-      const next = await execute(harness.temporaryRequest(fixture, {
+      const next = await execute({
+        ...harness.confirmedRequest(fixture),
         customer: { intent: "USE_SAVED_CUSTOMER", customerId: issued.customerId! },
-      }));
+      });
       const nextIntents = await harness.adminPool.query<{
         id: string; recipient_digest: string; company_policy_revision: number;
       }>(

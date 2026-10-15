@@ -71,17 +71,15 @@ function fixture(change: FixtureChange = {}) {
       });
       return { rows };
     }
-    if (text.includes("FROM outbound_messaging_permissions")) {
+    if (text.includes("outbound_read_intake_permission")) {
       return { rows: change.grant === false ? [] : [{
         id: permissionId, revision: 1, evidence_reference: "verified-consent-42",
         collected_at: new Date("2026-10-15T00:00:00.000Z"),
         expires_at: change.grantedUntil ?? new Date("2026-11-15T00:00:00.000Z"),
         withdrawn_at: null,
+        action: change.grantAction ?? "GRANT",
+        latest_evidence_reference: "verified-consent-42",
       }] };
-    }
-    if (text.includes("FROM outbound_permission_events")) {
-      return { rows: [{ action: change.grantAction ?? "GRANT",
-        evidence_reference: "verified-consent-42" }] };
     }
     if (text.includes("FROM outbound_provider_bindings")) {
       return { rows: [{ id: bindingId, enabled: change.bindingEnabled ?? true,
@@ -89,7 +87,7 @@ function fixture(change: FixtureChange = {}) {
         provider_verified_at: change.providerVerifiedAt === undefined
           ? new Date("2026-10-15T19:00:00.000Z") : change.providerVerifiedAt }] };
     }
-    if (text.includes("FROM outbound_messaging_control")) {
+    if (text.includes("outbound_read_intake_issue_control")) {
       return { rows: [{ issue_enabled: change.switchEnabled ?? true }] };
     }
     if (text.includes("clock_timestamp()")) {
@@ -113,13 +111,19 @@ describe("initial WhatsApp issuance consent and policy gate", () => {
       locale: "ar",
     });
     expect(db.sql.every(({ text }) => text.includes("FOR SHARE") ||
-      text.includes("outbound_read_intake_customer") ||
+      text.includes("outbound_read_intake_") ||
       text.includes("clock_timestamp()"))).toBe(true);
     expect(db.sql[0]?.text).toContain("outbound_read_intake_customer($1, $2, $3)");
     expect(db.sql[0]?.text).not.toContain("FOR SHARE");
     expect(db.sql[0]?.params).toEqual([
       scope.organizationId, scope.sessionId, scope.customerId,
     ]);
+    const permission = db.sql.find(({ text }) => text.includes("outbound_read_intake_permission"));
+    expect(permission?.params).toEqual([scope.organizationId, digest("+962790000000")]);
+    expect(db.sql.some(({ text }) => text.includes("FROM outbound_permission_events"))).toBe(false);
+    expect(db.sql.some(({ text }) => text.includes("FOR SHARE") &&
+      (text.includes("FROM outbound_messaging_permissions") ||
+        text.includes("FROM outbound_messaging_control")))).toBe(false);
   });
 
   it.each([

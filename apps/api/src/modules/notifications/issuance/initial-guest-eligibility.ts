@@ -30,6 +30,8 @@ interface PermissionRow {
   collected_at: Date;
   expires_at: Date | null;
   withdrawn_at: Date | null;
+  action: "GRANT" | "WITHDRAW" | null;
+  latest_evidence_reference: string | null;
 }
 
 export function createInitialGuestEligibilityResolver(
@@ -76,27 +78,16 @@ export function createInitialGuestEligibilityResolver(
 
     const permission = await transaction.query<PermissionRow>(
       `SELECT id::text, revision, evidence_reference, collected_at,
-              expires_at, withdrawn_at
-       FROM outbound_messaging_permissions
-       WHERE organization_id = $1 AND recipient_digest = $2
-         AND purpose = 'INITIAL_GUEST_ACCESS'
-       FOR SHARE`,
+              expires_at, withdrawn_at, action, latest_evidence_reference
+       FROM outbound_read_intake_permission($1, $2)`,
       [scope.organizationId, digest],
     );
     const grant = permission.rows[0];
     if (grant === undefined || grant.withdrawn_at !== null ||
         !(grant.expires_at instanceof Date) ||
-        !Number.isSafeInteger(grant.revision) || grant.revision < 1) {
-      return null;
-    }
-    const evidence = await transaction.query<{ action: string; evidence_reference: string }>(
-      `SELECT action, evidence_reference FROM outbound_permission_events
-       WHERE organization_id = $1 AND permission_id = $2 AND revision = $3
-       FOR SHARE`,
-      [scope.organizationId, grant.id, grant.revision],
-    );
-    if (evidence.rows[0]?.action !== "GRANT" ||
-        evidence.rows[0]?.evidence_reference !== grant.evidence_reference) {
+        !Number.isSafeInteger(grant.revision) || grant.revision < 1 ||
+        grant.action !== "GRANT" ||
+        grant.latest_evidence_reference !== grant.evidence_reference) {
       return null;
     }
 
@@ -115,8 +106,7 @@ export function createInitialGuestEligibilityResolver(
         !Number.isFinite(authorizedBinding.provider_verified_at.getTime())) return null;
 
     const control = await transaction.query<{ issue_enabled: boolean }>(
-      `SELECT issue_enabled FROM outbound_messaging_control
-       WHERE environment = $1 FOR SHARE`,
+      `SELECT issue_enabled FROM outbound_read_intake_issue_control($1)`,
       [environment],
     );
     if (control.rows[0]?.issue_enabled !== true) return null;
