@@ -1,17 +1,24 @@
 # W7 — Independent security and integration acceptance (provisional)
 
-**Verdict: FIX REQUIRED / BLOCKED. No independent GO.**
+**Current verdict on re-reviewed `767964267ac822aa032111b743c15149cb0c402c`:
+five original W7 defects PASS scoped independent re-tests; FINAL RELEASE
+ACCEPTANCE BLOCKED. This is NOT GO.**
+
+The historical original-source verdict at `6b1810d3` remains
+**FIX REQUIRED**. The historical defect reproductions below are preserved;
+the new exact-SHA re-review and its distinct test evidence are at the end.
 
 | Evidence identity | Value |
 |---|---|
 | Repository | `yamanradwan1-rgb/valet-platform` |
 | Independently reviewed source | `6b1810d38456495f3c42783f266af82a4c72cf1d` |
+| Second-pass source / precise acceptance target | `767964267ac822aa032111b743c15149cb0c402c` (reviewed; scoped tests only; release BLOCKED) |
 | Original feature baseline | `1ecdbeff1c4b7b011a1af00c843f7930e515cea4` |
 | C0 accepted contract | `a087ad38cb249840389e5aefaefbecb47333373f` |
 | Reviewer | W7 independent replacement reviewer (worker-8), not the failed original W7 agent |
 | QA workspace | `/valet-platform/tmp/wa-w7-independent-review` |
 | Scope | Complete feature diff, adversarial source checks and selected independent synthetic PostgreSQL/TypeScript negative tests |
-| Status of follow-up fixes | **Not integrated into the reviewed SHA; not retested or accepted here** |
+| Status of follow-up fixes | Original 6b source: absent; second-pass 767 source: implemented and scoped independently retested, subject to global QA gates |
 
 This report records findings on the **original** reviewed SHA only. It is intentionally
 separate from Prime's evidence ledger and does not reproduce a claim of independent
@@ -201,7 +208,8 @@ Do not turn a suite-level PASS into forty-five claimed scenario passes.
 
 ## Integration and release hold
 
-Prime reported isolated, **not-yet-integrated** candidate changes:
+At the **original** 6b review, Prime reported isolated, not-yet-integrated
+candidate changes:
 
 - W1 forward-only migration 090 / restricted binding INSERT: `efe00045`.
 - W3 padded `wamid` accepted response: `591d51b1`.
@@ -209,13 +217,9 @@ Prime reported isolated, **not-yet-integrated** candidate changes:
 - Further W1/W4/W2 fixes for F33, F11 and associated weaknesses were
   still in progress at report preparation.
 
-These commit identifiers are tracking inputs only. **No source revision
-after `6b1810d3` has been accepted or retested by W7**. On the integrated
-commit, verify exact `git rev-parse HEAD`, review the full delta from
-`6b1810d3`, repeat all five focused negatives, rerun the real role/DB
-smoke and feature suites, and reconcile every failed F-row and blocker
-against actual observed output. Then update the reviewed-SHA field,
-findings, command evidence and verdict in **this file**.
+This is a historical checkpoint; the newer integrated remediation is
+independently reviewed **below**, not substituted silently for its initial
+findings.
 
 **Current authorization boundary:** initial issuance and send switches OFF;
 production sending also requires separate Owner approval, real Meta-owned
@@ -225,3 +229,99 @@ physical Native testing. This document does not authorize any of those actions.
 
 **Final W7 status at `6b1810d3`: FIX REQUIRED / BLOCKED pending independently
 verified integrated fixes and remaining release evidence.**
+
+---
+
+## Second-pass W7 independent security re-review — source 76796426
+
+**Exact committed feature source:** `767964267ac822aa032111b743c15149cb0c402c`
+on `feat/automatic-whatsapp-guest-access` at re-review (not pushed as
+part of this QA). It contains prior remediation checkpoint
+`3edbd9369839bf3d979b52af25fb5fee732059e0` and a new final
+status-ID grammar fix. W7 switched **its own independent worktree** to
+this exact commit before re-running tests; no Prime worktree or production
+source files were modified. This document's follow-up commit is
+documentation-only atop that source.
+
+### Full remediation diff independently inspected
+
+- Original vulnerable source: `6b1810d38456495f3c42783f266af82a4c72cf1d`.
+- Remediation: migration 090
+  `20261015009000_outbound_binding_insert_acl`, migration 091
+  `20261015009100_outbound_authenticated_crash_recovery`, migration 092
+  `20261015009200_outbound_phone_change_suppression`; changed runtime
+  privilege provisioner/verifier; W3 Meta response classifier; W5 webhook
+  parser; W2 issuer crypto and scoped tests.
+- Final 767 source changes only the webhook status ID grammar and test
+  relative to 3ed: status message IDs now explicitly require the
+  provider's bounded `wamid.` grammar, while WABA/phone/attempt authority
+  identifiers keep their prior stricter grammar.
+
+| Original issue | Second-pass independent observation on 767 | Scoped verdict |
+|---|---|---|
+| **W7-P1-01** forged provider verification INSERT | Disposable real PG17 migration smoke applies **92 pristine migrations**, re-provisions restricted roles, simulates legacy table-wide INSERT then applies 090; verifies full-table grant revoked; explicit `enabled`, `provider_verified_at`, evidence, revision and timestamps rejected with SQLSTATE **42501**; safe unverified onboarding/limited configuration UPDATE succeed. | **PASS scoped**; former P1 repro denied |
+| **W7-P1-02** padded Meta IDs | Independent direct Node/TypeScript call passes **3** padded/bounded IDs through both `classifyMetaReply` and `normalizeMetaStatusPayload`, including `+/==` and a 255-character edge. Rejects **8** malformed, non-`wamid` or oversized IDs across **both** parsers. | **PASS scoped**, including 767 grammar hardening |
+| **W7-F33** changed Customer phone keeps queued payload | Real PG17 isolated smoke confirms immediate durable `SUPPRESSED` and ciphertext deletion for `PENDING`, `LEASED` and `RETRY_WAIT`, customer isolation, no-op edit unchanged, transaction rollback restores prior state. `DISPATCHING` stays irreversible and recovers `UNKNOWN` with envelope purge, no retry. Reviewed 092 trigger Customer-lock/order design. | **PASS scoped**; six dedicated three-client race tests are **source-inspected but not separately W7-executed** |
+| **W7-F11** authenticated callback before sender crash | Real PG17 smoke confirms signed `SENT`, `DELIVERED`, `READ` evidence makes timed-out dispatch `ACCEPTED`; negative `FAILED`, fabricated timestamp, bare message ID and no proof recover `UNKNOWN`, with attempt state, purge, idempotence and no replay. Reviewed 091 checking immutable correlated provider event rather than timestamps alone. | **PASS scoped** |
+| **W7-K01** private issuer PEM accepted | Independently generated ephemeral RSA-3072 key pair. Public SPKI PEM passes; private PKCS#8, private PKCS#1, and concatenated public+private PEM all fail closed with the public-only-key error. | **PASS scoped** |
+
+### Commands and outcomes actually executed by W7 on exact 767 source
+
+| Command / independent probe | Exit / observed result |
+|---|---|
+| `git rev-parse HEAD` (isolated QA worktree) | `767964267ac822aa032111b743c15149cb0c402c` |
+| `node packages/database/scripts/outbound-migration-smoke.mjs` | **Exit 0**, 92 pristine local disposable PG17 migrations; actual runtime ACL, forge 42501, consent/tenant controls, F11, F33, callback/override/opt-out, purge and control OFF/OFF PASS |
+| `pnpm --filter @valet/api exec vitest run --config vitest.config.mjs --project api-non-postgres whatsapp-` | **Exit 0**, **93/93 PASS** across 16 test files |
+| `node --test scripts/whatsapp-ui-freeze-guard.test.mjs` | **Exit 0**, **3/3 PASS** |
+| `node scripts/whatsapp-ui-freeze-guard.mjs` | **Exit 0**, `UI freeze: PASS / 125 changed paths` |
+| Independent stdin `node --experimental-strip-types --input-type=module -` calling the actual provider, webhook, issuer functions on synthetic inputs | **Exit 0**: three accepted padded `wamid` across both parsers, eight rejected malformed/foreign identifiers across both, RSA3072 public allowed/three private-key variants denied |
+
+The scripted smoke is *source-owned test logic independently invoked and
+reviewed* by W7, not a wholly separate fixture implementation; the
+direct TypeScript boundary probe is **W7 independently composed** and
+exercised the actual application functions. DB scripts provision random
+local synthetic principals/data, create a random disposable PostgreSQL
+database and clean up afterwards; no real Meta, live recipients, production
+DB, or transport sends. Prime had already reported the same feature smoke
+and tests; W7's above results came from its **own checkout/process**.
+
+### Remaining gaps and independent threat assessment
+
+1. The **root full PostgreSQL and non-PostgreSQL suites**, including
+   definitive protected Issue #215 fixture/owner attestation and
+   pinned-baseline attribution of any failures, have **not been verified
+   complete by W7**. Prime/W1/W2 results are pending. The six dedicated
+   F33 multiclient race tests were reviewed but not run in this W7 pass,
+   and no process-kill/real Meta simulation was independently performed.
+2. Sender and webhook role isolation, server-only transport secret, signed
+   webhook original-body HMAC, strict tenant callback correlation and
+   never-retry `UNKNOWN` boundaries remain consistent with the reviewed
+   source/smoke. New status `wamid` grammar is aligned across provider and
+   webhook; WABA ID, phone number ID and callback handle have **not** been
+   loosened to accept padded message identifiers.
+3. Migration 090 changes grants of **all explicit non-owner INSERT
+   principals** on the bindings table, not only API runtime. The allowed
+   columns match the intended runtime contract; operators requiring wider
+   explicit INSERT grants would need a separately defined privileged
+   onboarding path. This is a **deployment/authorization compatibility
+   review item**, not an independently demonstrated P0/P1 exploit.
+4. Real provider onboarding/account validation, consent and withdrawal
+   operations, template approvals (AR/EN), live recipient link-fragment
+   preservation, production key vault/backup/destruction, production rollout,
+   physical Native parity and F01–F45 complete external acceptance remain
+   **NOT RUN/BLOCKED**. No claim of production Meta ownership or actual
+   successful delivery is made.
+
+**Additional P0/P1 hunt:** read-only review of all cumulative changed
+production paths and migration scopes found **no newly confirmed P0/P1**.
+This limited negative result is not a proof that no vulnerability exists.
+
+### W7 provisional security verdict on exact 767 source
+
+**Previously confirmed W7 P1/P2 defects: scoped evidence PASS.**
+**Final release/security acceptance: BLOCKED / NOT GO** until root suite
+evidence is complete, any root failures are attributed and dispositioned,
+full intended acceptance matrix and required external/operational gates are
+fulfilled, and an exact final immutable source SHA remains frozen.
+No code changes, push, feature merge, PR, production deploy, recipient
+message or operational enablement is authorized by this W7 report.
