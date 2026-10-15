@@ -205,7 +205,9 @@ authority scoped to the same persisted visit.
   the approved recovery/reissue path.
 - Any future alternative transport (for example scoped short-lived paths or
   messaging-delivered links) requires another decision.
-- Persistent storage of the original Guest bearer remains prohibited.
+- Persistent storage of the original Guest bearer remains prohibited except
+  for DEC-105's single short-lived, sender-only encrypted initial WhatsApp
+  transport envelope. The Guest and Browser Session verifiers remain hash-only.
 
 ## Affected docs/code
 

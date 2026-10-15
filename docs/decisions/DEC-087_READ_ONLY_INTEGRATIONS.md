@@ -31,6 +31,17 @@ separate security and operations product.
 MGT-BE-12 owns bounded read projections only. No provider mutation endpoint,
 secret persistence, or integration framework is authorized.
 
+### 2026-10-15 Owner WA-D09/WA-D10 narrow amendment
+
+Company administrators may configure the dedicated WhatsApp Guest Access
+settings within Dashboard policies: company enable/disable, approved AR/EN
+template selections, Location overrides and the company's own authorized
+Meta business sending-number connection. This is a narrow exemption for
+WhatsApp only. The existing Integrations page remains read-only for all
+other providers. No Meta token or app secret may enter a browser. Connection
+status must be verified by the authoritative backend; real activation remains
+disabled until provider, consent and security gates pass.
+
 ## Security and privacy considerations
 
 Status responses are allowlisted and redact credentials, identifiers,

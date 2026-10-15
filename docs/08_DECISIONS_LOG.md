@@ -2,6 +2,20 @@
 
 Important decisions must not live only in chat.
 
+## DEC-105 — Automatic WhatsApp Guest transport envelope
+
+Status: Accepted for Stage C code and mocked verification only; real sending gated
+Date: 2026-10-15
+
+Owner WA-D02 authorizes a single at-most-30-minute encrypted sender-only
+envelope for an automatically issued initial Guest bootstrap credential.
+Runtime Guest/Browser Session credential persistence stays hash-only.
+WA-D09/WA-D10 specifically authorize company-scoped Dashboard WhatsApp
+settings and company-owned number binding, as a narrow exception to DEC-087.
+Actual Meta recipient opt-in, template/fragment behavior, role/key custody and
+live activation still require independent evidence and authorization.
+Full contract: [DEC-105](decisions/DEC-105_AUTOMATIC_WHATSAPP_GUEST_ACCESS_ENVELOPE.md).
+
 ## DEC-104 — Verified condition-photo byte evidence / Native QR-pattern capture
 
 Status: Accepted — design/architecture and scoped UI-X1 pattern; implementation and production proofs pending

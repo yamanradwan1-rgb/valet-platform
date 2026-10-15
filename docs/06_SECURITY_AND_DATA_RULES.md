@@ -330,6 +330,14 @@ exact raw UTF-8 token string; no raw, reversible or encrypted token copy is
 persisted. Its 24-hour expiry remains the bootstrap/staged-legacy boundary and
 does not terminate an already-exchanged active Browser Session.
 
+DEC-105 is the narrowly authorized exception for one encrypted, short-lived
+outbound WhatsApp transport envelope on a newly created eligible visit.
+The persisted ValetSession verifier and Guest Browser Session remain hash-only.
+Only an isolated sender may decrypt the encrypted bootstrap material, for at
+most 30 minutes, under scope-bound associated data, explicit key separation
+and mandatory purge. Initial issuance and sending default OFF. No message may
+be sent without verifiable recipient opt-in and separate real-send authorization.
+
 Issue/rotation/revocation require an active User, active same-Organization
 membership, explicit session-Location access and an operational
 employee/supervisor role. They lock the ValetSession row and atomically mutate
