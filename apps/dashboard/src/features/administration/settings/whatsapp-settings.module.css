@@ -1,0 +1,9 @@
+.panel { margin: 1rem; padding: 1.25rem; border: 1px solid var(--border, #666); border-radius: 12px; }
+.panel h3 { font-size: 1rem; margin: 0 0 .5rem; font-weight: 650; }
+.note { font-size: .86rem; opacity: .84; line-height: 1.65; }
+.fields { display: grid; gap: 1rem; max-width: 38rem; margin-top: 1rem; }
+.fields label { display: grid; gap: .35rem; font-size: .9rem; font-weight: 550; }
+.fields select { color: inherit; background: transparent; border: 1px solid var(--border, #777); border-radius: 7px; padding: .6rem; min-height: 2.7rem; }
+.save { cursor: pointer; border-radius: 7px; border: 1px solid currentColor; background: transparent; color: inherit; padding: .7rem 1.2rem; justify-self: start; }
+.save:disabled { cursor: wait; opacity: .6; }
+.error { color: #d66060; }

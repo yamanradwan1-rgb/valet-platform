@@ -21,6 +21,7 @@ import { LocationManagerSettingsPanel } from "./location-manager-settings-panel"
 import { ManagementLocationSettingsPanel } from "./management-location-settings-panel";
 import { settingsTableCopy } from "./settings-copy";
 import { ShiftPresenceSettings } from "./shift-presence-settings";
+import { WhatsAppSettingsPanel } from "./whatsapp-settings-panel";
 import {
   readCompanySettings,
   readLocationManagerSettings,
@@ -196,6 +197,13 @@ export function SettingsPage({
               ) : null}
             </SettingsReadState>
             <ShiftPresenceSettings company />
+            <WhatsAppSettingsPanel
+              api={dashboard.api}
+              key={`${scopeKey}:whatsapp:company`}
+              locale={locale}
+              locationId={null}
+              organizationId={scope.organizationId}
+            />
           </div>
         ) : null}
         {companyAdmin && activeTab === "location" ? (
@@ -232,6 +240,13 @@ export function SettingsPage({
                   ) : null}
                 </SettingsReadState>
                 <ShiftPresenceSettings />
+                <WhatsAppSettingsPanel
+                  api={dashboard.api}
+                  key={`${scopeKey}:whatsapp:location`}
+                  locale={locale}
+                  locationId={scope.locationId}
+                  organizationId={scope.organizationId}
+                />
               </>
             )}
           </div>
