@@ -22,6 +22,9 @@ import { readConditionPhotoStatus } from "./condition-photo-status-query";
 import { resolveConditionPhotoStorageConfig } from "./condition-photo-storage-config";
 import { ConditionPhotoUploadUnavailable, executeConditionPhotoUpload } from "./condition-photo-upload-executor";
 import { S3PrivatePhotoStore } from "./s3-private-photo-store";
+import type { PrivatePhotoStore } from "./private-photo-store";
+import { createCheckInPhotoPreflight } from "../valet-sessions/check-in-photo-preflight";
+import { receiptMatchesCurrentVerifiedEvidence } from "../valet-sessions/condition-photo-qualified-receipt";
 
 @Injectable()
 export class ConditionPhotoBackendService {
@@ -47,6 +50,18 @@ export class ConditionPhotoBackendService {
 
   private requireStore(): { store: S3PrivatePhotoStore; bucketAlias: string } {
     if (!this.store || !this.config) throw new ConditionPhotoUploadUnavailable();
+    return { store: this.store, bucketAlias: this.config.bucketAlias };
+  }
+
+  /** An explicit server-side gate; default deployment remains fail closed. */
+  trustedQualificationStore(): {
+    store: PrivatePhotoStore;
+    bucketAlias: string;
+  } | undefined {
+    // P3 is locally testable but production promotion awaits #282-#285 proof.
+    if (process.env.NODE_ENV !== "test" ||
+        process.env.CONDITION_PHOTO_P3_QUALIFICATION_ENABLED !== "true" ||
+        !this.config || !this.store) return undefined;
     return { store: this.store, bucketAlias: this.config.bucketAlias };
   }
 
@@ -88,9 +103,20 @@ export class ConditionPhotoBackendService {
     credential: StaffSessionContext,
     sessionId: string,
   ): Promise<ConditionPhotoStateDiscovery> {
+    const qualification = this.trustedQualificationStore();
+    const trusted = qualification === undefined ? undefined :
+      await createCheckInPhotoPreflight(
+        this.pool, qualification.store, qualification.bucketAlias,
+      )({ authenticatedUserId: credential.userId, valetSessionId: sessionId });
     return await inPostgresTransaction(this.pool, async (tx) => {
       const scope = await authorizeConditionPhotoScope(tx, credential, sessionId);
-      return await readConditionPhotoDiscovery(tx, scope);
+      const discovery = await readConditionPhotoDiscovery(tx, scope);
+      if (!discovery.photoPolicy.required || trusted === undefined)
+        return discovery;
+      const qualifyingPhotoPresent = await receiptMatchesCurrentVerifiedEvidence(
+        tx, scope, trusted.receipt, trusted.requestNonce,
+      );
+      return { ...discovery, qualifyingPhotoPresent };
     });
   }
 }

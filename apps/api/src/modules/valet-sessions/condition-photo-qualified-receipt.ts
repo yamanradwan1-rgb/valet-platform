@@ -32,6 +32,7 @@ export interface TrustedConditionPhotoReceipt {
 interface InternalProof {
   readonly candidate: SelectedConditionPhotoCandidate;
   readonly requestNonce: string;
+  readonly expiresAt: number;
 }
 
 const proofs = new WeakMap<TrustedConditionPhotoReceipt, InternalProof>();
@@ -59,6 +60,8 @@ export async function selectVerifiedConditionPhotoCandidates(
      FROM vehicle_photo_verifications AS v
      JOIN condition_photo_upload_operations AS o
        ON o.id = v.operation_id AND o.status = 'VERIFIED'
+       AND o.verified_photo_id = v.vehicle_photo_id
+       AND o.purpose = v.purpose
        AND o.organization_id = v.organization_id
        AND o.location_id = v.location_id
        AND o.valet_session_id = v.valet_session_id
@@ -70,6 +73,8 @@ export async function selectVerifiedConditionPhotoCandidates(
        AND a.location_id = v.location_id
        AND a.valet_session_id = v.valet_session_id
        AND a.actor_membership_id = v.captured_by_membership_id
+       AND a.canonical_sha256 = v.content_sha256
+       AND a.canonical_byte_size = v.byte_size
      JOIN vehicle_photo_availability AS availability
        ON availability.vehicle_photo_id = v.vehicle_photo_id
        AND availability.organization_id = v.organization_id
@@ -103,10 +108,12 @@ export async function proveSelectedConditionPhotoBytes(
   candidate: SelectedConditionPhotoCandidate,
   expectedBucketAlias: string,
   requestNonce: string,
+  deadlineMs = 15_000,
 ): Promise<TrustedConditionPhotoReceipt | undefined> {
   if (
     requestNonce.length < 16 ||
     candidate.bucketAlias !== expectedBucketAlias ||
+    !candidate.objectVersion ||
     !Buffer.isBuffer(candidate.contentSha256) ||
     candidate.contentSha256.length !== 32 ||
     candidate.byteSize < 1 ||
@@ -117,17 +124,26 @@ export async function proveSelectedConditionPhotoBytes(
     const result = await store.readExact({
       key: candidate.objectKey,
       version: candidate.objectVersion,
-    });
+    }, deadlineMs);
     bytes = result.bytes;
     if (result.version !== candidate.objectVersion ||
         bytes.length !== candidate.byteSize)
       return undefined;
     const digest = createHash("sha256").update(bytes).digest();
-    if (!timingSafeEqual(digest, candidate.contentSha256)) return undefined;
+    const matches = timingSafeEqual(digest, candidate.contentSha256);
+    digest.fill(0);
+    if (!matches) return undefined;
     const receipt: TrustedConditionPhotoReceipt = Object.freeze({
       kind: "TRUSTED_CONDITION_PHOTO_RECEIPT",
     });
-    proofs.set(receipt, { candidate, requestNonce });
+    proofs.set(receipt, {
+      candidate: Object.freeze({
+        ...candidate,
+        contentSha256: Buffer.from(candidate.contentSha256),
+      }),
+      requestNonce,
+      expiresAt: Date.now() + 60_000,
+    });
     return receipt;
   } catch {
     // Missing, corrupt, timed-out, ambiguous provider outcomes are not proof.
@@ -146,7 +162,10 @@ export async function receiptMatchesCurrentVerifiedEvidence(
 ): Promise<boolean> {
   if (!receipt) return false;
   const proof = proofs.get(receipt);
+  // The receipt is single-use even if the transaction subsequently rolls back.
+  proofs.delete(receipt);
   if (!proof || proof.requestNonce !== requestNonce ||
+      Date.now() > proof.expiresAt ||
       proof.candidate.organizationId !== scope.organizationId ||
       proof.candidate.locationId !== scope.locationId ||
       proof.candidate.valetSessionId !== scope.valetSessionId)
@@ -157,6 +176,12 @@ export async function receiptMatchesCurrentVerifiedEvidence(
        SELECT 1 FROM vehicle_photo_verifications AS v
        JOIN condition_photo_upload_operations AS o
          ON o.id = v.operation_id AND o.status = 'VERIFIED'
+         AND o.verified_photo_id = v.vehicle_photo_id
+         AND o.purpose = v.purpose
+         AND o.organization_id = v.organization_id
+         AND o.location_id = v.location_id
+         AND o.valet_session_id = v.valet_session_id
+         AND o.actor_membership_id = v.captured_by_membership_id
        JOIN condition_photo_upload_attempts AS a
          ON a.id = v.attempt_id AND a.operation_id = v.operation_id
        JOIN vehicle_photo_availability AS availability
@@ -175,6 +200,8 @@ export async function receiptMatchesCurrentVerifiedEvidence(
          AND a.valet_session_id = v.valet_session_id
          AND a.actor_membership_id = v.captured_by_membership_id
          AND a.object_key = v.object_key
+         AND a.canonical_sha256 = v.content_sha256
+         AND a.canonical_byte_size = v.byte_size
          AND a.bucket_alias = $11
          AND a.object_version IS NOT DISTINCT FROM $12::text
          AND availability.state = 'AVAILABLE'

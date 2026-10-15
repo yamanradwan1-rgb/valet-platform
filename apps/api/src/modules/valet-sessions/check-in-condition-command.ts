@@ -13,6 +13,23 @@ import type {
 import { appendCustodyAuditEvent } from "../audit/custody-audit-event-writer";
 import { CustodyStaffAuthorizationError } from "../staff/custody-staff-authorizer";
 import { CustodyMutationError } from "./protected-custody-command";
+import type { StaffSessionContext } from "../auth/staff-session-context";
+import { lockAndRecheckStaffSessionContext } from "../auth/staff-session-revalidation";
+import { UnauthorizedException } from "@nestjs/common";
+import {
+  evaluateLockedCheckInConditionGuard,
+  type TrustedCheckInPhotoContext,
+} from "./check-in-condition-guard";
+export {
+  evaluateEffectiveCheckInPhotoPolicy,
+  evaluateLockedCheckInConditionGuard,
+} from "./check-in-condition-guard";
+export type {
+  CheckInPhotoPolicySource,
+  EffectiveCheckInPhotoPolicy,
+  LockedCheckInConditionGuardScope,
+  CheckInConditionGuardResult,
+} from "./check-in-condition-guard";
 
 export const checkInConditionLimits = {
   contentTypeCodePoints: 127,
@@ -89,33 +106,12 @@ export interface CompleteCheckInConditionResult {
   readonly valetSessionId: string;
 }
 
-export type CheckInPhotoPolicySource =
-  "LOCATION_OVERRIDE" | "ORGANIZATION_DEFAULT";
-
-export interface EffectiveCheckInPhotoPolicy {
-  readonly required: boolean;
-  readonly source: CheckInPhotoPolicySource;
-}
-
-export interface LockedCheckInConditionGuardScope {
-  readonly locationId: string;
-  readonly organizationId: string;
-  readonly valetSessionId: string;
-}
-
-export interface CheckInConditionGuardResult {
-  readonly completedAt: Date | null;
-  readonly completedByMembershipId: string | null;
-  readonly markerComplete: boolean;
-  readonly photoPolicy: EffectiveCheckInPhotoPolicy;
-  readonly qualifyingPhotoPresent: boolean;
-  readonly satisfied: boolean;
-}
-
 interface CheckInConditionCommandOptions {
   readonly auditEventIdFactory?: () => string;
   readonly conditionNoteIdFactory?: () => string;
   readonly vehiclePhotoIdFactory?: () => string;
+  readonly photoPreflight?: (request: CheckInConditionStaffRequest) =>
+    Promise<TrustedCheckInPhotoContext>;
 }
 
 interface ConditionNoteRow {
@@ -137,14 +133,6 @@ interface VehiclePhotoRow {
   purpose: string;
   storage_object_key: string;
   valet_session_id: string;
-}
-
-interface GuardRow {
-  check_in_condition_completed_at: Date | null;
-  check_in_condition_completed_by_membership_id: string | null;
-  check_in_photos_required: boolean;
-  check_in_photos_required_override: boolean | null;
-  qualifying_photo_present: boolean;
 }
 
 const controlCharacterPattern = /\p{Cc}/u;
@@ -335,73 +323,6 @@ function vehiclePhotoResult(row: VehiclePhotoRow): CheckInConditionPhotoResult {
     createdAt: row.created_at,
     valetSessionId: row.valet_session_id,
     vehiclePhotoId: row.id,
-  };
-}
-
-export function evaluateEffectiveCheckInPhotoPolicy(input: {
-  readonly locationOverride: boolean | null;
-  readonly organizationDefault: boolean;
-}): EffectiveCheckInPhotoPolicy {
-  if (input.locationOverride !== null) {
-    return {
-      required: input.locationOverride,
-      source: "LOCATION_OVERRIDE",
-    };
-  }
-  return {
-    required: input.organizationDefault,
-    source: "ORGANIZATION_DEFAULT",
-  };
-}
-
-/**
- * Internal VAL-004H guard. The caller owns authorization and the target
- * ValetSession FOR UPDATE lock before invoking this helper.
- */
-export async function evaluateLockedCheckInConditionGuard(
-  transaction: PostgresTransaction,
-  scope: LockedCheckInConditionGuardScope,
-): Promise<CheckInConditionGuardResult> {
-  // Current VehiclePhoto rows contain client-declared metadata only. Until a
-  // server-controlled object verification boundary exists, none are trusted
-  // evidence for a required-photo policy.
-  const result = await transaction.query<GuardRow>(
-    `SELECT session.check_in_condition_completed_at,
-            session.check_in_condition_completed_by_membership_id::text,
-            organization.check_in_photos_required,
-            location.check_in_photos_required_override,
-            FALSE AS qualifying_photo_present
-     FROM valet_sessions AS session
-     INNER JOIN organizations AS organization
-       ON organization.id = session.organization_id
-     INNER JOIN locations AS location
-       ON location.organization_id = session.organization_id
-      AND location.id = session.location_id
-     WHERE session.id = $1
-       AND session.organization_id = $2
-       AND session.location_id = $3
-     FOR SHARE OF organization, location`,
-    [scope.valetSessionId, scope.organizationId, scope.locationId],
-  );
-  const row = result.rows[0];
-  if (row === undefined) {
-    throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
-  }
-  const photoPolicy = evaluateEffectiveCheckInPhotoPolicy({
-    locationOverride: row.check_in_photos_required_override,
-    organizationDefault: row.check_in_photos_required,
-  });
-  const markerComplete =
-    row.check_in_condition_completed_at !== null &&
-    row.check_in_condition_completed_by_membership_id !== null;
-  return {
-    completedAt: row.check_in_condition_completed_at,
-    completedByMembershipId: row.check_in_condition_completed_by_membership_id,
-    markerComplete,
-    photoPolicy,
-    qualifyingPhotoPresent: row.qualifying_photo_present,
-    satisfied:
-      markerComplete && (!photoPolicy.required || row.qualifying_photo_present),
   };
 }
 
@@ -700,20 +621,32 @@ export function createCompleteCheckInConditionCommandExecutor(
   options: CheckInConditionCommandOptions = {},
 ): (
   request: CheckInConditionStaffRequest,
+  credential?: StaffSessionContext,
 ) => Promise<CompleteCheckInConditionResult> {
-  return async (request) => {
+  return async (request, credential) => {
     const normalized = normalizeStaffRequest(request);
+    if (options.photoPreflight && !credential) throw new UnauthorizedException();
+    const trusted = await options.photoPreflight?.(normalized);
     return inTransaction(pool, async (transaction) => {
+      if (credential) {
+        if (credential.userId !== normalized.authenticatedUserId ||
+            !await lockAndRecheckStaffSessionContext(transaction, credential))
+          throw new UnauthorizedException();
+      }
       const { actorMembershipId, session } = await authorizeAndLockSession(
         transaction,
         normalized,
         true,
       );
-      const guard = await evaluateLockedCheckInConditionGuard(transaction, {
-        locationId: session.location_id,
-        organizationId: session.organization_id,
-        valetSessionId: session.valet_session_id,
-      });
+      const guard = await evaluateLockedCheckInConditionGuard(
+        transaction,
+        {
+          locationId: session.location_id,
+          organizationId: session.organization_id,
+          valetSessionId: session.valet_session_id,
+        },
+        trusted,
+      );
       if (
         guard.markerComplete &&
         guard.completedAt !== null &&

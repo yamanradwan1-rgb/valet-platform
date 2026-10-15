@@ -262,7 +262,7 @@ export class StaffCheckInController {
         const result = await this.service.executeConditionCompletion({
           authenticatedUserId: principalUserId,
           valetSessionId: parseUuid(sessionIdRaw),
-        });
+        }, authorization);
         return conditionCompletionResponseSchema.parse({
           completedAt: iso(result.completedAt),
           valetSessionId: result.valetSessionId,
@@ -289,7 +289,7 @@ export class StaffCheckInController {
         authenticatedUserId: principalUserId,
         expectedVersion: input.expectedVersion,
         valetSessionId: parseUuid(sessionIdRaw),
-      });
+      }, authorization);
       if (completed.checkInElapsedMs !== undefined) {
         request.checkInElapsedMs = completed.checkInElapsedMs;
       }

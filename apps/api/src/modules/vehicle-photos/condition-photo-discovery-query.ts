@@ -42,8 +42,8 @@ export async function readConditionPhotoDiscovery(
       organizationDefault: row.check_in_photos_required,
       locationOverride: row.check_in_photos_required_override,
     }),
-    // P3 alone binds real availability and current object read-back to
-    // the Check-In guard. Never project legacy metadata as qualification.
+    // Backend can replace this only with the same request-bound P3 proof,
+    // following an out-of-transaction private byte read and locked DB recheck.
     qualifyingPhotoPresent: false,
     pendingOperation: recovery.pendingOperation,
     latestOperation: recovery.latestOperation,

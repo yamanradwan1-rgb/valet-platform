@@ -1,7 +1,14 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, Optional, UnauthorizedException } from "@nestjs/common";
 
 import type { PostgresPool } from "../../common/database/postgres";
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
+import {
+  STAFF_SESSION_CONTEXT_RESOLVER,
+  type StaffSessionContext,
+  type StaffSessionContextResolver,
+} from "../auth/staff-session-context";
+import { ConditionPhotoBackendService } from "../vehicle-photos/condition-photo-backend.service";
+import { createCheckInPhotoPreflight } from "../valet-sessions/check-in-photo-preflight";
 import {
   createCompleteCheckInConditionCommandExecutor,
   createCorrectCheckInConditionNoteCommandExecutor,
@@ -44,13 +51,29 @@ export class CheckInApiService {
   private readonly returningVehicleRecognition;
   private readonly updateVehicleDetails;
   private readonly updateVehicleIdentity;
+  private readonly qualificationActive;
 
   constructor(
     @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
+    @Optional() private readonly conditionPhotos?: ConditionPhotoBackendService,
+    @Optional() @Inject(STAFF_SESSION_CONTEXT_RESOLVER)
+    private readonly staffSessions?: StaffSessionContextResolver,
   ) {
-    this.completeCheckIn = createCompleteCheckInCommandExecutor(pool);
+    const qualification = this.conditionPhotos?.trustedQualificationStore();
+    this.qualificationActive = qualification !== undefined;
+    const photoPreflight = qualification === undefined ? undefined :
+      createCheckInPhotoPreflight(pool, qualification.store, qualification.bucketAlias);
+    this.completeCheckIn = createCompleteCheckInCommandExecutor(pool, {
+      ...(photoPreflight === undefined ? {} : { photoPreflight }),
+    });
     this.completeCondition =
-      createCompleteCheckInConditionCommandExecutor(pool);
+      createCompleteCheckInConditionCommandExecutor(pool, {
+        ...(qualification === undefined ? {} : {
+          photoPreflight: createCheckInPhotoPreflight(
+            pool, qualification.store, qualification.bucketAlias, true,
+          ),
+        }),
+      });
     this.correctConditionNote =
       createCorrectCheckInConditionNoteCommandExecutor(pool);
     this.intake = createIntakeSessionCommandExecutor(pool);
@@ -92,12 +115,31 @@ export class CheckInApiService {
     return this.registerConditionPhoto(request);
   }
 
-  executeConditionCompletion(request: CheckInConditionStaffRequest) {
-    return this.completeCondition(request);
+  private async currentCredential(
+    userId: string,
+    authorization?: string,
+  ): Promise<StaffSessionContext | undefined> {
+    if (!this.qualificationActive) return undefined;
+    if (!this.staffSessions || !authorization) throw new UnauthorizedException();
+    const credential = await this.staffSessions.resolve(authorization);
+    if (credential.userId !== userId) throw new UnauthorizedException();
+    return credential;
   }
 
-  async executeCompleteCheckIn(request: CompleteCheckInCommandRequest) {
-    const result = await this.completeCheckIn(request);
+  async executeConditionCompletion(
+    request: CheckInConditionStaffRequest,
+    authorization?: string,
+  ) {
+    return this.completeCondition(request,
+      await this.currentCredential(request.authenticatedUserId, authorization));
+  }
+
+  async executeCompleteCheckIn(
+    request: CompleteCheckInCommandRequest,
+    authorization?: string,
+  ) {
+    const result = await this.completeCheckIn(request,
+      await this.currentCredential(request.authenticatedUserId, authorization));
     let checkInElapsedMs: number | undefined;
     try {
       const timestamps = await this.pool.query<{

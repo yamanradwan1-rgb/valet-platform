@@ -6,12 +6,21 @@ import type {
 } from "../../common/database/postgres";
 import { lockManagementSettingsOrganization } from "../../common/database/management-settings-lock";
 import { appendCustodyAuditEvent } from "../audit/custody-audit-event-writer";
+import type { StaffSessionContext } from "../auth/staff-session-context";
+import { lockAndRecheckStaffSessionContext } from "../auth/staff-session-revalidation";
+import { UnauthorizedException } from "@nestjs/common";
 import {
   authorizeCustodyActorForPersistedScope,
   CustodyStaffAuthorizationError,
   requireActiveCustodyUser,
 } from "../staff/custody-staff-authorizer";
-import { evaluateLockedCheckInConditionGuard } from "./check-in-condition-command";
+import {
+  evaluateLockedCheckInConditionGuard,
+  type TrustedCheckInPhotoContext,
+} from "./check-in-condition-guard";
+import { hasAcceptedPersistedVehicleIdentity } from "./check-in-vehicle-identity-guard";
+import type { CheckInVehicleIdentityRow as VehicleIdentityRow } from "./check-in-vehicle-identity-guard";
+export { hasAcceptedPersistedVehicleIdentity } from "./check-in-vehicle-identity-guard";
 import {
   CustodyMutationError,
   type ValetSessionState,
@@ -61,6 +70,8 @@ export interface CompleteCheckInCommandResult {
 
 interface CompleteCheckInCommandOptions {
   readonly auditEventIdFactory?: () => string;
+  readonly photoPreflight?: (request: CompleteCheckInCommandRequest) =>
+    Promise<TrustedCheckInPhotoContext>;
 }
 
 interface SessionScopeRow {
@@ -75,12 +86,6 @@ interface LockedSessionRow extends SessionScopeRow {
   version: number;
 }
 
-interface VehicleIdentityRow {
-  plate_country: string | null;
-  plate_number_normalized: string | null;
-  plate_number_raw: string | null;
-  temporary_descriptor: string | null;
-}
 
 interface UpdatedSessionRow extends SessionScopeRow {
   checking_in_completed_at: Date;
@@ -88,8 +93,6 @@ interface UpdatedSessionRow extends SessionScopeRow {
   updated_at: Date;
   version: number;
 }
-
-const plateCountryPattern = /^[A-Z]{2}$/;
 
 async function inTransaction<T>(
   pool: PostgresPool,
@@ -182,31 +185,6 @@ async function loadLockedVehicleIdentity(
   return vehicle;
 }
 
-export function hasAcceptedPersistedVehicleIdentity(
-  identity: VehicleIdentityRow,
-): boolean {
-  const plateFields = [
-    identity.plate_country,
-    identity.plate_number_raw,
-    identity.plate_number_normalized,
-  ];
-  const allPlateFieldsPresent = plateFields.every((value) => value !== null);
-  const allPlateFieldsAbsent = plateFields.every((value) => value === null);
-
-  if (allPlateFieldsPresent) {
-    return (
-      plateCountryPattern.test(identity.plate_country ?? "") &&
-      (identity.plate_number_raw?.trim() ?? "") !== "" &&
-      (identity.plate_number_normalized?.trim() ?? "") !== ""
-    );
-  }
-
-  return (
-    allPlateFieldsAbsent &&
-    (identity.temporary_descriptor?.trim() ?? "") !== ""
-  );
-}
-
 async function classifyGuardedMutationFailure(
   transaction: PostgresTransaction,
   request: CompleteCheckInCommandRequest,
@@ -233,13 +211,21 @@ export function createCompleteCheckInCommandExecutor(
   options: CompleteCheckInCommandOptions = {},
 ): (
   request: CompleteCheckInCommandRequest,
+  credential?: StaffSessionContext,
 ) => Promise<CompleteCheckInCommandResult> {
-  return async (request) => {
+  return async (request, credential) => {
     if (!Number.isInteger(request.expectedVersion) || request.expectedVersion < 1) {
       throw new CustodyMutationError("VERSION_CONFLICT");
     }
 
+    if (options.photoPreflight && !credential) throw new UnauthorizedException();
+    const trusted = await options.photoPreflight?.(request);
     return inTransaction(pool, async (transaction) => {
+      if (credential) {
+        if (credential.userId !== request.authenticatedUserId ||
+            !await lockAndRecheckStaffSessionContext(transaction, credential))
+          throw new UnauthorizedException();
+      }
       await requireActiveCustodyUser(transaction, request.authenticatedUserId);
       const initialScope = await loadSessionScope(transaction, request.valetSessionId);
       await lockManagementSettingsOrganization(transaction, initialScope.organization_id, "SHARED");
@@ -267,6 +253,7 @@ export function createCompleteCheckInCommandExecutor(
           organizationId: session.organization_id,
           valetSessionId: session.id,
         },
+        trusted,
       );
       if (!conditionGuard.markerComplete) {
         throw new CompleteCheckInCommandError("CONDITION_CHECK_INCOMPLETE");

@@ -54,7 +54,7 @@ function transaction(qualifies = true) {
   return { query, tx: { query } as unknown as PostgresTransaction };
 }
 
-describe("P3 server-only verified object receipt (NOT YET WIRED INTO CHECK-IN)", () => {
+describe("P3 request-bound verified object receipt", () => {
   it("lists only selected VERIFIED+AVAILABLE exact scope candidates, bounded to ten", async () => {
     const query = vi.fn(async (...args: unknown[]) => {
       void args;
@@ -105,7 +105,7 @@ describe("P3 server-only verified object receipt (NOT YET WIRED INTO CHECK-IN)",
     expect(privateStore.readExact).toHaveBeenCalledWith({
       key: objectKey,
       version: "version-1",
-    });
+    }, 15_000);
     const db = transaction(true);
     expect(await receiptMatchesCurrentVerifiedEvidence(db.tx, scope, receipt, nonce))
       .toBe(true);
@@ -137,5 +137,53 @@ describe("P3 server-only verified object receipt (NOT YET WIRED INTO CHECK-IN)",
     expect(await receiptMatchesCurrentVerifiedEvidence(
       transaction(false).tx, scope, receipt, nonce,
     )).toBe(false);
+  });
+
+  it("rejects a second use, even if the first locked query proved existence", async () => {
+    const receipt = await proveSelectedConditionPhotoBytes(
+      store(original), candidate, "photo_private", nonce,
+    );
+    expect(await receiptMatchesCurrentVerifiedEvidence(
+      transaction(true).tx, scope, receipt, nonce,
+    )).toBe(true);
+    const subsequent = transaction(true);
+    expect(await receiptMatchesCurrentVerifiedEvidence(
+      subsequent.tx, scope, receipt, nonce,
+    )).toBe(false);
+    expect(subsequent.query).not.toHaveBeenCalled();
+  });
+
+  it("expires unconsumed proof after the bounded request lifetime", async () => {
+    vi.useFakeTimers();
+    try {
+      const receipt = await proveSelectedConditionPhotoBytes(
+        store(original), candidate, "photo_private", nonce,
+      );
+      vi.setSystemTime(Date.now() + 61_000);
+      const db = transaction(true);
+      expect(await receiptMatchesCurrentVerifiedEvidence(db.tx, scope, receipt, nonce))
+        .toBe(false);
+      expect(db.query).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("rejects unqualified unversioned objects and scrubs successful read buffers", async () => {
+    const unversioned = { ...candidate, objectVersion: null };
+    const privateStore = store(original);
+    expect(await proveSelectedConditionPhotoBytes(
+      privateStore, unversioned, "photo_private", nonce,
+    )).toBeUndefined();
+    expect(privateStore.readExact).not.toHaveBeenCalled();
+
+    const storedBytes = Buffer.from(original);
+    const validStore = {
+      readExact: vi.fn(async () => ({ bytes: storedBytes, version: "version-1" })),
+    } as unknown as PrivatePhotoStore;
+    expect(await proveSelectedConditionPhotoBytes(
+      validStore, candidate, "photo_private", nonce,
+    )).toBeDefined();
+    expect(storedBytes.every((byte) => byte === 0)).toBe(true);
   });
 });
