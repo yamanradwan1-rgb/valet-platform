@@ -40,11 +40,12 @@ export function createInitialGuestEligibilityResolver(
     transaction: PostgresTransaction,
     scope: InitialGuestScope,
   ): Promise<EligibleInitialGuestRecipient | null> => {
-    // A saved-customer suggestion and Native phone are never recipient authority.
+    // Only the just-created, exact-scoped Session/Customer is recipient authority.
+    // DEC-025 forbids runtime Customer UPDATE; the W1 SECURITY DEFINER function
+    // acquires its narrow Customer row lock without granting table-level UPDATE.
     const customer = await transaction.query<{ phone_normalized: string }>(
-      `SELECT phone_normalized FROM customers
-       WHERE organization_id = $1 AND id = $2 FOR SHARE`,
-      [scope.organizationId, scope.customerId],
+      `SELECT phone_normalized FROM outbound_read_intake_customer($1, $2, $3)`,
+      [scope.organizationId, scope.sessionId, scope.customerId],
     );
     const phone = customer.rows[0]?.phone_normalized;
     if (!isCanonicalOutboundRecipient(phone)) {

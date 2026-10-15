@@ -17,6 +17,7 @@ const digest = createRecipientDigestFactory(randomBytes(32).toString("base64"), 
 
 interface FixtureChange {
   phone?: string;
+  scopedCustomer?: boolean;
   companyRevision?: number;
   grant?: boolean;
   grantAction?: "GRANT" | "WITHDRAW";
@@ -41,8 +42,10 @@ function fixture(change: FixtureChange = {}) {
   const sql: { text: string; params: readonly unknown[] }[] = [];
   const query = async (text: string, params: readonly unknown[] = []) => {
     sql.push({ text, params });
-    if (text.includes("FROM customers")) {
-      return { rows: [{ phone_normalized: change.phone ?? "+962790000000" }] };
+    if (text.includes("outbound_read_intake_customer")) {
+      return { rows: change.scopedCustomer === false ? [] : [
+        { phone_normalized: change.phone ?? "+962790000000" },
+      ] };
     }
     if (text.includes("FROM outbound_messaging_policies")) {
       const rows: {
@@ -98,7 +101,7 @@ function fixture(change: FixtureChange = {}) {
 }
 
 describe("initial WhatsApp issuance consent and policy gate", () => {
-  it("uses locked canonical customer and current verified GRANT, never Native input", async () => {
+  it("uses exact-scoped SECURITY DEFINER Customer lock and verified GRANT, never Native input", async () => {
     const db = fixture();
     const result = await createInitialGuestEligibilityResolver(digest, "test")(db.tx, scope);
     expect(result).toMatchObject({
@@ -110,8 +113,13 @@ describe("initial WhatsApp issuance consent and policy gate", () => {
       locale: "ar",
     });
     expect(db.sql.every(({ text }) => text.includes("FOR SHARE") ||
+      text.includes("outbound_read_intake_customer") ||
       text.includes("clock_timestamp()"))).toBe(true);
-    expect(db.sql[0]?.params).toEqual([scope.organizationId, scope.customerId]);
+    expect(db.sql[0]?.text).toContain("outbound_read_intake_customer($1, $2, $3)");
+    expect(db.sql[0]?.text).not.toContain("FOR SHARE");
+    expect(db.sql[0]?.params).toEqual([
+      scope.organizationId, scope.sessionId, scope.customerId,
+    ]);
   });
 
   it.each([
@@ -125,6 +133,7 @@ describe("initial WhatsApp issuance consent and policy gate", () => {
     ["future provider verification", { providerVerifiedAt: new Date("2026-10-16T00:00:00Z") }],
     ["durable kill switch OFF", { switchEnabled: false }],
     ["legacy invalid customer phone", { phone: "0790000000" }],
+    ["mismatched Session/Customer authority", { scopedCustomer: false }],
   ] satisfies [string, FixtureChange][])("skips %s without issuing", async (_name, change) => {
     const db = fixture(change);
     await expect(createInitialGuestEligibilityResolver(digest, "test")(

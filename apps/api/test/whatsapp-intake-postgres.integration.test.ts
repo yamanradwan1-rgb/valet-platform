@@ -34,6 +34,16 @@ describe.skipIf(process.env.WHATSAPP_W1_MIGRATED !== "1")(
       });
       const execute = issue();
       const first = await execute(request);
+      const wrongScope = await harness.runtimePool.query<{ phone_normalized: string }>(
+        `SELECT phone_normalized FROM outbound_read_intake_customer($1, $2, $3)`,
+        [fixture.organizationId, first.valetSessionId, randomUUID()],
+      );
+      expect(wrongScope.rows).toHaveLength(0);
+      const wrongTenant = await harness.runtimePool.query<{ phone_normalized: string }>(
+        `SELECT phone_normalized FROM outbound_read_intake_customer($1, $2, $3)`,
+        [randomUUID(), first.valetSessionId, first.customerId],
+      );
+      expect(wrongTenant.rows).toHaveLength(0);
       const rows = await readIssuedRows(harness.adminPool, first.valetSessionId);
       expect(rows.session?.customer_access_generation).toBe(1);
       expect(rows.session?.customer_access_revoked_at).toBeNull();
