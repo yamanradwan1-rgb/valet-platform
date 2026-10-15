@@ -14,9 +14,11 @@ function object(value: unknown): Record<string, unknown> | null {
     !Array.isArray(value) ? value as Record<string, unknown> : null;
 }
 
-function narrowId(value: unknown, max = 160): string | null {
+function narrowId(value: unknown, max = 160, allowBase64Padding = false): string | null {
   return typeof value === "string" && value.length > 0 && value.length <= max &&
-    /^[a-zA-Z0-9._:-]+$/.test(value) ? value : null;
+    (/^[a-zA-Z0-9._:-]+$/.test(value) ||
+      (allowBase64Padding && /^wamid\.[A-Za-z0-9._:+/-]{1,249}={0,2}$/
+        .test(value))) ? value : null;
 }
 
 /** Strictly bounded Meta status subset; never logs or saves the original payload. */
@@ -48,7 +50,9 @@ export function normalizeMetaStatusPayload(payload: unknown): readonly MetaWebho
       for (const statusValue of value.statuses) {
         if (statuses.length >= 128) throw new Error("META_WEBHOOK_INVALID");
         const status = object(statusValue);
-        const id = narrowId(status?.id, 255);
+        // Real Meta wamid values may end in base64 '=' padding. Keep every
+        // other authority identifier strict and retain the existing bound.
+        const id = narrowId(status?.id, 255, true);
         const recipient = narrowId(status?.recipient_id, 32);
         const kind = status?.status;
         const stamp = status?.timestamp;
