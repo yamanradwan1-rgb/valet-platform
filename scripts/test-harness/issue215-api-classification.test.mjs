@@ -27,8 +27,9 @@ const valid = {
   VAYLET_TEST_RUN_ID: "owned-test-run",
 };
 
-test("#283, #284 and #285 exact API tests alone enter the protected Issue215 PostgreSQL project", () => {
+test("#292, #283, #284 and #285 exact API tests alone enter the protected Issue215 PostgreSQL project", () => {
   assert.deepEqual(issue215ApiPostgresFiles, [
+    "issue215-policy-recovery.test.ts",
     "issue215-real-http-integration.test.ts",
     "issue215-real-http-negative.test.ts",
     "issue215-real-nest-hardkill.integration.test.ts",
