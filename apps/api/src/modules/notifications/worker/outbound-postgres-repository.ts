@@ -1,0 +1,204 @@
+import type { PostgresPool } from "../../../common/database/postgres";
+import type { OutboundClaim, OutboundLeaseRepository, DispatchPreparation } from "../contracts/outbound-lease";
+import type { OutboundSendResult } from "../contracts/outbound-provider";
+import type { OutboundPermitTransportSource, OutboundTransportMaterial } from "./outbound-transport-source";
+import { equalRecipientDigest, permittedSenderMaterial } from "./outbound-postgres-permit";
+import type {
+  OutboundPgClaimRow, OutboundPgPermitRow, OutboundPgRecipientRow,
+  ResolveOutboundSenderConfig,
+} from "./outbound-postgres-types";
+
+function finiteReason(result: OutboundSendResult): {
+  readonly outcome: string;
+  readonly messageId: string | null;
+  readonly safeCode: string | null;
+} {
+  switch (result.kind) {
+    case "ACCEPTED":
+      return { outcome: "ACCEPTED", messageId: result.providerMessageId, safeCode: null };
+    case "NOT_ACCEPTED":
+      return { outcome: "DEFINITIVE_FAILURE", messageId: null,
+        safeCode: result.reason === "RATE_LIMIT" ? "RATE_LIMIT" : "REJECTED" };
+    case "PERMANENT":
+      return { outcome: "PERMANENT_FAILURE", messageId: null,
+        safeCode: result.reason === "RECIPIENT" ? "INVALID_RECIPIENT" :
+          result.reason === "TEMPLATE" ? "INVALID_TEMPLATE" : "CONFIGURATION" };
+    case "UNKNOWN":
+      return { outcome: "UNKNOWN", messageId: null,
+        safeCode: result.reason === "TIMEOUT" ? "TIMEOUT" :
+          result.reason === "TRANSPORT" ? "NETWORK" : "UNKNOWN" };
+  }
+}
+
+interface PreparedMaterial {
+  readonly leaseToken: string;
+  readonly deliveryId: string;
+  readonly recipientDigest: string;
+  readonly value: OutboundTransportMaterial;
+}
+
+/** W1 SECURITY DEFINER functions own all mutation, rate budgets and locking. */
+export class PostgresOutboundLeaseRepository
+implements OutboundLeaseRepository, OutboundPermitTransportSource {
+  private readonly prepared = new Map<string, PreparedMaterial>();
+
+  constructor(
+    private readonly pool: PostgresPool,
+    private readonly digestRecipient: (recipientE164: string) => string,
+    private readonly resolveConfig: ResolveOutboundSenderConfig,
+  ) {}
+
+  async claimDue(limit: number): Promise<readonly OutboundClaim[]> {
+    const { rows } = await this.pool.query<OutboundPgClaimRow>(
+      "SELECT delivery_id, lease_token, lease_expires_at FROM public.outbound_claim_due($1)",
+      [limit],
+    );
+    return rows.map((row) => ({
+      deliveryId: row.delivery_id,
+      leaseToken: row.lease_token,
+      leaseExpiresAt: row.lease_expires_at,
+    }));
+  }
+
+  async prepareDispatch(claim: OutboundClaim): Promise<DispatchPreparation> {
+    const recipient = await this.pool.query<OutboundPgRecipientRow>(
+      "SELECT phone_normalized, recipient_digest FROM public.outbound_lease_recipient($1,$2)",
+      [claim.deliveryId, claim.leaseToken],
+    );
+    const before = recipient.rows[0];
+    if (before === undefined) return { kind: "LOST_LEASE" };
+    const actualDigest = this.digestRecipient(before.phone_normalized);
+    if (!equalRecipientDigest(actualDigest, before.recipient_digest)) {
+      return { kind: "SUPPRESSED" };
+    }
+
+    let row: OutboundPgPermitRow | undefined;
+    try {
+      const permitted = await this.pool.query<OutboundPgPermitRow>(
+        "SELECT * FROM public.outbound_dispatch_permit($1,$2,$3)",
+        [claim.deliveryId, claim.leaseToken, actualDigest],
+      );
+      row = permitted.rows[0];
+    } catch (error) {
+      // W1 emits finite SQLSTATE for expected eligibility failures. A caller
+      // must never infer a successful dispatch from failed authorization.
+      if (
+        error !== null && typeof error === "object" &&
+        "code" in error && error.code === "P0001"
+      ) {
+        const reason = "message" in error ? error.message : undefined;
+        if (
+          reason === "OUTBOUND_BUDGET_EXHAUSTED" ||
+          reason === "OUTBOUND_RECIPIENT_THROTTLED"
+        ) {
+          await this.pool.query(
+            "SELECT public.outbound_release_lease($1,$2,clock_timestamp()+interval '30 seconds')",
+            [claim.deliveryId, claim.leaseToken],
+          );
+          return { kind: "RATE_LIMITED" };
+        }
+        return { kind: "LOST_LEASE" };
+      }
+      throw error;
+    }
+    if (row === undefined) return { kind: "LOST_LEASE" };
+
+    const config = await this.resolveConfig({
+      organizationId: row.organization_id,
+      bindingId: row.binding_id,
+      phoneNumberId: row.phone_number_id,
+      wabaId: row.waba_id,
+      configAlias: row.config_alias,
+      environment: row.provider_environment,
+      templateVersion: row.template_catalog_version,
+      language: row.language,
+    });
+    if (config === undefined) {
+      throw new Error("OUTBOUND_SENDER_CONFIGURATION_NOT_READY");
+    }
+    const value = permittedSenderMaterial(row, config);
+    if (
+      !equalRecipientDigest(row.recipient_digest, actualDigest) ||
+      row.phone_normalized !== before.phone_normalized
+    ) {
+      throw new Error("OUTBOUND_RECIPIENT_CHANGED_DURING_PERMIT");
+    }
+    const seconds = Number(row.remaining_seconds);
+    if (!Number.isFinite(seconds) || seconds <= 0 || seconds > 30 * 60) {
+      throw new Error("OUTBOUND_PERMIT_DEADLINE_INVALID");
+    }
+    this.prepared.set(row.attempt_id, {
+      leaseToken: claim.leaseToken,
+      deliveryId: claim.deliveryId,
+      recipientDigest: actualDigest,
+      value,
+    });
+    return {
+      kind: "DISPATCH",
+      attemptId: row.attempt_id,
+      attemptHandle: row.callback_handle,
+      remainingMs: Math.floor(seconds * 1_000),
+    };
+  }
+
+  async loadForPermit(
+    claim: OutboundClaim,
+    attemptId: string,
+  ): Promise<OutboundTransportMaterial | undefined> {
+    const entry = this.prepared.get(attemptId);
+    return entry?.deliveryId === claim.deliveryId && entry.leaseToken === claim.leaseToken
+      ? entry.value : undefined;
+  }
+
+  async confirmPermit(
+    claim: OutboundClaim,
+    attemptId: string,
+  ): Promise<{ readonly remainingMs: number } | undefined> {
+    const stored = this.prepared.get(attemptId);
+    if (!stored || stored.leaseToken !== claim.leaseToken ||
+      stored.deliveryId !== claim.deliveryId) return undefined;
+    const result = await this.pool.query<{ allowed: boolean }>(
+      "SELECT public.outbound_confirm_dispatch($1,$2,$3,$4,$5) AS allowed",
+      [claim.deliveryId, claim.leaseToken, attemptId, stored.recipientDigest,
+        stored.value.recipientE164],
+    );
+    // The SQL confirm gate independently checks DB wall time > provider timeout.
+    return result.rows[0]?.allowed === true ? { remainingMs: 10_001 } : undefined;
+  }
+
+  forgetPermit(attemptId: string): void {
+    this.prepared.delete(attemptId);
+  }
+
+  async finalizeAttempt(
+    claim: OutboundClaim,
+    attemptId: string,
+    result: OutboundSendResult,
+  ): Promise<void> {
+    const outcome = finiteReason(result);
+    try {
+      const updated = await this.pool.query<{ finished: boolean }>(
+        "SELECT public.outbound_finish_attempt($1,$2,$3,$4,$5,$6) AS finished",
+        [claim.deliveryId, claim.leaseToken, attemptId,
+          outcome.outcome, outcome.messageId, outcome.safeCode],
+      );
+      if (updated.rows[0]?.finished !== true) {
+        throw new Error("OUTBOUND_FINALIZE_FENCE_LOST");
+      }
+    } finally {
+      this.forgetPermit(attemptId);
+    }
+  }
+
+  async expireAndPurge(limit: number): Promise<number> {
+    // Recovery must first terminalize abandoned DISPATCHING (UNKNOWN) without
+    // reopening a transport permit. W1 owns this restricted function.
+    const recovered = await this.pool.query<{ recovered: number }>(
+      "SELECT public.outbound_cleanup_stale($1) AS recovered", [limit],
+    );
+    const purged = await this.pool.query<{ purged: number }>(
+      "SELECT public.outbound_purge_expired_envelopes($1) AS purged", [limit],
+    );
+    return (recovered.rows[0]?.recovered ?? 0) + (purged.rows[0]?.purged ?? 0);
+  }
+}
