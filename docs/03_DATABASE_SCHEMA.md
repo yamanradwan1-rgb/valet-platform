@@ -2994,3 +2994,57 @@ bounded `DROP INDEX CONCURRENTLY` outside transactions, per
 and [DEC-103](decisions/DEC-103_ISSUE_276_AUDIT_DISCOVERABILITY_VALIDATION.md).
 The source-level migration must be deployed and recorded independently per
 environment; a successful disposable rehearsal never authorizes production.
+
+## Stage C outbound WhatsApp Guest Access (migrations 086-088)
+
+Migration 086 creates twelve dedicated `outbound_*` tables with composite
+Organization/Location/Session/Customer foreign keys, immutable source rows,
+controlled delivery states, unique initial intent per visit and tenant, and
+bounded indexes. Migration 087 installs sender claim/lease/dispatch-permit
+functions; migration 088 installs webhook reconciliation, consent history and
+crash recovery functions. Historical migrations 001-085 remain unchanged.
+Existing Notification, Guest Push, Session and Browser Session tables remain
+authoritative in their original domains; no historical messages are backfilled.
+
+| Table | Persisted authority |
+| --- | --- |
+| `outbound_provider_bindings` | One company-owned Meta phone number per environment/provider/number; verified ownership evidence nullable and unset by default, distinct from ordinary company enablement |
+| `outbound_messaging_policies` | Company default plus nullable Location field overrides; separate partial unique indexes and positive revisions |
+| `outbound_messaging_control` | Separate test and production singleton kill switches, issue/send both OFF from migration |
+| `outbound_messaging_permissions` and `outbound_permission_events` | Current verifiable recipient-HMAC consent and immutable GRANT/WITHDRAW revisions, withdrawal always fences an old intent |
+| `outbound_message_intents` | One immutable initial Guest Access intent, scoped Session/Customer, token generation, recipient HMAC, permission revision, company + effective Location policy revisions, binding revision and <=30-minute deadline |
+| `outbound_message_deliveries` and `outbound_message_attempts` | Leased dispatch, irreversible ordinal/UNKNOWN semantics, unique provider account/message correlation, immutable callback handles and monotone evidence |
+| `outbound_message_envelopes` | Restricted RSA-OAEP-SHA256 ciphertext, authenticated JSON AAD bytes, key/AAD versions and purge deadline; never a plaintext Guest bearer or rendered link |
+| `outbound_message_events` | Immutable, idempotent normalized provider facts with no raw callback body |
+| `outbound_message_budgets` and `outbound_recipient_budgets` | Shared binding token bucket and per-HMAC recipient spacing reserved atomically at dispatch |
+
+All outbound table rights are revoked from PUBLIC. The ordinary API runtime
+role receives narrow SELECT plus initial INSERT, protected policy/binding
+column mutations and permission-change function access. The sender role
+has no direct outbound table access; it receives only bounded SECURITY DEFINER
+functions for claim, recipient, dispatch, verification, finalization and
+cleanup. The webhook role can only resolve the verified Meta account binding
+and append monotone callback evidence. Neither can write Customer, Session,
+Guest credential or custody tables. The ordinary API role cannot update
+global kill switches or Meta provider ownership verification columns.
+
+`outbound_dispatch_permit(delivery,lease,recipient_digest)` locks and validates
+the original scoped visit, generation, consent revision, company policy
+revision, effective Location override, account verification, kill switch,
+envelope AAD and shared rate budgets. It commits DISPATCHING before external
+transport. `outbound_confirm_dispatch(delivery,lease,attempt,digest,phone)`
+must be called immediately before HTTP creation; it compares the current
+canonical Customer phone, visit authority, consent, both policy revisions,
+verified account and deadlines against the database clock. Uncertain calls
+are UNKNOWN, never automatically replayed. Signed webhook handling updates
+timestamp facts monotonically without changing any visit state.
+
+Run `node packages/database/scripts/outbound-migration-smoke.mjs` on the local
+PostgreSQL 17 test server. The script creates one random disposable database
+on loopback, runs all 88 ordered migrations, checks synthetic tenant/consent/
+send/callback invariants and three fresh restricted database roles, and then
+drops only its disposable resources. Tests never access staging or production.
+See `docs/validation/whatsapp/W1_DATABASE_MIGRATION_PROOF.md`. Production
+activation remains blocked on verified opt-in, number ownership, approved
+templates, backup/key lifecycle and the separately authorized operational
+release gates.

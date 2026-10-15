@@ -7,6 +7,7 @@ import { verifyManagementSettingsPrivileges } from "./management-settings-runtim
 import { verifyManagementFeaturePrivileges } from "./management-runtime-privileges.mjs";
 import { verifyGuestRuntimePrivileges } from "./guest-runtime-privileges.mjs";
 import { verifyConditionPhotoRuntimePrivileges } from "./condition-photo-runtime-privileges.mjs";
+import { verifyOutboundRuntimePrivileges } from "./outbound-runtime-privileges.mjs";
 
 export async function verifyRuntimeFeaturePrivileges(client, runtimeRole) {
   await verifyLocationConfigurationPrivileges(client, runtimeRole);
@@ -18,4 +19,5 @@ export async function verifyRuntimeFeaturePrivileges(client, runtimeRole) {
   await verifyManagementFeaturePrivileges(client, runtimeRole);
   await verifyGuestRuntimePrivileges(client, runtimeRole);
   await verifyConditionPhotoRuntimePrivileges(client, runtimeRole);
+  await verifyOutboundRuntimePrivileges(client, runtimeRole);
 }

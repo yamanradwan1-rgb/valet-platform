@@ -558,6 +558,10 @@ model Organization {
   guestPushRegistrations      GuestPushRegistration[]
   guestPushIntents            GuestPushIntent[]
   guestPushDeliveries         GuestPushDelivery[]
+  outboundProviderBindings    OutboundProviderBinding[]
+  outboundMessagingPolicies   OutboundMessagingPolicy[]
+  outboundMessagingPermissions OutboundMessagingPermission[]
+  outboundMessageIntents      OutboundMessageIntent[]
   operatingHours              OrganizationOperatingHour[]
   locationOperatingHourOverrides LocationOperatingHourOverride[]
 
@@ -630,6 +634,8 @@ model Location {
   staffPushIntents         StaffPushIntent[]
   guestPushRegistrations   GuestPushRegistration[]
   guestPushIntents         GuestPushIntent[]
+  outboundMessagingPolicies OutboundMessagingPolicy[]
+  outboundMessageIntents OutboundMessageIntent[]
   operatingHoursOverrides  LocationOperatingHourOverride[]
 
   shiftStartPresenceModeOverride ShiftPresenceMode? @map("shift_start_presence_mode_override")
@@ -922,6 +928,7 @@ model Customer {
   organization      Organization       @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   valetSessions     ValetSession[]
   retrievalRequests RetrievalRequest[]
+  outboundMessageIntents OutboundMessageIntent[]
 
   @@unique([organizationId, id], map: "customers_organization_id_id_key")
   @@index([organizationId, phoneNormalized, id], map: "customers_organization_phone_normalized_id_idx")
@@ -1079,6 +1086,7 @@ model ValetSession {
   guestBrowserSessions        GuestBrowserSession[]
   guestPushRegistrations      GuestPushRegistration[]
   guestPushIntents            GuestPushIntent[]
+  outboundMessageIntents      OutboundMessageIntent[]
 
   @@unique([organizationId, id], map: "valet_sessions_organization_id_id_key")
   @@unique([organizationId, locationId, id], map: "valet_sessions_organization_id_location_id_id_key")
@@ -1988,6 +1996,240 @@ model GuestPushDelivery {
   @@index([leaseExpiresAt, id], map: "guest_push_deliveries_lease_expiry_idx")
   @@index([registrationId, state], map: "guest_push_deliveries_registration_state_idx")
   @@map("guest_push_deliveries")
+}
+
+// Stage C provider-neutral WhatsApp outbox. SQL migration owns CHECK/partial indexes and security functions.
+model OutboundProviderBinding {
+  id                String @id @default(uuid()) @db.Uuid
+  organizationId    String @map("organization_id") @db.Uuid
+  purpose           String @default("INITIAL_GUEST_ACCESS")
+  provider          String @default("META_CLOUD")
+  environment       String
+  wabaId            String @map("waba_id")
+  phoneNumberId     String @map("phone_number_id")
+  configAlias       String @map("config_alias")
+  enabled           Boolean @default(false)
+  providerVerifiedAt DateTime? @map("provider_verified_at") @db.Timestamptz(3)
+  providerEvidenceReference String? @map("provider_evidence_reference")
+  revision          Int @default(1)
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime @default(now()) @map("updated_at") @db.Timestamptz(3)
+  organization      Organization @relation(fields:[organizationId],references:[id],onDelete:Restrict)
+  policies          OutboundMessagingPolicy[]
+  intents           OutboundMessageIntent[]
+  attempts          OutboundMessageAttempt[]
+  budget            OutboundMessageBudget?
+  recipientBudgets  OutboundRecipientBudget[]
+  events            OutboundMessageEvent[]
+  @@unique([organizationId,id])
+  @@unique([environment,provider,phoneNumberId])
+  @@map("outbound_provider_bindings")
+}
+
+model OutboundMessagingPolicy {
+  id                     String @id @default(uuid()) @db.Uuid
+  organizationId         String @map("organization_id") @db.Uuid
+  locationId             String? @map("location_id") @db.Uuid
+  purpose                String @default("INITIAL_GUEST_ACCESS")
+  enabled                Boolean?
+  language               String?
+  providerBindingId      String? @map("provider_binding_id") @db.Uuid
+  templateCatalogVersion String? @map("template_catalog_version")
+  policyVersion          Int @default(1) @map("policy_version")
+  revision               Int @default(1)
+  createdAt              DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt              DateTime @default(now()) @map("updated_at") @db.Timestamptz(3)
+  organization           Organization @relation(fields:[organizationId],references:[id],onDelete:Restrict)
+  location               Location? @relation(fields:[organizationId,locationId],references:[organizationId,id],onDelete:Restrict)
+  providerBinding        OutboundProviderBinding? @relation(fields:[organizationId,providerBindingId],references:[organizationId,id],onDelete:Restrict)
+  intents                OutboundMessageIntent[]
+  @@unique([organizationId,id])
+  @@map("outbound_messaging_policies")
+}
+
+model OutboundMessagingControl {
+  environment String @id
+  issueEnabled Boolean @default(false) @map("issue_enabled")
+  sendEnabled Boolean @default(false) @map("send_enabled")
+  revision Int @default(1)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(3)
+  @@map("outbound_messaging_control")
+}
+
+model OutboundMessagingPermission {
+  id String @id @default(uuid()) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  recipientDigest String @map("recipient_digest")
+  purpose String @default("INITIAL_GUEST_ACCESS")
+  evidenceReference String @map("evidence_reference")
+  collectedAt DateTime @map("collected_at") @db.Timestamptz(3)
+  expiresAt DateTime? @map("expires_at") @db.Timestamptz(3)
+  withdrawnAt DateTime? @map("withdrawn_at") @db.Timestamptz(3)
+  revision Int @default(1)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(3)
+  organization Organization @relation(fields:[organizationId],references:[id],onDelete:Restrict)
+  intents OutboundMessageIntent[]
+  events OutboundPermissionEvent[]
+  @@unique([organizationId,id])
+  @@unique([organizationId,recipientDigest,purpose])
+  @@map("outbound_messaging_permissions")
+}
+
+model OutboundPermissionEvent {
+  id String @id @default(uuid()) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  permissionId String @map("permission_id") @db.Uuid
+  revision Int
+  action String
+  evidenceReference String @map("evidence_reference")
+  occurredAt DateTime @default(now()) @map("occurred_at") @db.Timestamptz(3)
+  permission OutboundMessagingPermission @relation(fields:[organizationId,permissionId],references:[organizationId,id],onDelete:Restrict)
+  @@unique([organizationId,permissionId,revision])
+  @@map("outbound_permission_events")
+}
+
+model OutboundMessageIntent {
+  id String @id @default(uuid()) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  locationId String @map("location_id") @db.Uuid
+  valetSessionId String @map("valet_session_id") @db.Uuid
+  customerId String @map("customer_id") @db.Uuid
+  purpose String @default("INITIAL_GUEST_ACCESS")
+  credentialGeneration Int @map("credential_generation")
+  recipientDigest String @map("recipient_digest")
+  permissionId String @map("permission_id") @db.Uuid
+  permissionRevision Int @map("permission_revision")
+  policyId String @map("policy_id") @db.Uuid
+  policyRevision Int @map("policy_revision")
+  companyPolicyRevision Int @map("company_policy_revision")
+  providerBindingId String @map("provider_binding_id") @db.Uuid
+  bindingRevision Int @map("binding_revision")
+  templateCatalogVersion String @map("template_catalog_version")
+  language String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  organization Organization @relation(fields:[organizationId],references:[id],onDelete:Restrict)
+  location Location @relation(fields:[organizationId,locationId],references:[organizationId,id],onDelete:Restrict)
+  valetSession ValetSession @relation(fields:[organizationId,locationId,valetSessionId],references:[organizationId,locationId,id],onDelete:Restrict)
+  customer Customer @relation(fields:[organizationId,customerId],references:[organizationId,id],onDelete:Restrict)
+  permission OutboundMessagingPermission @relation(fields:[organizationId,permissionId],references:[organizationId,id],onDelete:Restrict)
+  policy OutboundMessagingPolicy @relation(fields:[organizationId,policyId],references:[organizationId,id],onDelete:Restrict)
+  providerBinding OutboundProviderBinding @relation(fields:[organizationId,providerBindingId],references:[organizationId,id],onDelete:Restrict)
+  deliveries OutboundMessageDelivery[]
+  envelope OutboundMessageEnvelope?
+  @@unique([organizationId,id])
+  @@unique([organizationId,valetSessionId,purpose])
+  @@index([expiresAt,id])
+  @@map("outbound_message_intents")
+}
+
+model OutboundMessageDelivery {
+  id String @id @default(uuid()) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  intentId String @map("intent_id") @db.Uuid
+  channel String @default("WHATSAPP")
+  provider String @default("META_CLOUD")
+  state String @default("PENDING")
+  nextAttemptAt DateTime? @map("next_attempt_at") @db.Timestamptz(3)
+  leaseToken String? @unique @map("lease_token") @db.Uuid
+  leaseExpiresAt DateTime? @map("lease_expires_at") @db.Timestamptz(3)
+  attemptCount Int @default(0) @map("attempt_count")
+  maxAttempts Int @default(4) @map("max_attempts")
+  acceptedAt DateTime? @map("accepted_at") @db.Timestamptz(3)
+  sentAt DateTime? @map("sent_at") @db.Timestamptz(3)
+  deliveredAt DateTime? @map("delivered_at") @db.Timestamptz(3)
+  readAt DateTime? @map("read_at") @db.Timestamptz(3)
+  failedAt DateTime? @map("failed_at") @db.Timestamptz(3)
+  terminalReason String? @map("terminal_reason")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(3)
+  intent OutboundMessageIntent @relation(fields:[organizationId,intentId],references:[organizationId,id],onDelete:Restrict)
+  attempts OutboundMessageAttempt[]
+  events OutboundMessageEvent[]
+  @@unique([organizationId,id])
+  @@unique([organizationId,intentId,channel])
+  @@index([nextAttemptAt,createdAt,id])
+  @@index([leaseExpiresAt,id])
+  @@map("outbound_message_deliveries")
+}
+
+model OutboundMessageAttempt {
+  id String @id @default(uuid()) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  deliveryId String @map("delivery_id") @db.Uuid
+  providerBindingId String @map("provider_binding_id") @db.Uuid
+  ordinal Int
+  callbackHandle String @unique @default(uuid()) @map("callback_handle") @db.Uuid
+  state String @default("DISPATCHING")
+  dispatchStartedAt DateTime @default(now()) @map("dispatch_started_at") @db.Timestamptz(3)
+  transportStartedAt DateTime? @map("transport_started_at") @db.Timestamptz(3)
+  providerMessageId String? @map("provider_message_id")
+  safeCode String? @map("safe_code")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  delivery OutboundMessageDelivery @relation(fields:[organizationId,deliveryId],references:[organizationId,id],onDelete:Restrict)
+  providerBinding OutboundProviderBinding @relation(fields:[organizationId,providerBindingId],references:[organizationId,id],onDelete:Restrict)
+  events OutboundMessageEvent[]
+  @@unique([organizationId,id])
+  @@unique([organizationId,deliveryId,ordinal])
+  @@unique([organizationId,deliveryId,id])
+  @@index([providerBindingId,providerMessageId])
+  @@map("outbound_message_attempts")
+}
+
+model OutboundMessageEnvelope {
+  intentId String @id @map("intent_id") @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  ciphertext Bytes
+  aadLabel Bytes @map("aad_label")
+  keyVersion String @map("key_version")
+  aadVersion Int @default(1) @map("aad_version")
+  algorithm String @default("RSA-OAEP-SHA256")
+  purgeAt DateTime @map("purge_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  intent OutboundMessageIntent @relation(fields:[organizationId,intentId],references:[organizationId,id],onDelete:Restrict)
+  @@unique([organizationId,intentId])
+  @@index([purgeAt,intentId])
+  @@map("outbound_message_envelopes")
+}
+
+model OutboundMessageEvent {
+  id String @id @default(uuid()) @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  deliveryId String @map("delivery_id") @db.Uuid
+  attemptId String @map("attempt_id") @db.Uuid
+  providerBindingId String @map("provider_binding_id") @db.Uuid
+  dedupeDigest String @map("dedupe_digest")
+  eventKind String @map("event_kind")
+  providerOccurredAt DateTime? @map("provider_occurred_at") @db.Timestamptz(3)
+  safeCode String? @map("safe_code")
+  receivedAt DateTime @default(now()) @map("received_at") @db.Timestamptz(3)
+  delivery OutboundMessageDelivery @relation(fields:[organizationId,deliveryId],references:[organizationId,id],onDelete:Restrict)
+  attempt OutboundMessageAttempt @relation(fields:[organizationId,deliveryId,attemptId],references:[organizationId,deliveryId,id],onDelete:Restrict)
+  providerBinding OutboundProviderBinding @relation(fields:[organizationId,providerBindingId],references:[organizationId,id],onDelete:Restrict)
+  @@unique([providerBindingId,dedupeDigest])
+  @@map("outbound_message_events")
+}
+
+model OutboundMessageBudget {
+  providerBindingId String @id @map("provider_binding_id") @db.Uuid
+  capacity Decimal @default(1) @db.Decimal(10,3)
+  tokens Decimal @default(1) @db.Decimal(10,3)
+  refillPerSecond Decimal @default(1) @map("refill_per_second") @db.Decimal(10,3)
+  lastRefillAt DateTime @default(now()) @map("last_refill_at") @db.Timestamptz(3)
+  revision Int @default(1)
+  providerBinding OutboundProviderBinding @relation(fields:[providerBindingId],references:[id],onDelete:Restrict)
+  @@map("outbound_message_budgets")
+}
+
+model OutboundRecipientBudget {
+  providerBindingId String @map("provider_binding_id") @db.Uuid
+  recipientDigest String @map("recipient_digest")
+  nextPermittedAt DateTime @map("next_permitted_at") @db.Timestamptz(3)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  providerBinding OutboundProviderBinding @relation(fields:[providerBindingId],references:[id],onDelete:Restrict)
+  @@id([providerBindingId,recipientDigest])
+  @@index([expiresAt])
+  @@map("outbound_recipient_budgets")
 }
 
 model AuditEvent {
