@@ -1,8 +1,11 @@
 # W7 — Independent security and integration acceptance (provisional)
 
-**Current verdict on re-reviewed `767964267ac822aa032111b743c15149cb0c402c`:
-five original W7 defects PASS scoped independent re-tests; FINAL RELEASE
-ACCEPTANCE BLOCKED. This is NOT GO.**
+**CURRENT VERDICT: FIX REQUIRED / BLOCKED — NOT GO.** The formerly scoped
+five-defect PASS on `767964267ac822aa032111b743c15149cb0c402c`
+is **superseded for acceptance purposes** by a newly W1-verified real-PG
+dispatch-finalization defect (**W7-F33-R2**) affecting legitimate retries,
+plus its changed-phone state transition. See the appended defect register.
+There is **no W7 security acceptance on 767 or earlier source**.
 
 The historical original-source verdict at `6b1810d3` remains
 **FIX REQUIRED**. The historical defect reproductions below are preserved;
@@ -19,6 +22,7 @@ the new exact-SHA re-review and its distinct test evidence are at the end.
 | QA workspace | `/valet-platform/tmp/wa-w7-independent-review` |
 | Scope | Complete feature diff, adversarial source checks and selected independent synthetic PostgreSQL/TypeScript negative tests |
 | Status of follow-up fixes | Original 6b source: absent; second-pass 767 source: implemented and scoped independently retested, subject to global QA gates |
+| New finalization defect | `W7-F33-R2`: W1 **real PostgreSQL VERIFIED** SQLSTATE `23514`; W7 independently confirmed contradictory source conditions; prospective migration 093 and W4 regression pending |
 
 This report records findings on the **original** reviewed SHA only. It is intentionally
 separate from Prime's evidence ledger and does not reproduce a claim of independent
@@ -261,7 +265,7 @@ documentation-only atop that source.
 |---|---|---|
 | **W7-P1-01** forged provider verification INSERT | Disposable real PG17 migration smoke applies **92 pristine migrations**, re-provisions restricted roles, simulates legacy table-wide INSERT then applies 090; verifies full-table grant revoked; explicit `enabled`, `provider_verified_at`, evidence, revision and timestamps rejected with SQLSTATE **42501**; safe unverified onboarding/limited configuration UPDATE succeed. | **PASS scoped**; former P1 repro denied |
 | **W7-P1-02** padded Meta IDs | Independent direct Node/TypeScript call passes **3** padded/bounded IDs through both `classifyMetaReply` and `normalizeMetaStatusPayload`, including `+/==` and a 255-character edge. Rejects **8** malformed, non-`wamid` or oversized IDs across **both** parsers. | **PASS scoped**, including 767 grammar hardening |
-| **W7-F33** changed Customer phone keeps queued payload | Real PG17 isolated smoke confirms immediate durable `SUPPRESSED` and ciphertext deletion for `PENDING`, `LEASED` and `RETRY_WAIT`, customer isolation, no-op edit unchanged, transaction rollback restores prior state. `DISPATCHING` stays irreversible and recovers `UNKNOWN` with envelope purge, no retry. Reviewed 092 trigger Customer-lock/order design. | **PASS scoped**; six dedicated three-client race tests are **source-inspected but not separately W7-executed** |
+| **W7-F33** changed Customer phone keeps queued payload | Real PG17 isolated smoke confirms immediate durable `SUPPRESSED` and ciphertext deletion for `PENDING`, `LEASED` and `RETRY_WAIT`, customer isolation, no-op edit unchanged, transaction rollback restores prior state. `DISPATCHING` stays irreversible and recovers `UNKNOWN` with envelope purge, no retry. Reviewed 092 trigger Customer-lock/order design. | **HISTORICAL scoped PASS only**; new W7-F33-R2 finalization defect supersedes full acceptance |
 | **W7-F11** authenticated callback before sender crash | Real PG17 smoke confirms signed `SENT`, `DELIVERED`, `READ` evidence makes timed-out dispatch `ACCEPTED`; negative `FAILED`, fabricated timestamp, bare message ID and no proof recover `UNKNOWN`, with attempt state, purge, idempotence and no replay. Reviewed 091 checking immutable correlated provider event rather than timestamps alone. | **PASS scoped** |
 | **W7-K01** private issuer PEM accepted | Independently generated ephemeral RSA-3072 key pair. Public SPKI PEM passes; private PKCS#8, private PKCS#1, and concatenated public+private PEM all fail closed with the public-only-key error. | **PASS scoped** |
 
@@ -318,10 +322,84 @@ This limited negative result is not a proof that no vulnerability exists.
 
 ### W7 provisional security verdict on exact 767 source
 
-**Previously confirmed W7 P1/P2 defects: scoped evidence PASS.**
-**Final release/security acceptance: BLOCKED / NOT GO** until root suite
+**Previously confirmed five W7 P1/P2 defects: historical scoped evidence PASS,
+not a cumulative security sign-off; W7-F33-R2 is verified open.**
+**Final release/security acceptance: FIX REQUIRED / BLOCKED / NOT GO** until root suite
 evidence is complete, any root failures are attributed and dispositioned,
 full intended acceptance matrix and required external/operational gates are
 fulfilled, and an exact final immutable source SHA remains frozen.
 No code changes, push, feature merge, PR, production deploy, recipient
 message or operational enablement is authorized by this W7 report.
+
+---
+
+## W7 supplemental defect register — W7-F33-R2 (post-767 verification)
+
+| Field | Evidence |
+|---|---|
+| Status | **OPEN / VERIFIED by W1 on real PostgreSQL; W7 source independently corroborated** |
+| Severity | **P2 security/reliability release blocker** (transactional retry invariant and phone-change suppression); precise exploit severity contingent on independent final negative/race tests |
+| Affected frozen source | `767964267ac822aa032111b743c15149cb0c402c` and earlier implementations with the same 086/089/092 interaction |
+| Authority of observed database outcome | **W1's reported real-PG reproduction**, `OUTBOUND_NO_REQUEUE`, SQLSTATE `23514`; W7 has **not** separately run that exact PG negative yet |
+| W7 independent source confirmation | Migration 086 `outbound_guard_delivery` lines 251–255; migration 089 `outbound_finish_attempt` lines 36–53; migration 092 `outbound_suppress_customer_phone_change` lines 18–34 |
+| Status of correction | W1 preparing **forward-only migration 093**, W4 preparing real-PG negative and competing-race tests; neither evaluated here or accepted |
+
+### Actual failure chain and corrections to earlier threat model
+
+1. Migration 089's finalizer intends a bounded, legitimate
+   `DISPATCHING -> RETRY_WAIT` transition if the **current** attempt has
+   definitive `NOT_SENT` or `DEFINITIVE_FAILURE` transport proof and the
+   retry budget/deadline permit it. It updates the attempt, then the delivery,
+   retaining its encrypted envelope for the next permitted dispatch.
+2. But the **still-active historical migration 086** delivery trigger
+   unconditionally prohibits `DISPATCHING -> RETRY_WAIT`:
+   `OUTBOUND_NO_REQUEUE`, SQLSTATE **23514**. The transition therefore
+   **throws and rolls the entire finalization transaction back**, even when
+   Customer phone is unchanged and the provider unambiguously did **not**
+   accept the message. The legitimate safe-retry path is broken.
+3. Migration 092 intentionally leaves `DISPATCHING` untouched on Customer
+   phone edit because transport could already have started. After a phone
+   change, a negative provider finalization hits the **same 086 guard**:
+   rather than committing `RETRY_WAIT`, the attempt/delivery remains
+   `DISPATCHING` pending lease expiry, ultimately entering non-retryable
+   `UNKNOWN`. The former W7 hypothesis that this path immediately
+   *committed* a claimable `RETRY_WAIT` is **incorrect for 767** because
+   the historical 086 trigger intercepts it. The current observed failure
+   is **finalization rollback/legitimate retry loss** and inability to
+   durably suppress negative-confirmed phone drift at finalization.
+4. The sender HMAC recheck and terminal `UNKNOWN` guard still protect
+   against dispatching the stale phone in the paths inspected. These
+   boundaries do **not** satisfy F33's durable suppression/purge intent
+   or the proven-nonacceptance retry contract.
+
+### Mandatory W7 re-review after exact newer feature SHA is supplied
+
+- Verify migration **093 is forward-only**; no rewriting/weakening 086–092
+  checksums or permitting arbitrary `DISPATCHING -> RETRY_WAIT`.
+  Authorization must require immutable **current attempt** evidence
+  of actual `NOT_SENT` or `DEFINITIVE_FAILURE`, bounded budget/deadline
+  and matching lease/owner, never mere caller-supplied state.
+- **Unchanged phone** + valid proved negative finalization:
+  `RETRY_WAIT` commits, sealed envelope retained until next eligible
+  dispatch, attempts/budgets bounded; impossible without negative proof.
+- **Changed phone** while `DISPATCHING`, followed by definitive negative:
+  mark terminal **`SUPPRESSED`** and purge ciphertext durably, with
+  no future claim or resend. Validate relevant Customer/attempt lock
+  ordering and concurrent update/finish races.
+- **Signed positive callbacks** before or after HTTP completion:
+  provider `SENT/DELIVERED/READ` evidence wins and preserves
+  `ACCEPTED`; provider-uncertain/timeout, missing or forged proof
+  remains `UNKNOWN` and can **never** reenter retry; no double-send.
+- Run W4's additional actual PostgreSQL finalization case, the six
+  pre-existing F33 replica races, negative callback/phone scenarios and
+  93+ feature unit tests, 93+ pristine migrations, restricted-role and
+  tenant/ACL checks, then root PostgreSQL/non-PostgreSQL suites against
+  the **same exact final SHA**, with independently reported outcomes.
+- Independently inspect the exact integrated SHA in W7's own QA
+  worktree; update this register with a separate evidence table and
+  a new docs-only commit. **No release GO is implied by W1's pending
+  fix or a future local smoke PASS.**
+
+**Present status: FIX REQUIRED / BLOCKED — pending exact 093-containing SHA,
+W4 real-PG negative/race evidence, W7 independent re-test, full cumulative
+suite outcomes and previously documented external gates.**
