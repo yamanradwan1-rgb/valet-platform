@@ -12,6 +12,7 @@ import { GuestPushRegistrationModule } from "./modules/guest-push-registration/g
 import { KeyCustodyModule } from "./modules/keys/key-custody.module";
 import { MapSetupModule } from "./modules/map-setup/map-setup.module";
 import { ManagementModule } from "./modules/management/management.module";
+import { NotificationsModule } from "./modules/notifications/notifications.module";
 import { StartParkingModule } from "./modules/parking/start-parking.module";
 import { PaymentsModule } from "./modules/payments/payments.module";
 import { RetrievalModule } from "./modules/retrieval/retrieval.module";
@@ -35,6 +36,7 @@ import { TrackingModule } from "./modules/tracking/tracking.module";
     KeyCustodyModule,
     MapSetupModule,
     ManagementModule,
+    NotificationsModule,
     DispatchModule,
     StartParkingModule,
     PaymentsModule,

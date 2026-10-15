@@ -44,3 +44,9 @@ Manifest `docs/plans/AUTOMATIC_WHATSAPP_GUEST_ACCESS_UI_FREEZE_MANIFEST.tsv` rem
 ## Engineering gates and known blockers
 
 W1 migration head 085; W1 reserves the next free forward-only timestamp. Work against synthetic, task-owned DB only. Consent evidence cannot be inferred from employee input or historical Customer phone. Meta template/Graph version and fragment compatibility require direct official evidence. W6 connection management must reflect actual authoritative status; no fake `connected` or browser-exposed key. A missing provider onboarding ceremony is reported as a gated integration. The full mandatory lint/typecheck/architecture/non-Postgres/Postgres/build gates and W7 exact-SHA verdict are required for CODE DELIVERY GO. Physical Native, recipient-device, and production gates remain separate.
+
+## Addendum — browser worker startup failure and narrow ownership recovery
+
+Three assigned worker sessions (W5, W6 and W7) failed before receiving a composer; the worker runtime reports `failed` and `revivable=false`. They produced no source changes or independent review. Prime temporarily performed their approved work in the **existing** `tmp/wa-w5`, `tmp/wa-w6` and `tmp/wa-w7` isolated worktrees, retaining the same task branches, exclusive path restrictions and task identifiers. These are explicitly Prime-authored patches, not worker-completed reports. W7's acceptance remains **BLOCKED** until an independent reviewer validates the integrated SHA.
+
+Prime's already-owned `notifications.module.ts` is extended with new, dedicated `apps/api/src/modules/notifications/whatsapp-settings-{controller,service,validation}.ts` to implement typed authorized Dashboard settings. Those exact three additional paths are Prime-exclusive. The existing protected Dashboard change remains the sole specified `settings-page.tsx` file plus new sibling WhatsApp components. No other UI exception is authorized.
