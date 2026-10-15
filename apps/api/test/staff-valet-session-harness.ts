@@ -1,5 +1,8 @@
 import { CancelCheckInController } from "../src/modules/check-in-api/cancel-check-in.controller";
 import { CancelCheckInService } from "../src/modules/check-in-api/cancel-check-in.service";
+import { createCancelCheckInCredentialFixture } from "./cancel-check-in-credential-fixture";
+import { generateStaffCredential } from "../src/modules/auth/staff-auth-credential";
+import { STAFF_SESSION_CONTEXT_RESOLVER } from "../src/modules/auth/staff-session-context";
 import { CheckInOperationRunner } from "../src/modules/check-in-api/check-in-operation-runner";
 import { randomUUID } from "node:crypto";
 
@@ -112,6 +115,7 @@ export interface StaffValetSessionHarness {
 
 export function createStaffValetSessionHarness(): StaffValetSessionHarness {
   const context = new ShiftTestContext("valet_sess_det");
+  const cancellationCredentials = createCancelCheckInCredentialFixture(context);
   const principals = new Map<string, string>();
   const principalResolver: StaffPrincipalResolver = {
     async resolve(authorization) {
@@ -146,6 +150,7 @@ export function createStaffValetSessionHarness(): StaffValetSessionHarness {
         provide: STAFF_PRINCIPAL_RESOLVER,
         useValue: principalResolver,
       },
+      { provide: STAFF_SESSION_CONTEXT_RESOLVER, useValue: cancellationCredentials.resolver },
     ],
   })
   class TestStaffSessionModule implements NestModule {
@@ -260,7 +265,8 @@ export function createStaffValetSessionHarness(): StaffValetSessionHarness {
           fixture.membershipId,
         ],
       );
-      const token = `token-${randomUUID()}`;
+      const token = generateStaffCredential("vsa1.");
+      await cancellationCredentials.register(fixture.userId, token);
       principals.set(`Bearer ${token}`, fixture.userId);
       return { fixture, token };
     },

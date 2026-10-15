@@ -67,7 +67,7 @@ export class CancelCheckInController {
           ...input,
           authenticatedUserId,
           sessionId: parseCheckInUuid(sessionId),
-        }),
+        }, authorization),
       );
     });
   }
@@ -93,7 +93,7 @@ export class CancelCheckInController {
           ...input,
           authenticatedUserId,
           sessionId: parseCheckInUuid(sessionId),
-        }),
+        }, authorization),
       );
     });
   }

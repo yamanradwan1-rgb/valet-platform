@@ -1,5 +1,8 @@
+import { UnauthorizedException } from "@nestjs/common";
 import type { PostgresTransaction } from "../../common/database/postgres";
 import { lockLocationLifecycle } from "../../common/database/location-lifecycle-lock";
+import type { StaffSessionContext } from "../auth/staff-session-context";
+import { lockAndRecheckStaffSessionContext } from "../auth/staff-session-revalidation";
 import { lockShiftOperationalEligibility } from "../shifts/shift-operational-eligibility";
 import {
   authorizeCustodyActorForPersistedScope,
@@ -26,6 +29,7 @@ export interface CancelCheckInTarget {
 export async function authorizeAndLockCancelTarget(
   transaction: PostgresTransaction,
   input: CancelCheckInAuthorityInput,
+  credential?: StaffSessionContext,
 ) {
   const initial = await transaction.query<CancelCheckInTarget>(
     `SELECT id::text, organization_id::text, location_id::text,
@@ -36,6 +40,7 @@ export async function authorizeAndLockCancelTarget(
   const scope = initial.rows[0];
   if (!scope) throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
   await lockLocationLifecycle(transaction, scope.location_id, "SHARED");
+  await recheckCancellationCredential(transaction, input, credential);
   await requireActiveCustodyUser(transaction, input.authenticatedUserId);
   const actor = await authorizeCustodyActorForPersistedScope(transaction, {
     allowedRoles: ["VALET_EMPLOYEE", "VALET_SUPERVISOR"],
@@ -72,6 +77,18 @@ export async function authorizeAndLockCancelTarget(
   if (!session || session.checked_in_by_membership_id !== actor.membershipId)
     throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
   return { actor, session };
+}
+
+export async function recheckCancellationCredential(
+  transaction: PostgresTransaction,
+  input: CancelCheckInAuthorityInput,
+  credential?: StaffSessionContext,
+): Promise<void> {
+  if (credential &&
+      (credential.userId !== input.authenticatedUserId ||
+       !await lockAndRecheckStaffSessionContext(transaction, credential))) {
+    throw new UnauthorizedException();
+  }
 }
 
 export async function assertCoherentCancellation(
