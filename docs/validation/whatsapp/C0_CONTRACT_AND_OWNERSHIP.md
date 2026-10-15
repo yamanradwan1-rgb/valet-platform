@@ -51,6 +51,14 @@ Three assigned worker sessions (W5, W6 and W7) failed before receiving a compose
 
 Prime's already-owned `notifications.module.ts` is extended with new, dedicated `apps/api/src/modules/notifications/whatsapp-settings-{controller,service,validation}.ts` to implement typed authorized Dashboard settings. Those exact three additional paths are Prime-exclusive. The existing protected Dashboard change remains the sole specified `settings-page.tsx` file plus new sibling WhatsApp components. No other UI exception is authorized.
 
+Additional task-specific Prime paths, serialized with no worker writer:
+`apps/api/src/modules/notifications/whatsapp-template-authority.ts`,
+`apps/api/src/outbound-message-worker-run.ts`, and
+`apps/api/test/whatsapp-operator-commands.test.ts`. The worker run entrypoint
+is deliberately restricted to OFF-mode recovery/cleanup pending Meta/consent
+activation; a request to send real WhatsApp rejects at startup. No shared
+provider credentials or onboarding-success state are fabricated.
+
 ## C0 contract change 01 — company policy revision fence
 
 W1/W2 notified Prime that the original intent carried only the governing

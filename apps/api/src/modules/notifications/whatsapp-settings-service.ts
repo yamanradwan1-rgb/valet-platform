@@ -1,13 +1,17 @@
+import { randomUUID } from "node:crypto";
 import { Inject, Injectable } from "@nestjs/common";
+import { appendOrganizationAuditEvent } from "../audit/organization-audit-writer";
+import { ManagementSettingsError } from "../management/management-settings-errors";
 import type { PostgresPool, PostgresTransaction } from "../../common/database/postgres";
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
 import { recordAdminActivityInTransaction } from "../auth/mfa/mfa-assurance-policy";
 import type { StaffSessionContext } from "../auth/staff-session-context";
 import { authorizeCompanyAdminManagement } from "../management/management-authorization";
+import { type WhatsAppPolicyMutation } from "./whatsapp-settings-validation";
 import {
-  approvedTemplateVersions, type WhatsAppPolicyMutation,
-} from "./whatsapp-settings-validation";
+  availableTenantTemplateVersions, templateApprovedForAccount,
+} from "./whatsapp-template-authority";
 
 interface PolicyRow {
   enabled: boolean | null;
@@ -42,17 +46,20 @@ export class WhatsAppSettingsService {
 
   private execute(
     context: StaffSessionContext, org: string, location: string | null,
-    sensitive: boolean, action: (tx: PostgresTransaction) => Promise<void>,
+    sensitive: boolean,
+    action: (
+      tx: PostgresTransaction, actorMembershipId: string,
+    ) => Promise<void>,
   ) {
     return inPostgresTransaction(this.pool, async (tx) => {
-      await authorizeCompanyAdminManagement(tx, context, {
+      const actor = await authorizeCompanyAdminManagement(tx, context, {
         organizationId: org,
         capability: location ? "LOCATION_SETTINGS_MANAGE_ELIGIBLE"
           : "COMPANY_SETTINGS_MANAGE_ELIGIBLE",
         assurance: sensitive ? "SENSITIVE" : "STANDARD",
         ...(location ? { targetLocationId: location, requireActiveLocation: false } : {}),
       });
-      await action(tx);
+      await action(tx, actor.membershipId);
       const policy = await readPolicy(tx, org, location);
       const companyDefault = location ? await readPolicy(tx, org, null) : null;
       const bindings = await tx.query<{
@@ -78,7 +85,11 @@ export class WhatsAppSettingsService {
           status: providerVerifiedAt === null ? "PENDING_META_VERIFICATION" as const
             : "VERIFIED" as const,
         })),
-        approvedTemplateVersions: approvedTemplateVersions(process.env),
+        approvedTemplateVersions: availableTenantTemplateVersions(
+          process.env, org,
+          bindings.rows.filter((row) => row.providerVerifiedAt !== null)
+            .map((row) => row.wabaId),
+        ),
         globalSendEnabled: control?.rows[0]?.sendEnabled === true &&
           process.env.OUTBOUND_MESSAGING_SEND_ENABLED === "true",
         activationReady: false as const,
@@ -94,25 +105,44 @@ export class WhatsAppSettingsService {
     context: StaffSessionContext, org: string, location: string | null,
     input: WhatsAppPolicyMutation,
   ) {
-    return this.execute(context, org, location, true, async (tx) => {
-      const allowed = approvedTemplateVersions(process.env);
-      if (input.templateCatalogVersion &&
-          !allowed.includes(input.templateCatalogVersion)) {
-        throw new Error("WHATSAPP_TEMPLATE_NOT_APPROVED");
-      }
+    return this.execute(context, org, location, true, async (tx, actorMembershipId) => {
+      const companyDefault = location ? await readPolicy(tx, org, null) : null;
+      const effectiveLanguage = input.language ?? companyDefault?.language ?? null;
+      const effectiveVersion = input.templateCatalogVersion ??
+        companyDefault?.templateCatalogVersion ?? null;
+      const effectiveBindingId = input.providerBindingId ??
+        companyDefault?.providerBindingId ?? null;
+      if (input.enabled === true &&
+        (!effectiveLanguage || !effectiveVersion || !effectiveBindingId))
+        throw new ManagementSettingsError("CONFIGURATION_VALUE_INVALID");
       if (input.providerBindingId) {
-        const binding = await tx.query(
-          `SELECT 1 FROM outbound_provider_bindings
-           WHERE id=$1 AND organization_id=$2 AND provider='META_CLOUD'`,
-          [input.providerBindingId, org],
+        const binding = await tx.query<{ waba_id: string }>(
+          `SELECT waba_id FROM outbound_provider_bindings
+           WHERE id=$1 AND organization_id=$2 AND provider='META_CLOUD'
+             AND enabled AND provider_verified_at IS NOT NULL AND environment=$3`,
+          [input.providerBindingId, org, process.env.OUTBOUND_MESSAGING_MODE],
         );
-        if (binding.rowCount !== 1) throw new Error("WHATSAPP_BINDING_NOT_AVAILABLE");
+        if (binding.rowCount !== 1)
+          throw new ManagementSettingsError("CONFIGURATION_VALUE_INVALID");
+      }
+      if (effectiveVersion && effectiveLanguage && effectiveBindingId) {
+        const account = await tx.query<{ waba_id: string }>(
+          `SELECT waba_id FROM outbound_provider_bindings
+           WHERE id=$1 AND organization_id=$2 AND provider='META_CLOUD'
+             AND enabled AND provider_verified_at IS NOT NULL AND environment=$3`,
+          [effectiveBindingId, org, process.env.OUTBOUND_MESSAGING_MODE],
+        );
+        if (input.enabled === true && (!account.rows[0] ||
+          !templateApprovedForAccount(
+            process.env, org, account.rows[0].waba_id,
+            effectiveVersion, effectiveLanguage,
+          ))) throw new ManagementSettingsError("CONFIGURATION_VALUE_INVALID");
       }
       if (location === null && (input.enabled === null || input.language === null))
-        throw new Error("WHATSAPP_COMPANY_DEFAULT_REQUIRED");
+        throw new ManagementSettingsError("CONFIGURATION_VALUE_INVALID");
       const current = await readPolicy(tx, org, location);
       if (current.revision !== input.expectedRevision)
-        throw new Error("WHATSAPP_SETTINGS_CONFLICT");
+        throw new ManagementSettingsError("CONFIGURATION_CONFLICT");
       if (current.revision === 0) {
         await tx.query(
           `INSERT INTO outbound_messaging_policies
@@ -132,8 +162,25 @@ export class WhatsAppSettingsService {
           [org, location, input.expectedRevision, input.enabled,
             input.language, input.templateCatalogVersion, input.providerBindingId],
         );
-        if (result.rowCount !== 1) throw new Error("WHATSAPP_SETTINGS_CONFLICT");
+        if (result.rowCount !== 1)
+          throw new ManagementSettingsError("CONFIGURATION_CONFLICT");
       }
+      await appendOrganizationAuditEvent(tx, {
+        actor: { type: "MEMBERSHIP", membershipId: actorMembershipId },
+        eventId: randomUUID(),
+        eventType: location === null ? "MANAGEMENT_COMPANY_SETTING_DEFAULT_CHANGED"
+          : "MANAGEMENT_LOCATION_SETTING_OVERRIDE_CHANGED",
+        entityType: location === null ? "Organization" : "Location",
+        entityId: location ?? org,
+        organizationId: org,
+        occurredAt: new Date(),
+        allowedMetadataKeys: ["setting", "revision", "enabled"],
+        metadata: {
+          setting: "WHATSAPP_GUEST_ACCESS",
+          revision: input.expectedRevision + 1,
+          enabled: input.enabled,
+        },
+      });
     });
   }
 }

@@ -12,7 +12,9 @@ const signature = "sha256=" + createHmac("sha256", secret).update(bytes).digest(
 describe("Meta webhook trust boundary", () => {
   it("authenticates exact raw bytes before parsing", () => {
     expect(verifyMetaSignature(bytes, signature, secret)).toBe(true);
-    expect(verifyMetaSignature(Buffer.from(bytes.toString().replace("  ", " ")), signature, secret)).toBe(true);
+    const altered = Buffer.from(bytes.toString().replace(", ", ",  "));
+    expect(altered.equals(bytes)).toBe(false);
+    expect(verifyMetaSignature(altered, signature, secret)).toBe(false);
     expect(verifyMetaSignature(Buffer.concat([bytes, Buffer.from(" ")]), signature, secret)).toBe(false);
     expect(verifyMetaSignature(bytes, signature.toUpperCase(), secret)).toBe(false);
     expect(verifyMetaSignature(bytes, undefined, secret)).toBe(false);
@@ -43,5 +45,14 @@ describe("Meta webhook trust boundary", () => {
     }]);
     expect(() => normalizeMetaStatusPayload({ ...payload, entry: [{}] }))
       .toThrow("META_WEBHOOK_INVALID");
+    expect(normalizeMetaStatusPayload({
+      object: "whatsapp_business_account",
+      entry: [{ id: "waba_1", changes: [{
+        field: "messages", value: {
+          metadata: { phone_number_id: "12345" },
+          messages: [{ id: "wamid.inbound", text: { body: "private" } }],
+        },
+      }] }],
+    })).toEqual([]);
   });
 });

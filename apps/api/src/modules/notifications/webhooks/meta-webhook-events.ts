@@ -36,6 +36,11 @@ export function normalizeMetaStatusPayload(payload: unknown): readonly MetaWebho
       const change = object(changeValue);
       if (!change || change.field !== "messages") continue;
       const value = object(change.value);
+      // A signed messages callback may be an inbound message with no delivery
+      // statuses. Ignore it as non-delivery evidence, without persisting its
+      // text, and leave opt-out ingestion to the separately approved policy.
+      if (value && !("statuses" in value) && Array.isArray(value.messages) &&
+          value.messages.length <= 64) continue;
       const metadata = object(value?.metadata);
       const phoneNumberId = narrowId(metadata?.phone_number_id);
       if (!phoneNumberId || !Array.isArray(value?.statuses) ||
