@@ -23,7 +23,7 @@ export function approvedChange(path, pinnedPaths) {
   if (path === "apps/dashboard/src/features/administration/settings/settings-page.tsx") return true;
   if (pinnedPaths.has(path)) return false;
   if (path.startsWith(waSettingsPrefix)) {
-    return /^apps\/dashboard\/src\/features\/administration\/settings\/whatsapp-[a-z0-9-]+\.(?:ts|tsx|module\.css)$/.test(path);
+    return /^apps\/dashboard\/src\/features\/administration\/settings\/whatsapp-[a-z0-9-]+(?:\.test)?\.(?:ts|tsx|module\.css)$/.test(path);
   }
   if (/^packages\/employee-client\/src\/whatsapp-compat-[a-z0-9-]+\.test\.ts$/.test(path)) return true;
   if (/^apps\/valet-native\/test\/whatsapp-compat-(?:[a-z0-9-]+\.test\.ts|fixture[a-z0-9-]*\.ts)$/.test(path)) return true;

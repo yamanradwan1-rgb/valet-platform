@@ -26,6 +26,7 @@ test("allowlist is narrow and rejects generic dashboard/settings files", () => {
     "apps/dashboard/src/features/administration/settings/settings-page.tsx",
     "apps/dashboard/src/features/administration/settings/whatsapp-company-panel.tsx",
     "apps/dashboard/src/features/administration/settings/whatsapp-settings.module.css",
+    "apps/dashboard/src/features/administration/settings/whatsapp-settings-api.test.tsx",
     "packages/employee-client/src/whatsapp-compat-intake.test.ts",
     "apps/valet-native/test/whatsapp-compat-condition.test.ts",
     "docs/validation/whatsapp/W7-REVIEW.md",

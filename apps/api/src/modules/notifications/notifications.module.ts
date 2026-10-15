@@ -5,14 +5,19 @@ import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AuthModule } from "../auth/auth.module";
 import { WhatsAppSettingsController } from "./whatsapp-settings-controller";
 import { WhatsAppSettingsService } from "./whatsapp-settings-service";
+import { MetaWhatsAppWebhookController } from "./webhooks/meta-webhook.controller";
+import { OutboundWebhookDatabaseModule } from "./webhooks/meta-webhook-database";
 
 @Module({
-  imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule],
-  controllers: [WhatsAppSettingsController],
+  imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule,
+    OutboundWebhookDatabaseModule],
+  controllers: [WhatsAppSettingsController, MetaWhatsAppWebhookController],
   providers: [WhatsAppSettingsService],
 })
 export class NotificationsModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestIdMiddleware).forRoutes(WhatsAppSettingsController);
+    consumer.apply(RequestIdMiddleware).forRoutes(
+      WhatsAppSettingsController, MetaWhatsAppWebhookController,
+    );
   }
 }

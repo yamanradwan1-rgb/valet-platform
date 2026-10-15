@@ -31,6 +31,10 @@ async function bootstrap() {
   );
   const app = await NestFactory.create(AppModule, {
     forceCloseConnections: true,
+    // Meta's signed callback requires the exact original JSON request bytes.
+    // Nest captures only parsed JSON/urlencoded request bodies, never the
+    // photo multipart/streaming body routes. Do not log request.rawBody.
+    rawBody: true,
   });
   app.use(createHttpMetricsMiddleware());
   app.use(createApplicationDrainMiddleware(app.get(ApplicationDrainState)));

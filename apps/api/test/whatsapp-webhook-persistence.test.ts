@@ -20,7 +20,7 @@ function poolMock(binding = true, fail = false) {
   let released = false;
   const tx = {
     query: async (text: string, params?: unknown[]) => {
-      queries.push({ text, params });
+      queries.push({ text, ...(params === undefined ? {} : { params }) });
       if (fail && text.includes("outbound_record_provider_event"))
         throw new Error("DB_FAIL");
       if (text.includes("outbound_resolve_meta_binding")) return {
