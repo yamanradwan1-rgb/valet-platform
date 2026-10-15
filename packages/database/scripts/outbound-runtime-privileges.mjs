@@ -14,9 +14,14 @@ const runtimeRead = [
 ];
 
 const runtimeInsert = [
-  "outbound_provider_bindings", "outbound_messaging_policies",
+  "outbound_messaging_policies",
   "outbound_message_intents", "outbound_message_deliveries",
   "outbound_message_envelopes",
+];
+
+const bindingInsertColumns = [
+  "id", "organization_id", "purpose", "provider", "environment",
+  "waba_id", "phone_number_id", "config_alias",
 ];
 
 const permittedRuntimeFunctions = [
@@ -53,6 +58,21 @@ export async function provisionOutboundRuntimePrivileges(client, executeFormatte
   }
   for (const table of runtimeInsert) {
     await executeFormatted(client, "GRANT INSERT ON TABLE public.%I TO %I", [table, role]);
+  }
+  // Table-wide INSERT bypasses the UPDATE-only ownership-evidence fence in 086.
+  // Remove stale per-column grants too, then explicitly allow only onboarding inputs.
+  const columns = await client.query(`SELECT attname FROM pg_attribute
+    WHERE attrelid='public.outbound_provider_bindings'::regclass
+      AND attnum>0 AND NOT attisdropped`);
+  for (const { attname } of columns.rows) {
+    await executeFormatted(client,
+      "REVOKE INSERT (%I) ON TABLE public.outbound_provider_bindings FROM %I",
+      [attname, role]);
+  }
+  for (const column of bindingInsertColumns) {
+    await executeFormatted(client,
+      "GRANT INSERT (%I) ON TABLE public.outbound_provider_bindings TO %I",
+      [column, role]);
   }
   for (const column of ["enabled","revision","updated_at","config_alias"]) {
     await executeFormatted(client,
@@ -104,6 +124,18 @@ export async function verifyOutboundRuntimePrivileges(client, role) {
       [role,`public.${table}`,column],
     );
     if (result.rows[0]?.allowed) throw new Error("Outbound runtime can mutate restricted scope/control.");
+  }
+  const columns = await client.query(`SELECT attname FROM pg_attribute
+    WHERE attrelid='public.outbound_provider_bindings'::regclass
+      AND attnum>0 AND NOT attisdropped`);
+  for (const { attname } of columns.rows) {
+    const { rows }=await client.query(
+      "SELECT has_column_privilege($1,'public.outbound_provider_bindings',$2,'INSERT') AS allowed",
+      [role,attname]);
+    const expected=bindingInsertColumns.includes(attname);
+    if (rows[0]?.allowed!==expected) {
+      throw new Error(`Outbound API binding INSERT column ACL ${attname} expected=${expected} actual=${rows[0]?.allowed}`);
+    }
   }
   for (const signature of allFunctions) {
     const result = await client.query(

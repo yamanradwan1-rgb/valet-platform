@@ -3,7 +3,8 @@
 Baseline: C0 `a087ad38cb249840389e5aefaefbecb47333373f`.
 Scope: isolated `/valet-platform/tmp/wa-w1` worktree, branch
 `feat/wa-w1-database`. New migration heads 086, 087, 088 and follow-up
-forward-only 089; the existing 85 baseline migration files remain unchanged.
+forward-only 089 and the W7 P1 binding-insert ACL hardening 090; the existing
+85 baseline migration files and 086-089 remain unchanged.
 
 ## Reproducible verification
 
@@ -23,10 +24,12 @@ PASS: Location override inserted after company-only issuance suppresses send.
 PASS: stale DISPATCHING -> UNKNOWN, attempt fenced, envelope purged, no repeat claim.
 PASS: callback after NOT_SENT/RETRY_WAIT cancels resend and purges ciphertext.
 PASS: revoked consent suppresses PENDING delivery and purges ciphertext.
-PASS: 89 pristine migrations on disposable PG; 12 outbound tables; control OFF/OFF.
+PASS: forward-only 090 repairs previously provisioned full-table API INSERT in place.
+PASS: API Meta binding forged/explicit verification, enable, version and timestamp INSERT 42501; safe disabled onboarding and scoped edit PASS.
+PASS: 90 pristine migrations on disposable PG; 12 outbound tables; control OFF/OFF.
 ```
 
-The runner creates a unique local database, applies all 89 SQL migrations
+The runner creates a unique local database, applies all 90 SQL migrations
 in order and drops it in a finally block. It creates and drops three fresh,
 no-inheritance synthetic API, sender and webhook PostgreSQL roles. Catalog
 ACL checks verify PUBLIC, effective role table/function permissions and
@@ -43,6 +46,21 @@ the uncertain send. Signed late callbacks cancel queued retries, and
 withdrawn permission suppresses unsent deliveries and purges their envelopes.
 Callback-first DELIVERED deduplicates; ACCEPTED retains facts and purges
 encrypted envelope. No network provider calls or real recipients are used.
+
+W7 P1 remediation adds 090 without rewriting earlier migration history:
+the API runtime's legacy table-wide provider-binding INSERT (which allowed
+fabricating a provider-verified, enabled binding at creation, despite the
+UPDATE-only scope trigger) is removed from existing non-owner direct grantees
+and replaced by INSERT on `id`, `organization_id`, `purpose`, `provider`,
+`environment`, `waba_id`, `phone_number_id` and `config_alias` only. Runtime
+provisioning also revokes stale table/column grants before applying the exact
+whitelist; its role verification checks every binding INSERT column against
+this allowlist. The disposable PG test re-grants the legacy vulnerability,
+replays 090, checks the fixed ACL, and uses real `SET ROLE` statements to
+prove denied verified/enabled/explicit-default/version/timestamp INSERT with
+SQLSTATE 42501. Valid unverified, disabled provider onboarding and a scoped
+config revision update still succeed. Operator-only verification remains
+outside the API runtime role.
 
 Schema validation (requires a local test MIGRATION_DATABASE_URL and NODE_ENV
 set to test): `pnpm exec prisma validate --schema prisma/schema.prisma`.
