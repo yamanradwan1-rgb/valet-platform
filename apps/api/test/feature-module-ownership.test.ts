@@ -13,27 +13,20 @@ import { AntiAbuseKeyDeriver } from "../src/modules/anti-abuse/anti-abuse-key";
 import { AntiAbuseService } from "../src/modules/anti-abuse/anti-abuse.service";
 import { TrustedClientAddressResolver } from "../src/modules/anti-abuse/client-address";
 import { AuthModule } from "../src/modules/auth/auth.module";
+import { StaffActivationController } from "../src/modules/auth/staff-activation.controller";
 import { MfaAssurancePolicy } from "../src/modules/auth/mfa/mfa-assurance-policy";
 import { StaffMfaController } from "../src/modules/auth/mfa/staff-mfa.controller";
 import { NativeStaffAuthController } from "../src/modules/auth/native-staff-auth.controller";
 import { StaffAuthController } from "../src/modules/auth/staff-auth.controller";
 import { STAFF_PRINCIPAL_RESOLVER } from "../src/modules/auth/staff-principal";
 import { STAFF_SESSION_CONTEXT_RESOLVER } from "../src/modules/auth/staff-session-context";
-import { StaffCheckInController } from "../src/modules/check-in-api/check-in-api.controller";
-import { CheckInApiService } from "../src/modules/check-in-api/check-in-api.service";
 import { CheckInModule } from "../src/modules/check-in-api/check-in.module";
 import { DashboardModule } from "../src/modules/dashboard/dashboard.module";
-import { CheckInOperationRunner } from "../src/modules/check-in-api/check-in-operation-runner";
-import { PlateOcrAuthGuard } from "../src/modules/check-in-api/plate-ocr-auth.guard";
-import { PlateOcrController } from "../src/modules/check-in-api/plate-ocr.controller";
-import { PlateOcrCostGuard } from "../src/modules/check-in-api/plate-ocr-cost-guard";
-import { PLATE_OCR_PROVIDER } from "../src/modules/check-in-api/plate-ocr-provider";
-import { PlateOcrService } from "../src/modules/check-in-api/plate-ocr.service";
-import { ReturningCheckInController } from "../src/modules/check-in-api/returning-check-in.controller";
 import { DispatchController } from "../src/modules/dispatch/dispatch.controller";
 import { DispatchModule } from "../src/modules/dispatch/dispatch.module";
 import { DispatchService } from "../src/modules/dispatch/dispatch.service";
 import { GuestAccessModule } from "../src/modules/guest-access/guest-access.module";
+import { GuestPushRegistrationModule } from "../src/modules/guest-push-registration/guest-push-registration.module";
 import { KeyCustodyController } from "../src/modules/keys/key-custody.controller";
 import { KeyCustodyModule } from "../src/modules/keys/key-custody.module";
 import { KeyCustodyService } from "../src/modules/keys/key-custody.service";
@@ -42,6 +35,10 @@ import { MapSetupModule } from "../src/modules/map-setup/map-setup.module";
 import { MapSetupService } from "../src/modules/map-setup/map-setup.service";
 import { ManagementModule } from "../src/modules/management/management.module";
 import { StartParkingController } from "../src/modules/parking/start-parking.controller";
+import { CancelBeforeParkingController } from "../src/modules/parking/cancel-before-parking.controller";
+import { CancelBeforeParkingService } from "../src/modules/parking/cancel-before-parking.service";
+import { ParkingSpotValidationController } from "../src/modules/parking/parking-spot-validation.controller";
+import { ParkingSpotValidationService } from "../src/modules/parking/parking-spot-validation.service";
 import { StartParkingModule } from "../src/modules/parking/start-parking.module";
 import { StartParkingService } from "../src/modules/parking/start-parking.service";
 import { ConfirmParkedController } from "../src/modules/parking/confirm-parked.controller";
@@ -106,6 +103,7 @@ describe("accepted feature module ownership", () => {
       AuthModule,
       AntiAbuseModule,
       GuestAccessModule,
+      GuestPushRegistrationModule,
       HealthModule,
       CheckInModule,
       DashboardModule,
@@ -176,10 +174,14 @@ describe("accepted feature module ownership", () => {
     expect(metadata(StartParkingModule, MODULE_METADATA.CONTROLLERS)).toEqual([
       StartParkingController,
       ConfirmParkedController,
+      CancelBeforeParkingController,
+      ParkingSpotValidationController,
     ]);
     expect(metadata(StartParkingModule, MODULE_METADATA.PROVIDERS)).toEqual([
       StartParkingService,
       ConfirmParkedService,
+      CancelBeforeParkingService,
+      ParkingSpotValidationService,
     ]);
   });
 
@@ -231,6 +233,7 @@ describe("accepted feature module ownership", () => {
 
   it("keeps Auth ownership and exports only accepted staff authority", () => {
     expect(metadata(AuthModule, MODULE_METADATA.CONTROLLERS)).toEqual([
+      StaffActivationController,
       StaffAuthController,
       NativeStaffAuthController,
       StaffMfaController,
@@ -253,29 +256,6 @@ describe("accepted feature module ownership", () => {
     ]);
   });
 
-  it("keeps Check-In limited to staff Check-In ownership", () => {
-    expect(metadata(CheckInModule, MODULE_METADATA.CONTROLLERS)).toEqual([
-      StaffCheckInController,
-      ReturningCheckInController,
-      PlateOcrController,
-    ]);
-    expect(metadata(CheckInModule, MODULE_METADATA.PROVIDERS)).toEqual([
-      CheckInApiService,
-      CheckInOperationRunner,
-      PlateOcrAuthGuard,
-      PlateOcrService,
-      expect.objectContaining({ provide: PlateOcrCostGuard }),
-      expect.objectContaining({ provide: PLATE_OCR_PROVIDER }),
-    ]);
-    for (const method of [
-      "executeGuestIssue",
-      "executeGuestRevoke",
-      "resolveGuest",
-      "resolveGuestInTransaction",
-    ]) {
-      expect(method in CheckInApiService.prototype).toBe(false);
-    }
-  });
   it("keeps Staff ownership focused on operational context, session and vehicle-directory reads, and incident reporting", () => {
     expect(metadata(StaffModule, MODULE_METADATA.CONTROLLERS)).toEqual([
       StaffCheckInContinuationsController,

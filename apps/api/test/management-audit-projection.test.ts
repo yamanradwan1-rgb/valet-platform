@@ -64,7 +64,7 @@ describe("management audit projection", () => {
       reason: "private-reason",
       storage_object_key: "private-storage-key",
     };
-    expect(managementAuditKnownEventTypes).toHaveLength(92);
+    expect(managementAuditKnownEventTypes).toHaveLength(100);
     for (const eventType of managementAuditKnownEventTypes) {
       const projected = projectManagementAuditEvent(
         row(eventType, sensitiveMetadata),
@@ -93,7 +93,7 @@ describe("management audit projection", () => {
   });
 
   it("uses an operational-only supervisor allowlist", () => {
-    expect(managementAuditSupervisorEventTypes).toHaveLength(37);
+    expect(managementAuditSupervisorEventTypes).toHaveLength(38);
     expect(managementAuditSupervisorEventTypes).toContain("TASK_ASSIGNED");
     expect(managementAuditSupervisorEventTypes).toContain(
       "VALET_SESSION_COMPLETED",
