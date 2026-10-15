@@ -72,6 +72,28 @@ describe("initial Guest RSA envelope and recipient HMAC", () => {
     }, ciphertext)).toThrow();
   });
 
+  it("rejects RSA-3072 private PEM, even when Node can derive its public key", () => {
+    const keys = generateKeyPairSync("rsa", { modulusLength: 3072 });
+    const publicPem = keys.publicKey.export({ type: "spki", format: "pem" }).toString();
+    const rsaPublicPem = keys.publicKey.export({ type: "pkcs1", format: "pem" }).toString();
+    const privatePem = keys.privateKey.export({ type: "pkcs8", format: "pem" }).toString();
+    const rsaPrivatePem = keys.privateKey.export({ type: "pkcs1", format: "pem" }).toString();
+    expect(() => createInitialGuestEnvelopeSealer(publicPem, "k1")).not.toThrow();
+    expect(() => createInitialGuestEnvelopeSealer(rsaPublicPem, "k1")).not.toThrow();
+    for (const pem of [privatePem, rsaPrivatePem, `${publicPem}${privatePem}`]) {
+      expect(() => createInitialGuestEnvelopeSealer(pem, "k1"))
+        .toThrow("Initial guest encryption key must contain only public PEM material.");
+    }
+    expect(createInitialGuestIssuanceFromEnv({
+      GUEST_ACCESS_AUTO_ISSUE_ENABLED: "true",
+      OUTBOUND_MESSAGING_MODE: "test",
+      GUEST_ACCESS_TRANSPORT_PUBLIC_KEY_PEM: privatePem,
+      GUEST_ACCESS_TRANSPORT_KEY_VERSION: "k1",
+      OUTBOUND_RECIPIENT_HMAC_KEY_BASE64: randomBytes(32).toString("base64"),
+      OUTBOUND_RECIPIENT_HMAC_KEY_VERSION: "v1",
+    })).toBeNull();
+  });
+
   it("rejects weak keys, malformed recipient secrets and token entropy", () => {
     const weak = generateKeyPairSync("rsa", { modulusLength: 2048 });
     expect(() => createInitialGuestEnvelopeSealer(

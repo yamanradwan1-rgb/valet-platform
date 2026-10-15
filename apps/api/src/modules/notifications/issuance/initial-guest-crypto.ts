@@ -14,6 +14,9 @@ import type {
 
 const keyVersionPattern = /^[a-zA-Z0-9._-]{1,64}$/;
 const normalizedPhonePattern = /^\+[1-9][0-9]{7,14}$/;
+// Node createPublicKey also accepts private PEM and derives its public half.
+// Issuers must never accept or possess transport private-key material.
+const publicOnlyPemPattern = /^-----BEGIN (PUBLIC KEY|RSA PUBLIC KEY)-----\r?\n(?:[A-Za-z0-9+/=]+\r?\n)+-----END \1-----$/;
 
 /** Mirrors the digest input contract for an already canonical E.164 recipient. */
 export function isCanonicalOutboundRecipient(phone: unknown): phone is string {
@@ -80,6 +83,9 @@ export function createInitialGuestEnvelopeSealer(
   publicKeyPem: string,
   keyVersion: string,
 ): OutboundEnvelopeSealer {
+  if (typeof publicKeyPem !== "string" || !publicOnlyPemPattern.test(publicKeyPem.trim())) {
+    throw new Error("Initial guest encryption key must contain only public PEM material.");
+  }
   let key: KeyObject;
   try {
     key = createPublicKey(publicKeyPem);
