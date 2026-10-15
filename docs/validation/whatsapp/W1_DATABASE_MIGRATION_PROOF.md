@@ -3,8 +3,9 @@
 Baseline: C0 `a087ad38cb249840389e5aefaefbecb47333373f`.
 Scope: isolated `/valet-platform/tmp/wa-w1` worktree, branch
 `feat/wa-w1-database`. New migration heads 086, 087, 088, forward-only
-089, W7 P1 binding-insert ACL hardening 090 and W7 F11 authenticated crash
-recovery 091; existing migration files 086-090 remain unchanged.
+089, W7 P1 binding-insert ACL hardening 090, W7 F11 authenticated crash
+recovery 091 and W7 F33 phone-change suppression 092; prior migrations
+086-091 remain unchanged.
 
 ## Reproducible verification
 
@@ -27,10 +28,11 @@ PASS: revoked consent suppresses PENDING delivery and purges ciphertext.
 PASS: forward-only 090 repairs previously provisioned full-table API INSERT in place.
 PASS: API Meta binding forged/explicit verification, enable, version and timestamp INSERT 42501; safe disabled onboarding and scoped edit PASS.
 PASS: signed SENT/DELIVERED/READ callback crash -> ACCEPTED; FAILED/forged timestamp/bare ID/no proof -> UNKNOWN; purge, no resend, idempotent.
-PASS: 91 pristine migrations on disposable PG; 12 outbound tables; control OFF/OFF.
+PASS: phone drift transactional rollback, no-op, 3 undispatched suppression/purge, in-flight UNKNOWN recovery, customer scope.
+PASS: 92 pristine migrations on disposable PG; 12 outbound tables; control OFF/OFF.
 ```
 
-The runner creates a unique local database, applies all 91 SQL migrations
+The runner creates a unique local database, applies all 92 SQL migrations
 in order and drops it in a finally block. It creates and drops three fresh,
 no-inheritance synthetic API, sender and webhook PostgreSQL roles. Catalog
 ACL checks verify PUBLIC, effective role table/function permissions and
@@ -80,14 +82,29 @@ the restricted sender role, verifies repeated recovery is a no-op, and
 never queues any recovered delivery for another send. It introduces no new
 function, role or table grant.
 
-W7 F33 (cross-owner follow-up): Customer phone edits can leave a PENDING
-message/envelope even though W4's HMAC-based preflight prevents wrong-phone
-sends. Early purge should run in the authorized Customer phone mutation path
-or a proven-safe DB trigger, scoped to the exact organization and customer,
-and atomically suppress undelivered intent(s) and delete ciphertext. SQL
-cannot reconstruct the HMAC without the application secret and must not
-store raw phone as a workaround. Any Customer-row -> Delivery-row lock order
-must be checked against sender transactions before a trigger is deployed.
+W7 F33 was previously a Customer phone-drift leak: PENDING messages could
+retain encrypted envelopes despite W4's final HMAC preflight blocking sends.
+Forward-only 092 adds an AFTER UPDATE OF phone_normalized trigger gated by
+OLD.phone_normalized IS DISTINCT FROM NEW.phone_normalized. Its scoped
+SECURITY DEFINER function locks Customer indirectly via the owning UPDATE,
+then only linked Delivery rows (same old organization and Customer), and
+atomically marks PENDING/LEASED/RETRY_WAIT as SUPPRESSED, clears leases and
+retry times, and purges ciphertext. A no-op leaves outbox untouched. Existing
+DISPATCHING attempts are never misclassified as NOT_SENT or requeued; the
+signed-evidence 091 expired-lease recovery later decides ACCEPTED/UNKNOWN
+and purges. No HMAC secret, raw phone or new table grant enters SQL.
+
+Race proof: W4's committed six-case real PostgreSQL test
+`apps/api/test/whatsapp-worker-phone-change-pg.test.ts` (W4 commit
+`41407274`) ran from the independent W4 worktree in read-only mode with
+`W4_SQL_SOURCE_ROOT` set to W1's local migration source (including 092).
+All 6 cases PASS in 93.59s against six independently disposable databases:
+pre-claim PENDING, LEASED, no-op, DISPATCHING confirm/recover UNKNOWN,
+held-Customer-lock vs permit, and open-claim transaction vs phone UPDATE.
+No deadlock or redispatch occurred. W1's 92-migration smoke independently
+asserts rollback restores state and envelopes, successful same-Customer
+suppression across three statuses, other-Customer isolation, and UNKNOWN
+recovery of a previously dispatched attempt.
 
 Schema validation (requires a local test MIGRATION_DATABASE_URL and NODE_ENV
 set to test): `pnpm exec prisma validate --schema prisma/schema.prisma`.
