@@ -6,7 +6,9 @@ const requiredFunctions = [
   "public.outbound_dispatch_permit(uuid,uuid,text)",
   "public.outbound_confirm_dispatch(uuid,uuid,uuid,text,text)",
   "public.outbound_finish_attempt(uuid,uuid,uuid,text,text,text)",
+  "public.outbound_finish_attempt(uuid,uuid,uuid,text,text,text,integer)",
   "public.outbound_cleanup_stale(integer)",
+  "public.outbound_recover_expired(integer)",
   "public.outbound_purge_expired_envelopes(integer)",
 ] as const;
 

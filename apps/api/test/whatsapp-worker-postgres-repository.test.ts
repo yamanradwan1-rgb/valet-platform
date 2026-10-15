@@ -60,7 +60,7 @@ function postgresFake() {
     ["outbound_dispatch_permit", [permit]],
     ["outbound_confirm_dispatch", [{ allowed: true }]],
     ["outbound_finish_attempt", [{ finished: true }]],
-    ["outbound_cleanup_stale", [{ recovered: 2 }]],
+    ["outbound_recover_expired", [{ recovered: 2 }]],
     ["outbound_purge_expired_envelopes", [{ purged: 3 }]],
   ]);
   const query = vi.fn(async (sql: string, _args?: unknown[]) => {
@@ -184,14 +184,14 @@ describe("WhatsApp sender-restricted PostgreSQL function boundary", () => {
     expect(fakes.query).toHaveBeenCalledWith(
       expect.stringContaining("public.outbound_finish_attempt"),
       [syntheticClaim.deliveryId, syntheticClaim.leaseToken, attemptId,
-        "DEFINITIVE_FAILURE", null, "RATE_LIMIT"],
+        "DEFINITIVE_FAILURE", null, "RATE_LIMIT", 120],
     );
     await fakes.repository.finalizeAttempt(syntheticClaim, attemptId,
       { kind: "UNKNOWN", reason: "TIMEOUT" });
     expect(fakes.query).toHaveBeenCalledWith(
       expect.stringContaining("public.outbound_finish_attempt"),
       [syntheticClaim.deliveryId, syntheticClaim.leaseToken, attemptId,
-        "UNKNOWN", null, "TIMEOUT"],
+        "UNKNOWN", null, "TIMEOUT", null],
     );
   });
 
@@ -199,7 +199,7 @@ describe("WhatsApp sender-restricted PostgreSQL function boundary", () => {
     const fakes = postgresFake();
     expect(await fakes.repository.expireAndPurge(100)).toBe(5);
     expect(fakes.query.mock.calls.map(([sql]) => sql)).toEqual([
-      "SELECT public.outbound_cleanup_stale($1) AS recovered",
+      "SELECT public.outbound_recover_expired($1) AS recovered",
       "SELECT public.outbound_purge_expired_envelopes($1) AS purged",
     ]);
   });

@@ -176,11 +176,13 @@ implements OutboundLeaseRepository, OutboundPermitTransportSource {
     result: OutboundSendResult,
   ): Promise<void> {
     const outcome = finiteReason(result);
+    const retryAfterSeconds = result.kind === "NOT_ACCEPTED"
+      ? result.retryAfterSeconds ?? null : null;
     try {
       const updated = await this.pool.query<{ finished: boolean }>(
-        "SELECT public.outbound_finish_attempt($1,$2,$3,$4,$5,$6) AS finished",
+        "SELECT public.outbound_finish_attempt($1,$2,$3,$4,$5,$6,$7) AS finished",
         [claim.deliveryId, claim.leaseToken, attemptId,
-          outcome.outcome, outcome.messageId, outcome.safeCode],
+          outcome.outcome, outcome.messageId, outcome.safeCode, retryAfterSeconds],
       );
       if (updated.rows[0]?.finished !== true) {
         throw new Error("OUTBOUND_FINALIZE_FENCE_LOST");
@@ -194,7 +196,7 @@ implements OutboundLeaseRepository, OutboundPermitTransportSource {
     // Recovery must first terminalize abandoned DISPATCHING (UNKNOWN) without
     // reopening a transport permit. W1 owns this restricted function.
     const recovered = await this.pool.query<{ recovered: number }>(
-      "SELECT public.outbound_cleanup_stale($1) AS recovered", [limit],
+      "SELECT public.outbound_recover_expired($1) AS recovered", [limit],
     );
     const purged = await this.pool.query<{ purged: number }>(
       "SELECT public.outbound_purge_expired_envelopes($1) AS purged", [limit],
