@@ -30,6 +30,9 @@ async function reachParkingTask(page: Page): Promise<void> {
 }
 
 test.beforeEach(async () => setE2eShiftState("active"));
+// Shift-loss denial mutates the shared disposable fixture. Restore its
+// original ACTIVE state even after a failed assertion or Playwright retry.
+test.afterEach(async () => setE2eShiftState("active"));
 
 test("navigation stays disabled while one real intake mutation is pending", async ({
   context,
