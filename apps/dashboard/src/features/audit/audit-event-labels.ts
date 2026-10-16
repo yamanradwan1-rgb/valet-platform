@@ -42,7 +42,9 @@ export function auditActorLabel(
   if (event.actor.type === "MEMBERSHIP") {
     return {
       id: event.actor.membershipId,
-      label: actors.MEMBERSHIP[locale === "ar" ? 1 : 0],
+      label:
+        event.actor.currentDisplayName ??
+        actors.MEMBERSHIP[locale === "ar" ? 1 : 0],
     };
   }
   return { label: actors[event.actor.type][locale === "ar" ? 1 : 0] };
@@ -52,9 +54,21 @@ export function auditEntityLabel(
   event: ManagementAuditEvent,
   locale: DashboardLocale = "en",
 ): string {
-  return event.entity === null
+  const base = event.entity === null
     ? locale === "ar"
       ? "لا يوجد هدف"
       : "No target"
     : entities[event.entity.type][locale === "ar" ? 1 : 0];
+  if (event.eventType === "UNKNOWN" || event.entity?.type !== "VALET_SESSION") {
+    return base;
+  }
+  const vehicle = event.vehicle;
+  if (vehicle === undefined) return base;
+  if (vehicle.confirmedPlate) return vehicle.confirmedPlate;
+  const makeModel = [vehicle.make, vehicle.model].filter(Boolean).join(" ");
+  // Keep the existing table's auto-sized columns stable. The drawer shows
+  // the complete, authorized values using the existing fact-row pattern.
+  return [...makeModel].length > 14
+    ? `${[...makeModel].slice(0, 13).join("")}…`
+    : makeModel || base;
 }

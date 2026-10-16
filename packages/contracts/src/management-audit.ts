@@ -31,7 +31,15 @@ export const managementAuditScopeSchema = z.discriminatedUnion("kind", [
 
 export const managementAuditActorSchema = z.discriminatedUnion("type", [
   z
-    .object({ type: z.literal("MEMBERSHIP"), membershipId: uuidSchema })
+    .object({
+      type: z.literal("MEMBERSHIP"),
+      membershipId: uuidSchema,
+      // Current membership directory identity; never a historical audit snapshot.
+      currentDisplayName: z.string().min(3).max(401)
+        .refine((value) =>
+          Array.from(value).length <= 201 && value.trim() === value,
+        ).optional(),
+    })
     .strict(),
   z.object({ type: z.literal("GUEST") }).strict(),
   z.object({ type: z.literal("SYSTEM") }).strict(),
@@ -82,6 +90,12 @@ const envelope = {
   scope: managementAuditScopeSchema,
 } as const;
 
+const managementAuditVehicleSchema = z.object({
+  confirmedPlate: z.string().min(1).max(64).nullable(),
+  make: z.string().min(1).max(100).nullable(),
+  model: z.string().min(1).max(100).nullable(),
+}).strict();
+
 const knownEventSchema = z
   .object({
     ...envelope,
@@ -89,6 +103,7 @@ const knownEventSchema = z
     details: managementAuditKnownDetailSchema,
     entity: managementAuditEntitySchema.nullable(),
     eventType: managementAuditKnownEventTypeSchema,
+    vehicle: managementAuditVehicleSchema.optional(),
   })
   .strict();
 

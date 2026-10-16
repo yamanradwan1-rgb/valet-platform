@@ -24,7 +24,19 @@ function projectActor(row: ManagementAuditQueryRow) {
     row.actorMembershipId !== null &&
     uuidPattern.test(row.actorMembershipId)
   ) {
-    return { type: "MEMBERSHIP" as const, membershipId: row.actorMembershipId };
+    const name = row.actorCurrentDisplayName;
+    return {
+      type: "MEMBERSHIP" as const,
+      membershipId: row.actorMembershipId,
+      ...(typeof name === "string" &&
+      name.length >= 3 &&
+      name.length <= 401 &&
+      Array.from(name).length <= 201 &&
+      name.trim() === name &&
+      !/\p{Cc}/u.test(name)
+        ? { currentDisplayName: name }
+        : {}),
+    };
   }
   if (
     row.actorType === "GUEST" ||
@@ -35,6 +47,27 @@ function projectActor(row: ManagementAuditQueryRow) {
     return { type: row.actorType };
   }
   return { type: "UNKNOWN" as const };
+}
+
+function projectVehicle(row: ManagementAuditQueryRow) {
+  if (
+    !row.eventType.startsWith("VALET_SESSION_") ||
+    (row.entityType !== "ValetSession" && row.entityType !== "VALET_SESSION")
+  ) return null;
+  const safeValue = (value: string | null | undefined, maxLength: number) =>
+    typeof value === "string" &&
+    value.length > 0 &&
+    value.length <= maxLength &&
+    value.trim() === value &&
+    !/\p{Cc}/u.test(value)
+      ? value
+      : null;
+  const vehicle = {
+    confirmedPlate: safeValue(row.vehicleConfirmedPlate, 64),
+    make: safeValue(row.vehicleMake, 100),
+    model: safeValue(row.vehicleModel, 100),
+  };
+  return Object.values(vehicle).some((value) => value !== null) ? vehicle : null;
 }
 
 function projectEntity(row: ManagementAuditQueryRow) {
@@ -106,6 +139,7 @@ export function projectManagementAuditEvent(
       eventType: "UNKNOWN",
     });
   }
+  const vehicle = projectVehicle(row);
   return managementAuditEventSchema.parse({
     ...envelope,
     actor: projectActor(row),
@@ -116,5 +150,6 @@ export function projectManagementAuditEvent(
     ),
     entity: projectEntity(row),
     eventType: row.eventType,
+    ...(vehicle === null ? {} : { vehicle }),
   });
 }

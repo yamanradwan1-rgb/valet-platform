@@ -55,4 +55,33 @@ describe("safe Audit actor and entity labels", () => {
     expect(auditActorLabel(unknown)).toBeNull();
     expect(auditEntityLabel(unknown)).toBe("No target");
   });
+
+  it("shows the current authorized name consistently in Arabic and English", () => {
+    const current = event({
+      type: "MEMBERSHIP", membershipId, currentDisplayName: "أحمد محمد",
+    });
+    expect(auditActorLabel(current, "ar")).toEqual({
+      id: membershipId, label: "أحمد محمد",
+    });
+    expect(auditActorLabel(current, "en")?.label).toBe("أحمد محمد");
+  });
+
+  it("shows confirmed plate and make/model only for a vehicle target", () => {
+    const base = {
+      actor: { type: "SYSTEM" },
+      details: { kind: "SESSION" },
+      entity: { id: entityId, type: "VALET_SESSION" },
+      eventId, eventType: "VALET_SESSION_COMPLETED",
+      occurredAt: "2026-09-22T10:00:00.000Z",
+      scope: { kind: "LOCATION", locationId: entityId },
+      vehicle: { confirmedPlate: "19-52000", make: "BMW", model: "X5" },
+    };
+    const vehicle = managementAuditEventSchema.parse(base);
+    expect(auditEntityLabel(vehicle)).toBe("19-52000");
+    expect(auditEntityLabel(vehicle, "ar")).toBe("19-52000");
+    expect(auditEntityLabel(event({ type: "SYSTEM" }))).toBe("Shift");
+    expect(auditEntityLabel(managementAuditEventSchema.parse({
+      ...base, vehicle: undefined,
+    }))).toBe("Valet session");
+  });
 });

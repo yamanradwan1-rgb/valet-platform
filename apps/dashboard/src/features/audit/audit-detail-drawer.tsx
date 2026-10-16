@@ -147,7 +147,7 @@ export function AuditDetailDrawer(props: {
             {actor ? (
               <div className={styles.fact}>
                 <span>{t.actor}</span>
-                <strong>{actor.label}</strong>
+                <strong><bdi dir="auto">{actor.label}</bdi></strong>
               </div>
             ) : (
               <p className={styles.safeEmpty}>{t.noActor}</p>
@@ -160,10 +160,36 @@ export function AuditDetailDrawer(props: {
                 </strong>
               </div>
             ) : null}
+            {props.event.eventType !== "UNKNOWN" &&
+            props.event.actor.type === "MEMBERSHIP" &&
+            props.event.actor.currentDisplayName ? (
+              <div className={styles.fact}>
+                <span>{t.nameSource}</span>
+                <strong>{t.currentDirectory}</strong>
+              </div>
+            ) : null}
             <div className={styles.fact}>
               <span>{t.entity}</span>
-              <strong>{auditEntityLabel(props.event, locale)}</strong>
+              <strong><bdi dir="auto">{auditEntityLabel(props.event, locale)}</bdi></strong>
             </div>
+            {props.event.eventType !== "UNKNOWN" && props.event.vehicle?.confirmedPlate ? (
+              <div className={styles.fact}>
+                <span>{t.confirmedPlate}</span>
+                <strong><bdi dir="auto">{props.event.vehicle.confirmedPlate}</bdi></strong>
+              </div>
+            ) : null}
+            {props.event.eventType !== "UNKNOWN" && props.event.vehicle?.make ? (
+              <div className={styles.fact}>
+                <span>{t.vehicleMake}</span>
+                <strong><bdi dir="auto">{props.event.vehicle.make}</bdi></strong>
+              </div>
+            ) : null}
+            {props.event.eventType !== "UNKNOWN" && props.event.vehicle?.model ? (
+              <div className={styles.fact}>
+                <span>{t.vehicleModel}</span>
+                <strong><bdi dir="auto">{props.event.vehicle.model}</bdi></strong>
+              </div>
+            ) : null}
             {props.event.entity ? (
               <div className={styles.fact}>
                 <span>{t.entityId}</span>

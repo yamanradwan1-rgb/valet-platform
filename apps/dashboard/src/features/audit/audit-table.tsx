@@ -72,11 +72,11 @@ export function AuditTable(props: {
                         )}
                       </time>
                     </td>
-                    <td>{actor?.label ?? t.noActor}</td>
+                    <td><bdi>{actor?.label ?? t.noActor}</bdi></td>
                     <td className={styles.eventLabel}>
                       {auditEventLabel(event.eventType, locale)}
                     </td>
-                    <td>{auditEntityLabel(event, locale)}</td>
+                    <td><bdi>{auditEntityLabel(event, locale)}</bdi></td>
                     <td>
                       <bdi>{auditScopeLabel(event, props.context, locale)}</bdi>
                     </td>
