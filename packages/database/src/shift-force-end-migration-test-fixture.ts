@@ -5,6 +5,10 @@ import { join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Client, Pool } from "pg";
 import { expectedMigrationDirectories } from "./migration-manifest.js";
+import {
+  provisionShiftForceEndPrivileges,
+  verifyShiftForceEndPrivileges,
+} from "../scripts/shift-force-end-runtime-privileges.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const adminUrl =
@@ -69,22 +73,36 @@ export class ShiftForceEndMigrationTestFixture {
     );
   }
 
-  provision() {
-    execFileSync(
-      process.execPath,
-      [join(root, "scripts/provision-runtime-role.mjs")],
-      {
-        cwd: root,
-        env: {
-          ...process.env,
-          NODE_ENV: "test",
-          MIGRATION_DATABASE_URL: this.url(this.upgradeName),
-          DATABASE_URL: this.url(this.upgradeName, true),
-        },
-        stdio: "pipe",
-        windowsHide: true,
-      },
-    );
+  async provision() {
+    // Migration 054 predates the current privilege surface. Exercise its
+    // versioned grant helper against the historical disposable fixture.
+    const client = await this.upgrade.connect();
+    try {
+      const existing = await client.query(
+        "SELECT 1 FROM pg_roles WHERE rolname=$1", [this.runtimeRole],
+      );
+      if (existing.rowCount === 0)
+        await client.query(
+          `CREATE ROLE "${this.runtimeRole}" LOGIN PASSWORD '${this.runtimePassword}'
+           NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS`,
+        );
+      await client.query(`GRANT CONNECT ON DATABASE "${this.upgradeName}" TO "${this.runtimeRole}"`);
+      await client.query(`GRANT USAGE ON SCHEMA public TO "${this.runtimeRole}"`);
+      const formatted = async (format: string, values: readonly string[]) => {
+        const placeholders = values.map((_, index) => `$${index + 2}::text`).join(",");
+        const result = await client.query(
+          `SELECT format($1,${placeholders}) AS statement`, [format, ...values],
+        );
+        await client.query(result.rows[0].statement);
+      };
+      await provisionShiftForceEndPrivileges(
+        client, (_ignored: unknown, format: string, values: readonly string[]) => formatted(format, values),
+        this.runtimeRole,
+      );
+      await verifyShiftForceEndPrivileges(client, this.runtimeRole);
+    } finally {
+      client.release();
+    }
   }
 
   async start() {
@@ -183,8 +201,8 @@ export class ShiftForceEndMigrationTestFixture {
     } finally {
       await fresh.end();
     }
-    this.provision();
-    this.provision();
+    await this.provision();
+    await this.provision();
     this.runtime = new Pool({
       connectionString: this.url(this.upgradeName, true),
     });

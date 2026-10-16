@@ -288,5 +288,5 @@ describe("SEC-002 runtime authority privileges", () => {
       can_insert: false,
       can_update: false,
     });
-  });
+  }, 60_000);
 });

@@ -9,7 +9,6 @@ import { expectedMigrationDirectories } from "./migration-manifest.js";
 const root = fileURLToPath(new URL("../", import.meta.url));
 const cli = join(root, "node_modules/prisma/build/index.js");
 const migration = "20261001005100_mgt_240c_staff_onboarding_invites";
-const latestMigration = "20261001005300_mgt_240d_staff_activation";
 const previousAbuseEventId = randomUUID();
 const adminUrl =
   process.env.TEST_DATABASE_URL ??
@@ -172,7 +171,7 @@ describe("T05-C actual Prisma 050 foundation to current and fresh deployment", (
       ).rows,
     ).toEqual(commandDefinitions);
   });
-  it("records exactly 53 versioned migrations in both paths, PENDING enums and nullable password", async () => {
+  it("records the pinned current migrations in both paths, PENDING enums and nullable password", async () => {
     for (const connection of [upgrade, fresh]) {
       expect(
         (
@@ -180,7 +179,10 @@ describe("T05-C actual Prisma 050 foundation to current and fresh deployment", (
             "SELECT count(*)::int AS n,max(migration_name) AS latest FROM _prisma_migrations WHERE finished_at IS NOT NULL",
           )
         ).rows[0],
-      ).toEqual({ n: 53, latest: latestMigration });
+      ).toEqual({
+        n: expectedMigrationDirectories.length,
+        latest: expectedMigrationDirectories.at(-1),
+      });
       expect(
         (
           await connection.query(

@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { expectedMigrationDirectories } from "./migration-manifest.js";
+import { installDec103NonemptyTestIndexes } from "./dec103-nonempty-test-rollout.js";
 
 const adminUrl =
   process.env.TEST_DATABASE_URL ??
@@ -29,16 +30,6 @@ async function apply(client: Client, name: string) {
       "utf8",
     ),
   );
-}
-async function prepareNonemptyDec103Rollout(client: Client) {
-  const script = await readFile(
-    new URL("../scripts/dec103-online-index-rollout.sql", import.meta.url),
-    "utf8",
-  );
-  const statements = [...script.matchAll(/^CREATE INDEX CONCURRENTLY IF NOT EXISTS[\s\S]*?;/gm)];
-  expect(statements).toHaveLength(2);
-  // An operator runs these separately outside a transaction on an existing DB.
-  for (const [statement] of statements) await client.query(statement);
 }
 async function bootstrap(sql: string) {
   const client = new Client({ connectionString: adminUrl });
@@ -144,7 +135,7 @@ describe("Issue #255 fresh and forward migration from actual 054", () => {
     ).rows;
     for (const name of expectedMigrationDirectories.slice(54)) {
       if (name === "20261010007900_live_history_parked_audit_indexes")
-        await prepareNonemptyDec103Rollout(db);
+        await installDec103NonemptyTestIndexes(db);
       await apply(db, name);
     }
     expect((await snapshot()).rows).toEqual(before);

@@ -8,6 +8,7 @@ import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { expectedMigrationDirectories } from "./migration-manifest.js";
+import { expectAuditRequiredFieldWriteGuards, requiredAuditColumns } from "./audit-required-field-write-guards.js";
 import {
   createScopedParkingSpot,
   ensureParkingSpotZone,
@@ -2493,15 +2494,7 @@ describe("audit event database foundation", () => {
   });
 
   it("enforces every required AuditEvent field", async () => {
-    const requiredColumns = [
-      "id",
-      "organization_id",
-      "event_type",
-      "entity_type",
-      "entity_id",
-      "metadata_json",
-      "occurred_at",
-    ];
+    const requiredColumns = [...requiredAuditColumns];
     // Trusted audit authorization runs before the NOT NULL check for some fields.
     // Inspect the authoritative catalog without weakening the write guard.
     const result = await databaseClient.query<{ column_name: string }>(
@@ -2514,6 +2507,8 @@ describe("audit event database foundation", () => {
     expect(result.rows.map((row) => row.column_name).sort()).toEqual(
       [...requiredColumns].sort(),
     );
+    const tenant = await createTenant();
+    await expectAuditRequiredFieldWriteGuards(databaseClient, tenant.organizationId);
   });
 
   it("stores metadata_json as structured JSONB", async () => {
