@@ -6,9 +6,10 @@
 **Review branch:** `fix/issue-287-ci-regression-qualification`
 **Remote CI qualification:** **PENDING** until the exact candidate SHA receives its own complete required GitHub Actions run.
 
-At the source-review checkpoint `16c7bdfcf7255b0c0b096d8f217112980670dfba`,
-the branch contained **18 implementation commits** after `origin/main`, with
-**73 tracked files changed** (671 additions, 256 deletions), zero files under
+At the source-and-CI checkpoint `0319257ae11124bced2032cf8a5879bedd54ffc8`,
+the branch contained **20 commits** after `origin/main` (including the
+evidence-report commit), with **74 tracked files changed** (965 additions,
+262 deletions), zero files under
 `packages/database/prisma/migrations/` changed, and no unrelated
 tracked working-tree changes. The validation report adds one documentation
 file once its remaining evidence is finalized.
@@ -34,6 +35,8 @@ e4b881ae fix(contracts): resolve Node ESM runtime relative imports
 e250dd03 test(harness): bound Turbo package concurrency without skipping suites
 a58f9294 test(valet): align parking lifecycle and retry-owned physical fixtures
 16c7bdfc test(valet): restore shared E2E shift after denied mutation
+6c84b417 docs(validation): record Issue 287 evidence and remaining qualification gates
+0319257a ci: split bounded PostgreSQL profiles into required isolated jobs
 ```
 
 ## 1. Source of truth and safety boundary
@@ -78,12 +81,24 @@ The baseline classifier discovers 559 API test files and 97 database test files;
 each belongs to exactly one manifest ownership project. The source records seven
 `api-postgres-issue215` protected test files, but the baseline API runner never
 selected their project. This was a **real CI coverage omission**, even when
-other PostgreSQL tests passed. The corrected workflow adds an explicit bounded
-third PostgreSQL matrix lane with the same disposable, labeled PG17 service,
-a private versioned MinIO fixture created by the already owned local script,
-an exact protected-test runner, and an unconditional attested teardown.
-The lane preserves the existing target and storage identity guards; there are
-no mocks, unconditional skips, disabled tests, or `continue-on-error` exceptions.
+other PostgreSQL tests passed. The corrected workflow adds a dedicated
+Issue #215 protected PostgreSQL lane with a disposable labeled PG17 service,
+private versioned MinIO, an exact protected-test runner, and unconditional
+attested teardown. The lane preserves the existing target and storage identity
+guards; there are no mocks, unconditional skips, disabled tests, or
+`continue-on-error` exceptions.
+
+The API PostgreSQL job was also originally bounded at 20 minutes for three
+sequential test projects (165 standard, 27 compound, 224 race files), with
+the standard project alone consuming over 14 minutes on task-owned Windows
+PG17. The revised CI matrix separates five required jobs under the same
+stable `postgres` job ID: `api-standard` (45 minutes),
+`api-compound` (20), `api-race` (30), `database` (30) and protected
+`issue215` (20). Each independently receives an isolated labeled PostgreSQL
+17 service, uses the original guard/lease-aware runner or full database
+command, and stays required by `quality.needs.postgres`. Concurrency inside
+each project is unchanged, as are the exact 559/97 test ownership partitions.
+Time budgets are **bounded estimates**, not measured remote CI PASS claims.
 
 The database's tracked manifest explicitly enumerates all 93 real migration
 directories in exact order. Historical prefix assertions continue to pin their
