@@ -27,7 +27,12 @@ describe("T3 real PostgreSQL COMMIT and ROLLBACK response timeouts", () => {
   }
 
   async function healthyWithoutAbandonedWork() {
-    expect(context.runtimePool.totalCount).toBe(0);
+    // The preceding healthy SELECT can retain an idle reusable pool client.
+    // No lease may remain checked out after the timed-out transaction.
+    expect(context.runtimePool.waitingCount).toBe(0);
+    expect(context.runtimePool.idleCount).toBe(
+      context.runtimePool.totalCount,
+    );
     let active = -1;
     for (let index = 0; index < 40; index += 1) {
       active = (
@@ -43,6 +48,8 @@ describe("T3 real PostgreSQL COMMIT and ROLLBACK response timeouts", () => {
     expect((await context.runtimePool.query("SELECT 1 AS ok")).rows[0].ok).toBe(
       1,
     );
+    expect(context.runtimePool.waitingCount).toBe(0);
+    expect(context.runtimePool.idleCount).toBe(context.runtimePool.totalCount);
   }
 
   it("bounds an actual lost ROLLBACK response, destroys its lease and preserves no effect", async () => {
