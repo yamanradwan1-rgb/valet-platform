@@ -34,7 +34,7 @@ test.beforeEach(async () => setE2eShiftState("active"));
 test("navigation stays disabled while one real intake mutation is pending", async ({
   context,
   page,
-}) => {
+}, testInfo) => {
   test.setTimeout(90_000);
   await signInViaUi(page, STAFF_EMAIL, STAFF_PASSWORD);
   await openPlateConfirmation(page);
@@ -71,11 +71,11 @@ test("navigation stays disabled while one real intake mutation is pending", asyn
   await page.getByRole("button", { name: "Start Parking" }).click();
   await page.getByRole("button", { name: "Park Vehicle" }).click();
   await page.getByRole("button", { name: "Enter spot code manually" }).click();
-  await page.locator('input[placeholder="Enter spot code"]').fill("E2E-SPOT-G0");
+  await page.locator('input[placeholder="Enter spot code"]').fill(`E2E-SPOT-G${testInfo.retry}`);
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   const keySlotInput = page.locator('input[placeholder="Enter Key Slot Code"]');
   await expect(keySlotInput).toBeVisible();
-  await keySlotInput.fill("E2E-KEY-G0");
+  await keySlotInput.fill(`E2E-KEY-G${testInfo.retry}`);
   // The physical deposit is a protected online mutation; no offline success.
   await context.setOffline(true);
   await expect(page.getByRole("button", { name: "Confirm Parked" })).toBeDisabled();

@@ -33,6 +33,9 @@ test.describe("Employee full lifecycle", () => {
       phone: "+962790000001",
       plate,
     });
+    // Start Parking creates the first authoritative queue task. A completed
+    // Check-In alone leaves the session AWAITING_PARKING with no task yet.
+    await page.getByRole("button", { name: "Start Parking" }).click();
 
     const sessionId = await findSessionIdByPlate(
       staffToken,
@@ -44,7 +47,7 @@ test.describe("Employee full lifecycle", () => {
     await completeParkingViaUi(
       page,
       `E2E-SPOT-L${testInfo.retry}`,
-      `E2E-KEY-D${testInfo.retry}`,
+      `E2E-KEY-L${testInfo.retry}`,
     );
     await guestRequestRetrieval(guestToken);
     await page.getByRole("button", { name: "Done" }).click();
