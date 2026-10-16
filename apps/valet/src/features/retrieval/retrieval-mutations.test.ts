@@ -48,8 +48,12 @@ expectedKeySlotCode: "B-214",
     expect(controller.getState().activeSession?.isKeyConfirmed).toBe(false);
     expect(controller.getState().error).toContain("does not match");
 
+    // Custody verification requires exact case-sensitive code matching.
+    expect(controller.confirmKey("b-214")).toBe(false);
+    expect(controller.getState().activeSession?.isKeyConfirmed).toBe(false);
+
     // Correct key
-    const matchResult = controller.confirmKey("b-214");
+    const matchResult = controller.confirmKey("B-214");
     expect(matchResult).toBe(true);
     expect(controller.getState().activeSession?.isKeyConfirmed).toBe(true);
     expect(controller.getState().error).toBeNull();
