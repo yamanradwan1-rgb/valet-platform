@@ -222,13 +222,11 @@ export class StaffAuthClient {
 
   async logout(signal?: AbortSignal | undefined): Promise<void> {
     this.authEpoch++;
-    let started: ReturnType<StaffAuthBoundary["beginLogout"]>;
-    try {
-      started = this.boundary.beginLogout();
-    } finally {
-      // Discard local authority immediately, including unknown network outcomes.
-      this.setSession(null);
-    }
+    // If the durable marker cannot be persisted, refuse the logout before
+    // clearing visible authority: a reload could otherwise revive the cookie.
+    const started = this.boundary.beginLogout();
+    // After intent persistence, discard authority even if the server is offline.
+    this.setSession(null);
     const url = `${this.baseUrl}/v1/staff/auth/logout`;
 
     const fetchInit: RequestInit = {

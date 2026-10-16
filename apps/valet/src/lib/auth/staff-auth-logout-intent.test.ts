@@ -86,6 +86,28 @@ describe("Staff web failed-logout durable origin boundary", () => {
     expect((await reloaded.refresh()).accessToken).toBe(TOKEN_B);
   });
 
+  it("refuses logout without clearing the visible identity if origin storage cannot persist intent", async () => {
+    const client = await loggedIn();
+    const original = storage.get(KEY);
+    vi.spyOn(window.localStorage, "setItem").mockImplementation(() => {
+      throw new Error("quota exceeded");
+    });
+    globalThis.fetch = vi.fn();
+    await expect(client.logout()).rejects.toThrow("quota exceeded");
+    expect(client.getSession()?.accessToken).toBe(TOKEN_A);
+    expect(storage.get(KEY)).toBe(original);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it("refuses logout if browser persistence reports a write but loses the marker", async () => {
+    const client = await loggedIn();
+    vi.spyOn(window.localStorage, "setItem").mockImplementation(() => {});
+    globalThis.fetch = vi.fn();
+    await expect(client.logout()).rejects.toThrow("not durably persisted");
+    expect(client.getSession()?.accessToken).toBe(TOKEN_A);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
   it("keeps successful server logout confirmed and does not re-bootstrap the old cookie", async () => {
     const client = await loggedIn();
     const calls: string[] = [];

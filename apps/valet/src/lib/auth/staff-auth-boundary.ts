@@ -75,6 +75,9 @@ export class StaffAuthBoundary {
     if (typeof window !== "undefined") {
       // A failed persistence write must never silently lift a logout fence.
       window.localStorage.setItem(BOUNDARY_KEY, value);
+      if (window.localStorage.getItem(BOUNDARY_KEY) !== value) {
+        throw new Error("Staff authentication boundary was not durably persisted.");
+      }
     }
     this.value = typeof window === "undefined" ? null : value;
     this.revision++;
