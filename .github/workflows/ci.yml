@@ -149,6 +149,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build Contracts for protected Issue 215 Nest subprocess
+        if: ${{ matrix.lane == 'issue215' }}
+        run: pnpm --filter @valet/contracts build
+
+      - name: Build API for protected Issue 215 Nest subprocess
+        if: ${{ matrix.lane == 'issue215' }}
+        run: pnpm --filter @valet/api build
+
       - name: Run bounded PostgreSQL API project
         if: ${{ startsWith(matrix.lane, 'api-') }}
         env:

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
 import { Button } from "../presentation/button";
@@ -29,8 +29,12 @@ export function AccountSecurityStandalone({
   const assuranceWasRequired = useRef(false);
   const freshCycleComplete = useRef(false);
   const onAssuredRef = useRef(onAssured);
+  const recoveryCodesPending = useRef(false);
 
   useEffect(() => { onAssuredRef.current = onAssured; }, [onAssured]);
+  useLayoutEffect(() => {
+    recoveryCodesPending.current = ceremony.recoveryCodes !== null;
+  }, [ceremony.recoveryCodes]);
 
   useEffect(() => {
     let active = true;
@@ -39,7 +43,8 @@ export function AccountSecurityStandalone({
     void refreshState().then((result) => {
       if (!active) return;
       freshCycleComplete.current = true;
-      if (result.status === "eligible" && result.state === "ASSURED") {
+      if (result.status === "eligible" && result.state === "ASSURED" &&
+          !recoveryCodesPending.current) {
         onAssuredRef.current();
       } else {
         assuranceWasRequired.current = true;
@@ -55,11 +60,15 @@ export function AccountSecurityStandalone({
       assuranceWasRequired.current = true;
       return;
     }
+    // Enrollment/recovery returns one-time codes which are only held in
+    // component memory. Never unmount this panel on ASSURED until the Staff
+    // member explicitly acknowledges saving those codes.
+    if (ceremony.recoveryCodes !== null) return;
     if (assuranceWasRequired.current) {
       assuranceWasRequired.current = false;
       onAssuredRef.current();
     }
-  }, [snapshot]);
+  }, [snapshot, ceremony.recoveryCodes]);
 
   if (snapshot.status === "checking") {
     return <p role="status">{t("mfaStatusChecking")}</p>;

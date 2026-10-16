@@ -352,3 +352,83 @@ Final acceptance remains: all required remote PR checks including the five
 PostgreSQL lanes, complete Employee E2E, pure unit, static/build/platform
 and `quality` PASS **on the same final SHA**, plus independent security/QA
 review and a clean diff. Do not merge or close #287 on this document alone.
+
+## 7. PR #298 CI #502 diagnosis and full Dashboard repair — 17 October 2026
+
+**Historical CI #502**: `https://github.com/yamanradwan1-rgb/valet-platform/actions/runs/38976275190`,
+tested feature SHA `89ead4f329f7b50e8ab9ad70564b4a84b814a3d8`.
+This run passed **8/10** core jobs: `unit`, `static-build`,
+`postgres-api-standard`, `postgres-api-compound`, `postgres-api-race`,
+`postgres-database`, `platform-ubuntu-latest`, and
+`platform-windows-latest`. It failed `postgres-issue215` and
+`employee-e2e`; `quality=FAIL`. None of these prior results constitutes
+approval of a later SHA.
+
+**Protected Issue #215**: in CI #502, 34/35 protected tests passed. The only
+incomplete test file was `issue215-real-nest-hardkill.integration.test.ts`,
+and Vitest emitted an unhandled `convert-source-map` JSON parse exception.
+This test intentionally boots compiled production Nest modules and Contracts
+in a separate Node process, but the isolated `issue215` matrix lane did not
+build either package. The narrowly scoped workflow change builds Contracts,
+then API, after install and before the existing full protected test manifest.
+An additional fail-closed fixture assertion requires actual compiled Nest and
+Contracts files, rather than letting a missing module fail in an unhelpful
+source-map stack trace. On the original local candidate, the **real** Nest
+process SIGKILL → fresh Nest → private versioned MinIO/PG17 reconciliation
+focused test passed **1/1**, with exactly-owned MinIO and PG17 torn down
+afterwards. This focused local success does **not** claim the complete new
+remote protected suite passed yet.
+
+**Employee E2E job**: its Employee Chromium portion passed **13/13** on
+CI #502; the next Management Dashboard runtime portion passed **21/25**
+and failed four existing tests. Each failure was investigated against current
+source and real browser evidence:
+
+1. `auth-principals.spec.ts`: authenticating Company Admin correctly
+   established MFA assurance, but `AccountSecurityStandalone` navigated out
+   before the 10 one-time recovery codes could be acknowledged. Navigation is
+   now deferred while codes are pending, including both fresh-cycle and
+   observed-assurance branches. The test verifies 10 visible codes during
+   `Verified` assurance, keyboard acknowledgment, disappearance afterward,
+   and that they are absent from browser local/sessionStorage and URL. For
+   sensitive authentication tests, retained Playwright traces/screenshots/
+   video are disabled and the DOM is cleared in teardown before an error
+   accessibility snapshot can be written. Backend credential/HMAC boundaries
+   were not changed.
+2. `md-r11-administration.spec.ts`: the former Users tab is now the
+   authorized Employees route, while legacy `/integrations` redirects to
+   the Policies **Service Status** tab; the test now exercises those
+   actual routes and preserves role, directory and three-service assertions.
+3. `reports-privacy.spec.ts`: `Search` now matches the intended submit
+   button with an **exact** accessible name, avoiding the unrelated contextual
+   `Help: Visit contact search` button. Export privacy assertions remain.
+4. `two-tab-concurrency.spec.ts`: current accepted #268 scope restoration
+   keeps the authorized Branding page across reload. The test requires
+   preserved Branding (and absence of the workspace chooser) while retaining
+   the stale-write **HTTP 409**, explicit retry, authoritative values and
+   final generation checks; it must not hide a scope-restoration regression.
+
+**Local verification:** Docker Desktop Linux engine was restored without
+reset/prune/deleting third-party resources (server 29.5.3). The last full
+Dashboard run used a new labelled, id-attested, 1024MiB tmpfs PG17
+container, all 93 migrations, runtime role, 1:1:1:1:8 Employee fixture,
+Management Dashboard fixture, API/Valet/Dashboard real servers,
+and serial Playwright `playwright.runtime.config.ts`
+(**25 tests in 12 files, 1 worker, 0 retries**). Final result
+**25/25 PASS (2.5 minutes)**. The exact task-owned PG container was removed
+and server subprocess trees killed; the unrelated `vaylet-photo-qa-*`
+containers were untouched. The preceding focused 11-test pass had been
+10/11 because of the old post-refresh chooser assertion; the full
+25/25 run includes its corrected regression case.
+
+These source repairs remained **local and unpushed when this section was
+first authored**. Final candidate SHA, new remote required-job results,
+independent final Security and QA sign-offs must be appended only after
+actual CI completion. **Do not merge, deploy or close #287 on this record.**
+
+**Additional pre-push source gates:** the task-harness Node tests
+**39/39 PASS**, `pnpm architecture:check` PASS (existing grandfathered
+line-length warnings only), `pnpm lint` **11/11 packages PASS**,
+`pnpm typecheck` **11/11 packages PASS**, and
+`pnpm test:build-contract` **8/8 PASS**. Full Dashboard runtime Chromium
+**25/25 PASS** remains separate from those unit/static gates.
