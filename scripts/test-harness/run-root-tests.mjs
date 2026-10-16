@@ -17,7 +17,10 @@ try {
     // process budget. Their results still aggregate even if one lane fails.
     results.push(
       await runHarnessCommand(
-        ["turbo", "run", "test", "--filter=!@valet/api", "--filter=!@valet/database"],
+        [
+          "turbo", "run", "test", "--concurrency=1",
+          "--filter=!@valet/api", "--filter=!@valet/database",
+        ],
         { label: "root:pure-turbo" },
       ),
     );
