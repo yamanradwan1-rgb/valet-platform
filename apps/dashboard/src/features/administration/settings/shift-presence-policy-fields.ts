@@ -35,9 +35,11 @@ export const presenceFields = [
   },
 ] as const;
 export type Field = (typeof presenceFields)[number];
+export type PresencePolicySource = "INHERIT" | "CUSTOM";
 
 /** Ephemeral draft owned by the keyed Dashboard scope, never persisted by the client. */
 export interface PresencePolicyDraftState {
+  readonly source: PresencePolicySource;
   readonly draft: string;
   readonly touched: boolean;
   readonly baselineKey: string;
@@ -47,6 +49,49 @@ export interface PresencePolicyDraftState {
 export type PresencePolicyDrafts = Readonly<
   Partial<Record<Field["field"], PresencePolicyDraftState>>
 >;
+
+interface IntentCommon {
+  readonly field: Field["field"];
+  readonly savedSource: PresencePolicySource;
+  readonly proposedSource: PresencePolicySource;
+  readonly savedValue: string | number;
+  readonly companyValue: string | number;
+}
+export type PresencePolicyIntent =
+  | (IntentCommon & { readonly kind: "NONE" | "CLEAR" | "INVALID" | "CONFLICT" })
+  | (IntentCommon & { readonly kind: "SET"; readonly value: string | number });
+
+/** No mode is a surrogate for inheritance: OFF remains a real CUSTOM value. */
+export function presencePolicyIntent(
+  data: PresenceCompany | PresenceLocation,
+  field: Field,
+  draft?: PresencePolicyDraftState | null,
+): PresencePolicyIntent {
+  const { location, effectiveValue, companyValue, override } =
+    presenceFieldSnapshot(data, field);
+  const savedSource: PresencePolicySource =
+    location && override === null ? "INHERIT" : "CUSTOM";
+  const proposedSource = location ? (draft?.source ?? savedSource) : "CUSTOM";
+  const common = {
+    field: field.field, savedSource, proposedSource,
+    savedValue: effectiveValue, companyValue,
+  };
+  if (!draft || !draft.touched) return { ...common, kind: "NONE" };
+  const currentKey = presencePolicyFieldIdentity(
+    presencePolicyContext(data), effectiveValue, override,
+  );
+  if (draft.baselineKey !== currentKey)
+    return { ...common, kind: "CONFLICT" };
+  if (location && proposedSource === "INHERIT") {
+    return { ...common, kind: savedSource === "CUSTOM" ? "CLEAR" : "NONE" };
+  }
+  const parsed = parsePresenceField(field.field, draft.draft);
+  if (parsed === null) return { ...common, kind: "INVALID" };
+  if (savedSource === "CUSTOM" && parsed === effectiveValue)
+    return { ...common, kind: "NONE" };
+  // Explicit CUSTOM override is persisted even if it equals the Company default.
+  return { ...common, kind: "SET", value: parsed };
+}
 
 export function isStrictPresenceMode(value: string | number | null): boolean {
   return value === "REQUIRE" || value === "REQUIRE_OR_OVERRIDE";

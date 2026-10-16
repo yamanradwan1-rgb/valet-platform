@@ -51,12 +51,14 @@ export function ShiftPresencePolicy(props: PolicyProps) {
   const t = presenceCopy(props.locale);
   const p = presencePolicyCopy(props.locale);
   const company = "policy" in props.data;
+  const guided = props.mode === "GUIDED_SETUP";
   return (
     <section className={policy.policy} data-testid="shift-presence-policy">
       <div>
         <h3 className={policy.heading}>{p("modesHeading")}</h3>
         <p className={policy.intro}>{p("modesIntro")}</p>
         <p className={policy.intro}>{p(company ? "companyIntro" : "locationIntro")}</p>
+        {guided ? <p className={policy.intro} role="status">{p("guidedIntro")}</p> : null}
       </div>
       <PolicyTable definitions={presenceFields.slice(0, 2)} props={props} />
       <details className={policy.advanced}>

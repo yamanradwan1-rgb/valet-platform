@@ -17,6 +17,7 @@ import { presencePolicyCopy } from "./shift-presence-policy-copy";
 import {
   requiresStrictPresenceConfirmation,
   parsePresenceField,
+  presencePolicyIntent,
   presencePolicyFieldIdentity,
   presenceFieldSnapshot,
   presencePolicyContext,
@@ -36,6 +37,7 @@ export interface PolicyProps {
   readonly locale: DashboardLocale;
   readonly mutation: PresenceMutation;
   readonly loading: boolean;
+  readonly mode?: "DIRECT_MANAGEMENT" | "GUIDED_SETUP";
   readonly drafts?: PresencePolicyDrafts;
   readonly onDraftChange?: (
     field: Field["field"],
@@ -52,6 +54,7 @@ export function ShiftPresencePolicyRow(props: PolicyProps & { readonly definitio
   const context = presencePolicyContext(props.data);
   const serverKey = presencePolicyFieldIdentity(context, effectiveValue, override);
   const fresh = (): PresencePolicyDraftState => ({
+    source: location && override === null ? "INHERIT" : "CUSTOM",
     draft: String(override ?? effectiveValue),
     touched: false,
     baselineKey: serverKey,
@@ -77,6 +80,7 @@ export function ShiftPresencePolicyRow(props: PolicyProps & { readonly definitio
     queueMicrotask(() => {
       if (cancelled) return;
       const next: PresencePolicyDraftState = {
+        source: location && override === null ? "INHERIT" : "CUSTOM",
         draft: String(override ?? effectiveValue),
         touched: false,
         baselineKey: serverKey,
@@ -89,13 +93,15 @@ export function ShiftPresencePolicyRow(props: PolicyProps & { readonly definitio
     });
     return () => { cancelled = true; };
   }, [state.baselineKey, serverKey, touched, effectiveValue, override,
-    controlled, onDraftChange, field.field]);
+    controlled, onDraftChange, field.field, location]);
 
+  const intent = presencePolicyIntent(props.data, field, state);
   const parsed = parsePresenceField(field.field, draft);
-  const invalid = parsed === null;
-  const conflict = state.baselineKey !== serverKey;
+  const invalid = intent.kind === "INVALID";
+  const conflict = intent.kind === "CONFLICT";
   const blocked = props.loading || props.mutation.blocked || !props.data.capabilities.canEdit;
-  const dirty = touched && (parsed !== effectiveValue || (location !== null && override === null));
+  const guided = props.mode === "GUIDED_SETUP";
+  const dirty = touched && intent.kind !== "NONE";
   const isMode = field.key === "startMode" || field.key === "endMode";
   const savedSource = location
     ? t(override === null ? "inherited" : "overridden")
@@ -110,7 +116,9 @@ export function ShiftPresencePolicyRow(props: PolicyProps & { readonly definitio
     : p(field.key === "maxAccuracyMeters" ? "accuracyEffect" : "ageEffect");
 
   async function submit(clear: boolean) {
-    if (blocked || conflict || (!clear && (invalid || !dirty)) || (clear && (!location || override === null)))
+    if (guided || blocked || conflict ||
+        (!clear && intent.kind !== "SET") ||
+        (clear && (!location || override === null)))
       return;
     const mutationId = presenceId();
     const body = clear
@@ -118,7 +126,7 @@ export function ShiftPresencePolicyRow(props: PolicyProps & { readonly definitio
           ...context, mutationId, field: field.field,
         })
       : (location ? shiftPresenceLocationSetRequestSchema : shiftPresenceCompanySetRequestSchema)
-          .parse({ ...context, mutationId, field: field.field, value: parsed });
+          .parse({ ...context, mutationId, field: field.field, value: intent.kind === "SET" ? intent.value : parsed });
     const result = await props.mutation.run(
       { mutationId, query: { kind: "POLICY" } },
       async () => ({
@@ -132,15 +140,18 @@ export function ShiftPresencePolicyRow(props: PolicyProps & { readonly definitio
   }
 
   function request(action: "save" | "clear") {
-    if (blocked || conflict) return;
-    const value = action === "clear" ? companyValue : parsed;
+    if (guided || blocked || conflict) return;
+    const clear = action === "clear" || intent.kind === "CLEAR";
+    if (action === "save" && intent.kind !== "SET" && intent.kind !== "CLEAR")
+      return;
+    const value = clear ? companyValue : intent.kind === "SET" ? intent.value : parsed;
     if (isMode && requiresStrictPresenceConfirmation(
-      effectiveValue, value, action === "clear" && override !== null,
+      effectiveValue, value, clear && override !== null,
     )) {
-      setConfirmation(action);
+      setConfirmation(clear ? "clear" : "save");
       return;
     }
-    void submit(action === "clear");
+    void submit(clear);
   }
 
   const id = `presence-${field.field}`;
@@ -162,12 +173,32 @@ export function ShiftPresencePolicyRow(props: PolicyProps & { readonly definitio
       </td>
       <td>
         <div className={policy.fieldControl}>
+          {location ? (
+            <label className={policy.sourceLabel} htmlFor={`${id}-source`}>
+              {p("sourceChoice")}
+              <select className={styles.select} id={`${id}-source`}
+                data-testid={`presence-inheritance-${field.field}`}
+                aria-label={`${t(field.label)} · ${p("sourceChoice")}`}
+                value={state.source} disabled={blocked}
+                onChange={(event) => {
+                  const source = event.target.value === "INHERIT" ? "INHERIT" : "CUSTOM";
+                  updateDraft({
+                    ...state, source, touched: true,
+                    draft: String(source === "INHERIT" ? companyValue : override ?? companyValue),
+                  });
+                  setConfirmation(null);
+                }}>
+                <option value="INHERIT">{p("useCompanyDefault")}</option>
+                <option value="CUSTOM">{p("customizeLocation")}</option>
+              </select>
+            </label>
+          ) : null}
           {isMode ? (
             <select
               className={styles.select}
               id={id}
               aria-describedby={`${id}-help ${id}-consequence`}
-              disabled={blocked}
+              disabled={blocked || (location !== null && state.source === "INHERIT")}
               value={draft}
               onChange={(event) => {
                 updateDraft({ ...state, draft: event.target.value, touched: true });
@@ -186,7 +217,7 @@ export function ShiftPresencePolicyRow(props: PolicyProps & { readonly definitio
               inputMode="numeric"
               aria-describedby={`${id}-help ${id}-consequence`}
               aria-invalid={invalid}
-              disabled={blocked}
+              disabled={blocked || (location !== null && state.source === "INHERIT")}
               value={draft}
               onChange={(event) => {
                 updateDraft({ ...state, draft: event.target.value, touched: true });
@@ -228,7 +259,7 @@ export function ShiftPresencePolicyRow(props: PolicyProps & { readonly definitio
             >{t("reapply")}</button>
           </div>
         ) : null}
-        {confirmation ? (
+        {!guided && confirmation ? (
           <div className={policy.confirmation} role="group" aria-label={p("confirmStrict")}>
             <p><strong>{p("strictWarning")}</strong></p>
             {location ? null : <p>{p("strictCompany")}</p>}
@@ -248,11 +279,13 @@ export function ShiftPresencePolicyRow(props: PolicyProps & { readonly definitio
       </td>
       <td>
         <div className={styles.actions}>
-          <button type="button" className={styles.primary}
-            disabled={blocked || conflict || invalid || !dirty || confirmation !== null}
-            onClick={() => request("save")}>{t("save")}</button>
+          {!guided ? (
+            <button type="button" className={styles.primary}
+              disabled={blocked || conflict || invalid || !dirty || confirmation !== null}
+              onClick={() => request("save")}>{t("save")}</button>
+          ) : null}
           <ScopedContextHelp helpKey={presencePolicyHelpKeys[field.field]} />
-          {location ? (
+          {!guided && location ? (
             <button type="button" className={styles.secondary}
               disabled={blocked || conflict || override === null || confirmation !== null}
               onClick={() => request("clear")}>{t("clear")}</button>

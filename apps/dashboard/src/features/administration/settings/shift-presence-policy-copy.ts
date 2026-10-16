@@ -20,11 +20,18 @@ const copy = {
     "تضبط هذه الحدود التحقق الواحد من الحضور أثناء استخدام التطبيق، ولا تفعّل جمع الموقع المستمر، ولا تؤثر عندما يكون الإجراءان متوقفين.",
   ],
   savedOnServer: ["Saved on server", "المحفوظ على الخادم"],
+  sourceChoice: ["Value source", "مصدر القيمة"],
+  useCompanyDefault: ["Use Company Default", "استخدام القيمة الافتراضية للشركة"],
+  customizeLocation: ["Customize for This Location", "تخصيص لهذا الموقع"],
+  guidedIntro: [
+    "These changes are drafts only. Review and confirm them in the final setup step; leaving this step does not save.",
+    "هذه التغييرات مسودات فقط. راجعها وأكّدها في خطوة الإعداد النهائية؛ مغادرة هذه الخطوة لا تحفظها.",
+  ],
   unsavedDraft: ["Unsaved draft", "مسودة غير محفوظة"],
   matchesSaved: ["No pending change", "لا يوجد تغيير معلّق"],
   inheritedNote: [
-    "No Location override saved. Select a value, then Save to override this field only.",
-    "لا يوجد تخصيص محفوظ للموقع. اختر قيمة ثم احفظ لتخصيص هذا الحقل وحده.",
+    "No override saved. Choose Customize for This Location to enter a separate value.",
+    "لا يوجد تخصيص محفوظ. اختر تخصيص لهذا الموقع لإدخال قيمة مستقلة.",
   ],
   explicitOverrideNote: [
     "This Location has its own saved value. Clear Override restores inheritance for this field only.",
