@@ -13,28 +13,23 @@ const lease = nonPostgresOnly
   : await acquireInvocationLease("root-tests", { selectedProjects: [ISSUE215_PROJECT] });
 try {
   if (!postgresOnly) {
+    // Keep the heavyweight pure, API and database suites within one bounded
+    // process budget. Their results still aggregate even if one lane fails.
     results.push(
-      ...(await Promise.all([
-        runHarnessCommand(
-          [
-            "turbo",
-            "run",
-            "test",
-            "--filter=!@valet/api",
-            "--filter=!@valet/database",
-          ],
-          { label: "root:pure-turbo" },
-        ),
-        runHarnessCommand(["--filter", "@valet/api", "test:non-postgres"], {
-          label: "api:non-postgres",
-        }),
-        runHarnessCommand(
-          ["--filter", "@valet/database", "test:non-postgres"],
-          {
-            label: "database:non-postgres",
-          },
-        ),
-      ])),
+      await runHarnessCommand(
+        ["turbo", "run", "test", "--filter=!@valet/api", "--filter=!@valet/database"],
+        { label: "root:pure-turbo" },
+      ),
+    );
+    results.push(
+      await runHarnessCommand(["--filter", "@valet/api", "test:non-postgres"], {
+        label: "api:non-postgres",
+      }),
+    );
+    results.push(
+      await runHarnessCommand(["--filter", "@valet/database", "test:non-postgres"], {
+        label: "database:non-postgres",
+      }),
     );
   }
 
