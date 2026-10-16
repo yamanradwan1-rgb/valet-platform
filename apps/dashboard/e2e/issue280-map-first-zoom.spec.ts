@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { PresenceFixture } from "./support/presence-fixtures";
-import { mockPresenceMap } from "./support/presence-map-mock";
+import { mockIssue280Map } from "./issue280-map-first-map-mock";
 
 const evidence = resolve(__dirname, "../../../tmp/issue-280-w7-qa");
 const baseURL = process.env.E2E_BASE_URL ?? "http://localhost:3003";
@@ -52,7 +52,7 @@ test("actual Chromium browser zoom 200% is usable and accessible at 720/384 CSS 
       { width: 768, lang: "ar", theme: "dark" },
     ]) {
       await page.setViewportSize({ width: sample.width, height: 900 });
-      await mockPresenceMap(page);
+      await mockIssue280Map(page);
       const fixture = new PresenceFixture("LM");
       await fixture.open(page);
       await page.evaluate(

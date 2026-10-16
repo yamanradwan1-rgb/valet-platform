@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { PresenceFixture } from "./support/presence-fixtures";
-import { mockPresenceMap } from "./support/presence-map-mock";
+import { mockIssue280Map } from "./issue280-map-first-map-mock";
 
 const evidence = resolve(__dirname, "../../../tmp/issue-280-w7-qa");
 const widths = [320, 390, 768, 1440] as const;
@@ -79,7 +79,7 @@ for (const locale of locales) {
         const failures: string[] = [];
         page.on("pageerror", (error) => failures.push(error.message));
         await page.setViewportSize({ width, height: 900 });
-        await mockPresenceMap(page);
+        await mockIssue280Map(page);
         const fixture = new PresenceFixture("LM");
         await fixture.open(page);
         await setAppearance(page, locale, theme);
@@ -109,6 +109,11 @@ for (const locale of locales) {
         await expect(layout.getByTestId("presence-view-policy")).toBeVisible();
         await expect(layout.getByTestId("presence-view-exceptions")).toBeVisible();
         await expect(layout.getByTestId("presence-view-setup")).toBeVisible();
+        await expect(section.getByRole("img", {
+          name: locale === "ar"
+            ? /خريطة Google لمناطق الحضور المحفوظة/u
+            : /Google map of saved attendance zones/u,
+        })).toBeVisible();
         await expect(
           section.getByRole("button", {
             name: locale === "ar" ? /^مساعدة:/u : /^Help:/u,

@@ -77,6 +77,8 @@ test("partial policy result has one authoritative save and one held UNKNOWN writ
   });
   await fixture.open(page);
   await page.getByTestId("presence-view-policy").click();
+  await page.getByTestId("shift-presence-policy")
+    .locator("details > summary").click();
   const accuracy = page.locator(field("shiftPresenceMaxAccuracyMeters"));
   await accuracy.getByRole("textbox").fill("60");
   await accuracy.getByRole("button", { name: "Save", exact: true }).click();

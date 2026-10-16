@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import {
   PresenceFixture, fillZone, attendanceZone, lmBase,
 } from "./support/presence-fixtures";
-import { mockPresenceMap } from "./support/presence-map-mock";
+import { mockIssue280Map } from "./issue280-map-first-map-mock";
 
 const view = (page: Page, name: string) =>
   page.getByTestId(`presence-view-${name}`);
@@ -17,7 +17,7 @@ const controlled = (code: string, status = 409) => ({
 test("four setup steps are explicit navigation, not implied persistence", async ({
   page,
 }) => {
-  await mockPresenceMap(page);
+  await mockIssue280Map(page);
   const fixture = new PresenceFixture("LM");
   await fixture.open(page);
   await expect(
@@ -50,7 +50,7 @@ test("four setup steps are explicit navigation, not implied persistence", async 
 test("persisted zone precedes independent strict Start policy confirmation", async ({
   page,
 }) => {
-  await mockPresenceMap(page);
+  await mockIssue280Map(page);
   const fixture = new PresenceFixture("LM");
   fixture.zones = [];
   fixture.policy.readiness = {
@@ -123,6 +123,8 @@ test("CAS conflict retains the unsaved field and requires explicit rebase", asyn
   });
   await fixture.open(page);
   await view(page, "policy").click();
+  await page.getByTestId("shift-presence-policy")
+    .locator("details > summary").click();
   const row = field(page, "shiftPresenceMaxAccuracyMeters");
   await row.getByRole("textbox").fill("70");
   await row.getByRole("button", { name: "Save", exact: true }).click();
