@@ -30,8 +30,8 @@ export async function requireTaskActor(
   task: LockedTaskRow,
   authenticatedUserId: string,
 ): Promise<AuthorizedTaskActor> {
-  const result = await transaction.query<AuthorizedTaskActor>(
-    `SELECT id::text AS "membershipId", role::text
+  const result = await transaction.query<{ membershipId: string }>(
+    `SELECT id::text AS "membershipId"
      FROM organization_memberships
      WHERE organization_id = $1 AND user_id = $2`,
     [task.organization_id, authenticatedUserId],
@@ -47,7 +47,17 @@ export async function requireTaskActor(
   if (eligibility === null) {
     throw new DispatchOperationError("TASK_NOT_FOUND_OR_FORBIDDEN");
   }
-  return actor;
+  // The eligibility check holds a FOR SHARE membership lock through COMMIT.
+  // A role read before that lock may be a stale pre-demotion snapshot.
+  const lockedRole = await transaction.query<{ role: string }>(
+    `SELECT role::text FROM organization_memberships WHERE id = $1 FOR SHARE`,
+    [actor.membershipId],
+  );
+  const role = lockedRole.rows[0]?.role;
+  if (role === undefined) {
+    throw new DispatchOperationError("TASK_NOT_FOUND_OR_FORBIDDEN");
+  }
+  return { membershipId: actor.membershipId, role };
 }
 
 export async function requireEligibleAssignee(
