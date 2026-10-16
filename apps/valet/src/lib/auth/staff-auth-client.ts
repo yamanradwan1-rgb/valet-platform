@@ -10,10 +10,11 @@ import {
   normalizeEmployeeApiError,
 } from "../api/employee-api-errors";
 import {
-  classifyRefreshFailure,
   ensureAccessTokenDetailed,
   StaffAuthRefreshError,
 } from "./staff-auth-recovery";
+import { StaffAuthBoundary } from "./staff-auth-boundary";
+import { performStaffAuthRefreshRequest } from "./staff-auth-refresh-operation";
 import {
   executeStaffAuthFetch,
   parseStaffAuthJsonPayload,
@@ -33,14 +34,20 @@ export class StaffAuthClient {
   private readonly baseUrl: string;
   private session: StaffAuthSession | null = null;
   private sessionGeneration = 0;
+  private authEpoch = 0;
   private refreshPromise: Promise<StaffAuthAccessResponse> | null = null;
   private readonly listeners = new Set<SessionChangeListener>();
+  private readonly boundary = new StaffAuthBoundary(() => {
+    this.authEpoch++;
+    if (this.session !== null) this.setSession(null);
+  });
 
   constructor(options: StaffAuthClientOptions = {}) {
     this.baseUrl = options.baseUrl ?? "";
   }
 
   getSession(): StaffAuthSession | null {
+    this.boundary.snapshot();
     return this.session;
   }
 
@@ -48,13 +55,18 @@ export class StaffAuthClient {
     return this.sessionGeneration;
   }
 
+  isSilentRestoreBlocked(): boolean {
+    return this.boundary.isSilentAuthBlocked();
+  }
+
   getAccessToken(): string | null {
-    return this.session?.accessToken ?? null;
+    return this.getSession()?.accessToken ?? null;
   }
 
   isTokenFresh(bufferSeconds = 60): boolean {
-    if (!this.session) return false;
-    const expiresAt = new Date(this.session.accessExpiresAt).getTime();
+    const session = this.getSession();
+    if (!session) return false;
+    const expiresAt = new Date(session.accessExpiresAt).getTime();
     return expiresAt - Date.now() > bufferSeconds * 1000;
   }
 
@@ -81,6 +93,8 @@ export class StaffAuthClient {
     credentials: StaffLoginRequest,
     signal?: AbortSignal | undefined,
   ): Promise<StaffAuthAccessResponse> {
+    const started = this.boundary.snapshot();
+    const epoch = ++this.authEpoch;
     const validated = staffLoginRequestSchema.parse(credentials);
     const url = `${this.baseUrl}/v1/staff/auth/login`;
 
@@ -110,6 +124,9 @@ export class StaffAuthClient {
     }
 
     const accessResponse = staffAuthAccessResponseSchema.parse(payload);
+    if (epoch !== this.authEpoch || !this.boundary.completeInteractiveLogin(started)) {
+      throw new Error("Staff authentication changed during sign-in. Please sign in again.");
+    }
     this.setSession({
       accessToken: accessResponse.accessToken,
       tokenType: accessResponse.tokenType,
@@ -123,6 +140,12 @@ export class StaffAuthClient {
   async refresh(
     signal?: AbortSignal | undefined,
   ): Promise<StaffAuthAccessResponse> {
+    if (this.boundary.isSilentAuthBlocked()) {
+      throw new StaffAuthRefreshError("definitive", new EmployeeApiError({
+        status: 401, code: "STAFF_LOGOUT_PENDING",
+        message: "Sign in again to continue after signing out.",
+      }));
+    }
     if (signal?.aborted) {
       throw (
         signal.reason ??
@@ -165,67 +188,26 @@ export class StaffAuthClient {
   }
 
   private async performRefresh(): Promise<StaffAuthAccessResponse> {
-    try {
-      const url = `${this.baseUrl}/v1/staff/auth/refresh`;
-
-      const fetchInit: RequestInit = {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({}),
-        credentials: "include",
-        cache: "no-store",
-      };
-
-      const response = await executeStaffAuthFetch(url, fetchInit);
-      const payload = await parseStaffAuthJsonPayload(response);
-
-      if (!response.ok) {
-        // A transient refresh failure (5xx/network) is NOT evidence that the
-        // authenticated session ended; only definitive rejections may clear it.
-        const normalized = normalizeEmployeeApiError(
-          response.status,
-          payload,
-          "Staff session refresh failed.",
-        );
-        const kind = classifyRefreshFailure(normalized);
-        if (kind === "definitive") {
-          this.setSession(null);
-        }
-        throw new StaffAuthRefreshError(kind, normalized);
+    const started = this.boundary.snapshot();
+    const epoch = this.authEpoch;
+    const isCurrent = () => epoch === this.authEpoch &&
+      this.boundary.isUnchanged(started) && !this.boundary.isSilentAuthBlocked();
+    return performStaffAuthRefreshRequest(this.baseUrl, (accessResponse) => {
+      if (!isCurrent()) {
+        throw new StaffAuthRefreshError("definitive", new EmployeeApiError({
+          status: 401, code: "STAFF_AUTH_EPOCH_CHANGED",
+          message: "Authentication changed while renewing the staff session.",
+        }));
       }
-
-      const accessResponse = staffAuthAccessResponseSchema.parse(payload);
       this.setSession({
         accessToken: accessResponse.accessToken,
         tokenType: accessResponse.tokenType,
         accessExpiresAt: accessResponse.accessExpiresAt,
         sessionExpiresAt: accessResponse.sessionExpiresAt,
       });
-
-      return accessResponse;
-    } catch (error: unknown) {
-      if (error instanceof StaffAuthRefreshError) {
-        throw error;
-      }
-      // Network-level refresh outages are transient by definition.
-      const normalized =
-        error instanceof EmployeeApiError
-          ? error
-          : new EmployeeApiError({
-              code: "NETWORK_ERROR",
-              isNetworkError: true,
-              message:
-                "Network connection unavailable. Please check your internet connection.",
-              status: 0,
-            });
-      throw new StaffAuthRefreshError(
-        classifyRefreshFailure(normalized),
-        normalized,
-      );
-    }
+    }, () => {
+      if (isCurrent()) this.setSession(null);
+    });
   }
 
   async tryRefresh(
@@ -239,6 +221,14 @@ export class StaffAuthClient {
   }
 
   async logout(signal?: AbortSignal | undefined): Promise<void> {
+    this.authEpoch++;
+    let started: ReturnType<StaffAuthBoundary["beginLogout"]>;
+    try {
+      started = this.boundary.beginLogout();
+    } finally {
+      // Discard local authority immediately, including unknown network outcomes.
+      this.setSession(null);
+    }
     const url = `${this.baseUrl}/v1/staff/auth/logout`;
 
     const fetchInit: RequestInit = {
@@ -255,19 +245,16 @@ export class StaffAuthClient {
       fetchInit.signal = signal;
     }
 
-    try {
-      const response = await executeStaffAuthFetch(url, fetchInit);
-      if (!response.ok) {
-        const payload = await parseStaffAuthJsonPayload(response);
-        throw normalizeEmployeeApiError(
-          response.status,
-          payload,
-          "Staff logout failed.",
-        );
-      }
-    } finally {
-      this.setSession(null);
+    const response = await executeStaffAuthFetch(url, fetchInit);
+    if (!response.ok) {
+      const payload = await parseStaffAuthJsonPayload(response);
+      throw normalizeEmployeeApiError(
+        response.status,
+        payload,
+        "Staff logout failed.",
+      );
     }
+    this.boundary.confirmLogout(started);
   }
 
   async ensureFreshToken(
