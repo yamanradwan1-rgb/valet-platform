@@ -33,19 +33,19 @@ export function LocationSwitchMenu({
   const wasOpen = useRef(false);
   const listboxId = useId();
   const options = menuOptions(controller, labels);
+  const optionKeys = options.map((option) => option.key).join("\u0000");
+  const dismiss = controller.dismiss;
 
   useEffect(() => {
     if (controller.open && controller.status === "ready") {
-      const selectedIndex = options.findIndex(
-        (option) => option.key === controller.selectedKey,
-      );
+      const selectedIndex = optionKeys.split("\u0000").indexOf(controller.selectedKey);
       optionRefs.current[selectedIndex >= 0 ? selectedIndex : 0]?.focus();
     }
   }, [
     controller.open,
     controller.selectedKey,
     controller.status,
-    options.length,
+    optionKeys,
   ]);
 
   useEffect(() => {
@@ -57,11 +57,11 @@ export function LocationSwitchMenu({
     if (!controller.open) return;
     const onPointerDown = (event: PointerEvent) => {
       if (!anchorRef.current?.contains(event.target as Node))
-        controller.dismiss();
+        dismiss();
     };
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [controller.dismiss, controller.open]);
+  }, [dismiss, controller.open]);
 
   const focusOption = (index: number) => {
     if (options.length === 0) return;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useLayoutEffect, useRef } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 import type { SelectedScopeEpoch } from "./selected-scope-state";
 import type { SelectedScopeDenialKind } from "./use-selected-scope-revalidation";
@@ -21,8 +21,13 @@ export function useSelectedManagementShellTransition(input: {
   readonly sessionGeneration: number;
 }) {
   const transitionRef = useRef<RouteTransition | null>(null);
+  const [renderTransition, setRenderTransition] = useState<RouteTransition | null>(null);
   const pathRef = useRef(input.currentPath);
-  pathRef.current = input.currentPath;
+  const { clearScopeIfEpoch, currentPath } = input;
+
+  useLayoutEffect(() => {
+    pathRef.current = currentPath;
+  }, [currentPath]);
 
   const onDenied = useCallback(
     (epoch: SelectedScopeEpoch, kind: SelectedScopeDenialKind) => {
@@ -37,9 +42,9 @@ export function useSelectedManagementShellTransition(input: {
       ) {
         return;
       }
-      input.clearScopeIfEpoch(epoch);
+      clearScopeIfEpoch(epoch);
     },
-    [input.clearScopeIfEpoch],
+    [clearScopeIfEpoch],
   );
 
   useLayoutEffect(() => {
@@ -63,13 +68,15 @@ export function useSelectedManagementShellTransition(input: {
 
   const beginTransition = useCallback(
     (targetPath: string) => {
-      transitionRef.current = {
+      const nextTransition: RouteTransition = {
         identityGeneration: input.identityGeneration,
         expectedRevision: input.selectionRevision + 1,
         sessionGeneration: input.sessionGeneration,
         sourcePath: input.currentPath,
         targetPath,
       };
+      transitionRef.current = nextTransition;
+      setRenderTransition(nextTransition);
     },
     [
       input.currentPath,
@@ -79,12 +86,11 @@ export function useSelectedManagementShellTransition(input: {
     ],
   );
 
-  const transition = transitionRef.current;
   const transitionActive =
-    transition?.identityGeneration === input.identityGeneration &&
-    transition.sessionGeneration === input.sessionGeneration &&
-    transition.expectedRevision === input.selectionRevision &&
-    transition.sourcePath === input.currentPath;
+    renderTransition?.identityGeneration === input.identityGeneration &&
+    renderTransition.sessionGeneration === input.sessionGeneration &&
+    renderTransition.expectedRevision === input.selectionRevision &&
+    renderTransition.sourcePath === input.currentPath;
 
   return { beginTransition, onDenied, transitionActive };
 }

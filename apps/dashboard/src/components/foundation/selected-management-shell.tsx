@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
 import { useStaffAuth } from "../../lib/auth/staff-auth-context";
@@ -66,7 +66,9 @@ export function SelectedManagementShell({
     selectionRevision,
     selectScope,
   } = useSelectedScope();
-  const [switchMfaRequired, setSwitchMfaRequired] = useState(false);
+  const [switchMfaKey, setSwitchMfaKey] = useState<string | null>(null);
+  const currentSwitchKey = `${auth.identityGeneration}:${auth.sessionGeneration}:${currentPath}:${selectionRevision}`;
+  const switchMfaRequired = switchMfaKey === currentSwitchKey;
   const { beginTransition, onDenied, transitionActive } =
     useSelectedManagementShellTransition({
       clearScopeIfEpoch,
@@ -93,16 +95,6 @@ export function SelectedManagementShell({
     selectionRevision,
     sessionGeneration: auth.sessionGeneration,
   });
-
-  useEffect(
-    () => setSwitchMfaRequired(false),
-    [
-      auth.identityGeneration,
-      auth.sessionGeneration,
-      currentPath,
-      selectionRevision,
-    ],
-  );
 
   if (selectedScope === null) return null;
   const authGenerationKey = `${auth.identityGeneration}:${auth.sessionGeneration}`;
@@ -198,7 +190,7 @@ export function SelectedManagementShell({
     scope: SwitchableDashboardScope,
     destination: string | null,
   ) => {
-    setSwitchMfaRequired(false);
+    setSwitchMfaKey(null);
     if (destination !== null && destination !== currentPath) {
       beginTransition(destination);
     }
@@ -216,7 +208,7 @@ export function SelectedManagementShell({
         identityGeneration={auth.identityGeneration}
         onCommit={commitSwitch}
         onCurrentScopeInvalid={clearScopeIfEpoch}
-        onMfaRequired={() => setSwitchMfaRequired(true)}
+        onMfaRequired={() => setSwitchMfaKey(currentSwitchKey)}
         scope={selectedScope}
         selectedLabel={selectedLocation.label}
         selectionRevision={selectionRevision}
@@ -258,7 +250,7 @@ export function SelectedManagementShell({
           changeScopeLabel={t("changeScope")}
           generationKey={`location-switch:${authGenerationKey}:${selectionRevision}`}
           onAssured={() => {
-            setSwitchMfaRequired(false);
+            setSwitchMfaKey(null);
             selectScope(selectedScope);
           }}
           onChangeScope={clearScope}
