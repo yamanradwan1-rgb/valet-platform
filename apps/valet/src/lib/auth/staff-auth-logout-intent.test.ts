@@ -101,6 +101,30 @@ describe("Staff web failed-logout durable origin boundary", () => {
     );
   });
 
+  it.each(["throws", "silently drops"])(
+    "retains an existing pending logout fence when a retry storage write %s",
+    async (failure) => {
+      const client = await loggedIn();
+      globalThis.fetch = vi.fn().mockRejectedValue(new TypeError("offline"));
+      await expect(client.logout()).rejects.toMatchObject({ code: "NETWORK_ERROR" });
+      const pending = storage.get(KEY);
+      expect(pending).toMatch(/^pending:/);
+
+      vi.spyOn(window.localStorage, "setItem").mockImplementation(() => {
+        if (failure === "throws") throw new Error("quota exceeded");
+      });
+      await expect(client.logout()).rejects.toMatchObject({ code: "NETWORK_ERROR" });
+      expect(storage.get(KEY)).toBe(pending);
+      expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+
+      const reloaded = new StaffAuthClient();
+      const refresh = vi.fn();
+      globalThis.fetch = refresh;
+      expect((await restoreStaffSession(reloaded)).kind).toBe("DEFINITIVE_INVALID");
+      expect(refresh).not.toHaveBeenCalled();
+    },
+  );
+
   it("clears identity only after confirmed revocation when storage silently loses the marker", async () => {
     const client = await loggedIn();
     vi.spyOn(window.localStorage, "setItem").mockImplementation(() => {});

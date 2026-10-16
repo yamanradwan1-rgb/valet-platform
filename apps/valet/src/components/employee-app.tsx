@@ -30,6 +30,7 @@ import {
   livePermittedScreens,
 } from "./shell/employee-navigation";
 import { EmployeeActiveShell } from "./shell/employee-active-shell";
+import { useEmployeeSignOut } from "./shell/use-employee-sign-out";
 import {
   selectStartableLocations,
   useStaffOperationalContext,
@@ -54,6 +55,9 @@ export interface EmployeeAppProps {
 export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
   const isPrototypeMode = mode === "prototype";
   const auth = useOptionalStaffAuth();
+  const {
+    onSignOut, notice: signOutNotice, busy: signOutBusy, isLogoutPending,
+  } = useEmployeeSignOut(auth);
   const {
     resolution,
     response: operationalResponse,
@@ -80,13 +84,14 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
   useEffect(() => {
     accessActions.bind({
       login: async (credentials) => {
+        if (isLogoutPending()) throw new Error("Sign-out request is still pending.");
         await auth?.login(credentials);
       },
       restoreSession: async () => {
         await auth?.restoreSession();
       },
     });
-  }, [accessActions, auth]);
+  }, [accessActions, auth, isLogoutPending]);
 
   const authStatus = auth?.status ?? "initializing";
   const liveScope = resolution.kind === "RESOLVED" ? resolution.scope : null;
@@ -129,10 +134,6 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
     isPrototypeMode,
     patchTargets,
   });
-
-  const handleSignOut = async (): Promise<void> => {
-    await auth?.logout();
-  };
 
   // DEC-066 §4: the End Shift controller lives at app level so an ambiguous
   // outcome's transient same-command retry intent survives authoritative
@@ -214,30 +215,36 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
       phase: authStatus,
     });
     return (
-      <div className="min-h-screen bg-navy-2 flex items-center justify-center">
-        <div className="w-full max-w-[390px] h-screen md:h-[844px] bg-navy overflow-hidden md:rounded-[44px] md:shadow-2xl flex flex-col">
-          <EmployeeAccessGate {...gateProps} />
+      <>
+        <div className="min-h-screen bg-navy-2 flex items-center justify-center">
+          <div className="w-full max-w-[390px] h-screen md:h-[844px] bg-navy overflow-hidden md:rounded-[44px] md:shadow-2xl flex flex-col">
+            {signOutBusy ? signOutNotice : <EmployeeAccessGate {...gateProps} />}
+          </div>
         </div>
-      </div>
+        {!signOutBusy && signOutNotice}
+      </>
     );
   }
 
   if (liveScope === null) {
     return (
-      <EmployeeOperationalScreen
-        contextError={contextError}
-        endShiftPhase={endShiftPhase}
-        hasContextResponse={operationalResponse !== null}
-        onDismissStartIntent={() => resetStartShift()}
-        onRefreshContext={() => void refreshContext()}
-        onRetryEndShift={retryUncertainEndShift}
-        onRetryStartShift={retryUncertainStartShift}
-        onSignOut={() => void handleSignOut()}
-        onStartShift={startShift}
-        resolution={resolution}
-        startPhase={startShiftPhase}
-        startableLocations={startableLocations}
-      />
+      <>
+        <EmployeeOperationalScreen
+          contextError={contextError}
+          endShiftPhase={endShiftPhase}
+          hasContextResponse={operationalResponse !== null}
+          onDismissStartIntent={() => resetStartShift()}
+          onRefreshContext={() => void refreshContext()}
+          onRetryEndShift={retryUncertainEndShift}
+          onRetryStartShift={retryUncertainStartShift}
+          onSignOut={onSignOut}
+          onStartShift={startShift}
+          resolution={resolution}
+          startPhase={startShiftPhase}
+          startableLocations={startableLocations}
+        />
+        {signOutNotice}
+      </>
     );
   }
 
@@ -248,15 +255,16 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
       : "task-queue";
 
   return (
-    <EmployeeActiveShell
-      effectiveScreen={effectiveScreen}
-      key={`${identity.identityGeneration}:${liveScope.membershipId}:${liveScope.locationId}:${liveScope.shiftId}`}
-      nav={handlers.nav}
-      onReconnect={() => void refreshContext()}
-      scope={liveScope}
-      taskQueue={taskQueue}
-    >
-      <EmployeeLiveRouter
+    <>
+      <EmployeeActiveShell
+        effectiveScreen={effectiveScreen}
+        key={`${identity.identityGeneration}:${liveScope.membershipId}:${liveScope.locationId}:${liveScope.shiftId}`}
+        nav={handlers.nav}
+        onReconnect={() => void refreshContext()}
+        scope={liveScope}
+        taskQueue={taskQueue}
+      >
+        <EmployeeLiveRouter
           activeScope={liveScope}
           effectiveScreen={effectiveScreen}
           endShift={endShift}
@@ -278,7 +286,9 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
           retrievalTarget={targets.activeRetrievalTarget}
           onRetryUncertainEndShift={retryUncertainEndShift}
           taskQueue={taskQueue}
-      />
-    </EmployeeActiveShell>
+        />
+      </EmployeeActiveShell>
+      {signOutNotice}
+    </>
   );
 }
