@@ -13,6 +13,7 @@ import {
   type GoogleAdvancedMarker,
 } from "../../../lib/maps/google-maps-sdk";
 import zoneStyles from "./attendance-zones-overview-map.module.css";
+import { attendanceZoneBoundPoints } from "./attendance-zone-bounds";
 
 interface Overlay {
   circle: GoogleMapCircle;
@@ -100,7 +101,7 @@ export function AttendanceZonesOverviewMap(props: {
     const bounds = new live.sdk.LatLngBounds();
     live.overlays = props.zones.map((zone) => {
       const center = { lat: zone.latitude, lng: zone.longitude };
-      bounds.extend(center);
+      attendanceZoneBoundPoints(zone).forEach((point) => bounds.extend(point));
       const active = zone.state === "ACTIVE";
       const circle = new live.sdk.Circle({
         map: live.map,
@@ -120,14 +121,7 @@ export function AttendanceZonesOverviewMap(props: {
       });
       return { circle, marker };
     });
-    const first = props.zones[0];
-    if (props.zones.length === 1 && first) {
-      live.map.setCenter({
-        lat: first.latitude,
-        lng: first.longitude,
-      });
-      live.map.setZoom(17);
-    } else if (props.zones.length > 1 && !bounds.isEmpty()) {
+    if (!bounds.isEmpty()) {
       live.map.fitBounds(bounds, 64);
     } else {
       live.map.setCenter({ lat: 0, lng: 0 });
