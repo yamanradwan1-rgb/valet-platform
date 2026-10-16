@@ -2,6 +2,7 @@
 import { presenceId } from "./shift-presence-id";
 
 import { useCallback, useState } from "react";
+import { useDashboardTheme } from "../../../lib/theme/theme-provider";
 import { styles } from "../administration-ui";
 import { useAuthoritativeRead } from "../use-authoritative-read";
 import type { DashboardLocale } from "../../../lib/i18n/locale";
@@ -13,6 +14,7 @@ import {
   PresenceReadFeedback,
 } from "./shift-presence-list-ui";
 import { ScopedContextHelp } from "../../help/scoped-context-help";
+import { AttendanceZonesOverviewMap } from "./attendance-zones-overview-map";
 
 export function ShiftPresenceZones(props: {
   readonly api: PresenceApi;
@@ -23,6 +25,7 @@ export function ShiftPresenceZones(props: {
   readonly onOpen: (target: ZoneDialogTarget) => void;
 }) {
   const t = presenceCopy(props.locale);
+  const { theme } = useDashboardTheme();
   const [cursors, setCursors] = useState<(string | undefined)[]>([undefined]);
   const cursor = cursors[cursors.length - 1];
   const load = useCallback(
@@ -58,6 +61,11 @@ export function ShiftPresenceZones(props: {
       />
       {read.data ? (
         <>
+          <AttendanceZonesOverviewMap
+            zones={read.data.items}
+            locale={props.locale}
+            theme={theme}
+          />
           {read.data.items.length === 0 ? (
             <p className={styles.muted}>{t("noZones")}</p>
           ) : (
@@ -76,6 +84,8 @@ export function ShiftPresenceZones(props: {
                         "code",
                         "status",
                         "radius",
+                        "latitude",
+                        "longitude",
                         "revision",
                         "actions",
                       ] as const
@@ -94,6 +104,12 @@ export function ShiftPresenceZones(props: {
                       <td>{t(zone.state)}</td>
                       <td>
                         <bdi dir="ltr">{zone.radiusMeters}</bdi>
+                      </td>
+                      <td>
+                        <bdi dir="ltr">{zone.latitude}</bdi>
+                      </td>
+                      <td>
+                        <bdi dir="ltr">{zone.longitude}</bdi>
                       </td>
                       <td>{zone.revision}</td>
                       <td>

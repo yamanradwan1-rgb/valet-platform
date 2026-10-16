@@ -21,6 +21,7 @@ import feature from "./shift-presence.module.css";
 import { usePresenceDialogFocus } from "./use-presence-dialog-focus";
 import { PresenceMutationFeedback } from "./shift-presence-feedback";
 import { ScopedContextHelp } from "../../help/scoped-context-help";
+import { editZoneDraft } from "./shift-presence-zone-code";
 
 const fields = [
   { key: "label", label: "label", help: "labelHelp", max: 200 },
@@ -49,6 +50,7 @@ export function ShiftPresenceZoneForm(props: {
       ? canonical.value.zone
       : props.zone;
   const [baseline, setBaseline] = useState(props.zone);
+  const codeTouched = useRef(Boolean(props.zone));
   const [draft, setDraft] = useState<ZoneDraft>(() => ({
     ...zoneDraft(props.zone ?? undefined),
     ...(props.mode === "enable"
@@ -92,7 +94,8 @@ export function ShiftPresenceZoneForm(props: {
   const blocked = props.disabled;
   function edit(key: keyof ZoneDraft, value: string) {
     location.retire(key === "latitude" || key === "longitude");
-    setDraft((current) => ({ ...current, [key]: value }));
+    if (key === "code") codeTouched.current = true;
+    setDraft((current) => editZoneDraft(current, key, value, !codeTouched.current));
   }
   async function submit() {
     if (!parsed.success) {
@@ -166,6 +169,9 @@ export function ShiftPresenceZoneForm(props: {
               />
               <span className={styles.muted} id={`zone-${field.key}-help`}>
                 {t(field.help)}
+                {field.key === "code" ? (
+                  <> · {props.locale === "ar" ? "اقتراح قابل للتعديل؛ يتحقق الخادم من تفرد الرمز عند الحفظ." : "Editable suggestion; the server enforces code uniqueness on Save."}</>
+                ) : null}
               </span>
             </div>
           ))}
