@@ -38,6 +38,7 @@ const contextResponse: StaffOperationalContextResponse = {
           currency: "JOD",
           locationId: AMM_LOCATION_ID,
           name: "Amman Ridge Hotel",
+          timezone: "Asia/Amman",
         },
       ],
       membershipId: "33333333-3333-4333-8333-333333333333",
@@ -67,6 +68,7 @@ function activeContextAt(
       name: locationId === AMM_LOCATION_ID
         ? "Amman Ridge Hotel"
         : "Demo Venue",
+      timezone: "Asia/Amman",
     },
     eligibleLocations: [],
     membershipId: "33333333-3333-4333-8333-333333333333",

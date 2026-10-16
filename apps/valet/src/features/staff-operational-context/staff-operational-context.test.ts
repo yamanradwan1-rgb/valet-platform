@@ -24,9 +24,9 @@ describe("Staff Operational Context", () => {
               startedAt: "2026-08-21T18:00:00.000Z",
               status: "ACTIVE",
             },
-            currentLocation: { currency: "JOD", locationId: "44444444-4444-4444-8444-444444444444", name: "Grand Hotel", code: "GH-MAIN" },
+            currentLocation: { currency: "JOD", locationId: "44444444-4444-4444-8444-444444444444", name: "Grand Hotel", code: "GH-MAIN", timezone: "Asia/Amman" },
             eligibleLocations: [
-              { currency: "JOD", locationId: "44444444-4444-4444-8444-444444444444", name: "Grand Hotel", code: "GH-MAIN" },
+              { currency: "JOD", locationId: "44444444-4444-4444-8444-444444444444", name: "Grand Hotel", code: "GH-MAIN", timezone: "Asia/Amman" },
             ],
           },
         ],
@@ -68,7 +68,7 @@ describe("Staff Operational Context", () => {
             activeShift: null,
             currentLocation: null,
             eligibleLocations: [
-              { currency: "JOD", locationId: "44444444-4444-4444-8444-444444444444", name: "Grand Hotel", code: "GH-MAIN" },
+              { currency: "JOD", locationId: "44444444-4444-4444-8444-444444444444", name: "Grand Hotel", code: "GH-MAIN", timezone: "Asia/Amman" },
             ],
           },
         ],
@@ -103,7 +103,7 @@ describe("Staff Operational Context", () => {
               startedAt: "2026-08-21T18:00:00.000Z",
               status: "ACTIVE",
             },
-            currentLocation: { currency: "JOD", locationId: "44444444-4444-4444-8444-444444444444", name: "Location A", code: "LOC-A" },
+            currentLocation: { currency: "JOD", locationId: "44444444-4444-4444-8444-444444444444", name: "Location A", code: "LOC-A", timezone: "Asia/Amman" },
             eligibleLocations: [],
           },
           {
@@ -119,7 +119,7 @@ describe("Staff Operational Context", () => {
               startedAt: "2026-08-21T19:00:00.000Z",
               status: "ACTIVE",
             },
-            currentLocation: { currency: "JOD", locationId: "88888888-8888-4888-8888-888888888888", name: "Location B", code: "LOC-B" },
+            currentLocation: { currency: "JOD", locationId: "88888888-8888-4888-8888-888888888888", name: "Location B", code: "LOC-B", timezone: "Asia/Amman" },
             eligibleLocations: [],
           },
         ],

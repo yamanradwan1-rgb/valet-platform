@@ -36,6 +36,7 @@ const makeContext = (
         locationId,
         name: locationName,
         code: "LOC-01",
+        timezone: "Asia/Amman",
       },
       eligibleLocations: [],
     },

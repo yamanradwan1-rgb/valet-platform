@@ -22,6 +22,7 @@ function membershipContextAt(
       currency: "JOD",
       locationId,
       name: "Location",
+      timezone: "Asia/Amman",
     },
     eligibleLocations: [],
     membershipId: "44444444-4444-4444-8444-444444444444",

@@ -20,12 +20,14 @@ const AMM: StaffOperationalLocation = {
   currency: "JOD",
   locationId: "11111111-1111-4111-8111-111111111111",
   name: "Amman Ridge Hotel",
+  timezone: "Asia/Amman",
 };
 const DEMO: StaffOperationalLocation = {
   code: "DEM-01",
   currency: "JOD",
   locationId: "22222222-2222-4222-8222-222222222222",
   name: "Demo Venue With A Rather Long Location Name For Wrapping",
+  timezone: "Asia/Amman",
 };
 
 function renderPanel(

@@ -121,6 +121,7 @@ describe("EmployeeOperationalGate truthful states", () => {
             currency: "JOD",
             locationId: "11111111-1111-4111-8111-111111111111",
             name: "Amman Ridge Hotel",
+            timezone: "Asia/Amman",
           },
         ]}
       />,
