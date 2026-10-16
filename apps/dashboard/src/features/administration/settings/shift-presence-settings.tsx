@@ -16,9 +16,9 @@ import {
 import { useShiftPresenceMutation } from "./use-shift-presence-mutation";
 import { presenceCopy } from "./shift-presence-copy";
 import { ShiftPresencePolicy } from "./shift-presence-policy";
-import { ShiftPresenceReadiness } from "./shift-presence-readiness";
-import { ShiftPresenceZones } from "./shift-presence-zones";
-import { ShiftPresenceExceptions } from "./shift-presence-exceptions";
+import { ShiftPresenceLocationOrchestration } from "./shift-presence-location-orchestration";
+import type { PresencePolicyDrafts, PresencePolicyDraftState } from "./shift-presence-setup-review";
+import type { Field } from "./shift-presence-policy-fields";
 import {
   ShiftPresenceZoneDialog,
   type ZoneDialogTarget,
@@ -60,6 +60,24 @@ function PresenceScope({ company }: { readonly company: boolean }) {
     PresenceCompany | PresenceLocation | null
   >(null);
   const [readDenied, setReadDenied] = useState(false);
+  const [policyDrafts, setPolicyDrafts] = useState<PresencePolicyDrafts>({});
+  const changePolicyDraft = useCallback(
+    (field: Field["field"], next: PresencePolicyDraftState | null) => {
+      setPolicyDrafts((current) => {
+        const old = current[field];
+        if (old === next || (old && next &&
+          old.draft === next.draft && old.touched === next.touched &&
+          old.baselineKey === next.baselineKey &&
+          old.baselineValue === next.baselineValue &&
+          old.baselineOverride === next.baselineOverride)) return current;
+        const updated = { ...current };
+        if (next === null) delete updated[field];
+        else updated[field] = next;
+        return updated;
+      });
+    },
+    [],
+  );
   useEffect(() => {
     const data = read.data;
     if (data)
@@ -120,87 +138,83 @@ function PresenceScope({ company }: { readonly company: boolean }) {
       : selected.authority === "LOCATION_MANAGER"
         ? selected.location.name
         : "";
+  const companyName =
+    selected.authority === "COMPANY_ADMIN"
+      ? selected.context.organization.name
+      : selected.authority === "LOCATION_MANAGER"
+        ? selected.organization.name
+        : "";
   const denied = mutation.denied || readDenied || isPresenceDenied(read.error);
+  useEffect(() => {
+    if (denied) queueMicrotask(() => {
+      if (live.current) setPolicyDrafts({});
+    });
+  }, [denied, live]);
   const data = denied ? null : (read.data ?? snapshot);
   const location = data && "overrides" in data ? data : null;
+  const headingContent = (
+    <div className={styles.cardPad}>
+      <div className={styles.actions}>
+        <h2
+          className={styles.sectionTitle}
+          id="shift-presence-heading"
+          tabIndex={-1}
+          ref={heading}
+        >
+          {t("title")}
+        </h2>
+        <ScopedContextHelp helpKey="policies.presence" />
+      </div>
+      {company ? <p className={styles.sectionText}>{t("defaults")}</p> : null}
+      <PresenceReadFeedback locale={locale} {...read} onRefresh={refresh} />
+      <PresenceMutationFeedback mutation={mutation} locale={locale} />
+    </div>
+  );
   return (
     <section
       className={feature.section}
       aria-labelledby="shift-presence-heading"
       data-testid="shift-presence"
     >
-      <div className={styles.cardPad}>
-        <div className={styles.actions}>
-          <h2
-            className={styles.sectionTitle}
-            id="shift-presence-heading"
-            tabIndex={-1}
-            ref={heading}
-          >
-            {t("title")}
-          </h2>
-          <ScopedContextHelp helpKey="policies.presence" />
-        </div>
-        {company ? <p className={styles.sectionText}>{t("defaults")}</p> : null}
-        <PresenceReadFeedback locale={locale} {...read} onRefresh={refresh} />
-        <PresenceMutationFeedback mutation={mutation} locale={locale} />
-      </div>
-      {data ? (
+      {location ? (
+        <ShiftPresenceLocationOrchestration
+          api={api}
+          data={location}
+          locale={locale}
+          heading={headingContent}
+          mutation={mutation}
+          scopeKey={scopeKey}
+          epoch={epoch}
+          locationName={locationName}
+          companyName={companyName}
+          loading={read.loading || read.error !== null}
+          drafts={policyDrafts}
+          onDraftChange={changePolicyDraft}
+          onOpenZone={(target) => {
+            opener.current = document.activeElement instanceof HTMLElement
+              ? document.activeElement : null;
+            setZone(target);
+          }}
+          onOpenException={(id) => {
+            opener.current = document.activeElement instanceof HTMLElement
+              ? document.activeElement : null;
+            setException({ id, generation: presenceId() });
+          }}
+        />
+      ) : (
         <>
-          {location ? (
-            <ShiftPresenceReadiness
-              data={location}
-              help={<ScopedContextHelp helpKey="presence.readiness" />}
+          {headingContent}
+          {data ? (
+            <ShiftPresencePolicy
+              api={api}
+              data={data}
               locale={locale}
+              mutation={mutation}
+              loading={read.loading || read.error !== null}
             />
           ) : null}
-          <ShiftPresencePolicy
-            api={api}
-            data={data}
-            locale={locale}
-            mutation={mutation}
-            loading={read.loading || read.error !== null}
-          />
-          {location ? (
-            <>
-              <ShiftPresenceZones
-                api={api}
-                scopeKey={scopeKey}
-                epoch={epoch}
-                locale={locale}
-                disabled={
-                  mutation.blocked ||
-                  !location.capabilities.canEdit ||
-                  read.loading ||
-                  read.error !== null
-                }
-                onOpen={(target) => {
-                  opener.current =
-                    document.activeElement instanceof HTMLElement
-                      ? document.activeElement
-                      : null;
-                  setZone(target);
-                }}
-              />
-              <ShiftPresenceExceptions
-                api={api}
-                blocked={mutation.blocked}
-                scopeKey={scopeKey}
-                epoch={epoch}
-                locale={locale}
-                locationName={locationName}
-                onOpen={(id) => {
-                  opener.current =
-                    document.activeElement instanceof HTMLElement
-                      ? document.activeElement
-                      : null;
-                  setException({ id, generation: presenceId() });
-                }}
-              />
-            </>
-          ) : null}
         </>
-      ) : null}
+      )}
       {!denied && zone && location ? (
         <ShiftPresenceZoneDialog
           key={zone.generation}
