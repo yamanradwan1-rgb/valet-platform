@@ -32,8 +32,8 @@ export async function resolveHandoffActor(
   session: HandoffScope,
   authenticatedUserId: string,
 ): Promise<HandoffActor> {
-  const result = await transaction.query<{ id: string; role: string }>(
-    `SELECT id::text, role::text
+  const result = await transaction.query<{ id: string }>(
+    `SELECT id::text
      FROM organization_memberships
      WHERE organization_id = $1 AND user_id = $2`,
     [session.organization_id, authenticatedUserId],
@@ -41,7 +41,7 @@ export async function resolveHandoffActor(
   const actor = result.rows[0];
   if (actor === undefined)
     throw new HandoffError("TASK_NOT_FOUND_OR_FORBIDDEN");
-  return { membershipId: actor.id, role: actor.role };
+  return { membershipId: actor.id };
 }
 
 export async function lockHandoffTask(
@@ -109,7 +109,14 @@ export async function authorizeHandoffSupervisor(
   });
   if (eligibility === null)
     throw new HandoffError("TASK_NOT_FOUND_OR_FORBIDDEN");
-  if (actor.role !== "VALET_SUPERVISOR") {
+  // Eligibility locks the membership row FOR SHARE through transaction commit.
+  // Re-read the role only after that lock: an unlocked earlier role snapshot
+  // could belong to a Supervisor who was demoted while the lock was awaited.
+  const currentRole = await transaction.query<{ role: string }>(
+    `SELECT role::text FROM organization_memberships WHERE id = $1 FOR SHARE`,
+    [actor.membershipId],
+  );
+  if (currentRole.rows[0]?.role !== "VALET_SUPERVISOR") {
     throw new HandoffError("HANDOFF_OVERRIDE_NOT_ALLOWED");
   }
 }

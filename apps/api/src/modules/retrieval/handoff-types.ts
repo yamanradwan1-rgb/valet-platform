@@ -29,7 +29,6 @@ export interface LockedHandoffRequest {
 
 export interface HandoffActor {
   readonly membershipId: string;
-  readonly role: string;
 }
 
 export interface LockedHandoffVerification {
