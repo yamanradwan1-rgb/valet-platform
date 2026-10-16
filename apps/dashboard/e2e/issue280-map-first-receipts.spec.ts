@@ -28,8 +28,8 @@ test("MFA step-up refreshes zone draft without silently replaying saved intent",
   const zoneDialog = await fillZone(page);
   await zoneDialog.getByRole("button", { name: "Save", exact: true }).click();
   const mfa = page.getByRole("dialog").last();
-  await expect(mfa).toContainText("Authenticator");
-  await mfa.getByLabel("Authenticator code").fill("123456");
+  await expect(mfa).toContainText("Verification required");
+  await mfa.getByLabel("6-digit authenticator code").fill("123456");
   await mfa.getByRole("button", { name: "Verify", exact: true }).click();
   await expect(page.getByRole("dialog")).toHaveCount(1);
   await expect(zoneDialog.getByLabel("Label", { exact: true }))

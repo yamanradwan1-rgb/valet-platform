@@ -26,6 +26,7 @@ test("pending/history distinguish authorized review and read-only facts without 
     },
   ];
   await f.open(page);
+  await page.getByTestId("presence-view-exceptions").click();
   const list = page.getByTestId("presence-exceptions");
   await expect(list).toContainText("Pending requests awaiting");
   await expect(
@@ -72,6 +73,7 @@ test("review Help nests, escapes to trigger, and preserves pending decision with
 }) => {
   const f = new PresenceFixture("CA");
   await f.open(page);
+  await page.getByTestId("presence-view-exceptions").click();
   await page
     .getByTestId("presence-exceptions")
     .getByRole("button", { name: "Review", exact: true })
@@ -120,6 +122,7 @@ test("Arabic dark 390 exception list and dialog retain RTL, safe focus and bound
   });
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.getByTestId("presence-view-exceptions").click();
   const list = page.getByTestId("presence-exceptions");
   await expect(list).toContainText("طلبات قيد الانتظار");
   await list.getByRole("button", { name: "مراجعة", exact: true }).click();

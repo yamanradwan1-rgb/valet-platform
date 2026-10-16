@@ -41,6 +41,7 @@ test("actual Chromium browser zoom 200% is usable and accessible at 720/384 CSS 
     },
   );
   const measurements: Record<string, unknown>[] = [];
+  const unnamedFailures: { id: string; count: number }[] = [];
   try {
     const worker =
       context.serviceWorkers()[0] ??
@@ -51,6 +52,15 @@ test("actual Chromium browser zoom 200% is usable and accessible at 720/384 CSS 
       { width: 1440, lang: "en", theme: "light" },
       { width: 768, lang: "ar", theme: "dark" },
     ]) {
+      // Reuse the browser while isolating authentication between viewport cases.
+      // Without clearing the first case's auth, the second fixture cannot sign in.
+      if (page.url().includes("/policies")) {
+        await page.evaluate(() => {
+          localStorage.clear();
+          sessionStorage.clear();
+        });
+        await context.clearCookies();
+      }
       await page.setViewportSize({ width: sample.width, height: 900 });
       await mockIssue280Map(page);
       const fixture = new PresenceFixture("LM");
@@ -102,6 +112,7 @@ test("actual Chromium browser zoom 200% is usable and accessible at 720/384 CSS 
       );
       const id = `${sample.lang}-${sample.theme}-${sample.width}`;
       measurements.push({ id, zoom, layout, unnamed: unnamed.length });
+      if (unnamed.length) unnamedFailures.push({ id, count: unnamed.length });
       mkdirSync(join(evidence, "zoom"), { recursive: true });
       await page.screenshot({
         path: join(evidence, "zoom", `${id}-browser200.png`),
@@ -115,10 +126,11 @@ test("actual Chromium browser zoom 200% is usable and accessible at 720/384 CSS 
       expect(layout.contentScroll).toBeLessThanOrEqual(
         (layout.contentClient ?? 0) + 1,
       );
-      expect(unnamed).toHaveLength(0);
       expect(fixture.writes).toEqual([]);
       await worker.evaluate((id) => chrome.tabs.setZoom(id, 1), tabId!);
     }
+    // Preserve the strict accessibility gate while checking BOTH zoom widths.
+    expect(unnamedFailures).toEqual([]);
   } finally {
     mkdirSync(evidence, { recursive: true });
     writeFileSync(

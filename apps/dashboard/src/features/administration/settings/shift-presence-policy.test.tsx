@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { ShiftPresencePolicy, type PresencePolicyDrafts } from "./shift-presence-policy";
 import {
@@ -10,6 +10,15 @@ import {
 import type { PresenceCompany, PresenceLocation, PresenceApi } from "./shift-presence-api";
 import type { PresenceMutation } from "./use-shift-presence-mutation";
 import { companyPolicy, locationPolicy } from "../../../../e2e/support/presence-data";
+
+// This suite verifies policy HTML and field semantics. Contextual Help's
+// authenticated dialog/focus lifecycle is exercised by its own browser suites.
+vi.mock("../../help/scoped-context-help", () => ({
+  ScopedContextHelp: () => null,
+}));
+vi.mock("./mobile-setting-context-help", () => ({
+  MobileSettingContextHelp: () => null,
+}));
 
 function markup(
   data: PresenceCompany | PresenceLocation,
@@ -23,7 +32,7 @@ function markup(
       locale={locale}
       mutation={{ blocked: false } as PresenceMutation}
       loading={false}
-      drafts={drafts}
+      {...(drafts ? { drafts } : {})}
       onDraftChange={() => {}}
     />,
   );
