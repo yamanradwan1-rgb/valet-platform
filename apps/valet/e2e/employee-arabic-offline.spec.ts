@@ -35,16 +35,13 @@ test("keeps authenticated Arabic live UI truthful through offline recovery", asy
     page.locator('bdi[dir="ltr"]', { hasText: plate }).first(),
   ).toBeVisible();
   await page.getByRole("button", { name: "تأكيد اللوحة" }).click();
+  // A newly recognized-as-unknown plate visits the optional details screen.
+  await page.getByRole("button", { name: "تخطي بيانات المركبة" }).click();
   await page.locator('input[type="tel"]').fill("+962790000003");
   await page.getByRole("button", { name: "متابعة", exact: true }).click();
   await page.getByRole("button", { name: "لا توجد مشاكل ظاهرة" }).click();
   await page.getByRole("button", { name: "متابعة", exact: true }).click();
-  await page.getByRole("button", { name: "إدخال خانة المفتاح يدوياً" }).click();
-  const keyInput = page.locator('input[placeholder="أدخل رمز خانة المفتاح"]');
-  await expect(keyInput).toHaveAttribute("dir", "ltr");
-  await keyInput.fill(`E2E-KEY-R${testInfo.retry}`);
-  await page.getByRole("button", { name: "تعيين المفتاح", exact: true }).click();
-  await page.getByRole("button", { name: "إنشاء مهمة إيقاف" }).click();
+  // DEC-068: Check-In has no pre-parking key-slot or extra task creation.
   await page.getByRole("button", { name: "بدء الإيقاف" }).click();
   await expect(page.getByRole("button", { name: "الإبلاغ عن مشكلة" })).toBeVisible();
   await page.getByRole("button", { name: "اركن المركبة" }).click();
@@ -63,7 +60,13 @@ test("keeps authenticated Arabic live UI truthful through offline recovery", asy
   await expect(
     page.getByText("لا يوجد اتصال بالشبكة. أعد الاتصال للتحديث والمتابعة."),
   ).toBeVisible();
-  await page.getByRole("button", { name: "تأكيد موقع الإيقاف" }).click();
+  // Spot capture is a local draft; the key is deposited on the next step.
+  await page.getByRole("button", { name: "متابعة", exact: true }).click();
+  const keyInput = page.locator('input[placeholder="أدخل رمز خانة المفتاح"]');
+  await expect(keyInput).toHaveAttribute("dir", "ltr");
+  await keyInput.fill(`E2E-KEY-R${testInfo.retry}`);
+  const confirmParked = page.getByRole("button", { name: "تأكيد الإيقاف" });
+  await expect(confirmParked).toBeDisabled();
   await expect(page.getByText("تم تأكيد الإيقاف")).not.toBeVisible();
   const offlineBody = await page.locator("body").innerText();
   expect(offlineBody).not.toMatch(/sync|queue|تلقائي/i);
@@ -77,8 +80,11 @@ test("keeps authenticated Arabic live UI truthful through offline recovery", asy
   await expect(
     page.getByText("لا يوجد اتصال بالشبكة. أعد الاتصال للتحديث والمتابعة."),
   ).not.toBeVisible({ timeout: 10_000 });
-  await expect(page.getByRole("button", { name: "اركن المركبة" })).toBeVisible();
+  await expect(confirmParked).toBeEnabled();
+  // Reconnecting must never silently submit the retained draft.
   await expect(page.getByText("تم تأكيد الإيقاف")).not.toBeVisible();
+  await confirmParked.click();
+  await expect(page.getByText("تم تأكيد الإيقاف")).toBeVisible({ timeout: 15_000 });
 
   await page.getByRole("button", { name: "EN", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
