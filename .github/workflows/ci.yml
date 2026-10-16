@@ -98,6 +98,7 @@ jobs:
         lane:
           - api
           - database
+          - issue215
     env:
       DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
       MIGRATION_DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
@@ -139,10 +140,26 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run bounded PostgreSQL lane
+        if: ${{ matrix.lane != 'issue215' }}
         env:
           VAYLET_ISSUE215_TEST_TARGET: ci
           VAYLET_ISSUE215_CI_POSTGRES_CONTAINER_ID: ${{ job.services.postgres.id }}
         run: pnpm run test:postgres:${{ matrix.lane }}
+
+      - name: Start attested Issue 215 private S3 fixture
+        if: ${{ matrix.lane == 'issue215' }}
+        run: node scripts/issue215-local-s3/start.mjs
+
+      - name: Run protected Issue 215 API PostgreSQL tests
+        if: ${{ matrix.lane == 'issue215' }}
+        env:
+          VAYLET_ISSUE215_TEST_TARGET: ci
+          VAYLET_ISSUE215_CI_POSTGRES_CONTAINER_ID: ${{ job.services.postgres.id }}
+        run: node scripts/test-harness/run-issue215-ci-api.mjs
+
+      - name: Remove attested Issue 215 private S3 fixture
+        if: ${{ always() && matrix.lane == 'issue215' }}
+        run: node scripts/issue215-local-s3/stop.mjs
 
   platform:
     name: platform-${{ matrix.os }}
