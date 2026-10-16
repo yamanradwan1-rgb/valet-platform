@@ -83,7 +83,11 @@ describe("Shift Presence guided setup presentation", () => {
       expect(html.match(/aria-current="step"/g)).toHaveLength(1);
       expect(html.match(/class="[^"]*stepButton/g)).toHaveLength(4);
       expect(html).toContain('data-testid="step-body"');
-      expect(html).toContain("Changing steps does not save zones or policy");
+      expect(html).toContain("Changing steps never saves.");
+      expect(html).toContain("Save each zone separately in Step 2");
+      expect(html).toContain(
+        "policy drafts are applied only after Step 4 review and confirmation.",
+      );
       expect(html).not.toContain("Completed");
       const buttons = Array.from(html.matchAll(/<button\b[^>]*>/g), (match) => match[0]);
       expect(buttons).toHaveLength(6);
@@ -102,6 +106,10 @@ describe("Shift Presence guided setup presentation", () => {
     expect(html).toContain("النطاق");
     expect(html).toContain("المناطق");
     expect(html).toContain("المراجعة");
-    expect(html).toContain("لا يحفظ المناطق أو السياسة");
+    expect(html).toContain("التنقل بين الخطوات لا يحفظ.");
+    expect(html).toContain("احفظ كل منطقة على حدة في الخطوة الثانية");
+    expect(html).toContain(
+      "لا تُطبَّق مسودات السياسة إلا بعد المراجعة والتأكيد في الخطوة الرابعة.",
+    );
   });
 });
