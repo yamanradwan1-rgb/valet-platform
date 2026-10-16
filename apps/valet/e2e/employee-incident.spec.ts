@@ -28,6 +28,11 @@ test("reports an order-independent incident from a real operation", async ({
   await expect(page.getByRole("button", { name: "Assign Key" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Create Parking Task" })).toHaveCount(0);
   await page.getByRole("button", { name: "Start Parking" }).click();
+  // The Start Parking click initiates the authoritative mutation, but click()
+  // does not await the HTTP response or the transition into the live parking
+  // screen. Finish that transition before simulating an offline incident.
+  await expect(page.getByRole("button", { name: "Park Vehicle" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Report Issue" })).toBeVisible();
 
   // Live incidents require an authoritative A1 session read. An offline
   // attempt must not show a report form or fabricated success/reference.
