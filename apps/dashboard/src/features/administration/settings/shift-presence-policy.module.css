@@ -1,0 +1,80 @@
+.policy {
+  display: grid;
+  gap: 1.1rem;
+  padding: 1rem;
+  min-width: 0;
+}
+.heading {
+  margin: 0 0 0.35rem;
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.intro {
+  margin: 0.3rem 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+  font-size: 0.87rem;
+}
+.field {
+  min-width: 11rem;
+}
+.fieldHelp {
+  margin: 0.45rem 0 0;
+  max-width: 35rem;
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+.status {
+  display: grid;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+  overflow-wrap: anywhere;
+  font-size: 0.82rem;
+}
+.status b {
+  color: var(--text);
+}
+.fieldControl {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 10rem;
+}
+.draft {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.pending {
+  color: var(--accent);
+}
+.confirmation {
+  margin-top: 0.65rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+  background: var(--surface-soft);
+  max-width: 34rem;
+}
+.confirmation p {
+  margin: 0.2rem 0 0.75rem;
+}
+.advanced {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  padding: 0.7rem;
+}
+.advanced summary {
+  cursor: pointer;
+  font-weight: 650;
+  padding: 0.3rem;
+}
+.advanced summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+@media (max-width: 600px) {
+  .policy { padding: 0.6rem; }
+  .field { min-width: 8rem; }
+  .fieldControl { min-width: 9rem; }
+}
