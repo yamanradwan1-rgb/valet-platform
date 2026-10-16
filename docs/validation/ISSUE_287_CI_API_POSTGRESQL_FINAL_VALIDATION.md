@@ -284,3 +284,71 @@ until a separately authorized full required workflow runs on the final SHA.
 
 Issue #287 qualification does not close separate decisions/issues #286,
 #288, #289, #290, #291 or any Issue #215 physical Android/production gate.
+
+## 6. Owner-authorized Native/PR extension — 17 October 2026
+
+This later record **supersedes the earlier authorization and outstanding
+Native/PR statements** above; the original first-run failures remain in the
+history rather than being silently erased. The Owner explicitly authorized
+Native baseline remediation, an isolated PR to `main`, and actual remote CI.
+No production deployment, PR merge, `main` change or Issue closure was
+authorized. The PR is **#298 (draft)**.
+
+- Native: the full task-owned Prime run finished **231/231 suites,
+  1640/1640 tests PASS**. Test-only updates preserve the accepted high-density
+  dark logo, the foreground-only `expo-location` dependency, telemetry
+  opt-in, EN/AR Light/Dark appearance geometry, and the exact #255 Vehicles
+  baseline hashes. GitHub's UTC versus the approved Asia/Amman baseline
+  surfaced one #255 failure; it was reproduced with exact digest under UTC
+  and corrected with a test-scoped Intl formatter, without changing runtime
+  timestamps or baseline files.
+- Chromium: on the later exact Prime candidate `e0d58c8895ebca85767c96af71a16658427ce239`,
+  an independent task-owned PG17 data-tmpfs (1024 MiB) ran all **93
+  migrations**, runtime role provisioning, Contracts build, Employee fixture
+  attestation (1/1/1/1/8), API + Valet HTTP 200, then **all 13/13 Chromium
+  tests PASS**, one Playwright worker with normal retry policy. The original
+  PR CI run's single Incident E2E timeout (12/13 PASS) was corrected by
+  waiting for the actual Parking screen before disconnecting the browser.
+  Cleanup proved exact owned PG container absent and both app ports free;
+  the separate photo-QA containers were untouched.
+- The first remote PR workflow, GitHub Actions CI run
+  `38968724526`, showed PASS for static-build, API compound, database,
+  Ubuntu platform and Windows platform, with FAIL for unit (#255 UTC),
+  API Standard (3), API Race (3), protected Issue215 (2 recovery suites),
+  and Employee E2E (1); required aggregate `quality` therefore FAILED.
+  This run **is not accepted**. The branch changes and revised CI must be
+  checked on a new SHA.
+- The protected Issue215 recovery DB teardown previously hardcoded the
+  local `issue215_owner`, while the separately attested GitHub PG17 service
+  uses `valet`. The correction requires equality of the independently
+  verified bootstrap URL login, the live `session_user`, and the exact
+  disposable database owner before any DROP. Negative mismatches remain
+  denied. Focused ownership/target tests **15/15 PASS**, plus TypeScript
+  and lint PASS. The actual versioned private-MinIO remote rerun is pending.
+- API Standard: remote 1096/1099 PASS; the original three failures were
+  two premature zero-leak pool-idle comparisons and one historical HTTP 500
+  assertion where a disconnected database now returns safe 503. Following
+  bounded (<1s) lease-settle assertions and the scoped response correction,
+  independently owned **PG17 512MiB** focused replays passed **2/2 files,
+  8/8 tests**, zero residual databases/roles/children.
+- API Race: remote 1363/1401 passing with 35 intentional skips and three
+  failed assertions: an out-of-transaction GUC expected 5s rather than the
+  true transaction-scoped PG17 budget, a historical exception-message
+  string, and a foreign-organization 400 expectation where safe enumeration
+  masking now returns 404. Focused replay confirmed those three corrected
+  tests PASS and the other adjacent tests PASS, but repeatedly exposed
+  timing-sensitive *other* timeout cases under Windows; one focused pass
+  produced 22/23 rather than all-green. The test now also asserts two
+  successful sub-3s statements and only recognized PG17 timeout/lease
+  disposal errors, bounded runtime, no persisted effect and no active
+  transactions. Do **not** claim a full Race PASS without the new CI run.
+- The old Windows W2 API project runner exhausted its *own* 128MiB
+  ephemeral PG17 tmpfs, making its Race coverage invalid. It was cleaned
+  by exact owner label and process-tree attestation. Later 512MiB targeted
+  replays used the original worker9 start/stop identity validator, confirmed
+  task-only Docker disposal, and left foreign databases untouched.
+
+Final acceptance remains: all required remote PR checks including the five
+PostgreSQL lanes, complete Employee E2E, pure unit, static/build/platform
+and `quality` PASS **on the same final SHA**, plus independent security/QA
+review and a clean diff. Do not merge or close #287 on this document alone.
