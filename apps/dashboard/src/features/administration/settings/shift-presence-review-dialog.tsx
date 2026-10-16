@@ -117,6 +117,7 @@ export function ShiftPresenceReviewDialog(props: {
             locationName={props.locationName}
           />
           <p className={styles.muted}>{t("approvalHelp")}</p>
+          <p className={styles.muted}>{t("authorityHelp")}</p>
           {expired && data.status === "PENDING" ? (
             <p role="status">{t("expiredHint")}</p>
           ) : null}
@@ -139,23 +140,30 @@ export function ShiftPresenceReviewDialog(props: {
             </div>
           ) : null}
           {data.canReview && data.status === "PENDING" ? (
-            <div className={styles.formFooter}>
-              <button
-                className={styles.secondary}
-                disabled={!allowed}
-                onClick={() => void review("reject")}
-              >
-                {t("reject")}
-              </button>
-              <button
-                className={styles.primary}
-                disabled={!allowed}
-                onClick={() => void review("approve")}
-              >
-                {t("approve")}
-              </button>
-            </div>
-          ) : null}
+            <>
+              <p className={styles.muted}>{t("exceptionActionHelp")}</p>
+              <div className={styles.formFooter}>
+                <button
+                  type="button"
+                  className={styles.secondary}
+                  disabled={!allowed}
+                  onClick={() => void review("reject")}
+                >
+                  {t("reject")}
+                </button>
+                <button
+                  type="button"
+                  className={styles.primary}
+                  disabled={!allowed}
+                  onClick={() => void review("approve")}
+                >
+                  {t("approve")}
+                </button>
+              </div>
+            </>
+          ) : (
+            <p className={styles.muted}>{t("exceptionReadOnly")}</p>
+          )}
         </>
       ) : null}
       <div className={styles.actions}>

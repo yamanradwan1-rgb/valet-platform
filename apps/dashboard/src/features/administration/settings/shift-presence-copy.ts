@@ -10,6 +10,30 @@ const messages = {
     "تحتفظ تسميات الخريطة باللغة المستخدمة عند تحميلها أول مرة. أعد تحميل الصفحة لتغيير التسميات؛ تحقّق من أي حفظ غير مؤكّد أولًا.",
   ],
   title: ["Shift Presence", "التحقق من الحضور للمناوبة"],
+  setupIntro: [
+    "Set up the exact Location: choose scope, save each attendance zone, configure Start and End policies independently, then review server-saved state. Moving between steps does not save.",
+    "اضبط الموقع المحدد: اختر النطاق، واحفظ كل منطقة حضور، ثم اضبط سياسة البداية والنهاية بشكل مستقل، وراجع القيم المحفوظة في الخادم. الانتقال بين الخطوات لا يحفظ.",
+  ],
+  scopeStep: ["1. Scope", "١. النطاق"],
+  zonesStep: ["2. Zones", "٢. المناطق"],
+  policyStep: ["3. Policy", "٣. السياسة"],
+  reviewStep: ["4. Review", "٤. المراجعة"],
+  scopeSavedOnly: [
+    "Confirm the Company or exact Location before editing. Company defaults are policy-only.",
+    "تحقق من الشركة أو الموقع المحدد قبل التعديل. القيم الافتراضية للشركة تخص السياسة فقط.",
+  ],
+  zonesSavedOnly: [
+    "Save each zone separately before enabling a strict mode. Map selection is a draft, not a saved zone.",
+    "احفظ كل منطقة بشكل منفصل قبل تفعيل الوضع الإلزامي. اختيار نقطة على الخريطة مسودة وليس منطقة محفوظة.",
+  ],
+  policyIndependent: [
+    "Save Start, End, accuracy and fix age independently. Each protected save uses its own revision and result.",
+    "احفظ البداية والنهاية والدقة وعمر القراءة بشكل مستقل. لكل حفظ محمي مراجعته ونتيجته الخاصة.",
+  ],
+  reviewSavedOnly: [
+    "Review the server's saved values and readiness. Unknown saves require exact-result reconciliation; do not resubmit them.",
+    "راجع القيم المحفوظة والجاهزية من الخادم. يتطلب الحفظ مجهول النتيجة التحقق من نتيجته المحددة؛ لا تعِد إرساله.",
+  ],
   action: ["Action", "الإجراء"],
   defaults: [
     "Defaults for Locations without an override",
@@ -144,6 +168,26 @@ const messages = {
     "يتطلب تحديد الموقع متصفحًا مدعومًا واتصالًا آمنًا. استخدم الإحداثيات اليدوية.",
   ],
   exceptions: ["Presence Exceptions", "استثناءات الحضور"],
+  exceptionsIntro: [
+    "Requests belong to this exact Location. Review only when the server permits it; approvals never start or end a Shift.",
+    "تخص الطلبات هذا الموقع المحدد. لا تراجع الطلب إلا عندما يسمح الخادم؛ الموافقة لا تبدأ المناوبة ولا تنهيها.",
+  ],
+  pendingView: [
+    "Pending requests awaiting an authorized decision",
+    "طلبات قيد الانتظار لمراجعة مخوّلة",
+  ],
+  historyView: [
+    "Read-only past decisions and expiry or consumption states",
+    "سجل للقراءة فقط للقرارات السابقة وحالات الانتهاء أو الاستخدام",
+  ],
+  noPending: [
+    "No pending presence exceptions for this Location.",
+    "لا توجد استثناءات حضور قيد الانتظار في هذا الموقع.",
+  ],
+  noHistory: [
+    "No recorded exception history for this Location.",
+    "لا يوجد سجل استثناءات حضور لهذا الموقع.",
+  ],
   PENDING: ["Pending", "قيد الانتظار"],
   APPROVED: ["Approved", "مقبول"],
   REJECTED: ["Rejected", "مرفوض"],
@@ -171,6 +215,18 @@ const messages = {
   approvalHelp: [
     "Approval does not start or end the Shift. The employee must explicitly continue this exact action separately.",
     "الموافقة لا تبدأ المناوبة ولا تنهيها. يجب على الموظف متابعة هذا الإجراء المحدد بنفسه بشكل منفصل.",
+  ],
+  authorityHelp: [
+    "Only a current Company Admin or exact Location Manager can review. The server checks requester, reviewer, MFA and revision. Approved exceptions remain subject to the original approver's current authority when used.",
+    "لا يراجع الطلب إلا مدير شركة مخوّل حاليًا أو مدير هذا الموقع تحديدًا. يتحقق الخادم من الطالب والمراجع والتحقق متعدد العوامل ورقم المراجعة. ويتطلب استخدام الموافقة استمرار صلاحية المراجع الأصلي.",
+  ],
+  exceptionReadOnly: [
+    "This request is read-only in its current state. No Shift action is available here.",
+    "هذا الطلب للقراءة فقط في حالته الحالية. لا يمكن تنفيذ إجراء مناوبة من هنا.",
+  ],
+  exceptionActionHelp: [
+    "Check the exact requester, Shift action, reason, Location and expiry before choosing a decision.",
+    "تحقق من الطالب وإجراء المناوبة والسبب والموقع ووقت الانتهاء قبل اتخاذ القرار.",
   ],
   approve: ["Approve", "موافقة"],
   reject: ["Reject", "رفض"],

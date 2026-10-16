@@ -32,6 +32,7 @@ export function ShiftPresenceExceptions(props: {
         <h3 className={styles.sectionTitle}>{t("exceptions")}</h3>
         <ScopedContextHelp helpKey="presence.exceptions" />
       </div>
+      <p className={styles.muted}>{t("exceptionsIntro")}</p>
       <div className={styles.actions} role="group" aria-label={t("exceptions")}>
         {(["PENDING", "HISTORY"] as const).map((value) => (
           <button
@@ -44,6 +45,9 @@ export function ShiftPresenceExceptions(props: {
           </button>
         ))}
       </div>
+      <p className={styles.muted} role="status" aria-live="polite">
+        {t(view === "PENDING" ? "pendingView" : "historyView")}
+      </p>
       <ExceptionPage {...props} key={view} view={view} />
     </div>
   );
@@ -81,12 +85,14 @@ function ExceptionPage(
       {read.data ? (
         <>
           {read.data.items.length === 0 ? (
-            <p className={styles.muted}>{t("noExceptions")}</p>
+            <p className={styles.muted}>
+              {t(props.view === "PENDING" ? "noPending" : "noHistory")}
+            </p>
           ) : (
             <div
               className={styles.tableWrap}
               role="region"
-              aria-label={t("exceptions")}
+              aria-label={`${t("exceptions")} — ${t(props.view === "PENDING" ? "PENDING" : "history")}`}
               tabIndex={0}
             >
               <table className={`${styles.table} ${styles.referenceTable}`}>
@@ -104,7 +110,9 @@ function ExceptionPage(
                         "actions",
                       ] as const
                     ).map((key) => (
-                      <th key={key}>{t(key)}</th>
+                      <th key={key} scope="col">
+                        {t(key)}
+                      </th>
                     ))}
                   </tr>
                 </thead>
@@ -112,7 +120,10 @@ function ExceptionPage(
                   {read.data.items.map((e) => (
                     <tr key={e.exceptionId}>
                       <td>
-                        <div className={styles.strong}>
+                        <div
+                          className={styles.strong}
+                          id={`presence-requester-${e.exceptionId}`}
+                        >
                           {staffManagementDisplayName(e.requester)}
                         </div>
                         <bdi dir="ltr">{e.requester.email}</bdi>
@@ -141,7 +152,9 @@ function ExceptionPage(
                       <td>{t(e.status)}</td>
                       <td>
                         <button
+                          type="button"
                           className={styles.secondary}
+                          aria-describedby={`presence-requester-${e.exceptionId}`}
                           disabled={
                             read.loading ||
                             (props.blocked &&
