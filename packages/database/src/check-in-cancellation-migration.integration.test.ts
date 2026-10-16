@@ -139,9 +139,18 @@ describe("Issue #255 fresh and forward migration from actual 054", () => {
       await apply(db, name);
     }
     expect((await snapshot()).rows).toEqual(before);
-    expect((await db.query(
-      "SELECT customer_access_generation FROM valet_sessions WHERE id=$1", [ids.session],
-    )).rows[0].customer_access_generation).toBe(1);
+    const access = await db.query<{
+      customer_access_consumed_at: Date | null;
+      customer_access_generation: number;
+    }>(
+      `SELECT customer_access_generation, customer_access_consumed_at
+       FROM valet_sessions WHERE id=$1`,
+      [ids.session],
+    );
+    expect(access.rows[0]).toEqual({
+      customer_access_consumed_at: null,
+      customer_access_generation: 1,
+    });
     expect(await auditRequiredFieldCodes(db)).toEqual(baselineAuditValidation);
     expect(
       (
