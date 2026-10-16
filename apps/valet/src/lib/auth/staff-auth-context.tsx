@@ -113,12 +113,15 @@ export function StaffAuthProvider({
     let active = true;
     const applyOutcome = (result: StaffSessionRestoreResult): void => {
       if (!active) return;
+      const current = client.getSession();
+      if (result.kind === "AUTHENTICATED" &&
+          current?.accessToken !== result.response.accessToken) return;
       applyAuthSnapshot(
-        client.getSession(),
+        current,
         client.getSessionGeneration(),
-        result.kind === "AUTHENTICATED"
+        current
           ? "authenticated"
-          : result.kind === "DEFINITIVE_INVALID"
+          : result.kind === "DEFINITIVE_INVALID" || client.isSilentRestoreBlocked()
             ? "unauthenticated"
             : "refresh-unavailable",
       );
@@ -149,12 +152,15 @@ export function StaffAuthProvider({
 
   const restoreSession = useCallback(async (): Promise<StaffSessionRestoreResult> => {
     const result = await restoreStaffSession(client);
+    const current = client.getSession();
+    if (result.kind === "AUTHENTICATED" &&
+        current?.accessToken !== result.response.accessToken) return result;
     applyAuthSnapshot(
-      client.getSession(),
+      current,
       client.getSessionGeneration(),
-      result.kind === "AUTHENTICATED"
+      current
         ? "authenticated"
-        : result.kind === "DEFINITIVE_INVALID"
+        : result.kind === "DEFINITIVE_INVALID" || client.isSilentRestoreBlocked()
           ? "unauthenticated"
           : "refresh-unavailable",
     );
