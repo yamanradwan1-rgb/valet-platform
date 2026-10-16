@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { Client, Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { expectedMigrationDirectories } from "./migration-manifest.js";
 
 const adminUrl =
   process.env.TEST_DATABASE_URL ??
@@ -96,15 +97,15 @@ afterAll(async () => {
 }, 60_000);
 
 describe("VAL-009B location configuration runtime privileges", () => {
-  it("keeps the schema at exactly 46 applied migrations", async () => {
+  it("keeps the schema aligned with the pinned migration manifest", async () => {
     const result = await adminPool.query<{ migration_name: string }>(
       `SELECT migration_name FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL
        ORDER BY migration_name`,
     );
-    expect(result.rows).toHaveLength(46);
+    expect(result.rows.map((row) => row.migration_name)).toEqual([...expectedMigrationDirectories]);
     expect(result.rows.at(-1)?.migration_name).toBe(
-      "20260929004600_mgt_232_physical_resource_creation",
+      "20261015009300_outbound_post_result_phone_fence",
     );
   });
 

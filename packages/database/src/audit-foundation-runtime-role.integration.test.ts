@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { Client, Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { expectedMigrationDirectories } from "./migration-manifest.js";
 interface PostgresError extends Error { code?: string; constraint?: string }
 const adminUrl =
   process.env.TEST_DATABASE_URL ??
@@ -96,12 +97,11 @@ afterAll(async () => {
 describe("MGT-BE-01 audit foundation runtime role", () => {
   it("applies all migrations and keeps both audit tables non-owned and PUBLIC-denied", async () => {
     const migrations = await adminPool.query<{ latest: string; n: number }>(
-      `SELECT count(*)::int AS n, max(migration_name) AS latest FROM _prisma_migrations
-       WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
+      `SELECT count(*)::int AS n, max(migration_name) AS latest FROM _prisma_migrations WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
     );
     expect(migrations.rows[0]).toEqual({
-      latest: "20260929004600_mgt_232_physical_resource_creation",
-      n: 46,
+      latest: expectedMigrationDirectories.at(-1),
+      n: expectedMigrationDirectories.length,
     });
     const tables = await adminPool.query<{ owner_safe: boolean; public_denied: boolean; table_name: string }>(
       `SELECT relation.relname AS table_name,

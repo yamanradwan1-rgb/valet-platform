@@ -156,7 +156,7 @@ afterAll(async () => {
 describe("MGT-BE-11 migration 44 company analytics/report indexes", () => {
   it("is exactly migration 44 and preserves upgraded source rows", async () => {
     expect(migrationIndex).toBe(43);
-    expect(expectedMigrationDirectories).toHaveLength(46);
+    expect(expectedMigrationDirectories.at(-1)).toBe("20261015009300_outbound_post_result_phone_fence");
     expect(expectedMigrationDirectories.at(43)).toBe(migration);
     expect((await upgrade.query(
       `SELECT id::text AS id,event_type::text AS event_type FROM dispatch_events WHERE id=$1`,

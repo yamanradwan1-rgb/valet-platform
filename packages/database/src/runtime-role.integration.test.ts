@@ -6,6 +6,7 @@ import { Client, Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { verifyMigrationConnectionTls } from "../scripts/database-connection-policy.mjs";
+import { expectedMigrationDirectories } from "./migration-manifest.js";
 
 interface CommandResult {
   code: number | null;
@@ -276,13 +277,12 @@ afterAll(async () => {
 }, 60_000);
 
 describe("runtime PostgreSQL role boundary", () => {
-  it("applies all 46 migrations through migration credentials only", async () => {
+  it("applies the pinned migration history through migration credentials only", async () => {
     const result = await adminPool.query<{ migration_name: string }>(
-      `SELECT migration_name
-       FROM _prisma_migrations
-       WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
+      `SELECT migration_name FROM _prisma_migrations
+       WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL ORDER BY migration_name`,
     );
-    expect(result.rows).toHaveLength(46);
+    expect(result.rows.map((row) => row.migration_name)).toEqual([...expectedMigrationDirectories]);
   });
   it("rejects a real plaintext migration preflight without applying a migration", async () => {
     const before = await adminPool.query<{ count: string }>(

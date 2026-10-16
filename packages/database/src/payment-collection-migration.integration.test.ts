@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { PaymentCollectionDatabaseContext } from "./payment-collection-database-context.js";
+import { expectedMigrationDirectories } from "./migration-manifest.js";
 
 const context = new PaymentCollectionDatabaseContext();
 
@@ -9,7 +10,7 @@ afterAll(() => context.teardown(), 60_000);
 
 describe("migration 28 payment collection operation", () => {
   it("is the sole 28th migration with the exact lifecycle enum", async () => {
-    expect(context.migrationDirectories).toHaveLength(46);
+    expect(context.migrationDirectories).toEqual([...expectedMigrationDirectories]);
     expect(context.migrationDirectories.at(27)).toBe(
       "20260816002800_phase6_payment_collection_operation",
     );

@@ -30,6 +30,16 @@ async function apply(client: Client, name: string) {
     ),
   );
 }
+async function prepareNonemptyDec103Rollout(client: Client) {
+  const script = await readFile(
+    new URL("../scripts/dec103-online-index-rollout.sql", import.meta.url),
+    "utf8",
+  );
+  const statements = [...script.matchAll(/^CREATE INDEX CONCURRENTLY IF NOT EXISTS[\s\S]*?;/gm)];
+  expect(statements).toHaveLength(2);
+  // An operator runs these separately outside a transaction on an existing DB.
+  for (const [statement] of statements) await client.query(statement);
+}
 async function bootstrap(sql: string) {
   const client = new Client({ connectionString: adminUrl });
   await client.connect();
@@ -121,7 +131,7 @@ describe("Issue #255 fresh and forward migration from actual 054", () => {
     );
     const snapshot = () =>
       db.query(
-        "SELECT to_jsonb(s) AS session,(SELECT to_jsonb(a) FROM audit_events a WHERE id=$2) AS audit FROM valet_sessions s WHERE id=$1",
+        "SELECT to_jsonb(s) - 'customer_access_generation' - 'customer_access_consumed_at' AS session,(SELECT to_jsonb(a) FROM audit_events a WHERE id=$2) AS audit FROM valet_sessions s WHERE id=$1",
         [ids.session, ids.audit],
       );
     const before = (await snapshot()).rows;
@@ -132,9 +142,15 @@ describe("Issue #255 fresh and forward migration from actual 054", () => {
         "SELECT proacl FROM pg_proc WHERE oid='public.management_location_has_blockers(uuid,uuid)'::regprocedure",
       )
     ).rows;
-    for (const name of expectedMigrationDirectories.slice(54))
+    for (const name of expectedMigrationDirectories.slice(54)) {
+      if (name === "20261010007900_live_history_parked_audit_indexes")
+        await prepareNonemptyDec103Rollout(db);
       await apply(db, name);
+    }
     expect((await snapshot()).rows).toEqual(before);
+    expect((await db.query(
+      "SELECT customer_access_generation FROM valet_sessions WHERE id=$1", [ids.session],
+    )).rows[0].customer_access_generation).toBe(1);
     expect(await auditRequiredFieldCodes(db)).toEqual(baselineAuditValidation);
     expect(
       (

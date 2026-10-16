@@ -15,6 +15,7 @@
     "test": "node ../../scripts/test-harness/run-package-tests.mjs api",
     "test:non-postgres": "vitest run --config vitest.config.mjs --project api-non-postgres",
     "test:postgres": "node ../../scripts/test-harness/run-postgres-projects.mjs vitest.config.mjs api-postgres-standard api-postgres-compound api-postgres-race",
+    "test:postgres:issue215": "node ../../scripts/test-harness/run-postgres-projects.mjs vitest.config.mjs api-postgres-issue215",
     "test:check-in-api": "node ../../scripts/test-harness/run-owned-tests.mjs api vitest.config.mjs test/check-in-api.integration.test.ts",
     "test:shifts": "node ../../scripts/test-harness/run-owned-tests.mjs api vitest.config.mjs test/shift-start.integration.test.ts test/shift-end.integration.test.ts test/shift-eligibility.integration.test.ts test/shift-api.integration.test.ts",
     "test:keys": "node ../../scripts/test-harness/run-owned-tests.mjs api vitest.config.mjs test/key-assignment.integration.test.ts test/key-correction.integration.test.ts test/key-eligibility-concurrency.integration.test.ts test/key-custody-api.integration.test.ts",

@@ -112,7 +112,7 @@ afterAll(async () => {
 describe("MGT-BE-07 migration 40 Location lifecycle", () => {
   it("is the 40th ordered migration and applies cleanly in fresh history", async () => {
     expect(migrationIndex).toBe(39);
-    expect(expectedMigrationDirectories).toHaveLength(56);
+    expect(expectedMigrationDirectories.at(-1)).toBe("20261015009300_outbound_post_result_phone_fence");
     expect(expectedMigrationDirectories.at(39)).toBe(migration);
     const column = await fresh.query<{
       column_default: string;

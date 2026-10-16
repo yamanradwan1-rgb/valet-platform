@@ -172,7 +172,7 @@ afterAll(async () => {
 describe("MGT-FIX-02 migration 45 pagination snapshot membership", () => {
   it("is one forward migration and leaves legacy rows pre-snapshot", async () => {
     expect(migrationIndex).toBe(44);
-    expect(expectedMigrationDirectories).toHaveLength(46);
+    expect(expectedMigrationDirectories.at(-1)).toBe("20261015009300_outbound_post_result_phone_fence");
     expect(expectedMigrationDirectories.at(44)).toBe(migration);
     const rows = await upgrade.query<{ birth: string | null; source: string }>(
       `SELECT pagination_birth_xid::text AS birth,'audit' AS source

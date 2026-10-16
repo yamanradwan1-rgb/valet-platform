@@ -1335,7 +1335,9 @@ describe("tenant and staff database foundation", () => {
   it("allows only one ACTIVE shift per membership", async () => {
     const tenant = await createTenant();
     const staff = await createStaff(tenant.organizationId);
-    const firstShiftId = await insertShift(tenant, staff.membershipId);
+    const firstShiftId = await insertShift(tenant, staff.membershipId, {
+      startedAt: new Date(Date.now() - 60_000),
+    });
 
     await expectPostgresError(
       insertShift(tenant, staff.membershipId),
@@ -2491,7 +2493,6 @@ describe("audit event database foundation", () => {
   });
 
   it("enforces every required AuditEvent field", async () => {
-    const tenant = await createTenant();
     const requiredColumns = [
       "id",
       "organization_id",
@@ -2501,30 +2502,18 @@ describe("audit event database foundation", () => {
       "metadata_json",
       "occurred_at",
     ];
-
-    for (const [missingIndex, missingColumn] of requiredColumns.entries()) {
-      const values: unknown[] = [
-        randomUUID(),
-        tenant.organizationId,
-        "vehicle.recorded",
-        "Vehicle",
-        randomUUID(),
-        { source: "integrity-test" },
-        new Date(),
-      ];
-      values[missingIndex] = null;
-
-      await expectNotNullViolation(
-        databaseClient.query(
-          `INSERT INTO audit_events (
-             id, organization_id, actor_type, event_type,
-             entity_type, entity_id, metadata_json, occurred_at
-           ) VALUES ($1, $2, 'SYSTEM', $3, $4, $5, $6, $7)`,
-          values,
-        ),
-        missingColumn,
-      );
-    }
+    // Trusted audit authorization runs before the NOT NULL check for some fields.
+    // Inspect the authoritative catalog without weakening the write guard.
+    const result = await databaseClient.query<{ column_name: string }>(
+      `SELECT attname AS column_name FROM pg_attribute
+       WHERE attrelid = 'public.audit_events'::regclass
+         AND attname = ANY($1::text[]) AND attnotnull
+         AND attnum > 0 AND NOT attisdropped`,
+      [requiredColumns],
+    );
+    expect(result.rows.map((row) => row.column_name).sort()).toEqual(
+      [...requiredColumns].sort(),
+    );
   });
 
   it("stores metadata_json as structured JSONB", async () => {
@@ -3246,7 +3235,7 @@ describe("retrieval request database foundation", () => {
 });
 
 describe("handoff verification database foundation", () => {
-  it("applies exactly all nine forward-only migrations in order", () => {
+  it("applies the exact ordered forward-only migration manifest", () => {
     expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
   });
 
@@ -7139,10 +7128,10 @@ describe("check-in intake persistence", () => {
 });
 
 describe("intake session creation persistence", () => {
-  it("applies exactly all fifty-six forward-only migrations in order", () => {
+  it("applies all 93 forward-only migrations in order", () => {
     expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
     expect(appliedMigrationDirectories.at(-1)).toBe(
-      "20261003005600_check_in_cancelled_terminal",
+      "20261015009300_outbound_post_result_phone_fence",
     );
   });
 

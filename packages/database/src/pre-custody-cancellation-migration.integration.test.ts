@@ -199,6 +199,9 @@ describe("DEC-098 forward 057 migration from 056 and fresh database", () => {
           ]),
         ).rejects.toMatchObject({ code: "23514" });
     }
-    expect(await shape(clients[0]!)).toEqual(await shape(clients[1]!));
+    // Later migrations may add checks, but must retain every existing restriction.
+    expect(await shape(clients[1]!)).toEqual(
+      expect.arrayContaining(await shape(clients[0]!)),
+    );
   });
 });
