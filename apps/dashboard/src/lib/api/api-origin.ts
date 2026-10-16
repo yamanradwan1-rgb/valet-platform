@@ -30,6 +30,18 @@ export function resolveDashboardApiOrigin(
   if (origin.protocol !== "http:" && origin.protocol !== "https:") {
     throw configurationError("API_ORIGIN must use HTTP or HTTPS.");
   }
+  if (!/^https?:\/\/[^/?#\\]+\/?$/i.test(value)) {
+    throw configurationError("API_ORIGIN must be an origin without a path, query, or fragment.");
+  }
+  if (
+    environment.nodeEnv === "production" &&
+    origin.protocol === "http:" &&
+    !/^http:\/\/(?:127\.0\.0\.1|\[::1\])(?::[0-9]+)?\/?$/i.test(value)
+  ) {
+    throw configurationError(
+      "production API_ORIGIN must use HTTPS unless it is an explicit same-host loopback address.",
+    );
+  }
   if (origin.username !== "" || origin.password !== "") {
     throw configurationError("API_ORIGIN must not contain credentials.");
   }
