@@ -67,6 +67,7 @@ function PresenceScope({ company }: { readonly company: boolean }) {
         const old = current[field];
         if (old === next || (old && next &&
           old.draft === next.draft && old.touched === next.touched &&
+          old.source === next.source &&
           old.baselineKey === next.baselineKey &&
           old.baselineValue === next.baselineValue &&
           old.baselineOverride === next.baselineOverride)) return current;
@@ -188,6 +189,7 @@ function PresenceScope({ company }: { readonly company: boolean }) {
           locationName={locationName}
           companyName={companyName}
           loading={read.loading || read.error !== null}
+          isCurrent={() => live.current && !denied && !isPresenceDenied(read.error)}
           drafts={policyDrafts}
           onDraftChange={changePolicyDraft}
           onOpenZone={(target) => {

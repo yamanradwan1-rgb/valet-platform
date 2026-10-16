@@ -14,6 +14,7 @@ import { ShiftPresenceZones } from "./shift-presence-zones";
 import { ShiftPresenceExceptions } from "./shift-presence-exceptions";
 import { ShiftPresenceMapFirstLayout } from "./shift-presence-map-first-layout";
 import { ShiftPresenceSetupSteps } from "./shift-presence-setup-steps";
+import { guidedPresenceCopy } from "./shift-presence-guided-copy";
 import { ShiftPresenceSetupReview, type PresencePolicyDrafts, type PresencePolicyDraftState } from "./shift-presence-setup-review";
 import type { Field } from "./shift-presence-policy-fields";
 
@@ -29,6 +30,7 @@ interface Props {
   readonly locationName: string;
   readonly companyName: string;
   readonly loading: boolean;
+  readonly isCurrent: () => boolean;
   readonly drafts: PresencePolicyDrafts;
   readonly onDraftChange: (field: Field["field"], draft: PresencePolicyDraftState | null) => void;
   readonly heading: ReactNode;
@@ -41,6 +43,7 @@ export function ShiftPresenceLocationOrchestration(props: Props) {
   const [activeView, setActiveView] = useState<PresenceView>("overview");
   const [step, setStep] = useState(0);
   const t = presenceCopy(props.locale);
+  const guided = guidedPresenceCopy(props.locale);
   const policy = (
     <ShiftPresencePolicy
       api={props.api}
@@ -50,6 +53,19 @@ export function ShiftPresenceLocationOrchestration(props: Props) {
       loading={props.loading}
       drafts={props.drafts}
       onDraftChange={props.onDraftChange}
+      mode="DIRECT_MANAGEMENT"
+    />
+  );
+  const guidedPolicy = (
+    <ShiftPresencePolicy
+      api={props.api}
+      data={props.data}
+      locale={props.locale}
+      mutation={props.mutation}
+      loading={props.loading}
+      drafts={props.drafts}
+      onDraftChange={props.onDraftChange}
+      mode="GUIDED_SETUP"
     />
   );
   const zones = (
@@ -117,12 +133,10 @@ export function ShiftPresenceLocationOrchestration(props: Props) {
       ) : step === 2 ? (
         <div data-testid="presence-setup-policy">
           <p className={styles.sectionText}>
-            {props.locale === "ar"
-              ? "كل حقل سياسة يُحفظ بشكل مستقل. القيم غير المخصصة ترث إعداد الشركة؛ لا يوجد حفظ شامل."
-              : "Save policy fields independently. Unset overrides inherit Company defaults; there is no Save All."}
+            {guided("policyHelp")} {guided("stagedOnly")}
           </p>
           {readiness}
-          {policy}
+          {guidedPolicy}
         </div>
       ) : (
         <div>
@@ -130,8 +144,15 @@ export function ShiftPresenceLocationOrchestration(props: Props) {
           <ShiftPresenceSetupReview
             locale={props.locale}
             data={props.data}
+            companyName={props.companyName}
+            locationName={props.locationName}
+            api={props.api}
             drafts={props.drafts}
             mutation={props.mutation}
+            loading={props.loading}
+            isCurrent={props.isCurrent}
+            onDraftChange={props.onDraftChange}
+            onPolicy={() => setStep(2)}
             onOverview={() => setActiveView("overview")}
           />
         </div>
