@@ -91,14 +91,24 @@ jobs:
   postgres:
     name: postgres-${{ matrix.lane }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: ${{ matrix.timeoutMinutes }}
     strategy:
       fail-fast: false
       matrix:
-        lane:
-          - api
-          - database
-          - issue215
+        include:
+          - lane: api-standard
+            project: api-postgres-standard
+            timeoutMinutes: 45
+          - lane: api-compound
+            project: api-postgres-compound
+            timeoutMinutes: 20
+          - lane: api-race
+            project: api-postgres-race
+            timeoutMinutes: 30
+          - lane: database
+            timeoutMinutes: 30
+          - lane: issue215
+            timeoutMinutes: 20
     env:
       DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
       MIGRATION_DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
@@ -139,12 +149,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run bounded PostgreSQL lane
-        if: ${{ matrix.lane != 'issue215' }}
+      - name: Run bounded PostgreSQL API project
+        if: ${{ startsWith(matrix.lane, 'api-') }}
         env:
           VAYLET_ISSUE215_TEST_TARGET: ci
           VAYLET_ISSUE215_CI_POSTGRES_CONTAINER_ID: ${{ job.services.postgres.id }}
-        run: pnpm run test:postgres:${{ matrix.lane }}
+        run: pnpm --filter @valet/api exec node ../../scripts/test-harness/run-postgres-projects.mjs vitest.config.mjs ${{ matrix.project }}
+
+      - name: Run bounded PostgreSQL database lane
+        if: ${{ matrix.lane == 'database' }}
+        env:
+          VAYLET_ISSUE215_TEST_TARGET: ci
+          VAYLET_ISSUE215_CI_POSTGRES_CONTAINER_ID: ${{ job.services.postgres.id }}
+        run: pnpm run test:postgres:database
 
       - name: Start attested Issue 215 private S3 fixture
         if: ${{ matrix.lane == 'issue215' }}
