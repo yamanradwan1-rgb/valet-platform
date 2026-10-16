@@ -80,7 +80,10 @@ export async function parseConditionPhotoMultipart(
       cleanup();
       request.unpipe(parser);
       request.pause();
-      parser.destroy();
+      // Busboy emits file/parts limits while its parser is still processing a
+      // chunk. Destroying it in that callback invalidates its active file state.
+      // Stop ingress synchronously, then destroy after the callback returns.
+      queueMicrotask(() => parser.destroy());
       // Keep the socket alive long enough for Nest to serialize the
       // contract error (400/413); do not drain an unbounded hostile body.
       // The HTTP response must close the connection after its final byte.
