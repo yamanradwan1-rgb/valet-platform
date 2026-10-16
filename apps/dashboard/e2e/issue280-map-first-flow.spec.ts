@@ -83,9 +83,10 @@ test("persisted zone precedes independent strict Start policy confirmation", asy
   await view(page, "policy").click();
   const start = field(page, "shiftStartPresenceMode");
   const end = field(page, "shiftEndPresenceMode");
-  await start.getByRole("combobox").selectOption("REQUIRE");
+  await start.getByTestId("presence-inheritance-shiftStartPresenceMode").selectOption("CUSTOM");
+  await start.getByRole("combobox").last().selectOption("REQUIRE");
   expect(fixture.writes).toHaveLength(1);
-  await expect(end.getByRole("combobox")).toHaveValue("OFF");
+  await expect(end.getByRole("combobox").last()).toHaveValue("OFF");
   await start.getByRole("button", { name: "Save", exact: true }).click();
   await expect(start.getByRole("group", { name: /confirm/i })).toBeVisible();
   expect(fixture.writes).toHaveLength(1);
@@ -126,6 +127,7 @@ test("CAS conflict retains the unsaved field and requires explicit rebase", asyn
   await page.getByTestId("shift-presence-policy")
     .locator("details > summary").click();
   const row = field(page, "shiftPresenceMaxAccuracyMeters");
+  await row.getByTestId("presence-inheritance-shiftPresenceMaxAccuracyMeters").selectOption("CUSTOM");
   await row.getByRole("textbox").fill("70");
   await row.getByRole("button", { name: "Save", exact: true }).click();
   await expect(row).toContainText("Previous saved value: 50");
@@ -218,9 +220,9 @@ test("OFF/OFF remains valid without any configured attendance zone", async ({
     name: "Step 1: Scope",
   })).toHaveAttribute("aria-current", "step");
   await stepper(page).getByRole("button", { name: "Step 3: Policy" }).click();
-  await expect(field(page, "shiftStartPresenceMode").getByRole("combobox"))
+  await expect(field(page, "shiftStartPresenceMode").getByRole("combobox").last())
     .toHaveValue("OFF");
-  await expect(field(page, "shiftEndPresenceMode").getByRole("combobox"))
+  await expect(field(page, "shiftEndPresenceMode").getByRole("combobox").last())
     .toHaveValue("OFF");
   expect(fixture.writes).toEqual([]);
   await stepper(page).getByRole("button", { name: "Step 4: Review" }).click();
@@ -237,8 +239,9 @@ test("mixed per-field inheritance is preserved after one explicit override", asy
   const end = field(page, "shiftEndPresenceMode");
   await expect(start).toContainText("Inherited");
   await expect(end).toContainText("Inherited");
-  await start.getByRole("combobox").selectOption("WARN_ONLY");
-  await expect(end.getByRole("combobox")).toHaveValue("OFF");
+  await start.getByTestId("presence-inheritance-shiftStartPresenceMode").selectOption("CUSTOM");
+  await start.getByRole("combobox").last().selectOption("WARN_ONLY");
+  await expect(end.getByRole("combobox").last()).toHaveValue("OFF");
   expect(fixture.writes).toEqual([]);
   await start.getByRole("button", { name: "Save", exact: true }).click();
   await expect.poll(() => fixture.writes.length).toBe(1);

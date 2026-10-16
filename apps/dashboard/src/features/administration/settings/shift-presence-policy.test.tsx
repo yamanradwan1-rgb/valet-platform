@@ -226,7 +226,7 @@ describe("Shift Presence policy — owned W3 fields", () => {
     const data = locationPolicy();
     const expected = ["OFF", "WARN_ONLY", "200", "120"];
     for (const [index, field] of presenceFields.entries()) {
-      const draft = policyDraft(data, field.field, "CUSTOM", expected[index]);
+      const draft = policyDraft(data, field.field, "CUSTOM", expected[index]!);
       const result = presencePolicyIntent(data, field, draft);
       expect(result.kind).toBe("SET");
       if (result.kind === "SET")

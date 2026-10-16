@@ -17,10 +17,14 @@ const row = (page: Page, field: Field) =>
   page.locator(`[data-presence-field="${field}"]`);
 const source = (page: Page, field: Field) =>
   page.getByTestId(`presence-inheritance-${field}`);
-const apply = (page: Page) =>
-  page.getByRole("button", {
-    name: /^(Confirm & Apply|Apply Reviewed Policy Changes|تأكيد وتطبيق|تطبيق التغييرات)$/iu,
-  });
+async function apply(page: Page) {
+  const review = page.getByTestId("presence-setup-review");
+  await review.getByRole("button", { name: "Review changes" }).click();
+  const acknowledgement = review.getByRole("checkbox", { name: /I understand/u });
+  if (await acknowledgement.count()) await acknowledgement.check();
+  await review.getByRole("button", { name: "Confirm changes" }).click();
+  return review.getByRole("button", { name: "Apply confirmed changes" });
+}
 const failed = (code: string, status = 409) => ({
   status, body: { code, message: "guided-review-qa", requestId: "guided-qa" },
 });
@@ -31,6 +35,7 @@ async function step3(page: Page, fixture: PresenceFixture) {
   await page.getByTestId("presence-view-setup").click();
   await wizard(page).getByRole("button", { name: "Step 3: Policy" }).click();
   await expect(page.getByTestId("presence-setup-policy")).toBeVisible();
+  await page.getByTestId("presence-setup-policy").locator("details summary").click();
 }
 
 async function step4(page: Page, fixture: PresenceFixture) {
@@ -65,8 +70,8 @@ test("Step 3 drafts Start and End strict modes; Step 4 alone applies separate CA
   await expect(row(page, fields[1]).getByRole("combobox").last())
     .toHaveValue("REQUIRE_OR_OVERRIDE");
   await step4(page, fixture);
-  await expect(apply(page)).toBeEnabled();
-  await apply(page).click();
+  await expect(await apply(page)).toBeEnabled();
+  await page.getByRole("button", { name: "Apply confirmed changes" }).click();
   await expect.poll(() => fixture.writes.length).toBe(2);
   expect(fixture.writes.map(({ path, body }) => [path, body.field, body.value]))
     .toEqual([
@@ -102,7 +107,7 @@ test("four individually labeled inheritance controls stage Set/Clear without imp
   expect(fixture.writes).toEqual([]);
   await step4(page, fixture);
   await expect(page.getByTestId("presence-setup-review")).toContainText(/saved/i);
-  await apply(page).click();
+  await (await apply(page)).click();
   await expect.poll(() => fixture.writes.length).toBe(4);
   expect(fixture.writes.map(({ path, body }) => [path, body.field]))
     .toEqual([
@@ -128,9 +133,10 @@ test("MFA during reviewed batch halts protected writes; verification never repla
   await customize(page, fields[0], "REQUIRE");
   await customize(page, fields[1], "WARN_ONLY");
   await step4(page, fixture);
+  const readyToApply = await apply(page);
   fixture.fixture.mfaAssured = false;
   fixture.fixture.mfaState = "STEP_UP_REQUIRED";
-  await apply(page).click();
+  await readyToApply.click();
   const mfa = page.getByRole("dialog").last();
   await expect(mfa).toContainText("Verification required");
   expect(fixture.writes).toHaveLength(1);
@@ -166,7 +172,7 @@ test("UNKNOWN second field stops batch before third; exact reconciliation never 
   await customize(page, fields[1], "WARN_ONLY");
   await customize(page, fields[2], "70");
   await step4(page, fixture);
-  await apply(page).click();
+  await (await apply(page)).click();
   await expect.poll(() => fixture.writes.length).toBe(2);
   expect(fixture.writes.map(({ body }) => body.field)).toEqual([fields[0], fields[1]]);
   expect(fixture.policy.effective.startMode).toBe("WARN_ONLY");
@@ -203,7 +209,7 @@ test("second-field CAS conflict keeps remaining proposed changes and never auto-
   await customize(page, fields[1], "WARN_ONLY");
   await customize(page, fields[3], "45");
   await step4(page, fixture);
-  await apply(page).click();
+  await (await apply(page)).click();
   await expect.poll(() => fixture.writes.length).toBe(2);
   expect(fixture.writes.map(({ body }) => body.field)).toEqual([fields[0], fields[1]]);
   expect(fixture.writes[1]!.body.expectedRevision).toBe(2);
@@ -219,7 +225,8 @@ test("non-wizard policy tab retains independent direct field Save semantics", as
   await fixture.open(page);
   await page.getByTestId("presence-view-policy").click();
   const start = row(page, fields[0]);
-  await start.getByRole("combobox").selectOption("WARN_ONLY");
+  await source(page, fields[0]).selectOption("CUSTOM");
+  await start.getByRole("combobox").last().selectOption("WARN_ONLY");
   expect(fixture.writes).toEqual([]);
   await start.getByRole("button", { name: "Save", exact: true }).click();
   await expect.poll(() => fixture.writes.length).toBe(1);
@@ -253,7 +260,7 @@ for (const locale of ["en", "ar"] as const)
         await wizard(page).getByRole("button", { name: locale === "ar"
           ? /الخطوة 4: المراجعة/u : "Step 4: Review" }).click();
         await expect(page.getByTestId("presence-setup-review")).toBeVisible();
-        await expect(apply(page)).toBeVisible();
+        await expect(page.getByRole("button", { name: locale === "ar" ? "مراجعة التغييرات" : "Review changes" })).toBeVisible();
         const bounds = await page.evaluate(() => {
           const root = document.documentElement;
           const shell = document.querySelector<HTMLElement>(".shell-main");

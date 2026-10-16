@@ -80,6 +80,7 @@ test("partial policy result has one authoritative save and one held UNKNOWN writ
   await page.getByTestId("shift-presence-policy")
     .locator("details > summary").click();
   const accuracy = page.locator(field("shiftPresenceMaxAccuracyMeters"));
+  await accuracy.getByTestId("presence-inheritance-shiftPresenceMaxAccuracyMeters").selectOption("CUSTOM");
   await accuracy.getByRole("textbox").fill("60");
   await accuracy.getByRole("button", { name: "Save", exact: true }).click();
   await expect.poll(() => fixture.writes.length).toBe(1);
@@ -87,7 +88,8 @@ test("partial policy result has one authoritative save and one held UNKNOWN writ
   expect(fixture.policy.effective.maxAccuracyMeters).toBe(60);
 
   const end = page.locator(field("shiftEndPresenceMode"));
-  await end.getByRole("combobox").selectOption("WARN_ONLY");
+  await end.getByTestId("presence-inheritance-shiftEndPresenceMode").selectOption("CUSTOM");
+  await end.getByRole("combobox").last().selectOption("WARN_ONLY");
   await end.getByRole("button", { name: "Save", exact: true }).click();
   await expect.poll(() => fixture.writes.length).toBe(2);
   await expect(page.getByTestId("shift-presence")).toContainText(

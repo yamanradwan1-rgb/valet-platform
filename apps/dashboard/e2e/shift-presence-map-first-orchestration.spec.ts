@@ -38,16 +38,18 @@ test("unsaved independent policy drafts survive view changes and review never sa
   await fixture.open(page);
   await page.getByTestId("presence-view-policy").click();
   const start = page.locator('[data-presence-field="shiftStartPresenceMode"]');
-  await start.getByRole("combobox").selectOption("REQUIRE_OR_OVERRIDE");
+  await start.getByTestId("presence-inheritance-shiftStartPresenceMode").selectOption("CUSTOM");
+  await start.getByRole("combobox").last().selectOption("REQUIRE_OR_OVERRIDE");
   await page.getByTestId("presence-view-overview").click();
   await page.getByTestId("presence-view-setup").click();
   await page.getByRole("button", { name: "Step 4: Review" }).click();
   const review = page.getByTestId("presence-setup-review");
-  await expect(review).toContainText("Unsaved draft");
-  await expect(review).toContainText("REQUIRE_OR_OVERRIDE");
+  await expect(review).toContainText("Fields awaiting apply: 1");
+  await expect(review).toContainText("Not saved");
+  await expect(review).toContainText("Require or override");
   expect(fixture.writes).toHaveLength(0);
   await page.getByTestId("presence-view-policy").click();
-  await expect(start.getByRole("combobox")).toHaveValue("REQUIRE_OR_OVERRIDE");
+  await expect(start.getByRole("combobox").last()).toHaveValue("REQUIRE_OR_OVERRIDE");
   expect(fixture.policy.effective.startMode).toBe("OFF");
   await start.getByRole("button", { name: "Save", exact: true }).click();
   await start.getByRole("button", { name: "Confirm this strict change" }).click();
@@ -72,12 +74,13 @@ test("scope A→B→A retires all unsaved drafts and zone saves precede strict w
   await fixture.open(page);
   await page.getByTestId("presence-view-policy").click();
   const end = page.locator('[data-presence-field="shiftEndPresenceMode"]');
-  await end.getByRole("combobox").selectOption("WARN_ONLY");
+  await end.getByTestId("presence-inheritance-shiftEndPresenceMode").selectOption("CUSTOM");
+  await end.getByRole("combobox").last().selectOption("WARN_ONLY");
   await switchLocation(page, LOCATION_B.name);
   await switchLocation(page, LOCATION_A.name);
   await page.getByTestId("presence-view-policy").click();
   await expect(page.locator('[data-presence-field="shiftEndPresenceMode"]')
-    .getByRole("combobox")).toHaveValue("OFF");
+    .getByRole("combobox").last()).toHaveValue("OFF");
   await page.getByTestId("presence-view-zones").click();
   await page.getByRole("button", { name: "Add zone", exact: true }).click();
   const dialog = await fillZone(page);
@@ -85,7 +88,8 @@ test("scope A→B→A retires all unsaved drafts and zone saves precede strict w
   await expect(dialog).toHaveCount(0);
   await page.getByTestId("presence-view-policy").click();
   const start = page.locator('[data-presence-field="shiftStartPresenceMode"]');
-  await start.getByRole("combobox").selectOption("REQUIRE");
+  await start.getByTestId("presence-inheritance-shiftStartPresenceMode").selectOption("CUSTOM");
+  await start.getByRole("combobox").last().selectOption("REQUIRE");
   await start.getByRole("button", { name: "Save", exact: true }).click();
   await start.getByRole("button", { name: "Confirm this strict change" }).click();
   expect(fixture.writes.map((entry) => entry.path)).toEqual([

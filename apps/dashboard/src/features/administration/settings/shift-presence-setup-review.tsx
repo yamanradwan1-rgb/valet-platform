@@ -67,7 +67,7 @@ export function ShiftPresenceSetupReview(props: {
       ? action.intent.value : plan.baseline.company[action.field.key];
     return isStrictPresenceMode(proposed);
   });
-  const busy = phase === "APPLYING" || flight.current;
+  const busy = phase === "APPLYING";
 
   async function review() {
     if (flight.current || props.loading || props.mutation.blocked ||

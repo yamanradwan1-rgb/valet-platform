@@ -58,7 +58,8 @@ interface IntentCommon {
   readonly companyValue: string | number;
 }
 export type PresencePolicyIntent =
-  | (IntentCommon & { readonly kind: "NONE" | "CLEAR" | "INVALID" | "CONFLICT" })
+  | (IntentCommon & { readonly kind: "NONE" | "INVALID" | "CONFLICT" })
+  | (IntentCommon & { readonly kind: "CLEAR" })
   | (IntentCommon & { readonly kind: "SET"; readonly value: string | number });
 
 /** No mode is a surrogate for inheritance: OFF remains a real CUSTOM value. */
@@ -83,7 +84,8 @@ export function presencePolicyIntent(
   if (draft.baselineKey !== currentKey)
     return { ...common, kind: "CONFLICT" };
   if (location && proposedSource === "INHERIT") {
-    return { ...common, kind: savedSource === "CUSTOM" ? "CLEAR" : "NONE" };
+    if (savedSource === "CUSTOM") return { ...common, kind: "CLEAR" };
+    return { ...common, kind: "NONE" };
   }
   const parsed = parsePresenceField(field.field, draft.draft);
   if (parsed === null) return { ...common, kind: "INVALID" };

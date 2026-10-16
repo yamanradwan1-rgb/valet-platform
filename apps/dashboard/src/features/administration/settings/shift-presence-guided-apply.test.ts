@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { locationPolicy } from "../../../../e2e/support/presence-data";
 import type { PresenceLocation, PresenceApi } from "./shift-presence-api";
 import type { PresenceMutation } from "./use-shift-presence-mutation";
 import {
@@ -10,18 +11,7 @@ import {
 } from "./shift-presence-guided-apply";
 
 function location(): PresenceLocation {
-  return {
-    company: { startMode: "OFF", endMode: "OFF",
-      maxAccuracyMeters: 50, maxFixAgeSeconds: 30, revision: 1 },
-    overrides: { startModeOverride: null, endModeOverride: null,
-      maxAccuracyMetersOverride: null, maxFixAgeSecondsOverride: null, revision: 1 },
-    effective: { startMode: "OFF", endMode: "OFF",
-      maxAccuracyMeters: 50, maxFixAgeSeconds: 30 },
-    readiness: {
-      configurationFingerprint: "a".repeat(64), activeZoneCount: 1,
-      blockers: [], configurationUsable: true, strictActivationAllowed: true,
-    },
-  } as PresenceLocation;
+  return locationPolicy();
 }
 
 function draft(data: PresenceLocation, field: Field, value: string,
@@ -77,7 +67,7 @@ function harness(data: PresenceLocation, outcome: "OK" | "UNKNOWN" = "OK") {
     mutation: mutation as unknown as PresenceMutation, get server() { return server; } };
 }
 
-function deps(h: ReturnType<typeof harness>, onCommitted = (_field: string) => {}) {
+function deps(h: ReturnType<typeof harness>, onCommitted = () => {}) {
   return {
     api: h.api, mutation: h.mutation, isCurrent: () => true,
     onCommitted,
