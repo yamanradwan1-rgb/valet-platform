@@ -54,6 +54,11 @@ export function ShiftPresenceSetupReview(props: {
   const mounted = useRef(false);
   const heading = useRef<HTMLHeadingElement>(null);
   const reviewButton = useRef<HTMLButtonElement>(null);
+  const acknowledgment = useRef<HTMLInputElement>(null);
+  const confirmButton = useRef<HTMLButtonElement>(null);
+  const applyButton = useRef<HTMLButtonElement>(null);
+  const phaseStatus = useRef<HTMLParagraphElement>(null);
+  const previousPhase = useRef<Phase>("DRAFT");
   useLayoutEffect(() => {
     mounted.current = true;
     heading.current?.focus();
@@ -68,6 +73,18 @@ export function ShiftPresenceSetupReview(props: {
     return isStrictPresenceMode(proposed);
   });
   const busy = phase === "APPLYING";
+  // Phase controls unmount after activation. Transfer keyboard focus to the
+  // next active control (or announced status) rather than losing it to <body>.
+  useLayoutEffect(() => {
+    if (previousPhase.current === phase) return;
+    previousPhase.current = phase;
+    if (phase === "DRAFT") reviewButton.current?.focus();
+    if (phase === "REVIEWED") {
+      (requiresAck ? acknowledgment.current : confirmButton.current)?.focus();
+    }
+    if (phase === "CONFIRMED") applyButton.current?.focus();
+    if (phase === "APPLYING" || phase === "FINISHED") phaseStatus.current?.focus();
+  }, [phase, requiresAck]);
 
   async function review() {
     if (flight.current || props.loading || props.mutation.blocked ||
@@ -103,7 +120,6 @@ export function ShiftPresenceSetupReview(props: {
     setAck(false);
     setStop(null);
     setSaved(null);
-    queueMicrotask(() => reviewButton.current?.focus());
   }
   async function apply() {
     if (!reviewed || phase !== "CONFIRMED" || flight.current ||
@@ -147,7 +163,7 @@ export function ShiftPresenceSetupReview(props: {
       <div className={styles.cardPad}>
         <div className={styles.actions}>
           <h3 ref={heading} tabIndex={-1} className={styles.sectionTitle}>{copy("reviewTitle")}</h3>
-          <ScopedContextHelp helpKey="presence.readiness" />
+          <ScopedContextHelp helpKey="policies.presence" />
         </div>
         <p className={styles.sectionText}>{copy("reviewHelp")}</p>
         <p className={styles.sectionText}>{copy("companyScope")}: {props.companyName} · {copy("locationScope")}: {props.locationName}</p>
@@ -216,11 +232,11 @@ export function ShiftPresenceSetupReview(props: {
         {phase === "REVIEWED" ? <div>
           <p>{copy("confirmHelp")}</p>
           {requiresAck ? <label>
-            <input type="checkbox" checked={ack}
+            <input ref={acknowledgment} type="checkbox" checked={ack}
               onChange={(event) => setAck(event.target.checked)} />
             {copy("confirmStrict")}
           </label> : null}
-          <button className={styles.primary} type="button"
+          <button ref={confirmButton} className={styles.primary} type="button"
             disabled={plan.actions.length === 0 || (requiresAck && !ack)}
             onClick={() => setPhase("CONFIRMED")}>{copy("confirmButton")}</button>
           <button className={styles.secondary} type="button"
@@ -228,15 +244,17 @@ export function ShiftPresenceSetupReview(props: {
         </div> : null}
         {phase === "CONFIRMED" ? <div>
           <p>{copy("confirmTitle")} · {copy("noAggregateSave")}</p>
-          <button className={styles.primary} type="button"
+          <button ref={applyButton} className={styles.primary} type="button"
             disabled={props.mutation.blocked || props.loading ||
               !props.data.capabilities.canEdit}
             onClick={() => void apply()}>{copy("applyButton")}</button>
           <button className={styles.secondary} type="button"
             onClick={resetReview}>{copy("cancel")}</button>
         </div> : null}
-        {phase === "APPLYING" ? <p role="status">{copy("applying")}</p> : null}
-        {phase === "FINISHED" ? <p>{copy("retryAfterRefresh")}</p> : null}
+        {phase === "APPLYING" ? <p ref={phaseStatus} tabIndex={-1} role="status">
+          {copy("applying")}</p> : null}
+        {phase === "FINISHED" ? <p ref={phaseStatus} tabIndex={-1} role="status">
+          {copy("retryAfterRefresh")}</p> : null}
         <div className={styles.actions}>
           <button className={styles.secondary} type="button" disabled={busy}
             onClick={props.onPolicy}>{copy("backToPolicy")}</button>

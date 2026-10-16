@@ -20,7 +20,7 @@ const labels = {
     review: "Review",
     previous: "Previous",
     next: "Next",
-    note: "Changing steps does not save zones or policy. Use each section's own Save action.",
+    note: "Changing steps never saves. Save each zone separately in Step 2; policy drafts are applied only after Step 4 review and confirmation.",
     step: "Step",
   },
   ar: {
@@ -31,7 +31,7 @@ const labels = {
     review: "المراجعة",
     previous: "السابق",
     next: "التالي",
-    note: "التنقل بين الخطوات لا يحفظ المناطق أو السياسة. استخدم زر الحفظ في كل قسم.",
+    note: "التنقل بين الخطوات لا يحفظ. احفظ كل منطقة على حدة في الخطوة الثانية؛ لا تُطبَّق مسودات السياسة إلا بعد المراجعة والتأكيد في الخطوة الرابعة.",
     step: "الخطوة",
   },
 } satisfies Record<DashboardLocale, Record<string, string>>;
