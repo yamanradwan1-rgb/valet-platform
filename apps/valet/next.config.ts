@@ -1,6 +1,13 @@
 import type { NextConfig } from "next";
+import {
+  EMPLOYEE_STAFF_API_REWRITE_SOURCE,
+  employeeStaffApiRewriteDestination,
+} from "./src/lib/api/api-origin";
 
-const apiOrigin = process.env.API_ORIGIN || "http://localhost:3001";
+const staffApiDestination = employeeStaffApiRewriteDestination({
+  apiOrigin: process.env.API_ORIGIN,
+  nodeEnv: process.env.NODE_ENV,
+});
 
 const nextConfig: NextConfig = {
   output: "standalone",
@@ -13,8 +20,8 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        source: "/v1/staff/:path*",
-        destination: `${apiOrigin}/v1/staff/:path*`,
+        source: EMPLOYEE_STAFF_API_REWRITE_SOURCE,
+        destination: staffApiDestination,
       },
     ];
   },
