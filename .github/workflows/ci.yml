@@ -79,6 +79,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify test harness safety and ownership
+        run: node --test scripts/test-harness/*.test.mjs
+
+      - name: Install Playwright Chromium for browser-backed unit tests
+        run: pnpm --filter @valet/dashboard exec playwright install chromium
+
       - name: Run non-PostgreSQL tests
         run: pnpm test:non-postgres
 
@@ -134,8 +140,8 @@ jobs:
 
       - name: Run bounded PostgreSQL lane
         env:
-          VAYLET_ISSUE215_TEST_TARGET: ${{ matrix.lane == 'database' && 'ci' || '' }}
-          VAYLET_ISSUE215_CI_POSTGRES_CONTAINER_ID: ${{ matrix.lane == 'database' && job.services.postgres.id || '' }}
+          VAYLET_ISSUE215_TEST_TARGET: ci
+          VAYLET_ISSUE215_CI_POSTGRES_CONTAINER_ID: ${{ job.services.postgres.id }}
         run: pnpm run test:postgres:${{ matrix.lane }}
 
   platform:
@@ -250,6 +256,9 @@ jobs:
         env:
           DATABASE_URL: postgresql://valet_runtime:valet_runtime_e2e@localhost:5432/valet
           MIGRATION_DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
+
+      - name: Build contracts for E2E fixture imports
+        run: pnpm --filter @valet/contracts build
 
       - name: Provision E2E fixtures
         run: pnpm --filter @valet/api exec tsx tools/e2e/provision-employee-e2e.ts
