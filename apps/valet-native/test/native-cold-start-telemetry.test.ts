@@ -17,6 +17,10 @@
 import { EMPLOYEE_TELEMETRY_CLASSIFICATIONS } from "@valet/employee-client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+// The bootstrap imports the foreground location adapters, whose real Expo
+// native module cannot initialize in Vitest's Node environment.
+vi.mock("expo-location", () => ({ Accuracy: { High: 4 } }));
+
 vi.mock("expo-application", () => ({
   get nativeApplicationVersion() {
     return "2.1.0";

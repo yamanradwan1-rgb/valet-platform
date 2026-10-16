@@ -3,7 +3,6 @@ import manifest from "../package.json";
 
 const forbiddenDependencies = [
   "@valet/ui",
-  "expo-location",
   "expo-updates",
   "next",
   "react-dom",
@@ -40,6 +39,7 @@ describe("Native package contract", () => {
     expect(manifest.dependencies["expo-application"]).toBe("~57.0.3");
     expect(manifest.dependencies["expo-notifications"]).toBe("~57.0.18");
     expect(manifest.dependencies["expo-network"]).toBe("~57.0.2");
+    expect(manifest.dependencies["expo-location"]).toBe("~57.0.20");
     expect(manifest.dependencies["expo-splash-screen"]).toBe("~57.0.9");
     expect(manifest.dependencies.qrcode).toBe("^1.5.4");
     expect(manifest.dependencies["react-native-svg"]).toBe("15.15.4");
@@ -61,6 +61,7 @@ describe("Native package contract", () => {
         "expo-font",
         "expo-image-manipulator",
         "expo-linking",
+        "expo-location",
         "expo-network",
         "expo-notifications",
         "expo-router",
