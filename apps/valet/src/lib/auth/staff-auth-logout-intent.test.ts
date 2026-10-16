@@ -86,26 +86,47 @@ describe("Staff web failed-logout durable origin boundary", () => {
     expect((await reloaded.refresh()).accessToken).toBe(TOKEN_B);
   });
 
-  it("refuses logout without clearing the visible identity if origin storage cannot persist intent", async () => {
+  it("attempts server revocation but preserves identity after a failed logout with unavailable storage", async () => {
     const client = await loggedIn();
     const original = storage.get(KEY);
     vi.spyOn(window.localStorage, "setItem").mockImplementation(() => {
       throw new Error("quota exceeded");
     });
-    globalThis.fetch = vi.fn();
-    await expect(client.logout()).rejects.toThrow("quota exceeded");
+    globalThis.fetch = vi.fn().mockRejectedValueOnce(new TypeError("offline"));
+    await expect(client.logout()).rejects.toMatchObject({ code: "NETWORK_ERROR" });
     expect(client.getSession()?.accessToken).toBe(TOKEN_A);
     expect(storage.get(KEY)).toBe(original);
-    expect(globalThis.fetch).not.toHaveBeenCalled();
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      "/v1/staff/auth/logout", expect.objectContaining({ method: "POST", credentials: "include" }),
+    );
   });
 
-  it("refuses logout if browser persistence reports a write but loses the marker", async () => {
+  it("clears identity only after confirmed revocation when storage silently loses the marker", async () => {
     const client = await loggedIn();
     vi.spyOn(window.localStorage, "setItem").mockImplementation(() => {});
-    globalThis.fetch = vi.fn();
-    await expect(client.logout()).rejects.toThrow("not durably persisted");
+    const request = deferred<Response>();
+    globalThis.fetch = vi.fn().mockReturnValueOnce(request.promise);
+    const logout = client.logout();
     expect(client.getSession()?.accessToken).toBe(TOKEN_A);
-    expect(globalThis.fetch).not.toHaveBeenCalled();
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+    request.resolve(new Response(null, { status: 204 }));
+    await logout;
+    expect(client.getSession()).toBeNull();
+  });
+
+  it("never clears a newer interactive login when storage fails during older logout", async () => {
+    const old = await loggedIn();
+    vi.spyOn(window.localStorage, "setItem").mockImplementation(() => {});
+    const pendingLogout = deferred<Response>();
+    globalThis.fetch = vi.fn().mockReturnValueOnce(pendingLogout.promise);
+    const logout = old.logout();
+    vi.restoreAllMocks();
+    globalThis.fetch = vi.fn().mockResolvedValueOnce(access(TOKEN_B));
+    await old.login(LOGIN);
+    expect(old.getAccessToken()).toBe(TOKEN_B);
+    pendingLogout.resolve(new Response(null, { status: 204 }));
+    await logout;
+    expect(old.getAccessToken()).toBe(TOKEN_B);
   });
 
   it("keeps successful server logout confirmed and does not re-bootstrap the old cookie", async () => {

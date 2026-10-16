@@ -221,12 +221,17 @@ export class StaffAuthClient {
   }
 
   async logout(signal?: AbortSignal | undefined): Promise<void> {
-    this.authEpoch++;
-    // If the durable marker cannot be persisted, refuse the logout before
-    // clearing visible authority: a reload could otherwise revive the cookie.
-    const started = this.boundary.beginLogout();
-    // After intent persistence, discard authority even if the server is offline.
-    this.setSession(null);
+    const epoch = ++this.authEpoch;
+    const before = this.boundary.snapshot();
+    let started: ReturnType<StaffAuthBoundary["beginLogout"]> | null = null;
+    try {
+      started = this.boundary.beginLogout();
+    } catch {
+      // Still request server revocation if browser storage is unavailable.
+      // Without a durable marker, keep the visible identity until the server
+      // confirms revocation, so a failed POST cannot fake a local sign-out.
+    }
+    if (started !== null) this.setSession(null);
     const url = `${this.baseUrl}/v1/staff/auth/logout`;
 
     const fetchInit: RequestInit = {
@@ -252,7 +257,13 @@ export class StaffAuthClient {
         "Staff logout failed.",
       );
     }
-    this.boundary.confirmLogout(started);
+    if (started !== null) {
+      this.boundary.confirmLogout(started);
+    } else if (epoch === this.authEpoch && this.boundary.isUnchanged(before)) {
+      // A confirmed server logout cleared the HttpOnly refresh cookie.
+      // Never clear an identity installed by a newer interactive login.
+      this.setSession(null);
+    }
   }
 
   async ensureFreshToken(
