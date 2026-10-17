@@ -26,8 +26,10 @@ import {
   type EmployeeTelemetryCollector,
   type EmployeeTelemetryEvent,
   type EmployeeTelemetryProvenance,
+  type IncidentPreflightStage,
 } from "@valet/employee-client";
 
+import { isNativeIncidentFailureStage } from "./native-incident-failure-stage";
 import type {
   NativeTelemetryRecorder,
   NativeTelemetrySnapshot,
@@ -76,6 +78,7 @@ export function createBoundedMemoryCollector(
 
 export class NativeTelemetryOwner implements NativeTelemetryRecorder {
   private readonly collector: EmployeeTelemetryCollector;
+  private latestIncidentFailureStage: IncidentPreflightStage | undefined;
   /**
    * The memory ring, when the sink is one — captured BEFORE the fail-open
    * wrap (the wrapper hides the concrete type, so instanceof would fail).
@@ -97,6 +100,39 @@ export class NativeTelemetryOwner implements NativeTelemetryRecorder {
   record(event: EmployeeTelemetryEvent): void {
     try {
       this.collector.record(event);
+      // Only the fixed stage survives ring eviction. No incident/user/session
+      // IDs, requests, descriptions, raw errors or timestamps are retained.
+      if (
+        this.ring !== undefined &&
+        event.source === "recovery" &&
+        event.classification === "preflight" &&
+        event.operation === "incident-recovery"
+      ) {
+        if (
+          event.outcome === "success" &&
+          (event.errorCode === "context.success" ||
+            event.errorCode === "report-response.success")
+        ) {
+          // A new submit begins at context.success; canonical report success
+          // also invalidates any earlier pinned failure.
+          this.latestIncidentFailureStage = undefined;
+        } else if (
+          event.outcome === "error" &&
+          typeof event.errorCode === "string" &&
+          event.errorCode.endsWith(".error")
+        ) {
+          const stage = event.errorCode.slice(0, -".error".length);
+          if (
+            isNativeIncidentFailureStage(stage) &&
+            (this.latestIncidentFailureStage === undefined ||
+              stage === "context" ||
+              stage.startsWith("session-detail-"))
+          )
+            // Prefer the first error in one submission; a new context or
+            // failed detail load is itself a new attempt boundary.
+            this.latestIncidentFailureStage = stage;
+        }
+      }
     } catch {
       /* fail-open: telemetry is never allowed to break the caller */
     }
@@ -106,6 +142,9 @@ export class NativeTelemetryOwner implements NativeTelemetryRecorder {
   snapshot(): NativeTelemetrySnapshot {
     return {
       events: this.currentEventsSafely(),
+      ...(this.latestIncidentFailureStage === undefined
+        ? {}
+        : { latestIncidentFailureStage: this.latestIncidentFailureStage }),
       provenance: this.provenance,
     };
   }

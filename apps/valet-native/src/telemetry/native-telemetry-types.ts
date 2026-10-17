@@ -15,6 +15,7 @@ import {
   type EmployeeTelemetryEvent,
   type EmployeeTelemetryProvenance,
   type EmployeeTelemetrySource,
+  type IncidentPreflightStage,
 } from "@valet/employee-client";
 
 /** Per-source literal unions, derived — never re-enumerated locally. */
@@ -38,6 +39,8 @@ export type NativeRecoveryClassification =
  */
 export interface NativeTelemetrySnapshot {
   readonly events: readonly EmployeeTelemetryEvent[];
+  /** Latest allowlisted Incident failure, retained after generic-ring eviction. */
+  readonly latestIncidentFailureStage?: IncidentPreflightStage;
   readonly provenance: EmployeeTelemetryProvenance;
 }
 
