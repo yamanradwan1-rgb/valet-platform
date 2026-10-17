@@ -78,6 +78,48 @@ try {
   await form.locator('button[type="submit"]').click();
   await searchResponse;
   stage = "REAL_SEARCH_UI_HTTP_200";
+  const sessionChoice = page.locator('#audit-investigation-panel button[aria-pressed]').first();
+  await sessionChoice.waitFor();
+  await sessionChoice.click();
+  const eventCard = page.locator('#audit-investigation-panel li[data-kind] button').first();
+  await eventCard.waitFor();
+  await eventCard.click();
+  const sourceDialog = page.getByRole("dialog");
+  await sourceDialog.waitFor();
+  assert.equal(await sourceDialog.getAttribute("aria-modal"), "true");
+  const close = sourceDialog.locator("button[aria-label]").last();
+  const closeFocused = await close.evaluate((node) => document.activeElement === node);
+  assert.equal(closeFocused, true, "Focus must move to source detail close action");
+  await page.keyboard.press("Escape");
+  await sourceDialog.waitFor({ state: "detached" });
+  assert.equal(await eventCard.evaluate((node) => document.activeElement === node), true,
+    "Escape must restore focus to the invoking source event");
+  assert.equal(responses.filter((r) => r.endpoint.endsWith("/audit-events")).length, 0,
+    "Investigation must not silently fetch hidden Audit Events");
+  stage = "REAL_AUTHORIZED_DETAIL_ESCAPE_FOCUS_PASS";
+  // G2-only network fault injection: exactly one failed read must hide all
+  // previous evidence; only explicit re-Apply may issue a successful retry.
+  let rejectedReads = 0;
+  const isSearchRead = (url) => url.pathname.endsWith("/audit-investigations/sessions");
+  const abortRead = (route) => {
+    rejectedReads += 1;
+    return route.abort("failed");
+  };
+  await page.route(isSearchRead, abortRead);
+  await form.locator('button[type="submit"]').click();
+  await page.locator('#audit-investigation-panel button[aria-pressed]').first()
+    .waitFor({ state: "detached" });
+  assert.equal(rejectedReads, 1,
+    "A network failure must not trigger a hidden repeated search loop");
+  assert.equal(await page.locator('#audit-investigation-panel li[data-kind]').count(), 0,
+    "Failed search must not retain a stale full timeline");
+  await page.unroute(isSearchRead, abortRead);
+  const explicitRetry = page.waitForResponse((res) =>
+    res.url().includes("/audit-investigations/sessions") && res.status() === 200);
+  await form.locator('button[type="submit"]').click();
+  await explicitRetry;
+  await page.locator('#audit-investigation-panel button[aria-pressed]').first().waitFor();
+  stage = "REAL_AUTHORIZED_EXPLICIT_RETRY_AFTER_NETWORK_ABORT";
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     for (const locale of ["en", "ar"]) {
@@ -118,7 +160,9 @@ try {
   assert.equal(await tab.getAttribute("aria-selected"), "true");
   stage = "BROWSER_MATRIX_32_CASES";
   console.log("PASS real-browser: actual Company Admin login, MFA and location selection");
-  console.log("PASS real-browser: 32 rendered EN/AR × light/dark × 320/390/768/1440 × CSS zoom1/2 cases");
+  console.log("PASS real-browser: source event drawer Escape/focus return and no hidden Audit Events requests");
+  console.log("PASS real-browser: one G2-only aborted Search, no repeated loop/stale timeline, explicit re-Apply returns authorized 200");
+  console.log("PASS real-browser: 32 panel-presence cases at synthetic DOM locale/theme and CSS zoom1/2, NOT physical 200% parity");
   console.log("REAL_BROWSER_HTTP_INVESTIGATION_200=" +
     responses.filter((r) => r.status === 200 && r.endpoint.includes("audit-investigations")).length);
 } finally {

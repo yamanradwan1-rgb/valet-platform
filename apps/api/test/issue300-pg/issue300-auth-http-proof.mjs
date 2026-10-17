@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
 import { dirname, join } from "node:path";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { setTimeout as sleep } from "node:timers/promises";
 import pg from "pg";
@@ -91,7 +92,14 @@ async function checkRealBrowser(user, totpSecret) {
   if (result.code !== 0) {
     globalThis.console.log("GAP real-browser: separate browser proof failed; inspect task-owned browser-geometry.json");
     globalThis.console.log(String(result.stderr).split("\n").slice(0, 15).join(" ").slice(0, 1800));
+    throw new Error("ISSUE300_BROWSER_PROOF_FAILED");
   }
+  const evidence = JSON.parse(readFileSync(input.ISSUE300_BROWSER_OUTPUT, "utf8"));
+  assert.equal(evidence.stage, "BROWSER_MATRIX_32_CASES");
+  assert.equal(evidence.matrix.length, 32);
+  assert.ok(evidence.responses.some((row) =>
+    row.status === 200 && row.endpoint.includes("audit-investigations")));
+  globalThis.console.log("PASS separate real-browser gate: signed-in MFA, drawer focus/Escape, 32 synthetic panel-smoke cases; T58/T59 physical parity still GAP");
 }
 
 await client.connect();

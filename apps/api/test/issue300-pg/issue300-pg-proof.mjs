@@ -140,10 +140,11 @@ try {
   assert.ok(!JSON.stringify(events.rows).includes("PRIVATE TEST DESCRIPTION MUST NOT APPEAR"));
   globalThis.console.log("PASS PostgreSQL: timeline same Session, distinct source keys, excluded bad Audit aliases");
 
-  // A single authorized Location with >20 actual historical participants must
-  // be traversable without inventing a current assignee or merging duplicate names.
+  // A Location with >200 distinct historical participants must not impose
+  // the frozen native select's directory cap on unrelated time-only searches.
+  // This runs entirely within a task-owned ROLLBACK transaction.
   const createdMembers = new Set();
-  for (let i = 0; i < 25; i += 1) {
+  for (let i = 0; i < 205; i += 1) {
     const user = randomUUID();
     const member = randomUUID();
     const auditId = randomUUID();
@@ -164,20 +165,28 @@ try {
         actor_membership_id,actor_type,event_type,entity_type,entity_id,
         metadata_json,occurred_at)
        VALUES($1,$2,$3,$4,$5,'MEMBERSHIP','VALET_SESSION_PARKED',
-        'ValetSession',$4,'{}'::jsonb,'2026-10-16T11:35:00Z')`,
+        'ValetSession',$4,'{}'::jsonb,'2026-10-15T11:35:00Z')`,
       [auditId, ids.org, ids.location, ids.session, member],
     );
   }
   const memberSql = selectors.auditInvestigationSelectorStatements.memberSql;
-  const first = await client.query(memberSql, [ids.org, ids.location, null, 21, null, known]);
-  assert.equal(first.rows.length, 21);
-  const last = first.rows[19].id;
-  const next = await client.query(memberSql, [ids.org, ids.location, null, 21, last, known]);
-  const combined = [...first.rows.slice(0, 20), ...next.rows];
-  assert.equal(new Set(combined.map((row) => row.id)).size, combined.length);
-  assert.ok(combined.length >= 25);
-  assert.ok([...createdMembers].every((id) => combined.some((row) => row.id === id)));
-  globalThis.console.log("PASS PostgreSQL: >20 member UUID keyset, inactive participants, duplicate CURRENT names");
+  const discovered = [];
+  let after = null;
+  for (let page = 0; page < 14; page += 1) {
+    const result = await client.query(memberSql,
+      [ids.org, ids.location, null, 21, after, known]);
+    discovered.push(...result.rows.slice(0, 20));
+    if (result.rows.length <= 20) break;
+    after = result.rows[19].id;
+    if (page === 13) throw new Error("Unexpected overfull member continuation");
+  }
+  assert.equal(new Set(discovered.map((row) => row.id)).size, discovered.length);
+  assert.ok(discovered.length >= 205);
+  assert.ok([...createdMembers].every((id) => discovered.some((row) => row.id === id)));
+  const timeOnly = await rows(boundSearch(ids, snap));
+  assert.equal(timeOnly.length, 1);
+  assert.equal(timeOnly[0].sessionId, ids.session);
+  globalThis.console.log("PASS PostgreSQL: >200 distinct canonical/member UUID options across bounded keyset pages; no time-only search suppression; inactive duplicate names");
 
   await client.query("ROLLBACK");
   transactionOpen = false;
