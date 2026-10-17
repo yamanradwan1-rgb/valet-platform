@@ -53,4 +53,18 @@ describe("detail boundary", () => {
       ...samples[2], overrideReason: "Private note",
     }).success).toBe(false);
   });
+
+  it("permits an authentically unbound RELEASED custody event, not a slot-less assignment", () => {
+    const released = {
+      ...common,
+      source: "KEY_CUSTODY",
+      kind: "RELEASED",
+      keySlotId: null,
+      key: { source: "KEY_CUSTODY", eventId: id },
+    };
+    expect(auditInvestigationEventDetailSchema.safeParse(released).success).toBe(true);
+    expect(auditInvestigationEventDetailSchema.safeParse({
+      ...released, kind: "SLOT_ASSIGNED",
+    }).success).toBe(false);
+  });
 });

@@ -42,7 +42,8 @@ export const auditInvestigationEventDetailSchema = z.discriminatedUnion("source"
   z.object({
     ...eventDetailBase, source: z.literal("KEY_CUSTODY"),
     kind: z.enum(["SLOT_ASSIGNED", "SLOT_CLEARED", "CHECKED_OUT", "RETURNED_TO_SLOT", "RELEASED"]),
-    keySlotId: auditInvestigationUuidSchema,
+    // RELEASED may legitimately be unbound (DB slot-required CHECK excludes it).
+    keySlotId: auditInvestigationUuidSchema.nullable(),
   }).strict(),
   z.object({
     ...eventDetailBase, source: z.literal("DISPATCH"),
@@ -64,6 +65,10 @@ export const auditInvestigationEventDetailSchema = z.discriminatedUnion("source"
 ]).superRefine((detail, context) => {
   if (detail.key.source !== detail.source) {
     context.addIssue({ code: "custom", message: "Detail key source must match discriminator" });
+  }
+  if (detail.source === "KEY_CUSTODY" && detail.kind !== "RELEASED" &&
+      detail.keySlotId === null) {
+    context.addIssue({ code: "custom", message: "This custody kind requires a recorded slot" });
   }
 });
 
