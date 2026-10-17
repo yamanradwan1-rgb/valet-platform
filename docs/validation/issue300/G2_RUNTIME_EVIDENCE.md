@@ -11,6 +11,12 @@
 > and committed-fixture G2 EXPLAIN: 3,500 Sessions +900 Custody rows, p50
 > **933.93ms**, p95 **969.80ms** (20 warm samples), >3.12M shared buffer hits.
 > This is **not** target-scale/writer-load performance acceptance.
+> Two later operational writer scripts additionally PASS on G2: real
+> authenticated Supervisor HTTP Incident creation/retry (with separate
+> Incident+Audit born-XID rows, no operational state mutations) and real
+> Supervisor Dispatch assignment/reassignment (two born-XID rows with distinct
+> actor/old/new assignee), both read back by CA with fresh MFA. User/Session/
+> Shift data used direct SQL fixture setup, not operational writer proof.
 > Detailed executable R01–R09 matrix:
 > `U05_OPTION_A_LOCAL_VALIDATION.md`. The older code SHA and 93/93 migration
 > values below describe the original *prior* G2 validation run only.

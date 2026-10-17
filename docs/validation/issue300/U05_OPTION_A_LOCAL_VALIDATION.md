@@ -80,7 +80,7 @@ reauthorized on every request.
 | R06 | **PARTIAL** | Real authenticated HTTP signed Search traversed 6 distinct Sessions in DESC pages and Timeline traversed all four source families with four exact equal-time records in order Audit→Custody→Dispatch→Incident. **100+ Session/100+ single-Session events** still not tested. |
 | R07 | **PARTIAL** | Current vehicle make filter on overfull query returns 503; current Location Incident visibility change invalidates signed page cursor; Staff session revocation rejects next page. Changing staff/slot/Incident attributes and active permissions during real writers still require matrix coverage. |
 | R08 | **PARTIAL** | Changed HMAC, wrong time window, source purpose, distinct CA/LM staff session denied. JWT-like/opaque signed page bound to original filter, role, viewer and `pg_snapshot`; 512-character snapshot oversize unit check and 15m TTL exist. Actual long active-XID snapshot and deliberately stalled source/timeout HTTP tests remain GAP. |
-| R09 | **GAP/PARTIAL; performance concern** | CA/LM real password and TOTP MFA tests, restricted Supervisor/foreign access, scoped SQL and HTTP, and a new **committed then exact-UUID-cleaned** G2 fixture plan with 3,500 Session +900 Custody, 101-result cap: **warm p50 933.93ms, p95 969.80ms**, 20 samples, 3,121,652 shared buffer hits, no physical reads. Not a target-scale PASS. **Actual operational check-in/parking/reassign/retrieval/handoff/Incident writers, 100k/1m skew, cold p95 and writer load** not completed. |
+| R09 | **GAP/PARTIAL; performance concern** | CA/LM real password and TOTP MFA tests, restricted Supervisor/foreign access, scoped SQL and HTTP, and a new **committed then exact-UUID-cleaned** G2 fixture plan with 3,500 Session +900 Custody, 101-result cap: **warm p50 933.93ms, p95 969.80ms**, 20 samples, 3,121,652 shared buffer hits, no physical reads. Two additional **actual isolated HTTP writer subsets PASS**: Supervisor Incident opening + idempotent retry + CA/MFA safe readback, and Supervisor Dispatch ASSIGNED→REASSIGNED + CA/MFA four-source Timeline readback; neither is a direct SQL substitute. Not a target-scale PASS. **Actual operational check-in/key-custody/handoff/retrieval chain, 100k/1m skew, cold p95 and writer load** not completed. |
 
 **Disposition:** none of the nine full requirements is marked PASS. The
 original T01–T70 ledger's full-acceptance GAP accounting remains binding; the
@@ -101,6 +101,8 @@ node apps/api/test/issue300-pg/issue300-u05-late-writers.mjs
 node apps/api/test/issue300-pg/issue300-u05-indirect-join-counterexample.mjs
 node apps/api/test/issue300-pg/issue300-u05-http-pagination.mjs
 node apps/api/test/issue300-pg/issue300-query-performance.mjs
+node apps/api/test/issue300-pg/issue300-operational-incident-writer.mjs
+node apps/api/test/issue300-pg/issue300-operational-dispatch-writer.mjs
 ```
 
 All six above **PASS** on G2; the counterexample test's PASS means it
@@ -115,6 +117,22 @@ deletes those exact ID sets in a verified G2 transaction. It **PASSed its
 test harness but not an acceptable target SLA**. The earlier in-transaction
 measurement was invalid for U05 since born-XID rows were invisible under S0;
 only the committed-measurement numbers above are meaningful.
+
+**Real operational writer subsets (both PASS; distinct from fixture evidence):**
+`issue300-operational-incident-writer.mjs` authenticates an actual Supervisor
+through staff login (Argon2 password) and calls the production Incident
+command over G2 API HTTP, checks one Incident and one independent Audit twin
+with database-owned birth markers, exact idempotent retry and no Session/Task/
+Custody/Dispatch mutation; an MFA-enrolled Company Admin reads both event
+sources and redacted Incident detail. `issue300-operational-dispatch-writer.mjs`
+uses the production assign and reassign commands over G2 API HTTP, checks
+persisted distinct Dispatch actor/previous/new participant roles with XIDs
+and current Task state; an MFA-authenticated Company Admin sees the historical
+events, not just current assignee. Both tests use explicitly labelled
+**direct SQL fixtures for pre-existing Session, user and active Shift**; those
+fixtures are NOT proof of the upstream operational check-in/shift writers.
+Both use disposable G2 only. Their success narrows R09 and T01 gaps, but
+neither gate nor full §27 acceptance is promoted to PASS.
 
 Targeted additional evidence:
 

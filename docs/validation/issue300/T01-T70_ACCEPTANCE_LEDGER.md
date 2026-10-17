@@ -7,6 +7,12 @@ criteria GAP or partially evidenced. Overall Issue #300 is NOT ACCEPTED.**
 **Newer U05 gated local test candidate:** `372e3cf4953a46c9ea5254426173eb456976126a`
 with later Issue300 SQL/performance candidate
 `5c3f8da2eb4ee939210d9d35fb78dbeb58926783`
+and additional **actual HTTP Incident and Dispatch writer subset proof scripts**
+in `apps/api/test/issue300-pg/issue300-operational-*.mjs` (fresh Supervisor
+password login, operational Incident/Dispatch endpoints, CA TOTP MFA
+Timeline/detail source readback). **These are subset evidence, not full T01**:
+fixture Session and Shifts originate from direct SQL, and complete upstream
+check-in, custody, release/retrieval/handoff and T70 remain unexecuted.
 adds migration94 and partial Option A proof only. See
 `U05_OPTION_A_LOCAL_VALIDATION.md`. It **does not upgrade any original
 Section 27 acceptance row**: U05 full indirect Audit provenance, actual

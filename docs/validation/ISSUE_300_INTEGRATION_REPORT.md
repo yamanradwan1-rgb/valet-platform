@@ -19,6 +19,11 @@
 > `5c3f8da2eb4ee939210d9d35fb78dbeb58926783` removes repeated reason
 > aggregation. A committed 3,500-Session/900-event G2 witness fixture still
 > yields **p95 ≈970ms (warm, single client)**; target performance is NOT PASS.
+> **Later actual-writer subsets:** task-only authenticated Supervisor HTTP
+> Incident creation/idempotent retry and Dispatch assign/reassign were
+> executed on G2, with persisted XIDs and Company Admin MFA Timeline/detail
+> readback. User, Session and Shift were direct SQL setup fixtures, **not**
+> proof of their operational writers. Full T01/T70 and R09 remain GAP.
 > No push, PR, main merge, deployment, production migration or closure.
 
 > **Authoritative G2 continuation (2026-10-18):** This report's older G1

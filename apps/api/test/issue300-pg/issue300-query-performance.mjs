@@ -40,6 +40,7 @@ await client.connect();
 let inTransaction = false;
 let committedFixture = false;
 let target;
+let cleanupError;
 try {
   assert.equal((await client.query("SELECT current_database() AS name")).rows[0].name,
     "issue300_g2");
@@ -159,8 +160,9 @@ try {
       globalThis.console.log("PASS: 3,500 committed, random G2-only perf fixtures removed by exact UUID set");
     } catch (error) {
       await client.query("ROLLBACK");
-      throw error;
+      cleanupError = error;
     }
   }
   await client.end();
 }
+if (cleanupError) throw cleanupError;
