@@ -57,3 +57,14 @@ The new PostgreSQL regression case is scoped to completed Parking and Retrieval,
 **NOT VERIFIED:** real PostgreSQL execution of the new regression, the five historical Photo QA records, cross-tenant integration runtime behavior, and any production deployment. Those remain the final DB acceptance steps before concluding end-to-end data verification. No shared or production database was mutated.
 
 **Delivery:** locally committed only. No push, PR, GitHub CI, merge, deployment or Issue closure.
+
+## Owner-authorized PostgreSQL acceptance follow-up (2026-10-17)
+
+The original **NOT RUN** statements above describe the first local implementation handoff and are superseded **for the focused PostgreSQL suite only** by this follow-up.
+
+- Executed `pnpm --filter @valet/api exec vitest run --config vitest.config.mjs --project api-postgres-standard test/dashboard-overview-domains.integration.test.ts --reporter=dot` on the issue branch against a freshly initialized task-owned PostgreSQL 17 cluster, loopback-only at `127.0.0.1:45541`, with a unique cluster/role and temporary suite-owned child database.
+- **PASS: 1 file, 8/8 real PostgreSQL integration tests** (including the new completed Parking/Retrieval, queued, cancelled, and no-grant regression); 26.55 seconds.
+- Harness clean-up reported **db=0, roles=0, children=0** for the test run. The separate task-owned PostgreSQL cluster was stopped after the run; the host's normal PostgreSQL service and shared databases were not used.
+- A first preflight run failed at migration URL validation because the isolated test URL omitted a required password field; no tests executed. The URL was corrected and the actual second test run passed.
+- The previously observed **five Photo QA rows were NOT re-queried**; no existing QA/staging/production database was read or modified. Mounted Chromium checks in the original report still use fixtures, not a live backend.
+- This is source and **real isolated PostgreSQL query** acceptance, **not** evidence of production deployment.
