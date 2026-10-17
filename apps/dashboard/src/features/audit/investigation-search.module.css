@@ -1,0 +1,242 @@
+.card {
+  min-width: 0;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 17px;
+}
+
+.headingCopy {
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  color: #101828;
+  font-size: 14px;
+  line-height: 21px;
+  font-weight: 700;
+}
+
+.subtitle {
+  margin: 0;
+  color: #667085;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.actions button {
+  min-height: 36px;
+  border-radius: 8px;
+  padding: 7px 13px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.clearButton {
+  color: #1e60f0;
+  border: 1px solid transparent;
+  background: transparent;
+}
+
+.secondaryButton {
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.applyButton {
+  color: #fff;
+  border: 1px solid #1e60f0;
+  background: #1e60f0;
+}
+
+.clearButton:hover,
+.secondaryButton:hover {
+  background: #f8fafc;
+}
+
+.applyButton:hover {
+  background: #144ac4;
+}
+
+.actions button:focus-visible,
+.control:focus-visible {
+  outline: 2px solid #1e60f0;
+  outline-offset: 2px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1.5fr repeat(3, minmax(0, 1fr)) 1.1fr;
+  align-items: end;
+  gap: 12px;
+  padding: 0 17px 17px;
+  min-width: 0;
+}
+
+.formGrid[hidden] {
+  display: none;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  color: #334155;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+}
+
+.control {
+  width: 100%;
+  min-width: 0;
+  height: 38.4px;
+  min-height: 38.4px;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #334155;
+  font: inherit;
+  font-size: 12px;
+  line-height: normal;
+  font-weight: 400;
+}
+
+.control::placeholder {
+  color: #97a5b7;
+}
+
+.control[aria-invalid="true"] {
+  border-color: #b42318;
+}
+
+.advanced {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px dashed #e2e8f0;
+  min-width: 0;
+}
+
+.disclaimer {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #667085;
+  font-size: 11px;
+  line-height: 17px;
+}
+
+.error {
+  margin: 0 17px 17px;
+  padding: 11px 13px;
+  color: #b42318;
+  background: #fff7f7;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+:global([data-theme="dark"]) .card {
+  background: #0d152f;
+  border-color: #172346;
+}
+
+:global([data-theme="dark"]) .title {
+  color: #f8fafc;
+}
+
+:global([data-theme="dark"]) .subtitle,
+:global([data-theme="dark"]) .disclaimer {
+  color: #94a3b8;
+}
+
+:global([data-theme="dark"]) .field {
+  color: #cbd5e1;
+}
+
+:global([data-theme="dark"]) .control,
+:global([data-theme="dark"]) .secondaryButton {
+  color: #e2e8f0;
+  border-color: #1e293b;
+  background: #131e3d;
+}
+
+:global([data-theme="dark"]) .advanced {
+  border-color: #1e293b;
+}
+
+:global([data-theme="dark"]) .clearButton:hover,
+:global([data-theme="dark"]) .secondaryButton:hover {
+  background: #182443;
+}
+
+:global([data-theme="dark"]) .error {
+  color: #fecaca;
+  background: rgba(127, 29, 29, 0.18);
+  border-color: #7f1d1d;
+}
+
+@media (max-width: 1150px) {
+  .formGrid,
+  .advanced {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 540px) {
+  .heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .formGrid,
+  .advanced {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .locationField,
+  .slotField {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 350px) {
+  .formGrid,
+  .advanced {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .field,
+  .locationField,
+  .slotField {
+    grid-column: 1 / -1;
+  }
+}
