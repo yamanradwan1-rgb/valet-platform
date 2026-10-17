@@ -1,5 +1,19 @@
 # VAYLET Issue #300 — Local Backend and Concept A Live-Data Integration
 
+> **Latest local continuation (`33fc913c9cba26453288ac148f080016cdf1902d`,
+> 2026-10-18):** Three additional G2-only test scripts PASS. The four source
+> types now have individually demonstrated signed HTTP Timeline continuation
+> across a held writer transaction (precommitted control included, later COMMIT
+> excluded until fresh snapshot). A direct-only cohort has authenticated
+> signed Search for 106 Sessions and Timeline for 112 events, including
+> 108 equal-time and duplicate cross-source UUID tests. Actual Supervisor
+> Check-in and key-slot A→B→C commands produced five sourced Custody and
+> three key Audit rows; CA/MFA Search proves historical A while CURRENT is C.
+> See the U05 validation addendum for distinctions and retained G2 fixtures.
+> All nine U05 gates remain PARTIAL/GAP at **full** criterion scope, no full
+> T01–T70 acceptance or target-scale SLA, and indirect Audit linkage still
+> fails closed. Concept A UI untouched; release operations not authorized.
+
 > **U05 Option A update — 2026-10-18 (newest code candidate):** Owner approved
 > **local-only** implementation of the three-source `xid8` migration.
 > **`372e3cf4953a46c9ea5254426173eb456976126a`** adds migration **94/94**

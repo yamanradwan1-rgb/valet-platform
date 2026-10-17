@@ -4,6 +4,18 @@
 actual code candidate `f90c3cabbff07c57df57ee783f052b30a70b0a21`.
 **Status:** **2 narrowly scoped DB/HTTP fixture criteria PASS, 68 full acceptance
 criteria GAP or partially evidenced. Overall Issue #300 is NOT ACCEPTED.**
+**Additional 2026-10-18 evidence after the historical SHA pin:** local commit
+`33fc913c9cba26453288ac148f080016cdf1902d` adds a **real operational
+Supervisor Check-in and key A→B→C** HTTP test; five born-XID Custody rows and
+three Audit rows are proven with a CA/MFA historical A-window Search, explicit
+CURRENT C label, negative C-filter in old A window, and exact Timeline source IDs.
+The generated Shift/slots/intake policy are still **SQL setup**, not domain
+writers. Test-only G2 Timeline held late writers for each of four sources and
+106-Session/112-event keyset cases also PASS. See the U05 addendum. The older
+70-row candidate SHA and outcomes below deliberately **remain traceable to the
+older reviewed candidate**; this new proof is additive, not a retroactive
+70-row reapproval. Remaining Parking/Retrieval/Handoff, T70/physical UI,
+indirect provenance, migration/load gates remain GAP; **Issue #300 OPEN**.
 **Newer U05 gated local test candidate:** `372e3cf4953a46c9ea5254426173eb456976126a`
 with later Issue300 SQL/performance candidate
 `5c3f8da2eb4ee939210d9d35fb78dbeb58926783`

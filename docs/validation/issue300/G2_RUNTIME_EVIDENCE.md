@@ -1,5 +1,22 @@
 # Issue #300 — G2 isolated PostgreSQL / authenticated HTTP / local candidate
 
+> **Latest locally committed follow-up, 2026-10-18
+> `33fc913c9cba26453288ac148f080016cdf1902d`:** Signed HTTP Timeline
+> held-writer page1/continuation experiments PASS separately for Audit,
+> Custody, Dispatch and Incident, with earlier-BEGIN/later-COMMIT excluded
+> and precommitted control retained. Authenticated Search **106 Sessions**
+> and Timeline **112 events /108 equal-time ties** PASS source-qualified
+> keyset on G2, with exact generated-cohort cleanup. Actual Supervisor
+> HTTP Check-in and key-slot A→B→C writers PASS, producing 5 Custody and
+> 3 key Audit facts, confirmed by independent CA MFA historical A-window
+> Search and Timeline. Shift/slots/intake policy were explicitly SQL setup;
+> G2 seed history persists only in this disposable task DB. All three
+> new scripts exit 0; see `U05_OPTION_A_LOCAL_VALIDATION.md`.
+> **Remaining GAP:** Search held-writer HTTP race, complete Parking/
+> Retrieval/Handoff chain, unsafe indirect Task/Incident historic membership,
+> owner/maintenance source-link mutability, full T70, real zoom and target
+> 100k/1m concurrent-load performance. No production on-switch or UI edits.
+
 > **Subsequent U05 Option A local-only update:** Code
 > `372e3cf4953a46c9ea5254426173eb456976126a` applied migration **94/94**
 > on this dedicated G2 database, added birth-XID insertion fencing for the

@@ -170,3 +170,40 @@ coverage AVAILABLE when partial, fabricate Task XIDs, or enable production
 pagination. All unrelated acceptance work can continue independently.
 
 No push, PR, main merge, deployment, production migration or Issue closure.
+
+## 2026-10-18 continuation — independently reviewed G2-only HTTP and real writers
+
+Additional **local test-only commit**:
+`33fc913c9cba26453288ac148f080016cdf1902d`.
+All three executable scripts below returned **exit 0** against the existing
+G2 PostgreSQL 17.10 and gated API 3162, and an independent READ-ONLY reviewer
+inspected their acceptance scope and false-positive hazards. Reviewed
+suggestions strengthened historical event-ID/actor assertions and negative
+current-slot filtering before that test commit.
+
+| Gate | New executed evidence | Honest remaining boundary |
+| --- | --- | --- |
+| U05-R01/R02 | `issue300-u05-http-held-writers.mjs`: four separate **AUDIT, KEY_CUSTODY, DISPATCH, INCIDENT** cases. Each source's writer BEGIN+INSERT predates page 1, an independently committed control is admitted, first Timeline page captures the signed cohort, writer COMMIT occurs, all signed next pages exclude that late fact, and a newly captured cohort admits it. Same source test ID is excluded exactly once until fresh capture. | Verified **Timeline** held-writer HTTP only, not separate Search held-writer page1/page2 or unsafe indirect Task/Incident links. Full R01/R02 remain **PARTIAL**. |
+| U05-R06 | `issue300-u05-http-large-pages.mjs`: authenticated CA MFA Search of **106 distinct Sessions**, including **105 exact timestamp ties** ordered by PostgreSQL UUID DESC; signed Timeline **112 source events**, **108 equal-time ties**, four source ranks and the **same UUID in four source tables** without collapsing source-qualified identity. Generated 105 Session/vehicle fixtures and 105 custody rows are removed by exact UUID cleanup. | Direct-only synthetic cohort. Does not establish 100k/1m target-scale load, indirect provenance, multi-writer concurrency or performance. Gate remains **PARTIAL** in the aggregate U05 decision. |
+| T01/R09 actual writers | `issue300-operational-checkin-key-writer.mjs`: real Supervisor password login, real Check-in Intake, Condition Completion and Complete Check-in, then HTTP Key A→B→C reassignments with optimistic versions. DB shows **5 actual custody events** with actor and non-null source XIDs, **3 audited key changes**; independent CA password+TOTP historical **A-window Search** identifies exact persisted A event, current slot remains C, C-only historic query returns zero, and Timeline source IDs match the five persisted custody IDs exactly. | G2-only **SQL setup** created Shift/three slots, Location intake policy and users; those are not operational writers. Parking, Retrieval, release/handoff remain GAP; overall T01/R09 acceptance is not inferred from this subset. |
+
+The held-transaction tests deliberately insert SQL evidence, **not** actual
+operational writers. All scripts verify their exact G2 URL and database identity.
+The HTTP seed helper intentionally retains its synthetic org/users/source
+fixtures in disposable G2, and the real Check-in/Key script retains its own
+test-only operational history as evidence. R06's generated large cohort and the
+held test's own inserted late/control source rows are removed by exact IDs.
+Repeated runs therefore accumulate small, identifiable G2-only proof history;
+these scripts must never target a shared or production database.
+
+**Additional independent privilege caveat:** Runtime Custody/Dispatch/Incident
+roles are provisioned without UPDATE/DELETE/TRUNCATE, but migration-94's
+`UPDATE OF pagination_birth_xid` trigger alone does not make an Incident's
+Session association or a maintenance owner's source edits historically
+immutable. No ordinary API mutation exploit was reproduced; maintenance-role
+or privilege-drift snapshot association changes still require further proof
+or separately authorized source-link protection. The independently reproduced
+Audit→Task/Incident phantom remains the definite P0; its 503 fail-closed
+guard remains intact. U05 is **NOT unrestricted, production-enabled or
+fully accepted**, and the nine original gate statuses must not be inferred
+as all PASS from these subset experiments.
