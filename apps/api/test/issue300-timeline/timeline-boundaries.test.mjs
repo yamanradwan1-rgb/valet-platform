@@ -5,9 +5,7 @@ import path from "node:path";
 import vm from "node:vm";
 import ts from "typescript";
 import { fileURLToPath } from "node:url";
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
 const folder = path.resolve(
   __dirname,
   "../../src/modules/management/audit-investigation/timeline",
@@ -28,7 +26,6 @@ let failSources = false;
 let directDenied = false;
 let indirectAuthorized = true;
 class SourceDenied extends Error {}
-
 const fakeSession = { sessionId, currentState: "PARKED" };
 const source = (n, src = "AUDIT", when = "2026-10-23T14:30:00.000Z") => ({
   id: uid(n),
@@ -84,6 +81,20 @@ const readService = load("timeline-read-service.ts", {
       logged.push("activity");
     },
   },
+  "../../management-pagination-snapshot": {
+    captureManagementPaginationSnapshot: async () => {
+      logged.push("snapshot");
+      return { now: new Date("2026-10-23T15:00:00.000Z"), snapshot: "100:101:" };
+    },
+  },
+  "../audit-investigation-cursor": {
+    bindInvestigationCursor: () => ({ purpose: "SESSION_TIMELINE" }),
+    decodeInvestigationCursor: () => null,
+    encodeInvestigationCursor: () => "opaque",
+  },
+  "../audit-investigation-u05-gate": { isU05LocalProofEnabled: () => false },
+  "../audit-investigation-u05-indirect-guard": { requireU05StableIndirectCohort: async () => {} },
+  "../audit-investigation-u05-policy": { readU05IncidentPolicy: async () => "ACTIVE" },
   "../../management-authorization": {
     ManagementAccessDeniedError: SourceDenied,
   },
@@ -185,10 +196,10 @@ test("bounded multi-source one-page never claims cross-request snapshot", async 
   const result = await authorizedTimeline({ limit: 50 });
   assert.deepEqual(logged, [
     "authorize",
+    "snapshot",
     "session",
     "location",
     "four-source-sql",
-    "clock",
   ]);
   assert.equal(result.items.length, 4);
   assert.equal(result.nextCursor, null);
@@ -211,7 +222,7 @@ test("unproven cursor or limit overflow fails closed", async () => {
       error.status === 503 &&
       error.code === "AUDIT_INVESTIGATION_TIMELINE_UNAVAILABLE",
   );
-  assert.deepEqual(logged, ["session", "location", "four-source-sql"]);
+  assert.deepEqual(logged, ["snapshot", "session", "location", "four-source-sql"]);
 });
 
 test("inactive Location keeps non-Incident history but denies Incident coverage", async () => {

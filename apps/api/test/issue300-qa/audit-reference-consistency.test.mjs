@@ -70,6 +70,6 @@ test("T39/T67: four-source tuple order and bounded fail-closed first page", () =
   const service = read(
     "apps/api/src/modules/management/audit-investigation/timeline/timeline-read-service.ts",
   );
-  assert.match(service, /rows\.length > query\.limit\) throw new TimelinePaginationNotProvenError/);
-  assert.match(service, /if \(query\.cursor\) throw new TimelinePaginationNotProvenError/);
+  assert.match(service, /hasMore && \(!isU05LocalProofEnabled\(\) \|\| !binding\)/);
+  assert.match(service, /query\.cursor && !isU05LocalProofEnabled\(\)/);
 });

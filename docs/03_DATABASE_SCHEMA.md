@@ -1378,6 +1378,18 @@ Exact Task/Dispatch persistence is deferred to the focused Operations/Dispatch s
 
 ## key_custody_events
 
+Issue #300 U05 Option A (Owner approved **local validation only**, 2026-10-18):
+new migration 94 introduces nullable, database-owned `pagination_birth_xid xid8`
+to **key_custody_events**, **dispatch_events**, and **incidents** atomically.
+Existing NULL values are historical legacy data and are NEVER retroactively
+backfilled. Each post-activation insert is overwritten by an INSERT trigger to
+the real top-level `pg_current_xact_id()`, and later updates preserve the
+original marker. Runtime writers cannot disable the trigger or change this
+protected column; normal event/Incident writers are otherwise unchanged.
+Investigation multi-request snapshot pagination remains fail-closed unless
+the local atomic activation, legacy cohort, privilege and late-commit proof
+gates U05-R01–R09 all pass. This note authorizes no production migration.
+
 ```text
 id
 organization_id

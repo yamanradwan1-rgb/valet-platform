@@ -31,6 +31,7 @@ export async function readTimelineSession(
   tx: PostgresTransaction,
   scope: AuditInvestigationLocationAuthorization,
   sessionId: string,
+  databaseSnapshot?: string,
 ): Promise<AuditInvestigationTimelineSession> {
   const result = await tx.query<SessionRow>(
     `SELECT session.id::text AS id, session.state::text AS state,
@@ -50,8 +51,10 @@ export async function readTimelineSession(
      WHERE session.organization_id = $1::uuid
        AND session.location_id = $2::uuid
        AND session.id = $3::uuid
+       AND ($4::pg_snapshot IS NULL OR session.pagination_birth_xid IS NULL OR
+         pg_visible_in_snapshot(session.pagination_birth_xid, $4::pg_snapshot))
      FOR SHARE OF session`,
-    [scope.organizationId, scope.locationId, sessionId],
+    [scope.organizationId, scope.locationId, sessionId, databaseSnapshot ?? null],
   );
   const row = result.rows[0];
   if (result.rowCount !== 1 || !row) throw new ManagementAccessDeniedError();

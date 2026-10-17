@@ -81,7 +81,9 @@ describe("#300 first-page historical SQL (no PostgreSQL execution)", () => {
     expect(searchWitnessSql).toContain("task_meta.valet_session_id = resolved.id");
     expect(searchWitnessSql).toContain("NOT (a.metadata_json ? 'taskId')");
     expect(searchWitnessSql).not.toMatch(/metadata_json->>'taskId'\s*\)::uuid/);
-    expect(searchWitnessSql).not.toMatch(/k\.pagination_birth_xid|d\.pagination_birth_xid|i\.pagination_birth_xid/);
+    for (const source of ["k", "d", "i", "a", "s", "resolved"]) {
+      expect(searchWitnessSql).toContain(`${source}.pagination_birth_xid`);
+    }
   });
 
   it("rejects a contradictory Vehicle entity rather than creating a false Audit witness", () => {
@@ -114,7 +116,7 @@ describe("#300 first-page historical SQL (no PostgreSQL execution)", () => {
     expect(params).toEqual([
       organizationId, locationId, query.from, query.to, slotId, memberId,
       "to\\%\\_yo%", "cam\\\\ry%", snapshot.now, snapshot.database, 26, null,
-      "JO1234", sessionId, managementAuditKnownEventTypes,
+      "JO1234", sessionId, managementAuditKnownEventTypes, null, null,
     ]);
   });
 

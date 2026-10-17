@@ -51,12 +51,13 @@ function boundSearch(ids, snapshot, { slot = null, member = null, location = ids
   return [
     ids.org, location, "2026-10-16T11:00:00.000Z", "2026-10-16T12:00:00.000Z",
     slot, member, null, null, snapshot.now, snapshot.snapshot, 101,
-    null, null, null, known,
+    null, null, null, known, null, null,
   ];
 }
 
 await client.connect();
 let transactionOpen = false;
+let fixtureOrganizationId = null;
 try {
   const connection = await client.query(
     "SELECT current_database() AS db,current_user AS usr,current_setting('server_version') AS version",
@@ -66,6 +67,13 @@ try {
   await client.query("BEGIN");
   transactionOpen = true;
   const { ids } = await prepareIssue300SqlWitnesses(client);
+  fixtureOrganizationId = ids.org;
+  // Post-U05 birth-XID predicates correctly REJECT even this transaction's
+  // uncommitted events under pg_current_snapshot(). To test the POSITIVE
+  // historical witness algebra, commit the dedicated random G2-only fixture
+  // before taking S0; cleanup below removes only this exact isolated org.
+  await client.query("COMMIT");
+  transactionOpen = false;
   const snapshotRow = await client.query(
     "SELECT clock_timestamp() AS now, pg_current_snapshot()::text AS snapshot",
   );
@@ -93,12 +101,10 @@ try {
   globalThis.console.log("PASS PostgreSQL: UNKNOWN Audit actor cannot qualify employee witness");
 
   const metaMember = await rows(boundSearch(ids, snap, { member: ids.metaMember }));
-  // This SQL fixture runs before COMMIT, so Audit pagination_birth_xid is
-  // still in-progress relative to pg_current_snapshot(). Its Audit arm must
-  // remain invisible. The committed metadata-only Search positive is tested
-  // separately via actual guarded HTTP, not faked with a NULL birth marker.
-  assert.equal(metaMember.length, 0);
-  globalThis.console.log("PASS PostgreSQL: in-progress birth XID is excluded by Search snapshot");
+  assert.equal(metaMember.length, 1);
+  assert.ok(metaMember[0].reasons.some((reason) => reason.eventId === ids.metadataAudit));
+  assert.ok(!metaMember[0].reasons.some((reason) => reason.eventId === ids.badMetadataAudit));
+  globalThis.console.log("PASS PostgreSQL: committed metadata-only PARKING Audit qualifies, RETRIEVAL does not");
 
   const locationWrong = await rows(boundSearch(ids, snap, {
     member: ids.member, location: ids.secondLocation,
@@ -109,13 +115,14 @@ try {
   const endpointMiss = await rows([
     ids.org, ids.location, "2026-10-16T11:04:00.000Z", "2026-10-16T11:08:00.000Z",
     ids.slot, ids.member, null, null, snap.now, snap.snapshot, 101,
-    null, null, null, known,
+    null, null, null, known, null, null,
   ]);
   assert.equal(endpointMiss.length, 0);
   globalThis.console.log("PASS PostgreSQL: [from,to) exclusive upper boundary when employee is at 'to'");
 
   const events = await client.query(timeline.timelineSourceSql, [
     ids.org, ids.location, ids.session, 101, null, null,
+    snap.snapshot, snap.now, null, null, null,
   ]);
   const keys = new Set(events.rows.map((item) => item.source + ":" + item.id));
   for (const kind of ["KEY_CUSTODY", "DISPATCH", "AUDIT", "INCIDENT"]) {
@@ -188,10 +195,28 @@ try {
   assert.equal(timeOnly[0].sessionId, ids.session);
   globalThis.console.log("PASS PostgreSQL: >200 distinct canonical/member UUID options across bounded keyset pages; no time-only search suppression; inactive duplicate names");
 
-  await client.query("ROLLBACK");
-  transactionOpen = false;
-  globalThis.console.log("PASS PostgreSQL: isolated fixture transaction rolled back, no rows persisted");
+  globalThis.console.log("PASS PostgreSQL: committed G2-only scoped fixtures support the snapshot source oracle");
 } finally {
   if (transactionOpen) await client.query("ROLLBACK").catch(() => undefined);
+  if (fixtureOrganizationId !== null) {
+    // Only the random Organization created by THIS proof may be cleaned up.
+    // The G2 DB guard at lines 12–18 forbids any shared database.
+    await client.query("BEGIN");
+    const users = (await client.query(
+      `SELECT user_id FROM organization_memberships WHERE organization_id=$1`,
+      [fixtureOrganizationId],
+    )).rows.map((item) => item.user_id);
+    for (const table of ["audit_events", "key_custody_events",
+      "dispatch_events", "incidents", "tasks", "valet_sessions",
+      "key_slots", "vehicles", "organization_memberships", "locations",
+      "organization_subscriptions"]) {
+      await client.query(`DELETE FROM ${table} WHERE organization_id=$1`,
+        [fixtureOrganizationId]);
+    }
+    for (const id of users) await client.query("DELETE FROM users WHERE id=$1",[id]);
+    await client.query("DELETE FROM organizations WHERE id=$1", [fixtureOrganizationId]);
+    await client.query("COMMIT");
+    globalThis.console.log("PASS G2 cleanup: exact task-created random Organization and all its fixtures removed");
+  }
   await client.end();
 }

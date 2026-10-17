@@ -45,6 +45,8 @@ witnesses AS MATERIALIZED (
      AND a.created_at <= $9::timestamptz
      AND (a.pagination_birth_xid IS NULL OR
        pg_visible_in_snapshot(a.pagination_birth_xid, $10::pg_snapshot))
+     AND (resolved.pagination_birth_xid IS NULL OR
+       pg_visible_in_snapshot(resolved.pagination_birth_xid, $10::pg_snapshot))
      AND (a.valet_session_id IS NULL OR a.valet_session_id = resolved.id)
      -- A direct Session pointer does not override a contradictory Vehicle
      -- entity reference. Otherwise a malformed Audit row could become a
@@ -72,6 +74,10 @@ witnesses AS MATERIALIZED (
    WHERE k.organization_id = $1::uuid AND k.location_id = $2::uuid
      AND k.occurred_at >= $3::timestamptz AND k.occurred_at < $4::timestamptz
      AND k.created_at <= $9::timestamptz
+     AND (k.pagination_birth_xid IS NULL OR
+       pg_visible_in_snapshot(k.pagination_birth_xid, $10::pg_snapshot))
+     AND (s.pagination_birth_xid IS NULL OR
+       pg_visible_in_snapshot(s.pagination_birth_xid, $10::pg_snapshot))
   UNION ALL
   SELECT 'DISPATCH', d.id, d.valet_session_id, d.occurred_at,
          NULL::uuid, d.actor_membership_id,
@@ -85,6 +91,10 @@ witnesses AS MATERIALIZED (
    WHERE d.organization_id = $1::uuid AND d.location_id = $2::uuid
      AND d.occurred_at >= $3::timestamptz AND d.occurred_at < $4::timestamptz
      AND d.created_at <= $9::timestamptz
+     AND (d.pagination_birth_xid IS NULL OR
+       pg_visible_in_snapshot(d.pagination_birth_xid, $10::pg_snapshot))
+     AND (s.pagination_birth_xid IS NULL OR
+       pg_visible_in_snapshot(s.pagination_birth_xid, $10::pg_snapshot))
   UNION ALL
   SELECT 'INCIDENT', i.id, i.valet_session_id, i.created_at,
          NULL::uuid, NULL::uuid, NULL::uuid, NULL::uuid,
@@ -96,6 +106,10 @@ witnesses AS MATERIALIZED (
    WHERE i.organization_id = $1::uuid AND i.location_id = $2::uuid
      AND i.created_at >= $3::timestamptz AND i.created_at < $4::timestamptz
      AND i.created_at <= $9::timestamptz
+     AND (i.pagination_birth_xid IS NULL OR
+       pg_visible_in_snapshot(i.pagination_birth_xid, $10::pg_snapshot))
+     AND (s.pagination_birth_xid IS NULL OR
+       pg_visible_in_snapshot(s.pagination_birth_xid, $10::pg_snapshot))
 ),
 classified AS MATERIALIZED (
   SELECT w.*,

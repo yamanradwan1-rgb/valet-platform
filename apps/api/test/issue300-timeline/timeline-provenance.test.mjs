@@ -240,6 +240,11 @@ test("four-source SQL uses exact scope and no sensitive source columns", async (
     101,
     null,
     null,
+    null,
+    null,
+    null,
+    null,
+    null,
   ]);
 });
 
@@ -256,5 +261,5 @@ test("safe point-detail SQL filters explicit source AND event ID", async () => {
     source: "KEY_CUSTODY",
     id: id("99"),
   });
-  assert.deepEqual(Array.from(parameters).slice(-2), ["KEY_CUSTODY", id("99")]);
+  assert.deepEqual(Array.from(parameters).slice(4, 6), ["KEY_CUSTODY", id("99")]);
 });

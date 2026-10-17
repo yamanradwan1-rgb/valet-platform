@@ -54,6 +54,8 @@ SELECT session.id::text AS "sessionId", summary.first_at AS "firstMatchedAt",
          SELECT 1 FROM incidents incident WHERE incident.organization_id = $1::uuid
            AND incident.location_id = $2::uuid AND incident.valet_session_id = session.id
            AND incident.created_at <= $9::timestamptz
+           AND (incident.pagination_birth_xid IS NULL OR
+             pg_visible_in_snapshot(incident.pagination_birth_xid, $10::pg_snapshot))
        )) AS "hasVisibleIncident",
        COALESCE((
          SELECT jsonb_agg(reasons.reason ORDER BY reasons.occurred_at, reasons.id, reasons.kind)
@@ -84,6 +86,8 @@ SELECT session.id::text AS "sessionId", summary.first_at AS "firstMatchedAt",
   FROM summary
   JOIN valet_sessions session ON session.organization_id = $1::uuid
     AND session.location_id = $2::uuid AND session.id = summary.session_id
+    AND (session.pagination_birth_xid IS NULL OR
+      pg_visible_in_snapshot(session.pagination_birth_xid, $10::pg_snapshot))
   JOIN scoped_location location ON TRUE
   JOIN vehicles vehicle ON vehicle.organization_id = session.organization_id
     AND vehicle.id = session.vehicle_id
@@ -94,6 +98,8 @@ SELECT session.id::text AS "sessionId", summary.first_at AS "firstMatchedAt",
    AND ($12::text IS NULL OR vehicle.plate_country = $12::text)
    AND ($13::text IS NULL OR vehicle.plate_number_normalized = $13::text)
    AND ($14::uuid IS NULL OR session.id = $14::uuid)
+   AND ($16::timestamptz IS NULL OR
+      (summary.last_at, session.id) < ($16::timestamptz, $17::uuid))
  ORDER BY summary.last_at DESC, session.id DESC
  LIMIT $11::integer`;
 
@@ -103,6 +109,7 @@ export async function queryAuditInvestigationFirstPage(
   query: AuditInvestigationSearchQuery,
   normalized: NormalizedSearch,
   snapshot: SearchSnapshot,
+  after?: { readonly lastMatchedAt: string; readonly sessionId: string },
 ): Promise<readonly SearchRow[]> {
   const result = await transaction.query<SearchRow>(querySql, [
     scope.organizationId,
@@ -120,6 +127,8 @@ export async function queryAuditInvestigationFirstPage(
     normalized.plate,
     query.sessionId ?? null,
     managementAuditKnownEventTypes,
+    after?.lastMatchedAt ?? null,
+    after?.sessionId ?? null,
   ]);
   return result.rows;
 }

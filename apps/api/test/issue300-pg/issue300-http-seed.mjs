@@ -4,7 +4,7 @@ import argon2 from "argon2";
 /** Committed fixtures ONLY inside the explicitly guarded disposable G2 DB.
  * These are direct SQL test fixtures, never operational domain writer evidence.
  */
-export async function seedIssue300Http(client) {
+export async function seedIssue300Http(client, { indirectAudit = true } = {}) {
   const ids = Object.fromEntries([
     "org", "otherOrg", "location", "otherLocation", "foreignLocation",
     "vehicle", "foreignVehicle", "session", "foreignSession", "slot", "task",
@@ -120,7 +120,7 @@ export async function seedIssue300Http(client) {
        VALUES($1,$2,$3,'VALET_EMPLOYEE','INACTIVE','Metadata','Only',now())`,
       [ids.metadataActor, ids.org, ids.metadataUser],
     );
-    for (const [auditId, taskId] of [
+    if (indirectAudit) for (const [auditId, taskId] of [
       [ids.metadataAudit, ids.task], [ids.badMetadataAudit, ids.retrievalTask],
     ]) {
       await client.query(
@@ -135,7 +135,7 @@ export async function seedIssue300Http(client) {
     }
     // A Vehicle entity without a direct Session pointer is NOT an independent
     // canonical relation, even when a coincidental PARKED taskId points here.
-    await client.query(
+    if (indirectAudit) await client.query(
       `INSERT INTO audit_events(id,organization_id,location_id,
          valet_session_id,actor_membership_id,actor_type,event_type,
          entity_type,entity_id,metadata_json,occurred_at)

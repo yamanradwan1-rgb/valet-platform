@@ -33,6 +33,8 @@ WITH scoped AS MATERIALIZED (
   WHERE session.organization_id = $1::uuid
     AND session.location_id = $2::uuid
     AND session.id = $3::uuid
+    AND ($7::pg_snapshot IS NULL OR session.pagination_birth_xid IS NULL OR
+      pg_visible_in_snapshot(session.pagination_birth_xid, $7::pg_snapshot))
 ),
 evidence AS (
   SELECT 'AUDIT'::text AS source, 0 AS rank,
@@ -92,6 +94,9 @@ evidence AS (
   AND (audit.event_type <> 'VALET_SESSION_PARKED'
        OR audit.metadata_json->>'taskId' IS NULL
        OR linked_task.id IS NOT NULL)
+  AND ($7::pg_snapshot IS NULL OR audit.pagination_birth_xid IS NULL OR
+       pg_visible_in_snapshot(audit.pagination_birth_xid, $7::pg_snapshot))
+  AND ($8::timestamptz IS NULL OR audit.created_at <= $8::timestamptz)
 
   UNION ALL
   SELECT 'KEY_CUSTODY', 1, custody.id, custody.occurred_at,
@@ -104,6 +109,9 @@ evidence AS (
     ON custody.organization_id = session.organization_id
    AND custody.location_id = session.location_id
    AND custody.valet_session_id = session.id
+   AND ($7::pg_snapshot IS NULL OR custody.pagination_birth_xid IS NULL OR
+     pg_visible_in_snapshot(custody.pagination_birth_xid, $7::pg_snapshot))
+   AND ($8::timestamptz IS NULL OR custody.created_at <= $8::timestamptz)
 
   UNION ALL
   SELECT 'DISPATCH', 2, dispatch.id, dispatch.occurred_at,
@@ -123,6 +131,9 @@ evidence AS (
    AND task.location_id = session.location_id
    AND task.valet_session_id = session.id
    AND task.id = dispatch.task_id
+   AND ($7::pg_snapshot IS NULL OR dispatch.pagination_birth_xid IS NULL OR
+     pg_visible_in_snapshot(dispatch.pagination_birth_xid, $7::pg_snapshot))
+   AND ($8::timestamptz IS NULL OR dispatch.created_at <= $8::timestamptz)
 
   UNION ALL
   SELECT 'INCIDENT', 3, incident.id, incident.created_at,
@@ -140,11 +151,16 @@ evidence AS (
     ON incident_location.organization_id = session.organization_id
    AND incident_location.id = session.location_id
    AND incident_location.status = 'ACTIVE'
+   AND ($7::pg_snapshot IS NULL OR incident.pagination_birth_xid IS NULL OR
+     pg_visible_in_snapshot(incident.pagination_birth_xid, $7::pg_snapshot))
+   AND ($8::timestamptz IS NULL OR incident.created_at <= $8::timestamptz)
 ),
 page AS MATERIALIZED (
   SELECT * FROM evidence
   WHERE ($5::text IS NULL OR source = $5)
     AND ($6::uuid IS NULL OR id = $6::uuid)
+    AND ($9::timestamptz IS NULL OR
+      (occurred_at, rank, id) > ($9::timestamptz, $10::integer, $11::uuid))
   ORDER BY occurred_at ASC, rank ASC, id ASC
   LIMIT $4::integer
 )
@@ -185,6 +201,9 @@ export async function readTimelineSources(
   sessionId: string,
   limit: number,
   point?: { readonly source: TimelineSourceRow["source"]; readonly id: string },
+  traversal?: { readonly now: Date; readonly database: string;
+    readonly last?: { readonly occurredAt: string; readonly sourceRank: number;
+      readonly eventId: string } },
 ): Promise<readonly TimelineSourceRow[]> {
   const result = await tx.query<TimelineSourceRow>(timelineSourceSql, [
     scope.organizationId,
@@ -193,6 +212,11 @@ export async function readTimelineSources(
     limit,
     point?.source ?? null,
     point?.id ?? null,
+    traversal?.database ?? null,
+    traversal?.now ?? null,
+    traversal?.last?.occurredAt ?? null,
+    traversal?.last?.sourceRank ?? null,
+    traversal?.last?.eventId ?? null,
   ]);
   return result.rows;
 }

@@ -52,9 +52,13 @@ test("T56/T59: LIVE source/time/current facts are not fixture-derived", () => {
   assert.match(projection, /incidentStatus: incident \? incident\.status \+ " · CURRENT" : null/);
 });
 
-test("T45/T62/T63: cursor and over-limit history remain explicit GAP, not fake full pages", () => {
-  assert.match(search, /if \(parsed\.data\.cursor !== undefined\) throw new InvestigationSnapshotPaginationUnavailable/);
-  assert.match(search, /rows\.length > query\.limit\) throw new InvestigationSnapshotPaginationUnavailable/);
+test("T45/T62/T63: local-only U05 proof gate preserves production 503 for cursors/over-limit", () => {
+  assert.match(search, /parsed\.data\.cursor !== undefined && !isU05LocalProofEnabled\(\)/);
+  assert.match(search, /!isU05LocalProofEnabled\(\) \|\| !binding \|\| mutableVehicleFilter/);
+  const gate = file("apps/api/src/modules/management/audit-investigation/audit-investigation-u05-gate.ts");
+  assert.match(gate, /process\.env\.NODE_ENV !== "test"/);
+  assert.match(gate, /ISSUE300_U05_G2_PROOF_ENABLE !== "1"/);
+  assert.match(gate, /target\.pathname === "\/issue300_g2"/);
   assert.match(coordinator, /data\.nextCursor !== null\) throw new Error\("SEARCH_PAGINATION_INCOMPLETE"\)/);
   assert.match(projection, /page\.nextCursor !== null/);
   assert.match(coordinator, /attachInvestigationLiveTimeline\(withScope, timeline\)/);

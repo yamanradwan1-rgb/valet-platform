@@ -10,6 +10,12 @@ import {
 import { ServiceUnavailableException } from "@nestjs/common";
 import type { PostgresTransaction } from "../../../../common/database/postgres";
 import { recordAdminActivityInTransaction } from "../../../auth/mfa/mfa-assurance-policy";
+import { captureManagementPaginationSnapshot } from "../../management-pagination-snapshot";
+import { bindInvestigationCursor, decodeInvestigationCursor,
+  encodeInvestigationCursor, type InvestigationCursorBinding } from "../audit-investigation-cursor";
+import { isU05LocalProofEnabled } from "../audit-investigation-u05-gate";
+import { requireU05StableIndirectCohort } from "../audit-investigation-u05-indirect-guard";
+import { readU05IncidentPolicy } from "../audit-investigation-u05-policy";
 import type { StaffSessionContext } from "../../../auth/staff-session-context";
 import { ManagementAccessDeniedError } from "../../management-authorization";
 import {
@@ -79,10 +85,17 @@ export async function readAuditInvestigationTimeline(
   scope: AuditInvestigationLocationAuthorization,
   sessionId: string,
   input: AuditInvestigationTimelineQuery,
+  binding?: InvestigationCursorBinding,
 ): Promise<AuditInvestigationTimelineResponse> {
   const query = auditInvestigationTimelineQuerySchema.parse(input);
-  if (query.cursor) throw new TimelinePaginationNotProvenError();
-  const session = await readTimelineSession(tx, scope, sessionId);
+  if (query.cursor && !isU05LocalProofEnabled())
+    throw new TimelinePaginationNotProvenError();
+  if (query.cursor && !binding) throw new TimelinePaginationNotProvenError();
+  const decoded = binding ? decodeInvestigationCursor(query.cursor, binding) : null;
+  const captured = decoded === null
+    ? await captureManagementPaginationSnapshot(tx)
+    : { now: new Date(decoded.snapshotAt), snapshot: decoded.databaseSnapshot };
+  const session = await readTimelineSession(tx, scope, sessionId, captured.snapshot);
   // DEC-059: Incident visibility depends on the Location's CURRENT active
   // state, even when the other three historical sources remain readable.
   const currentLocation = await tx.query<{ readonly status: string }>(
@@ -91,21 +104,45 @@ export async function readAuditInvestigationTimeline(
     [scope.organizationId, scope.locationId],
   );
   const incidentAvailable = currentLocation.rows[0]?.status === "ACTIVE";
-  const rows = await readTimelineSources(tx, scope, sessionId, query.limit + 1);
+  const rows = await readTimelineSources(tx, scope, sessionId, query.limit + 1,
+    undefined, { now: captured.now, database: captured.snapshot,
+      ...(decoded?.purpose === "SESSION_TIMELINE" ? { last: decoded.last } : {}) });
   assertOrderedDistinct(rows);
-  if (rows.length > query.limit) throw new TimelinePaginationNotProvenError();
-  const now = await tx.query<{ readonly now: Date }>(
-    "SELECT clock_timestamp() AS now",
-  );
-  const snapshotAt = now.rows[0]?.now;
-  if (!(snapshotAt instanceof Date)) {
-    throw new Error("Timeline read timestamp unavailable.");
+  const hasMore = rows.length > query.limit;
+  if (hasMore && (!isU05LocalProofEnabled() || !binding))
+    throw new TimelinePaginationNotProvenError();
+  if (hasMore && captured.snapshot.length > 512)
+    throw new TimelinePaginationNotProvenError();
+  if (binding && isU05LocalProofEnabled() && (hasMore || query.cursor)) {
+    try {
+      await requireU05StableIndirectCohort(tx, scope,
+        { now: captured.now, database: captured.snapshot });
+    } catch {
+      throw new TimelinePaginationNotProvenError();
+    }
   }
+  const page = rows.slice(0, query.limit);
+  const last = page.at(-1);
+  const rank = { AUDIT: 0, KEY_CUSTODY: 1, DISPATCH: 2, INCIDENT: 3 };
+  const issuedAt = decoded?.issuedAt ?? new Date().toISOString();
+  const expiresAt = decoded?.expiresAt ??
+    new Date(Date.parse(issuedAt) + 15 * 60_000).toISOString();
+  const nextCursor = hasMore && binding && last
+    ? encodeInvestigationCursor(binding, {
+        version: 1, purpose: "SESSION_TIMELINE", sessionId,
+        organizationId: binding.organizationId, locationId: binding.locationId,
+        viewerSessionDigest: binding.viewerSessionDigest,
+        filterDigest: binding.filterDigest,
+        snapshotAt: captured.now.toISOString(), databaseSnapshot: captured.snapshot,
+        issuedAt, expiresAt,
+        last: { occurredAt: last.occurredAt.toISOString(),
+          sourceRank: rank[last.source], eventId: last.id },
+      }) : null;
   return auditInvestigationTimelineResponseSchema.parse({
     session,
-    items: rows.map((row) => projectTimelineRow(row, sessionId)),
-    nextCursor: null,
-    snapshotAt: snapshotAt.toISOString(),
+    items: page.map((row) => projectTimelineRow(row, sessionId)),
+    nextCursor,
+    snapshotAt: captured.now.toISOString(),
     order: "ASC",
     coverage: {
       AUDIT: available,
@@ -135,11 +172,18 @@ export async function readAuthorizedAuditInvestigationTimeline(
     organizationId,
     locationId,
   );
+  const binding = bindInvestigationCursor({
+    context, scope, purpose: "SESSION_TIMELINE", sessionId,
+    normalizedFilters: {
+      incidentPolicy: isU05LocalProofEnabled()
+        ? await readU05IncidentPolicy(tx, scope) : null,
+    },
+  });
   const response = await readAuditInvestigationTimeline(
     tx,
     scope,
     sessionId,
-    query,
+    query, binding,
   );
   if (scope.role === "ORG_ADMIN") {
     await recordAdminActivityInTransaction(tx, context);
