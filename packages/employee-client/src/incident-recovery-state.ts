@@ -56,7 +56,9 @@ export class IncidentRecoveryState {
   ): Promise<IncidentRecoveryMarker> {
     return this.serializeStorage(async () => {
       const raw = await observeIncidentPreflightAsync(
-        this.observe, "storage-read", () => this.store.read(),
+        this.observe,
+        "storage-read",
+        () => this.store.read(),
       );
       observeIncidentPreflight(this.observe, "marker-parse", () => {
         const existing = parseIncidentRecoveryMarker(raw);
@@ -70,16 +72,17 @@ export class IncidentRecoveryState {
       const marker: IncidentRecoveryMarker = {
         ...context,
         createdAt: new Date(this.now()).toISOString(),
-        incidentId: observeIncidentPreflight(
-          this.observe, "secure-uuid", () =>
-            incidentRecoveryIdSchema.parse(this.createId()),
+        incidentId: observeIncidentPreflight(this.observe, "secure-uuid", () =>
+          incidentRecoveryIdSchema.parse(this.createId()),
         ),
         protocol: incidentRecoveryProtocol,
         sessionId,
         version: 1,
       };
       await writeAndConfirmIncidentRecoveryMarker(
-        this.store, marker, this.observe,
+        this.store,
+        marker,
+        this.observe,
       );
       return marker;
     });
@@ -95,23 +98,27 @@ export class IncidentRecoveryState {
   async restore(
     context: IncidentRecoveryContext,
   ): Promise<IncidentRecoveryRestore> {
-    let raw: unknown | null;
+    let local:
+      | { readonly kind: "empty" | "invalidated" | "storage-unavailable" }
+      | { readonly kind: "marker"; readonly marker: IncidentRecoveryMarker };
     try {
-      raw = await this.serializeStorage(() => this.store.read());
+      local = await this.serializeStorage(async () => {
+        const raw = await this.store.read();
+        if (raw === null) return { kind: "empty" } as const;
+        const marker = parseIncidentRecoveryMarker(raw);
+        if (marker === undefined)
+          return { kind: "storage-unavailable" } as const;
+        if (!sameContext(marker, context)) {
+          await deleteAndConfirmIncidentRecoveryMarker(this.store);
+          return { kind: "invalidated" } as const;
+        }
+        return { kind: "marker", marker } as const;
+      });
     } catch {
       return { kind: "storage-unavailable" };
     }
-    if (raw === null) return { kind: "empty" };
-    const marker = parseIncidentRecoveryMarker(raw);
-    if (marker === undefined) return { kind: "storage-unavailable" };
-    if (!sameContext(marker, context)) {
-      try {
-        await deleteAndConfirmIncidentRecoveryMarker(this.store);
-        return { kind: "invalidated" };
-      } catch {
-        return { kind: "storage-unavailable" };
-      }
-    }
+    if (local.kind !== "marker") return local;
+    const marker = local.marker;
     try {
       return {
         deadlineReached: incidentRecoveryLocalDeadlineReached(
