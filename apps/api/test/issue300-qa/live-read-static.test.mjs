@@ -15,6 +15,8 @@ const api = file("apps/dashboard/src/features/audit/investigation/timeline/timel
 const search = file(
   "apps/api/src/modules/management/audit-investigation/search/audit-investigation-search.service.ts",
 );
+const selectorSupport = file("apps/dashboard/src/features/audit/investigation-live-support.ts");
+const memberOptions = file("apps/dashboard/src/features/audit/investigation/search/investigation-member-options.ts");
 
 test("T60: Investigation cannot mount native Audit Events hook in the same view", () => {
   const parent = audit.split("function AuditEventsContent()")[0];
@@ -56,4 +58,12 @@ test("T45/T62/T63: cursor and over-limit history remain explicit GAP, not fake f
   assert.match(coordinator, /data\.nextCursor !== null\) throw new Error\("SEARCH_PAGINATION_INCOMPLETE"\)/);
   assert.match(projection, /page\.nextCursor !== null/);
   assert.match(coordinator, /attachInvestigationLiveTimeline\(withScope, timeline\)/);
+});
+
+test("P1: >200 Member directory must not prevent time-only Investigation search", () => {
+  assert.match(selectorSupport, /members\.status === "complete" \? members\.options : \[\]/);
+  assert.match(selectorSupport, /memberOptionsComplete: members\.status === "complete"/);
+  assert.match(coordinator, /if \(draft\.employee && latestOptions\?\.memberOptionsComplete === false\)/);
+  assert.doesNotMatch(selectorSupport, /if \(members\.status !== "complete"\) \{\s*throw/);
+  assert.match(memberOptions, /options: \[\],\s*reason: "limit-exceeded"/);
 });

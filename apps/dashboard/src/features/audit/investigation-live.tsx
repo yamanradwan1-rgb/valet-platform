@@ -11,7 +11,7 @@ import type {
 } from "./investigation-demo-types";
 import { createLiveInvestigationDraft, buildLiveInvestigationQuery } from "./investigation-live-query";
 import { liveInvestigationError as uiError, selectorLabel,
-  type InvestigationLiveOptions as Options } from "./investigation-live-support";
+  readLiveSelectorOptions, type InvestigationLiveOptions as Options } from "./investigation-live-support";
 import {
   readInvestigationSearchFilters, readInvestigationSessions,
 } from "./investigation/search/investigation-search-client";
@@ -96,19 +96,16 @@ export function InvestigationLive({ locale, api, scope, locationName }: Props) {
     const context = {
       api, scope, signal: controller.signal, onAuthReconciled: revoke,
     };
-    void Promise.all([
-      readInvestigationSearchFilters(context, { kind: "MEMBER", limit: 20 }),
-      readInvestigationSearchFilters(context, { kind: "KEY_SLOT", limit: 20 }),
-    ]).then(([members, slots]) => {
+    void readLiveSelectorOptions(context, scopeKey, () => !controller.signal.aborted)
+      .then((loaded) => {
       if (controller.signal.aborted) return;
       const refined = refinedSlots.current?.query === typedSlot.current
         ? refinedSlots.current : null;
       setOptions({
-        members: members.items.map((item) => selectorLabel(item.id, item.currentLabel.value)),
-        slots: refined?.slots ?? slots.items.map((item) => selectorLabel(item.id, item.currentLabel.value)),
-        slotOptionsComplete: refined?.complete ?? (!slots.hasMore && slots.nextCursor === null),
+        ...loaded,
+        slots: refined?.slots ?? loaded.slots,
+        slotOptionsComplete: refined?.complete ?? loaded.slotOptionsComplete,
         slotQuery: refined?.query ?? "",
-        scopeKey,
       });
     }).catch((problem: unknown) => {
       if (!controller.signal.aborted) setOptionsError(uiError(locale, problem));
@@ -172,20 +169,8 @@ export function InvestigationLive({ locale, api, scope, locationName }: Props) {
         const context = {
           api, scope, signal: work.signal, onAuthReconciled: revoke,
         };
-        const [members, slots] = await Promise.all([
-          readInvestigationSearchFilters(context, { kind: "MEMBER", limit: 20 }),
-          readInvestigationSearchFilters(context, {
-            kind: "KEY_SLOT", limit: 20,
-            ...(draft.slot ? { text: draft.slot } : {}),
-          }),
-        ]);
-        latestOptions = {
-          members: members.items.map((item) => selectorLabel(item.id, item.currentLabel.value)),
-          slots: slots.items.map((item) => selectorLabel(item.id, item.currentLabel.value)),
-          slotOptionsComplete: !slots.hasMore && slots.nextCursor === null,
-          slotQuery: draft.slot,
-          scopeKey,
-        };
+        latestOptions = await readLiveSelectorOptions(context, scopeKey,
+          () => !work.signal.aborted && work.id === workId.current, draft.slot);
         if (work.signal.aborted || work.id !== workId.current) return;
         setOptions(latestOptions);
         setOptionsError(null);
@@ -200,6 +185,12 @@ export function InvestigationLive({ locale, api, scope, locationName }: Props) {
           ? "" : latestOptions?.scopeKey ?? "",
         slotOptionsComplete: latestOptions?.slotOptionsComplete ?? false,
       });
+      // An oversized current Member directory cannot prevent a time-only,
+      // KeySlot-only or vehicle search. Never permit a selected Employee to
+      // resolve against an incomplete membership list.
+      if (draft.employee && latestOptions?.memberOptionsComplete === false) {
+        throw new Error("MEMBER_DIRECTORY_INCOMPLETE");
+      }
       if (resolved.kind !== "resolved") {
         throw new Error("INVALID_OR_INCOMPLETE_CANONICAL_SELECTOR");
       }

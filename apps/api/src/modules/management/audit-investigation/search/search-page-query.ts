@@ -5,6 +5,7 @@ import type {
 } from "@valet/contracts";
 import type { PostgresTransaction } from "../../../../common/database/postgres";
 import type { AuditInvestigationLocationAuthorization } from "../security/audit-investigation-authorization";
+import { managementAuditKnownEventTypes } from "../../management-audit-event-catalog";
 import { searchWitnessSql } from "./search-witness-sql";
 
 interface SearchRow {
@@ -118,6 +119,7 @@ export async function queryAuditInvestigationFirstPage(
     normalized.plateCountry,
     normalized.plate,
     query.sessionId ?? null,
+    managementAuditKnownEventTypes,
   ]);
   return result.rows;
 }

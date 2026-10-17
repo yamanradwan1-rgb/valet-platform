@@ -4,6 +4,7 @@ import type {
 } from "@valet/contracts";
 import type { PostgresTransaction } from "../../../../common/database/postgres";
 import type { AuditInvestigationLocationAuthorization } from "../security/audit-investigation-authorization";
+import { managementAuditKnownEventTypes } from "../../management-audit-event-catalog";
 
 interface SelectorRow {
   readonly id: string;
@@ -35,9 +36,43 @@ export const locationMemberParticipationSql = `(
          AND member.id IN (d.actor_membership_id, d.previous_assignee_membership_id,
                            d.new_assignee_membership_id))
      OR EXISTS (SELECT 1 FROM audit_events a
+       JOIN valet_sessions audit_session
+         ON audit_session.organization_id = $1::uuid
+        AND audit_session.location_id = $2::uuid
+        AND (a.valet_session_id = audit_session.id
+          OR (a.valet_session_id IS NULL AND (
+            (a.entity_type IN ('ValetSession','VALET_SESSION')
+              AND a.entity_id = audit_session.id)
+            OR (a.entity_type IN ('Task','TASK') AND EXISTS (
+              SELECT 1 FROM tasks t WHERE t.id = a.entity_id
+                AND t.organization_id = $1::uuid AND t.location_id = $2::uuid
+                AND t.valet_session_id = audit_session.id))
+            OR (a.entity_type IN ('Incident','INCIDENT') AND EXISTS (
+              SELECT 1 FROM incidents i WHERE i.id = a.entity_id
+                AND i.organization_id = $1::uuid AND i.location_id = $2::uuid
+                AND i.valet_session_id = audit_session.id))
+          )))
        WHERE a.organization_id = $1::uuid AND a.location_id = $2::uuid
          AND a.actor_membership_id = member.id
-         AND (a.actor_type IS NULL OR a.actor_type = 'MEMBERSHIP'))
+         AND a.event_type::text = ANY($6::text[])
+         AND (a.actor_type IS NULL OR a.actor_type = 'MEMBERSHIP')
+         AND (a.entity_type NOT IN ('ValetSession','VALET_SESSION')
+           OR a.entity_id = audit_session.id)
+         AND (a.entity_type NOT IN ('Vehicle','VEHICLE')
+           OR a.entity_id = audit_session.vehicle_id)
+         AND (a.entity_type NOT IN ('Task','TASK') OR EXISTS (
+           SELECT 1 FROM tasks t WHERE t.id = a.entity_id
+             AND t.organization_id = $1::uuid AND t.location_id = $2::uuid
+             AND t.valet_session_id = audit_session.id))
+         AND (a.entity_type NOT IN ('Incident','INCIDENT') OR EXISTS (
+           SELECT 1 FROM incidents i WHERE i.id = a.entity_id
+             AND i.organization_id = $1::uuid AND i.location_id = $2::uuid
+             AND i.valet_session_id = audit_session.id))
+         AND (a.event_type <> 'VALET_SESSION_PARKED'
+           OR a.metadata_json->>'taskId' IS NULL OR EXISTS (
+             SELECT 1 FROM tasks t WHERE t.id::text = a.metadata_json->>'taskId'
+               AND t.organization_id = $1::uuid AND t.location_id = $2::uuid
+               AND t.valet_session_id = audit_session.id)))
      OR EXISTS (SELECT 1 FROM incidents i
        INNER JOIN locations location ON location.id = $2::uuid
          AND location.organization_id = $1::uuid AND location.status = 'ACTIVE'
@@ -53,18 +88,20 @@ SELECT member.id::text AS id,
    AND ($3::text IS NULL OR lower(concat_ws(' ', member.first_name, member.last_name))
         LIKE $3::text ESCAPE '\\')
    AND ${locationMemberParticipationSql}
- ORDER BY coalesce(member.first_name, '') COLLATE "C",
-          coalesce(member.last_name, '') COLLATE "C", member.id
+   AND ($5::uuid IS NULL OR member.id > $5::uuid)
+ ORDER BY member.id ASC
  LIMIT $4::integer`;
 
 export async function listAuditInvestigationFilterOptions(
   transaction: PostgresTransaction,
   scope: AuditInvestigationLocationAuthorization,
   query: AuditInvestigationFilterQuery,
+  afterMemberId: string | null = null,
 ): Promise<AuditInvestigationFilterResponse> {
   const result = await transaction.query<SelectorRow>(
     query.kind === "KEY_SLOT" ? slotSql : memberSql,
-    [scope.organizationId, scope.locationId, escapeSelectorPrefix(query.text), query.limit + 1],
+    [scope.organizationId, scope.locationId, escapeSelectorPrefix(query.text), query.limit + 1,
+      ...(query.kind === "MEMBER" ? [afterMemberId, managementAuditKnownEventTypes] : [])],
   );
   const hasMore = result.rows.length > query.limit;
   return {

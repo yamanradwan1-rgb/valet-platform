@@ -3,6 +3,7 @@ import type { PostgresTransaction } from "../../../../common/database/postgres";
 import { ManagementAccessDeniedError } from "../../management-authorization";
 import type { AuditInvestigationLocationAuthorization } from "../security/audit-investigation-authorization";
 import { locationMemberParticipationSql } from "./search-selector-query";
+import { managementAuditKnownEventTypes } from "../../management-audit-event-catalog";
 
 /**
  * Canonical UUIDs supplied by a client are selectors, never authority.
@@ -27,8 +28,9 @@ export async function requireCanonicalInvestigationSelectors(
     const member = await transaction.query(
       `SELECT 1 FROM organization_memberships member
        WHERE member.id = $3::uuid AND member.organization_id = $1::uuid
-         AND ${locationMemberParticipationSql}`,
-      [scope.organizationId, scope.locationId, query.membershipId],
+         AND ${locationMemberParticipationSql.replace("$6::text[]", "$4::text[]")}`,
+      [scope.organizationId, scope.locationId, query.membershipId,
+        managementAuditKnownEventTypes],
     );
     if (member.rows.length !== 1) throw new ManagementAccessDeniedError();
   }

@@ -16,6 +16,7 @@ import {
   queryAuditInvestigationFirstPage,
 } from "../../src/modules/management/audit-investigation/search/search-page-query";
 import { searchWitnessSql } from "../../src/modules/management/audit-investigation/search/search-witness-sql";
+import { managementAuditKnownEventTypes } from "../../src/modules/management/management-audit-event-catalog";
 
 const organizationId = "10000000-0000-4000-8000-000000000001";
 const locationId = "10000000-0000-4000-8000-000000000002";
@@ -89,6 +90,14 @@ describe("#300 first-page historical SQL (no PostgreSQL execution)", () => {
     expect(searchWitnessSql).toContain("a.valet_session_id = resolved.id");
   });
 
+  it("requires positive same-session Task/Incident links, and suppresses unknown Audit actor witnesses", () => {
+    expect(searchWitnessSql).toContain("a.entity_type NOT IN ('Task', 'TASK')");
+    expect(searchWitnessSql).toContain("task_ref.id IS NOT NULL AND task_ref.valet_session_id = resolved.id");
+    expect(searchWitnessSql).toContain("a.entity_type NOT IN ('Incident', 'INCIDENT')");
+    expect(searchWitnessSql).toContain("incident_ref.id IS NOT NULL AND incident_ref.valet_session_id = resolved.id");
+    expect(searchWitnessSql).toContain("a.event_type::text = ANY($15::text[])");
+  });
+
   it("uses separate scoped arms with exclusive end, first-page limit+1 and bound params", async () => {
     const {tx,querySpy} = fakeTx([row]);
     const normalized = normalizedInvestigationSearch(query);
@@ -105,7 +114,7 @@ describe("#300 first-page historical SQL (no PostgreSQL execution)", () => {
     expect(params).toEqual([
       organizationId, locationId, query.from, query.to, slotId, memberId,
       "to\\%\\_yo%", "cam\\\\ry%", snapshot.now, snapshot.database, 26, null,
-      "JO1234", sessionId,
+      "JO1234", sessionId, managementAuditKnownEventTypes,
     ]);
   });
 

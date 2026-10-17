@@ -18,7 +18,7 @@ const sourceBoundary = read(
 const auditArm = witness.split("UNION ALL")[0];
 
 test("T15: a direct Session pointer must not excuse missing/wrong Task entity", () => {
-  assert.match(timeline, /audit\.entity_type = 'Task' AND linked_task\.id IS NOT NULL/);
+  assert.match(timeline, /audit\.entity_type IN \('Task', 'TASK'\) AND linked_task\.id IS NOT NULL/);
   assert.match(auditArm, /a\.valet_session_id IS NULL OR a\.valet_session_id = resolved\.id/);
   const unsafe = auditArm.match(/task_ref\.id IS NULL OR task_ref\.valet_session_id = resolved\.id/)?.[0];
   assert.equal(
@@ -33,7 +33,7 @@ test("T15: a direct Session pointer must not excuse missing/wrong Task entity", 
 });
 
 test("T15/T21: a direct Session pointer must not excuse missing/wrong Incident entity", () => {
-  assert.match(timeline, /audit\.entity_type = 'INCIDENT' AND linked_incident\.id IS NOT NULL/);
+  assert.match(timeline, /audit\.entity_type IN \('Incident', 'INCIDENT'\) AND linked_incident\.id IS NOT NULL/);
   const unsafe = auditArm.match(/incident_ref\.id IS NULL OR incident_ref\.valet_session_id = resolved\.id/)?.[0];
   assert.equal(
     unsafe, undefined,

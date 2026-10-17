@@ -11,7 +11,8 @@ WITH scoped_location AS MATERIALIZED (
 witnesses AS MATERIALIZED (
   SELECT 'AUDIT'::text AS source, a.id, resolved.id AS session_id,
          a.occurred_at, NULL::uuid AS slot_id,
-         CASE WHEN a.actor_type IS NULL OR a.actor_type = 'MEMBERSHIP'
+         CASE WHEN a.event_type::text = ANY($15::text[])
+                   AND (a.actor_type IS NULL OR a.actor_type = 'MEMBERSHIP')
            THEN a.actor_membership_id ELSE NULL END AS actor_id,
          NULL::uuid AS previous_id, NULL::uuid AS new_id,
          NULL::uuid AS reporter_id
@@ -51,8 +52,12 @@ witnesses AS MATERIALIZED (
        OR a.entity_id = resolved.vehicle_id)
      AND (a.entity_type NOT IN ('ValetSession', 'VALET_SESSION')
        OR a.entity_id = resolved.id)
-     AND (task_ref.id IS NULL OR task_ref.valet_session_id = resolved.id)
-     AND (incident_ref.id IS NULL OR incident_ref.valet_session_id = resolved.id)
+     -- A direct Session ID cannot override a contradictory or foreign-scope
+     -- Task/Incident entity link. Require positive canonical ownership.
+     AND (a.entity_type NOT IN ('Task', 'TASK')
+       OR (task_ref.id IS NOT NULL AND task_ref.valet_session_id = resolved.id))
+     AND (a.entity_type NOT IN ('Incident', 'INCIDENT')
+       OR (incident_ref.id IS NOT NULL AND incident_ref.valet_session_id = resolved.id))
      AND (task_meta.id IS NULL OR task_meta.valet_session_id = resolved.id)
      AND (a.event_type <> 'VALET_SESSION_PARKED'
        OR NOT (a.metadata_json ? 'taskId')

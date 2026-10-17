@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { auditInvestigationFilterResponseSchema } from "@valet/contracts";
+import { managementAuditKnownEventTypes } from "../../src/modules/management/management-audit-event-catalog";
 import type { PostgresTransaction } from "../../src/common/database/postgres";
 import {
   auditInvestigationSelectorStatements,
@@ -35,7 +36,9 @@ describe("#300 bounded canonical selectors without DB", () => {
     expect(sql).toContain("organization_memberships member");
     expect(sql).not.toContain("member.status = 'ACTIVE'");
     expect(sql).not.toContain("current_assignee_membership_id");
-    expect(sql).not.toMatch(/phone|email|metadata_json|description/i);
+    expect(sql).not.toMatch(/\b(phone|email|description)\b/i);
+    expect(sql).not.toMatch(/AS\s+metadata_json/i);
+    expect(sql).toContain("a.metadata_json->>'taskId'");
     expect(sql).toContain("i.reported_by_membership_id");
     expect(sql).toContain("d.previous_assignee_membership_id");
   });
@@ -51,7 +54,7 @@ describe("#300 bounded canonical selectors without DB", () => {
       kind: "MEMBER", limit: 2, text: "Ali",
     });
     expect(spy.mock.calls[0]?.[0]).toBe(auditInvestigationSelectorStatements.memberSql);
-    expect(spy.mock.calls[0]?.[1]).toEqual([org,loc,"ali%",3]);
+    expect(spy.mock.calls[0]?.[1]).toEqual([org,loc,"ali%",3,null,managementAuditKnownEventTypes]);
     expect(result.hasMore).toBe(true);
     expect(result.nextCursor).toBeNull();
     expect(result.items[1]?.currentLabel).toEqual({
@@ -91,5 +94,9 @@ describe("#300 bounded canonical selectors without DB", () => {
     expect(sql).toContain("d.previous_assignee_membership_id");
     expect(sql).not.toContain("member.status = 'ACTIVE'");
     expect(sql).not.toContain("current_assignee_membership_id");
+    expect(sql).toContain("a.event_type::text = ANY($4::text[])");
+    expect(spy.mock.calls[0]?.[1]).toEqual([
+      org, loc, membership, managementAuditKnownEventTypes,
+    ]);
   });
 });

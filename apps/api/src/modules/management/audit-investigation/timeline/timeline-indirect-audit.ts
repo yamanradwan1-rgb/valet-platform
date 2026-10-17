@@ -20,14 +20,14 @@ WHERE session.organization_id = $1::uuid
   AND (
     (audit.entity_type IN ('ValetSession', 'VALET_SESSION')
       AND audit.entity_id = session.id)
-    OR (audit.entity_type = 'Task' AND EXISTS (
+    OR (audit.entity_type IN ('Task', 'TASK') AND EXISTS (
       SELECT 1 FROM tasks AS task
       WHERE task.organization_id = session.organization_id
         AND task.location_id = session.location_id
         AND task.valet_session_id = session.id
         AND task.id = audit.entity_id
     ))
-    OR (audit.entity_type = 'INCIDENT' AND EXISTS (
+    OR (audit.entity_type IN ('Incident', 'INCIDENT') AND EXISTS (
       SELECT 1 FROM incidents AS incident
       WHERE incident.organization_id = session.organization_id
         AND incident.location_id = session.location_id

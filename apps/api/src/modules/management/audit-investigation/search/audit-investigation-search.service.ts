@@ -24,6 +24,7 @@ import {
 } from "./search-page-query";
 import { listAuditInvestigationFilterOptions } from "./search-selector-query";
 import { requireCanonicalInvestigationSelectors } from "./search-selector-authorization";
+import { decodeMemberSelectorCursor, encodeMemberSelectorCursor } from "./search-selector-cursor";
 
 function literalPrefix(value: string | undefined): string | null {
   return value === undefined ? null : value.toLowerCase().replace(/[\\%_]/g, "\\$&") + "%";
@@ -115,12 +116,22 @@ export class AuditInvestigationSearchService {
     raw: AuditInvestigationFilterQuery) {
     const parsed = auditInvestigationFilterQuerySchema.safeParse(raw);
     if (!parsed.success) throw new ApiTransportValidationError();
-    if (parsed.data.cursor !== undefined) throw new InvestigationSnapshotPaginationUnavailable();
+    if (parsed.data.kind !== "MEMBER" && parsed.data.cursor !== undefined)
+      throw new ApiTransportValidationError();
     return inPostgresTransaction(this.pool, async (tx) => {
       const scope = await authorizeAuditInvestigationLocation(tx, context, organizationId, locationId);
-      const result = auditInvestigationFilterResponseSchema.parse(
-        await listAuditInvestigationFilterOptions(tx, scope, parsed.data),
-      );
+      const binding = { scope, context, text: parsed.data.text };
+      const after = parsed.data.cursor
+        ? decodeMemberSelectorCursor(binding, parsed.data.cursor) : null;
+      const page = await listAuditInvestigationFilterOptions(tx, scope, parsed.data, after);
+      const lastId = page.items.at(-1)?.id;
+      if (page.hasMore && parsed.data.kind === "MEMBER" && !lastId)
+        throw new ApiTransportValidationError();
+      const result = auditInvestigationFilterResponseSchema.parse({
+        ...page,
+        nextCursor: parsed.data.kind === "MEMBER" && page.hasMore && lastId
+          ? encodeMemberSelectorCursor(binding, lastId) : null,
+      });
       if (scope.role === "ORG_ADMIN") await recordAdminActivityInTransaction(tx, context);
       return result;
     });

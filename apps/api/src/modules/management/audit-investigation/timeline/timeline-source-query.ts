@@ -53,8 +53,8 @@ evidence AS (
    AND linked_task.location_id = session.location_id
    AND linked_task.valet_session_id = session.id
    AND (
-     (audit.entity_type = 'Task' AND audit.entity_id = linked_task.id)
-     OR (audit.entity_type <> 'Task'
+     (audit.entity_type IN ('Task', 'TASK') AND audit.entity_id = linked_task.id)
+     OR (audit.entity_type NOT IN ('Task', 'TASK')
          AND audit.event_type = 'VALET_SESSION_PARKED'
          AND linked_task.id::text = audit.metadata_json->>'taskId')
    )
@@ -62,25 +62,25 @@ evidence AS (
     ON linked_incident.organization_id = session.organization_id
    AND linked_incident.location_id = session.location_id
    AND linked_incident.valet_session_id = session.id
-   AND audit.entity_type = 'INCIDENT'
+   AND audit.entity_type IN ('Incident', 'INCIDENT')
    AND audit.entity_id = linked_incident.id
   WHERE (
     audit.valet_session_id = session.id
     OR (audit.valet_session_id IS NULL AND (
       (audit.entity_type IN ('ValetSession', 'VALET_SESSION')
        AND audit.entity_id = session.id)
-      OR (audit.entity_type = 'Task' AND linked_task.id IS NOT NULL)
-      OR (audit.entity_type = 'INCIDENT' AND linked_incident.id IS NOT NULL)
+      OR (audit.entity_type IN ('Task', 'TASK') AND linked_task.id IS NOT NULL)
+      OR (audit.entity_type IN ('Incident', 'INCIDENT') AND linked_incident.id IS NOT NULL)
     ))
   )
   AND (
     audit.entity_type NOT IN ('ValetSession', 'VALET_SESSION',
-                             'Task', 'INCIDENT', 'Vehicle')
+                             'Task', 'TASK', 'Incident', 'INCIDENT', 'Vehicle', 'VEHICLE')
     OR (audit.entity_type IN ('ValetSession', 'VALET_SESSION')
         AND audit.entity_id = session.id)
-    OR (audit.entity_type = 'Task' AND linked_task.id IS NOT NULL)
-    OR (audit.entity_type = 'INCIDENT' AND linked_incident.id IS NOT NULL)
-    OR (audit.entity_type = 'Vehicle'
+    OR (audit.entity_type IN ('Task', 'TASK') AND linked_task.id IS NOT NULL)
+    OR (audit.entity_type IN ('Incident', 'INCIDENT') AND linked_incident.id IS NOT NULL)
+    OR (audit.entity_type IN ('Vehicle', 'VEHICLE')
         AND audit.valet_session_id = session.id
         AND audit.entity_id = session.vehicle_id)
   )
