@@ -14,6 +14,18 @@ type EntryInput = {
   readonly task: StaffTaskQueueItem;
 };
 
+// Leaving Tasks while a re-entry read is pending must invalidate both the
+// navigation decision and its canonical session callbacks.
+export function cancelNativeTaskReentry(
+  revision: { current: number },
+  runtime: Pick<NativeEmployeeRuntime, "retrieval" | "handoff" | "release">,
+): void {
+  revision.current += 1;
+  runtime.retrieval.clear();
+  runtime.handoff.clear();
+  runtime.release.clear();
+}
+
 export async function executeNativeTaskReentry(input: EntryInput): Promise<boolean> {
   const revision = ++input.revision.current;
   const isEntryCurrent = () => input.revision.current === revision;

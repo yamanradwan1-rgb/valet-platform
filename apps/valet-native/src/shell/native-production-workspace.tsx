@@ -10,7 +10,7 @@ import { NativeActiveShiftPanel } from "../shift/native-active-shift-panel";
 import { NativeRetrievalAttention } from "../tasks/native-retrieval-attention";
 import { NativeTasksPanel } from "../tasks/native-tasks-panel";
 import { NativeNewVehicleButton } from "../tasks/native-new-vehicle-button";
-import { executeNativeTaskReentry } from "./native-task-reentry";
+import { cancelNativeTaskReentry, executeNativeTaskReentry } from "./native-task-reentry";
 import { getNativeTasksCopy } from "../tasks/native-tasks-copy";
 import { NativeVehiclesRoute } from "../vehicles/native-vehicles-route";
 import { NativeScanHubScreen } from "../scan/native-scan-hub-screen";
@@ -39,6 +39,7 @@ import type { NativeProductionWorkspaceProps } from "./native-production-workspa
 import { nativeIncidentRecoveryVisible } from "../incident/native-incident-types";
 import { NativeTaskTrackingStatus } from "../tracking/native-task-tracking-status";
 import { NativeBatteryNotice } from "../notifications/native-battery-warning";
+import type { ProductionDestination } from "./production-shell-controller";
 
 export function NativeProductionWorkspace({
   authSnapshot,
@@ -65,6 +66,12 @@ export function NativeProductionWorkspace({
   const taskCopy = getNativeTasksCopy(locale);
   const shiftEnd = runtime.shiftEnd.current();
   const taskEntryRevision = useRef(0);
+  const navigateAwayFromTasks = (destination: ProductionDestination) => {
+    if (shell.destination === "tasks" && destination !== "tasks") {
+      cancelNativeTaskReentry(taskEntryRevision, runtime);
+    }
+    navigate(destination);
+  };
 
   return (
     <EmployeeFrame direction={presentation.direction}>
@@ -237,7 +244,7 @@ export function NativeProductionWorkspace({
             headerAction={
               <NativeNewVehicleButton
                 label={taskCopy.newVehicle}
-                onPress={() => navigate("check-in")}
+                onPress={() => navigateAwayFromTasks("check-in")}
               />
             }
             locale={locale}
@@ -271,7 +278,7 @@ export function NativeProductionWorkspace({
       <NativeProductionNavigation
         activeDestination={shell.destination}
         locale={locale}
-        onNavigate={navigate}
+        onNavigate={navigateAwayFromTasks}
         pinned={
           nativeContextualNavigationPinned(contextual.route) ||
           shell.destination === "check-in" ||

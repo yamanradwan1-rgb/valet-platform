@@ -5,7 +5,7 @@ import type {
 } from "@valet/employee-client";
 
 import { shouldShowNativeHandoff } from "../src/handoff/native-handoff-route-presentation";
-import { executeNativeTaskReentry } from "../src/shell/native-task-reentry";
+import { cancelNativeTaskReentry, executeNativeTaskReentry } from "../src/shell/native-task-reentry";
 import { closeRetrieval } from "../src/shell/native-production-workflow-navigation";
 import { operations, scope } from "./production-shell-test-fixture";
 
@@ -120,6 +120,31 @@ function harness(tasks: StaffTaskQueueItem[]) {
 }
 
 describe("Issue 297: native Retrieval re-entry", () => {
+  it("cancels a pending READY re-entry when leaving Tasks for another tab", async () => {
+    const ready = task("task-ready", "READY");
+    const h = harness([ready]);
+    const lateRead = deferred();
+    h.pending.set(ready.taskId, lateRead);
+
+    const opening = h.entry(ready);
+    expect(h.retrieval.current().phase).toBe("loading");
+    cancelNativeTaskReentry(h.revision, h.runtime as never);
+    h.navigate("vehicles");
+    lateRead.resolve();
+
+    expect(await opening).toBe(false);
+    expect(h.retrieval.current().phase).toBe("inactive");
+    expect(h.handoff.current().phase).toBe("inactive");
+    expect(h.handoff.openTask).not.toHaveBeenCalled();
+    expect(h.navigate).toHaveBeenCalledExactlyOnceWith("vehicles");
+
+    // Returning to Tasks can start one fresh canonical read and Handoff.
+    h.navigate.mockClear();
+    expect(await h.entry(ready)).toBe(true);
+    expect(h.handoff.openTask).toHaveBeenCalledTimes(1);
+    expect(h.navigate).toHaveBeenCalledExactlyOnceWith("retrieval");
+  });
+
   it("restores canonical READY Secure Handoff after Back to Tasks and reopen, exactly once", async () => {
     const ready = task("task-ready", "READY");
     const h = harness([ready]);
