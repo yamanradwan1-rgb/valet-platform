@@ -1,0 +1,125 @@
+import { describe, expect, it, vi } from "vitest";
+import {
+  auditInvestigationSearchQuerySchema,
+  auditInvestigationSearchResponseSchema,
+} from "@valet/contracts";
+import type { PostgresTransaction } from "../../src/common/database/postgres";
+import type { AuditInvestigationLocationAuthorization } from "../../src/modules/management/audit-investigation/security/audit-investigation-authorization";
+import {
+  normalizedInvestigationSearch,
+  searchAuditInvestigationSessions,
+  InvestigationSnapshotPaginationUnavailable,
+} from "../../src/modules/management/audit-investigation/search/audit-investigation-search.service";
+import {
+  auditInvestigationFirstPageSql,
+  projectAuditInvestigationSearchItem,
+  queryAuditInvestigationFirstPage,
+} from "../../src/modules/management/audit-investigation/search/search-page-query";
+import { searchWitnessSql } from "../../src/modules/management/audit-investigation/search/search-witness-sql";
+
+const organizationId = "10000000-0000-4000-8000-000000000001";
+const locationId = "10000000-0000-4000-8000-000000000002";
+const sessionId = "10000000-0000-4000-8000-000000000003";
+const slotId = "10000000-0000-4000-8000-000000000004";
+const memberId = "10000000-0000-4000-8000-000000000005";
+const eventId = "10000000-0000-4000-8000-000000000006";
+const scope: AuditInvestigationLocationAuthorization = {
+  organizationId, locationId, membershipId: memberId, role: "LOCATION_MANAGER",
+};
+const query = auditInvestigationSearchQuerySchema.parse({
+  from: "2026-10-23T11:00:00.000Z", to: "2026-10-23T12:00:00.000Z",
+  keySlotId: slotId, membershipId: memberId, sessionId,
+  plate: "jo 12-34", make: "To%_yo", model: "Cam\\ry",
+});
+const snapshot = { now: new Date("2026-10-23T12:01:00.000Z"), database: "150:180:" };
+const row: Parameters<typeof projectAuditInvestigationSearchItem>[0] = {
+  sessionId,
+  firstMatchedAt: new Date("2026-10-23T11:01:00.000Z"),
+  lastMatchedAt: new Date("2026-10-23T11:59:00.000Z"),
+  matchingRecordCount: 2,
+  matchedIncidentCount: 0,
+  hasVisibleIncident: true,
+  incidentAvailable: true,
+  currentState: "PARKED",
+  make: "Toyota", model: "Camry", plate: "JO-1234", plateCountry: "JO",
+  temporaryDescriptor: null, keySlotId: null, slotCode: null,
+  reasons: [
+    { source: "KEY_CUSTODY", eventId, matchedBy: "KEY_SLOT" },
+    { source: "DISPATCH", eventId, matchedBy: "EMPLOYEE", participationRole: "PREVIOUS_ASSIGNEE" },
+  ],
+};
+
+function fakeTx(rows: readonly unknown[]) {
+  const querySpy = vi.fn(async (_sql: string, _values?: readonly unknown[]) => ({ rows }));
+  return { querySpy, tx: { query: querySpy } as unknown as PostgresTransaction };
+}
+
+describe("#300 first-page historical SQL (no PostgreSQL execution)", () => {
+  it("strictly rejects unapproved query keys and incorrect UTC interval", () => {
+    expect(auditInvestigationSearchQuerySchema.safeParse({ ...query, descriptor: "red" }).success).toBe(false);
+    expect(auditInvestigationSearchQuerySchema.safeParse({ ...query, to: query.from }).success).toBe(false);
+    expect(auditInvestigationSearchQuerySchema.safeParse({ ...query, from: "2026-10-23T14:00:00+03:00" }).success).toBe(false);
+  });
+
+  it("never models current Session slot or current Task assignee as historical witness", () => {
+    expect(searchWitnessSql).toContain("k.key_slot_id");
+    expect(searchWitnessSql).toContain("d.previous_assignee_membership_id");
+    expect(searchWitnessSql).toContain("d.new_assignee_membership_id");
+    expect(searchWitnessSql).toContain("i.reported_by_membership_id");
+    expect(searchWitnessSql).not.toMatch(/session\.key_slot_id/);
+    expect(searchWitnessSql).not.toMatch(/current_assignee_membership_id/);
+    expect(searchWitnessSql).toContain("bool_or(key_match)");
+    expect(searchWitnessSql).toContain("bool_or(employee_role IS NOT NULL)");
+    expect(searchWitnessSql).toContain("a.pagination_birth_xid");
+    expect(searchWitnessSql).toContain("task_meta.id::text = a.metadata_json->>'taskId'");
+    expect(searchWitnessSql).toContain("a.event_type = 'VALET_SESSION_PARKED'");
+    expect(searchWitnessSql).toContain("task_meta.valet_session_id = resolved.id");
+    expect(searchWitnessSql).toContain("NOT (a.metadata_json ? 'taskId')");
+    expect(searchWitnessSql).not.toMatch(/metadata_json->>'taskId'\s*\)::uuid/);
+    expect(searchWitnessSql).not.toMatch(/k\.pagination_birth_xid|d\.pagination_birth_xid|i\.pagination_birth_xid/);
+  });
+
+  it("uses separate scoped arms with exclusive end, first-page limit+1 and bound params", async () => {
+    const {tx,querySpy} = fakeTx([row]);
+    const normalized = normalizedInvestigationSearch(query);
+    expect(normalized.plate).toBe("JO1234");
+    expect(normalized.makePrefix).toBe("to\\%\\_yo%");
+    expect(normalized.modelPrefix).toBe("cam\\\\ry%");
+    await queryAuditInvestigationFirstPage(tx, scope, query, normalized, snapshot);
+    const [sql,params] = querySpy.mock.calls[0]!;
+    expect(sql).toBe(auditInvestigationFirstPageSql);
+    expect(sql).toContain("k.occurred_at >= $3::timestamptz");
+    expect(sql).toContain("d.occurred_at < $4::timestamptz");
+    expect(sql).toContain("ORDER BY summary.last_at DESC, session.id DESC");
+    expect(sql).not.toMatch(/\b(?:INSERT|UPDATE|DELETE)\s/i);
+    expect(params).toEqual([
+      organizationId, locationId, query.from, query.to, slotId, memberId,
+      "to\\%\\_yo%", "cam\\\\ry%", snapshot.now, snapshot.database, 26, null,
+      "JO1234", sessionId,
+    ]);
+  });
+
+  it("keeps incidents outside the search window as current indication, not matched count", () => {
+    const item = projectAuditInvestigationSearchItem(row);
+    expect(item.hasVisibleIncident).toBe(true);
+    expect(item.matchedIncidentCount).toBe(0);
+    expect(item.matchingRecordCount).toBe(2);
+    expect(item.currentKeySlot.keySlotId).toBeNull();
+    expect(item.currentVehicle.temporaryDescriptor.unavailable).toBe(true);
+    expect(item.matchReasons.map((reason) => reason.matchedBy)).toEqual(["KEY_SLOT", "EMPLOYEE"]);
+  });
+
+  it("fails closed on an overfull page; never invents cursor or truncates matches", async () => {
+    const {tx} = fakeTx(Array(26).fill(row));
+    await expect(searchAuditInvestigationSessions(tx, scope, query, snapshot))
+      .rejects.toBeInstanceOf(InvestigationSnapshotPaginationUnavailable);
+  });
+
+  it("returns contract-shaped first page only when no continuation exists", async () => {
+    const {tx} = fakeTx([row]);
+    const result = await searchAuditInvestigationSessions(tx, scope, query, snapshot);
+    expect(result.nextCursor).toBeNull();
+    expect(result.items).toHaveLength(1);
+    expect(auditInvestigationSearchResponseSchema.safeParse(result).success).toBe(true);
+  });
+});
