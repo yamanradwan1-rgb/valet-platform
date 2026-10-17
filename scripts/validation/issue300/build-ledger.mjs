@@ -76,6 +76,8 @@ if (process.argv.includes("--write")) {
   console.log(`Wrote ${rows.length} GAP rows: ${ledgerPath}`);
 } else {
   const existing = readFileSync(ledgerPath, "utf8");
-  if (existing !== rendered) throw Error("Ledger is stale or has changed; update only by explicit review");
+  if (existing.replace(/\r\n/g, "\n") !== rendered) {
+    throw Error("Ledger is stale or has changed; update only by explicit review");
+  }
   console.log(`PASS: ${rows.length} ordered acceptance rows match §27`);
 }
