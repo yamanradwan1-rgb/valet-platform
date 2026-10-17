@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { View } from "react-native";
 
 import {
@@ -9,7 +10,7 @@ import { NativeActiveShiftPanel } from "../shift/native-active-shift-panel";
 import { NativeRetrievalAttention } from "../tasks/native-retrieval-attention";
 import { NativeTasksPanel } from "../tasks/native-tasks-panel";
 import { NativeNewVehicleButton } from "../tasks/native-new-vehicle-button";
-import { executeNativeTaskAction } from "../tasks/native-task-action-sequence";
+import { executeNativeTaskReentry } from "./native-task-reentry";
 import { getNativeTasksCopy } from "../tasks/native-tasks-copy";
 import { NativeVehiclesRoute } from "../vehicles/native-vehicles-route";
 import { NativeScanHubScreen } from "../scan/native-scan-hub-screen";
@@ -63,6 +64,7 @@ export function NativeProductionWorkspace({
   const copy = getNativeShellCopy(locale);
   const taskCopy = getNativeTasksCopy(locale);
   const shiftEnd = runtime.shiftEnd.current();
+  const taskEntryRevision = useRef(0);
 
   return (
     <EmployeeFrame direction={presentation.direction}>
@@ -241,6 +243,7 @@ export function NativeProductionWorkspace({
             locale={locale}
             operations={runtime.operations}
             onOverrideHandoff={(task) => {
+              taskEntryRevision.current += 1;
               openHandoff(
                 runtime,
                 authSnapshot,
@@ -250,34 +253,16 @@ export function NativeProductionWorkspace({
               );
               navigate("retrieval");
             }}
-            onTaskAction={async (task) => {
-              const result = await executeNativeTaskAction({
-                identityGeneration: authSnapshot.authGeneration,
-                operations: runtime.operations,
-                parking: runtime.parking,
-                retrieval: runtime.retrieval,
-                scope: shell.scope,
+            onTaskAction={(task) =>
+              executeNativeTaskReentry({
+                authSnapshot,
+                navigate,
+                revision: taskEntryRevision,
+                runtime,
+                shell,
                 task,
-              });
-              if (result.kind !== "navigate") return false;
-              if (
-                result.destination === "retrieval" &&
-                task.valetSessionState === "HANDOFF_PENDING"
-              ) {
-                openHandoff(
-                  runtime,
-                  authSnapshot,
-                  shell,
-                  task.taskId,
-                  task.sessionId,
-                );
-              } else if (result.destination === "retrieval") {
-                runtime.handoff.clear();
-                runtime.release.clear();
-              }
-              navigate(result.destination);
-              return true;
-            }}
+              })
+            }
             snapshot={operations}
             textAlign={presentation.textAlign}
           />

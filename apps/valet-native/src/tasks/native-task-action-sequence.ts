@@ -22,8 +22,9 @@ export async function executeNativeTaskAction(input: {
   readonly retrieval: EmployeeRetrievalSession;
   readonly scope: EmployeeOperationalScope;
   readonly task: StaffTaskQueueItem;
+  readonly isEntryCurrent?: () => boolean;
 }): Promise<NativeTaskActionResult> {
-  if (!hasCurrentAuthority(input)) return { kind: "denied" };
+  if (!isEntryCurrent(input) || !hasCurrentAuthority(input)) return { kind: "denied" };
   const initial = currentTask(input.operations, input.task, false);
   if (initial === null || assignedToOther(initial, input.scope.membershipId)) {
     return { kind: "denied" };
@@ -36,6 +37,8 @@ export async function executeNativeTaskAction(input: {
   if (initial.status === "QUEUED" || initial.status === "ASSIGNED") {
     await input.operations.acceptTask(initial.taskId);
   }
+  if (!isEntryCurrent(input) || !hasCurrentAuthority(input))
+    return { kind: "failed" };
 
   const task = currentTask(input.operations, initial);
   if (
@@ -49,16 +52,23 @@ export async function executeNativeTaskAction(input: {
   if (task.valetSessionState === "HANDOFF_PENDING") {
     return { kind: "navigate", destination: "retrieval" };
   }
+  if (!isEntryCurrent(input)) return { kind: "failed" };
   await input.retrieval.openQueueTask(
     input.identityGeneration,
     input.scope,
     task.taskId,
     task.sessionId,
   );
+  if (!isEntryCurrent(input) || !hasCurrentAuthority(input))
+    return { kind: "failed" };
   const phase = input.retrieval.current().phase;
   return phase === "key-checkout" || phase === "retrieving" || phase === "ready"
     ? { kind: "navigate", destination: "retrieval" }
     : { kind: "failed" };
+}
+
+function isEntryCurrent(input: Parameters<typeof executeNativeTaskAction>[0]) {
+  return input.isEntryCurrent?.() !== false;
 }
 
 async function executeParkingAction(
