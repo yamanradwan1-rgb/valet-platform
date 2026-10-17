@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import type { ManagementAuditEvent } from "@valet/contracts";
 
 import { useProtectedDashboard } from "../../components/foundation/protected-dashboard-context";
@@ -17,7 +17,7 @@ import { auditScope, auditScopeKey } from "./audit-scope";
 import styles from "./audit.module.css";
 import { useAuditPage } from "./use-audit-page";
 import { auditTimeContext } from "./audit-presentation";
-import { InvestigationDemo } from "./investigation-demo";
+import { InvestigationLive } from "./investigation-live";
 import switchStyles from "./audit-view-switch.module.css";
 
 type AuditView = "events" | "investigation";
@@ -44,9 +44,10 @@ export function AuditPage() {
 
 function AuditContent() {
   const dashboard = useProtectedDashboard();
+  const { selectionRevision } = useSelectedScope();
   const { locale } = useDashboardLocale();
   const t = auditCopy(locale);
-  const scope = auditScope(dashboard.selectedScope);
+  const scope = useMemo(() => auditScope(dashboard.selectedScope), [dashboard.selectedScope]);
   // null on SSR and the first hydration pass. This guarantees that no live
   // Audit hook mounts until the URL's opt-in choice has been resolved.
   const reviewOptIn = useSyncExternalStore(subscribeToQuery, readReviewQuery, serverReviewQuery);
@@ -56,6 +57,21 @@ function AuditContent() {
 
   const canReview = scope?.kind === "LOCATION" &&
     (scope.role === "COMPANY_ADMIN" || scope.role === "LOCATION_MANAGER");
+  const liveScope = useMemo(() => scope?.kind === "LOCATION" &&
+      (scope.role === "COMPANY_ADMIN" || scope.role === "LOCATION_MANAGER")
+    ? {
+        organizationId: scope.organizationId,
+        locationId: scope.locationId,
+        role: scope.role,
+        identityGeneration: dashboard.identityGeneration,
+        sessionGeneration: dashboard.sessionGeneration,
+        selectionRevision,
+      } : null,
+  [scope, dashboard.identityGeneration, dashboard.sessionGeneration, selectionRevision]);
+  const locationName = dashboard.selectedScope.authority === "COMPANY_ADMIN"
+    ? dashboard.selectedScope.context.selectedLocation?.name ?? ""
+    : dashboard.selectedScope.authority === "LOCATION_MANAGER"
+      ? dashboard.selectedScope.location.name : "";
   // The selected Concept A remains review-only. In local development,
   // authorized admins/managers can discover the tab from the existing Audit
   // sidebar route without manually typing the review query; ordinary Audit
@@ -85,12 +101,12 @@ function AuditContent() {
       {showInvestigation ? (
         <p className={switchStyles.notice} role="note">
           <strong className={switchStyles.noticeTitle}>
-            {locale === "ar" ? "بيانات تجريبية · نموذج واجهة" : "DEMO DATA · UX PROTOTYPE"}
+            {locale === "ar" ? "بيانات فعلية · قراءة مصرّح بها" : "LIVE DATA · AUTHORIZED READ ONLY"}
           </strong>
           <span>
             {locale === "ar"
-              ? "مراجع أحداث خيالية وليست UUID حقيقية؛ لا يسترجع هذا البحث بيانات العملاء أو أدلة فعلية. التوقيت Asia/Amman (UTC+03:00)."
-              : "Fictional event references (not database UUIDs). No real customer records or Investigation API queries. Asia/Amman (UTC+03:00)."}
+              ? "سجلات من مصادر التحقيق المصرّح بها فقط. أسماء الأشخاص والمركبات وصف حالي وليست لقطة تاريخية. قد يتعذر عرض السجل الكامل إذا تجاوز حد القراءة الآمن. التوقيت Asia/Amman (UTC+03:00)."
+              : "Authorized Investigation source records only. People and vehicle labels are current, not historical snapshots. Large histories may be unavailable beyond the proven read bound. Asia/Amman (UTC+03:00)."}
           </span>
         </p>
       ) : null}
@@ -147,9 +163,10 @@ function AuditContent() {
       ) : null}
       {!queryReady ? (
         <div className={styles.state} role="status">{t.loading}</div>
-      ) : showInvestigation ? (
+      ) : showInvestigation && liveScope ? (
         <section aria-labelledby="audit-investigation-tab" id="audit-investigation-panel" role="tabpanel">
-          <InvestigationDemo locale={locale} />
+          <InvestigationLive locale={locale} api={dashboard.api} scope={liveScope}
+            locationName={locationName} />
         </section>
       ) : showSwitch ? (
         <section aria-labelledby="audit-events-tab" id="audit-events-panel" role="tabpanel">

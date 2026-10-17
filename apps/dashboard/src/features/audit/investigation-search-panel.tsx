@@ -231,7 +231,7 @@ export function InvestigationSearchPanel({
               className={styles.control}
               dir="ltr"
               onChange={(event) =>
-                change("sessionId", event.target.value.toUpperCase())
+                change("sessionId", live ? event.target.value : event.target.value.toUpperCase())
               }
               placeholder={live ? undefined : "VS-DEMO-1021"}
               spellCheck={false}
