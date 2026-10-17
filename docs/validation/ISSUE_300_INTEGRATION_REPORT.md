@@ -1,5 +1,25 @@
 # VAYLET Issue #300 — Local Backend and Concept A Live-Data Integration
 
+> **Authoritative G2 continuation (2026-10-18):** This report's older G1
+> sections below describe the previously tested `3210555c` code only; the
+> current **reviewable local code candidate** is
+> **`f90c3cabbff07c57df57ee783f052b30a70b0a21`**, building on
+> `961f324f` and `4b0b4ac3`. An independently owned PostgreSQL 17.10 database
+> `issue300_g2` at `127.0.0.1:55480` was established and its **93/93**
+> migrations applied. The **CURRENT candidate** API was compiled on local
+> `3161` and the Dashboard loaded from the Prime worktree at `3113`. The
+> independent signed authenticated CA/LM/foreign/Supervisor/MFA and 4-source
+> HTTP tests, a real first-session/detail/Escape/focus browser pass, one
+> network abort/manual recovery, 32 synthetic panel-smoke cases and PostgreSQL
+> late-commit race proof executed. **These are not T01 actual domain-writer,
+> U05 cross-source stable pagination, full T58–T70 browser or target-load
+> acceptance. Full Issue #300 acceptance remains NOT ACHIEVED.** Exact latest
+> test commands, candid limitations and source coverage are in
+> `issue300/G2_RUNTIME_EVIDENCE.md`, original Section 27 traceability is in
+> `issue300/T01-T70_ACCEPTANCE_LEDGER.md`, and Owner-dependent forward-only
+> architecture/DDL gates are in `issue300/U05_SNAPSHOT_DECISION.md`.
+> **No push/PR/main merge/deployment/production migration/Issue closure.**
+
 Date: 2026-10-17. **Candidate, not release-approved.**
 
 ## Authority and Git baseline
@@ -44,7 +64,7 @@ The backend deliberately rejects cursor or overfull first-page results with expl
 - `pnpm architecture:check` returned exit 0 with pre-existing grandfathered unrelated file-length warnings. New authored code stays at or below 300 physical lines per file. `git diff --check` passed.
 - Post-exception QA `node scripts/validation/issue300/verify-live-ui-exceptions.mjs . tmp/issue300-g0/FROZEN_UI_MANIFEST.json`: **119/124 original files unchanged and 5/5 data-only exceptions accounted for; no CSS/Help/Shell source differences.** This is STATIC, not rendered browser parity.
 
-## Unresolved acceptance gates — no misleading PASS
+## Historical G1 acceptance gaps — superseded where G2 evidence explicitly proves a newer result
 
 1. **U05 PostgreSQL cross-source snapshot:** Current Prisma schema has immutable `pagination_birth_xid` for AuditEvent and ValetSession only, not KeyCustodyEvent/DispatchEvent/Incident. Strong late-commit stable continuation needs approved forward-only birth-XID/index/rollout/grants design and real two-connection proof. Until then pages exceeding the safe first-page limit fail closed. No migration authored or executed.
 2. **Owned PostgreSQL environment:** Provisioning an isolated task-owned PostgreSQL 17 at port 55430 was blocked by tool safety checks. The already-running local `valet` database on 5432 is shared/non-task-owned and was **not** used for Issue #300 DB, writer, migration, HTTP, benchmark, or regression acceptance.
@@ -53,6 +73,6 @@ The backend deliberately rejects cursor or overfull first-page results with expl
 5. **Large selector sets:** Slot-code input now refines its `KEY_SLOT` selector request with the typed exact-code prefix and refuses ambiguous/incomplete responses. The existing native Employee select still initially exposes at most the first 20 scoped member options: members outside that bounded list require a future access-safe searchable selector/continuation design. Do not claim full U01 employee discoverability for large Locations.
 6. **Independent QA follow-ups:** Source-based reviewer found and Prime corrected timeline's missing discovery-context before/inside/after classification, transient selector query retry via existing Apply, and timeline/detail API auth-reconciliation cancellation callbacks. Typed slot-code search now requests bounded exact-prefix suggestions rather than treating the first 20 global slots as complete. Their browser race/authorization behavior still needs G3 execution.
 
-## Verdict
+## Original G1 verdict (historical; current verdict is in the authoritative G2 notice above)
 
 **Local typed/backend/frontend implementation candidate exists and is covered by focused static and mock tests, but full Issue #300 definition-of-done is NOT met.** Pagination proof and real PostgreSQL/HTTP/actual-writer/browser/performance/security acceptance remain explicit, blocking gaps. No production deployment or Issue closure authorized.

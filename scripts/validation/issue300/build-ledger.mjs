@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
 // This script never opens a DB, starts a server, or changes production files.
@@ -71,13 +71,67 @@ const content = [
 ];
 const rendered = content.join("\n");
 if (process.argv.includes("--write")) {
+  if (existsSync(ledgerPath) &&
+      readFileSync(ledgerPath, "utf8").replace(/\r\n/g, "\n") !== rendered) {
+    throw Error("Refusing to overwrite reviewed G2 acceptance evidence with the design-stage GAP template");
+  }
   mkdirSync(dirname(ledgerPath), { recursive: true });
   writeFileSync(ledgerPath, rendered, "utf8");
   console.log(`Wrote ${rows.length} GAP rows: ${ledgerPath}`);
 } else {
-  const existing = readFileSync(ledgerPath, "utf8");
-  if (existing.replace(/\r\n/g, "\n") !== rendered) {
-    throw Error("Ledger is stale or has changed; update only by explicit review");
+  const existing = readFileSync(ledgerPath, "utf8").replace(/\r\n/g, "\n");
+  if (existing === rendered) {
+    console.log(`PASS: ${rows.length} baseline GAP acceptance rows match §27`);
+  } else {
+    // G2 evidence may advance a row beyond the original all-GAP matrix. Do NOT
+    // accept free-form edits: validate the original §27 criterion/owner/lane,
+    // all 70 ordered IDs, explicit evidence classifications and a pinned code
+    // candidate SHA. The original --write baseline initializer stays unchanged.
+    const header = "| ID | Criterion (§27, verbatim) | Owners | Independent evidence lane | Result | Evidence / blocker | Exact command / execution | Code candidate SHA | Next action |";
+    const parsedLines = existing.split("\n");
+    if (!parsedLines.includes(header)) {
+      throw Error("G2 acceptance ledger must retain explicit nine-column evidence headers");
+    }
+    const g2Rows = parsedLines.filter((line) => /^\| T\d{2} \|/.test(line));
+    if (g2Rows.length !== rows.length) {
+      throw Error(`Issue300 G2 ledger must contain 70 distinct ordered rows, got ${g2Rows.length}`);
+    }
+    const usedIds = new Set();
+    const candidateShas = new Set();
+    for (const [index, value] of g2Rows.entries()) {
+      const cells = value.split("|").slice(1, -1).map((item) => item.trim());
+      const expected = rows[index];
+      if (cells.length !== 9 || cells[0] !== expected.id ||
+          cells[1] !== expected.criterion || cells[2] !== expected.owners ||
+          cells[3] !== lane(index + 1) || usedIds.has(cells[0])) {
+        throw Error(`Issue300 G2 ledger diverges from binding §27 at ${expected.id}`);
+      }
+      usedIds.add(cells[0]);
+      const isGap = cells[4] === "**GAP**";
+      const isPass = /^\*\*PASS \(G2 SQL fixture \+ authenticated HTTP; criterion only\)\*\*$/.test(cells[4]);
+      if (!isGap && !isPass) throw Error(`Unreviewed acceptance status ${expected.id}`);
+      if (!cells[5] || !cells[6] || !cells[8] ||
+          !/^[a-f0-9]{40}$/.test(cells[7])) {
+        throw Error(`Missing explicit evidence, command, action or code SHA for ${expected.id}`);
+      }
+      candidateShas.add(cells[7]);
+      if (isPass && (index + 1 !== 30 && index + 1 !== 32 ||
+          !cells[5].includes("G2_RUNTIME_EVIDENCE.md") ||
+          !cells[6].includes("issue300-pg-proof.mjs") ||
+          !cells[6].includes("issue300-auth-http-proof.mjs"))) {
+        throw Error(`Unsupported G2 PASS claim for ${expected.id}`);
+      }
+      if (isGap && !cells[8].includes("Run") &&
+          !cells[8].includes("Execute")) {
+        throw Error(`GAP ${expected.id} has no concrete next test action`);
+      }
+    }
+    if (candidateShas.size !== 1 ||
+        !existing.includes("68 full acceptance") ||
+        !existing.includes("Overall Issue #300 is NOT ACCEPTED") ||
+        !existing.includes("G2_RUNTIME_EVIDENCE.md")) {
+      throw Error("G2 acceptance ledger lacks consistency or mandatory GAP disclosure");
+    }
+    console.log(`PASS: ${rows.length} G2 acceptance rows retain binding §27, traceable SHA/evidence, narrow T30/T32 PASS and remaining GAP`);
   }
-  console.log(`PASS: ${rows.length} ordered acceptance rows match §27`);
 }

@@ -25,4 +25,4 @@ for (const [label, args] of checks) {
   }
 }
 if (failed) process.exitCode = 1;
-else console.log("PASS: static/oracle checks; G2/DB/HTTP remain GAP");
+else console.log("PASS: static/oracle checks; see the G2 ledger for executed DB/HTTP and remaining GAP");
