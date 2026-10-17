@@ -174,6 +174,7 @@ describe("P2 actual Nest HTTP route and pre-parser guards", () => {
   });
 
   it("reports HTTP 413 on a multipart file-size overrun during streaming", async () => {
+    const before = backend.upload.mock.calls.length;
     const form = new FormData();
     form.append("operationId", operationId);
     form.append("image", new Blob(
@@ -187,5 +188,8 @@ describe("P2 actual Nest HTTP route and pre-parser guards", () => {
     });
     expect(response.status).toBe(413);
     expect(response.headers.get("cache-control")).toContain("no-store");
+    expect((await response.json() as { code: string }).code)
+      .toBe("CONDITION_PHOTO_TOO_LARGE");
+    expect(backend.upload.mock.calls.length).toBe(before);
   });
 });

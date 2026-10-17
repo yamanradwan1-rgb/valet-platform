@@ -1,5 +1,6 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { S3Client } from "@aws-sdk/client-s3";
@@ -41,6 +42,18 @@ function message(child: ChildProcess, expected: string, maximumMs: number): Prom
 }
 
 function startNest(databaseUrl: string, s3: S3Fixture, crash: boolean) {
+  // This test boots the real compiled Nest controllers in a separate OS
+  // process. TypeScript test imports alone cannot supply its constructor
+  // metadata or production Contracts runtime entry points.
+  for (const compiled of [
+    resolve(process.cwd(), "dist/modules/check-in-api/check-in.module.js"),
+    resolve(process.cwd(), "dist/modules/vehicle-photos/s3-private-photo-store.js"),
+    resolve(process.cwd(), "../../packages/contracts/dist/index.js"),
+  ]) {
+    if (!existsSync(compiled)) {
+      throw new Error("Issue 215 Nest crash test requires built API and Contracts artifacts.");
+    }
+  }
   const child = spawn(process.execPath, ["--import", "tsx", childScript], {
     cwd: process.cwd(), windowsHide: true,
     stdio: ["ignore", "pipe", "pipe", "ipc"],

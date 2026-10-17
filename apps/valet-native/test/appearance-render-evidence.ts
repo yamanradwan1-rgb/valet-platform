@@ -106,6 +106,16 @@ export function appearanceRenderer(
         return { jsx, jsxs: jsx, Fragment: "Fragment" };
       if (name === "@valet/employee-client") return client;
       if (name === "expo-router") return { useFocusEffect: noop };
+      if (name === "expo-file-system") {
+        // Render-only: permit the real Condition Photo owner to construct its
+        // cache handle without any device filesystem or test data mutation.
+        // React effects are inert in this matrix, so no file IO is performed.
+        return {
+          Directory: class {},
+          File: class {},
+          Paths: { cache: { uri: "file:///appearance-render-cache" } },
+        };
+      }
       if (/employee-appearance-context$/.test(name))
         return {
           useEmployeePalette: palette,

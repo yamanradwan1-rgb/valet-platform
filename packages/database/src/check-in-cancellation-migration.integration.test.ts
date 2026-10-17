@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { expectedMigrationDirectories } from "./migration-manifest.js";
+import { installDec103NonemptyTestIndexes } from "./dec103-nonempty-test-rollout.js";
 
 const adminUrl =
   process.env.TEST_DATABASE_URL ??
@@ -121,7 +122,7 @@ describe("Issue #255 fresh and forward migration from actual 054", () => {
     );
     const snapshot = () =>
       db.query(
-        "SELECT to_jsonb(s) AS session,(SELECT to_jsonb(a) FROM audit_events a WHERE id=$2) AS audit FROM valet_sessions s WHERE id=$1",
+        "SELECT to_jsonb(s) - 'customer_access_generation' - 'customer_access_consumed_at' AS session,(SELECT to_jsonb(a) FROM audit_events a WHERE id=$2) AS audit FROM valet_sessions s WHERE id=$1",
         [ids.session, ids.audit],
       );
     const before = (await snapshot()).rows;
@@ -132,9 +133,24 @@ describe("Issue #255 fresh and forward migration from actual 054", () => {
         "SELECT proacl FROM pg_proc WHERE oid='public.management_location_has_blockers(uuid,uuid)'::regprocedure",
       )
     ).rows;
-    for (const name of expectedMigrationDirectories.slice(54))
+    for (const name of expectedMigrationDirectories.slice(54)) {
+      if (name === "20261010007900_live_history_parked_audit_indexes")
+        await installDec103NonemptyTestIndexes(db);
       await apply(db, name);
+    }
     expect((await snapshot()).rows).toEqual(before);
+    const access = await db.query<{
+      customer_access_consumed_at: Date | null;
+      customer_access_generation: number;
+    }>(
+      `SELECT customer_access_generation, customer_access_consumed_at
+       FROM valet_sessions WHERE id=$1`,
+      [ids.session],
+    );
+    expect(access.rows[0]).toEqual({
+      customer_access_consumed_at: null,
+      customer_access_generation: 1,
+    });
     expect(await auditRequiredFieldCodes(db)).toEqual(baselineAuditValidation);
     expect(
       (

@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
+import process from "node:process";
 import { DashboardApiFixture, LOCATION_A, ORG_A } from "../../../../e2e/support/dashboard-api-fixture";
 import { signInOnCurrentPage } from "../../../../e2e/support/foundation-ui";
 import { sessionItem, stateCounts } from "../../../../e2e/support/operations-fixtures";

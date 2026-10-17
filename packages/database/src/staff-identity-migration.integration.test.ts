@@ -170,7 +170,10 @@ describe("T05-A actual Prisma 048 → 049 additive upgrade", () => {
             "SELECT count(*)::int AS n,max(migration_name) AS latest FROM _prisma_migrations WHERE finished_at IS NOT NULL",
           )
         ).rows[0],
-      ).toEqual({ n: 49, latest: migration });
+      ).toEqual({
+        n: expectedMigrationDirectories.length,
+        latest: expectedMigrationDirectories.at(-1),
+      });
       expect(
         (
           await pool.query(

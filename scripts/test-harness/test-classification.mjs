@@ -23,6 +23,9 @@ const compoundMarkers = new Set([
   "phase3-operations-gate-test-context.ts",
   "phase6-core-e2e-test-context.ts",
 ]);
+// This HTTP cross-replica fixture holds the admin and primary runtime pools
+// from ConfirmParkedTestContext plus a second live runtime pool.
+const compoundApiTests = new Set(["guest-t4-mutation-retry.integration.test.ts"]);
 const lazyPostgresOnlyTests = new Set([
   "postgres.test.ts",
   "shift-test-context-names.test.ts",
@@ -87,7 +90,7 @@ export function classifyPackageTests({ packageKind, rootDir }) {
         : packageKind === "api" && isIssue215ApiPostgresFile(relativeFile)
         ? ISSUE215_API_PROJECT
         : packageKind === "api"
-        ? classifyApi(file, graph, dbBacked)
+        ? classifyApi(relativeFile, graph, dbBacked)
         : classifyDatabase(graph, dbBacked);
     addOwnership(ownership, relativeFile, project);
   }
@@ -110,10 +113,11 @@ export function discoverTests(rootDir) {
   return result.sort();
 }
 
-function classifyApi(file, graph, dbBacked) {
+function classifyApi(relativeFile, graph, dbBacked) {
   if (!dbBacked) return "api-non-postgres";
+  if (compoundApiTests.has(relativeFile)) return "api-postgres-compound";
   const sourceText = graph.map((entry) => entry.source).join("\n");
-  if (raceSignalPattern.test(`${file}\n${sourceText}`))
+  if (raceSignalPattern.test(`${relativeFile}\n${sourceText}`))
     return "api-postgres-race";
   if (graph.some((entry) => compoundMarkers.has(entry.basename))) {
     return "api-postgres-compound";

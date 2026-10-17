@@ -114,7 +114,7 @@ describe("real HTTP stable Zone CREATE result identity", () => {
             a.body,
           )
         ).status,
-      ).toBe(500);
+      ).toBe(503);
     } finally {
       await disconnected.app.close();
     }

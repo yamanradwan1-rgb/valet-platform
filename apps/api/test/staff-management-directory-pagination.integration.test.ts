@@ -67,7 +67,9 @@ describe("MGT-BE-04 Staff directory pagination", () => {
       path(foreignOrganization, 1, cursor),
       actor.auth.accessToken,
     );
-    expect(foreign.status).toBe(400);
+    // Cross-organization reads are masked as Not Found, not an input-error
+    // response that could reveal existence or authorization scope.
+    expect(foreign.status).toBe(404);
     const oversized = await fixture.managementGet(
       path(actor.membership.organizationId, 101),
       actor.auth.accessToken,

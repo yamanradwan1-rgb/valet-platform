@@ -21,7 +21,6 @@ import {
   locationSwitchRequestKey,
   organizationIdForSwitch,
   sourceSelectedLocationKey,
-  switchScopeKey,
   type LocationSwitchMenuStatus,
   type PendingLocationSelection,
 } from "./location-switch-state";
@@ -42,26 +41,7 @@ export function useLocationSwitcher(input: LocationSwitcherInput) {
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const pendingRef = useRef<PendingLocationSelection | null>(null);
   const proofCursorRef = useRef(new Map<string, string | undefined>());
-  const scopeKey = switchScopeKey(input.currentScope);
-
-  useLayoutEffect(() => {
-    guard.invalidate();
-    pendingRef.current = null;
-    proofCursorRef.current.clear();
-    setOpen(false);
-    setStatus("idle");
-    setLocations([]);
-    setNextCursor(null);
-    setSelectionError(false);
-    setPendingKey(null);
-  }, [
-    guard,
-    input.currentPath,
-    input.identityGeneration,
-    input.selectionRevision,
-    input.sessionGeneration,
-    scopeKey,
-  ]);
+  useLayoutEffect(() => () => guard.invalidate(), [guard]);
 
   const discover = useCallback(
     async (cursor?: string) => {

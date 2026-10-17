@@ -6,10 +6,10 @@ import { fileURLToPath } from "node:url";
 import { Client, Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { expectedMigrationDirectories } from "./migration-manifest.js";
+import { installDec103NonemptyTestIndexes } from "./dec103-nonempty-test-rollout.js";
 const root = fileURLToPath(new URL("../", import.meta.url));
 const cli = join(root, "node_modules/prisma/build/index.js");
 const migration = "20261001005300_mgt_240d_staff_activation";
-const latestMigration = "20261001005300_mgt_240d_staff_activation";
 const previousAbuseEventId = randomUUID();
 const adminUrl =
   process.env.TEST_DATABASE_URL ??
@@ -162,6 +162,7 @@ beforeAll(async () => {
      VALUES($1,'v1:staff-login-identifier',$2,'COUNTED')`,
     [previousAbuseEventId, `anti-abuse-hmac-sha256:v1:${"a".repeat(64)}`],
   );
+  await installDec103NonemptyTestIndexes(upgrade);
   deploy(upgradeName);
   deploy(freshName);
   fresh = new Client({ connectionString: url(freshName) });
@@ -212,7 +213,10 @@ describe("T05-D actual Prisma 052 to 053 and fresh deployment", () => {
             "SELECT count(*)::int AS n,max(migration_name) AS latest FROM _prisma_migrations WHERE finished_at IS NOT NULL",
           )
         ).rows[0],
-      ).toEqual({ n: 53, latest: latestMigration });
+      ).toEqual({
+        n: expectedMigrationDirectories.length,
+        latest: expectedMigrationDirectories.at(-1),
+      });
       expect(
         (
           await connection.query(

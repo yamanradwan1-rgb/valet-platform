@@ -47,6 +47,11 @@ export async function createParkingTaskViaUi(
   await page.locator('input[placeholder="e.g. 12-34567"]').fill(input.plate);
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page.getByRole("button", { name: "Confirm Plate" }).click();
+  // New, unrecognized vehicles pass through the optional details screen
+  // before the customer contact step. Skipping details retains that flow.
+  const skipDetails = page.getByRole("button", { name: "Skip vehicle details" });
+  await expect(skipDetails).toBeVisible();
+  await skipDetails.click();
   await page.locator('input[type="tel"]').fill(input.phone);
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page.getByRole("button", { name: "No visible issue" }).click();
@@ -55,7 +60,8 @@ export async function createParkingTaskViaUi(
   await expect(
     page.getByRole("button", { name: "Assign Key", exact: true }),
   ).toHaveCount(0);
-  await page.getByRole("button", { name: "Create Parking Task" }).click();
+  // Check-In ends at AWAITING_PARKING; Start Parking creates the real queue
+  // task. No pre-parking key entry or separate task-creation button exists.
   await expect(page.getByRole("button", { name: "Start Parking" })).toBeVisible();
 }
 
@@ -69,7 +75,8 @@ export async function completeParkingViaUi(
   spotCode: string,
   keySlotCode: string,
 ): Promise<void> {
-  await page.getByRole("button", { name: "Start Parking" }).click();
+  // The caller has started parking before discovering the authoritative
+  // queue task. The Park Vehicle action operates on that existing task.
   await page.getByRole("button", { name: "Park Vehicle" }).click();
   await page.getByRole("button", { name: "Enter spot code manually" }).click();
   await page.locator('input[placeholder="Enter spot code"]').fill(spotCode);

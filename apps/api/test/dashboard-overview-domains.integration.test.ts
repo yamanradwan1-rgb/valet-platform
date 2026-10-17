@@ -75,10 +75,14 @@ describe("VAL-009C overview domain projections", () => {
       expect(entry.state).not.toBe("COMPLETED");
       expect(Object.keys(entry).sort()).toEqual(
         [
+          "activeTask",
           "createdAt",
           "currentAssigneeMembershipId",
+          "keySlot",
           "keySlotId",
+          "parkingSpot",
           "parkingSpotId",
+          "parkingZone",
           "sessionId",
           "state",
           "updatedAt",
@@ -87,6 +91,9 @@ describe("VAL-009C overview domain projections", () => {
       );
       expect(Object.keys(entry.vehicle).sort()).toEqual(
         [
+          "color",
+          "make",
+          "model",
           "plateCountry",
           "plateNumberNormalized",
           "temporaryDescriptor",
@@ -96,6 +103,10 @@ describe("VAL-009C overview domain projections", () => {
     }
     const held = page.items.find((entry) => entry.keySlotId !== null);
     expect(held?.sessionId).toBe(retrievingSessionId);
+    expect(held?.activeTask).toMatchObject({
+      taskId: retrievalTaskId,
+      assignee: { membershipId: fixture.membershipId },
+    });
   });
 
   it("returns the complete canonical state map with exact counts", async () => {
@@ -133,6 +144,14 @@ describe("VAL-009C overview domain projections", () => {
     expect(newer.status).toBe("OPEN");
     expect(newer.valetSessionId).toBe(retrievingSessionId);
     expect(newer.task).toEqual({
+      assignee: {
+        membershipId: fixture.membershipId,
+        identity: {
+          firstName: null,
+          lastName: null,
+          email: expect.stringContaining("@"),
+        },
+      },
       currentAssigneeMembershipId: fixture.membershipId,
       status: "ASSIGNED",
       taskId: retrievalTaskId,
@@ -152,6 +171,7 @@ describe("VAL-009C overview domain projections", () => {
     expect(page.items).toHaveLength(1);
     expect(Object.keys(page.items[0]!).sort()).toEqual(
       [
+        "assignee",
         "createdAt",
         "currentAssigneeMembershipId",
         "status",
@@ -162,6 +182,7 @@ describe("VAL-009C overview domain projections", () => {
       ].sort(),
     );
     expect(page.items[0]).toMatchObject({
+      assignee: { membershipId: fixture.membershipId },
       status: "ASSIGNED",
       taskId: retrievalTaskId,
       taskType: "RETRIEVAL",

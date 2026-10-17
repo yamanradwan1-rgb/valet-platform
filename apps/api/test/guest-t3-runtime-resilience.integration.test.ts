@@ -42,14 +42,23 @@ describe("T3 real PostgreSQL server deadlines and bounded admission", () => {
         )
       ).rows[0].count,
     ).toBe(0);
-    const active = await context.adminPool.query(
-      `SELECT state, wait_event, EXTRACT(epoch FROM (clock_timestamp()-query_start)) AS query_age,
+    let active: unknown[] = [];
+    // PostgreSQL can still be finishing the server-side cancellation when
+    // the driver's bounded query rejects. Require it to stop within 1s,
+    // rather than mistaking that in-flight cancellation for abandoned work.
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+      const observed = await context.adminPool.query(
+        `SELECT state, wait_event, EXTRACT(epoch FROM (clock_timestamp()-query_start)) AS query_age,
        EXTRACT(epoch FROM (clock_timestamp()-xact_start)) AS transaction_age,
        CASE WHEN query LIKE 'SELECT pg_sleep%' THEN 'PG_SLEEP' WHEN query='ROLLBACK' THEN 'ROLLBACK' ELSE 'OTHER' END AS command
        FROM pg_stat_activity WHERE usename=$1 AND (state='active' OR state='idle in transaction' OR state='idle in transaction (aborted)')`,
-      [context.runtimeRole],
-    );
-    expect(active.rows).toEqual([]);
+        [context.runtimeRole],
+      );
+      active = observed.rows;
+      if (active.length === 0) break;
+      await new Promise<void>((resolve) => setTimeout(resolve, 25));
+    }
+    expect(active).toEqual([]);
     expect(
       (
         await pool.query(
@@ -67,7 +76,7 @@ describe("T3 real PostgreSQL server deadlines and bounded admission", () => {
       await client.query("SET statement_timeout = 0");
       client.release();
       await expect(lifecycle.onApplicationBootstrap()).rejects.toThrow(
-        "verified PostgreSQL 17 transaction deadlines",
+        "PostgreSQL 16+ with verified supported deadlines",
       );
       await pool.query("SET statement_timeout = '3s'");
       await lifecycle.onApplicationBootstrap();
@@ -160,14 +169,27 @@ describe("T3 real PostgreSQL server deadlines and bounded admission", () => {
 
   it("terminates the full transaction even when individual statements stay below 3s", async () => {
     const started = performance.now();
-    await expect(
-      inPostgresTransaction(pool, async (transaction) => {
-        await transaction.query(insert);
-        for (let index = 0; index < 4; index += 1)
-          await transaction.query("SELECT pg_sleep(1.8)");
-      }),
-    ).rejects.toBeDefined();
-    expect(performance.now() - started).toBeGreaterThan(4800);
+    let completedShortStatements = 0;
+    const failure = await inPostgresTransaction(pool, async (transaction) => {
+      await transaction.query(insert);
+      for (let index = 0; index < 4; index += 1) {
+        await transaction.query("SELECT pg_sleep(1.8)");
+        completedShortStatements += 1;
+      }
+    }).then(
+      () => null,
+      (error: unknown) => error,
+    );
+    // The PG17 native timeout or the bounded lease watchdog can terminate
+    // the socket first. Both are fail-closed; neither may commit the write.
+    const observed = failure as { code?: string; message?: string } | null;
+    expect(completedShortStatements).toBeGreaterThanOrEqual(2);
+    expect(
+      observed?.code === "25P04" ||
+        observed?.message === "Connection terminated" ||
+        observed?.message === "Connection terminated unexpectedly",
+    ).toBe(true);
+    expect(performance.now() - started).toBeGreaterThan(3400);
     expect(performance.now() - started).toBeLessThan(6500);
     await noPersistedEffect();
   }, 10_000);

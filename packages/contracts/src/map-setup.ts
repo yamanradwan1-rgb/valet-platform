@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { parkingZoneSelectorSchema } from "./physical-resource-configuration";
+import { parkingZoneSelectorSchema } from "./physical-resource-configuration.js";
 
 const uuidSchema = z.string().uuid();
 const codeSchema = z.string().trim().min(1).max(64);

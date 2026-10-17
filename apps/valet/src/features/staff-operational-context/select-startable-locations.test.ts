@@ -12,6 +12,7 @@ function location(
     currency: "JOD",
     locationId,
     name: `Location ${code}`,
+    timezone: "Asia/Amman",
   };
 }
 

@@ -120,12 +120,12 @@ test("literal two-tab CAS conflict reloads authoritative state and requires expl
   expect(conflictStatus).toBe(409);
   expect(writesB).toBe(1);
   await pageB.reload();
-  await expect(
-    pageB.getByRole("heading", { name: "Choose your authorized workspace" }),
-  ).toBeVisible();
-  await selectCompany(pageB, { ...f.organizations.a, name: "MD06 Tab A Brand" });
-  await pageB.getByRole("link", { name: "Branding" }).click();
+  // #268 scope restoration is authoritative: reload keeps the Company's
+  // authorized Branding page. A chooser here is a product regression.
   await expect(pageB.getByRole("heading", { name: "Branding" })).toBeVisible();
+  await expect(pageB.getByRole("heading", {
+    name: "Choose your authorized workspace",
+  })).toHaveCount(0);
   await expect(pageB.getByLabel("Display name")).toHaveValue("MD06 Tab A Brand");
   await expect(pageB.getByLabel("Display name")).not.toHaveValue("MD06 Stale Tab B Brand");
 
@@ -138,11 +138,10 @@ test("literal two-tab CAS conflict reloads authoritative state and requires expl
   await expect(pageB.getByLabel("Display name")).toHaveValue("MD06 Tab B Retry Brand");
   expect(writesB).toBe(2);
   await pageA.reload();
-  await expect(
-    pageA.getByRole("heading", { name: "Choose your authorized workspace" }),
-  ).toBeVisible();
-  await selectCompany(pageA, { ...f.organizations.a, name: "MD06 Tab B Retry Brand" });
-  await pageA.getByRole("link", { name: "Branding" }).click();
+  await expect(pageA.getByRole("heading", { name: "Branding" })).toBeVisible();
+  await expect(pageA.getByRole("heading", {
+    name: "Choose your authorized workspace",
+  })).toHaveCount(0);
   await expect(pageA.getByLabel("Display name")).toHaveValue("MD06 Tab B Retry Brand");
 
   await context.close();

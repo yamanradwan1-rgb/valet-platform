@@ -13,6 +13,63 @@ function quotedIdentifier(value: string): string {
   return `"${value.replaceAll('"', '""')}"`;
 }
 
+interface ConnectGrant {
+  readonly grantee: number;
+  readonly isGrantable: boolean;
+}
+
+async function revokeOwnedRuntimeConnect(): Promise<() => Promise<void>> {
+  const { databaseName, runtimeRole, adminPool } = context;
+  const current = await adminPool.query<{ database: string }>(
+    "SELECT current_database() AS database",
+  );
+  if (!databaseName.startsWith("vlt_005b_") ||
+      !runtimeRole.startsWith("vlt_005b_") ||
+      current.rows[0]?.database !== databaseName)
+    throw new Error("Staff Push outage fixture must own its disposable database.");
+
+  const rows = await adminPool.query<ConnectGrant>(
+    `SELECT acl.grantee::integer AS grantee, acl.is_grantable AS "isGrantable"
+     FROM pg_database AS db,
+       LATERAL aclexplode(COALESCE(db.datacl, acldefault('d', db.datdba))) AS acl
+     WHERE db.datname=$1 AND acl.privilege_type='CONNECT'
+       AND acl.grantee IN (0, (SELECT oid FROM pg_roles WHERE rolname=$2))`,
+    [databaseName, runtimeRole],
+  );
+  const publicGrants = rows.rows.filter((grant) => grant.grantee === 0);
+  const roleGrants = rows.rows.filter((grant) => grant.grantee !== 0);
+  if (publicGrants.length > 1 || roleGrants.length > 1)
+    throw new Error("Unexpected database CONNECT grants in outage fixture.");
+
+  const database = quotedIdentifier(databaseName);
+  const role = quotedIdentifier(runtimeRole);
+  const restore = async () => {
+    for (const [recipient, grant] of [
+      ["PUBLIC", publicGrants[0]],
+      [role, roleGrants[0]],
+    ] as const) {
+      if (grant !== undefined)
+        await adminPool.query(
+          `GRANT CONNECT ON DATABASE ${database} TO ${recipient}` +
+          (grant.isGrantable ? " WITH GRANT OPTION" : ""),
+        );
+    }
+  };
+  try {
+    await adminPool.query(`REVOKE CONNECT ON DATABASE ${database} FROM PUBLIC`);
+    await adminPool.query(`REVOKE CONNECT ON DATABASE ${database} FROM ${role}`);
+    const permission = await adminPool.query<{ allowed: boolean }>(
+      `SELECT has_database_privilege($1::name,$2::name,'CONNECT') AS allowed`,
+      [runtimeRole, databaseName],
+    );
+    expect(permission.rows[0]?.allowed).toBe(false);
+  } catch (error) {
+    await restore();
+    throw error;
+  }
+  return restore;
+}
+
 beforeAll(() => context.setup(), 120_000);
 afterAll(() => context.teardown(), 60_000);
 
@@ -31,7 +88,7 @@ describe("Staff Push database outage after provider acceptance", () => {
     const send = vi.fn<StaffPushProvider["send"]>().mockResolvedValue({
       ...providerSendResult({ resultClass: "ACCEPTED" }),
     });
-    let accessRevoked = false;
+    let restoreConnect: (() => Promise<void>) | undefined;
     const firstWorker = new StaffPushDeliveryWorker(
       context.runtimePool,
       policy,
@@ -40,11 +97,7 @@ describe("Staff Push database outage after provider acceptance", () => {
       Math.random,
       () => 0,
       async () => {
-        await context.adminPool.query(
-          `REVOKE CONNECT ON DATABASE ${quotedIdentifier(context.databaseName)}
-           FROM ${quotedIdentifier(context.runtimeRole)}`,
-        );
-        accessRevoked = true;
+        restoreConnect = await revokeOwnedRuntimeConnect();
         await context.adminPool.query(
           `SELECT pg_terminate_backend(pid)
            FROM pg_stat_activity
@@ -57,12 +110,7 @@ describe("Staff Push database outage after provider acceptance", () => {
     try {
       await expect(firstWorker.runOnce()).rejects.toBeDefined();
     } finally {
-      if (accessRevoked) {
-        await context.adminPool.query(
-          `GRANT CONNECT ON DATABASE ${quotedIdentifier(context.databaseName)}
-           TO ${quotedIdentifier(context.runtimeRole)}`,
-        );
-      }
+      await restoreConnect?.();
     }
     expect(send).toHaveBeenCalledOnce();
     const stranded = await context.adminPool.query<{

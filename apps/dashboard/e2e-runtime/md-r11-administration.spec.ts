@@ -68,9 +68,16 @@ test("R11 real Company settings, inherited Location values, Branding and read-on
   await expect(page.getByText("Inherited", { exact: true })).toHaveCount(2);
   await page.locator('nav a[href="/roles-permissions"]').click();
   await expect(page.locator("tbody tr")).toHaveCount(4);
-  await page.getByRole("tab", { name: "Users" }).click();
+  // Roles & Permissions is intentionally a read-only reference. Staff
+  // assignments and the directory are in the separate Employees route.
+  await page.locator('nav a[href="/employees"]').click();
+  await expect(page.getByRole("heading", { name: "Employees & Shifts" }))
+    .toBeVisible();
   await expect(page.locator("tbody")).toContainText(f.emails.locationManager);
-  await page.locator('nav a[href="/integrations"]').click();
+  // The legacy Integrations URL now redirects to the authorized read-only
+  // Service Status tab under Policies, not a standalone navigation item.
+  await page.goto("/integrations");
+  await expect(page.getByRole("tab", { name: "Service Status" })).toBeVisible();
   await expect(page.locator('[class*="integrationCard"]')).toHaveCount(3);
   await page.locator('nav a[href="/billing-subscription"]').click();
   await expect(page.locator("tbody tr")).toHaveCount(3);

@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { Client, Pool } from "pg";
 import { expect } from "vitest";
 import { expectedMigrationDirectories } from "./migration-manifest.js";
+import { installDec103NonemptyTestIndexes } from "./dec103-nonempty-test-rollout.js";
 
 interface PgError extends Error {
   code?: string;
@@ -212,6 +213,7 @@ export async function startPhysicalResourceUpgrade() {
 }
 
 export async function finishPhysicalResourceUpgrade() {
+  await installDec103NonemptyTestIndexes(adminPool);
   runScript([prismaCli, "migrate", "deploy"]);
   const runtimeUrl = scopedUrl(runtimeRole, runtimePassword);
   runScript(["scripts/provision-runtime-role.mjs"], runtimeUrl);

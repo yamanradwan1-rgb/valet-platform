@@ -95,7 +95,8 @@ describe("operations presentation", () => {
 
   it("preserves every canonical task status with localized manager copy", () => {
     expect(operationsTaskStatusLabel("QUEUED", "en")).toBe("Queued");
-    expect(operationsTaskStatusLabel("ASSIGNED", "en")).toBe("Lina Haddad");
+    expect(operationsTaskStatusLabel("ASSIGNED", "en")).toBe("Assigned");
+    expect(operationsTaskStatusLabel("ASSIGNED", "ar")).toBe("مسندة");
     expect(operationsTaskStatusLabel("ACCEPTED", "en")).toBe("Accepted");
     expect(operationsTaskStatusLabel("IN_PROGRESS", "en")).toBe("In Progress");
     expect(operationsTaskStatusLabel("COMPLETED", "en")).toBe("Completed");

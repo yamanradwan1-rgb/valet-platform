@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 import { DashboardApiError } from "../../lib/api/dashboard-api-error";
 import {
@@ -23,7 +23,10 @@ type GuardedTicket = LocationSwitchTicket & {
 export function useLocationSwitchEpochGuard(input: LocationSwitcherInput) {
   const [guard] = useState(() => new ScopeGenerationGuard());
   const inputRef = useRef(input);
-  inputRef.current = input;
+
+  useLayoutEffect(() => {
+    inputRef.current = input;
+  }, [input]);
 
   const begin = useCallback((): GuardedTicket => {
     const current = inputRef.current;

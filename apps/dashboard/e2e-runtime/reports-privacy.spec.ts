@@ -123,7 +123,7 @@ test("real reports download safely, fail unknown on lost response, and keep prot
   await navigation.getByRole("link", { name: "Visit Contacts" }).click();
   await page.getByLabel("Search mode").selectOption("NAME");
   await page.getByLabel("Name").fill(f.contact.displayName);
-  await page.getByRole("button", { name: "Search" }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   await expect(page.getByText(f.contact.displayName, { exact: true })).toBeVisible();
 
   const objectUrls = await objectUrlHistory(page);

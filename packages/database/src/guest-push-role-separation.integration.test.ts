@@ -85,7 +85,7 @@ beforeAll(async () => {
     GUEST_PUSH_WORKER_ROLE: workerRole,
     MIGRATION_DATABASE_URL: migrationUrl,
   });
-});
+}, 120_000);
 
 afterAll(async () => {
   if (adminClient !== undefined) await adminClient.end();

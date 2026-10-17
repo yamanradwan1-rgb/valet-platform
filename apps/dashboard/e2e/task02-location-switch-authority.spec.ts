@@ -52,6 +52,9 @@ test("inactive Company Location is not offered on an exact operational route", a
     companyLocations: { [ORG_A.organizationId]: [LOCATION_A, inactiveB] },
   });
   await enterCompanyLocation(page, fixture, "/live-operations");
+  // Route authority revalidation finishes before its page heading appears.
+  // Drain that initial context read before measuring menu-only requests.
+  await expect(page.getByRole("heading", { name: "Live Operations" })).toBeVisible();
   fixture.counts.clear();
   await openMenu(page);
   await expect(page.getByRole("option", { name: LOCATION_B.name })).toHaveCount(

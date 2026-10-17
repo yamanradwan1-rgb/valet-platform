@@ -4,7 +4,10 @@ import {
   assertIssue215DockerTarget,
   assertIssue215LiveIdentity,
 } from "../../../packages/database/src/condition-photo-p1-test-target.mjs";
-import { recoveryDatabaseIsExplicitlyOwned } from "./issue215-recovery-target";
+import {
+  assertRecoveryDatabaseDropOwner,
+  recoveryDatabaseIsExplicitlyOwned,
+} from "./issue215-recovery-target";
 
 const valid = {
   NODE_ENV: "test",
@@ -44,6 +47,25 @@ const live = {
 };
 
 describe("#285 irreversible PostgreSQL fixture lifecycle target gate", () => {
+  it("accepts only the verified login owner for local worker9 and GitHub CI", () => {
+    const ciTarget = "postgresql://valet:fixture@localhost:5432/valet";
+    expect(() =>
+      assertRecoveryDatabaseDropOwner(valid.TEST_DATABASE_URL, "issue215_owner", "issue215_owner")
+    ).not.toThrow();
+    expect(() =>
+      assertRecoveryDatabaseDropOwner(ciTarget, "valet", "valet")
+    ).not.toThrow();
+    for (const [url, actor, owner] of [
+      [ciTarget, "valet", "issue215_owner"],
+      [ciTarget, "issue215_owner", "issue215_owner"],
+      [valid.TEST_DATABASE_URL, "issue215_owner", "valet"],
+      [valid.TEST_DATABASE_URL, "valet", "issue215_owner"],
+    ]) {
+      expect(() => assertRecoveryDatabaseDropOwner(url!, actor!, owner!))
+        .toThrow(/owner changed; refusing DROP/);
+    }
+  });
+
   it("requires both protected project and explicit local opt-in", () => {
     expect(recoveryDatabaseIsExplicitlyOwned(valid)).toBe(true);
     expect(recoveryDatabaseIsExplicitlyOwned({

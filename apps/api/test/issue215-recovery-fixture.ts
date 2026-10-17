@@ -6,6 +6,7 @@ import { Client, Pool } from "pg";
 import { createRuntimePostgresPool } from "../src/common/database/postgres";
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
 import {
+  assertRecoveryDatabaseDropOwner,
   recoveryDatabaseIsExplicitlyOwned,
   requireIssue215TestUrl,
   verifyIssue215Bootstrap,
@@ -106,13 +107,19 @@ export class Issue215RecoveryDatabase {
     await this.adminPool.end();
     if (!this.createdDatabase) return;
     await this.withVerifiedBootstrap(async (admin) => {
-      const database = await admin.query<{ owner: string }>(
-        `SELECT owner.rolname AS owner FROM pg_database database
+      const database = await admin.query<{ owner: string; actor: string }>(
+        `SELECT owner.rolname AS owner, session_user::text AS actor
+         FROM pg_database database
          JOIN pg_roles owner ON owner.oid = database.datdba
          WHERE database.datname=$1`, [databaseName],
       );
-      if (database.rows.length !== 1 || database.rows[0]?.owner !== "issue215_owner")
+      if (database.rows.length !== 1)
         throw new Error("Issue 215 test database owner changed; refusing DROP.");
+      assertRecoveryDatabaseDropOwner(
+        this.bootstrapUrl,
+        database.rows[0]!.actor,
+        database.rows[0]!.owner,
+      );
       await admin.query(`DROP DATABASE "${databaseName}" WITH (FORCE)`);
       this.createdDatabase = false;
       const role = await admin.query<{

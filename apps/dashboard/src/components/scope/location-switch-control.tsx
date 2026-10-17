@@ -11,6 +11,7 @@ import type {
   SwitchableDashboardScope,
 } from "./location-switch-authority";
 import { LocationSwitchMenu } from "./location-switch-menu";
+import { switchScopeKey } from "./location-switch-state";
 import { useLocationSwitcher } from "./use-location-switcher";
 
 export function LocationSwitchControl(props: {
@@ -31,6 +32,19 @@ export function LocationSwitchControl(props: {
   readonly selectionRevision: number;
   readonly sessionGeneration: number;
 }) {
+  const epochKey = [
+    props.identityGeneration,
+    props.sessionGeneration,
+    props.selectionRevision,
+    props.currentPath,
+    switchScopeKey(props.scope),
+  ].join(":");
+  return <LocationSwitchControlEpoch key={epochKey} {...props} />;
+}
+
+function LocationSwitchControlEpoch(
+  props: Parameters<typeof LocationSwitchControl>[0],
+) {
   const auth = useStaffAuth();
   const { t } = useDashboardLocale();
   const controller = useLocationSwitcher({

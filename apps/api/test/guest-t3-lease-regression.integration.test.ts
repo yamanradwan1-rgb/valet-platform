@@ -51,10 +51,18 @@ describe("T3 scoped deadlines and real pool lease lifecycle", () => {
     expect(result).toBe(1);
     expect(performance.now() - start).toBeGreaterThan(6100);
     await withDatabaseOperationDeadline(async () => {
-      const native = await pool.query(
-        "SELECT current_setting('statement_timeout') AS statement, current_setting('transaction_timeout') AS transaction",
+      // Guest requests install their PG17 timeout on the TRANSACTION, not
+      // on an out-of-transaction pool.query (which legitimately reads 0).
+      const native = await inPostgresTransaction(pool, (transaction) =>
+        transaction.query<{ statement: string; transaction_ms: number }>(
+          `SELECT current_setting('statement_timeout') AS statement,
+             (EXTRACT(EPOCH FROM current_setting('transaction_timeout')::interval) * 1000)::int
+               AS transaction_ms`,
+        ),
       );
-      expect(native.rows[0]).toEqual({ statement: "3s", transaction: "5s" });
+      expect(native.rows[0]?.statement).toBe("3s");
+      expect(native.rows[0]?.transaction_ms).toBeGreaterThan(0);
+      expect(native.rows[0]?.transaction_ms).toBeLessThanOrEqual(5000);
     });
   }, 12_000);
 

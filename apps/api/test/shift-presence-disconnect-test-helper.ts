@@ -13,7 +13,10 @@ export function disconnectBeforePresenceCommit(db: PresenceServerTestContext) {
             get(client, property) {
               if (property === "query")
                 return async (sql: string, ...args: unknown[]) => {
-                  if (sql.includes("shift_presence_operations"))
+                  if (
+                    sql.includes("shift_presence_operations") ||
+                    sql.includes("shift_presence_management_results")
+                  )
                     accessedOperation = true;
                   if (sql === "COMMIT" && accessedOperation) {
                     const pid = (

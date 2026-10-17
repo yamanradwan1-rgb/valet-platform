@@ -70,7 +70,7 @@ describe("Native production entry contract", () => {
     );
   });
 
-  it("matches the Employee Web dark-gate logo without a white capsule", () => {
+  it("uses the approved high-density dark-gate logo without a white capsule", () => {
     const gate = read("src/shell/native-gate-shell.tsx");
     const sharedLogo = read("src/employee-ui/employee-brand-logo.tsx");
     const nativeLogo = readFileSync(
@@ -86,7 +86,10 @@ describe("Native production entry contract", () => {
     expect(sharedLogo).toContain("fadeDuration={0}");
     expect(gate).not.toContain("VAYLET_Logo_Light_Background.png");
     expect(gate).not.toContain("logoSurface");
-    expect(nativeLogo.equals(webLogo)).toBe(true);
+    // #249/#260 intentionally supplied a sharper 4x Native raster; #265
+    // preserves the displayed ratio instead of reverting to Web's 1x bytes.
+    expect(nativeLogo.readUInt32BE(16)).toBe(webLogo.readUInt32BE(16) * 4);
+    expect(nativeLogo.readUInt32BE(20)).toBe(webLogo.readUInt32BE(20) * 4);
   });
 
   it("leaves check-in purge ownership with the production shell", () => {

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   NativeVehicleRow,
   getNativeVehiclesCopy,
@@ -26,6 +26,25 @@ const digest = (tree: unknown) =>
     .update(JSON.stringify(freezeTree(tree)))
     .digest("hex");
 describe("Issue #255 frozen Native Vehicles render boundary", () => {
+  // The approved #255 fixture was captured in the hotel's Asia/Amman
+  // timezone. Keep all 32 date-bearing render hashes deterministic when
+  // GitHub's Ubuntu runner defaults to UTC. Vitest can run in worker threads,
+  // where changing process.env.TZ does not update the native ICU timezone.
+  // Scope the locale formatter to the frozen test only, without changing
+  // the application's local-time formatting or any stored baseline hash.
+  const realDateTimeFormat = Intl.DateTimeFormat;
+  beforeEach(() => {
+    vi.spyOn(Intl, "DateTimeFormat").mockImplementation(
+      function frozenHotelDateTimeFormat(locales, options) {
+        return new realDateTimeFormat(locales, {
+          ...options,
+          timeZone: options?.timeZone ?? "Asia/Amman",
+        });
+      },
+    );
+  });
+  afterEach(() => vi.restoreAllMocks());
+
   it("matches actual baseline trees across all eight active states, EN/AR and collapsed/expanded", () => {
     expect(baseline.baselineSha).toBe(
       "2ce32445a289ed803366834fa8e1f7e80ab20818",

@@ -5,6 +5,7 @@ import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { readDemoOperationalFixtureState } from "./seed-operational-fixture-state";
+import { expectedMigrationDirectories } from "./migration-manifest.js";
 
 const adminDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
@@ -220,20 +221,14 @@ afterAll(async () => {
 }, 60_000);
 
 describe("demo seed data foundation", () => {
-  it("applies all 46 forward-only migrations to a fresh database", async () => {
+  it("applies the pinned forward-only migration manifest to a fresh database", async () => {
     const result = await databaseClient.query<{ migration_name: string }>(
       `SELECT migration_name
        FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL
        ORDER BY migration_name`,
     );
-    expect(result.rows).toHaveLength(46);
-    expect(result.rows[0]?.migration_name).toBe(
-      "20260808000100_tenant_staff_foundation",
-    );
-    expect(result.rows.at(-1)?.migration_name).toBe(
-      "20260929004600_mgt_232_physical_resource_creation",
-    );
+    expect(result.rows.map((row) => row.migration_name)).toEqual([...expectedMigrationDirectories]);
   });
 
   it("refuses production without modifying the database", async () => {

@@ -97,9 +97,8 @@ describe("Live Operations presentation", () => {
     );
   });
 
-  it("presents assignment presence without exposing membership identity", () => {
-    expect(
-      operationalStaffName(
+  it("presents scoped assignee names without exposing membership identifiers", () => {
+    const english = operationalStaffName(
         {
           membershipId: session.currentAssigneeMembershipId!,
           identity: {
@@ -109,11 +108,11 @@ describe("Live Operations presentation", () => {
           },
         },
         "en",
-      ),
-    ).toBe("Assigned");
+      );
+    expect(english).toBe("Lina Haddad");
+    expect(english).not.toContain(session.currentAssigneeMembershipId!);
     expect(operationalStaffName(null, "en")).toBe("Unassigned");
-    expect(
-      operationalStaffName(
+    const arabic = operationalStaffName(
         {
           membershipId: session.currentAssigneeMembershipId!,
           identity: {
@@ -123,8 +122,9 @@ describe("Live Operations presentation", () => {
           },
         },
         "ar",
-      ),
-    ).toBe("مسندة");
+      );
+    expect(arabic).toBe("Lina Haddad");
+    expect(arabic).not.toContain(session.currentAssigneeMembershipId!);
   });
 
   it("humanizes retrieval queue facts without inventing identity", () => {
