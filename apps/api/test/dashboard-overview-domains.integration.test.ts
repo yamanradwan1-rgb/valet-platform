@@ -189,6 +189,69 @@ describe("VAL-009C overview domain projections", () => {
     });
   });
 
+  it("retains granted historical Task assignees but leaves queued and cancelled tasks unassigned", async () => {
+    const fixture = await manager();
+    const completedParkingSessionId = await context.seedSession({ state: "PARKED" });
+    const completedParkingId = await context.seedTask({
+      assigneeMembershipId: fixture.membershipId,
+      sessionId: completedParkingSessionId,
+      status: "COMPLETED",
+      taskType: "PARKING",
+    });
+    const completedRetrievalSessionId = await context.seedSession({ state: "COMPLETED" });
+    const completedRetrievalId = await context.seedTask({
+      assigneeMembershipId: fixture.membershipId,
+      sessionId: completedRetrievalSessionId,
+      status: "COMPLETED",
+      taskType: "RETRIEVAL",
+    });
+    const queuedRetrievalId = await context.seedTask({
+      sessionId: await context.seedSession({ state: "REQUESTED" }),
+      status: "QUEUED",
+      taskType: "RETRIEVAL",
+    });
+    const cancelledParkingId = await context.seedTask({
+      assigneeMembershipId: fixture.membershipId,
+      sessionId: await context.seedSession({ state: "PARKED" }),
+      status: "CANCELLED",
+      taskType: "PARKING",
+    });
+    const ungrantedStaff = await context.createActor(
+      fixture,
+      "VALET_EMPLOYEE",
+      { access: false },
+    );
+    const ungrantedParkingId = await context.seedTask({
+      assigneeMembershipId: ungrantedStaff.membershipId,
+      sessionId: await context.seedSession({ state: "PARKED" }),
+      status: "COMPLETED",
+      taskType: "PARKING",
+    });
+    const page = await listDashboardTasks(context.runtimePool, {
+      authenticatedUserId: fixture.userId,
+      limit: 50,
+      locationId: fixture.locationId,
+    });
+    const rows = new Map(page.items.map((item) => [item.taskId, item]));
+    expect(rows.get(completedParkingId)).toMatchObject({
+      assignee: { membershipId: fixture.membershipId },
+      status: "COMPLETED",
+      taskType: "PARKING",
+    });
+    expect(rows.get(completedRetrievalId)).toMatchObject({
+      assignee: { membershipId: fixture.membershipId },
+      status: "COMPLETED",
+      taskType: "RETRIEVAL",
+    });
+    expect(rows.get(queuedRetrievalId)?.assignee).toBeNull();
+    expect(rows.get(cancelledParkingId)?.assignee).toBeNull();
+    expect(rows.get(ungrantedParkingId)?.assignee).toBeNull();
+    expect(rows.get(ungrantedParkingId)?.currentAssigneeMembershipId).toBe(
+      ungrantedStaff.membershipId,
+    );
+    expect(page.items).toHaveLength(6);
+  });
+
   it("lists ACTIVE shifts with membership attribution", async () => {
     const fixture = await manager();
     const page = await listActiveShifts(context.runtimePool, {

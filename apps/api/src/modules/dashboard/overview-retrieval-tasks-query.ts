@@ -6,6 +6,7 @@ import type { StaffSessionContext } from "../auth/staff-session-context";
 import { authorizeDashboardReadLocation } from "./dashboard-read-authorization";
 import { assertAuthorized } from "./dashboard-overview-error";
 import {
+  dashboardTasksHistoricalAssigneeJoins,
   operationalAssigneeColumn,
   operationalAssigneeJoins,
 } from "./operational-assignee-projection";
@@ -178,7 +179,7 @@ export async function listDashboardTasks(
               task.updated_at AS "updatedAt",
               ${operationalAssigneeColumn}
        FROM tasks AS task
-       ${operationalAssigneeJoins("task")}
+       ${dashboardTasksHistoricalAssigneeJoins()}
        WHERE ${predicates.join(" AND ")}
        ORDER BY task.created_at DESC, task.id DESC
        LIMIT $${parameters.length}`,
