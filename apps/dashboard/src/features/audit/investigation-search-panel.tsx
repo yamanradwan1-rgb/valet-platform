@@ -4,6 +4,11 @@ import { useId, useState, type FormEvent } from "react";
 
 import { demoEmployees } from "./investigation-demo-fixtures";
 import type { InvestigationDemoQuery } from "./investigation-demo-types";
+import {
+  hasValidInvestigationWindow,
+  investigationPanelCopy,
+} from "./investigation/search/investigation-panel-copy";
+import type { InvestigationSelectorOption } from "./investigation/search/investigation-selector-resolution";
 import styles from "./investigation-search.module.css";
 
 type SearchField = keyof InvestigationDemoQuery;
@@ -15,75 +20,12 @@ type SearchPanelProps = {
   readonly onApply: () => void;
   readonly onClear: () => void;
   readonly error?: string | null;
+  readonly live?: boolean;
+  readonly locationName?: string;
+  readonly employeeOptions?: readonly InvestigationSelectorOption[];
+  readonly slotOptions?: readonly InvestigationSelectorOption[];
+  readonly selectorError?: string | null;
 };
-
-const copy = {
-  en: {
-    title: "Find Sessions",
-    subtitle: "Event time window · same Location · all filters combined",
-    clear: "Clear",
-    collapse: "Collapse filters",
-    expand: "Show filters",
-    apply: "Apply search ↗",
-    location: "Location",
-    locationName: "VAYLET Pilot North",
-    date: "Event date",
-    start: "From · inclusive",
-    end: "To · exclusive",
-    slot: "Key slot",
-    employee: "Employee involvement",
-    anyEmployee: "Any employee",
-    make: "Make · current",
-    model: "Model · current",
-    plate: "Plate · current",
-    sessionId: "Exact Session ID",
-    truth:
-      "Key/employee witnesses can be separate events. Search does not prove continuous custody, causality, or a historical name/vehicle snapshot.",
-    timeError: "Choose a valid date and start time earlier than the end time.",
-  },
-  ar: {
-    title: "البحث عن الجلسات",
-    subtitle: "نافذة توقيت الحدث · موقع واحد · جمع الشروط",
-    clear: "مسح",
-    collapse: "طي المرشحات",
-    expand: "إظهار المرشحات",
-    apply: "تطبيق البحث ↗",
-    location: "الموقع",
-    locationName: "فايلت - الموقع التجريبي الشمالي",
-    date: "تاريخ الحدث",
-    start: "من · شامل",
-    end: "إلى · غير شامل",
-    slot: "خانة المفتاح",
-    employee: "مشاركة الموظف",
-    anyEmployee: "أي موظف",
-    make: "الشركة · الحالية",
-    model: "الطراز · الحالي",
-    plate: "اللوحة · الحالية",
-    sessionId: "معرّف الجلسة الدقيق",
-    truth:
-      "قد تظهر أدلة المفتاح والموظف في حدثين منفصلين؛ البحث لا يثبت الحيازة المستمرة أو السببية أو هوية تاريخية ثابتة.",
-    timeError: "اختر تاريخًا صالحًا ووقت بداية يسبق وقت النهاية.",
-  },
-} as const;
-
-function hasValidWindow(query: InvestigationDemoQuery): boolean {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(query.date)) {
-    return false;
-  }
-  const date = new Date(query.date + "T00:00:00Z");
-  if (
-    !Number.isFinite(date.getTime()) ||
-    date.toISOString().slice(0, 10) !== query.date
-  ) {
-    return false;
-  }
-  const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/;
-  return (
-    timePattern.test(query.start) &&
-    timePattern.test(query.end) &&
-    query.start < query.end
-  );
-}
 
 export function InvestigationSearchPanel({
   locale,
@@ -92,10 +34,16 @@ export function InvestigationSearchPanel({
   onApply,
   onClear,
   error,
+  live = false,
+  locationName,
+  employeeOptions = [],
+  slotOptions = [],
+  selectorError,
 }: SearchPanelProps) {
-  const t = copy[locale];
+  const t = investigationPanelCopy[locale];
   const fieldsId = useId();
   const errorId = useId();
+  const slotListId = useId();
   const [collapsed, setCollapsed] = useState(false);
   const [invalid, setInvalid] = useState(false);
 
@@ -106,9 +54,12 @@ export function InvestigationSearchPanel({
 
   function apply(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!hasValidWindow(value)) {
+    if (!hasValidInvestigationWindow(value)) {
       setInvalid(true);
       setCollapsed(false);
+      return;
+    }
+    if (live && (!value.location || !locationName || selectorError)) {
       return;
     }
     setInvalid(false);
@@ -120,10 +71,14 @@ export function InvestigationSearchPanel({
     onClear();
   }
 
-  const describedBy = invalid || error ? errorId : undefined;
-  const invalidWindow = invalid && !hasValidWindow(value);
-  const displayedError = error || (invalidWindow ? t.timeError : null);
-  const locationValue = value.location || "north";
+  const describedBy =
+    invalid || error || (live && selectorError) ? errorId : undefined;
+  const invalidWindow = invalid && !hasValidInvestigationWindow(value);
+  const displayedError =
+    error ||
+    (invalidWindow ? t.timeError : null) ||
+    (live ? selectorError : null);
+  const locationValue = live ? value.location : value.location || "north";
   const temporalFields = [
     { key: "date", label: t.date, type: "date" },
     { key: "start", label: t.start, type: "time" },
@@ -170,7 +125,9 @@ export function InvestigationSearchPanel({
             onChange={(event) => change("location", event.target.value)}
             value={locationValue}
           >
-            <option value={locationValue}>{t.locationName}</option>
+            <option value={locationValue}>
+              {live ? (locationName ?? "") : t.locationName}
+            </option>
           </select>
         </label>
         {temporalFields.map(({ key, label, type }) => (
@@ -195,14 +152,25 @@ export function InvestigationSearchPanel({
             autoComplete="off"
             className={styles.control}
             dir="ltr"
+            list={live ? slotListId : undefined}
             onChange={(event) =>
-              change("slot", event.target.value.toUpperCase())
+              change(
+                "slot",
+                live ? event.target.value : event.target.value.toUpperCase(),
+              )
             }
-            placeholder="K-07"
+            placeholder={live ? undefined : "K-07"}
             spellCheck={false}
             type="text"
             value={value.slot}
           />
+          {live ? (
+            <datalist id={slotListId}>
+              {slotOptions.map((option) => (
+                <option key={option.id} value={option.label} />
+              ))}
+            </datalist>
+          ) : null}
         </label>
 
         <div className={styles.advanced}>
@@ -214,9 +182,12 @@ export function InvestigationSearchPanel({
               value={value.employee}
             >
               <option value="">{t.anyEmployee}</option>
-              {demoEmployees.map((label) => (
-                <option key={label} value={label}>
-                  {label}
+              {(live
+                ? employeeOptions
+                : demoEmployees.map((label) => ({ id: label, label }))
+              ).map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
                 </option>
               ))}
             </select>
@@ -227,7 +198,7 @@ export function InvestigationSearchPanel({
               className={styles.control}
               dir="auto"
               onChange={(event) => change("make", event.target.value)}
-              placeholder="Toyota"
+              placeholder={live ? undefined : "Toyota"}
               value={value.make}
             />
           </label>
@@ -237,7 +208,7 @@ export function InvestigationSearchPanel({
               className={styles.control}
               dir="auto"
               onChange={(event) => change("model", event.target.value)}
-              placeholder="Camry"
+              placeholder={live ? undefined : "Camry"}
               value={value.model}
             />
           </label>
@@ -249,7 +220,7 @@ export function InvestigationSearchPanel({
               onChange={(event) =>
                 change("plate", event.target.value.toUpperCase())
               }
-              placeholder="DEM-214"
+              placeholder={live ? undefined : "DEM-214"}
               spellCheck={false}
               value={value.plate}
             />
@@ -262,7 +233,7 @@ export function InvestigationSearchPanel({
               onChange={(event) =>
                 change("sessionId", event.target.value.toUpperCase())
               }
-              placeholder="VS-DEMO-1021"
+              placeholder={live ? undefined : "VS-DEMO-1021"}
               spellCheck={false}
               value={value.sessionId}
             />
