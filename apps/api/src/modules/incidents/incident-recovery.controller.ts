@@ -83,6 +83,7 @@ export class IncidentRecoveryController {
     @Headers("authorization") authorization: string | undefined,
     @Param() paramsRaw: unknown,
     @Query() query: unknown,
+    @Body() body: unknown,
   ) {
     return this.runRecovery(
       "RECOVER_INCIDENT",
@@ -91,6 +92,7 @@ export class IncidentRecoveryController {
       paramsRaw,
       query,
       false,
+      body,
     );
   }
 
@@ -131,6 +133,9 @@ export class IncidentRecoveryController {
       if (
         !params.success ||
         !incidentRecoveryEmptyBodySchema.safeParse(query).success ||
+        (!retire &&
+          body !== undefined &&
+          !incidentRecoveryEmptyBodySchema.safeParse(body).success) ||
         (retire &&
           (protocol !== incidentRecoveryProtocol ||
             countRequestHeader(
