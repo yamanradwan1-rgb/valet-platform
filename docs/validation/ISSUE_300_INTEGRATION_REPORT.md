@@ -24,6 +24,11 @@
 > executed on G2, with persisted XIDs and Company Admin MFA Timeline/detail
 > readback. User, Session and Shift were direct SQL setup fixtures, **not**
 > proof of their operational writers. Full T01/T70 and R09 remain GAP.
+> Fresh `d6b75b56` G2 HTTP/Playwright regression also PASS: real CA/LM MFA,
+> Supervisor and foreign denial, revoked grant and Staff session, real
+> authenticated Investigation search/detail, focus/Escape, aborted network
+> read recovery, and 32 **synthetic** responsive panel cases. Synthetic CSS
+> zoom is **not** proof of physical 200%-zoom equivalence; keep T58/T59 GAP.
 > No push, PR, main merge, deployment, production migration or closure.
 
 > **Authoritative G2 continuation (2026-10-18):** This report's older G1

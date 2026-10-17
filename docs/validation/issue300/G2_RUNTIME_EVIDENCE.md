@@ -17,6 +17,22 @@
 > Supervisor Dispatch assignment/reassignment (two born-XID rows with distinct
 > actor/old/new assignee), both read back by CA with fresh MFA. User/Session/
 > Shift data used direct SQL fixture setup, not operational writer proof.
+> **Fresh current-branch regression rerun (`d6b75b56`, 2026-10-18):**
+> `node apps/api/test/issue300-pg/issue300-auth-http-proof.mjs` PASS on
+> current G2/ordinary local API3161. Verified Argon2 login and actual TOTP
+> for Company Admin/Location Manager/foreign admin; all four protected reads
+> return 200 only to authorized CA/LM and deny Supervisor, foreign tenant and
+> anonymous. Same-Session AND, metadata-only historic PARKING witness,
+> four-source full Timeline, signed >20 MEMBER options, current Location grant
+> removal, exact Staff session revocation, zero operational domain mutation.
+> Browser fresh login/MFA PASS: detail drawer Escape/focus return; hidden Audit
+> Events request count zero; one deliberately aborted read discarded stale
+> Session/Timeline and recovered only by explicit Apply. Chromium rendered
+> **32 synthetic panel-presence** cases (320/390/768/1440 × EN/AR ×
+> light/dark × CSS zoom 1/2) into task-owned
+> `tmp/issue300-g2-owned/browser-geometry.json`. **Physical browser zoom 200%,
+> pixel-for-pixel geometry and screen-reader parity remain GAP**, as warned
+> by that harness; no additional UI exception or CSS changes.
 > Detailed executable R01–R09 matrix:
 > `U05_OPTION_A_LOCAL_VALIDATION.md`. The older code SHA and 93/93 migration
 > values below describe the original *prior* G2 validation run only.
