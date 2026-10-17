@@ -56,7 +56,12 @@ function AuditContent() {
 
   const canReview = scope?.kind === "LOCATION" &&
     (scope.role === "COMPANY_ADMIN" || scope.role === "LOCATION_MANAGER");
-  const showSwitch = reviewOptIn === true && canReview;
+  // The selected Concept A remains review-only. In local development,
+  // authorized admins/managers can discover the tab from the existing Audit
+  // sidebar route without manually typing the review query; ordinary Audit
+  // Events remains the default. Production still requires explicit opt-in.
+  const showSwitch = canReview &&
+    (reviewOptIn === true || process.env.NODE_ENV === "development");
   const showInvestigation = showSwitch && view === "investigation";
   const scopeLabel =
     scope?.kind === "ORGANIZATION"

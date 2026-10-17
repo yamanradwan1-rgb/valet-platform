@@ -103,7 +103,7 @@ test("Issue #300 Supervisor remains in the ordinary restricted Audit Events view
   expect(auditCalls(fixture)).toBeGreaterThan(0);
 });
 
-test("Issue #300 no query flag preserves the original Audit Events interface", async ({ page }) => {
+test("Issue #300 local Dashboard sidebar Audit route exposes the authorized review tab but defaults to real Audit Events", async ({ page }) => {
   const fixture = new DashboardApiFixture({
     companyOrganizations: [ORG_A],
     companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
@@ -115,8 +115,17 @@ test("Issue #300 no query flag preserves the original Audit Events interface", a
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: LOCATION_A.name }).click();
 
-  await expect(page.getByRole("tab", { name: "Investigation Search" })).toHaveCount(0);
+  const investigation = page.getByRole("tab", { name: "Investigation Search" });
+  await expect(investigation).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Audit Events" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("table")).toBeVisible();
   await expect(page.getByLabel("Event type")).toBeVisible();
   expect(auditCalls(fixture)).toBeGreaterThan(0);
+
+  const before = auditCalls(fixture);
+  await investigation.click();
+  await expect(investigation).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("form", { name: "Find Sessions" })).toBeVisible();
+  await expect(page.getByRole("table")).toHaveCount(0);
+  expect(auditCalls(fixture)).toBe(before);
 });
