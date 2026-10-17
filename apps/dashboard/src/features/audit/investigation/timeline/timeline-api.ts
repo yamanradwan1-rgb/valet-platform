@@ -30,7 +30,7 @@ export function readInvestigationTimeline(
   signal: AbortSignal,
 ) {
   const query = auditInvestigationTimelineQuerySchema.parse({
-    limit: 50,
+    limit: 100,
     ...(cursor === null ? {} : { cursor }),
   });
   return api.request(

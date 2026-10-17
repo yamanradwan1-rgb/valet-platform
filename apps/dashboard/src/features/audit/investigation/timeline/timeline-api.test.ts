@@ -23,7 +23,7 @@ describe("Issue300 typed read-only timeline transport", () => {
       "/audit-investigations/sessions/33333333-3333-4333-8333-333333333333/timeline",
     );
     expect(options).toEqual({
-      query: { limit: 50, cursor: "opaque_cur_0001" },
+      query: { limit: 100, cursor: "opaque_cur_0001" },
       signal: abort.signal,
     });
     expect(schema.safeParse(page()).success).toBe(true);

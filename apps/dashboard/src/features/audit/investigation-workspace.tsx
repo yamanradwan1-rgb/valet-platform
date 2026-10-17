@@ -6,6 +6,13 @@ import type {
   InvestigationDemoLocale,
   InvestigationDemoQuery,
 } from "./investigation-demo-types";
+import {
+  investigationDisplayTime,
+  investigationEventLabel,
+  investigationKey,
+  investigationLocalTime,
+  investigationPosition,
+} from "./investigation/timeline/investigation-live-projection";
 import styles from "./investigation-workspace.module.css";
 
 interface InvestigationWorkspaceProps {
@@ -15,6 +22,8 @@ interface InvestigationWorkspaceProps {
   readonly onSelect: (id: string) => void;
   readonly onEvent: (event: DemoEvent) => void;
   readonly query: InvestigationDemoQuery | null;
+  readonly loading?: boolean;
+  readonly error?: string | null;
 }
 
 const copy = {
@@ -27,6 +36,10 @@ const copy = {
     complete: "Completed",
     open: "Still open · summary",
     incident: "Incident OPEN · current",
+    incidentRecorded: "Recorded incident · status not supplied",
+    waiting: "Loading recorded events…",
+    incomplete: "Recorded history unavailable; retry the authorized read.",
+    noWindow: "Discovery window unavailable",
     historical: "Historical slot",
     currentSlot: "Current key slot",
     notAssigned: "Not assigned",
@@ -66,6 +79,10 @@ const copy = {
     complete: "مكتملة",
     open: "ما تزال مفتوحة · ملخص",
     incident: "حادثة مفتوحة · حالياً",
+    incidentRecorded: "بلاغ حادثة مسجل · الحالة غير متاحة",
+    waiting: "جارٍ تحميل الأحداث المسجلة…",
+    incomplete: "التاريخ المسجل غير متاح؛ أعِد المحاولة المصرّح بها.",
+    noWindow: "فترة البحث غير متاحة",
     historical: "الخانة التاريخية",
     currentSlot: "خانة المفتاح الحالية",
     notAssigned: "غير مخصصة",
@@ -98,38 +115,10 @@ const copy = {
   },
 } as const;
 
-const eventLabels: Record<string, [string, string]> = {
-  VALET_SESSION_CHECK_IN_COMPLETED: ["Check-in completed", "اكتمال تسجيل المركبة"],
-  SLOT_ASSIGNED: ["Key slot assigned", "تعيين خانة المفتاح"],
-  ASSIGNED: ["Task assigned", "تعيين المهمة"],
-  VALET_SESSION_PARKED: ["Vehicle parked", "تسجيل ركن المركبة"],
-  CHECKED_OUT: ["Key checked out", "إخراج المفتاح"],
-  RETURNED_TO_SLOT: ["Key returned to slot", "إعادة المفتاح للخانة"],
-  SLOT_CLEARED: ["Key slot cleared", "إخلاء خانة المفتاح"],
-  VALET_SESSION_READY: ["Vehicle ready", "جاهزية المركبة"],
-  VALET_SESSION_HANDOFF_PENDING: ["Handoff pending", "بانتظار التسليم"],
-  HANDOFF_VERIFIED: ["Handoff verified", "التحقق من التسليم"],
-  VALET_SESSION_COMPLETED: ["Session completed", "اكتمال الجلسة"],
-  VALET_SESSION_RETRIEVAL_REQUESTED: ["Retrieval requested", "طلب استرجاع المركبة"],
-  INCIDENT_REPORTED: ["Incident reported", "الإبلاغ عن حادثة"],
-  REASSIGNED: ["Task reassigned", "إعادة تعيين المهمة"],
-};
-
-function eventLabel(event: DemoEvent, locale: InvestigationDemoLocale) {
-  return eventLabels[event.type]?.[locale === "ar" ? 1 : 0] ?? event.type.replaceAll("_", " ");
-}
-
-function timePosition(event: DemoEvent, query: InvestigationDemoQuery) {
-  const eventDate = "2026-10-23";
-  if (eventDate < query.date || (eventDate === query.date && event.time < query.start)) return "before";
-  if (eventDate > query.date || (eventDate === query.date && event.time >= query.end)) return "after";
-  return "inWindow";
-}
-
-function Status({ isDone, locale }: { readonly isDone: boolean; readonly locale: InvestigationDemoLocale }) {
+function Status({ isDone, locale, currentState }: { readonly isDone: boolean; readonly locale: InvestigationDemoLocale; readonly currentState?: string | undefined }) {
   return (
     <span className={isDone ? styles.completed : styles.openStatus}>
-      {isDone ? copy[locale].complete : copy[locale].open}
+      {currentState ? currentState.replaceAll("_", " ") + " · CURRENT" : isDone ? copy[locale].complete : copy[locale].open}
     </span>
   );
 }
@@ -156,7 +145,7 @@ function SessionChoice({
     >
       <span className={styles.choiceHeading}>
         <strong>{session.make} {session.model}</strong>
-        <Status isDone={session.state === "COMPLETED"} locale={locale} />
+        <Status isDone={session.state === "COMPLETED"} locale={locale} currentState={session.origin === "LIVE" ? session.currentState : undefined} />
       </span>
       <span className={styles.choiceIds}>
         <bdi dir="ltr">{session.id}</bdi>
@@ -164,14 +153,14 @@ function SessionChoice({
         {session.plate ? <bdi dir="ltr">{session.plate}</bdi> : c.notRecorded}
       </span>
       <span className={styles.choiceMeta}>
-        <span>{c.historical} <bdi dir="ltr">{session.slot}</bdi></span>
+        {session.origin !== "LIVE" && <span>{c.historical} <bdi dir="ltr">{session.slot}</bdi></span>}
         <span>{c.currentSlot}: {session.currentSlot ? <bdi dir="ltr">{session.currentSlot}</bdi> : c.notAssigned}</span>
-        {session.incident && <span className={styles.incidentStatus}>{c.incident}</span>}
+        {session.incident && <span className={styles.incidentStatus}>{session.origin === "LIVE" ? c.incidentRecorded : c.incident}</span>}
       </span>
       <span className={styles.choiceCount}>
         <strong>{match.count}</strong> {match.count === 1 ? c.witness : c.witnesses}
       </span>
-      <span className={styles.timeRange} dir="ltr">{match.first}:00 – {match.last}:00</span>
+      <span className={styles.timeRange} dir="ltr">{investigationDisplayTime(match.first, match.origin === "LIVE")} – {investigationDisplayTime(match.last, match.origin === "LIVE")}</span>
     </button>
   );
 }
@@ -190,22 +179,23 @@ function TimelineEvent({
   readonly onEvent: (event: DemoEvent) => void;
 }) {
   const c = copy[locale];
-  const pos = timePosition(event, query);
+  const pos = investigationPosition(event, query);
   const kind = matched ? "match" : pos === "inWindow" ? "context" : "outside";
-  const contextLabel = matched ? c.match : pos === "inWindow" ? c.inWindow : pos === "before" ? c.before : c.after;
+  const contextLabel = matched ? c.match : pos === "inWindow" ? c.inWindow : pos === "before" ? c.before : pos === "after" ? c.after : c.noWindow;
   return (
     <li className={styles.timelineRow} data-kind={kind}>
-      <time className={styles.timestamp} dateTime={`2026-10-23T${event.time}:00+03:00`} dir="ltr">
-        {event.time}:00
+      <time className={styles.timestamp} dateTime={event.occurredAt ?? `2026-10-23T${event.time}:00+03:00`}
+        title={event.occurredAt ? investigationLocalTime(event.occurredAt) + " Asia/Amman" : undefined} dir="ltr">
+        {event.occurredAt ? investigationLocalTime(event.occurredAt, false) : event.time + ":00"}
       </time>
       <span className={styles.track} aria-hidden="true"><span /></span>
       <button className={styles.eventCard} type="button" onClick={() => onEvent(event)}
-        aria-label={`${c.eventDetails}: ${event.id}, ${eventLabel(event, locale)}`}>
+        aria-label={`${c.eventDetails}: ${event.id}, ${investigationEventLabel(event, locale)}`}>
         <span className={styles.eventTop}>
-          <span className={styles.sourceBadge} data-source={event.source}>{c[event.source]}</span>
+          <span className={styles.sourceBadge} data-source={event.source === "KEY_CUSTODY" ? "KEY" : event.source}>{c[event.source === "KEY_CUSTODY" ? "KEY" : event.source]}</span>
           <span className={styles.windowLabel} data-kind={kind}>{contextLabel}</span>
         </span>
-        <strong className={styles.eventTitle}>{eventLabel(event, locale)}</strong>
+        <strong className={styles.eventTitle}>{investigationEventLabel(event, locale)}</strong>
         <span className={styles.eventMeta}>
           <span>{event.actor ?? c.actorUnknown}</span>
           <span aria-hidden="true">·</span>
@@ -215,8 +205,12 @@ function TimelineEvent({
         {event.source === "INCIDENT" && (
           <span className={styles.incidentEvidence}>
             {locale === "ar"
-              ? "تصنيف بلاغ KEY_MISSING غير مثبت؛ الخطورة HIGH والحالة الحالية OPEN. الوصف والصور غير متاحة أو مقيدة، ولا توجد تسوية مسجلة."
-              : event.transition + " · " + event.evidence}
+              ? event.origin === "LIVE"
+                ? [event.incidentType ?? "نوع غير متاح", event.severity ?? "خطورة غير متاحة", event.incidentStatus ?? "حالة غير متاحة"].join(" · ")
+                : "تصنيف بلاغ KEY_MISSING غير مثبت؛ الخطورة HIGH والحالة الحالية OPEN. الوصف والصور غير متاحة أو مقيدة، ولا توجد تسوية مسجلة."
+              : event.origin === "LIVE"
+                ? [event.incidentType ?? "Type unavailable", event.severity ?? "Severity unavailable", event.incidentStatus ?? "Status unavailable"].join(" · ")
+                : event.transition + " · " + event.evidence}
           </span>
         )}
       </button>
@@ -231,11 +225,13 @@ export function InvestigationWorkspace({
   onSelect,
   onEvent,
   query,
+  loading = false,
+  error = null,
 }: InvestigationWorkspaceProps) {
   const c = copy[locale];
   const current = matches.find((match) => match.session.id === selectedId);
   const selected = current?.session;
-  const orderedEvents = selected ? [...selected.events].sort((a, b) => a.time.localeCompare(b.time)) : [];
+  const orderedEvents = selected ? [...selected.events].sort((a, b) => (a.occurredAt ?? a.time).localeCompare(b.occurredAt ?? b.time)) : [];
   const witnesses = new Set(current?.witnessIds ?? []);
 
   return (
@@ -246,7 +242,7 @@ export function InvestigationWorkspace({
           <span className={styles.count}>{query ? String(matches.length).padStart(2, "0") : "—"}</span>
         </header>
         {!query || !matches.length ? (
-          <p className={styles.empty}>{query ? `${c.noMatches}. ${c.adjust}` : c.apply}</p>
+          <p className={styles.empty}>{error ?? (loading ? c.waiting : query ? `${c.noMatches}. ${c.adjust}` : c.apply)}</p>
         ) : (
           <div className={styles.choiceList}>
             {matches.map((match) => (
@@ -257,8 +253,8 @@ export function InvestigationWorkspace({
         )}
       </aside>
       <article className={styles.investigation} aria-label={c.events}>
-        {!query || !matches.length || !selected || !current ? (
-          <p className={styles.empty}>{!query ? c.apply : !matches.length ? c.adjust : c.choose}</p>
+        {!query || !matches.length || !selected || !current || (selected.origin === "LIVE" && !selected.timelineComplete) || loading || error ? (
+          <p className={styles.empty}>{error ?? (loading ? c.waiting : selected?.origin === "LIVE" ? c.incomplete : !query ? c.apply : !matches.length ? c.adjust : c.choose)}</p>
         ) : (
           <>
             <header className={styles.sessionHeading}>
@@ -267,26 +263,26 @@ export function InvestigationWorkspace({
                 <h2>{selected.make} {selected.model}</h2>
                 <p>{c.sources}</p>
               </div>
-              <Status isDone={selected.state === "COMPLETED"} locale={locale} />
+              <Status isDone={selected.state === "COMPLETED"} locale={locale} currentState={selected.origin === "LIVE" ? selected.currentState : undefined} />
             </header>
             <div className={styles.identities}>
               <div><span>{c.currentVehicle}</span><strong>{selected.make} {selected.model}</strong></div>
               <div><span>{c.currentPlate}</span><strong>{selected.plate ? <bdi dir="ltr">{selected.plate}</bdi> : c.notRecorded}</strong></div>
               <div><span>{c.currentSlot}</span><strong>{selected.currentSlot ? <bdi dir="ltr">{selected.currentSlot}</bdi> : c.notAssigned}</strong></div>
-              <div><span>{c.firstLast}</span><strong dir="ltr">{current.first}:00 – {current.last}:00</strong></div>
+              <div><span>{c.firstLast}</span><strong dir="ltr">{investigationDisplayTime(current.first, current.origin === "LIVE")} – {investigationDisplayTime(current.last, current.origin === "LIVE")}</strong></div>
               <div><span>{c.matching}</span><strong>{current.count}</strong></div>
             </div>
             <div className={styles.timelineHeading}>
-              <div><h3>{c.events} <span>({orderedEvents.length})</span></h3><small>{c.coverage}</small></div>
+              <div><h3>{c.events} <span>({orderedEvents.length})</span></h3><small>{selected.origin === "LIVE" && selected.coverage ? Object.entries(selected.coverage).map(([source, value]) => source + ": " + value.status).join(" · ") : c.coverage}</small></div>
               <div className={styles.legend}><span data-kind="match">{c.match}</span><span data-kind="context">{c.inWindow}</span><span data-kind="outside">{c.outside}</span></div>
             </div>
             <ol className={styles.timeline}>
               {orderedEvents.map((event) => (
-                <TimelineEvent key={event.id} event={event} matched={witnesses.has(event.id)}
+                <TimelineEvent key={investigationKey(event.source, event.id)} event={event} matched={witnesses.has(event.origin === "LIVE" ? investigationKey(event.source, event.id) : event.id)}
                   query={query} locale={locale} onEvent={onEvent} />
               ))}
             </ol>
-            {selected.incident && (
+            {selected.origin !== "LIVE" && selected.incident && (
               <aside className={styles.gap} aria-label={c.incidentGap}>
                 <strong>{c.incidentGap}</strong>
                 <p>{c.incidentGapText}</p>

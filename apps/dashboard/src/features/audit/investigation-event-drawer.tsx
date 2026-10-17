@@ -6,12 +6,15 @@ import { createPortal } from "react-dom";
 
 import { ScopedContextHelp } from "../help/scoped-context-help";
 import type { DemoEvent, InvestigationDemoLocale } from "./investigation-demo-types";
+import { investigationLocalTime } from "./investigation/timeline/investigation-live-projection";
 import styles from "./investigation-event-drawer.module.css";
 
 interface DrawerProps {
   readonly event: DemoEvent | null;
   readonly locale: InvestigationDemoLocale;
   readonly onClose: () => void;
+  readonly loading?: boolean;
+  readonly error?: string | null;
 }
 
 const names: Record<string, readonly [string, string]> = {
@@ -44,10 +47,12 @@ const labels = {
     id: "Event ID",
     type: "Event type",
     recorded: "Recorded timestamp",
+    occurred: "Event occurred · Asia/Amman",
     session: "Session",
     scope: "Scope",
     actor: "Action actor",
     role: "Actor role",
+    recordedRole: "Recorded participation role",
     participant: "Assignee / participant",
     membership: "Actor membership ID",
     resource: "Resource reference",
@@ -66,10 +71,12 @@ const labels = {
     id: "معرّف الحدث",
     type: "نوع الحدث",
     recorded: "وقت التسجيل",
+    occurred: "وقت وقوع الحدث · عمّان",
     session: "الجلسة",
     scope: "النطاق",
     actor: "منفذ الإجراء",
     role: "دور المنفذ",
+    recordedRole: "دور المشاركة المسجل",
     participant: "المكلّف / المشارك",
     membership: "معرّف عضوية المنفّذ",
     resource: "مرجع المورد",
@@ -146,7 +153,7 @@ const focusables = [
   "[tabindex]:not([tabindex='-1'])",
 ].join(",");
 
-export function InvestigationEventDrawer({ event, locale, onClose }: DrawerProps) {
+export function InvestigationEventDrawer({ event, locale, onClose, loading = false, error = null }: DrawerProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const focusReturn = useRef<HTMLElement | null>(null);
@@ -197,8 +204,9 @@ export function InvestigationEventDrawer({ event, locale, onClose }: DrawerProps
   }, [activeEventId]);
 
   if (!event || typeof document === "undefined") return null;
+  const live = event.origin === "LIVE";
   const title = names[event.type]?.[locale === "ar" ? 1 : 0] ?? event.type;
-  const evidence = locale === "ar"
+  const evidence = live ? event.evidence : locale === "ar"
     ? event.id === "INC-304"
       ? "الوصف والصور مقيدة أو غير متاحة، ولا يوجد سجل حل."
       : event.id === "AUD-201"
@@ -209,7 +217,7 @@ export function InvestigationEventDrawer({ event, locale, onClose }: DrawerProps
             ? "سجل تدقيق، دون منفّذ موظف مسجل."
             : event.id === "DSP-305"
               ? "المكلفة السابقة رنا، والمكلّف الجديد هادي؛ سجل توزيع مهام."
-              : sourceLabels.ar[event.source] + " · سجل تجريبي"
+              : sourceLabels.ar[event.source === "KEY_CUSTODY" ? "KEY" : event.source] + " · سجل تجريبي"
     : event.evidence;
 
   return createPortal(
@@ -247,31 +255,32 @@ export function InvestigationEventDrawer({ event, locale, onClose }: DrawerProps
           </div>
         </div>
         <div className={styles.body}>
-          <p className={styles.disclosure}>{t.origin}</p>
+          <p className={styles.disclosure}>{live ? (locale === "ar" ? "سجل مصدر حقيقي مصرح به؛ لا يُستنتج منه تاريخ حيازة كامل أو مسؤولية." : "Authorized source record; chronology alone does not prove custody or responsibility.") : t.origin}</p>
           <dl className={styles.section}>
-            <Fact label={t.source} value={sourceLabels[locale][event.source]} />
+            <Fact label={t.source} value={sourceLabels[locale][event.source === "KEY_CUSTODY" ? "KEY" : event.source]} />
             <Fact label={t.id} value={event.id} ltr />
             <Fact label={t.type} value={event.type} ltr />
-            <Fact label={t.recorded} value={`2026-10-23 ${event.time}:00 UTC+03:00`} ltr />
+            <Fact label={live ? t.occurred : t.recorded} value={live && event.occurredAt ? investigationLocalTime(event.occurredAt) + " Asia/Amman" : `2026-10-23 ${event.time}:00 UTC+03:00`} ltr />
+            {live && event.recordedAt ? <Fact label={t.recorded} value={investigationLocalTime(event.recordedAt) + " Asia/Amman"} ltr /> : null}
             <Fact label={t.session} value={event.session} ltr />
-            <Fact label={t.scope} value={locale === "ar" ? "الموقع التجريبي الشمالي / المنطقة A" : "VAYLET Pilot North / Zone A"} />
+            <Fact label={t.scope} value={live ? event.locationLabel ?? t.missing : locale === "ar" ? "الموقع التجريبي الشمالي / المنطقة A" : "VAYLET Pilot North / Zone A"} />
           </dl>
           <dl className={styles.section}>
             <Fact label={t.actor} value={event.actor ?? t.noActor} />
-            <Fact label={t.role} value={event.role ? (locale === "ar" ? arabicRoles[event.role] ?? event.role : event.role) : t.missing} />
+            <Fact label={live ? t.recordedRole : t.role} value={event.role ? (locale === "ar" && !live ? arabicRoles[event.role] ?? event.role : event.role) : t.missing} />
             <Fact label={t.participant} value={event.participant ?? t.missing} />
             <Fact label={t.resource} value={event.resource ?? t.missing} ltr={Boolean(event.resource)} />
-            {event.id === "AUD-201" ? <Fact label={t.membership} value="MEM-42" ltr /> : null}
+            {!live && event.id === "AUD-201" ? <Fact label={t.membership} value="MEM-42" ltr /> : null}
           </dl>
           {event.actor ? <p className={styles.disclosure}>{t.nameSource}</p> : null}
           <section className={styles.section}>
             <h3>{t.change}</h3>
-            <p>{locale === "ar" ? arabicChanges[event.id] ?? event.transition : event.transition}</p>
+            <p>{live ? event.transition : locale === "ar" ? arabicChanges[event.id] ?? event.transition : event.transition}</p>
           </section>
           <section className={styles.section}>
             <h3>{t.evidence}</h3>
-            <p>{evidence}</p>
-            {event.source === "INCIDENT" ? <p className={styles.notice}>{t.restriction}</p> : null}
+            <p>{error ?? (loading ? locale === "ar" ? "جارٍ تحميل التفاصيل…" : "Loading detail…" : evidence)}</p>
+            {event.source === "INCIDENT" ? <p className={styles.notice}>{live ? [event.incidentType, event.severity, event.incidentStatus].filter(Boolean).join(" · ") || (locale === "ar" ? "تفاصيل الحادثة غير متاحة؛ لا يوجد دليل مصرح للصور أو الوصف." : "Incident detail unavailable; no photo or description was authorized.") : t.restriction}</p> : null}
           </section>
         </div>
       </div>
