@@ -35,13 +35,15 @@ const search = load("search-page-query.ts", {
   "../../management-audit-event-catalog": { managementAuditKnownEventTypes: known },
 });
 const client = new pg.Client({ connectionString: raw,
-  application_name: "issue300_explain_rollback_only" });
+  application_name: "issue300_explain_committed_disposable" });
 await client.connect();
 let inTransaction = false;
+let committedFixture = false;
+let target;
 try {
   assert.equal((await client.query("SELECT current_database() AS name")).rows[0].name,
     "issue300_g2");
-  const target = (await client.query(
+  target = (await client.query(
     `SELECT l.organization_id AS org, l.id AS loc,
        (SELECT id FROM organization_memberships m
         WHERE m.organization_id = l.organization_id LIMIT 1) AS membership,
@@ -55,7 +57,7 @@ try {
   await client.query("BEGIN");
   inTransaction = true;
   await client.query(`CREATE TEMP TABLE issue300_perf_vehicles(
-     id uuid PRIMARY KEY) ON COMMIT DROP`);
+     id uuid PRIMARY KEY) ON COMMIT PRESERVE ROWS`);
   await client.query(`INSERT INTO issue300_perf_vehicles(id)
      SELECT gen_random_uuid() FROM generate_series(1, 3500)`);
   await client.query(
@@ -79,20 +81,30 @@ try {
        'CHECKED_OUT','2026-10-16T11:30:00Z'
      FROM valet_sessions session
      WHERE session.organization_id=$1 AND session.location_id=$2
+       AND session.vehicle_id IN (SELECT id FROM issue300_perf_vehicles)
        AND session.state='PARKED' LIMIT 900`,
     [target.org, target.loc, target.membership, target.slot],
   );
+  // Commit the strictly task-owned fixture before S0: otherwise INSERT birth
+  // XIDs are in-progress relative to the snapshot and the query measures a
+  // zero-match case, not the cost of 900 historical source witnesses.
+  await client.query("COMMIT");
+  inTransaction = false;
+  committedFixture = true;
   const snapshot = (await client.query(
     "SELECT clock_timestamp() AS now, pg_current_snapshot()::text AS snapshot",
   )).rows[0];
   const params = [target.org, target.loc, "2026-10-16T11:00:00Z",
     "2026-10-16T12:00:00Z", null, null, null, null,
-    snapshot.now, snapshot.snapshot, 101, null, null, null, known];
+    snapshot.now, snapshot.snapshot, 101, null, null, null, known,
+    null, null];
   const explain = await client.query(
     `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) ${search.auditInvestigationFirstPageSql}`,
     params,
   );
   const plan = explain.rows[0]["QUERY PLAN"][0];
+  assert.equal(plan.Plan["Actual Rows"], 101,
+    "Real committed fixture must fill the 101-row bounded first page");
   const methods = [];
   function walk(node) {
     if (node["Sort Method"]) methods.push(node["Sort Method"]);
@@ -103,7 +115,7 @@ try {
   for (let i = 0; i < 22; i += 1) {
     const start = performance.now();
     const result = await client.query(search.auditInvestigationFirstPageSql, params);
-    assert.ok(result.rows.length <= 101);
+    assert.equal(result.rows.length, 101);
     measurements.push(performance.now() - start);
   }
   const sorted = measurements.slice(2).sort((a, b) => a - b);
@@ -113,6 +125,7 @@ try {
     classification: "DISPOSABLE_SQL_FIXTURES_NOT_REAL_WRITERS",
     candidate: "task-owned G2 PostgreSQL 17.10",
     sessionFixtureCount: 3500, sourceFixtureCount: 900,
+    committedFixturesVisibleAtSnapshot: true,
     executionMs: plan["Execution Time"], planningMs: plan["Planning Time"],
     buffers: { hits: plan.Plan["Shared Hit Blocks"],
       reads: plan.Plan["Shared Read Blocks"] },
@@ -120,10 +133,34 @@ try {
     samples: sorted.length, resultCap: 101,
     disclaimer: "Single-client hot-cache timing, not p95 under operational load or 100k/1m",
   }));
-  await client.query("ROLLBACK");
-  inTransaction = false;
-  globalThis.console.log("PASS: performance fixture transaction rolled back");
 } finally {
   if (inTransaction) await client.query("ROLLBACK").catch(() => undefined);
+  if (committedFixture && target?.org) {
+    // Delete ONLY randomly generated test Session/Vehicle IDs, using this
+    // connection's temporary UUID-key table, and validate G2 identity again.
+    assert.equal((await client.query("SELECT current_database() AS db")).rows[0].db,
+      "issue300_g2");
+    await client.query("BEGIN");
+    try {
+      await client.query(
+        `DELETE FROM key_custody_events WHERE organization_id=$1 AND
+          valet_session_id IN (SELECT s.id FROM valet_sessions s JOIN
+          issue300_perf_vehicles v ON v.id=s.vehicle_id)`, [target.org],
+      );
+      await client.query(
+        `DELETE FROM valet_sessions WHERE organization_id=$1 AND
+          vehicle_id IN (SELECT id FROM issue300_perf_vehicles)`, [target.org],
+      );
+      await client.query(
+        `DELETE FROM vehicles WHERE organization_id=$1 AND
+          id IN (SELECT id FROM issue300_perf_vehicles)`, [target.org],
+      );
+      await client.query("COMMIT");
+      globalThis.console.log("PASS: 3,500 committed, random G2-only perf fixtures removed by exact UUID set");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    }
+  }
   await client.end();
 }

@@ -39,7 +39,34 @@ export interface NormalizedSearch {
   readonly plate: string | null;
 }
 
-const querySql = `${searchWitnessSql}
+const querySql = `${searchWitnessSql},
+reason_rows AS MATERIALIZED (
+  SELECT matched.session_id, matched.occurred_at, matched.id, reason.kind,
+         row_number() OVER (PARTITION BY matched.session_id, reason.kind
+           ORDER BY matched.occurred_at, matched.id) AS category_row,
+         jsonb_strip_nulls(jsonb_build_object(
+           'source', matched.source, 'eventId', matched.id,
+           'matchedBy', reason.kind, 'participationRole',
+             CASE WHEN reason.kind = 'EMPLOYEE' THEN matched.employee_role END
+         )) AS reason
+  FROM matched
+  CROSS JOIN LATERAL (
+    SELECT 'KEY_SLOT'::text AS kind WHERE matched.key_match
+    UNION ALL SELECT 'EMPLOYEE' WHERE matched.employee_role IS NOT NULL
+    UNION ALL SELECT 'WINDOW' WHERE $5::uuid IS NULL AND $6::uuid IS NULL
+  ) reason
+),
+reason_aggregates AS MATERIALIZED (
+  SELECT reasons.session_id,
+         jsonb_agg(reasons.reason ORDER BY reasons.occurred_at,
+           reasons.id, reasons.kind) FILTER (
+             WHERE reasons.category_row <= CASE
+               WHEN $5::uuid IS NOT NULL AND $6::uuid IS NOT NULL THEN 50
+               ELSE 100 END
+           ) AS reasons
+    FROM reason_rows AS reasons
+   GROUP BY reasons.session_id
+)
 SELECT session.id::text AS "sessionId", summary.first_at AS "firstMatchedAt",
        summary.last_at AS "lastMatchedAt",
        summary.record_count AS "matchingRecordCount",
@@ -57,33 +84,10 @@ SELECT session.id::text AS "sessionId", summary.first_at AS "firstMatchedAt",
            AND (incident.pagination_birth_xid IS NULL OR
              pg_visible_in_snapshot(incident.pagination_birth_xid, $10::pg_snapshot))
        )) AS "hasVisibleIncident",
-       COALESCE((
-         SELECT jsonb_agg(reasons.reason ORDER BY reasons.occurred_at, reasons.id, reasons.kind)
-         FROM (
-           SELECT matched.occurred_at, matched.id, reason.kind,
-                  row_number() OVER (
-                    PARTITION BY reason.kind ORDER BY matched.occurred_at, matched.id
-                  ) AS category_row,
-                  jsonb_strip_nulls(jsonb_build_object(
-                    'source', matched.source, 'eventId', matched.id,
-                    'matchedBy', reason.kind, 'participationRole',
-                     CASE WHEN reason.kind = 'EMPLOYEE' THEN matched.employee_role END
-                  )) AS reason
-           FROM matched
-           CROSS JOIN LATERAL (
-             SELECT 'KEY_SLOT'::text AS kind WHERE matched.key_match
-             UNION ALL
-             SELECT 'EMPLOYEE' WHERE matched.employee_role IS NOT NULL
-             UNION ALL
-             SELECT 'WINDOW' WHERE $5::uuid IS NULL AND $6::uuid IS NULL
-           ) reason
-           WHERE matched.session_id = session.id
-         ) reasons
-         WHERE reasons.category_row <= CASE
-           WHEN $5::uuid IS NOT NULL AND $6::uuid IS NOT NULL THEN 50
-           ELSE 100 END
-       ), '[]'::jsonb) AS reasons
+       COALESCE(reason_aggregates.reasons, '[]'::jsonb) AS reasons
   FROM summary
+  LEFT JOIN reason_aggregates
+    ON reason_aggregates.session_id = summary.session_id
   JOIN valet_sessions session ON session.organization_id = $1::uuid
     AND session.location_id = $2::uuid AND session.id = summary.session_id
     AND (session.pagination_birth_xid IS NULL OR
