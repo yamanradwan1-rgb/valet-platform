@@ -45,11 +45,13 @@ export function investigationLocalTime(instant: string, withDate = true): string
 
 /** Demo HH:mm remains fixture-only; live events use unambiguous ISO instants. */
 export function investigationPosition(event: DemoEvent, query: InvestigationDemoQuery) {
-  if (event.origin === "LIVE" && event.discoveryPosition) {
+  if (event.origin === "LIVE" && event.discoveryPosition &&
+      event.discoveryPosition !== "NOT_SUPPLIED") {
     const label = event.discoveryPosition;
     return label === "BEFORE" ? "before" : label === "AFTER" ? "after" :
       label === "IN_WINDOW" ? "inWindow" : "unavailable";
   }
+  if (event.origin === "LIVE" && !event.occurredAt) return "unavailable";
   const value = event.origin === "LIVE" && event.occurredAt
     ? investigationLocalTime(event.occurredAt).slice(0, 16)
     : "2026-10-23 " + event.time;

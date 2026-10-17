@@ -10,6 +10,8 @@ import type {
   DemoEvent, DemoMatch, InvestigationDemoLocale, InvestigationDemoQuery,
 } from "./investigation-demo-types";
 import { createLiveInvestigationDraft, buildLiveInvestigationQuery } from "./investigation-live-query";
+import { liveInvestigationError as uiError, selectorLabel,
+  type InvestigationLiveOptions as Options } from "./investigation-live-support";
 import {
   readInvestigationSearchFilters, readInvestigationSessions,
 } from "./investigation/search/investigation-search-client";
@@ -26,37 +28,12 @@ import {
 } from "./investigation/timeline/timeline-api";
 import type { InvestigationSearchScope } from "./investigation/search/investigation-search-scope";
 import styles from "./investigation-demo.module.css";
-
 interface Props {
   readonly locale: InvestigationDemoLocale;
   readonly api: DashboardApiClient;
   readonly scope: InvestigationSearchScope;
   readonly locationName: string;
 }
-
-interface Options {
-  readonly members: readonly InvestigationSelectorOption[];
-  readonly slots: readonly InvestigationSelectorOption[];
-  readonly slotOptionsComplete: boolean;
-  readonly scopeKey: string;
-}
-
-function selectorLabel(id: string, value: string | null): InvestigationSelectorOption {
-  return { id, label: value ?? id };
-}
-
-function uiError(locale: InvestigationDemoLocale, problem: unknown): string {
-  // Intentionally do not echo server/body/SQL/Incident details into the UI.
-  const code = problem instanceof Error ? problem.message : "";
-  const unsupported = /PAGINATION|SNAPSHOT|TIMELINE_UNAVAILABLE|503|INCOMPLETE/.test(code);
-  if (locale === "ar") return unsupported
-    ? "التاريخ أكبر من حدّ القراءة الموثوق حالياً؛ ضيّق فترة البحث. لا يتم عرض نتائج جزئية."
-    : "تعذرت قراءة بيانات التحقيق المصرح بها. تحقق من النطاق والتوقيت والصلاحيات ثم حاول مجدداً.";
-  return unsupported
-    ? "History exceeds the currently proven read bound. Narrow the search; no partial history is shown."
-    : "Could not retrieve authorized investigation records. Verify scope, window and access, then retry.";
-}
-
 /** Live-data coordinator only; uses the exact approved Concept A component
  * structure/classes. Its results are never sourced from the demo fixtures.
  */
@@ -81,14 +58,18 @@ export function InvestigationLive({ locale, api, scope, locationName }: Props) {
   const workSignal = useRef<AbortController | null>(null);
   const detailsSignal = useRef<AbortController | null>(null);
   const selectorSignal = useRef<AbortController | null>(null);
-
+  const typedSlot = useRef("");
+  const refinedSlots = useRef<{
+    readonly query: string;
+    readonly slots: readonly InvestigationSelectorOption[];
+    readonly complete: boolean;
+  } | null>(null);
   useEffect(() => () => {
     workId.current += 1;
     workSignal.current?.abort();
     detailsSignal.current?.abort();
     selectorSignal.current?.abort();
   }, []);
-
   const invalidate = useCallback(() => {
     workId.current += 1;
     workSignal.current?.abort();
@@ -97,7 +78,6 @@ export function InvestigationLive({ locale, api, scope, locationName }: Props) {
     workSignal.current = controller;
     return { id: workId.current, signal: controller.signal };
   }, []);
-
   const revoke = useCallback(() => {
     invalidate();
     selectorSignal.current?.abort();
@@ -110,7 +90,6 @@ export function InvestigationLive({ locale, api, scope, locationName }: Props) {
     setBusy(false);
     setTimelineBusy(false);
   }, [invalidate]);
-
   useEffect(() => {
     const controller = new AbortController();
     selectorSignal.current = controller;
@@ -122,10 +101,13 @@ export function InvestigationLive({ locale, api, scope, locationName }: Props) {
       readInvestigationSearchFilters(context, { kind: "KEY_SLOT", limit: 20 }),
     ]).then(([members, slots]) => {
       if (controller.signal.aborted) return;
+      const refined = refinedSlots.current?.query === typedSlot.current
+        ? refinedSlots.current : null;
       setOptions({
         members: members.items.map((item) => selectorLabel(item.id, item.currentLabel.value)),
-        slots: slots.items.map((item) => selectorLabel(item.id, item.currentLabel.value)),
-        slotOptionsComplete: !slots.hasMore && slots.nextCursor === null,
+        slots: refined?.slots ?? slots.items.map((item) => selectorLabel(item.id, item.currentLabel.value)),
+        slotOptionsComplete: refined?.complete ?? (!slots.hasMore && slots.nextCursor === null),
+        slotQuery: refined?.query ?? "",
         scopeKey,
       });
     }).catch((problem: unknown) => {
@@ -134,11 +116,36 @@ export function InvestigationLive({ locale, api, scope, locationName }: Props) {
     return () => controller.abort();
     // scope identity/revision changes remount the parent; key still fences reads.
   }, [api, locale, revoke, scopeKey, scope]);
-
+  // Resolve large locations by the exact typed slot-code prefix, not by the
+  // first 20 global Key Slots. A truncated prefix is never assumed complete.
+  useEffect(() => {
+    typedSlot.current = draft.slot;
+    if (!draft.slot) return;
+    const controller = new AbortController();
+    const text = draft.slot;
+    void readInvestigationSearchFilters({
+      api, scope, signal: controller.signal, onAuthReconciled: revoke,
+    }, { kind: "KEY_SLOT", text, limit: 20 }).then((response) => {
+      if (controller.signal.aborted || typedSlot.current !== text) return;
+      const refined = {
+        query: text,
+        slots: response.items.map((item) => selectorLabel(item.id, item.currentLabel.value)),
+        complete: !response.hasMore && response.nextCursor === null,
+      };
+      refinedSlots.current = refined;
+      setOptionsError(null);
+      setOptions((current) => current?.scopeKey === scopeKey
+        ? { ...current, ...refined, slotOptionsComplete: refined.complete, slotQuery: text }
+        : current);
+    }).catch((problem: unknown) => {
+      if (!controller.signal.aborted) setOptionsError(uiError(locale, problem));
+    });
+    return () => controller.abort();
+  }, [api, draft.slot, locale, revoke, scope, scopeKey]);
   async function fetchTimeline(match: DemoMatch, id: number, signal: AbortSignal) {
     const timeline = await readInvestigationTimeline(api, {
       ...scope, sessionId: match.session.id,
-    }, null, signal);
+    }, null, signal, revoke);
     if (signal.aborted || id !== workId.current) return;
     const withScope: DemoMatch = {
       ...match,
@@ -150,7 +157,6 @@ export function InvestigationLive({ locale, api, scope, locationName }: Props) {
       row.session.id === complete.session.id ? complete : row));
     setTimelineBusy(false);
   }
-
   async function apply() {
     const work = invalidate();
     setError(null);
@@ -161,14 +167,38 @@ export function InvestigationLive({ locale, api, scope, locationName }: Props) {
     setBusy(true);
     setTimelineBusy(false);
     try {
+      let latestOptions = options;
+      if (!latestOptions || optionsError) {
+        const context = {
+          api, scope, signal: work.signal, onAuthReconciled: revoke,
+        };
+        const [members, slots] = await Promise.all([
+          readInvestigationSearchFilters(context, { kind: "MEMBER", limit: 20 }),
+          readInvestigationSearchFilters(context, {
+            kind: "KEY_SLOT", limit: 20,
+            ...(draft.slot ? { text: draft.slot } : {}),
+          }),
+        ]);
+        latestOptions = {
+          members: members.items.map((item) => selectorLabel(item.id, item.currentLabel.value)),
+          slots: slots.items.map((item) => selectorLabel(item.id, item.currentLabel.value)),
+          slotOptionsComplete: !slots.hasMore && slots.nextCursor === null,
+          slotQuery: draft.slot,
+          scopeKey,
+        };
+        if (work.signal.aborted || work.id !== workId.current) return;
+        setOptions(latestOptions);
+        setOptionsError(null);
+      }
       const resolved = resolveLiveInvestigationSelectors({
         query: draft,
-        employeeOptions: options?.members ?? [],
-        slotOptions: options?.slots ?? [],
+        employeeOptions: latestOptions?.members ?? [],
+        slotOptions: latestOptions?.slots ?? [],
         scopeKey,
-        employeeScopeKey: options?.scopeKey ?? "",
-        slotScopeKey: options?.scopeKey ?? "",
-        slotOptionsComplete: options?.slotOptionsComplete ?? false,
+        employeeScopeKey: latestOptions?.scopeKey ?? "",
+        slotScopeKey: draft.slot && latestOptions?.slotQuery !== draft.slot
+          ? "" : latestOptions?.scopeKey ?? "",
+        slotOptionsComplete: latestOptions?.slotOptionsComplete ?? false,
       });
       if (resolved.kind !== "resolved") {
         throw new Error("INVALID_OR_INCOMPLETE_CANONICAL_SELECTOR");
@@ -232,7 +262,7 @@ export function InvestigationLive({ locale, api, scope, locationName }: Props) {
       const source = selected.source === "KEY" ? "KEY_CUSTODY" : selected.source;
       const detail = await readInvestigationEventDetail(api, {
         ...scope, sessionId: selectedId,
-      }, source, selected.id, controller.signal);
+      }, source, selected.id, controller.signal, revoke);
       if (controller.signal.aborted || selectedId !== selected.session) return;
       setEvent(attachInvestigationLiveDetail(selected, detail));
     } catch (problem: unknown) {

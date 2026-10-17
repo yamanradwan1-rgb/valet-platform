@@ -59,7 +59,7 @@ export function InvestigationSearchPanel({
       setCollapsed(false);
       return;
     }
-    if (live && (!value.location || !locationName || selectorError)) {
+    if (live && (!value.location || !locationName)) {
       return;
     }
     setInvalid(false);

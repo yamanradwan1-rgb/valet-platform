@@ -28,6 +28,7 @@ export function readInvestigationTimeline(
   identity: TimelineScopeIdentity,
   cursor: string | null,
   signal: AbortSignal,
+  onAuthReconciled?: () => void,
 ) {
   const query = auditInvestigationTimelineQuerySchema.parse({
     limit: 100,
@@ -36,7 +37,7 @@ export function readInvestigationTimeline(
   return api.request(
     sessionPath(identity) + "/timeline",
     auditInvestigationTimelineResponseSchema,
-    { query, signal },
+    { query, signal, ...(onAuthReconciled ? { onAuthReconciled } : {}) },
   );
 }
 
@@ -47,6 +48,7 @@ export async function readInvestigationEventDetail(
   source: string,
   eventId: string,
   signal: AbortSignal,
+  onAuthReconciled?: () => void,
 ) {
   const params = auditInvestigationDetailParamsSchema.parse({
     sessionId: identity.sessionId,
@@ -57,7 +59,7 @@ export async function readInvestigationEventDetail(
     sessionPath(identity) + "/events/" +
       encodeURIComponent(params.source) + "/" + encodeURIComponent(params.eventId),
     auditInvestigationEventDetailSchema,
-    { signal },
+    { signal, ...(onAuthReconciled ? { onAuthReconciled } : {}) },
   );
   if (
     detail.sessionId !== params.sessionId ||

@@ -3,12 +3,13 @@ import { describe, expect, it, vi } from "vitest";
 import type { AuditInvestigationSearchResponse } from "@valet/contracts";
 
 import { InvestigationWorkspace } from "../../investigation-workspace";
-import { DEFAULT_INVESTIGATION_QUERY } from "../../investigation-demo-types";
+import { DEFAULT_INVESTIGATION_QUERY, type DemoEvent } from "../../investigation-demo-types";
 import { readInvestigationTimeline } from "./timeline-api";
 import {
   attachInvestigationLiveDetail,
   attachInvestigationLiveTimeline,
   investigationLocalTime,
+  investigationPosition,
   mapInvestigationLiveSearch,
 } from "./investigation-live-projection";
 import { auditId, event, keyId, page, scope, SESSION } from "./timeline-test-fixtures";
@@ -66,6 +67,24 @@ function view(locale: "en" | "ar", match = attachInvestigationLiveTimeline(
 }
 
 describe("Issue300 LIVE projection and frozen presentation values", () => {
+  it("places actual history before/inside/after [from,to) when API omits discoveryContext", () => {
+    const query = { ...DEFAULT_INVESTIGATION_QUERY,
+      date: "2026-10-23", start: "14:00", end: "15:00" };
+    const make = (occurredAt: string): DemoEvent => ({
+      origin: "LIVE" as const,
+      session: SESSION,
+      id: auditId,
+      time: "00:00",
+      source: "AUDIT" as const,
+      type: "VALET_SESSION_PARKED",
+      actor: null, role: null, participant: null, resource: null,
+      transition: "VALET_SESSION_PARKED", evidence: "RECORDED",
+      occurredAt, discoveryPosition: "NOT_SUPPLIED" as const,
+    });
+    expect(investigationPosition(make("2026-10-23T10:50:00Z"), query)).toBe("before");
+    expect(investigationPosition(make("2026-10-23T11:30:00Z"), query)).toBe("inWindow");
+    expect(investigationPosition(make("2026-10-23T12:20:00Z"), query)).toBe("after");
+  });
   it("builds Session results without inventing history, staff or historical slot", () => {
     const [match] = mapInvestigationLiveSearch(search());
     expect(match!.origin).toBe("LIVE");
