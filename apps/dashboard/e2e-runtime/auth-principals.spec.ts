@@ -132,16 +132,17 @@ test("Company Admin MFA enrollment, freshness loss, recovery, refresh and logout
     .toContainText("Setup required");
   await page.getByRole("button", { name: "Set up authenticator" }).click();
   const secret = (await page.locator("bdi.bidi-code").first().textContent())?.trim();
-  expect(secret).toMatch(/^[A-Z2-7]{32}$/u);
+  expect(/^[A-Z2-7]{32}$/u.test(secret ?? "")).toBe(true);
   await page.getByLabel("6-digit authenticator code").fill(totp(secret!));
   await page.getByRole("button", { name: "Confirm authenticator" }).click();
-  await expect(page.getByRole("heading", { name: "Recovery codes" })).toBeVisible();
-  await expect(page.locator("ol li")).toHaveCount(10);
+  await expect.poll(() => page.getByRole("heading", { name: "Recovery codes" }).isVisible()).toBe(true);
+  await expect.poll(() => page.locator("ol li").count()).toBe(10);
   const recoveryCodes = await page.locator("ol li").allTextContents();
   // Assurance becoming verified must NOT prematurely unmount one-time codes.
-  await expect(page.getByRole("status").filter({ hasText: "MFA status:" }))
-    .toContainText("Verified");
-  await expect(page.locator("ol li")).toHaveCount(10);
+  await expect.poll(async () => (
+    await page.getByRole("status").filter({ hasText: "MFA status:" }).textContent()
+  )?.includes("Verified") ?? false).toBe(true);
+  await expect.poll(() => page.locator("ol li").count()).toBe(10);
   const leaked = await page.evaluate((codes) => {
     const persistent = JSON.stringify({
       local: Object.entries(localStorage),
@@ -154,8 +155,8 @@ test("Company Admin MFA enrollment, freshness loss, recovery, refresh and logout
   const saved = page.getByRole("button", { name: "I saved these codes" });
   await saved.focus();
   await page.keyboard.press("Enter");
-  await expect(page.locator("ol li")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: f.organizations.a.name })).toBeVisible();
+  await expect.poll(() => page.locator("ol li").count()).toBe(0);
+  await expect.poll(() => page.getByRole("button", { name: f.organizations.a.name }).isVisible()).toBe(true);
 
   await selectCompany(page);
   const navigation = page.getByRole("navigation", { name: "Management navigation" });
@@ -185,16 +186,16 @@ test("Company Admin MFA enrollment, freshness loss, recovery, refresh and logout
     .toContainText("Verification required");
   await page.getByLabel("Recovery code").fill(recoveryCodes[0]!);
   await page.getByRole("button", { name: "Use recovery code" }).click();
-  await expect(page.getByRole("heading", { name: "Authenticator setup" })).toBeVisible();
+  await expect.poll(() => page.getByRole("heading", { name: "Authenticator setup" }).isVisible()).toBe(true);
   const replacement = (await page.locator("bdi.bidi-code").first().textContent())?.trim();
-  expect(replacement).toMatch(/^[A-Z2-7]{32}$/u);
+  expect(/^[A-Z2-7]{32}$/u.test(replacement ?? "")).toBe(true);
   await page.getByLabel("6-digit authenticator code").fill(totp(replacement!));
   await page.getByRole("button", { name: "Confirm authenticator" }).click();
-  await expect(page.getByRole("heading", { name: "Recovery codes" })).toBeVisible();
-  await expect(page.locator("ol li")).toHaveCount(10);
+  await expect.poll(() => page.getByRole("heading", { name: "Recovery codes" }).isVisible()).toBe(true);
+  await expect.poll(() => page.locator("ol li").count()).toBe(10);
   await page.getByRole("button", { name: "I saved these codes" }).click();
-  await expect(page.locator("ol li")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: f.organizations.a.name })).toBeVisible();
+  await expect.poll(() => page.locator("ol li").count()).toBe(0);
+  await expect.poll(() => page.getByRole("button", { name: f.organizations.a.name }).isVisible()).toBe(true);
 
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
