@@ -9,7 +9,8 @@ export async function prepareIssue300SqlWitnesses(client) {
     "otherMember", "unknownUser", "unknownMember", "badUser", "badMember",
     "vehicle", "vehicle2", "session", "session2", "slot",
     "task", "audit", "badTaskAudit", "badIncidentAudit", "unknownAudit",
-    "custody", "dispatch", "incident",
+    "custody", "dispatch", "incident", "metaUser", "metaMember",
+    "metadataAudit", "badMetadataAudit", "retrievalTask",
   ].map((name) => [name, randomUUID()]));
   const insert = (sql, params) => client.query(sql, params);
   await insert(
@@ -72,6 +73,23 @@ export async function prepareIssue300SqlWitnesses(client) {
      VALUES($1,$2,$3,$4,'PARKING','QUEUED',now())`,
     [ids.task, ids.org, ids.location, ids.session],
   );
+  await insert(
+    `INSERT INTO tasks(id,organization_id,location_id,valet_session_id,
+       task_type,status,updated_at)
+     VALUES($1,$2,$3,$4,'RETRIEVAL','QUEUED',now())`,
+    [ids.retrievalTask, ids.org, ids.location, ids.session],
+  );
+  await insert(
+    `INSERT INTO users(id,email,password_hash,updated_at)
+     VALUES($1,$2,'test-only-hash',now())`,
+    [ids.metaUser, `${ids.metaUser}@issue300.invalid`],
+  );
+  await insert(
+    `INSERT INTO organization_memberships(id,organization_id,user_id,role,
+       status,first_name,last_name,updated_at)
+     VALUES($1,$2,$3,'VALET_EMPLOYEE','INACTIVE','Metadata','Only',now())`,
+    [ids.metaMember, ids.org, ids.metaUser],
+  );
   const at = (time) => `2026-10-16T${time}:00.000Z`;
   await insert(
     `INSERT INTO key_custody_events(id,organization_id,location_id,valet_session_id,
@@ -98,6 +116,19 @@ export async function prepareIssue300SqlWitnesses(client) {
   await audit(ids.badTaskAudit, "TASK", randomUUID(), "VALET_SESSION_PARKED", ids.badMember);
   await audit(ids.badIncidentAudit, "Incident", randomUUID(), "INCIDENT_OPENED", ids.badMember);
   await audit(ids.unknownAudit, "ValetSession", ids.session, "ISSUE300_UNKNOWN", ids.unknownMember);
+  for (const [auditId, taskId] of [
+    [ids.metadataAudit, ids.task], [ids.badMetadataAudit, ids.retrievalTask],
+  ]) {
+    await insert(
+      `INSERT INTO audit_events(id,organization_id,location_id,
+         valet_session_id,actor_membership_id,actor_type,event_type,
+         entity_type,entity_id,metadata_json,occurred_at)
+       VALUES($1,$2,$3,NULL,$4,'MEMBERSHIP','VALET_SESSION_PARKED',
+         'LegacyParked', $5, jsonb_build_object('taskId',$6::text),$7)`,
+      [auditId, ids.org, ids.location, ids.metaMember, randomUUID(), taskId,
+        at("11:12")],
+    );
+  }
   await insert(
     `INSERT INTO incidents(id,organization_id,location_id,valet_session_id,
        status,severity,type,description,reported_by_membership_id)

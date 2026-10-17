@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { setTimeout as sleep } from "node:timers/promises";
 import pg from "pg";
 import { generate } from "otplib";
 import { seedIssue300Http } from "./issue300-http-seed.mjs";
@@ -59,13 +60,19 @@ async function authenticatedUser(person) {
 }
 
 async function checkRealBrowser(user, totpSecret) {
+  // The MFA enrollment/confirm endpoint already consumed the current step.
+  // A new real browser Staff session must use a fresh TOTP step rather than
+  // reusing enrollment's code or inheriting a different session's assurance.
+  await sleep(30_000 - (Date.now() % 30_000) + 800);
+  const freshCode = await generate({ strategy: "totp", algorithm: "sha1",
+    digits: 6, period: 30, secret: totpSecret });
   const root = join(dirname(fileURLToPath(import.meta.url)), "../../../..");
   const dashboard = join(root, "apps/dashboard");
   const input = {
     ...globalThis.process.env,
     ISSUE300_BROWSER_EMAIL: user.email,
     ISSUE300_BROWSER_PASSWORD: user.password,
-    ISSUE300_BROWSER_TOTP_SECRET: totpSecret,
+    ISSUE300_BROWSER_TOTP_CODE: freshCode,
     ISSUE300_BROWSER_OUTPUT: join(root, "tmp/issue300-g2-owned/browser-geometry.json"),
   };
   delete input.ISSUE300_PG_TEST_URL;
@@ -153,6 +160,30 @@ try {
     assert.notEqual(other.status, 200);
   }
   globalThis.console.log("PASS real HTTP: independent same-Session AND, four-source full history, foreign Session denied");
+
+  for (const viewer of [ca, lm]) {
+    const metaSearch = await req(`${path}/sessions${query}&membershipId=${ids.metadataActor}`,
+      viewer.token);
+    assert.equal(metaSearch.status, 200);
+    assert.equal(metaSearch.json?.items?.length, 1);
+    assert.equal(metaSearch.json.items[0].sessionId, ids.session);
+    assert.ok(metaSearch.json.items[0].matchReasons.some(
+      (reason) => reason.eventId === ids.metadataAudit));
+    assert.ok(!metaSearch.json.items[0].matchReasons.some(
+      (reason) => reason.eventId === ids.badMetadataAudit));
+    assert.ok(!metaSearch.json.items[0].matchReasons.some(
+      (reason) => reason.eventId === ids.vehicleMetadataAudit));
+    const metadataTimeline = await req(`${path}/sessions/${ids.session}/timeline`,
+      viewer.token);
+    assert.equal(metadataTimeline.status, 200);
+    assert.ok(metadataTimeline.json.items.some(
+      (row) => row.key?.source === "AUDIT" && row.key?.eventId === ids.metadataAudit));
+    assert.ok(!metadataTimeline.json.items.some(
+      (row) => row.key?.eventId === ids.badMetadataAudit));
+    assert.ok(!metadataTimeline.json.items.some(
+      (row) => row.key?.eventId === ids.vehicleMetadataAudit));
+  }
+  globalThis.console.log("PASS real HTTP: DEC-103 metadata-only PARKED Audit same PARKING Task discoverable in Search and Timeline; RETRIEVAL metadata rejected");
 
   const beyond = await req(`${path}/sessions?from=${encodeURIComponent(to)}&to=${encodeURIComponent('2026-10-16T12:01:00.000Z')}`, ca.token);
   assert.equal(beyond.status, 200);

@@ -10,7 +10,7 @@ import type { DemoEvent, DemoMatch, InvestigationDemoLocale, InvestigationDemoQu
 import type { TimelineEvidenceRow, TimelinePageView } from "./timeline-model";
 import { projectTimelinePage } from "./timeline-projection";
 
-const ZONE = "Asia/Amman";
+const DEMO_ZONE = "Asia/Amman";
 const EVENT_LABELS: Record<string, readonly [string, string]> = {
   VALET_SESSION_CHECK_IN_COMPLETED: ["Check-in completed", "اكتمال تسجيل المركبة"],
   SLOT_ASSIGNED: ["Key slot assigned", "تعيين خانة المفتاح"],
@@ -32,9 +32,10 @@ export function investigationEventLabel(event: DemoEvent, locale: InvestigationD
 }
 
 /** Render persisted UTC in the specified Location's approved timezone, never browser local. */
-export function investigationLocalTime(instant: string, withDate = true): string {
+export function investigationLocalTime(instant: string, withDate = true,
+  timezone = DEMO_ZONE): string {
   const fields = new Intl.DateTimeFormat("en-GB", {
-    timeZone: ZONE, year: "numeric", month: "2-digit", day: "2-digit",
+    timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit",
     hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
   }).formatToParts(new Date(instant));
   const part = (name: string) => fields.find((field) => field.type === name)?.value ?? "";
@@ -52,16 +53,21 @@ export function investigationPosition(event: DemoEvent, query: InvestigationDemo
       label === "IN_WINDOW" ? "inWindow" : "unavailable";
   }
   if (event.origin === "LIVE" && !event.occurredAt) return "unavailable";
+  if (event.origin === "LIVE" && event.occurredAt && query.fromUtc && query.toUtc) {
+    return event.occurredAt < query.fromUtc ? "before" :
+      event.occurredAt >= query.toUtc ? "after" : "inWindow";
+  }
   const value = event.origin === "LIVE" && event.occurredAt
-    ? investigationLocalTime(event.occurredAt).slice(0, 16)
+    ? investigationLocalTime(event.occurredAt, true, event.locationTimezone ?? DEMO_ZONE).slice(0, 16)
     : "2026-10-23 " + event.time;
   const from = query.date + " " + query.start;
   const to = query.date + " " + query.end;
   return value < from ? "before" : value >= to ? "after" : "inWindow";
 }
 
-export function investigationDisplayTime(raw: string, live: boolean): string {
-  return live ? investigationLocalTime(raw) : raw + ":00";
+export function investigationDisplayTime(raw: string, live: boolean,
+  timezone = DEMO_ZONE): string {
+  return live ? investigationLocalTime(raw, true, timezone) : raw + ":00";
 }
 
 export function investigationKey(source: string, id: string): string {
@@ -69,7 +75,8 @@ export function investigationKey(source: string, id: string): string {
 }
 
 /** Search contains NO timeline events. Do not invent a historical key code. */
-export function mapInvestigationLiveSearch(response: unknown): DemoMatch[] {
+export function mapInvestigationLiveSearch(response: unknown,
+  locationTimezone = DEMO_ZONE): DemoMatch[] {
   const search = auditInvestigationSearchResponseSchema.parse(response);
   return search.items.map((item): DemoMatch => ({
     origin: "LIVE",
@@ -87,6 +94,7 @@ export function mapInvestigationLiveSearch(response: unknown): DemoMatch[] {
       people: [],
       events: [],
       coverage: item.coverage,
+      locationTimezone,
     },
     witnessIds: item.matchReasons.map((reason) =>
       investigationKey(reason.source, reason.eventId)),
@@ -97,7 +105,8 @@ export function mapInvestigationLiveSearch(response: unknown): DemoMatch[] {
   }));
 }
 
-function liveEvent(row: TimelineEvidenceRow, sessionId: string, locationLabel?: string | null): DemoEvent {
+function liveEvent(row: TimelineEvidenceRow, sessionId: string,
+  locationLabel?: string | null, locationTimezone = DEMO_ZONE): DemoEvent {
   const participants = row.participants.map((participant) => ({
     role: participant.role,
     name: participant.currentDisplayName,
@@ -106,7 +115,7 @@ function liveEvent(row: TimelineEvidenceRow, sessionId: string, locationLabel?: 
     origin: "LIVE",
     session: sessionId,
     id: row.key.eventId,
-    time: investigationLocalTime(row.occurredAt, false).slice(0, 5),
+    time: investigationLocalTime(row.occurredAt, false, locationTimezone).slice(0, 5),
     source: row.key.source,
     type: row.kind,
     actor: row.actor?.currentDisplayName ?? null,
@@ -123,6 +132,7 @@ function liveEvent(row: TimelineEvidenceRow, sessionId: string, locationLabel?: 
     discoveryPosition: row.discoveryPosition,
     quality: row.quality,
     locationLabel: locationLabel ?? null,
+    locationTimezone,
   };
 }
 
@@ -147,6 +157,7 @@ export function attachInvestigationLiveTimeline(
   }
   const events = page.events.map((row) => liveEvent(
     row, match.session.id, match.session.locationLabel,
+    match.session.locationTimezone,
   ));
   const witnessIds = page.discoveryContext
     ? page.discoveryContext.matchedKeys.map((key) =>

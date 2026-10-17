@@ -24,6 +24,7 @@ interface InvestigationWorkspaceProps {
   readonly query: InvestigationDemoQuery | null;
   readonly loading?: boolean;
   readonly error?: string | null;
+  readonly locationTimezone?: string;
 }
 
 const copy = {
@@ -160,7 +161,7 @@ function SessionChoice({
       <span className={styles.choiceCount}>
         <strong>{match.count}</strong> {match.count === 1 ? c.witness : c.witnesses}
       </span>
-      <span className={styles.timeRange} dir="ltr">{investigationDisplayTime(match.first, match.origin === "LIVE")} – {investigationDisplayTime(match.last, match.origin === "LIVE")}</span>
+      <span className={styles.timeRange} dir="ltr">{investigationDisplayTime(match.first, match.origin === "LIVE", session.locationTimezone)} – {investigationDisplayTime(match.last, match.origin === "LIVE", session.locationTimezone)}</span>
     </button>
   );
 }
@@ -185,8 +186,8 @@ function TimelineEvent({
   return (
     <li className={styles.timelineRow} data-kind={kind}>
       <time className={styles.timestamp} dateTime={event.occurredAt ?? `2026-10-23T${event.time}:00+03:00`}
-        title={event.occurredAt ? investigationLocalTime(event.occurredAt) + " Asia/Amman" : undefined} dir="ltr">
-        {event.occurredAt ? investigationLocalTime(event.occurredAt, false) : event.time + ":00"}
+        title={event.occurredAt ? investigationLocalTime(event.occurredAt, true, event.locationTimezone) + " " + event.locationTimezone : undefined} dir="ltr">
+        {event.occurredAt ? investigationLocalTime(event.occurredAt, false, event.locationTimezone) : event.time + ":00"}
       </time>
       <span className={styles.track} aria-hidden="true"><span /></span>
       <button className={styles.eventCard} type="button" onClick={() => onEvent(event)}
@@ -227,6 +228,7 @@ export function InvestigationWorkspace({
   query,
   loading = false,
   error = null,
+  locationTimezone,
 }: InvestigationWorkspaceProps) {
   const c = copy[locale];
   const current = matches.find((match) => match.session.id === selectedId);
@@ -238,7 +240,7 @@ export function InvestigationWorkspace({
     <section className={styles.workspace} aria-label={c.events}>
       <aside className={styles.results} aria-label={c.results}>
         <header className={styles.resultsHeader}>
-          <div><h2>{c.results}</h2><small>{query ? `${query.date} · ${query.start}–${query.end} · ${c.timezone}` : c.apply}</small></div>
+          <div><h2>{c.results}</h2><small>{query ? `${query.date} · ${query.start}–${query.end} · ${locationTimezone ?? c.timezone}` : c.apply}</small></div>
           <span className={styles.count}>{query ? String(matches.length).padStart(2, "0") : "—"}</span>
         </header>
         {!query || !matches.length ? (
@@ -269,7 +271,7 @@ export function InvestigationWorkspace({
               <div><span>{c.currentVehicle}</span><strong>{selected.make} {selected.model}</strong></div>
               <div><span>{c.currentPlate}</span><strong>{selected.plate ? <bdi dir="ltr">{selected.plate}</bdi> : c.notRecorded}</strong></div>
               <div><span>{c.currentSlot}</span><strong>{selected.currentSlot ? <bdi dir="ltr">{selected.currentSlot}</bdi> : c.notAssigned}</strong></div>
-              <div><span>{c.firstLast}</span><strong dir="ltr">{investigationDisplayTime(current.first, current.origin === "LIVE")} – {investigationDisplayTime(current.last, current.origin === "LIVE")}</strong></div>
+              <div><span>{c.firstLast}</span><strong dir="ltr">{investigationDisplayTime(current.first, current.origin === "LIVE", selected.locationTimezone)} – {investigationDisplayTime(current.last, current.origin === "LIVE", selected.locationTimezone)}</strong></div>
               <div><span>{c.matching}</span><strong>{current.count}</strong></div>
             </div>
             <div className={styles.timelineHeading}>

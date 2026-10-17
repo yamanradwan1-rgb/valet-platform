@@ -33,17 +33,18 @@ interface Props {
   readonly api: DashboardApiClient;
   readonly scope: InvestigationSearchScope;
   readonly locationName: string;
+  readonly locationTimezone: string;
 }
 /** Live-data coordinator only; uses the exact approved Concept A component
  * structure/classes. Its results are never sourced from the demo fixtures.
  */
-export function InvestigationLive({ locale, api, scope, locationName }: Props) {
+export function InvestigationLive({ locale, api, scope, locationName, locationTimezone }: Props) {
   const scopeKey = [
     scope.organizationId, scope.locationId, scope.role, scope.identityGeneration,
-    scope.sessionGeneration, scope.selectionRevision,
+    scope.sessionGeneration, scope.selectionRevision, locationTimezone,
   ].join(":");
   const [draft, setDraft] = useState<InvestigationDemoQuery>(
-    () => createLiveInvestigationDraft(scope.locationId),
+    () => createLiveInvestigationDraft(scope.locationId, new Date(), locationTimezone),
   );
   const [applied, setApplied] = useState<InvestigationDemoQuery | null>(null);
   const [matches, setMatches] = useState<readonly DemoMatch[]>([]);
@@ -73,6 +74,7 @@ export function InvestigationLive({ locale, api, scope, locationName }: Props) {
   const invalidate = useCallback(() => {
     workId.current += 1;
     workSignal.current?.abort();
+    detailsSignal.current?.abort();
     detailsSignal.current?.abort();
     const controller = new AbortController();
     workSignal.current = controller;
@@ -194,15 +196,18 @@ export function InvestigationLive({ locale, api, scope, locationName }: Props) {
       if (resolved.kind !== "resolved") {
         throw new Error("INVALID_OR_INCOMPLETE_CANONICAL_SELECTOR");
       }
-      const query = buildLiveInvestigationQuery(draft, scope.locationId, resolved);
+      const query = buildLiveInvestigationQuery(draft, scope.locationId, resolved,
+        locationTimezone);
       const data = await readInvestigationSessions({
         api, scope, signal: work.signal, onAuthReconciled: revoke,
       }, query);
       if (work.signal.aborted || work.id !== workId.current) return;
       if (data.nextCursor !== null) throw new Error("SEARCH_PAGINATION_INCOMPLETE");
-      const rows = mapInvestigationLiveSearch(data);
+      const rows = mapInvestigationLiveSearch(data, locationTimezone);
       setMatches(rows);
-      setApplied({ ...draft });
+      // Preserve the exact resolved instants so before/in/after labels never
+      // re-interpret a DST fold or an altered browser/system timezone.
+      setApplied({ ...draft, fromUtc: query.from, toUtc: query.to });
       setBusy(false);
       const first = rows[0];
       setSelectedId(first?.session.id ?? null);
@@ -244,6 +249,7 @@ export function InvestigationLive({ locale, api, scope, locationName }: Props) {
 
   async function openEvent(selected: DemoEvent) {
     if (!selectedId || selected.session !== selectedId || selected.origin !== "LIVE") return;
+    const readGeneration = workId.current;
     detailsSignal.current?.abort();
     const controller = new AbortController();
     detailsSignal.current = controller;
@@ -254,10 +260,12 @@ export function InvestigationLive({ locale, api, scope, locationName }: Props) {
       const detail = await readInvestigationEventDetail(api, {
         ...scope, sessionId: selectedId,
       }, source, selected.id, controller.signal, revoke);
-      if (controller.signal.aborted || selectedId !== selected.session) return;
+      if (controller.signal.aborted || readGeneration !== workId.current ||
+          selectedId !== selected.session) return;
       setEvent(attachInvestigationLiveDetail(selected, detail));
     } catch (problem: unknown) {
-      if (!controller.signal.aborted) setError(uiError(locale, problem));
+      if (!controller.signal.aborted && readGeneration === workId.current)
+        setError(uiError(locale, problem));
     }
   }
 
@@ -269,7 +277,7 @@ export function InvestigationLive({ locale, api, scope, locationName }: Props) {
     setApplied(null);
     setBusy(false);
     setTimelineBusy(false);
-    setDraft(createLiveInvestigationDraft(scope.locationId));
+    setDraft(createLiveInvestigationDraft(scope.locationId, new Date(), locationTimezone));
     setError(null);
   }
 
@@ -282,7 +290,8 @@ export function InvestigationLive({ locale, api, scope, locationName }: Props) {
         slotOptions={options?.slots ?? []} selectorError={optionsError} />
       <InvestigationWorkspace locale={locale} matches={matches} selectedId={selectedId}
         onSelect={(id) => void select(id)} onEvent={(row) => void openEvent(row)}
-        query={applied} loading={busy || timelineBusy} error={error} />
+        query={applied} loading={busy || timelineBusy} error={error}
+        locationTimezone={locationTimezone} />
       <InvestigationEventDrawer event={event} locale={locale}
         onClose={() => setEvent(null)} />
     </section>

@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { createHmac } from "node:crypto";
 import { writeFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 
@@ -8,36 +7,25 @@ import { chromium } from "@playwright/test";
  */
 const email = process.env.ISSUE300_BROWSER_EMAIL;
 const password = process.env.ISSUE300_BROWSER_PASSWORD;
-const secret = process.env.ISSUE300_BROWSER_TOTP_SECRET;
+const code = process.env.ISSUE300_BROWSER_TOTP_CODE;
 const output = process.env.ISSUE300_BROWSER_OUTPUT;
-if (!email || !password || !secret || !output ||
+if (!email || !password || !/^[0-9]{6}$/.test(code ?? "") || !output ||
     !output.replaceAll("\\", "/").includes("issue300-g2-owned")) {
   throw new Error("Explicit task-owned browser test inputs required");
-}
-function currentTotp(base32) {
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-  let bits = "";
-  for (const character of base32)
-    bits += alphabet.indexOf(character).toString(2).padStart(5, "0");
-  const key = Buffer.from(bits.slice(0, 160).match(/.{8}/g).map((x) => parseInt(x, 2)));
-  const step = Math.floor(Date.now() / 30000);
-  const counter = Buffer.alloc(8);
-  counter.writeBigUInt64BE(BigInt(step));
-  const digest = createHmac("sha1", key).update(counter).digest();
-  const offset = digest[19] & 15;
-  return ((digest.readUInt32BE(offset) & 0x7fffffff) % 1000000)
-    .toString().padStart(6, "0");
 }
 
 const browser = await chromium.launch({ headless: true });
 const responses = [];
 const matrix = [];
 let stage = "BROWSER_STARTED";
+let safeDiagnostic = null;
 try {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   page.on("response", (res) => {
     if (res.url().includes("/audit-investigations/") ||
-        res.url().includes("/management/audit-events"))
+        res.url().includes("/management/audit-events") ||
+        res.url().includes("/v1/staff/auth/login") ||
+        res.url().includes("/management/organizations"))
       responses.push({ endpoint: new URL(res.url()).pathname, status: res.status() });
   });
   await page.goto("http://localhost:3113/audit-log?investigationDemo=1", {
@@ -47,16 +35,32 @@ try {
   await page.locator("#staff-password").fill(password);
   await page.locator("form button[type=submit]").first().click();
   stage = "ACTUAL_LOGIN_UI";
+  // A NEW real browser password login creates a NEW Staff session. Its MFA
+  // assurance cannot be inherited from the API-test session, even for the
+  // same User/TOTP factor. Complete the actual STEP_UP_REQUIRED UI first.
+  const totp = page.locator("#mfa-totp-mfaVerify");
+  await totp.waitFor();
+  await totp.fill(code);
+  await page.locator("form:has(#mfa-totp-mfaVerify) button[type=submit]").click();
+  stage = "REAL_MFA_STEPUP_UI";
   const org = page.getByRole("button", { name: "Task Issue300", exact: true }).first();
-  await org.waitFor();
+  try {
+    await org.waitFor();
+  } catch (error) {
+    safeDiagnostic = await page.evaluate(() => ({
+      pathname: location.pathname,
+      visibleButtons: [...document.querySelectorAll("button")]
+        .filter((button) => button.getClientRects().length > 0)
+        .map((button) => button.textContent?.trim().slice(0, 64) ?? "")
+        .slice(0, 12),
+      alertCount: document.querySelectorAll('[role="alert"]').length,
+      loginFormPresent: Boolean(document.getElementById("staff-email")),
+      selectedScopePresent: Boolean(document.getElementById("audit-investigation-tab")),
+    }));
+    throw error;
+  }
   await org.click();
   stage = "COMPANY_SCOPE_SELECTED";
-  const totp = page.locator("#mfa-totp-mfaVerify");
-  if (await totp.isVisible()) {
-    await totp.fill(currentTotp(secret));
-    await page.locator("form:has(#mfa-totp-mfaVerify) button[type=submit]").click();
-    stage = "REAL_MFA_STEPUP_UI";
-  }
   const location = page.getByRole("button", { name: "G2 A Location", exact: true }).first();
   await location.waitFor();
   await location.click();
@@ -119,7 +123,7 @@ try {
     responses.filter((r) => r.status === 200 && r.endpoint.includes("audit-investigations")).length);
 } finally {
   writeFileSync(output, JSON.stringify({
-    stage, matrix, responses,
+    stage, matrix, responses, safeDiagnostic,
     disclaimer: "CSS zoom is synthetic; Arabic Chromium zoom is not physical 200% evidence",
   }, null, 2));
   await browser.close();

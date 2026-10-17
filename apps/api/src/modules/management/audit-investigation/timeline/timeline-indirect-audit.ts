@@ -18,6 +18,9 @@ WHERE session.organization_id = $1::uuid
   AND session.location_id = $2::uuid
   AND session.id = $3::uuid
   AND (
+    audit.entity_type NOT IN ('Vehicle', 'VEHICLE')
+  )
+  AND (
     (audit.entity_type IN ('ValetSession', 'VALET_SESSION')
       AND audit.entity_id = session.id)
     OR (audit.entity_type IN ('Task', 'TASK') AND EXISTS (
@@ -34,6 +37,14 @@ WHERE session.organization_id = $1::uuid
         AND incident.valet_session_id = session.id
         AND incident.id = audit.entity_id
     ))
+    OR (audit.event_type = 'VALET_SESSION_PARKED' AND EXISTS (
+      SELECT 1 FROM tasks AS parked_meta_task
+      WHERE parked_meta_task.organization_id = session.organization_id
+        AND parked_meta_task.location_id = session.location_id
+        AND parked_meta_task.valet_session_id = session.id
+        AND parked_meta_task.task_type = 'PARKING'
+        AND parked_meta_task.id::text = audit.metadata_json->>'taskId'
+    ))
   )
   AND (
     audit.event_type <> 'VALET_SESSION_PARKED'
@@ -43,6 +54,7 @@ WHERE session.organization_id = $1::uuid
       WHERE parked_task.organization_id = session.organization_id
         AND parked_task.location_id = session.location_id
         AND parked_task.valet_session_id = session.id
+        AND parked_task.task_type = 'PARKING'
         AND parked_task.id::text = audit.metadata_json->>'taskId'
     )
   )

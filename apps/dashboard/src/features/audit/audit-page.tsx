@@ -38,7 +38,8 @@ function serverReviewQuery(): boolean | null {
 export function AuditPage() {
   const dashboard = useProtectedDashboard();
   const { selectionRevision } = useSelectedScope();
-  const scopeKey = auditScopeKey({ ...dashboard, selectionRevision });
+  const scopeKey = auditScopeKey({ ...dashboard, selectionRevision }) + ":" +
+    auditTimeContext(dashboard.selectedScope).timezone;
   return <AuditContent key={scopeKey} />;
 }
 
@@ -72,6 +73,7 @@ function AuditContent() {
     ? dashboard.selectedScope.context.selectedLocation?.name ?? ""
     : dashboard.selectedScope.authority === "LOCATION_MANAGER"
       ? dashboard.selectedScope.location.name : "";
+  const locationTimezone = auditTimeContext(dashboard.selectedScope).timezone;
   // The selected Concept A remains review-only. In local development,
   // authorized admins/managers can discover the tab from the existing Audit
   // sidebar route without manually typing the review query; ordinary Audit
@@ -105,8 +107,8 @@ function AuditContent() {
           </strong>
           <span>
             {locale === "ar"
-              ? "سجلات من مصادر التحقيق المصرّح بها فقط. أسماء الأشخاص والمركبات وصف حالي وليست لقطة تاريخية. قد يتعذر عرض السجل الكامل إذا تجاوز حد القراءة الآمن. التوقيت Asia/Amman (UTC+03:00)."
-              : "Authorized Investigation source records only. People and vehicle labels are current, not historical snapshots. Large histories may be unavailable beyond the proven read bound. Asia/Amman (UTC+03:00)."}
+              ? `سجلات من مصادر التحقيق المصرّح بها فقط. أسماء الأشخاص والمركبات وصف حالي وليست لقطة تاريخية. قد يتعذر عرض السجل الكامل إذا تجاوز حد القراءة الآمن. التوقيت ${locationTimezone}.`
+              : `Authorized Investigation source records only. People and vehicle labels are current, not historical snapshots. Large histories may be unavailable beyond the proven read bound. ${locationTimezone}.`}
           </span>
         </p>
       ) : null}
@@ -166,7 +168,7 @@ function AuditContent() {
       ) : showInvestigation && liveScope ? (
         <section aria-labelledby="audit-investigation-tab" id="audit-investigation-panel" role="tabpanel">
           <InvestigationLive locale={locale} api={dashboard.api} scope={liveScope}
-            locationName={locationName} />
+            locationName={locationName} locationTimezone={locationTimezone} />
         </section>
       ) : showSwitch ? (
         <section aria-labelledby="audit-events-tab" id="audit-events-panel" role="tabpanel">

@@ -14,6 +14,9 @@ export interface InvestigationDemoQuery {
   readonly model: string;
   readonly plate: string;
   readonly sessionId: string;
+  /** UTC boundaries from the authorization-scoped Apply result; not user input. */
+  readonly fromUtc?: string;
+  readonly toUtc?: string;
 }
 
 export interface DemoEvent {
@@ -36,6 +39,7 @@ export interface DemoEvent {
   readonly severity?: string | null;
   readonly incidentStatus?: string | null;
   readonly locationLabel?: string | null;
+  readonly locationTimezone?: string;
   readonly quality?: "RECORDED" | "PARTIAL" | "UNVERIFIABLE";
   readonly participantRoles?: readonly { readonly role: string; readonly name: string | null }[];
   readonly references?: readonly { readonly kind: string; readonly id: string }[];
@@ -57,6 +61,7 @@ export interface DemoSession {
   readonly events: readonly DemoEvent[];
   readonly coverage?: AuditInvestigationCoverage;
   readonly locationLabel?: string | null;
+  readonly locationTimezone?: string;
   readonly timelineComplete?: boolean;
 }
 

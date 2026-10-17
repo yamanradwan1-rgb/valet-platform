@@ -48,7 +48,7 @@ test("T56/T59: LIVE source/time/current facts are not fixture-derived", () => {
   assert.match(projection, /investigationKey\(reason\.source, reason\.eventId\)/);
   assert.match(projection, /occurredAt: row\.occurredAt/);
   assert.match(projection, /recordedAt: row\.recordedAt/);
-  assert.match(projection, /timeZone: ZONE/);
+  assert.match(projection, /timeZone: timezone/);
   assert.match(projection, /incidentStatus: incident \? incident\.status \+ " · CURRENT" : null/);
 });
 
@@ -66,4 +66,13 @@ test("P1: >200 Member directory must not prevent time-only Investigation search"
   assert.match(coordinator, /if \(draft\.employee && latestOptions\?\.memberOptionsComplete === false\)/);
   assert.doesNotMatch(selectorSupport, /if \(members\.status !== "complete"\) \{\s*throw/);
   assert.match(memberOptions, /options: \[\],\s*reason: "limit-exceeded"/);
+});
+
+test("P1: stale point details are aborted and generation-fenced on selection/scope change", () => {
+  const invalidate = coordinator.split("const invalidate = useCallback")[1]
+    ?.split("const revoke = useCallback")[0];
+  assert.match(invalidate, /workId\.current \+= 1/);
+  assert.match(invalidate, /detailsSignal\.current\?\.abort\(\)/);
+  assert.match(coordinator, /const readGeneration = workId\.current/);
+  assert.match(coordinator, /controller\.signal\.aborted \|\| readGeneration !== workId\.current/);
 });

@@ -8,7 +8,8 @@ export async function seedIssue300Http(client) {
   const ids = Object.fromEntries([
     "org", "otherOrg", "location", "otherLocation", "foreignLocation",
     "vehicle", "foreignVehicle", "session", "foreignSession", "slot", "task",
-    "audit", "custody", "dispatch", "incident",
+    "audit", "custody", "dispatch", "incident", "metadataAudit",
+    "badMetadataAudit", "vehicleMetadataAudit", "metadataActor", "metadataUser", "retrievalTask",
   ].map((key) => [key, randomUUID()]));
   const users = {};
   const now = () => new Date().toISOString();
@@ -97,6 +98,52 @@ export async function seedIssue300Http(client) {
          task_type,status,updated_at)
        VALUES($1,$2,$3,$4,'PARKING','QUEUED',now())`,
       [ids.task, ids.org, ids.location, ids.session],
+    );
+    await client.query(
+      `INSERT INTO tasks(id,organization_id,location_id,valet_session_id,
+         task_type,status,updated_at)
+       VALUES($1,$2,$3,$4,'RETRIEVAL','QUEUED',now())`,
+      [ids.retrievalTask, ids.org, ids.location, ids.session],
+    );
+    const existingHash = (await client.query(
+      `SELECT password_hash FROM users WHERE id=$1`, [users.admin.id],
+    )).rows[0]?.password_hash;
+    if (typeof existingHash !== "string") throw new Error("Missing isolated test-only hash");
+    await client.query(
+      `INSERT INTO users(id,email,password_hash,status,updated_at)
+       VALUES($1,$2,$3,'ACTIVE',now())`,
+      [ids.metadataUser, `${ids.metadataUser}@example.invalid`, existingHash],
+    );
+    await client.query(
+      `INSERT INTO organization_memberships(id,organization_id,user_id,role,
+        status,first_name,last_name,updated_at)
+       VALUES($1,$2,$3,'VALET_EMPLOYEE','INACTIVE','Metadata','Only',now())`,
+      [ids.metadataActor, ids.org, ids.metadataUser],
+    );
+    for (const [auditId, taskId] of [
+      [ids.metadataAudit, ids.task], [ids.badMetadataAudit, ids.retrievalTask],
+    ]) {
+      await client.query(
+        `INSERT INTO audit_events(id,organization_id,location_id,
+           valet_session_id,actor_membership_id,actor_type,event_type,
+           entity_type,entity_id,metadata_json,occurred_at)
+         VALUES($1,$2,$3,NULL,$4,'MEMBERSHIP','VALET_SESSION_PARKED',
+           'LegacyParked',$5,jsonb_build_object('taskId',$6::text),
+           '2026-10-16T11:12:00Z')`,
+        [auditId, ids.org, ids.location, ids.metadataActor, randomUUID(), taskId],
+      );
+    }
+    // A Vehicle entity without a direct Session pointer is NOT an independent
+    // canonical relation, even when a coincidental PARKED taskId points here.
+    await client.query(
+      `INSERT INTO audit_events(id,organization_id,location_id,
+         valet_session_id,actor_membership_id,actor_type,event_type,
+         entity_type,entity_id,metadata_json,occurred_at)
+       VALUES($1,$2,$3,NULL,$4,'MEMBERSHIP','VALET_SESSION_PARKED',
+         'Vehicle',$5,jsonb_build_object('taskId',$6::text),
+         '2026-10-16T11:13:00Z')`,
+      [ids.vehicleMetadataAudit, ids.org, ids.location,
+        ids.metadataActor, ids.vehicle, ids.task],
     );
     await client.query(
       `INSERT INTO key_custody_events(id,organization_id,location_id,

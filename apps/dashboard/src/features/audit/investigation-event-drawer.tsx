@@ -260,8 +260,8 @@ export function InvestigationEventDrawer({ event, locale, onClose, loading = fal
             <Fact label={t.source} value={sourceLabels[locale][event.source === "KEY_CUSTODY" ? "KEY" : event.source]} />
             <Fact label={t.id} value={event.id} ltr />
             <Fact label={t.type} value={event.type} ltr />
-            <Fact label={live ? t.occurred : t.recorded} value={live && event.occurredAt ? investigationLocalTime(event.occurredAt) + " Asia/Amman" : `2026-10-23 ${event.time}:00 UTC+03:00`} ltr />
-            {live && event.recordedAt ? <Fact label={t.recorded} value={investigationLocalTime(event.recordedAt) + " Asia/Amman"} ltr /> : null}
+            <Fact label={live ? t.occurred : t.recorded} value={live && event.occurredAt ? investigationLocalTime(event.occurredAt, true, event.locationTimezone) + " " + (event.locationTimezone ?? "") : `2026-10-23 ${event.time}:00 UTC+03:00`} ltr />
+            {live && event.recordedAt ? <Fact label={t.recorded} value={investigationLocalTime(event.recordedAt, true, event.locationTimezone) + " " + (event.locationTimezone ?? "")} ltr /> : null}
             <Fact label={t.session} value={event.session} ltr />
             <Fact label={t.scope} value={live ? event.locationLabel ?? t.missing : locale === "ar" ? "الموقع التجريبي الشمالي / المنطقة A" : "VAYLET Pilot North / Zone A"} />
           </dl>

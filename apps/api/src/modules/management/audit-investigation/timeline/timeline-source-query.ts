@@ -56,6 +56,7 @@ evidence AS (
      (audit.entity_type IN ('Task', 'TASK') AND audit.entity_id = linked_task.id)
      OR (audit.entity_type NOT IN ('Task', 'TASK')
          AND audit.event_type = 'VALET_SESSION_PARKED'
+         AND linked_task.task_type = 'PARKING'
          AND linked_task.id::text = audit.metadata_json->>'taskId')
    )
   LEFT JOIN incidents AS linked_incident
@@ -71,6 +72,10 @@ evidence AS (
        AND audit.entity_id = session.id)
       OR (audit.entity_type IN ('Task', 'TASK') AND linked_task.id IS NOT NULL)
       OR (audit.entity_type IN ('Incident', 'INCIDENT') AND linked_incident.id IS NOT NULL)
+      OR (audit.event_type = 'VALET_SESSION_PARKED'
+          AND linked_task.id IS NOT NULL
+          AND linked_task.task_type = 'PARKING'
+          AND linked_task.id::text = audit.metadata_json->>'taskId')
     ))
   )
   AND (

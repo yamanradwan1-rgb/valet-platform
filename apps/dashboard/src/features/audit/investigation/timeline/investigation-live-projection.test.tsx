@@ -153,6 +153,10 @@ describe("Issue300 LIVE projection and frozen presentation values", () => {
       .toBe("2026-10-18 01:01:03");
     expect(investigationLocalTime("2026-10-17T22:01:03Z", false))
       .toBe("01:01:03");
+    expect(investigationLocalTime("2026-10-17T22:01:03Z", true, "Europe/London"))
+      .toBe("2026-10-17 23:01:03");
+    expect(investigationLocalTime("2026-10-17T22:01:03Z", true, "Asia/Kathmandu"))
+      .toBe("2026-10-18 03:46:03");
   });
 
   it.each(["en", "ar"] as const)("renders live UUID, four-source badge and truthful incident in %s", (locale) => {

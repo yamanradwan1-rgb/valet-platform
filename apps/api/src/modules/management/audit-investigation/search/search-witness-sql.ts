@@ -29,6 +29,7 @@ witnesses AS MATERIALIZED (
     -- JSON to uuid, and only the canonical PARKED event uses this path.
     LEFT JOIN tasks task_meta ON task_meta.id::text = a.metadata_json->>'taskId'
       AND a.event_type = 'VALET_SESSION_PARKED'
+      AND task_meta.task_type = 'PARKING'
       AND task_meta.organization_id = $1::uuid
       AND task_meta.location_id = $2::uuid
     JOIN valet_sessions resolved
@@ -49,7 +50,7 @@ witnesses AS MATERIALIZED (
      -- entity reference. Otherwise a malformed Audit row could become a
      -- false historical employee/time witness for the wrong vehicle.
      AND (a.entity_type NOT IN ('Vehicle', 'VEHICLE')
-       OR a.entity_id = resolved.vehicle_id)
+       OR (a.valet_session_id = resolved.id AND a.entity_id = resolved.vehicle_id))
      AND (a.entity_type NOT IN ('ValetSession', 'VALET_SESSION')
        OR a.entity_id = resolved.id)
      -- A direct Session ID cannot override a contradictory or foreign-scope

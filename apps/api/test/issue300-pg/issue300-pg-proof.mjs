@@ -92,6 +92,14 @@ try {
   assert.equal(unknownMember.length, 0);
   globalThis.console.log("PASS PostgreSQL: UNKNOWN Audit actor cannot qualify employee witness");
 
+  const metaMember = await rows(boundSearch(ids, snap, { member: ids.metaMember }));
+  // This SQL fixture runs before COMMIT, so Audit pagination_birth_xid is
+  // still in-progress relative to pg_current_snapshot(). Its Audit arm must
+  // remain invisible. The committed metadata-only Search positive is tested
+  // separately via actual guarded HTTP, not faked with a NULL birth marker.
+  assert.equal(metaMember.length, 0);
+  globalThis.console.log("PASS PostgreSQL: in-progress birth XID is excluded by Search snapshot");
+
   const locationWrong = await rows(boundSearch(ids, snap, {
     member: ids.member, location: ids.secondLocation,
   }));
@@ -114,6 +122,8 @@ try {
     assert.ok(events.rows.some((item) => item.source === kind));
   }
   assert.ok(keys.has("AUDIT:" + ids.audit));
+  assert.ok(keys.has("AUDIT:" + ids.metadataAudit));
+  assert.ok(!keys.has("AUDIT:" + ids.badMetadataAudit));
   assert.ok(!keys.has("AUDIT:" + ids.badTaskAudit));
   assert.ok(!keys.has("AUDIT:" + ids.badIncidentAudit));
   assert.equal(keys.size, events.rows.length);

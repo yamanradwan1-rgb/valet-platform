@@ -51,6 +51,13 @@ export const locationMemberParticipationSql = `(
               SELECT 1 FROM incidents i WHERE i.id = a.entity_id
                 AND i.organization_id = $1::uuid AND i.location_id = $2::uuid
                 AND i.valet_session_id = audit_session.id))
+            OR (a.event_type = 'VALET_SESSION_PARKED' AND EXISTS (
+              SELECT 1 FROM tasks parked_meta_task
+              WHERE parked_meta_task.organization_id = $1::uuid
+                AND parked_meta_task.location_id = $2::uuid
+                AND parked_meta_task.valet_session_id = audit_session.id
+                AND parked_meta_task.task_type = 'PARKING'
+                AND parked_meta_task.id::text = a.metadata_json->>'taskId'))
           )))
        WHERE a.organization_id = $1::uuid AND a.location_id = $2::uuid
          AND a.actor_membership_id = member.id
@@ -59,7 +66,8 @@ export const locationMemberParticipationSql = `(
          AND (a.entity_type NOT IN ('ValetSession','VALET_SESSION')
            OR a.entity_id = audit_session.id)
          AND (a.entity_type NOT IN ('Vehicle','VEHICLE')
-           OR a.entity_id = audit_session.vehicle_id)
+           OR (a.valet_session_id = audit_session.id
+             AND a.entity_id = audit_session.vehicle_id))
          AND (a.entity_type NOT IN ('Task','TASK') OR EXISTS (
            SELECT 1 FROM tasks t WHERE t.id = a.entity_id
              AND t.organization_id = $1::uuid AND t.location_id = $2::uuid
@@ -72,6 +80,7 @@ export const locationMemberParticipationSql = `(
            OR a.metadata_json->>'taskId' IS NULL OR EXISTS (
              SELECT 1 FROM tasks t WHERE t.id::text = a.metadata_json->>'taskId'
                AND t.organization_id = $1::uuid AND t.location_id = $2::uuid
+               AND t.task_type = 'PARKING'
                AND t.valet_session_id = audit_session.id)))
      OR EXISTS (SELECT 1 FROM incidents i
        INNER JOIN locations location ON location.id = $2::uuid
