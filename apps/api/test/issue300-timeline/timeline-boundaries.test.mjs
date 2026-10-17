@@ -127,11 +127,16 @@ const readService = load("timeline-read-service.ts", {
 
 const tx = {
   async query(sql) {
+    if (/SELECT status FROM locations/.test(sql)) {
+      logged.push("location");
+      return { rows: [{ status: incidentLocationStatus }] };
+    }
     assert.match(sql, /clock_timestamp/);
     logged.push("clock");
     return { rows: [{ now: new Date("2026-10-23T15:00:00.000Z") }] };
   },
 };
+let incidentLocationStatus = "ACTIVE";
 const timeline = (query) =>
   readService.readAuditInvestigationTimeline(tx, scope, sessionId, query);
 const authorizedTimeline = (query) =>
@@ -154,6 +159,7 @@ const detail = (sourceName, eventId) =>
 
 function reset() {
   logged.length = 0;
+  incidentLocationStatus = "ACTIVE";
   sourceRows = [];
   authorized = true;
   failSources = false;
@@ -180,6 +186,7 @@ test("bounded multi-source one-page never claims cross-request snapshot", async 
   assert.deepEqual(logged, [
     "authorize",
     "session",
+    "location",
     "four-source-sql",
     "clock",
   ]);
@@ -204,7 +211,17 @@ test("unproven cursor or limit overflow fails closed", async () => {
       error.status === 503 &&
       error.code === "AUDIT_INVESTIGATION_TIMELINE_UNAVAILABLE",
   );
-  assert.deepEqual(logged, ["session", "four-source-sql"]);
+  assert.deepEqual(logged, ["session", "location", "four-source-sql"]);
+});
+
+test("inactive Location keeps non-Incident history but denies Incident coverage", async () => {
+  reset();
+  incidentLocationStatus = "INACTIVE";
+  sourceRows = [source(10, "AUDIT")];
+  const result = await timeline({ limit: 50 });
+  assert.equal(result.coverage.INCIDENT.status, "NOT_AUTHORIZED");
+  assert.equal(result.coverage.INCIDENT.reason, "DETAIL_RESTRICTED");
+  assert.equal(result.items.length, 1);
 });
 
 test("equal-time source rank, UUID order and duplicate source keys enforced", async () => {

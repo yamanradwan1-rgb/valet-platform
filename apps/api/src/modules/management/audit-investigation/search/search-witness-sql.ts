@@ -44,6 +44,11 @@ witnesses AS MATERIALIZED (
      AND (a.pagination_birth_xid IS NULL OR
        pg_visible_in_snapshot(a.pagination_birth_xid, $10::pg_snapshot))
      AND (a.valet_session_id IS NULL OR a.valet_session_id = resolved.id)
+     -- A direct Session pointer does not override a contradictory Vehicle
+     -- entity reference. Otherwise a malformed Audit row could become a
+     -- false historical employee/time witness for the wrong vehicle.
+     AND (a.entity_type NOT IN ('Vehicle', 'VEHICLE')
+       OR a.entity_id = resolved.vehicle_id)
      AND (a.entity_type NOT IN ('ValetSession', 'VALET_SESSION')
        OR a.entity_id = resolved.id)
      AND (task_ref.id IS NULL OR task_ref.valet_session_id = resolved.id)

@@ -42,12 +42,6 @@ export class TimelinePaginationNotProvenError extends ServiceUnavailableExceptio
 }
 
 const available = { status: "AVAILABLE" as const };
-const coverage = {
-  AUDIT: available,
-  KEY_CUSTODY: available,
-  DISPATCH: available,
-  INCIDENT: available,
-};
 
 function assertOrderedDistinct(rows: readonly TimelineSourceRow[]) {
   const seen = new Set<string>();
@@ -89,6 +83,14 @@ export async function readAuditInvestigationTimeline(
   const query = auditInvestigationTimelineQuerySchema.parse(input);
   if (query.cursor) throw new TimelinePaginationNotProvenError();
   const session = await readTimelineSession(tx, scope, sessionId);
+  // DEC-059: Incident visibility depends on the Location's CURRENT active
+  // state, even when the other three historical sources remain readable.
+  const currentLocation = await tx.query<{ readonly status: string }>(
+    `SELECT status FROM locations
+      WHERE organization_id = $1::uuid AND id = $2::uuid`,
+    [scope.organizationId, scope.locationId],
+  );
+  const incidentAvailable = currentLocation.rows[0]?.status === "ACTIVE";
   const rows = await readTimelineSources(tx, scope, sessionId, query.limit + 1);
   assertOrderedDistinct(rows);
   if (rows.length > query.limit) throw new TimelinePaginationNotProvenError();
@@ -105,7 +107,15 @@ export async function readAuditInvestigationTimeline(
     nextCursor: null,
     snapshotAt: snapshotAt.toISOString(),
     order: "ASC",
-    coverage,
+    coverage: {
+      AUDIT: available,
+      KEY_CUSTODY: available,
+      DISPATCH: available,
+      INCIDENT: incidentAvailable ? available : {
+        status: "NOT_AUTHORIZED",
+        reason: "DETAIL_RESTRICTED",
+      },
+    },
   });
 }
 

@@ -16,7 +16,11 @@ const scope = { organizationId: org, locationId: loc, membershipId: membership,
   role: "LOCATION_MANAGER" as const };
 
 function fake(rows: readonly {id: string;label: string | null}[]) {
-  const spy = vi.fn(async (_sql: string, _args: readonly unknown[]) => ({rows}));
+  const spy = vi.fn(async (sql: string, args: readonly unknown[]) => {
+    void sql;
+    void args;
+    return { rows };
+  });
   return { spy, transaction: { query: spy } as unknown as PostgresTransaction };
 }
 

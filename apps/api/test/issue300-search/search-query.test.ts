@@ -50,7 +50,11 @@ const row: Parameters<typeof projectAuditInvestigationSearchItem>[0] = {
 };
 
 function fakeTx(rows: readonly unknown[]) {
-  const querySpy = vi.fn(async (_sql: string, _values?: readonly unknown[]) => ({ rows }));
+  const querySpy = vi.fn(async (sql: string, values?: readonly unknown[]) => {
+    void sql;
+    void values;
+    return { rows };
+  });
   return { querySpy, tx: { query: querySpy } as unknown as PostgresTransaction };
 }
 
@@ -77,6 +81,12 @@ describe("#300 first-page historical SQL (no PostgreSQL execution)", () => {
     expect(searchWitnessSql).toContain("NOT (a.metadata_json ? 'taskId')");
     expect(searchWitnessSql).not.toMatch(/metadata_json->>'taskId'\s*\)::uuid/);
     expect(searchWitnessSql).not.toMatch(/k\.pagination_birth_xid|d\.pagination_birth_xid|i\.pagination_birth_xid/);
+  });
+
+  it("rejects a contradictory Vehicle entity rather than creating a false Audit witness", () => {
+    expect(searchWitnessSql).toContain("a.entity_type NOT IN ('Vehicle', 'VEHICLE')");
+    expect(searchWitnessSql).toContain("a.entity_id = resolved.vehicle_id");
+    expect(searchWitnessSql).toContain("a.valet_session_id = resolved.id");
   });
 
   it("uses separate scoped arms with exclusive end, first-page limit+1 and bound params", async () => {

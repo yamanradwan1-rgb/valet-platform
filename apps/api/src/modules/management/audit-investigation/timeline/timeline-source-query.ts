@@ -131,6 +131,10 @@ evidence AS (
     ON incident.organization_id = session.organization_id
    AND incident.location_id = session.location_id
    AND incident.valet_session_id = session.id
+  JOIN locations AS incident_location
+    ON incident_location.organization_id = session.organization_id
+   AND incident_location.id = session.location_id
+   AND incident_location.status = 'ACTIVE'
 ),
 page AS MATERIALIZED (
   SELECT * FROM evidence
