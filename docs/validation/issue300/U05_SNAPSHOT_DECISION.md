@@ -1,5 +1,17 @@
 # Issue #300 U05 — Cross-source snapshot / pagination decision
 
+> **2026-10-18 Owner continuation:** Option A subsequently became **approved
+> for LOCAL IMPLEMENTATION/VALIDATION ONLY**; this W3 source-only report below
+> is historical and retains its original findings/authority. Prime implemented
+> new forward-only migration 94 and test-only signed pages on G2, with
+> **partial** U05 evidence under code `372e3cf4953a46c9ea5254426173eb456976126a`.
+> New real PostgreSQL counterexample: indirect Audit Task/Incident links can
+> change membership after the captured snapshot. The current candidate safely
+> refuses unstable paginated cohorts; unrestricted U05 stays BLOCKED pending
+> separate Owner approval of immutable Task/link provenance or protected
+> result materialization. See `U05_OPTION_A_LOCAL_VALIDATION.md` for R01–R09
+> statuses and exact test commands. NO production activation authorized.
+
 **Decision date:** 2026-10-17 (Asia/Amman)
 
 **Investigated tree:** `codex/issue-300-followup-w3`, baseline `6213fe1d2b7389c3cf07d4902d1417b81fd1b2f6`

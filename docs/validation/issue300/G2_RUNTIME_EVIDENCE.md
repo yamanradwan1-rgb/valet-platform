@@ -1,5 +1,20 @@
 # Issue #300 — G2 isolated PostgreSQL / authenticated HTTP / local candidate
 
+> **Subsequent U05 Option A local-only update:** Code
+> `372e3cf4953a46c9ea5254426173eb456976126a` applied migration **94/94**
+> on this dedicated G2 database, added birth-XID insertion fencing for the
+> three missing sources, and executed six test-only SQL/HTTP proof scripts.
+> Independent adversarial testing found an actual historical Audit→Task/
+> Incident indirect-join phantom; the candidate **fails closed** for affected
+> paging cohorts. Both full U05 and full Issue #300 acceptance remain GAP.
+> New code `5c3f8da2` includes Issue300-only reasons aggregation optimization
+> and committed-fixture G2 EXPLAIN: 3,500 Sessions +900 Custody rows, p50
+> **933.93ms**, p95 **969.80ms** (20 warm samples), >3.12M shared buffer hits.
+> This is **not** target-scale/writer-load performance acceptance.
+> Detailed executable R01–R09 matrix:
+> `U05_OPTION_A_LOCAL_VALIDATION.md`. The older code SHA and 93/93 migration
+> values below describe the original *prior* G2 validation run only.
+
 **Date:** 2026-10-17–18 (Asia/Amman). **Latest tested code candidate:**
 `f90c3cabbff07c57df57ee783f052b30a70b0a21`, branch `codex/issue-300-prime`,
 worktree `D:\kndoom\valet-platform\tmp\issue-300-prime-integration`.

@@ -1,5 +1,26 @@
 # VAYLET Issue #300 — Local Backend and Concept A Live-Data Integration
 
+> **U05 Option A update — 2026-10-18 (newest code candidate):** Owner approved
+> **local-only** implementation of the three-source `xid8` migration.
+> **`372e3cf4953a46c9ea5254426173eb456976126a`** adds migration **94/94**
+> tested on independent G2 PostgreSQL 17.10 only, guarded signed keyset
+> Search/Timeline and 6 executable SQL/HTTP proof scripts. A PostgreSQL
+> late-link phantom for pre-snapshot indirect Audit→Task/Incident was
+> **actually reproduced**, and a fail-closed cohort guard now returns 503
+> instead of making false stable pagination claims. Current Location Incident
+> visibility is signed into paging state; current role/MFA/access is still
+> checked every request. The six dedicated G2 tests and 18 Search +18
+> Timeline +12 static QA tests pass; U05-R01–R09 are **PARTIAL/GAP**,
+> **not nine PASS**. Full U05 requires an additional Owner decision for
+> immutable Task/indirect provenance or a protected materialized snapshot.
+> Production pagination remains DISABLED. Exact statuses, commands and
+> limitations: `issue300/U05_OPTION_A_LOCAL_VALIDATION.md`. No UI changes.
+> An additional locally tested Issue300 performance code commit
+> `5c3f8da2eb4ee939210d9d35fb78dbeb58926783` removes repeated reason
+> aggregation. A committed 3,500-Session/900-event G2 witness fixture still
+> yields **p95 ≈970ms (warm, single client)**; target performance is NOT PASS.
+> No push, PR, main merge, deployment, production migration or closure.
+
 > **Authoritative G2 continuation (2026-10-18):** This report's older G1
 > sections below describe the previously tested `3210555c` code only; the
 > current **reviewable local code candidate** is

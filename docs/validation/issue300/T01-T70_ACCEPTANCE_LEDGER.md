@@ -4,6 +4,15 @@
 actual code candidate `f90c3cabbff07c57df57ee783f052b30a70b0a21`.
 **Status:** **2 narrowly scoped DB/HTTP fixture criteria PASS, 68 full acceptance
 criteria GAP or partially evidenced. Overall Issue #300 is NOT ACCEPTED.**
+**Newer U05 gated local test candidate:** `372e3cf4953a46c9ea5254426173eb456976126a`
+with later Issue300 SQL/performance candidate
+`5c3f8da2eb4ee939210d9d35fb78dbeb58926783`
+adds migration94 and partial Option A proof only. See
+`U05_OPTION_A_LOCAL_VALIDATION.md`. It **does not upgrade any original
+Section 27 acceptance row**: U05 full indirect Audit provenance, actual
+operational domain writers, target-scale performance and physical UI checks
+remain GAP. The 70-row code SHA below deliberately pins the previous
+fully-reviewed source candidate; it is not retroactive proof for U05.
 **Code SHA:** `f90c3cabbff07c57df57ee783f052b30a70b0a21` pins the latest
 local combined implementation-and-test candidate. The non-code documentation
 commit will be recorded separately and does not invalidate this code SHA.
