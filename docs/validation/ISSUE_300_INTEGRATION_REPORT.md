@@ -7,7 +7,7 @@ Date: 2026-10-17. **Candidate, not release-approved.**
 - Owner approved U01–U06, final Concept A UI Freeze, and later a **narrow exception only to connect real authorized data to that UI**. No redesign, CSS, route/shell restructuring, or new navigation was authorized.
 - Frozen UI baseline `0d5d0482` (branch `feat/issue-300-concept-a-ui-integration`). Master Plan base `2f1311575507eae06c6166270e748687762fb508`.
 - Main remains `6d7bd5991e66d8f5d93978512352a52c72bdc7f6`; isolated integration worktree `tmp/issue-300-prime-integration`, branch `codex/issue-300-prime`.
-- Initial live-data wiring SHA `cc5f4390b54cfda39fa1f7f3671caff875f48c05`; independent static QA integration `2e227819` plus subsequent data-only P2/P1 repairs are represented by the final local integration branch SHA (recorded in the release handoff). The initial SHA alone is **not** the final candidate.
+- Initial live-data wiring SHA `cc5f4390b54cfda39fa1f7f3671caff875f48c05`; independent static QA integration `2e227819`; **final tested code candidate SHA `3210555cc316cb735e89327c0460bae3d016d275`**. Any later report-only amendment is not a change to this tested code SHA. The initial wiring SHA alone is **not** the final candidate.
 - Worker deliveries: W1 `f1b6f579`, W2 `c09c5000`, W3 `bfef2a95`, W4 `2062531f`, W5 `737cb029` and LIVE `4a8e6fb1`, W6 `42814161` and LIVE `b66ec440`, W7 `7d15abba` plus CRLF correction `97a1df23`.
 - **No push, PR, merge to main, deployment, production migration, or Issue closure.** Existing local owner scripts and frozen UI worktree remain untouched.
 
