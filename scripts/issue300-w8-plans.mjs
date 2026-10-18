@@ -116,6 +116,8 @@ async function run() {
     process.env.ISSUE300_W8_RUNTIME_DB_URL);
   assert(counted.scopedPersistedSourceRecords>=m.targetTier);
   assert.deepEqual(counted.slotSkew,oracle.skew.busySlot);
+  assert.deepEqual(counted.windowSourceCounts,oracle.windowSourceCounts);
+  assert.deepEqual(counted.windowSlotSkew,oracle.windowSlotSkew);
   assert.match(m.planProbe?.sessionId ?? "",
     /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i);
   assert.match(m.planProbe?.detailId ?? "",
@@ -157,6 +159,9 @@ async function run() {
         expectedSourceId:oracle.expected[u004Endpoints[i]].eventId,
         expectedSessionId:oracle.expected[u004Endpoints[i]].sessionId,
         scopedHighSkewCount: counted.slotSkew.persistedCustodyRows,
+        signedWorkloadWindow:counted.signedWorkloadWindow,
+        dbWindowSourceCounts:counted.windowSourceCounts,
+        dbWindowSlotSkew:counted.windowSlotSkew,
         role:scopeCheck.role,sqlSha256:digest(sql),
         planSha256:digest(JSON.stringify(plan)),
         fullExplainJson, buffers:{sharedHit:plan.Plan?.["Shared Hit Blocks"],

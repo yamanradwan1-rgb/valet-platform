@@ -1,8 +1,10 @@
 // Detached Ed25519 source oracle from an independently authorized DB reader.
 import assert from "node:assert/strict";
-import { createHash, createPublicKey, verify } from "node:crypto";
-import { readFileSync, realpathSync } from "node:fs";
-import { resolve, sep } from "node:path";
+import { createHash, verify } from "node:crypto";
+import { safeOwnedFile, verifyProducerKeyFile } from
+  "./issue300-w8-owner-root.mjs";
+import { assertCompleteCohortWindow, assertWindowSourceCohort } from
+  "./issue300-w8-cohort-window.mjs";
 
 const uuid = "[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}";
 const idPattern = new RegExp(`^${uuid}$`, "i");
@@ -15,31 +17,22 @@ export const u004ColdBudgets =
   {search:3000,busySlotSearch:3000,timeline:1500,detail:800};
 const digest = (buf) => createHash("sha256").update(buf).digest("hex");
 
-function ownedPath(path, root) {
-  assert(typeof path === "string" && path.length > 0);
-  const full = realpathSync(path);
-  const directory = resolve(root);
-  assert(full.toLowerCase().startsWith((directory + sep).toLowerCase()),
-    "Oracle evidence must be in owned private D-drive folder");
-  return full;
-}
-
 export function verifyDetachedBytes(m, files, fingerprintExpected,
-  env=process.env, trustName="ISSUE300_W8_TRUSTED_ORACLE_KEY_SHA256") {
-  const keyPath = ownedPath(files.key, m.resource.dataPath);
-  const sourcePath = ownedPath(files.payload, m.resource.dataPath);
-  const signaturePath = ownedPath(files.signature, m.resource.dataPath);
-  const publicKey = createPublicKey(readFileSync(keyPath));
-  assert.equal(publicKey.asymmetricKeyType, "ed25519");
-  const fingerprint = digest(publicKey.export({type:"spki",format:"der"}));
-  assert.match(env[trustName] ?? "", /^[a-f0-9]{64}$/);
-  assert.equal(fingerprint, env[trustName]);
-  assert.equal(fingerprint, fingerprintExpected);
-  const bytes = readFileSync(sourcePath);
-  const signature = readFileSync(signaturePath);
+  env=process.env, trustName="ISSUE300_W8_TRUSTED_ORACLE_KEY_SHA256",
+  expectedPayloadSha256) {
+  assert(!env[trustName] || env[trustName]===fingerprintExpected,
+    "Untrusted environment key override forbidden");
+  const publicKey=verifyProducerKeyFile(files.key,fingerprintExpected,
+    m.resource.dataPath);
+  const bytes=safeOwnedFile(files.payload,m.resource.dataPath);
+  const signature=safeOwnedFile(files.signature,m.resource.dataPath,256);
   assert.equal(signature.length, 64, "Require binary detached Ed25519 signature");
   assert(verify(null, bytes, publicKey, signature),
     "Independent detached Ed25519 evidence signature failed");
+  if(expectedPayloadSha256!==undefined){
+    assert.equal(digest(bytes),expectedPayloadSha256,
+      "Signed source oracle raw bytes differ from Prime Owner manifest");
+  }
   return JSON.parse(bytes.toString("utf8"));
 }
 
@@ -47,7 +40,8 @@ export function verifiedSourceOracle(m, env = process.env) {
   const oracle = verifyDetachedBytes(m,{
     key:env.ISSUE300_W8_ORACLE_KEY,payload:env.ISSUE300_W8_ORACLE_JSON,
     signature:env.ISSUE300_W8_ORACLE_SIGNATURE,
-  },m.oracleIssuerKeySha256,env);
+  },m.oracleIssuerKeySha256,env,
+  "ISSUE300_W8_TRUSTED_ORACLE_KEY_SHA256",m.sourceOracleSha256);
   assert.equal(oracle.provenance, "INDEPENDENT_SOURCE_DB_READ_ONLY");
   assert.equal(oracle.candidateSha, m.candidateSha);
   assert.equal(oracle.leaseId, m.leaseId);
@@ -59,8 +53,10 @@ export function verifiedSourceOracle(m, env = process.env) {
   assert.equal(typeof oracle.workloadWindow?.to,"string");
   const from=Date.parse(oracle.workloadWindow.from);
   const to=Date.parse(oracle.workloadWindow.to);
-  assert(Number.isFinite(from) && Number.isFinite(to) &&
-    to>from && to-from<=31*86400_000);
+  assert(Number.isFinite(from) && Number.isFinite(to));
+  assertCompleteCohortWindow(oracle.workloadWindow);
+  assert.equal(oracle.workloadWindow.from,m.planProbe?.from);
+  assert.equal(oracle.workloadWindow.to,m.planProbe?.to);
   const runtime=oracle.apiRuntime;
   assert.equal(runtime?.kind,"OWNED_GUEST_RUNTIME_LISTENER_ATTESTATION");
   assert.equal(runtime?.host,"127.0.0.1");
@@ -99,6 +95,12 @@ export function verifiedSourceOracle(m, env = process.env) {
   assert.equal(expected.detail.sessionId, expected.search.sessionId);
   assert(oracle.sourceCounts &&
     sources.every((source) => oracle.sourceCounts[source] === m.targetTier/4));
+  assert.deepEqual(oracle.windowSourceCounts,oracle.sourceCounts,
+    "Signed in-window source counts must match full fixture cohort");
+  assert.deepEqual(oracle.windowSlotSkew,oracle.skew.busySlot,
+    "Signed busy-slot window must match whole busy-slot cohort");
+  assertWindowSourceCohort(oracle.windowSourceCounts,
+    oracle.windowSlotSkew,m.targetTier);
   for(const count of [2,8]){
     const cohort=oracle.writerCohorts?.[String(count)];
     assert.match(cohort?.rosterDigest??"",/^[a-f0-9]{64}$/);

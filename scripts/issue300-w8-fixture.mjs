@@ -6,6 +6,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { writeFileSync } from "node:fs";
 import { readTarget, assertOwnedUri } from "./issue300-w8-target.mjs";
+import { fixtureFirstAt } from "./issue300-w8-cohort-window.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const { Client } = createRequire(resolve(root, "apps/api/package.json"))("pg");
@@ -34,7 +35,7 @@ export function fixtureStatement(kind) {
     md5($5::text || ':session:' ||
       (1 + ((i - 1) % $6::int))::text)::uuid`;
   const series = "FROM generate_series($7::int, $8::int) AS i";
-  const when = "'2026-10-16T11:30:00Z'::timestamptz + (i % 60) * interval '1 second'";
+  const when = `'${fixtureFirstAt}'::timestamptz + (i % 60) * interval '1 second'`;
   const who = "$4::uuid";
   if (kind === "AUDIT") return `INSERT INTO audit_events
       (id,organization_id,location_id,valet_session_id,actor_membership_id,

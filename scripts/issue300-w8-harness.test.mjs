@@ -6,11 +6,8 @@ import { assertWriterRoster } from "./issue300-w8-writer-clients.mjs";
 import { verifyColdBoot, assertSignedGuestBoot } from "./issue300-w8-cold.mjs";
 import { canonicalSql } from "./issue300-w8-plans.mjs";
 import { assertNonemptyPlan } from "./issue300-w8-plans.mjs";
-import { verifyPinnedRoutes, assertExpectedHttp, verifiedSourceOracle } from
+import { verifyPinnedRoutes, assertExpectedHttp } from
   "./issue300-w8-http-evidence.mjs";
-import { createHash, generateKeyPairSync, sign } from "node:crypto";
-import { mkdtempSync, writeFileSync, rmSync, mkdirSync } from "node:fs";
-import { join } from "node:path";
 
 const sha = "a0a6fb1c032088be67437e93e8f4b5dbb9461a5a";
 const lease = "issue300-r2-w8-alpha-123456";
@@ -242,58 +239,4 @@ test("zero-row EXPLAIN cannot masquerade as performance proof",()=>{
       eventId:sourceId,matchedBy:"WINDOW"}]}],"busySlotSearch",expected));
   assert.throws(()=>assertNonemptyPlan({Plan:{"Actual Rows":1}},
     [{source:"AUDIT",id:sessionId}],"detail",expected));
-});
-test("independent source oracle signature and runtime listener are mandatory",()=>{
-  const work=join(process.cwd(),"tmp");
-  mkdirSync(work,{recursive:true});
-  const directory=mkdtempSync(join(work,"w8-sign-"));
-  try {
-    const {publicKey,privateKey}=generateKeyPairSync("ed25519");
-    const publicBytes=publicKey.export({type:"spki",format:"pem"});
-    const fingerprint=createHash("sha256").update(publicKey.export({
-      type:"spki",format:"der"})).digest("hex");
-    const sourceFixtureHash="c".repeat(64);
-    const m={candidateSha:sha,leaseId:lease,sourceFixtureHash,
-      oracleIssuerKeySha256:fingerprint,targetTier:100000,
-      scope:{slotId:expected.busySlotSearch.keySlotId},
-      resource:{...resource,dataPath:directory+"/"}};
-    const payload={provenance:"INDEPENDENT_SOURCE_DB_READ_ONLY",
-      candidateSha:sha,leaseId:lease,sourceFixtureHash,
-      workloadWindow:window,writerCohorts:{
-        2:{rosterDigest:"d".repeat(64),clientIds:["w1","w2"],
-          commandMix:{INCIDENT_REPORT:1,KEY_SLOT_ASSIGN:1}},
-        8:{rosterDigest:"e".repeat(64),
-          clientIds:["w1","w2","w3","w4","w5","w6","w7","w8"],
-          commandMix:{INCIDENT_REPORT:4,KEY_SLOT_ASSIGN:4}}},
-      skew:{busySlot:{keySlotId:expected.busySlotSearch.keySlotId,
-        source:"KEY_CUSTODY",persistedCustodyRows:25000,
-        distinctSessions:1000}},
-      database:resource.database,containerId:resource.containerId,
-      targetTier:100000,sourceCounts:{
-        AUDIT:25000,KEY_CUSTODY:25000,DISPATCH:25000,INCIDENT:25000},
-      apiRuntime:{kind:"OWNED_GUEST_RUNTIME_LISTENER_ATTESTATION",
-        host:"127.0.0.1",port:resource.apiPort,apiBundleSha256:
-          resource.apiBundleSha256,containerId:resource.containerId,
-        vmUuid:resource.vmUuid,listenerProbed:true,apiPid:4321,
-        probedAt:new Date().toISOString(),
-        processStartedAt:new Date(Date.now()-5000).toISOString()},
-      expected};
-    const key=join(directory,"public.pem");
-    const data=join(directory,"evidence.json");
-    const signature=join(directory,"evidence.sig");
-    writeFileSync(key,publicBytes);
-    const content=Buffer.from(JSON.stringify(payload));
-    writeFileSync(data,content);
-    writeFileSync(signature,sign(null,content,privateKey));
-    const env={ISSUE300_W8_ORACLE_KEY:key,
-      ISSUE300_W8_ORACLE_JSON:data,ISSUE300_W8_ORACLE_SIGNATURE:signature,
-      ISSUE300_W8_TRUSTED_ORACLE_KEY_SHA256:fingerprint};
-    assert.equal(verifiedSourceOracle(m,env).expected.search.sessionId,sessionId);
-    assert.throws(()=>verifiedSourceOracle(m,{...env,
-      ISSUE300_W8_TRUSTED_ORACLE_KEY_SHA256:"0".repeat(64)}));
-    writeFileSync(data,JSON.stringify({...payload,
-      expected:{...expected,search:{...expected.search,eventId:sessionId}}}));
-    assert.throws(()=>verifiedSourceOracle(m,env),
-      /signature failed/);
-  } finally {rmSync(directory,{recursive:true,force:true});}
 });

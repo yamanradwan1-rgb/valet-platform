@@ -23,6 +23,8 @@ export function makeLoadPaths(m, fixture, signed) {
   for(const name of families)
     assert.equal(fixture.sourceCounts?.[name],m.targetTier/4);
   assert.equal(fixture.scopedPersistedSourceRecords,m.targetTier);
+  assert.deepEqual(signed.windowSourceCounts,fixture.sourceCounts);
+  assert.deepEqual(signed.windowSlotSkew,signed.skew.busySlot);
   const endpoints=verifyPinnedRoutes(m.endpoints,m,signed);
   return {candidateSha:m.candidateSha,leaseId:m.leaseId,
     database:m.resource.database,databaseHost:m.resource.dbHost,
@@ -30,6 +32,9 @@ export function makeLoadPaths(m, fixture, signed) {
     apiBundleSha256:m.resource.apiBundleSha256,targetTier:m.targetTier,
     sourceFixtureHash:m.sourceFixtureHash,
     sourceCounts:fixture.sourceCounts,
+    windowSourceCounts:signed.windowSourceCounts,
+    signedWorkloadWindow:signed.workloadWindow,
+    windowSlotSkew:signed.windowSlotSkew,
     busySlotSkew:signed.skew.busySlot,
     scopedPersistedSourceRecords:fixture.scopedPersistedSourceRecords,
     endpoints,fixtureProvenance:fixture.provenance};

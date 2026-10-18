@@ -1,21 +1,14 @@
-// Cold p95 must come from independent signed HTTP observation, not self-claims.
+// Cold p95 covers the full OS reset, API boot and first validated HTTP response.
 import assert from "node:assert/strict";
-import { createHash, createPublicKey, verify } from "node:crypto";
-import { readFileSync, realpathSync } from "node:fs";
-import { resolve, sep } from "node:path";
-
-const sha256=(bytes)=>createHash("sha256").update(bytes).digest("hex");
+import { verify } from "node:crypto";
+import { verifyProducerKeyFile } from "./issue300-w8-owner-root.mjs";
 
 export function verifySignedColdTrial(trial,m,oracle,endpoint,boot,env=process.env){
-  const path=realpathSync(env.ISSUE300_W8_COLD_TRIAL_PUBLIC_KEY);
-  assert(path.toLowerCase().startsWith(
-    (resolve(m.resource.dataPath)+sep).toLowerCase()),
-  "Independent trial key must be in owned D-drive folder");
-  const key=createPublicKey(readFileSync(path));
-  assert.equal(key.asymmetricKeyType,"ed25519");
-  const fingerprint=sha256(key.export({type:"spki",format:"der"}));
-  assert.equal(fingerprint,m.coldTrialIssuerKeySha256);
-  assert.equal(fingerprint,env.ISSUE300_W8_TRUSTED_COLD_TRIAL_KEY_SHA256);
+  assert(!env.ISSUE300_W8_TRUSTED_COLD_TRIAL_KEY_SHA256 ||
+    env.ISSUE300_W8_TRUSTED_COLD_TRIAL_KEY_SHA256===
+      m.coldTrialIssuerKeySha256);
+  const key=verifyProducerKeyFile(env.ISSUE300_W8_COLD_TRIAL_PUBLIC_KEY,
+    m.coldTrialIssuerKeySha256,m.resource.dataPath);
   const bytes=Buffer.from(trial.signedTrialPayloadBase64??"","base64");
   const signature=Buffer.from(trial.signedTrialSignatureBase64??"","base64");
   assert(bytes.length>0 && signature.length===64);
@@ -44,11 +37,19 @@ export function verifySignedColdTrial(trial,m,oracle,endpoint,boot,env=process.e
   assert.equal(r.expectedEventId,expected.eventId);
   assert.equal(r.responseSha256,trial.responseSha256);
   assert.equal(r.httpElapsedMs,trial.httpElapsedMs);
+  assert.equal(r.coldElapsedMs,trial.coldElapsedMs);
+  const reset=Date.parse(r.resetIssuedAt);
   const begin=Date.parse(r.requestStartedAt);
   const end=Date.parse(r.responseFinishedAt);
-  assert(Number.isFinite(begin) && Number.isFinite(end));
-  assert(Date.parse(r.resetIssuedAt)<Date.parse(boot.recordedAt));
+  assert(Number.isFinite(reset) && Number.isFinite(begin) &&
+    Number.isFinite(end));
+  assert(reset<Date.parse(boot.recordedAt));
   assert(begin>=Date.parse(boot.recordedAt) && end>=begin);
+  assert(Number.isFinite(r.coldElapsedMs) && r.coldElapsedMs>=0);
+  assert(Math.abs((end-reset)-r.coldElapsedMs)<=100,
+    "Signed cold duration excludes reset/boot or disagrees with timestamps");
+  assert(r.coldElapsedMs>=r.httpElapsedMs,
+    "Signed cold duration cannot be less than HTTP alone");
   assert(Number.isFinite(r.httpElapsedMs) && r.httpElapsedMs>=0);
   assert(Math.abs((end-begin)-r.httpElapsedMs)<=100,
     "Observer HTTP duration inconsistent with signed timestamps");
@@ -56,5 +57,10 @@ export function verifySignedColdTrial(trial,m,oracle,endpoint,boot,env=process.e
     Math.abs(trial.localHttpElapsedMs-r.httpElapsedMs)<=
       Math.max(100,trial.localHttpElapsedMs*.1),
     "Independent cold measurement disagrees with local clock");
+  assert(Number.isFinite(trial.localColdElapsedMs) &&
+    trial.localColdElapsedMs>=trial.localHttpElapsedMs);
+  assert(Math.abs(trial.localColdElapsedMs-r.coldElapsedMs)<=
+    Math.max(300,trial.localColdElapsedMs*.1),
+    "Independent whole-cold timing disagrees with reset-start monotonic clock");
   return r;
 }

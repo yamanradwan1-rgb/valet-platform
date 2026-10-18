@@ -41,16 +41,17 @@ test("80 fully signed cold observations; self-asserted fast p95 fails",()=>{
     let i=0;
     for(const endpoint of endpoints)for(let j=1;j<=20;j++){
       const id=String(++i).padStart(12,"0");
-      const reset=new Date(Date.now()-5000).toISOString();
-      const recordedAt=new Date(Date.now()-2000).toISOString();
+      const now=Date.now();
+      const reset=new Date(now-200).toISOString();
+      const recordedAt=new Date(now-100).toISOString();
       const boot={bootId:`00000000-0000-4000-8000-${id}`,vmUuid,
         pgContainerId:containerId,apiReady:true,apiPid:4321,
-        apiProcessStartedAt:new Date(Date.now()-3500).toISOString(),
+        apiProcessStartedAt:new Date(now-150).toISOString(),
         provenance:"OWNED_GUEST_SIGNED_KERNEL_BOOT_ID",candidateSha,leaseId,
         targetTier:100000,sourceFixtureHash:m.sourceFixtureHash,
         apiBundleSha256:bundle,apiPort:32101,postgresVersion:"17.10",
         osKernelBootVerified:true,pgProcessStartedAfterBoot:true,
-        postgresStartedAt:new Date(Date.now()-3000).toISOString(),recordedAt};
+        postgresStartedAt:new Date(now-120).toISOString(),recordedAt};
       const payload=Buffer.from(JSON.stringify(boot));
       const responseSha256="d".repeat(64);
       const observer={
@@ -62,9 +63,9 @@ test("80 fully signed cold observations; self-asserted fast p95 fails",()=>{
         apiProcessStartedAt:boot.apiProcessStartedAt,bootId:boot.bootId,
         resetIssuedAt:reset,expectedSessionId:sessionId,
         expectedSource:"AUDIT",expectedEventId:sourceId,
-        responseSha256,httpElapsedMs:30,
-        requestStartedAt:new Date(Date.now()-1000).toISOString(),
-        responseFinishedAt:new Date(Date.now()-970).toISOString(),
+        responseSha256,httpElapsedMs:30,coldElapsedMs:180,
+        requestStartedAt:new Date(now-50).toISOString(),
+        responseFinishedAt:new Date(now-20).toISOString(),
       };
       const observerBytes=Buffer.from(JSON.stringify(observer));
       trials[endpoint].push({trial:j,guestBootId:boot.bootId,
@@ -75,7 +76,8 @@ test("80 fully signed cold observations; self-asserted fast p95 fails",()=>{
         signedTrialPayloadBase64:observerBytes.toString("base64"),
         signedTrialSignatureBase64:sign(null,observerBytes,trialSigner.privateKey)
           .toString("base64"),
-        httpElapsedMs:30,localHttpElapsedMs:30,responseSha256,
+        httpElapsedMs:30,localHttpElapsedMs:30,
+        coldElapsedMs:180,localColdElapsedMs:180,responseSha256,
         cacheResetVerified:true,responseValidated:true});
     }
     const oracle={expected};
@@ -93,6 +95,26 @@ test("80 fully signed cold observations; self-asserted fast p95 fails",()=>{
     first.localHttpElapsedMs=1_000;
     assert.throws(()=>verifyColdArtifact(cold,m,oracle,env));
     first.localHttpElapsedMs=30;
+    first.localColdElapsedMs=1;
+    assert.throws(()=>verifyColdArtifact(cold,m,oracle,env));
+    first.localColdElapsedMs=180;
+    // A signed 30ms HTTP response cannot certify a 5s reset as fast cold.
+    for(const row of trials.detail.slice(0,2)){
+      const observed=JSON.parse(Buffer.from(row.signedTrialPayloadBase64,
+        "base64").toString("utf8"));
+      observed.resetIssuedAt=new Date(Date.parse(
+        observed.responseFinishedAt)-4_980).toISOString();
+      observed.coldElapsedMs=4_980;
+      const bytes=Buffer.from(JSON.stringify(observed));
+      row.resetIssuedAt=observed.resetIssuedAt;
+      row.coldElapsedMs=4_980;
+      row.localColdElapsedMs=4_980;
+      row.signedTrialPayloadBase64=bytes.toString("base64");
+      row.signedTrialSignatureBase64=sign(null,bytes,
+        trialSigner.privateKey).toString("base64");
+    }
+    assert.throws(()=>verifyColdArtifact(cold,m,oracle,env),
+      /whole reset\/boot\/HTTP p95 over budget/);
     assert.throws(()=>verifyColdArtifact({...cold,trials:{
       ...trials,busySlotSearch:[]}},m,oracle,env));
     assert.throws(()=>verifyColdArtifact({...cold,trials:{

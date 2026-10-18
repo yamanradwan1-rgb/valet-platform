@@ -50,7 +50,8 @@ export function runtimeContinuity(m,oracle,env=process.env,
   let samples=0;
   const collect=()=>{
     const item=verifyDetachedBytes(m,{key,payload,signature},
-      m.oracleIssuerKeySha256,env);
+      m.runtimeIssuerKeySha256,env,
+      "ISSUE300_W8_TRUSTED_RUNTIME_KEY_SHA256");
     const at=assertRuntimeSample(item,m,oracle);
     assert(item.sequence>lastSequence && at>lastAt,
       "Runtime checkpoint repeated; process may have been swapped");
