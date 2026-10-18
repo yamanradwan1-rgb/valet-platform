@@ -1,28 +1,20 @@
 import assert from "node:assert/strict";
 import { Buffer } from "node:buffer";
-import { createHash, createPublicKey, verify } from "node:crypto";
+import { verify } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
 import process from "node:process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, URL } from "node:url";
+import {
+  createOwnedFileReader,
+  ownerPublicKey,
+} from "./issue300-w13-owned-files.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 // Exact ignored location shared by Prime's V2 attestation issuer and API guard.
 const ownDirectory = join(root, "tmp/issue300-r2-w7-acceptance-v2-owned");
-const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const hexSha = /^[a-f0-9]{64}$/;
 const gitSha = /^[a-f0-9]{40}$/;
-// Prime's V2 fixture issuer key. Private key is held only in ignored Prime files.
-const ownerPublicPem = `-----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEApth1azlOHaJPPtirnSl5TB3UcAV/GOuWQeUFRx7wy/c=
------END PUBLIC KEY-----
-`;
-const ownerKey = createPublicKey(ownerPublicPem);
-assert.equal(
-  sha256(Buffer.from(ownerPublicPem)),
-  "7d13ad66aaf979dc269e13ac33a4f557661a8080cee074ce3e64eec922824f22",
-);
 export const target = Object.freeze({
   database: "issue300_r2_w7_acceptance_v2",
   host: "127.0.0.1",
@@ -33,26 +25,6 @@ export const target = Object.freeze({
   migrationRole: "issue300_r2_w7_owner_v2",
   runtimeRole: "issue300_r2_w7_runtime_v2",
 });
-
-function fromOwnedDirectory(value, name) {
-  assert.equal(typeof value, "string", `Missing ${name}`);
-  const path = resolve(value);
-  assert.equal(
-    dirname(path).toLowerCase(),
-    ownDirectory.toLowerCase(),
-    `${name} must be in the ignored W7 V2 fixture directory`,
-  );
-  const bytes = readFileSync(path);
-  assert(
-    bytes.length > 0 && bytes.length < 262_144,
-    `${name} is empty or oversized`,
-  );
-  return {
-    json: JSON.parse(bytes.toString("utf8")),
-    sha: sha256(bytes),
-    bytes,
-  };
-}
 
 export function validateDbUrl(raw, role) {
   let url;
@@ -105,10 +77,8 @@ export function loadOwnedPlan(env = process.env) {
     env.ISSUE300_W13_RUNNER_SHA,
     "W13 test runner SHA differs from pinned, reviewed harness",
   );
-  const attestation = fromOwnedDirectory(
-    env.ISSUE300_W13_ATTESTATION,
-    "attestation",
-  );
+  const ownedFiles = createOwnedFileReader(ownDirectory, ownerPublicKey);
+  const attestation = ownedFiles.readCertificate(env.ISSUE300_W13_ATTESTATION);
   assert.match(env.ISSUE300_W13_ATTESTATION_SHA256 ?? "", hexSha);
   assert.equal(
     attestation.sha,
@@ -142,14 +112,8 @@ export function loadOwnedPlan(env = process.env) {
       Date.parse(proof.expiresAt) - Date.parse(proof.issuedAt) <= 900_000,
     "Attestation expired or outside 15-minute authorization interval",
   );
-  const manifest = fromOwnedDirectory(
-    env.ISSUE300_W13_FIXTURE_MANIFEST,
-    "fixture manifest",
-  );
-  const signature = fromOwnedDirectory(
-    env.ISSUE300_W13_FIXTURE_SIGNATURE,
-    "fixture signature",
-  );
+  const manifest = ownedFiles.readJson(env.ISSUE300_W13_FIXTURE_MANIFEST);
+  const signature = ownedFiles.readJson(env.ISSUE300_W13_FIXTURE_SIGNATURE);
   assert.equal(typeof signature.json?.signatureBase64, "string");
   assert.equal(signature.json?.manifestSha256, manifest.sha);
   assert.equal(
@@ -160,7 +124,7 @@ export function loadOwnedPlan(env = process.env) {
     verify(
       null,
       manifest.bytes,
-      ownerKey,
+      ownerPublicKey,
       Buffer.from(signature.json.signatureBase64, "base64"),
     ),
     true,
@@ -241,10 +205,7 @@ export function loadOwnedPlan(env = process.env) {
         "Existing indirect Audit ID absent from attested source readback",
       );
   }
-  const credentials = fromOwnedDirectory(
-    env.ISSUE300_W13_CREDENTIALS,
-    "test-only credentials",
-  ).json;
+  const credentials = ownedFiles.readJson(env.ISSUE300_W13_CREDENTIALS).json;
   for (const name of ["ca", "lm", "supervisor", "foreign"])
     assert(
       credentials[name]?.email && credentials[name]?.password,
