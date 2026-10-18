@@ -54,9 +54,10 @@ export async function hasAnchoredTimelineAuditAnomaly(
   tx: PostgresTransaction,
   scope: AuditInvestigationLocationAuthorization,
   sessionId: string,
-  snapshot: { readonly database: string; readonly now: Date },
+  snapshot: { readonly database: string; readonly cutoff: string },
 ): Promise<boolean> {
-  const result = await tx.query<{ readonly anomalous: boolean }>(`
+  const result = await tx.query<{ readonly anomalous: boolean }>(
+    `
     SELECT EXISTS (
       SELECT 1 FROM valet_sessions AS session
       JOIN audit_events AS audit
@@ -112,7 +113,14 @@ export async function hasAnchoredTimelineAuditAnomaly(
                 AND audit.entity_id::text IS DISTINCT FROM audit.metadata_json->>'taskId')
           ))
         )
-    ) AS anomalous`, [scope.organizationId, scope.locationId, sessionId,
-      snapshot.database, snapshot.now]);
+    ) AS anomalous`,
+    [
+      scope.organizationId,
+      scope.locationId,
+      sessionId,
+      snapshot.database,
+      snapshot.cutoff,
+    ],
+  );
   return result.rows[0]?.anomalous === true;
 }

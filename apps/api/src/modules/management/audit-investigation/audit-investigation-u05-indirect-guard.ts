@@ -17,7 +17,7 @@ import {
 export async function requireU05StableIndirectCohort(
   tx: PostgresTransaction,
   scope: AuditInvestigationLocationAuthorization,
-  snapshot: { readonly now: Date; readonly database: string },
+  snapshot: { readonly cutoff: string; readonly database: string },
   window?: { readonly from: string; readonly to: string },
 ): Promise<void> {
   if (isU05R2IndirectHttpProofCandidate()) {
@@ -159,7 +159,7 @@ export async function requireU05StableIndirectCohort(
         proof.postgresStartedAt,
         scope.organizationId,
         scope.locationId,
-        snapshot.now,
+        snapshot.cutoff,
         snapshot.database,
         window?.from ?? null,
         window?.to ?? null,
@@ -187,7 +187,7 @@ export async function requireU05StableIndirectCohort(
     [
       scope.organizationId,
       scope.locationId,
-      snapshot.now,
+      snapshot.cutoff,
       snapshot.database,
       window?.from ?? null,
       window?.to ?? null,

@@ -6,6 +6,8 @@ export interface TimelineSourceRow {
   readonly source: "AUDIT" | "KEY_CUSTODY" | "DISPATCH" | "INCIDENT";
   readonly id: string;
   readonly occurredAt: Date;
+  /** Exact microsecond timestamp used for database sort/cursor only. */
+  readonly occurredAtCursor: string;
   readonly recordedAt: Date;
   readonly kind: string;
   readonly actorId: string | null;
@@ -196,6 +198,8 @@ page AS MATERIALIZED (
 )
 SELECT page.source, page.id::text AS id,
        page.occurred_at AS "occurredAt",
+       to_char(page.occurred_at AT TIME ZONE 'UTC',
+         'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS "occurredAtCursor",
        page.created_at AS "recordedAt", page.kind,
        page.actor_id::text AS "actorId",
        page.previous_id::text AS "previousId",
@@ -232,9 +236,15 @@ export async function readTimelineSources(
   sessionId: string,
   limit: number,
   point?: { readonly source: TimelineSourceRow["source"]; readonly id: string },
-  traversal?: { readonly now: Date; readonly database: string;
-    readonly last?: { readonly occurredAt: string; readonly sourceRank: number;
-      readonly eventId: string } },
+  traversal?: {
+    readonly cutoff: string;
+    readonly database: string;
+    readonly last?: {
+      readonly occurredAt: string;
+      readonly sourceRank: number;
+      readonly eventId: string;
+    };
+  },
 ): Promise<readonly TimelineSourceRow[]> {
   const result = await tx.query<TimelineSourceRow>(timelineSourceSql, [
     scope.organizationId,
@@ -244,7 +254,7 @@ export async function readTimelineSources(
     point?.source ?? null,
     point?.id ?? null,
     traversal?.database ?? null,
-    traversal?.now ?? null,
+    traversal?.cutoff ?? null,
     traversal?.last?.occurredAt ?? null,
     traversal?.last?.sourceRank ?? null,
     traversal?.last?.eventId ?? null,

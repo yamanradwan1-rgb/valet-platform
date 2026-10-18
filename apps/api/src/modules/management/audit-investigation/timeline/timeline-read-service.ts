@@ -50,22 +50,22 @@ export class TimelinePaginationNotProvenError extends ServiceUnavailableExceptio
 
 const available = { status: "AVAILABLE" as const };
 
-function assertOrderedDistinct(rows: readonly TimelineSourceRow[]) {
+export function assertOrderedDistinct(rows: readonly TimelineSourceRow[]) {
   const seen = new Set<string>();
   const rank = { AUDIT: 0, KEY_CUSTODY: 1, DISPATCH: 2, INCIDENT: 3 };
-  let prior: [number, number, string] | null = null;
+  let prior: [string, number, string] | null = null;
   for (const row of rows) {
     const key = row.source + ":" + row.id.toLowerCase();
     if (seen.has(key)) throw new Error("Duplicate persisted source identity.");
     seen.add(key);
-    const stamp = row.occurredAt.getTime();
-    const order: [number, number, string] = [
+    const stamp = row.occurredAtCursor;
+    const order: [string, number, string] = [
       stamp,
       rank[row.source],
       row.id.toLowerCase(),
     ];
     if (
-      !Number.isFinite(stamp) ||
+      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/.test(stamp) ||
       (prior !== null &&
         (order[0] < prior[0] ||
           (order[0] === prior[0] && order[1] < prior[1]) ||
@@ -95,7 +95,8 @@ export async function readAuditInvestigationTimeline(
   const decoded = binding ? decodeInvestigationCursor(query.cursor, binding) : null;
   const captured = decoded === null
     ? await captureManagementPaginationSnapshot(tx)
-    : { now: new Date(decoded.snapshotAt), snapshot: decoded.databaseSnapshot };
+    : { now: new Date(decoded.snapshotAt),
+        cutoff: decoded.snapshotCutoff, snapshot: decoded.databaseSnapshot };
   const session = await readTimelineSession(tx, scope, sessionId, captured.snapshot);
   // DEC-059: Incident visibility depends on the Location's CURRENT active
   // state, even when the other three historical sources remain readable.
@@ -106,7 +107,7 @@ export async function readAuditInvestigationTimeline(
   );
   const incidentAvailable = currentLocation.rows[0]?.status === "ACTIVE";
   const rows = await readTimelineSources(tx, scope, sessionId, query.limit + 1,
-    undefined, { now: captured.now, database: captured.snapshot,
+    undefined, { cutoff: captured.cutoff, database: captured.snapshot,
       ...(decoded?.purpose === "SESSION_TIMELINE" ? { last: decoded.last } : {}) });
   assertOrderedDistinct(rows);
   const hasMore = rows.length > query.limit;
@@ -117,14 +118,14 @@ export async function readAuditInvestigationTimeline(
   if (binding && isU05LocalProofEnabled() && (hasMore || query.cursor)) {
     try {
       await requireU05StableIndirectCohort(tx, scope,
-        { now: captured.now, database: captured.snapshot });
+        { cutoff: captured.cutoff, database: captured.snapshot });
     } catch {
       throw new TimelinePaginationNotProvenError();
     }
   }
   const page = rows.slice(0, query.limit);
   const auditAnomaly = await hasAnchoredTimelineAuditAnomaly(tx, scope,
-    sessionId, { database: captured.snapshot, now: captured.now });
+    sessionId, { database: captured.snapshot, cutoff: captured.cutoff });
   const last = page.at(-1);
   const rank = { AUDIT: 0, KEY_CUSTODY: 1, DISPATCH: 2, INCIDENT: 3 };
   const issuedAt = decoded?.issuedAt ?? new Date().toISOString();
@@ -137,8 +138,9 @@ export async function readAuditInvestigationTimeline(
         viewerSessionDigest: binding.viewerSessionDigest,
         filterDigest: binding.filterDigest,
         snapshotAt: captured.now.toISOString(), databaseSnapshot: captured.snapshot,
+        snapshotCutoff: captured.cutoff,
         issuedAt, expiresAt,
-        last: { occurredAt: last.occurredAt.toISOString(),
+        last: { occurredAt: last.occurredAtCursor,
           sourceRank: rank[last.source], eventId: last.id },
       }) : null;
   return auditInvestigationTimelineResponseSchema.parse({

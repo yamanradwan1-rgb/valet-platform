@@ -10,12 +10,15 @@ const manifestPath = process.env.ISSUE300_W7_SOURCE_MANIFEST;
 const rawApi = process.env.ISSUE300_R2_API_URL;
 const rawDisabledApi = process.env.ISSUE300_W7_DISABLED_API_URL;
 const token = process.env.ISSUE300_W7_STAFF_BEARER;
+const origin = process.env.ISSUE300_R2_DASHBOARD_ORIGIN;
 const phase = process.env.ISSUE300_W7_HTTP_PHASE ?? "single";
 const checkpointPath = process.env.ISSUE300_W7_HTTP_CHECKPOINT;
 assert.ok(
   lease && candidate && manifestPath && rawApi && rawDisabledApi && token,
   "GAP: candidate, lease, source oracle, proof/default APIs and MFA required",
 );
+assert.equal(origin, "http://127.0.0.1:3114",
+  "Only the approved local Dashboard origin is valid");
 const api = new URL(rawApi);
 const disabledApi = new URL(rawDisabledApi);
 assert.equal(api.hostname, "127.0.0.1");
@@ -65,7 +68,7 @@ async function get(path, authorization = token, target = api) {
   const response = await fetch(url, {
     headers: {
       ...(authorization ? { Authorization: `Bearer ${authorization}` } : {}),
-      Origin: process.env.ISSUE300_R2_DASHBOARD_ORIGIN,
+      Origin: origin,
     },
     signal: AbortSignal.timeout(20_000),
   });
@@ -150,11 +153,9 @@ async function pages(path, initial = undefined) {
 // Separate independently configured ordinary/default instance must keep the
 // same unproven indirect cohort denied. Do not change code or flags to bypass.
 const defaultGate = await get(fixture.guardedCohortPath, token, disabledApi);
-assert.notEqual(defaultGate.status, 200, "Default/production-safe API unexpectedly exposed guarded indirect cohort");
-assert.ok(
-  [403, 404, 503].includes(defaultGate.status),
-  "Default gate must return a controlled denial, not a server failure",
-);
+assert.equal(defaultGate.status, 503,
+  "A valid authenticated default cohort must return 503; 401/403/404 is not proof");
+assert.equal(defaultGate.cache, "no-store", "Guard denial must not be cached");
 
 if (phase === "capture") {
   assert.ok(checkpointPath, "Capture needs a task-owned local checkpoint file");

@@ -67,7 +67,11 @@ describe("W2 response coverage without PostgreSQL", () => {
       return { rows: [{ active: true }] };
     });
     const tx = { query } as unknown as PostgresTransaction;
-    const snapshot = { now: new Date(to), database: "100:100:" };
+    const snapshot = {
+      now: new Date(to),
+      cutoff: to.replace(".000Z", ".000500Z"),
+      database: "100:100:",
+    };
     const result = await searchAuditInvestigationSessions(
       tx,
       scope,
@@ -89,7 +93,7 @@ describe("W2 response coverage without PostgreSQL", () => {
       loc,
       from,
       to,
-      snapshot.now,
+      snapshot.cutoff,
       snapshot.database,
     ]);
   });
@@ -103,7 +107,11 @@ describe("W2 response coverage without PostgreSQL", () => {
         tx,
         scope,
         { from, to },
-        { now: new Date(to), database: "100:100:" },
+        {
+          now: new Date(to),
+          cutoff: to.replace(".000Z", ".000500Z"),
+          database: "100:100:",
+        },
       ),
     ).toBe(false);
   });

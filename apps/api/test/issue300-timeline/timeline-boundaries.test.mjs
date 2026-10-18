@@ -31,6 +31,8 @@ const source = (n, src = "AUDIT", when = "2026-10-23T14:30:00.000Z") => ({
   id: uid(n),
   source: src,
   occurredAt: new Date(when),
+  occurredAtCursor: new Date(when).toISOString().replace(/\.\d{3}Z$/, (ms) =>
+    ms.slice(0, 4) + "000Z"),
   recordedAt: new Date(when),
   kind: "VALET_SESSION_PARKED",
 });
@@ -84,7 +86,8 @@ const readService = load("timeline-read-service.ts", {
   "../../management-pagination-snapshot": {
     captureManagementPaginationSnapshot: async () => {
       logged.push("snapshot");
-      return { now: new Date("2026-10-23T15:00:00.000Z"), snapshot: "100:101:" };
+      return { now: new Date("2026-10-23T15:00:00.000Z"),
+        cutoff: "2026-10-23T15:00:00.000000Z", snapshot: "100:101:" };
     },
   },
   "../audit-investigation-cursor": {

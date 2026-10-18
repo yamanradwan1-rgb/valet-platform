@@ -10,10 +10,13 @@ import {
 
 const originalSecret = process.env.ANTI_ABUSE_HMAC_SECRET_B64URL;
 beforeAll(() => {
-  process.env.ANTI_ABUSE_HMAC_SECRET_B64URL = Buffer.alloc(32, 37).toString("base64url");
+  process.env.ANTI_ABUSE_HMAC_SECRET_B64URL = Buffer.alloc(32, 37).toString(
+    "base64url",
+  );
 });
 afterAll(() => {
-  if (originalSecret === undefined) delete process.env.ANTI_ABUSE_HMAC_SECRET_B64URL;
+  if (originalSecret === undefined)
+    delete process.env.ANTI_ABUSE_HMAC_SECRET_B64URL;
   else process.env.ANTI_ABUSE_HMAC_SECRET_B64URL = originalSecret;
 });
 
@@ -36,7 +39,10 @@ const windowFilters = {
   keySlotId: "01000000-0000-4000-a000-000000000006",
 };
 
-function binding(overrides: Partial<typeof context> = {}, filters: unknown = windowFilters) {
+function binding(
+  overrides: Partial<typeof context> = {},
+  filters: unknown = windowFilters,
+) {
   return bindInvestigationCursor({
     context: { ...context, ...overrides },
     scope,
@@ -45,7 +51,9 @@ function binding(overrides: Partial<typeof context> = {}, filters: unknown = win
   });
 }
 
-function page(lastAt = "2026-10-16T15:42:00.000Z"): AuditInvestigationCursorPayload {
+function page(
+  lastAt = "2026-10-16T15:42:00.000900Z",
+): AuditInvestigationCursorPayload {
   const b = binding();
   return {
     version: 1,
@@ -55,6 +63,7 @@ function page(lastAt = "2026-10-16T15:42:00.000Z"): AuditInvestigationCursorPayl
     viewerSessionDigest: b.viewerSessionDigest,
     filterDigest: b.filterDigest,
     snapshotAt: now.toISOString(),
+    snapshotCutoff: "2026-10-17T12:00:00.000000Z",
     databaseSnapshot: "100:101:",
     issuedAt: now.toISOString(),
     expiresAt: "2026-10-17T12:15:00.000Z",
@@ -71,6 +80,43 @@ describe("Issue 300 purpose/session/scope-bound investigation cursors", () => {
     expect(decodeInvestigationCursor(token, binding(), now)).toEqual(page());
     expect(token).not.toContain(windowFilters.keySlotId);
   });
+  it("preserves PostgreSQL sub-millisecond cursor ordering and rejects truncated cursors", () => {
+    const later = page("2026-10-16T15:42:00.000900Z");
+    const earlier = page("2026-10-16T15:42:00.000500Z");
+    if (
+      later.purpose !== "SEARCH_SESSIONS" ||
+      earlier.purpose !== "SEARCH_SESSIONS"
+    )
+      throw new Error("Search cursor fixture purpose changed");
+    expect(Date.parse(later.last.lastMatchedAt)).toBe(
+      Date.parse(earlier.last.lastMatchedAt),
+    );
+    expect(later.last.lastMatchedAt > earlier.last.lastMatchedAt).toBe(true);
+    expect(
+      decodeInvestigationCursor(
+        encodeInvestigationCursor(binding(), later, now),
+        binding(),
+        now,
+      ),
+    ).toEqual(later);
+    expect(() =>
+      encodeInvestigationCursor(
+        binding(),
+        page("2026-10-16T15:42:00.000Z"),
+        now,
+      ),
+    ).toThrow();
+    expect(() =>
+      encodeInvestigationCursor(
+        binding(),
+        {
+          ...later,
+          snapshotCutoff: "2026-10-17T12:00:00.001000Z",
+        },
+        now,
+      ),
+    ).toThrow();
+  });
 
   it("canonicalizes normalized validated filter property order", () => {
     const a = binding({}, { plate: "X-12", from: windowFilters.from });
@@ -80,13 +126,28 @@ describe("Issue 300 purpose/session/scope-bound investigation cursors", () => {
 
   it("invalidates a prior staff session and changed filter", () => {
     const token = encodeInvestigationCursor(binding(), page(), now);
-    expect(() => decodeInvestigationCursor(token, binding({
-      staffAuthSessionId: "01000000-0000-4000-a000-000000000008",
-    }), now)).toThrow();
-    expect(() => decodeInvestigationCursor(token, binding({}, {
-      ...windowFilters,
-      plate: "OTHER",
-    }), now)).toThrow();
+    expect(() =>
+      decodeInvestigationCursor(
+        token,
+        binding({
+          staffAuthSessionId: "01000000-0000-4000-a000-000000000008",
+        }),
+        now,
+      ),
+    ).toThrow();
+    expect(() =>
+      decodeInvestigationCursor(
+        token,
+        binding(
+          {},
+          {
+            ...windowFilters,
+            plate: "OTHER",
+          },
+        ),
+        now,
+      ),
+    ).toThrow();
   });
 
   it("rejects wrong role/Location and cursor byte tampering", () => {
@@ -104,17 +165,34 @@ describe("Issue 300 purpose/session/scope-bound investigation cursors", () => {
 
   it("rejects expired, future-issued, and overlong-lifetime cursors", () => {
     const token = encodeInvestigationCursor(binding(), page(), now);
-    expect(() => decodeInvestigationCursor(token, binding(),
-      new Date("2026-10-17T12:15:00.000Z"))).toThrow();
-    expect(() => encodeInvestigationCursor(binding(), {
-      ...page(),
-      expiresAt: "2026-10-17T12:16:00.000Z",
-    }, now)).toThrow();
-    expect(() => encodeInvestigationCursor(binding(), {
-      ...page(),
-      issuedAt: "2026-10-17T13:00:00.000Z",
-      expiresAt: "2026-10-17T13:15:00.000Z",
-    }, now)).toThrow();
+    expect(() =>
+      decodeInvestigationCursor(
+        token,
+        binding(),
+        new Date("2026-10-17T12:15:00.000Z"),
+      ),
+    ).toThrow();
+    expect(() =>
+      encodeInvestigationCursor(
+        binding(),
+        {
+          ...page(),
+          expiresAt: "2026-10-17T12:16:00.000Z",
+        },
+        now,
+      ),
+    ).toThrow();
+    expect(() =>
+      encodeInvestigationCursor(
+        binding(),
+        {
+          ...page(),
+          issuedAt: "2026-10-17T13:00:00.000Z",
+          expiresAt: "2026-10-17T13:15:00.000Z",
+        },
+        now,
+      ),
+    ).toThrow();
   });
 
   it("requires session ID for timeline and cannot cross cursor purposes", () => {
@@ -127,9 +205,14 @@ describe("Issue 300 purpose/session/scope-bound investigation cursors", () => {
       normalizedFilters: { limit: 50 },
     });
     expect(() => decodeInvestigationCursor(token, timeline, now)).toThrow();
-    expect(() => bindInvestigationCursor({
-      scope, context, purpose: "SESSION_TIMELINE", normalizedFilters: {},
-    })).toThrow();
+    expect(() =>
+      bindInvestigationCursor({
+        scope,
+        context,
+        purpose: "SESSION_TIMELINE",
+        normalizedFilters: {},
+      }),
+    ).toThrow();
     expect(decodeInvestigationCursor(undefined, binding(), now)).toBeNull();
   });
 

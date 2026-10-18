@@ -9,12 +9,15 @@ const storageState = process.env.ISSUE300_W7_BROWSER_STORAGE_STATE;
 const scenarioFile = process.env.ISSUE300_W7_BROWSER_SCENARIO;
 const lease = process.env.ISSUE300_W7_EXCLUSIVE_LEASE;
 const candidate = process.env.ISSUE300_R2_CANDIDATE_SHA;
+// A static HttpOnly refresh cookie MUST NOT be replayed in 34 new contexts:
+// replaying an already-rotated cookie revokes the underlying Staff session.
+const singleCase = process.env.ISSUE300_W7_SINGLE_FRESH_MFA_CASE;
 const ready = Boolean(
-  baseURL && storageState && scenarioFile && lease && candidate,
+  baseURL && storageState && scenarioFile && lease && candidate && singleCase,
 );
 test.skip(
   !ready,
-  "GAP: Prime-owned browser lease, MFA session and fixture scenario required",
+  "GAP: independent one-time MFA session/lease and single browser case required",
 );
 if (baseURL && storageState) test.use({ baseURL, storageState });
 test.use({ trace: "off", screenshot: "off", video: "off" });
@@ -36,6 +39,20 @@ if (scenario) {
   expect(scenario.candidateSha).toBe(candidate);
   expect(scenario.leaseId).toBe(lease);
   expect(scenario.auditPath).toMatch(/^\/audit-log/);
+}
+
+function safeOneTimeCase(
+  title: string,
+  run: (fixtures: { page: import("@playwright/test").Page },
+    info: import("@playwright/test").TestInfo) => Promise<void>,
+) {
+  test.describe(title, () => {
+    // Suite-time skip occurs before Playwright creates the page/context.
+    // Never reuse this storageState for a second case or a later test run.
+    test.skip(!ready || singleCase !== title,
+      "A fresh, separate MFA-authenticated cookie is required per case");
+    test(title, run);
+  });
 }
 
 async function authorizedInvestigation(page: import("@playwright/test").Page) {
@@ -90,7 +107,7 @@ async function nativeZoom(
   }
 }
 
-test("T56/T57/T58/T70: actual authorized UI pagination and failure recovery", async ({
+safeOneTimeCase("T56/T57/T58/T70: actual authorized UI pagination and failure recovery", async ({
   page,
 }) => {
   const requests: { path: string; status: number }[] = [];
@@ -184,7 +201,7 @@ test("T56/T57/T58/T70: actual authorized UI pagination and failure recovery", as
   await page.unroute(isSearch, failure);
 });
 
-test("T49/T60: the ordinary Audit Events tab retains separate read authority", async ({
+safeOneTimeCase("T49/T60: the ordinary Audit Events tab retains separate read authority", async ({
   page,
 }) => {
   await page.goto(scenario!.auditPath);
@@ -211,7 +228,7 @@ for (const locale of ["en", "ar"] as const)
   for (const theme of ["light", "dark"] as const)
     for (const width of [320, 390, 768, 1440] as const)
       for (const zoom of [1, 2] as const) {
-        test(`UI-M1 authentic ${locale}/${theme}/${width}px/${zoom * 100}%`, async ({
+        safeOneTimeCase(`UI-M1 authentic ${locale}/${theme}/${width}px/${zoom * 100}%`, async ({
           page,
         }, testInfo) => {
           await page.setViewportSize({ width, height: 900 });

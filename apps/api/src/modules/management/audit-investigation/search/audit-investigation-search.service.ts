@@ -103,9 +103,10 @@ export async function searchAuditInvestigationSessions(
         viewerSessionDigest: binding.viewerSessionDigest,
         filterDigest: binding.filterDigest,
         snapshotAt: snapshot.now.toISOString(),
+        snapshotCutoff: snapshot.cutoff,
         databaseSnapshot: snapshot.database,
         issuedAt, expiresAt,
-        last: { lastMatchedAt: last.lastMatchedAt.toISOString(), sessionId: last.sessionId },
+        last: { lastMatchedAt: last.lastMatchedAtCursor, sessionId: last.sessionId },
       }) : null;
   // Empty searches still report correct source authorization coverage.
   const incidentAvailable = page.length > 0
@@ -165,9 +166,10 @@ export class AuditInvestigationSearchService {
       const cursor = decodeInvestigationCursor(parsed.data.cursor, binding);
       const current = cursor === null
         ? await captureManagementPaginationSnapshot(tx)
-        : { now: new Date(cursor.snapshotAt), snapshot: cursor.databaseSnapshot };
+        : { now: new Date(cursor.snapshotAt),
+            cutoff: cursor.snapshotCutoff, snapshot: cursor.databaseSnapshot };
       const result = await searchAuditInvestigationSessions(tx, scope, parsed.data, {
-        now: current.now, database: current.snapshot,
+        now: current.now, cutoff: current.cutoff, database: current.snapshot,
       }, binding, cursor?.purpose === "SEARCH_SESSIONS" ? cursor.last : undefined,
       cursor ? { issuedAt: cursor.issuedAt, expiresAt: cursor.expiresAt } : undefined);
       if (scope.role === "ORG_ADMIN") await recordAdminActivityInTransaction(tx, context);

@@ -56,7 +56,7 @@ const scope = {
   membershipId: "33333333-3333-4333-8333-333333333333",
   role: "LOCATION_MANAGER" as const,
 };
-const snapshot = { now: new Date("2026-10-18T12:00:00Z"), database: "1:2:" };
+const snapshot = { cutoff: "2026-10-18T12:00:00.000500Z", database: "1:2:" };
 
 function createProof(overrides: Record<string, unknown> = {}) {
   r2Proof();
