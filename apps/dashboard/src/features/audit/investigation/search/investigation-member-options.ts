@@ -163,3 +163,31 @@ export function searchInvestigationMembersByPrefix(
   }
   return loadInvestigationMemberOptions(context, request, reader);
 }
+
+/** One explicit 20-option read. A null cursor with hasMore is an honest
+ * unpaginatable prefix and must never produce a fabricated next page. */
+export async function readInvestigationMemberPage(
+  context: InvestigationSearchTransport,
+  prefix: string,
+  cursor: string | null = null,
+  reader: MemberOptionsReader = readInvestigationSearchFilters,
+) {
+  if (!prefix.trim() || prefix.trim().length > 80) {
+    throw new RangeError("INVALID_MEMBER_PREFIX");
+  }
+  const response = auditInvestigationFilterResponseSchema.parse(await reader(context, {
+    kind: "MEMBER", text: prefix.trim(), limit: PAGE_SIZE,
+    ...(cursor ? { cursor } : {}),
+  }));
+  if (context.signal.aborted) throw new MemberSelectorStaleError();
+  if (response.kind !== "MEMBER" || (response.hasMore && !response.items.length)) {
+    throw new MemberSelectorIntegrityError();
+  }
+  return {
+    options: response.items.map((item) => ({
+      id: item.id, label: item.currentLabel.value ?? item.id,
+    })),
+    nextCursor: response.nextCursor,
+    hasMore: response.hasMore,
+  };
+}

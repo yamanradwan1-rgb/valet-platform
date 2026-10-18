@@ -1,5 +1,7 @@
 "use client";
 
+import { useCallback, useRef } from "react";
+
 import type {
   DemoEvent,
   DemoMatch,
@@ -8,12 +10,13 @@ import type {
 } from "./investigation-demo-types";
 import {
   investigationDisplayTime,
-  investigationEventLabel,
   investigationKey,
-  investigationLocalTime,
-  investigationPosition,
 } from "./investigation/timeline/investigation-live-projection";
+import type { InvestigationPageState } from "./investigation/live/investigation-pagination-state";
+import { InvestigationContinuationControls } from "./investigation/investigation-continuation-controls";
 import styles from "./investigation-workspace.module.css";
+import { copy } from "./investigation/timeline/investigation-workspace-copy";
+import { TimelineEvent } from "./investigation/timeline/investigation-timeline-event";
 
 interface InvestigationWorkspaceProps {
   readonly locale: InvestigationDemoLocale;
@@ -25,96 +28,12 @@ interface InvestigationWorkspaceProps {
   readonly loading?: boolean;
   readonly error?: string | null;
   readonly locationTimezone?: string;
+  readonly timelineLoading?: boolean;
+  readonly timelineError?: string | null;
+  readonly searchPage?: InvestigationPageState;
+  readonly onSearchMore?: () => void;
+  readonly onTimelineMore?: () => void;
 }
-
-const copy = {
-  en: {
-    results: "Matching Sessions",
-    apply: "Apply the search filters to view matching Sessions.",
-    noMatches: "No matching Sessions",
-    adjust: "No recorded events meet the selected search criteria.",
-    choose: "Select a Session to inspect its complete recorded timeline.",
-    complete: "Completed",
-    open: "Still open · summary",
-    incident: "Incident OPEN · current",
-    incidentRecorded: "Recorded incident · status not supplied",
-    waiting: "Loading recorded events…",
-    incomplete: "Recorded history unavailable; retry the authorized read.",
-    noWindow: "Discovery window unavailable",
-    historical: "Historical slot",
-    currentSlot: "Current key slot",
-    notAssigned: "Not assigned",
-    notRecorded: "Not recorded",
-    session: "Session",
-    currentVehicle: "Current vehicle · Current label",
-    currentPlate: "Current plate · Current label",
-    matching: "In-window matches",
-    firstLast: "First / last match",
-    events: "Full available timeline",
-    sources: "Full available event history, including earlier and later events. Chronological order alone does not establish causation.",
-    coverage: "Audit · Key Custody · Dispatch · Incidents",
-    match: "Matching witness",
-    inWindow: "In window · context",
-    before: "Before search window",
-    after: "After search window",
-    outside: "Outside search window",
-    actorUnknown: "No recorded employee actor",
-    incidentGap: "Historical custody transition unavailable",
-    incidentGapText:
-      "This is an evidence gap marker, not a recorded event. A reported KEY_MISSING classification does not prove loss; incident resolution and restricted photos are unavailable.",
-    timezone: "Asia/Amman · UTC+03:00",
-    eventDetails: "Inspect source event",
-    witness: "in-window witness",
-    witnesses: "in-window witnesses",
-    KEY: "Key Custody",
-    AUDIT: "Audit",
-    DISPATCH: "Dispatch",
-    INCIDENT: "Incident",
-  },
-  ar: {
-    results: "الجلسات المطابقة",
-    apply: "طبّق معايير البحث لإظهار الجلسات المطابقة.",
-    noMatches: "لا توجد جلسات مطابقة",
-    adjust: "لا توجد أحداث مسجلة تحقق معايير البحث المختارة.",
-    choose: "اختر جلسة لعرض التسلسل الزمني المسجل كاملاً.",
-    complete: "مكتملة",
-    open: "ما تزال مفتوحة · ملخص",
-    incident: "حادثة مفتوحة · حالياً",
-    incidentRecorded: "بلاغ حادثة مسجل · الحالة غير متاحة",
-    waiting: "جارٍ تحميل الأحداث المسجلة…",
-    incomplete: "التاريخ المسجل غير متاح؛ أعِد المحاولة المصرّح بها.",
-    noWindow: "فترة البحث غير متاحة",
-    historical: "الخانة التاريخية",
-    currentSlot: "خانة المفتاح الحالية",
-    notAssigned: "غير مخصصة",
-    notRecorded: "غير مسجّلة",
-    session: "الجلسة",
-    currentVehicle: "المركبة الحالية · وصف حالي",
-    currentPlate: "اللوحة الحالية · وصف حالي",
-    matching: "الأحداث المطابقة",
-    firstLast: "أول / آخر تطابق",
-    events: "الخط الزمني الكامل المتاح",
-    sources: "يتضمن التاريخ المسجل أحداثًا قبل النافذة وبعدها؛ الترتيب الزمني لا يثبت السببية وحده.",
-    coverage: "تدقيق · عهدة المفتاح · توزيع · حوادث",
-    match: "دليل مطابق",
-    inWindow: "ضمن الفترة · سياق",
-    before: "قبل فترة البحث",
-    after: "بعد فترة البحث",
-    outside: "خارج فترة البحث",
-    actorUnknown: "لا يوجد موظف منفّذ مسجّل",
-    incidentGap: "انتقال الحيازة التاريخي غير متاح",
-    incidentGapText:
-      "هذه علامة لنقص الأدلة وليست حدثاً مسجلاً. تصنيف KEY_MISSING المبلّغ عنه لا يثبت ضياع المفتاح؛ لا تتوفر تسوية للحادثة أو الصور المقيّدة.",
-    timezone: "عمّان · UTC+03:00",
-    eventDetails: "فحص حدث المصدر",
-    witness: "حدث شاهد ضمن الفترة",
-    witnesses: "أحداث شاهدة ضمن الفترة",
-    KEY: "عهدة المفتاح",
-    AUDIT: "التدقيق",
-    DISPATCH: "توزيع المهام",
-    INCIDENT: "الحوادث",
-  },
-} as const;
 
 function Status({ isDone, locale, currentState }: { readonly isDone: boolean; readonly locale: InvestigationDemoLocale; readonly currentState?: string | undefined }) {
   return (
@@ -166,59 +85,6 @@ function SessionChoice({
   );
 }
 
-function TimelineEvent({
-  event,
-  matched,
-  query,
-  locale,
-  onEvent,
-}: {
-  readonly event: DemoEvent;
-  readonly matched: boolean;
-  readonly query: InvestigationDemoQuery;
-  readonly locale: InvestigationDemoLocale;
-  readonly onEvent: (event: DemoEvent) => void;
-}) {
-  const c = copy[locale];
-  const pos = investigationPosition(event, query);
-  const kind = matched ? "match" : pos === "inWindow" ? "context" : "outside";
-  const contextLabel = matched ? c.match : pos === "inWindow" ? c.inWindow : pos === "before" ? c.before : pos === "after" ? c.after : c.noWindow;
-  return (
-    <li className={styles.timelineRow} data-kind={kind}>
-      <time className={styles.timestamp} dateTime={event.occurredAt ?? `2026-10-23T${event.time}:00+03:00`}
-        title={event.occurredAt ? investigationLocalTime(event.occurredAt, true, event.locationTimezone) + " " + event.locationTimezone : undefined} dir="ltr">
-        {event.occurredAt ? investigationLocalTime(event.occurredAt, false, event.locationTimezone) : event.time + ":00"}
-      </time>
-      <span className={styles.track} aria-hidden="true"><span /></span>
-      <button className={styles.eventCard} type="button" onClick={() => onEvent(event)}
-        aria-label={`${c.eventDetails}: ${event.id}, ${investigationEventLabel(event, locale)}`}>
-        <span className={styles.eventTop}>
-          <span className={styles.sourceBadge} data-source={event.source === "KEY_CUSTODY" ? "KEY" : event.source}>{c[event.source === "KEY_CUSTODY" ? "KEY" : event.source]}</span>
-          <span className={styles.windowLabel} data-kind={kind}>{contextLabel}</span>
-        </span>
-        <strong className={styles.eventTitle}>{investigationEventLabel(event, locale)}</strong>
-        <span className={styles.eventMeta}>
-          <span>{event.actor ?? c.actorUnknown}</span>
-          <span aria-hidden="true">·</span>
-          <bdi dir="ltr">{event.id}</bdi>
-          {event.resource && <bdi dir="ltr">{event.resource}</bdi>}
-        </span>
-        {event.source === "INCIDENT" && (
-          <span className={styles.incidentEvidence}>
-            {locale === "ar"
-              ? event.origin === "LIVE"
-                ? [event.incidentType ?? "نوع غير متاح", event.severity ?? "خطورة غير متاحة", event.incidentStatus ?? "حالة غير متاحة"].join(" · ")
-                : "تصنيف بلاغ KEY_MISSING غير مثبت؛ الخطورة HIGH والحالة الحالية OPEN. الوصف والصور غير متاحة أو مقيدة، ولا توجد تسوية مسجلة."
-              : event.origin === "LIVE"
-                ? [event.incidentType ?? "Type unavailable", event.severity ?? "Severity unavailable", event.incidentStatus ?? "Status unavailable"].join(" · ")
-                : event.transition + " · " + event.evidence}
-          </span>
-        )}
-      </button>
-    </li>
-  );
-}
-
 export function InvestigationWorkspace({
   locale,
   matches,
@@ -229,41 +95,73 @@ export function InvestigationWorkspace({
   loading = false,
   error = null,
   locationTimezone,
+  timelineLoading = false,
+  timelineError = null,
+  searchPage,
+  onSearchMore,
+  onTimelineMore,
 }: InvestigationWorkspaceProps) {
   const c = copy[locale];
+  const resultHeading = useRef<HTMLHeadingElement>(null);
+  const timelineHeading = useRef<HTMLHeadingElement>(null);
+  const focusResults = useCallback(() => resultHeading.current?.focus({ preventScroll: true }), []);
+  const focusTimeline = useCallback(() => timelineHeading.current?.focus({ preventScroll: true }), []);
   const current = matches.find((match) => match.session.id === selectedId);
   const selected = current?.session;
-  const orderedEvents = selected ? [...selected.events].sort((a, b) => (a.occurredAt ?? a.time).localeCompare(b.occurredAt ?? b.time)) : [];
+  const orderedEvents = selected ? selected.origin === "LIVE" ? [...selected.events]
+    : [...selected.events].sort((a, b) => (a.occurredAt ?? a.time).localeCompare(b.occurredAt ?? b.time)) : [];
   const witnesses = new Set(current?.witnessIds ?? []);
+  const coverage = query ? searchPage?.coverage : null;
+  const coverageLimited = Boolean(coverage && (searchPage?.coverageVaries ||
+    Object.values(coverage).some((source) => source.status !== "AVAILABLE" ||
+      source.reason === "INTEGRITY_ANOMALY")));
 
   return (
     <section className={styles.workspace} aria-label={c.events}>
       <aside className={styles.results} aria-label={c.results}>
         <header className={styles.resultsHeader}>
-          <div><h2>{c.results}</h2><small>{query ? `${query.date} · ${query.start}–${query.end} · ${locationTimezone ?? c.timezone}` : c.apply}</small></div>
-          <span className={styles.count}>{query ? String(matches.length).padStart(2, "0") : "—"}</span>
+          <div><h2 ref={resultHeading} tabIndex={-1}>{c.results}</h2><small>{query ? `${query.date} · ${query.start}–${query.end} · ${locationTimezone ?? c.timezone}` : c.apply}</small></div>
+          <span className={styles.count} aria-label={query && searchPage ? `${locale === "ar" ? "تم تحميل" : "Loaded"} ${matches.length}` : undefined}>{query ? String(matches.length).padStart(2, "0") : "—"}</span>
         </header>
+        {coverageLimited && coverage && (
+          <div className={styles.empty} role="status" data-investigation-coverage="limited">
+            <strong>{c.sourceCoverage}</strong>
+            <p>{Object.entries(coverage).map(([source, value]) =>
+              `${source}: ${value.status}${value.reason ? ` (${value.reason})` : ""}`).join(" · ")}</p>
+            {searchPage?.coverageVaries && <p>{c.varyingCoverage}</p>}
+          </div>
+        )}
         {!query || !matches.length ? (
-          <p className={styles.empty}>{error ?? (loading ? c.waiting : query ? `${c.noMatches}. ${c.adjust}` : c.apply)}</p>
+          <p className={styles.empty}>{error ?? (loading ? c.waiting : query
+            ? coverageLimited ? c.noVerifiedMatches : `${c.noMatches}. ${c.adjust}` : c.apply)}</p>
         ) : (
-          <div className={styles.choiceList}>
+          <div className={styles.choiceList} id="investigation-session-results">
             {matches.map((match) => (
               <SessionChoice key={match.session.id} match={match}
                 selected={match.session.id === selectedId} locale={locale} onSelect={onSelect} />
             ))}
+            {searchPage && onSearchMore && (
+              <InvestigationContinuationControls locale={locale} kind="sessions"
+                hasMore={Boolean(searchPage.nextCursor)} pending={searchPage.pending}
+                error={searchPage.error} added={searchPage.added}
+                controls="investigation-session-results" onExhausted={focusResults}
+                onMore={onSearchMore} />
+            )}
           </div>
         )}
       </aside>
       <article className={styles.investigation} aria-label={c.events}>
         {!query || !matches.length || !selected || !current || (selected.origin === "LIVE" && !selected.timelineComplete) || loading || error ? (
-          <p className={styles.empty}>{error ?? (loading ? c.waiting : selected?.origin === "LIVE" ? c.incomplete : !query ? c.apply : !matches.length ? c.adjust : c.choose)}</p>
+          <p className={styles.empty} role={timelineError ? "alert" : undefined}>{error ?? timelineError ?? (loading || timelineLoading ? c.waiting : selected?.origin === "LIVE" ? c.incomplete : !query ? c.apply : !matches.length ? coverageLimited ? c.noVerifiedMatches : c.adjust : c.choose)}</p>
         ) : (
           <>
             <header className={styles.sessionHeading}>
               <div>
                 <span className={styles.eyebrow}>{c.session} / <bdi dir="ltr">{selected.id}</bdi></span>
                 <h2>{selected.make} {selected.model}</h2>
-                <p>{c.sources}</p>
+                <p>{selected.origin === "LIVE" &&
+                  (selected.timelineNextCursor || Object.values(selected.coverage ?? {}).some((source) => source.status !== "AVAILABLE"))
+                  ? c.partialSources : c.sources}</p>
               </div>
               <Status isDone={selected.state === "COMPLETED"} locale={locale} currentState={selected.origin === "LIVE" ? selected.currentState : undefined} />
             </header>
@@ -275,15 +173,23 @@ export function InvestigationWorkspace({
               <div><span>{c.matching}</span><strong>{current.count}</strong></div>
             </div>
             <div className={styles.timelineHeading}>
-              <div><h3>{c.events} <span>({orderedEvents.length})</span></h3><small>{selected.origin === "LIVE" && selected.coverage ? Object.entries(selected.coverage).map(([source, value]) => source + ": " + value.status).join(" · ") : c.coverage}</small></div>
+              <div><h3 ref={timelineHeading} tabIndex={-1}>{selected.origin === "LIVE" &&
+                (selected.timelineNextCursor || Object.values(selected.coverage ?? {}).some((source) => source.status !== "AVAILABLE"))
+                ? c.loadedEvents : c.events} <span>({orderedEvents.length})</span></h3><small>{selected.origin === "LIVE" && selected.coverage ? Object.entries(selected.coverage).map(([source, value]) => source + ": " + value.status).join(" · ") : c.coverage}</small></div>
               <div className={styles.legend}><span data-kind="match">{c.match}</span><span data-kind="context">{c.inWindow}</span><span data-kind="outside">{c.outside}</span></div>
             </div>
-            <ol className={styles.timeline}>
+            <ol className={styles.timeline} id="investigation-event-results">
               {orderedEvents.map((event) => (
                 <TimelineEvent key={investigationKey(event.source, event.id)} event={event} matched={witnesses.has(event.origin === "LIVE" ? investigationKey(event.source, event.id) : event.id)}
                   query={query} locale={locale} onEvent={onEvent} />
               ))}
             </ol>
+            {selected.origin === "LIVE" && onTimelineMore && (
+              <InvestigationContinuationControls locale={locale} kind="events"
+                hasMore={Boolean(selected.timelineNextCursor)} pending={timelineLoading}
+                error={timelineError} controls="investigation-event-results"
+                onExhausted={focusTimeline} onMore={onTimelineMore} />
+            )}
             {selected.origin !== "LIVE" && selected.incident && (
               <aside className={styles.gap} aria-label={c.incidentGap}>
                 <strong>{c.incidentGap}</strong>

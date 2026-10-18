@@ -9,6 +9,9 @@ import {
   investigationPanelCopy,
 } from "./investigation/search/investigation-panel-copy";
 import type { InvestigationSelectorOption } from "./investigation/search/investigation-selector-resolution";
+import { InvestigationEmployeeSelector } from "./investigation/search/investigation-employee-selector";
+import { InvestigationTimeDisambiguation } from "./investigation/search/investigation-time-disambiguation";
+import { investigationMinuteCandidates } from "./investigation-live-timezone";
 import styles from "./investigation-search.module.css";
 
 type SearchField = keyof InvestigationDemoQuery;
@@ -25,6 +28,18 @@ type SearchPanelProps = {
   readonly employeeOptions?: readonly InvestigationSelectorOption[];
   readonly slotOptions?: readonly InvestigationSelectorOption[];
   readonly selectorError?: string | null;
+  readonly locationTimezone?: string;
+  readonly memberOversized?: boolean;
+  readonly memberBusy?: boolean;
+  readonly memberError?: string | null;
+  readonly memberUnpaged?: boolean;
+  readonly memberPage?: number;
+  readonly memberHasNext?: boolean;
+  readonly memberHasPrevious?: boolean;
+  readonly onMemberChange?: (id: string) => void;
+  readonly onMemberRefine?: (text: string) => void;
+  readonly onMemberNext?: () => void;
+  readonly onMemberPrevious?: () => void;
 };
 
 export function InvestigationSearchPanel({
@@ -39,22 +54,44 @@ export function InvestigationSearchPanel({
   employeeOptions = [],
   slotOptions = [],
   selectorError,
+  locationTimezone = "Asia/Amman",
+  memberOversized, memberBusy, memberError, memberUnpaged,
+  memberPage, memberHasNext, memberHasPrevious, onMemberChange,
+  onMemberRefine, onMemberNext, onMemberPrevious,
 }: SearchPanelProps) {
   const t = investigationPanelCopy[locale];
   const fieldsId = useId();
   const errorId = useId();
   const slotListId = useId();
+  const startId = useId();
+  const endId = useId();
   const [collapsed, setCollapsed] = useState(false);
   const [invalid, setInvalid] = useState(false);
 
   function change(field: SearchField, next: string) {
     setInvalid(false);
-    onChange({ ...value, [field]: next });
+    onChange({ ...value, [field]: next,
+      ...(["date", "start", "end", "location"].includes(field)
+        ? { fromUtc: undefined, toUtc: undefined } : {}),
+    });
+  }
+
+  function validLiveWindow() {
+    if (!live) return hasValidInvestigationWindow(value);
+    try {
+      const from = investigationMinuteCandidates(value.date, value.start, locationTimezone);
+      const to = investigationMinuteCandidates(value.date, value.end, locationTimezone);
+      const start = from.find((candidate) => candidate.utc === value.fromUtc)
+        ?? (from.length === 1 ? from[0] : null);
+      const end = to.find((candidate) => candidate.utc === value.toUtc)
+        ?? (to.length === 1 ? to[0] : null);
+      return Boolean(start && end && start.utc < end.utc);
+    } catch { return false; }
   }
 
   function apply(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!hasValidInvestigationWindow(value)) {
+    if (!validLiveWindow()) {
       setInvalid(true);
       setCollapsed(false);
       return;
@@ -73,7 +110,7 @@ export function InvestigationSearchPanel({
 
   const describedBy =
     invalid || error || (live && selectorError) ? errorId : undefined;
-  const invalidWindow = invalid && !hasValidInvestigationWindow(value);
+  const invalidWindow = invalid && !validLiveWindow();
   const displayedError =
     error ||
     (invalidWindow ? t.timeError : null) ||
@@ -131,10 +168,13 @@ export function InvestigationSearchPanel({
           </select>
         </label>
         {temporalFields.map(({ key, label, type }) => (
-          <label className={styles.field} key={key}>
-            <span>{label}</span>
+          <div className={styles.field} key={key}>
+            <label htmlFor={key === "start" ? startId : key === "end" ? endId : fieldsId + "-date"}>{label}</label>
             <input
-              aria-describedby={describedBy}
+              id={key === "start" ? startId : key === "end" ? endId : fieldsId + "-date"}
+              aria-describedby={live && type === "time"
+                ? [describedBy, key === "start" ? startId + "-choice" : endId + "-choice"]
+                  .filter(Boolean).join(" ") : describedBy}
               aria-invalid={invalidWindow}
               className={styles.control}
               dir="ltr"
@@ -144,7 +184,15 @@ export function InvestigationSearchPanel({
               type={type}
               value={value[key]}
             />
-          </label>
+            {live && type === "time" && (
+              <InvestigationTimeDisambiguation locale={locale} date={value.date}
+                minute={value[key]} timezone={locationTimezone}
+                value={key === "start" ? value.fromUtc : value.toUtc}
+                describedBy={key === "start" ? startId + "-choice" : endId + "-choice"}
+                onChange={(utc) => onChange({ ...value,
+                  [key === "start" ? "fromUtc" : "toUtc"]: utc })} />
+            )}
+          </div>
         ))}
         <label className={`${styles.field} ${styles.slotField}`}>
           <span>{t.slot}</span>
@@ -174,24 +222,14 @@ export function InvestigationSearchPanel({
         </label>
 
         <div className={styles.advanced}>
-          <label className={styles.field}>
-            <span>{t.employee}</span>
-            <select
-              className={styles.control}
-              onChange={(event) => change("employee", event.target.value)}
-              value={value.employee}
-            >
-              <option value="">{t.anyEmployee}</option>
-              {(live
-                ? employeeOptions
-                : demoEmployees.map((label) => ({ id: label, label }))
-              ).map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <InvestigationEmployeeSelector locale={locale} label={t.employee}
+            any={t.anyEmployee} value={value.employee}
+            options={live ? employeeOptions : demoEmployees.map((label) => ({ id: label, label }))}
+            oversized={live && memberOversized} loading={memberBusy} error={memberError}
+            unpaged={memberUnpaged} page={memberPage} hasNext={memberHasNext}
+            hasPrevious={memberHasPrevious} onChange={(id) => change("employee", id)}
+            onRetain={onMemberChange} onRefine={onMemberRefine}
+            onNext={onMemberNext} onPrevious={onMemberPrevious} />
           <label className={styles.field}>
             <span>{t.make}</span>
             <input

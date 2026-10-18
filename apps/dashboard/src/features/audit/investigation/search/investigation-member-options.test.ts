@@ -7,6 +7,7 @@ import {
   MemberSelectorIntegrityError,
   MemberSelectorStaleError,
   searchInvestigationMembersByPrefix,
+  readInvestigationMemberPage,
   type MemberOptionsReader,
 } from "./investigation-member-options";
 import { investigationSearchScopeKey } from "./investigation-search-scope";
@@ -68,6 +69,31 @@ function harness() {
 }
 
 describe("Issue #300 W5 bounded MEMBER selector continuation", () => {
+  it("makes exactly one 20-option signed request per explicit page, same prefix and cursor", async () => {
+    const h = harness();
+    const read = vi.fn<MemberOptionsReader>()
+      .mockResolvedValueOnce(fixture(Array.from({ length: 20 }, (_, i) => record(i + 1)), "signedmembercursor_123", true))
+      .mockResolvedValueOnce(fixture([record(21, "Duplicate"), record(22, "Duplicate")]));
+    const first = await readInvestigationMemberPage(h.context, "Du", null, read);
+    expect(read).toHaveBeenCalledTimes(1);
+    expect(first.nextCursor).toBe("signedmembercursor_123");
+    const second = await readInvestigationMemberPage(h.context, "Du", first.nextCursor, read);
+    expect(read).toHaveBeenCalledTimes(2);
+    expect(second.options.map((row) => row.id)).toEqual([id(21), id(22)]);
+    expect(read.mock.calls.map((call) => call[1])).toEqual([
+      { kind: "MEMBER", text: "Du", limit: 20 },
+      { kind: "MEMBER", text: "Du", limit: 20, cursor: "signedmembercursor_123" },
+    ]);
+  });
+  it("never fabricates Next when incomplete server response omits a cursor", async () => {
+    const h = harness();
+    const read = vi.fn<MemberOptionsReader>().mockResolvedValue(
+      fixture([record(1)], null, true));
+    const first = await readInvestigationMemberPage(h.context, "A", null, read);
+    expect(first.hasMore).toBe(true);
+    expect(first.nextCursor).toBeNull();
+    expect(read).toHaveBeenCalledTimes(1);
+  });
   it("loads 21+ canonical IDs over verified cursors with duplicate names and inactive members", async () => {
     const { context, request } = harness();
     const first = Array.from({ length: 20 }, (_, i) =>

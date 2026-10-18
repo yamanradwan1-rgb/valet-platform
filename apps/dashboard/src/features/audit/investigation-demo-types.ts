@@ -15,8 +15,8 @@ export interface InvestigationDemoQuery {
   readonly plate: string;
   readonly sessionId: string;
   /** UTC boundaries from the authorization-scoped Apply result; not user input. */
-  readonly fromUtc?: string;
-  readonly toUtc?: string;
+  readonly fromUtc?: string | undefined;
+  readonly toUtc?: string | undefined;
 }
 
 export interface DemoEvent {
@@ -63,6 +63,8 @@ export interface DemoSession {
   readonly locationLabel?: string | null;
   readonly locationTimezone?: string;
   readonly timelineComplete?: boolean;
+  readonly timelineNextCursor?: string | null;
+  readonly timelineSnapshotAt?: string | undefined;
 }
 
 export interface DemoMatch {

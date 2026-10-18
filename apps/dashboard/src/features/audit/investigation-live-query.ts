@@ -32,12 +32,12 @@ export function buildLiveInvestigationQuery(
   selectors: { readonly keySlotId?: string; readonly membershipId?: string },
   locationTimezone = "Asia/Amman",
 ): AuditInvestigationSearchQuery {
-  if (draft.location !== scopeLocationId || draft.start >= draft.end) {
+  if (draft.location !== scopeLocationId) {
     throw new Error("INVALID_INVESTIGATION_SCOPE_OR_WINDOW");
   }
   const candidate = {
-    from: investigationMinuteToUtc(draft.date, draft.start, locationTimezone),
-    to: investigationMinuteToUtc(draft.date, draft.end, locationTimezone),
+    from: investigationMinuteToUtc(draft.date, draft.start, locationTimezone, draft.fromUtc),
+    to: investigationMinuteToUtc(draft.date, draft.end, locationTimezone, draft.toUtc),
     limit: 100,
     ...(selectors.keySlotId ? { keySlotId: selectors.keySlotId } : {}),
     ...(selectors.membershipId ? { membershipId: selectors.membershipId } : {}),

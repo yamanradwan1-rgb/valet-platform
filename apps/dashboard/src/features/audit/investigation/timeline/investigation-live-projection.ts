@@ -9,6 +9,7 @@ import {
 import type { DemoEvent, DemoMatch, InvestigationDemoLocale, InvestigationDemoQuery } from "../../investigation-demo-types";
 import type { TimelineEvidenceRow, TimelinePageView } from "./timeline-model";
 import { projectTimelinePage } from "./timeline-projection";
+import { compareTimelineRows } from "./timeline-projection";
 
 const DEMO_ZONE = "Asia/Amman";
 const EVENT_LABELS: Record<string, readonly [string, string]> = {
@@ -136,7 +137,7 @@ function liveEvent(row: TimelineEvidenceRow, sessionId: string,
   };
 }
 
-/** No partial timeline may masquerade as the full available history. */
+/** Compose one server-ordered page. Exhaustion and evidence coverage are distinct. */
 export function attachInvestigationLiveTimeline(
   match: DemoMatch,
   timeline: TimelinePageView | AuditInvestigationTimelineResponse,
@@ -150,19 +151,43 @@ export function attachInvestigationLiveTimeline(
   if (page.session.sessionId !== match.session.id) {
     throw new Error("INVESTIGATION_TIMELINE_SESSION_MISMATCH");
   }
-  if (page.nextCursor !== null || Object.values(page.coverage).some(
-    (source) => source.status === "UNAVAILABLE",
-  )) {
+  if (page.nextCursor && (!page.events.length ||
+      page.nextCursor === match.session.timelineNextCursor)) {
+    throw new Error("INVESTIGATION_TIMELINE_CURSOR_STALLED");
+  }
+  if (Object.values(page.coverage).some((source) => source.status === "UNAVAILABLE")) {
     throw new Error("INVESTIGATION_TIMELINE_INCOMPLETE");
   }
-  const events = page.events.map((row) => liveEvent(
+  if (match.session.timelineSnapshotAt &&
+      match.session.timelineSnapshotAt !== page.snapshotAt) {
+    throw new Error("INVESTIGATION_TIMELINE_SNAPSHOT_CHANGED");
+  }
+  if (match.session.timelineComplete && match.session.timelineNextCursor === null) {
+    throw new Error("INVESTIGATION_TIMELINE_ALREADY_COMPLETE");
+  }
+  const fresh = page.events.map((row) => liveEvent(
     row, match.session.id, match.session.locationLabel,
     match.session.locationTimezone,
   ));
-  const witnessIds = page.discoveryContext
-    ? page.discoveryContext.matchedKeys.map((key) =>
-      investigationKey(key.source, key.eventId))
-    : match.witnessIds;
+  const events = [...match.session.events];
+  const seen = new Set(events.map((row) => investigationKey(row.source, row.id)));
+  for (const row of fresh) {
+    const key = investigationKey(row.source, row.id);
+    if (seen.has(key)) throw new Error("INVESTIGATION_TIMELINE_DUPLICATE_PAGE");
+    const previous = events.at(-1);
+    if (previous &&
+        compareTimelineRows({ key: { source: row.source === "KEY" ? "KEY_CUSTODY" : row.source, eventId: row.id }, occurredAt: row.occurredAt! },
+          { key: { source: previous.source === "KEY" ? "KEY_CUSTODY" : previous.source, eventId: previous.id }, occurredAt: previous.occurredAt! }) <= 0) {
+      throw new Error("INVESTIGATION_TIMELINE_PAGE_ORDER");
+    }
+    seen.add(key);
+    events.push(row);
+  }
+  const witnessIds = [...new Set([
+    ...match.witnessIds,
+    ...(page.discoveryContext?.matchedKeys ?? []).map((key) =>
+      investigationKey(key.source, key.eventId)),
+  ])];
   return {
     ...match,
     coverage: page.coverage,
@@ -178,6 +203,8 @@ export function attachInvestigationLiveTimeline(
       coverage: page.coverage,
       events,
       timelineComplete: true,
+      timelineNextCursor: page.nextCursor,
+      timelineSnapshotAt: page.snapshotAt,
     },
   };
 }

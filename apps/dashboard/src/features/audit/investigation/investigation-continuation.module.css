@@ -1,0 +1,40 @@
+.continuation {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+}
+
+.continuation button,
+.optionNavigation button,
+.employeeTools > button {
+  min-height: 32px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.continuation button:disabled,
+.optionNavigation button:disabled,
+.employeeTools > button:disabled { opacity: .6; cursor: default; }
+
+.continuation button:focus-visible,
+.optionNavigation button:focus-visible,
+.employeeTools > button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.employeeTools, .foldChoice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.employeeTools { margin-top: 5px; }
+.optionNavigation { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.foldChoice label, .employeeTools label { font-size: 11px; }
+.foldChoice select { min-width: 0; }

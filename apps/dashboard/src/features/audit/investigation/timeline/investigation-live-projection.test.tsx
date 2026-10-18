@@ -108,10 +108,12 @@ describe("Issue300 LIVE projection and frozen presentation values", () => {
     expect(merged.session.events[1]!.actor).toBe("Same name today");
   });
 
-  it("rejects unfinished cursor, wrong Session, untrusted DTO and DEMO match", () => {
+  it("shows first page with explicit continuation; rejects wrong Session, untrusted DTO and DEMO", () => {
     const match = mapInvestigationLiveSearch(search())[0]!;
-    expect(() => attachInvestigationLiveTimeline(match, page(history().items, { nextCursor: "cursor_123456" })))
-      .toThrow("INVESTIGATION_TIMELINE_INCOMPLETE");
+    const first = attachInvestigationLiveTimeline(match, page(history().items, { nextCursor: "cursor_123456" }));
+    expect(first.session.timelineNextCursor).toBe("cursor_123456");
+    expect(first.session.timelineComplete).toBe(true);
+    expect(first.session.events).toHaveLength(3);
     expect(() => attachInvestigationLiveTimeline(match, page([], {
       session: { ...page().session, sessionId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" },
     }))).toThrow("INVESTIGATION_TIMELINE_SESSION_MISMATCH");

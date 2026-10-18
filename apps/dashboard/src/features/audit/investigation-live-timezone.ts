@@ -29,11 +29,15 @@ export function dateInLocationZone(zone: string, now = new Date()): string {
   return partsAt(requireLocationZone(zone), now.getTime()).local.slice(0, 10);
 }
 
-/** Resolve exact persisted Location local minute. Never use browser timezone.
- * If the wall time is in a DST gap or fold, no silent default is permitted:
- * the approved frozen UI has no offset selector, so fail closed.
- */
-export function investigationMinuteToUtc(date: string, time: string, zone: string): string {
+export interface InvestigationTimeOccurrence {
+  readonly utc: string;
+  readonly offset: string;
+}
+
+/** Enumerate genuine instants in a persisted Location zone, including both
+ * sides of a DST fold. Browser timezone never influences candidate selection. */
+export function investigationMinuteCandidates(date: string, time: string,
+  zone: string): readonly InvestigationTimeOccurrence[] {
   if (!strictDate.test(date) || !strictMinute.test(time))
     throw new Error("INVALID_TIME_WINDOW");
   const naive = new Date(`${date}T${time}:00.000Z`);
@@ -52,9 +56,26 @@ export function investigationMinuteToUtc(date: string, time: string, zone: strin
     if (partsAt(formatter, candidate).local === `${date}T${time}`)
       matches.add(candidate);
   }
-  if (matches.size !== 1) {
-    throw new Error(matches.size === 0
-      ? "NONEXISTENT_LOCAL_TIME" : "AMBIGUOUS_LOCAL_TIME_REQUIRES_OFFSET");
+  if (matches.size === 0) throw new Error("NONEXISTENT_LOCAL_TIME");
+  return [...matches].sort((a, b) => a - b).map((candidate) => {
+    const minutes = Math.round((naive.getTime() - candidate) / 60_000);
+    const sign = minutes < 0 ? "-" : "+";
+    const absolute = Math.abs(minutes);
+    return {
+      utc: new Date(candidate).toISOString(),
+      offset: `UTC${sign}${String(Math.floor(absolute / 60)).padStart(2, "0")}:${String(absolute % 60).padStart(2, "0")}`,
+    };
+  });
+}
+
+/** Explicit UTC choice is mandatory for folds; gaps always fail closed. */
+export function investigationMinuteToUtc(date: string, time: string,
+  zone: string, chosen?: string): string {
+  const candidates = investigationMinuteCandidates(date, time, zone);
+  if (chosen) {
+    if (candidates.some((candidate) => candidate.utc === chosen)) return chosen;
+    throw new Error("INVALID_TIME_OCCURRENCE");
   }
-  return new Date([...matches][0]!).toISOString();
+  if (candidates.length !== 1) throw new Error("AMBIGUOUS_LOCAL_TIME_REQUIRES_OFFSET");
+  return candidates[0]!.utc;
 }

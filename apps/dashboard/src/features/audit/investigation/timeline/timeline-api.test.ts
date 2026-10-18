@@ -7,6 +7,22 @@ import {
 import { auditId, event, MEMBER, page, scope, SESSION } from "./timeline-test-fixtures";
 
 describe("Issue300 typed read-only timeline transport", () => {
+  it("issues one explicit signed continuation request without replay or changing the Session", async () => {
+    const request = vi.fn(async (...args: Parameters<DashboardApiClient["request"]>) => {
+      expect(args[0]).toContain("/timeline");
+      return page();
+    });
+    const client = { request } as unknown as Pick<DashboardApiClient, "request">;
+    const signal = new AbortController().signal;
+    const reconciled = vi.fn();
+    await readInvestigationTimeline(client, scope(), "signed_timeline_page", signal, reconciled);
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(request.mock.calls[0]![0]).toContain(`/sessions/${SESSION}/timeline`);
+    expect(request.mock.calls[0]![2]).toMatchObject({
+      query: { limit: 100, cursor: "signed_timeline_page" },
+      signal, onAuthReconciled: reconciled,
+    });
+  });
   it("uses exact organization/Location/Session route, bounded query and AbortSignal", async () => {
     const request = vi.fn(async (...args: Parameters<DashboardApiClient["request"]>) => {
       expect(args[0]).toContain("audit-investigations");
