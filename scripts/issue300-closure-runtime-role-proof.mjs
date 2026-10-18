@@ -4,10 +4,10 @@ import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { getAttestedTargets, pgClient, validateSource } from "./issue300-closure-migration-proof.mjs";
+import { getAttestedTarget, pgClient, validateSource } from "./issue300-closure-migration-proof.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const databaseRoot = join(root, "packages/database");
+const databaseRoot = resolve(root, "../issue-300-final-closure-r2/packages/database");
 const evidenceTables = ["audit_events", "key_custody_events", "dispatch_events"];
 
 function assert(ok, reason) {
@@ -234,32 +234,28 @@ async function fixtureProof(admin, role) {
 }
 
 async function execute() {
-  const targets = getAttestedTargets();
+  const target = getAttestedTarget();
   const reports = [];
-  for (const target of [targets.fresh, targets.upgrade]) {
-    const admin = pgClient(target.migrationUrl);
-    await admin.connect();
-    try {
-      const status = await admin.query(
-        "SELECT count(*)::int AS n FROM _prisma_migrations WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL");
-      assert(status.rows[0].n === 96, "All 96 migrations must finish before provisioning");
-    } finally { await admin.end(); }
-  }
-  // Provision on each owned DB; this never changes shared cluster/db roles.
-  for (const target of [targets.fresh, targets.upgrade]) {
-    await provision(target);
-    const admin = pgClient(target.migrationUrl);
-    const runtime = pgClient(target.runtimeUrl);
-    await admin.connect();
-    await runtime.connect();
-    try {
-      const realRole = await checkRole(admin, runtime, target);
-      const fixture = await fixtureProof(admin, target.runtimeRole);
-      reports.push({ database: target.database, ...realRole, ...fixture });
-    } finally { await Promise.all([admin.end(), runtime.end()]); }
-  }
-  console.log(JSON.stringify({ verdict: "PARTIAL", leaseId: targets.leaseId,
-    candidateSha: targets.candidateSha, reports,
+  const admin = pgClient(target.migrationUrl);
+  await admin.connect();
+  try {
+    const status = await admin.query(
+      "SELECT count(*)::int AS n FROM _prisma_migrations WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL");
+    assert(status.rows[0].n === 96, "All 96 migrations must finish before provisioning");
+    const role = await admin.query("SELECT 1 FROM pg_roles WHERE rolname=$1", [target.runtimeRole]);
+    assert(role.rowCount === 0, "Reserved role exists before provision; refuse credential rotation");
+  } finally { await admin.end(); }
+  await provision(target);
+  const owner = pgClient(target.migrationUrl);
+  const runtime = pgClient(target.runtimeUrl);
+  await owner.connect();
+  await runtime.connect();
+  try {
+    const realRole = await checkRole(owner, runtime, target);
+    const fixture = await fixtureProof(owner, target.runtimeRole);
+    reports.push({ database: target.database, ...realRole, ...fixture });
+  } finally { await Promise.all([owner.end(), runtime.end()]); }
+  console.log(JSON.stringify({ verdict: "PARTIAL", candidateSha: target.candidateSha, reports,
     gaps: ["Actual HTTP authorization", "legacy real maintenance role",
       "migration interruption and concurrent runner cutover"] }, null, 2));
 }

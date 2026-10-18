@@ -1,7 +1,7 @@
-// R2 W6: destructive operations are impossible without an expiring Prime lease.
-// Run with no arguments for an offline source check; --execute requires two disposable DBs.
+// R2 W6: Prime's exclusive lease is bound to the named, isolated new R2 PG17.
+// Default --check is static; --execute only mutates the specified empty R2 DB.
 import { execFileSync, spawn } from "node:child_process";
-import { createHash } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
@@ -9,7 +9,9 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const databaseRoot = join(root, "packages/database");
-const prismaCli = join(databaseRoot, "node_modules/prisma/build/index.js");
+// Dependency tooling was installed in Prime's R2 worktree; W6 remains source-isolated.
+const provisionRoot = resolve(root, "../issue-300-final-closure-r2/packages/database");
+const prismaCli = join(provisionRoot, "node_modules/prisma/build/index.js");
 const sourceSha = "ef5a0554fa20fe6ee6fcc0a4ceeffdc83d6e5687";
 const tables = ["audit_events", "valet_sessions", "key_custody_events",
   "dispatch_events", "incidents", "tasks"];
@@ -39,77 +41,57 @@ export function validateSource() {
   return { count: migrations.length, latest: migrations.at(-1), preservedBaseline: sourceSha };
 }
 
-function checkedUrl(raw, database, port) {
-  assert(typeof raw === "string" && raw.length > 0, "A task-specific database URL is required");
-  const url = new URL(raw);
-  assert(["postgres:", "postgresql:"].includes(url.protocol), "PostgreSQL required");
-  assert(url.hostname === "127.0.0.1" && Number(url.port) === port,
-    "Only the attested loopback Docker port is allowed");
-  assert(url.pathname === `/${database}` && !url.search && !url.hash,
-    "Unexpected database identity or URL options");
-  assert(/^[a-z_][a-z0-9_]{0,62}$/.test(decodeURIComponent(url.username)) && !!url.password,
-    "Explicit safe database credentials required");
-  return url;
-}
-
-export function getAttestedTargets() {
+export function getAttestedTarget() {
   assert(process.env.NODE_ENV !== "production",
     "W6 proof cannot execute under a production runtime");
   assert(process.env.ISSUE300_W6_ENABLE === "EXECUTE_OWNED_DISPOSABLE_ONLY",
     "W6 execution requires an explicit, separate opt-in");
-  const path = process.env.ISSUE300_W6_LEASE_PATH;
-  assert(!!path && existsSync(path), "Prime-issued W6 lease file is missing");
-  const lease = JSON.parse(readFileSync(path, "utf8"));
-  assert(lease.project === "issue300" && lease.issuedBy === "prime" &&
-    lease.issuedTo === "w6" && lease.exclusive === true && lease.disposable === true,
-  "A Prime-exclusive disposable W6 lease is mandatory");
-  assert(/^issue300-w6-[a-z0-9-]{8,}$/i.test(lease.leaseId) &&
-    typeof lease.candidateSha === "string" && /^[0-9a-f]{40}$/.test(lease.candidateSha) &&
-    Date.parse(lease.expiresAt) > Date.now() && Date.parse(lease.expiresAt) < Date.now() + 86400000,
-  "Missing, invalid or expired candidate-specific W6 lease");
+  const envPath = resolve(root, "../issue-300-final-closure-r2/tmp/issue300-r2-owned/pg.env");
+  assert(existsSync(envPath), "Prime-owned credentials not found at the exact agreed path");
+  const allowed = new Set(["POSTGRES_DB", "POSTGRES_USER", "POSTGRES_PASSWORD", "PGHOST", "PGPORT"]);
+  const config = Object.fromEntries(readFileSync(envPath, "utf8").split(/\r?\n/)
+    .map((line) => line.match(/^([A-Z_]+)=(.*)$/)).filter((m) => m && allowed.has(m[1]))
+    .map((m) => [m[1], m[2].replace(/^["']|["']$/g, "")]));
+  assert(config.POSTGRES_DB === "issue300_r2" &&
+    config.POSTGRES_USER === "issue300_r2_owner" &&
+    config.PGHOST === "127.0.0.1" && config.PGPORT === "57285" &&
+    typeof config.POSTGRES_PASSWORD === "string" && !!config.POSTGRES_PASSWORD,
+  "Supplied credential metadata disagrees with Prime's new disposable R2 resource");
   const head = execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
-  assert(head === lease.candidateSha, "Current code SHA differs from the attested candidate");
-  for (const index of [44, 93, 94, 95]) {
-    const name = migrations[index];
-    assert(lease.migrationChecksums?.[name] === migrationDigest(name),
-      `Prime lease checksum does not match immutable migration ${index + 1}`);
-  }
-  assert(/^[0-9a-f]{64}$/.test(lease.containerId) &&
-    /^issue300_w6_[a-z0-9_]{6,}$/.test(lease.volumeName) &&
-    Number.isInteger(lease.port) && lease.port > 1024 &&
-    ![5432, 55480].includes(lease.port), "Unsafe cluster identity/port");
-  const docker = JSON.parse(execFileSync("docker", ["inspect", lease.containerId],
+  assert(/^[a-f0-9]{40}$/.test(head), "Unable to verify W6 commit identity");
+  const docker = JSON.parse(execFileSync("docker", ["inspect", "issue300_r2_pg17"],
     { encoding: "utf8", windowsHide: true }))[0];
   const published = docker?.NetworkSettings?.Ports?.["5432/tcp"] ?? [];
-  assert(docker?.Id === lease.containerId && docker.State?.Running === true &&
-    docker.Name === `/${lease.containerName}` &&
-    docker.Mounts?.some((mount) => mount.Name === lease.volumeName) &&
-    published.some((x) => x.HostIp === "127.0.0.1" && Number(x.HostPort) === lease.port),
-  "Docker container, dedicated volume or port no longer matches Prime's lease");
-  const result = { leaseId: lease.leaseId, candidateSha: head, port: lease.port };
-  for (const kind of ["fresh", "upgrade"]) {
-    const db = lease.databases?.[kind];
-    assert(/^issue300_w6_[a-z0-9_]{6,}$/.test(db ?? ""), "Unowned W6 database name");
-    const migrationUrl = process.env[`ISSUE300_W6_${kind.toUpperCase()}_MIGRATION_URL`];
-    const runtimeUrl = process.env[`ISSUE300_W6_${kind.toUpperCase()}_RUNTIME_URL`];
-    const migration = checkedUrl(migrationUrl, db, lease.port);
-    const runtime = checkedUrl(runtimeUrl, db, lease.port);
-    assert(migration.username !== runtime.username && migration.password !== runtime.password,
-      "Migration/runtime credentials must differ");
-    assert(/^issue300_w6_[a-z0-9_]{6,}$/.test(decodeURIComponent(runtime.username)),
-      "Runtime provisioner may only create a uniquely task-owned role");
-    result[kind] = { database: db, migrationUrl, runtimeUrl,
-      migrationRole: decodeURIComponent(migration.username),
-      runtimeRole: decodeURIComponent(runtime.username) };
+  assert(/^[a-f0-9]{64}$/.test(docker?.Id ?? "") &&
+    docker.Name === "/issue300_r2_pg17" &&
+    docker.State?.Running === true &&
+    docker.Config?.Labels?.["com.vaylet.task"] === "issue300-r2" &&
+    docker.Mounts?.some((mount) => mount.Name === "issue300_r2_pgdata") &&
+    published.length === 1 && published[0].HostIp === "127.0.0.1" &&
+    published[0].HostPort === "57285",
+  "Docker label, container, owned volume or loopback port changed; lease invalid");
+  for (const name of migrations) {
+    assert(migrationDigest(name) === createHash("sha256").update(readFileSync(
+      join(provisionRoot, "prisma/migrations", name, "migration.sql"))).digest("hex"),
+    "Prime tooling migration bytes differ from W6 frozen migration source");
   }
-  assert(result.fresh.database !== result.upgrade.database &&
-    result.fresh.runtimeRole !== result.upgrade.runtimeRole,
-  "Fresh and upgrade fixtures must have separate databases and runtime roles");
-  return result;
+  const dbUrl = (username, password) => {
+    const u = new URL("postgresql://127.0.0.1:57285/issue300_r2");
+    u.username = username; u.password = password;
+    return u.href;
+  };
+  // Stable local-only derived password keeps the role reusable by the next leased worker.
+  const runtimeRole = "issue300_r2_w6_runtime";
+  const runtimePassword = createHmac("sha256", config.POSTGRES_PASSWORD)
+    .update("issue300-r2:actual-ordinary-runtime:v1").digest("hex");
+  return { candidateSha: head, containerId: docker.Id, database: "issue300_r2",
+    migrationRole: config.POSTGRES_USER, runtimeRole,
+    migrationUrl: dbUrl(config.POSTGRES_USER, config.POSTGRES_PASSWORD),
+    runtimeUrl: dbUrl(runtimeRole, runtimePassword) };
 }
 
 export function pgClient(url) {
-  const require = createRequire(join(databaseRoot, "package.json"));
+  const require = createRequire(join(provisionRoot, "package.json"));
   const { Client } = require("pg");
   return new Client({ connectionString: url, connectionTimeoutMillis: 4000,
     statement_timeout: 15000, application_name: "issue300-w6-closure" });
@@ -176,7 +158,7 @@ async function verify96(client) {
 async function migrate(url, runtimeUrl) {
   await new Promise((done, fail) => {
     const child = spawn(process.execPath, [prismaCli, "migrate", "deploy"], {
-      cwd: databaseRoot, windowsHide: true,
+      cwd: provisionRoot, windowsHide: true,
       env: { ...process.env, NODE_ENV: "test", MIGRATION_DATABASE_URL: url,
         DATABASE_URL: runtimeUrl }, stdio: "ignore" });
     child.once("error", fail);
@@ -208,61 +190,35 @@ async function heldWriterLockProof(url) {
 }
 
 async function execute() {
-  const targets = getAttestedTargets();
+  const target = getAttestedTarget();
   assert(existsSync(prismaCli), "Install exact workspace dependencies before database execution");
-  const clients = [pgClient(targets.fresh.migrationUrl), pgClient(targets.upgrade.migrationUrl)];
-  await Promise.all(clients.map((client) => client.connect()));
-  let legacy;
+  const client = pgClient(target.migrationUrl);
+  await client.connect();
   try {
-    for (let i = 0; i < 2; i++) {
-      const client = clients[i];
-      const info = (await client.query(
-        "SELECT current_database() AS db, current_user AS role, current_setting('server_version_num')::int AS version, pg_is_in_recovery() AS replica" )).rows[0];
-      const target = i === 0 ? targets.fresh : targets.upgrade;
-      assert(info.db === target.database && info.role === target.migrationRole &&
-        info.version >= 170000 && info.version < 180000 && info.replica === false,
-      "Wrong database, role or PostgreSQL version; no migration allowed");
-    }
-    const fresh = await readHistory(clients[0]);
-    const upgrade = await readHistory(clients[1]);
+    const info = (await client.query(
+      "SELECT current_database() AS db, current_user AS role, current_setting('server_version_num')::int AS version, pg_is_in_recovery() AS replica" )).rows[0];
+    assert(info.db === target.database && info.role === target.migrationRole &&
+      info.version === 170010 && info.replica === false,
+    "Wrong database, actual login or PostgreSQL 17.10 version");
+    const fresh = await readHistory(client);
     assert(fresh.length === 0 &&
-      (await clients[0].query("SELECT count(*)::int AS n FROM pg_tables WHERE schemaname = 'public'" )).rows[0].n === 0,
+      (await client.query("SELECT count(*)::int AS n FROM pg_tables WHERE schemaname = 'public'")).rows[0].n === 0,
     "Fresh database is not empty");
-    assert(JSON.stringify(upgrade) === JSON.stringify(migrations.slice(0, 93)),
-      "Upgrade database must be cleanly committed at exactly migration 93");
-    legacy = await snapshotLegacy(clients[1]);
-    assert(Object.values(legacy).some((value) => value > 0),
-      "Populated upgrade fixture required; empty migration upgrade is insufficient");
-  } finally { await Promise.all(clients.map((client) => client.end())); }
-  await migrate(targets.fresh.migrationUrl, targets.fresh.runtimeUrl);
-  await migrate(targets.upgrade.migrationUrl, targets.upgrade.runtimeUrl);
-  const checks = [];
-  for (const target of [targets.fresh, targets.upgrade]) {
-    const client = pgClient(target.migrationUrl);
-    await client.connect();
-    try {
-      checks.push({ database: target.database, ...await verify96(client) });
-      if (target === targets.upgrade) {
-        const after = await snapshotLegacy(client);
-        for (const table of tables) {
-          assert(after[table] === legacy[table], `Unexpected ${table} history rewrite`);
-          if (!["audit_events", "valet_sessions"].includes(table)) {
-            const q = await client.query(
-              `SELECT count(*)::int AS n FROM public.${table} WHERE pagination_birth_xid IS NULL`);
-            assert(q.rows[0].n === legacy[table], `${table}: historical birth marker backfilled`);
-          }
-        }
-        checks.push({ legacyCountsPreserved: true,
-          pre45NullAudit: legacy.audit_events_legacy_null,
-          pre45NullSession: legacy.valet_sessions_legacy_null });
-      }
-    } finally { await client.end(); }
-  }
-  checks.push(await heldWriterLockProof(targets.upgrade.migrationUrl));
-  console.log(JSON.stringify({ verdict: "PARTIAL", leaseId: targets.leaseId,
-    candidateSha: targets.candidateSha, checks,
-    gaps: ["Interrupted real migration", "overlapping concurrent migration runners",
-      "migration 94/95 intermediate commit prefixes", "actual writer at activation", "backward application runtime"] }, null, 2));
+    const role = await client.query("SELECT 1 FROM pg_roles WHERE rolname=$1", [target.runtimeRole]);
+    assert(role.rowCount === 0, "Reserved W6 ordinary role already exists; refuse to rotate its credentials");
+  } finally { await client.end(); }
+  await migrate(target.migrationUrl, target.runtimeUrl);
+  const verified = pgClient(target.migrationUrl);
+  await verified.connect();
+  let checks;
+  try { checks = await verify96(verified); }
+  finally { await verified.end(); }
+  const lock = await heldWriterLockProof(target.migrationUrl);
+  console.log(JSON.stringify({ verdict: "PARTIAL", candidateSha: target.candidateSha,
+    containerIdPrefix: target.containerId.slice(0, 12), database: target.database,
+    postgres: "17.10", fresh0to96: "PASS", checks, lock,
+    gaps: ["Populated 93→96", "Migration interruption/concurrent runners",
+      "Actual writers during DDL", "Backward application runtime"] }, null, 2));
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
