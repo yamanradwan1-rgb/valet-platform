@@ -1,5 +1,123 @@
 # Issue #300 R2 — W6 isolated V3 PostgreSQL 17 acceptance
 
+## Current status after independent W12 follow-up
+
+W12 independently re-reviewed the corrected task-owned V3 watchdog and migration94 held-writer source and reported **no remaining concrete P0/P1 in the signed SQL-lease watchdog boundary**. The permanent post-close/revocation deny wrapper and guarded `interruption()` path described below are source-reviewed. W6 separately ran the **12/12 pure mock watchdog tests**, with no V3 PostgreSQL or migration runtime. A later Prime attempt to rerun the same suite was **not started** because four fresh admission samples failed the host safety thresholds (available RAM 547/655/689/632 MiB, one CPU sample 90%). Do not reinterpret this skipped rerun as a failure of the earlier W6 test result.
+
+**Actual populated, concurrent, interrupted and rollback V3 migration acceptance remains GAP.** No V3 test container, signed heavy lease or real migration campaign was started; human and V2 database resources must remain separate. An in-flight database COMMIT with interrupted connection still requires independent reconciliation and must never be marked PASS from a rejected callback.
+
+## Latest W12 P1 rework — permanent post-close SQL denial
+
+W12 identified a further **P1 false-safe** in the source-only V3
+SQL watchdog: rejecting the outer ~Promise.race()~ leaves its inner
+callback suspended, and ~guard.close()~ previously restored
+~client.query~ to the original unguarded method. The late-resumed
+callback could then issue ~COMMIT~ after the Owner-signed lease expired.
+
+**Fixed exclusively in ignored W6-owned test files.** The guarded
+~client.query~ wrapper remains permanently installed after revocation,
+expiry, and even successful connection close. Explicit ~closing~ and
+~closed~ flags forbid **all** late statements; the original raw
+query method is never restored. The independent signed-lease watchdog
+continues running during a slow ~end()~ operation and is cleared only
+after that close finishes or fails. Additionally, W12 found that the
+held writer in ~interruption()~ was created using an unguarded raw
+~Client~: it now uses ~openGuardedSql()~ and ~guard.run()~ for its
+full migration94 lock/ledger/catalog callback, with rollback and
+close still guarded, and records the lock proof PASS only after the
+entire guarded callback completes.
+
+The exact new regression sequence is now covered:
+~pending fn → signed-lease expiry → outer fn rejects → guard.close()
+→ release suspended work → attempted COMMIT is rejected~. The test
+asserts that the raw client's query call count stays unchanged.
+An additional test covers resuming a suspended callback after an
+otherwise normal close. Existing expiry, tampering, mid-query,
+multi-statement, slow-close, and 18-second pre-statement budget
+cases remain covered.
+
+**Actual bounded offline evidence:** four independent Windows host
+samples before testing had available RAM **2213/2196/2125/2141 MiB**,
+CPU **29/38/21/33%**, and free commit **6528/6463/6428/6496 MiB**.
+The syntax checks for the ignored guard, V3 harness and test file
+all returned exit 0; ~node --test
+tmp/issue300-r2-w6-v3-owned/v3-sql-lease-watchdog.test.mjs~
+completed **12/12 PASS, 0 FAIL**, in **94 ms**. Every test is bounded
+by the existing per-case deadline and mock query self-release.
+**These are pure mock tests**, not real PostgreSQL migration acceptance.
+
+**Disposition:** W12 independent final READ-ONLY source re-audit
+requested through Prime for both the permanent deny wrapper and
+~interruption()~'s held-writer connection. The Prime-signed V3 lease
+is still absent, no V3 Docker/database/HTTP/process service has
+been started, and real V3 acceptance remains a **GAP** until the
+owner-authorized safe execution campaign.
+
+## Latest W12 SQL lease boundary fix — source only / pending re-audit
+
+W12 independently confirmed the improved advisory-lock race design has no
+unconditional P0/P1, but identified a **conditional P1**: standalone
+`sql()` sessions were limited only by a 15-second PostgreSQL statement
+timeout and could continue executing a multi-query fixture, transaction,
+or post-child reconciliation **after** the short Owner-signed lease expired.
+
+W6 added ONLY task-local ignored files:
+`tmp/issue300-r2-w6-v3-owned/v3-sql-lease-watchdog.mjs` and
+`v3-sql-lease-watchdog.test.mjs`, and updated the same ignored
+`v3-acceptance.mjs`. The reusable guard:
+
+- Re-verifies the exact CURRENT Owner Ed25519-signed lease and original
+  lease ID **before connecting and before every statement**, including
+  transaction `BEGIN`, `COMMIT` and `ROLLBACK`. Requires at least the
+  15-second statement timeout plus 3-second safety margin before
+  sending any new SQL, not just at phase boundaries.
+- Installs a 100-ms active connection watchdog across the entire
+  multi-statement callback, including CPU work or asynchronous waits
+  between SQL statements, and while closing the connection.
+  On expiry or signature/ID mismatch, immediately destroys only the
+  W6-owned PostgreSQL client socket, causing the in-flight transaction
+  to abort at disconnection, and rejects the entire guarded operation.
+  A delayed SQL result or callback cannot be recorded as success.
+- Covers all `sql()` calls as well as the explicitly held writer
+  connections used for actual Prisma advisory-lock race and interrupted
+  DDL tests. Those writer callbacks now run inside the watchdog's
+  promise-raced `run()` wrapper, not merely guarded SQL calls.
+  Guarded callbacks must complete and pass an additional
+  post-work lease check before recording PASS. DB actions under an
+  expired or substituted lease are forbidden.
+- If a `COMMIT` was already in-flight during connection loss, its final
+  database state remains **UNKNOWN** until independently reconciled.
+  This is a **GAP**, never an inferred rollback or PASS.
+
+The initial eight pure offline tests PASSED after correcting an exact
+expiry-boundary bug (`expiry - now === 0` must reject, not accept).
+Two more negative tests were added for expiry during a slow `end()`
+and tampering between two SQL statements, but **were not yet rerun**:
+Prime reported severe host memory pressure (289 MiB free) and stopped
+all nonessential tests. At Prime's request W6 inspected four
+historical W6 Node-test process IDs (16040, 3852, 29692, 27804);
+**all were already absent** and no process was killed or user
+service touched by W6. Prime was immediately informed.
+
+At Prime's urgent instruction, W6 additionally hardened the mocked
+test runner itself: a simulated `HANG` SQL call resolves within 500ms
+even if a regression prevents lease revocation; each of the ten
+tests has an explicit 1.5-second asynchronous Promise deadline and
+2.5-second `node:test` timeout. The mock expiry equality bug that had
+allowed indefinite waiting was corrected to reject
+`expiry - now <= 0`. These latest source changes are **not yet
+runtime-validated**, by Prime's explicit no-process/no-tests instruction
+during the host incident. W6 requested that Prime wake W12 for
+**READ-ONLY source re-audit**, not execution, before attempting a new
+signed lease or running tests.
+
+**Disposition:** source fix ready for W12 independent READ-ONLY
+re-audit, but the two newest tests and final verification must run
+only after Prime declares safe resources. The Prime-signed V3 lease
+has not been issued, and **NO V3 PostgreSQL Docker container, volume,
+database, API, browser or migration acceptance was started**.
+V2 on 58387 and the human resources are outside W6 scope.
+
 ## Final source-only rework pending new independent reviewer
 
 W9 additionally identified a **false concurrent-migration PASS**: an
