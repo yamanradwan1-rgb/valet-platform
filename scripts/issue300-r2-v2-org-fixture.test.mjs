@@ -99,14 +99,21 @@ test("deterministic leased IDs, two owned active Locations, foreign Org/Location
     { id: plan.foreignOrganizationId, name: "Issue300 V2 TEST foreign", status: "ACTIVE", timezone: "Asia/Amman" },
   ];
   const locations = [
-    ...plan.locationIds.map((id) => ({
+    ...plan.locationIds.map((id, i) => ({
       id,
       organization_id: plan.mainOrganizationId,
+      name: i === 0 ? "Issue300 V2 TEST A" : "Issue300 V2 TEST B",
+      code: i === 0 ? "ISSUE300-V2-A" : "ISSUE300-V2-B",
+      address_text: "Isolated synthetic fixture",
+      timezone: "Asia/Amman",
       status: "ACTIVE",
       accepting_intake: true,
       currency: "JOD",
     })),
-    { id: plan.foreignLocationId, organization_id: plan.foreignOrganizationId, status: "ACTIVE", accepting_intake: true, currency: "JOD" },
+    { id: plan.foreignLocationId, organization_id: plan.foreignOrganizationId,
+      name: "Issue300 V2 TEST foreign", code: "ISSUE300-V2-FOREIGN",
+      address_text: "Isolated synthetic fixture", timezone: "Asia/Amman",
+      status: "ACTIVE", accepting_intake: true, currency: "JOD" },
   ];
   const subscriptions = [plan.mainOrganizationId, plan.foreignOrganizationId].map((id) => ({
     organization_id: id,
@@ -120,6 +127,8 @@ test("deterministic leased IDs, two owned active Locations, foreign Org/Location
   denied(() => verifyReadback(plan, orgs, [{ ...locations[0], organization_id: plan.foreignOrganizationId }, ...locations.slice(1)], subscriptions));
   denied(() => verifyReadback(plan, orgs, locations, [{ ...subscriptions[0], dashboard_access_enabled: false }, subscriptions[1]]));
   denied(() => verifyReadback(plan, orgs, [{ ...locations[0], status: "INACTIVE" }, ...locations.slice(1)], subscriptions));
+  denied(() => verifyReadback(plan, orgs, [{ ...locations[0], code: "ALIEN" }, ...locations.slice(1)], subscriptions));
+  denied(() => verifyReadback(plan, [{ ...orgs[0], name: "Issue300 V2 TEST tampered" }, orgs[1]], locations, subscriptions));
   denied(() => verifyReadback(plan, orgs.slice(1), locations, subscriptions));
 });
 test("all 96 finished checksum identities must equal owner manifest AND immutable source", () => {

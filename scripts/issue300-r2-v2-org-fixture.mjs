@@ -22,9 +22,14 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
-import { readFileSync, readdirSync, lstatSync, writeFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  readCanonicalManifest, recoverCommittedPrerequisites,
+  verifyExactFixtureRows, writeUniqueReceipt,
+} from "./issue300-r2-v2-org-fixture-recovery.mjs";
+export { verifyExactFixtureRows as verifyReadback } from "./issue300-r2-v2-org-fixture-recovery.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const owned = join(root, "tmp/issue300-r2-w7-acceptance-v2-owned");
@@ -50,11 +55,6 @@ const command = (binary, argv) =>
     timeout: 9000,
     maxBuffer: 1024 * 1024,
   }).trim();
-const readOwnerManifest = (path) => {
-  const s = lstatSync(path);
-  assert(s.isFile() && !s.isSymbolicLink() && s.size > 0 && s.size <= 32768, "V2_FIXTURE_MANIFEST_FILE_UNTRUSTED");
-  return JSON.parse(readFileSync(path, "utf8"));
-};
 export function validateTarget({ env, candidateSha, clean, manifest }) {
   assert(
     env.NODE_ENV === "test" &&
@@ -138,49 +138,12 @@ export function fixturePlan(candidateSha, leaseId) {
     foreignLocationId: uuid(candidateSha, leaseId, "foreign-location"),
   };
 }
-export function verifyReadback(plan, organizations, locations, subscriptions) {
-  const orgIds = [plan.mainOrganizationId, plan.foreignOrganizationId];
-  const locIds = [...plan.locationIds, plan.foreignLocationId];
-  assert(
-    organizations.length === 2 &&
-      new Set(organizations.map((x) => x.id)).size === 2 &&
-      organizations.every((r) => orgIds.includes(r.id) && r.status === "ACTIVE" && r.timezone === "Asia/Amman" && r.name.startsWith("Issue300 V2 TEST ")),
-    "V2_FIXTURE_BAD_ORGANIZATION_READBACK",
-  );
-  assert(
-    locations.length === 3 &&
-      new Set(locations.map((x) => x.id)).size === 3 &&
-      locations.every(
-        (r) =>
-          locIds.includes(r.id) &&
-          r.status === "ACTIVE" &&
-          r.accepting_intake === true &&
-          r.currency === "JOD" &&
-          r.organization_id === (plan.locationIds.includes(r.id) ? plan.mainOrganizationId : plan.foreignOrganizationId),
-      ),
-    "V2_FIXTURE_BAD_LOCATION_READBACK",
-  );
-  assert(
-    subscriptions.length === 2 &&
-      new Set(subscriptions.map((x) => x.organization_id)).size === 2 &&
-      subscriptions.every(
-        (r) =>
-          orgIds.includes(r.organization_id) &&
-          r.plan_code === "ISSUE300_V2_TEST" &&
-          r.status === "ACTIVE" &&
-          r.dashboard_access_enabled === true &&
-          r.report_exports_enabled === false &&
-          r.basic_branding_enabled === false,
-      ),
-    "V2_FIXTURE_BAD_SUBSCRIPTION_READBACK",
-  );
-}
 async function readback(client, plan) {
   const orgIds = [plan.mainOrganizationId, plan.foreignOrganizationId];
   const locIds = [...plan.locationIds, plan.foreignLocationId];
   const organizations = (await client.query("SELECT id::text,name,status::text,timezone FROM public.organizations WHERE id=ANY($1::uuid[]) ORDER BY id", [orgIds])).rows;
   const locations = (
-    await client.query("SELECT id::text,organization_id::text,status::text,accepting_intake,currency FROM public.locations WHERE id=ANY($1::uuid[]) ORDER BY id", [locIds])
+    await client.query("SELECT id::text,organization_id::text,name,code,address_text,timezone,status::text,accepting_intake,currency FROM public.locations WHERE id=ANY($1::uuid[]) ORDER BY id", [locIds])
   ).rows;
   const subscriptions = (
     await client.query(
@@ -188,7 +151,7 @@ async function readback(client, plan) {
       [orgIds],
     )
   ).rows;
-  verifyReadback(plan, organizations, locations, subscriptions);
+  verifyExactFixtureRows(plan, organizations, locations, subscriptions);
   return { organizations, locations, subscriptions };
 }
 async function insertOnly(client, plan) {
@@ -251,8 +214,10 @@ export async function provisionPrerequisites({ client, plan, manifest, source })
   }
 }
 async function issue() {
-  assert(process.argv.length === 3 && process.argv[2] === "--issue", "Usage: node scripts/issue300-r2-v2-org-fixture.mjs --issue");
-  const manifest = readOwnerManifest(join(owned, "R2_OWNED_RESOURCE_MANIFEST.json"));
+  assert(process.argv.length === 3 && ["--issue", "--recover-receipt"].includes(process.argv[2]),
+    "Usage: node scripts/issue300-r2-v2-org-fixture.mjs --issue|--recover-receipt");
+  const recover = process.argv[2] === "--recover-receipt";
+  const manifest = readCanonicalManifest(join(owned, "R2_OWNED_RESOURCE_MANIFEST.json"), owned);
   const candidateSha = command("git", ["rev-parse", "HEAD"]);
   const { leaseId, url } = validateTarget({ env: process.env, candidateSha, clean: command("git", ["status", "--porcelain=v1"]) === "", manifest });
   const docker = () => JSON.parse(command("docker", ["inspect", exact.containerName]))[0];
@@ -263,7 +228,11 @@ async function issue() {
   const client = new Client({ connectionString: url, connectionTimeoutMillis: 3000 });
   try {
     await client.connect();
-    const witness = await provisionPrerequisites({ client, plan, manifest, source });
+    const witness = recover
+      ? await recoverCommittedPrerequisites({
+          client, exact, manifest, source, verifyLedger, readback, plan,
+        })
+      : await provisionPrerequisites({ client, plan, manifest, source });
     const verified = await readback(client, plan);
     assert(digest(JSON.stringify(witness)) === digest(JSON.stringify(verified)), "V2_FIXTURE_POSTCOMMIT_READBACK_CHANGED");
     verifyDocker(manifest, docker());
@@ -287,8 +256,9 @@ async function issue() {
       ),
     };
     const path = join(owned, "W10_ORG_LOCATION_RECEIPT_" + candidateSha.slice(0, 12) + "_" + leaseId + ".json");
-    writeFileSync(path, JSON.stringify(receipt, null, 2), { flag: "wx", mode: 0o600 });
-    console.log("PASS exact V2 bounded Org+2 Locations+foreign Org/Location; receipt=" + path + "; SHA256=" + digest(JSON.stringify(receipt)) + "; no Staff or MFA");
+    writeUniqueReceipt(path, owned, receipt);
+    console.log("PASS exact V2 " + (recover ? "READ_ONLY_RECEIPT_RECOVERED" : "Org+2 Locations+foreign Org/Location") +
+      "; receipt=" + path + "; SHA256=" + digest(JSON.stringify(receipt)) + "; no Staff or MFA");
   } finally {
     await client.end();
   }
