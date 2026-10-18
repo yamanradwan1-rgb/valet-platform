@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { rosterDigest, assertWriterCohort, verifyWriterCoverage,
   assertComparableWriters } from "./issue300-w8-writer-proof.mjs";
-import { assertRuntimeSample } from "./issue300-w8-runtime-continuity.mjs";
+import { assertRuntimeSample,assertRuntimeCheckpointWindow,
+  assertRuntimePhaseCoverage } from "./issue300-w8-runtime-continuity.mjs";
 import { assertNonemptyPlan } from "./issue300-w8-plans.mjs";
 
 const session=(n)=>"00000000-0000-4000-8000-"+String(n).padStart(12,"0");
@@ -112,4 +113,19 @@ test("API runtime proof is exact PID/bundle/port and is time bounded",()=>{
     apiBundleSha256:"d".repeat(64)},m,signed,now));
   assert.throws(()=>assertRuntimeSample({...sample,
     sampledAt:new Date(now-70_000).toISOString()},m,signed,now));
+});
+
+test("signed API process checkpoints must cover every 45s window of full 600s",()=>{
+  const t=Date.parse("2026-10-18T18:00:00Z");
+  assert.doesNotThrow(()=>assertRuntimeCheckpointWindow(t,t+30_000));
+  assert.throws(()=>assertRuntimeCheckpointWindow(t,t+60_000));
+  const start=new Date(t).toISOString(),end=new Date(t+600_000).toISOString();
+  assert.doesNotThrow(()=>assertRuntimePhaseCoverage(t-1000,t+598_000,
+    start,end,21));
+  assert.throws(()=>assertRuntimePhaseCoverage(t-60_000,t+598_000,
+    start,end,21));
+  assert.throws(()=>assertRuntimePhaseCoverage(t-1000,t+550_000,
+    start,end,21));
+  assert.throws(()=>assertRuntimePhaseCoverage(t-1000,t+598_000,
+    start,end,19));
 });

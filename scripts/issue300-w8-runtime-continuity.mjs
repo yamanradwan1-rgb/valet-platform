@@ -26,12 +26,27 @@ export function assertRuntimeSample(sample,m,oracle,now=Date.now()) {
   return at;
 }
 
+export function assertRuntimeCheckpointWindow(previousAt,currentAt,maxGapMs=45_000){
+  assert(Number.isFinite(currentAt) &&
+    (previousAt < 0 || currentAt > previousAt && currentAt-previousAt<=maxGapMs),
+  "Missing continuous signed runtime checkpoint window");
+}
+
+export function assertRuntimePhaseCoverage(firstAt,lastAt,startedAt,finishedAt,samples){
+  const start=Date.parse(startedAt),end=Date.parse(finishedAt);
+  assert(Number.isFinite(start) && Number.isFinite(end) &&
+    end-start>=600_000 && samples>=20 &&
+    firstAt>=start-45_000 && firstAt<=start+10_000 &&
+    lastAt>=end-30_000 && lastAt<=end+45_000,
+  "Signed runtime evidence does not cover full 600-second phase");
+}
+
 export function runtimeContinuity(m,oracle,env=process.env,
   monotonic=()=>performance.now()) {
   const key=env.ISSUE300_W8_RUNTIME_KEY;
   const payload=env.ISSUE300_W8_RUNTIME_JSON;
   const signature=env.ISSUE300_W8_RUNTIME_SIG;
-  let lastSequence=-1,lastAt=-1,lastCheck=-Infinity;
+  let lastSequence=-1,lastAt=-1,firstAt=-1,lastCheck=-Infinity;
   let samples=0;
   const collect=()=>{
     const item=verifyDetachedBytes(m,{key,payload,signature},
@@ -39,6 +54,8 @@ export function runtimeContinuity(m,oracle,env=process.env,
     const at=assertRuntimeSample(item,m,oracle);
     assert(item.sequence>lastSequence && at>lastAt,
       "Runtime checkpoint repeated; process may have been swapped");
+    assertRuntimeCheckpointWindow(lastAt,at);
+    if(firstAt<0) firstAt=at;
     lastSequence=item.sequence;lastAt=at;lastCheck=monotonic();
     samples++;
     return item;
@@ -51,9 +68,7 @@ export function runtimeContinuity(m,oracle,env=process.env,
     },
     finish(startedAt,finishedAt){
       collect(); // Post-load certificate must be fresh and new.
-      assert(samples>=20,"Missing required ~30s signed live process samples");
-      assert(lastAt>=Date.parse(finishedAt)-30_000);
-      assert(Date.parse(finishedAt)-Date.parse(startedAt)>=600_000);
+      assertRuntimePhaseCoverage(firstAt,lastAt,startedAt,finishedAt,samples);
       return {samples,finalSequence:lastSequence};
     },
   };
