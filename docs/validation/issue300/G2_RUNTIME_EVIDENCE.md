@@ -1,5 +1,17 @@
 # Issue #300 — G2 isolated PostgreSQL / authenticated HTTP / local candidate
 
+> **Latest independent test-integrity follow-up (2026-10-18):**
+> adversarial review found an ambiguous-COMMIT cleanup leak risk and a
+> performance oracle potentially satisfied by previous identically named
+> G2 tenants. Hardened test-only cleanup and verified exact 900
+> newly committed, born-XID-visible custody rows plus 101 own Session
+> witnesses. Re-ran four-source signed held-writer Search/Timeline and
+> 106/112 equal-timestamp page proofs: both PASS with exact cleanup.
+> On the oldest test-only tenant the default planner showed ~1.99M
+> inclusive buffer hits; `enable_nestloop=off` **read-only local
+> diagnostic timed out at 8s**, so no parity or performance fix is
+> claimed. Tests never altered production SQL, GUCs, schema or index.
+
 > **Actual end-to-end T01 on task G2, 2026-10-18:** An isolated,
 > explicit `3163` local proof API with correctly configured
 > 32-byte Handoff HMAC (not logged), staff Origin and no MFA/financial

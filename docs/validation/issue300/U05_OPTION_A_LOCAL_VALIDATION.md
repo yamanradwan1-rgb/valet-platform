@@ -1,5 +1,28 @@
 # VAYLET Issue #300 — U05 Option A local PostgreSQL validation
 
+> **2026-10-18 post-review G2 diagnostic addendum (newer than the pinned
+> historical candidates below):** hardened three G2-only scripts to track
+> their exact random fixture UUIDs across ambiguous COMMIT acknowledgment,
+> attempt owned cleanup even when a COMMIT result is uncertain, and
+> independently close PostgreSQL clients after cleanup errors. Re-ran
+> authenticated **four-source signed Search+Timeline** held-writer proof,
+> 106-Session/112-event R06 signed paging and exact cleanup, all **exit 0**.
+> The performance script now selects the oldest seeded task-only
+> Organization (rather than an arbitrary duplicate-name match), proves
+> exactly **900 committed source events have born XIDs visible at S0** and
+> checks that all 101 returned Sessions and custody reasons belong to its
+> own 3,500 synthetic Sessions, before timing. Its subsequent equal-input,
+> `BEGIN READ ONLY; SET LOCAL enable_nestloop=off` diagnostic **timed out
+> at 8 seconds before an equivalence result**. Default G2 EXPLAIN
+> measured ~1.99M inclusive buffer hits, ~901 nested repeated scoped
+> Session scans and execution time ~2187ms; 20 hot single-client
+> samples p50 ~1513ms, p95 ~1933ms on this run. Other runs varied
+> significantly because the previously selected duplicate-name tenant
+> differed and planner/cache behavior changed. **No SQL optimization,
+> plan setting, schema/index, production gate or SLA acceptance was made.**
+> Current candidate remains U05 **PARTIAL/BLOCKED**, particularly the
+> preexisting indirect Audit→Task/Incident P0 guard and full R09 workload.
+
 **Date:** 2026-10-18 (Asia/Amman). **Owner decision:** Option A authorized
 **local implementation and testing only**. **Latest tested code commit:**
 `5c3f8da2eb4ee939210d9d35fb78dbeb58926783` (U05 migration/proof base

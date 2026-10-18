@@ -115,9 +115,11 @@ try {
        '2026-10-16T11:12:00Z')`,
     [shared, ids.org, ids.location, ids.session, actor],
   );
+  // Track exact random IDs *before* commit acknowledgement. If a network
+  // error follows server-side COMMIT, cleanup still attempts owned IDs.
+  committed = true;
   await client.query("COMMIT");
   fixtureOpen = false;
-  committed = true;
 
   const login = await call("/v1/staff/auth/login", null,
     { email: users.admin.email, password: users.admin.password });
@@ -183,7 +185,7 @@ try {
         await client.query("COMMIT");
         globalThis.console.log("PASS U05-R06 G2 synthetic cleanup by exact UUIDs");
       } catch (error) {
-        await client.query("ROLLBACK");
+        await client.query("ROLLBACK").catch(() => undefined);
         cleanupError = error;
       }
     }

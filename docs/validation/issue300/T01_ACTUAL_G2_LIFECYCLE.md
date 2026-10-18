@@ -25,10 +25,23 @@ T01–T70 or U05-R01–R09 gates.
   `3161/3162` and Dashboard `3113` all remained HTTP 200,
   while G2 PostgreSQL remained up. No unrelated process was stopped.
 - The proof script checks the exact task-owned G2 destination and only
-  local API ports 3162/3163. All Session transitions came from actual HTTP
-  domain commands; the **SQL prerequisite fixtures** were solely tenant,
-  staff/Shift and Location intake settings, Key Slot resources, Parking
-  Zone and Spot. Those setup rows are not claimed as writer coverage.
+  local API ports 3162/3163. The reusable `seedIssue300Http` setup writes
+  **other, separate** tenant/users, Vehicle, pre-parked Session, Parking/
+  Retrieval Task, Custody, Dispatch, Audit and Incident oracle fixture rows
+  using SQL. These are not real operational-domain writer coverage. After
+  seeding, the **new actual T01 Session UUID** is created and transitioned
+  only by HTTP. Its subsequent SQL-only prerequisites are Location
+  `accepting_intake`, active Supervisor Shift, three Key Slots, Parking
+  Zone and Spot. Every asserted T01 custody/Audit/Dispatch source row is
+  scoped to that fresh actual HTTP Session UUID, not the seed's SQL
+  Session. No prerequisite setup is falsely counted as a domain writer.
+- Runtime/API destination assurance remains bounded: the proof first
+  authenticates with a newly seeded unique G2 Supervisor password before
+  attempting any real Check-in mutation, providing a data-route canary.
+  It does **not** independently attest the listener's binary SHA/process
+  environment or its complete DB configuration. A separate process/DB
+  attestation is required before any production-grade gate; test tools
+  must not be repointed outside task-only ports and G2.
 - The generated synthetic task-only organization/domain history intentionally
   remains inside disposable G2 for review, like the earlier G2 HTTP fixture
   family. There is no production data or production DDL. Repeated runs add
@@ -74,7 +87,8 @@ with `ISSUE300_FULL_LIFECYCLE_PROOF=1` and
    Supervisor; Retrieval Task and Retrieval Request are both
    `COMPLETED`; one verification row has non-null `verified_at`
    and `consumed_at`. No secret hash, raw Guest token or pickup code
-   is read into diagnostics.
+   is read into diagnostics. The test's malformed-secret assertions
+   use fixed non-secret error text instead of dumping credential values.
 6. Distinct born-XID `KEY_CUSTODY RELEASED(C)`, Retrieval Dispatch
    `COMPLETED`, and seven lifecycle source Audit types are asserted:
    `RETRIEVAL_REQUESTED`, `VALET_SESSION_RETRIEVAL_STARTED`,
@@ -108,6 +122,11 @@ misrepresented as completed history.
 - The run is one sequential task-only operational lane, not 100k/1m skew,
   five concurrent readers plus writers, full cold/hot latency SLA, crashed
   writer recovery or all identity/policy mutation races.
+- The final Timeline check verifies exact inclusion of separately persisted
+  source keys for targeted lifecycle events, not that every possible source
+  row has been exhaustively fetched or that duplicate/omission detection
+  across every signed page was re-proven by this test. Separate R06 signed
+  pagination coverage remains necessary.
 - Genuine browser 200% zoom, native screen-reader parity, all T70 recovery
   and independent human G0 five-file exception review remain GAP.
 - No Push, PR, merge to main, production migration, deployment or Issue

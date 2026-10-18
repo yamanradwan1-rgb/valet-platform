@@ -51,14 +51,23 @@ try {
        (SELECT id FROM key_slots k WHERE k.organization_id = l.organization_id
         AND k.location_id = l.id LIMIT 1) AS slot
      FROM locations l JOIN organizations o ON o.id=l.organization_id
-     WHERE o.name='Task Issue300' LIMIT 1`,
+     WHERE o.name='Task Issue300'
+     -- Prefer the oldest task-only fixture so subsequent random-name
+     -- seed runs cannot silently change the benchmark tenant.
+     ORDER BY o.created_at,o.id,l.id LIMIT 1`,
   )).rows[0];
   if (!target?.org || !target?.loc || !target?.membership || !target?.slot)
     throw new Error("No test Location; seed isolated auth fixtures first");
-  await client.query("BEGIN");
-  inTransaction = true;
+  const preexistingSessions = Number((await client.query(
+    `SELECT count(*) AS n FROM valet_sessions
+      WHERE organization_id=$1 AND location_id=$2`,
+    [target.org, target.loc],
+  )).rows[0].n);
+  // TEMP ownership keys survive a fixture rollback on this connection.
   await client.query(`CREATE TEMP TABLE issue300_perf_vehicles(
      id uuid PRIMARY KEY) ON COMMIT PRESERVE ROWS`);
+  await client.query("BEGIN");
+  inTransaction = true;
   await client.query(`INSERT INTO issue300_perf_vehicles(id)
      SELECT gen_random_uuid() FROM generate_series(1, 3500)`);
   await client.query(
@@ -89,12 +98,37 @@ try {
   // Commit the strictly task-owned fixture before S0: otherwise INSERT birth
   // XIDs are in-progress relative to the snapshot and the query measures a
   // zero-match case, not the cost of 900 historical source witnesses.
+  // A server-side successful COMMIT can lose its acknowledgement; retain
+  // cleanup responsibility for exact random UUIDs before awaiting it.
+  committedFixture = true;
   await client.query("COMMIT");
   inTransaction = false;
-  committedFixture = true;
   const snapshot = (await client.query(
     "SELECT clock_timestamp() AS now, pg_current_snapshot()::text AS snapshot",
   )).rows[0];
+  // Guard against a false benchmark: earlier repeated seed runs create
+  // many identically named orgs and already-matching historical facts.
+  // The exact 900 newly committed source rows must be born-visible at S0.
+  const cohort = (await client.query(
+    `SELECT count(*)::int AS total,
+       count(*) FILTER (WHERE k.pagination_birth_xid IS NOT NULL AND
+         pg_visible_in_snapshot(k.pagination_birth_xid, $1::pg_snapshot))::int
+         AS visible
+     FROM key_custody_events k JOIN valet_sessions s
+       ON s.id=k.valet_session_id
+     JOIN issue300_perf_vehicles v ON v.id=s.vehicle_id
+     WHERE k.organization_id=$2 AND k.location_id=$3`,
+    [snapshot.snapshot, target.org, target.loc],
+  )).rows[0];
+  assert.deepEqual([cohort.total, cohort.visible], [900, 900],
+    "Reject a benchmark where 900 newly committed custody rows were not visible");
+  const ownedSessionIds = new Set((await client.query(
+    `SELECT s.id::text AS id FROM valet_sessions s
+      JOIN issue300_perf_vehicles v ON v.id=s.vehicle_id
+     WHERE s.organization_id=$1 AND s.location_id=$2`,
+    [target.org, target.loc],
+  )).rows.map((row) => row.id));
+  assert.equal(ownedSessionIds.size, 3500);
   const params = [target.org, target.loc, "2026-10-16T11:00:00Z",
     "2026-10-16T12:00:00Z", null, null, null, null,
     snapshot.now, snapshot.snapshot, 101, null, null, null, known,
@@ -132,19 +166,61 @@ try {
   }
   walk(plan.Plan);
   const measurements = [];
+  let referenceRows;
   for (let i = 0; i < 22; i += 1) {
     const start = performance.now();
     const result = await client.query(search.auditInvestigationFirstPageSql, params);
     assert.equal(result.rows.length, 101);
+    if (i === 0) {
+      referenceRows = result.rows;
+      assert.ok(result.rows.every((row) =>
+        ownedSessionIds.has(row.sessionId) &&
+        row.matchingRecordCount === 1 &&
+        row.reasons.some((reason) =>
+          reason.source === "KEY_CUSTODY" && reason.matchedBy === "WINDOW")),
+      "Top 101 must be this run's 900 born-visible custody witnesses");
+    }
     measurements.push(performance.now() - start);
   }
   const sorted = measurements.slice(2).sort((a, b) => a - b);
   const percentile = (q) => sorted[Math.min(sorted.length - 1,
     Math.ceil(sorted.length * q) - 1)].toFixed(2);
+  // Test-only read-only planner comparison with identical committed data,
+  // same S0 and SQL parameters. NEVER enable this GUC in the live app.
+  let noNestedLoop;
+  await client.query("BEGIN READ ONLY");
+  inTransaction = true;
+  try {
+    await client.query("SET LOCAL enable_nestloop=off");
+    await client.query("SET LOCAL statement_timeout='8000ms'");
+    const alternative = await client.query(
+      `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)
+       ${search.auditInvestigationFirstPageSql}`, params);
+    const sameRows = await client.query(
+      search.auditInvestigationFirstPageSql, params);
+    assert.deepEqual(sameRows.rows, referenceRows,
+      "Planner experiment changed scoped source Search rows");
+    const alt = alternative.rows[0]["QUERY PLAN"][0];
+    noNestedLoop = {
+      status: "MATCHES_SAME_101_ROWS",
+      executionMs: alt["Execution Time"],
+      bufferHits: alt.Plan["Shared Hit Blocks"],
+      reads: alt.Plan["Shared Read Blocks"],
+    };
+  } catch (error) {
+    if (error?.code !== "57014") throw error;
+    noNestedLoop = { status: "TIMED_OUT_8S_NO_PARITY_PROVEN" };
+  } finally {
+    await client.query("ROLLBACK");
+    inTransaction = false;
+  }
   globalThis.console.log(JSON.stringify({
     classification: "DISPOSABLE_SQL_FIXTURES_NOT_REAL_WRITERS",
     candidate: "task-owned G2 PostgreSQL 17.10",
     sessionFixtureCount: 3500, sourceFixtureCount: 900,
+    targetSelection: "oldest-task-only-organization-by-created-at",
+    preexistingScopedSessions: preexistingSessions,
+    verifiedCommittedBornVisibleSourceCount: cohort.visible,
     committedFixturesVisibleAtSnapshot: true,
     executionMs: plan["Execution Time"], planningMs: plan["Planning Time"],
     buffers: { hits: plan.Plan["Shared Hit Blocks"],
@@ -154,12 +230,14 @@ try {
     hotspotNodes: expensiveNodes.sort((a, b) =>
       b.apparentLocalHits - a.apparentLocalHits ||
       b.timeMs - a.timeMs).slice(0, 10),
+    noNestedLoopPlannerDiagnostic: noNestedLoop,
     bufferAttributionCaveat: "EXPLAIN Shared Hit Blocks inclusive/nonadditive (CTE counters may repeat); hotspotNodes show apparent-local estimates only",
     disclaimer: "Single-client hot-cache timing, not p95 under operational load or 100k/1m",
   }));
 } finally {
-  if (inTransaction) await client.query("ROLLBACK").catch(() => undefined);
-  if (committedFixture && target?.org) {
+  try {
+    if (inTransaction) await client.query("ROLLBACK").catch(() => undefined);
+    if (committedFixture && target?.org) {
     // Delete ONLY randomly generated test Session/Vehicle IDs, using this
     // connection's temporary UUID-key table, and validate G2 identity again.
     assert.equal((await client.query("SELECT current_database() AS db")).rows[0].db,
@@ -182,10 +260,12 @@ try {
       await client.query("COMMIT");
       globalThis.console.log("PASS: 3,500 committed, random G2-only perf fixtures removed by exact UUID set");
     } catch (error) {
-      await client.query("ROLLBACK");
+        await client.query("ROLLBACK").catch(() => undefined);
       cleanupError = error;
     }
   }
-  await client.end();
+  } finally {
+    await client.end();
+  }
 }
 if (cleanupError) throw cleanupError;

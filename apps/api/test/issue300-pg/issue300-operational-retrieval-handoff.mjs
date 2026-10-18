@@ -20,7 +20,9 @@ export async function proveIssue300RetrievalHandoff(input) {
     await post("/v1/staff/check-in/sessions/" + sessionId +
       "/guest-access/issue", token, { intent: "ISSUE_OR_ROTATE" }));
   const guestToken = guest.rawToken;
-  assert.match(guestToken, /^[A-Za-z0-9_-]{43}$/);
+  assert.ok(typeof guestToken === "string" &&
+    /^[A-Za-z0-9_-]{43}$/.test(guestToken),
+  "Guest credential missing or malformed (secret suppressed)");
   // Guest bearer is never stored, logged or mixed with a browser cookie.
   requireOk("Guest retrieval request",
     await post("/v1/guest/session/request-retrieval", guestToken, {}));
@@ -102,7 +104,9 @@ export async function proveIssue300RetrievalHandoff(input) {
     await post("/v1/guest/session/handoff-verification/issue",
       guestToken, { method: "PICKUP_CODE" }));
   assert.equal(verification.method, "PICKUP_CODE");
-  assert.match(verification.pickupCode, /^\d{4}$/);
+  assert.ok(typeof verification.pickupCode === "string" &&
+    /^\d{4}$/.test(verification.pickupCode),
+  "Pickup code missing or malformed (secret suppressed)");
   const verified = requireOk("Verify pickup code",
     await post(base + "/verify-pickup-code", token, {
       expectedSessionVersion: pending.sessionVersion,

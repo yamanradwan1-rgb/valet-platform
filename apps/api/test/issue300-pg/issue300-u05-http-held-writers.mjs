@@ -146,8 +146,10 @@ try {
       [searchControl.audit, ids.org, ids.location, searchControl.session,
         users.admin.membershipId],
     );
-    await db.query("COMMIT");
+    // Mark exact owned IDs before COMMIT: a committed transaction may lose
+    // its acknowledgement; deleting absent IDs on rollback is harmless.
     searchControlCreated = true;
+    await db.query("COMMIT");
   } catch (error) {
     await db.query("ROLLBACK");
     throw error;
@@ -174,14 +176,14 @@ try {
     // transaction start time is no substitute for snapshot visibility.
     await writer.query("BEGIN");
     held = true;
-    await insert(writer, source, lateId, ids, users,
-      "2026-10-16T11:13:00Z");
     // Register even if COMMIT has an ambiguous transport failure: cleanup
     // by this exact UUID is safe whether the transaction committed or not.
     created.push({ source, id: lateId });
+    await insert(writer, source, lateId, ids, users,
+      "2026-10-16T11:13:00Z");
+    created.push({ source, id: beforeId });
     await insert(db, source, beforeId, ids, users,
       "2026-10-16T11:12:00Z");
-    created.push({ source, id: beforeId });
 
     const first = await call(route, token);
     assert.equal(first.status, 200, JSON.stringify(first.json));
@@ -232,7 +234,7 @@ try {
 } finally {
   if (held) await writer.query("ROLLBACK").catch(() => undefined);
   // Never clean unrelated records or reinterpret these SQL inserts as real
-  // operational domain writers. Remove only our own 8 exact random UUIDs.
+  // operational domain writers. Delete only exact registered random UUIDs.
   for (const row of created.reverse()) {
     const table = { AUDIT: "audit_events", KEY_CUSTODY: "key_custody_events",
       DISPATCH: "dispatch_events", INCIDENT: "incidents" }[row.source];
@@ -243,12 +245,16 @@ try {
     }
   }
   if (searchControlCreated) {
-    try {
-      await db.query("DELETE FROM audit_events WHERE id=$1", [searchControl.audit]);
-      await db.query("DELETE FROM valet_sessions WHERE id=$1", [searchControl.session]);
-      await db.query("DELETE FROM vehicles WHERE id=$1", [searchControl.vehicle]);
-    } catch (error) {
-      cleanupError ??= error;
+    for (const [table, id] of [
+      ["audit_events", searchControl.audit],
+      ["valet_sessions", searchControl.session],
+      ["vehicles", searchControl.vehicle],
+    ]) {
+      try {
+        await db.query(`DELETE FROM ${table} WHERE id=$1`, [id]);
+      } catch (error) {
+        cleanupError ??= error;
+      }
     }
   }
   await Promise.allSettled([writer.end(), db.end()]);
