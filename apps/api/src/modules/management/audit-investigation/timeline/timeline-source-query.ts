@@ -21,6 +21,8 @@ export interface TimelineSourceRow {
   readonly incidentType: string | null;
   readonly incidentSeverity: string | null;
   readonly incidentStatus: string | null;
+  /** Persisted relation confidence; independent of source coverage. */
+  readonly evidenceQuality?: "RECORDED" | "PARTIAL" | "UNVERIFIABLE";
 }
 
 /** One statement snapshot across all four source arms. Explicit source/event
@@ -45,7 +47,10 @@ evidence AS (
          NULL::uuid AS previous_id, NULL::uuid AS next_id,
          NULL::uuid AS reporter_id, NULL::uuid AS key_slot_id,
          NULL::uuid AS task_id, NULL::text AS incident_type,
-         NULL::text AS incident_severity, NULL::text AS incident_status
+         NULL::text AS incident_severity, NULL::text AS incident_status,
+         CASE WHEN audit.valet_session_id = session.id THEN 'RECORDED'
+              WHEN audit.pagination_birth_xid IS NULL THEN 'UNVERIFIABLE'
+              ELSE 'PARTIAL' END::text AS evidence_quality
   FROM scoped AS session
   JOIN audit_events AS audit
     ON audit.organization_id = session.organization_id
@@ -78,12 +83,13 @@ evidence AS (
   WHERE (
     audit.valet_session_id = session.id
     OR (audit.valet_session_id IS NULL AND (
-      (audit.entity_type IN ('ValetSession', 'VALET_SESSION')
-       AND audit.entity_id = session.id)
-      OR (audit.entity_type IN ('Task', 'TASK') AND linked_task.id IS NOT NULL)
-      OR (audit.entity_type IN ('Incident', 'INCIDENT') AND linked_incident.id IS NOT NULL)
-      OR (audit.event_type = 'VALET_SESSION_PARKED'
-          AND parked_task.id IS NOT NULL)
+      -- Only the Audit row's OWN immutable Session entity reference can anchor
+      -- an indirect association. Current Task/Incident links and XID order
+      -- cannot prove association at the historical event time.
+      audit.entity_type IN ('ValetSession', 'VALET_SESSION')
+      AND audit.entity_id = session.id
+      AND (audit.event_type <> 'VALET_SESSION_PARKED'
+           OR (audit.metadata_json ? 'taskId' AND parked_task.id IS NOT NULL))
     ))
   )
   AND (
@@ -118,7 +124,7 @@ evidence AS (
          custody.created_at, custody.event_type::text,
          custody.actor_membership_id, NULL::uuid, NULL::uuid,
          NULL::uuid, custody.key_slot_id, NULL::uuid,
-         NULL::text, NULL::text, NULL::text
+         NULL::text, NULL::text, NULL::text, 'RECORDED'::text
   FROM scoped AS session
   JOIN key_custody_events AS custody
     ON custody.organization_id = session.organization_id
@@ -135,7 +141,7 @@ evidence AS (
          dispatch.previous_assignee_membership_id,
          dispatch.new_assignee_membership_id, NULL::uuid,
          NULL::uuid, dispatch.task_id, NULL::text,
-         NULL::text, NULL::text
+         NULL::text, NULL::text, 'RECORDED'::text
   FROM scoped AS session
   JOIN dispatch_events AS dispatch
     ON dispatch.organization_id = session.organization_id
@@ -158,7 +164,7 @@ evidence AS (
          NULL::uuid, NULL::uuid, NULL::uuid,
          incident.reported_by_membership_id, NULL::uuid,
          NULL::uuid, incident.type, incident.severity::text,
-         incident.status::text
+         incident.status::text, 'RECORDED'::text
   FROM scoped AS session
   JOIN incidents AS incident
     ON incident.organization_id = session.organization_id
@@ -193,6 +199,7 @@ SELECT page.source, page.id::text AS id,
        page.incident_type AS "incidentType",
        page.incident_severity AS "incidentSeverity",
        page.incident_status AS "incidentStatus",
+       page.evidence_quality AS "evidenceQuality",
        CASE WHEN actor.first_name IS NOT NULL AND actor.last_name IS NOT NULL
          THEN actor.first_name || ' ' || actor.last_name ELSE NULL END AS "actorName",
        CASE WHEN previous.first_name IS NOT NULL AND previous.last_name IS NOT NULL

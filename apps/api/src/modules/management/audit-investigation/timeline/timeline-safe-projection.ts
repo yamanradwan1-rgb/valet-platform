@@ -126,13 +126,16 @@ export function projectTimelineRow(
       ? "UNVERIFIABLE"
       : incidentPartiallyKnown
         ? "PARTIAL"
-        : "RECORDED",
+        : row.evidenceQuality ?? "RECORDED",
     actor:
-      unknown || row.source === "INCIDENT"
+      unknown || row.source === "INCIDENT" ||
+        (row.source === "AUDIT" &&
+          row.evidenceQuality !== undefined && row.evidenceQuality !== "RECORDED")
         ? null
         : person(row.actorId, row.actorName),
-    participants: unknown ? [] : participants(row),
-    references: unknown
+    participants: unknown || row.evidenceQuality === "UNVERIFIABLE"
+      ? [] : participants(row),
+    references: unknown || row.evidenceQuality === "UNVERIFIABLE"
       ? [{ kind: "SESSION", id: sessionId }]
       : references(row, sessionId),
     relatedEvidence: [],

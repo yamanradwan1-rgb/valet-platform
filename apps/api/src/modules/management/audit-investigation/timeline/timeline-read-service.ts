@@ -23,7 +23,8 @@ import {
   type AuditInvestigationLocationAuthorization,
 } from "../security/audit-investigation-authorization";
 import { requireAuditInvestigationDetailSource } from "../security/audit-investigation-source-boundary";
-import { requireIndirectAuditSessionContainment } from "./timeline-indirect-audit";
+import { hasAnchoredTimelineAuditAnomaly,
+  requireIndirectAuditSessionContainment } from "./timeline-indirect-audit";
 import {
   projectTimelineDetail,
   projectTimelineRow,
@@ -122,6 +123,8 @@ export async function readAuditInvestigationTimeline(
     }
   }
   const page = rows.slice(0, query.limit);
+  const auditAnomaly = await hasAnchoredTimelineAuditAnomaly(tx, scope,
+    sessionId, { database: captured.snapshot, now: captured.now });
   const last = page.at(-1);
   const rank = { AUDIT: 0, KEY_CUSTODY: 1, DISPATCH: 2, INCIDENT: 3 };
   const issuedAt = decoded?.issuedAt ?? new Date().toISOString();
@@ -145,7 +148,8 @@ export async function readAuditInvestigationTimeline(
     snapshotAt: captured.now.toISOString(),
     order: "ASC",
     coverage: {
-      AUDIT: available,
+      AUDIT: auditAnomaly
+        ? { status: "PARTIAL", reason: "INTEGRITY_ANOMALY" } : available,
       KEY_CUSTODY: available,
       DISPATCH: available,
       INCIDENT: incidentAvailable ? available : {
