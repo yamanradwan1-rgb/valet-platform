@@ -2,6 +2,10 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { expect, test } from "@playwright/test";
+import {
+  consumeOneTimeMfaState, readOneTimeMfaState,
+  requireOwnedBrowserTarget, requireSignedContinuation,
+} from "./issue300-browser-safety";
 
 // Real candidate only: no fixture interception or global runtime fixture reset.
 const baseURL = process.env.ISSUE300_W7_BROWSER_URL;
@@ -12,6 +16,7 @@ const candidate = process.env.ISSUE300_R2_CANDIDATE_SHA;
 // A static HttpOnly refresh cookie MUST NOT be replayed in 34 new contexts:
 // replaying an already-rotated cookie revokes the underlying Staff session.
 const singleCase = process.env.ISSUE300_W7_SINGLE_FRESH_MFA_CASE;
+if (baseURL) requireOwnedBrowserTarget(baseURL, "/audit-log");
 const ready = Boolean(
   baseURL && storageState && scenarioFile && lease && candidate && singleCase,
 );
@@ -19,7 +24,11 @@ test.skip(
   !ready,
   "GAP: independent one-time MFA session/lease and single browser case required",
 );
-if (baseURL && storageState) test.use({ baseURL, storageState });
+// The credential is read and validated only when the full owned session/lease
+// context is present. Playwright receives these captured bytes as an object,
+// not a path it could re-read after the one-use marker is claimed.
+const frozenState = ready ? readOneTimeMfaState(storageState!) : undefined;
+if (baseURL && frozenState) test.use({ baseURL, storageState: frozenState });
 test.use({ trace: "off", screenshot: "off", video: "off" });
 const scenario = ready
   ? (JSON.parse(readFileSync(resolve(scenarioFile!), "utf8")) as {
@@ -38,8 +47,11 @@ const scenario = ready
 if (scenario) {
   expect(scenario.candidateSha).toBe(candidate);
   expect(scenario.leaseId).toBe(lease);
-  expect(scenario.auditPath).toMatch(/^\/audit-log/);
+  requireOwnedBrowserTarget(baseURL!, scenario.auditPath);
 }
+test.beforeAll(() => {
+  if (ready && frozenState) consumeOneTimeMfaState(frozenState);
+});
 
 function safeOneTimeCase(
   title: string,
@@ -138,7 +150,11 @@ safeOneTimeCase("T56/T57/T58/T70: actual authorized UI pagination and failure re
       response.status() === 200,
   );
   await form.locator('button[type="submit"]').click();
-  await firstSearch;
+  const firstSearchReply = await firstSearch;
+  const searchPage = await firstSearchReply.json();
+  expect(typeof searchPage.snapshotAt).toBe("string");
+  expect(Array.isArray(searchPage.items)).toBe(true);
+  const discoveredSessionIds = searchPage.items.map((item: { sessionId: string }) => item.sessionId);
   expect(requests.filter((r) => r.path.endsWith("/audit-events"))).toHaveLength(
     0,
   );
@@ -150,14 +166,25 @@ safeOneTimeCase("T56/T57/T58/T70: actual authorized UI pagination and failure re
       name: /Load more Sessions|تحميل المزيد من الجلسات/u,
     });
     await expect(more).toBeVisible();
-    const prior = requests.filter((r) => r.path.endsWith("/sessions")).length;
-    await more.click();
-    await expect
-      .poll(() => requests.filter((r) => r.path.endsWith("/sessions")).length)
-      .toBe(prior + 1);
+    const second = await requireSignedContinuation(page, "sessions", () => more.click(), searchPage);
+    discoveredSessionIds.push(...second.items.map((item: { sessionId: string }) => item.sessionId));
   }
-  await expect(results.first()).toBeVisible();
-  await results.first().click();
+  expect(discoveredSessionIds).toContain(scenario!.expectedSessionUuid);
+  const expectedResult = results.filter({ hasText: scenario!.expectedSessionUuid });
+  await expect(expectedResult).toHaveCount(1);
+  await expect(expectedResult).toBeVisible();
+  const firstTimeline = page.waitForResponse((response) => {
+    const path = new URL(response.url()).pathname;
+    return path.includes("/audit-investigations/sessions/") &&
+      path.endsWith(`/${scenario!.expectedSessionUuid}/timeline`);
+  });
+  await expectedResult.click();
+  const firstTimelineReply = await firstTimeline;
+  expect(firstTimelineReply.status()).toBe(200);
+  const timelinePage = await firstTimelineReply.json();
+  expect(typeof timelinePage.snapshotAt).toBe("string");
+  expect(Array.isArray(timelinePage.items)).toBe(true);
+  expect(timelinePage.session?.sessionId).toBe(scenario!.expectedSessionUuid);
   const events = page.locator(
     "#audit-investigation-panel li[data-kind] button",
   );
@@ -167,11 +194,7 @@ safeOneTimeCase("T56/T57/T58/T70: actual authorized UI pagination and failure re
       name: /Load more events|تحميل المزيد من الأحداث/u,
     });
     await expect(more).toBeVisible();
-    const prior = requests.filter((r) => r.path.endsWith("/timeline")).length;
-    await more.click();
-    await expect
-      .poll(() => requests.filter((r) => r.path.endsWith("/timeline")).length)
-      .toBe(prior + 1);
+    await requireSignedContinuation(page, "timeline", () => more.click(), timelinePage);
   }
   await expect
     .poll(() => actualSourceKeys.includes(scenario!.expectedSourceId))
@@ -204,7 +227,9 @@ safeOneTimeCase("T56/T57/T58/T70: actual authorized UI pagination and failure re
 safeOneTimeCase("T49/T60: the ordinary Audit Events tab retains separate read authority", async ({
   page,
 }) => {
-  await page.goto(scenario!.auditPath);
+  // The ordinary /audit-log route defaults to Events. Investigation's
+  // opt-in query intentionally defaults to its separate tab.
+  await page.goto("/audit-log");
   await expect(page.locator("#audit-events-tab")).toHaveAttribute(
     "aria-selected",
     "true",
@@ -216,6 +241,9 @@ safeOneTimeCase("T49/T60: the ordinary Audit Events tab retains separate read au
   );
   await page.reload();
   await legacyRead;
+  await expect(page.locator("#audit-events-panel")).toBeVisible();
+  await page.goto(scenario!.auditPath);
+  await page.locator("#audit-events-tab").click();
   await expect(page.locator("#audit-events-panel")).toBeVisible();
   await page.locator("#audit-investigation-tab").click();
   await expect(page.locator("#audit-events-panel")).toBeHidden();
