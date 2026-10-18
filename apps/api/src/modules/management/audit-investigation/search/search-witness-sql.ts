@@ -13,13 +13,13 @@ witnesses AS MATERIALIZED (
          a.occurred_at, NULL::uuid AS slot_id,
          CASE WHEN a.event_type::text = ANY($15::text[])
                    AND (a.actor_type IS NULL OR a.actor_type = 'MEMBERSHIP')
-                   -- W3 records a legacy NULL-birth Session-entity anchor as
-                   -- UNVERIFIABLE, without its historical actor.
+                   -- An absent PARKED task hint can establish an EVENT, not
+                   -- verified actor responsibility, even with direct Session.
+                   AND NOT (a.event_type = 'VALET_SESSION_PARKED'
+                     AND NOT (a.metadata_json ? 'taskId'))
                    AND NOT (a.valet_session_id IS NULL
                      AND a.entity_type IN ('ValetSession', 'VALET_SESSION')
-                     AND (a.pagination_birth_xid IS NULL
-                       OR (a.event_type = 'VALET_SESSION_PARKED'
-                         AND NOT (a.metadata_json ? 'taskId'))))
+                     AND a.pagination_birth_xid IS NULL)
            THEN a.actor_membership_id ELSE NULL END AS actor_id,
          NULL::uuid AS previous_id, NULL::uuid AS new_id,
          NULL::uuid AS reporter_id

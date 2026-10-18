@@ -108,6 +108,7 @@ function createProof(overrides: Record<string, unknown> = {}) {
         organizationId: scope.organizationId,
         locationId: scope.locationId,
         timeline: true,
+        approvedAuditEventIds: ["44444444-4444-4444-8444-444444444444"],
         searchWindows: [
           { from: "2026-10-18T10:00:00.000Z", to: "2026-10-18T11:00:00.000Z" },
         ],
@@ -192,6 +193,7 @@ describe("Issue300 R2 isolated HTTP cohort proof gate", () => {
     expect(sql).toContain("current_user = 'issue300_r2_w6_runtime'");
     expect(sql).toContain("NOT has_table_privilege");
     expect(sql).toContain("pg_trigger");
+    expect(sql).toContain("AND NOT (a.id = ANY($8::uuid[]))");
   });
 
   it("refuses mismatch, stale or malformed certificate without querying SQL", async () => {

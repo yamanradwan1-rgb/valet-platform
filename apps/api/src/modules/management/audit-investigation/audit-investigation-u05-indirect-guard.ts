@@ -3,7 +3,7 @@ import type { AuditInvestigationLocationAuthorization } from "./security/audit-i
 import { isU05R2IndirectHttpProofCandidate } from "./audit-investigation-u05-gate";
 import {
   readR2ProofAttestation,
-  r2ProofCoversScope,
+  r2ProofApprovedAuditIds,
 } from "./audit-investigation-u05-proof-attestation";
 
 /** A signed pg_snapshot does NOT freeze an Audit row's indirect Task/Incident
@@ -24,8 +24,12 @@ export async function requireU05StableIndirectCohort(
     // The independently issued certificate permits ONLY this precise scope /
     // discovery window. No other Location/cohort can bypass the conservative
     // veto. The source/parent XID fences and fresh authorization still apply.
-    if (!r2ProofCoversScope(scope.organizationId, scope.locationId, window))
-      throw new U05IndirectCohortNotStable();
+    const approvedAuditIds = r2ProofApprovedAuditIds(
+      scope.organizationId,
+      scope.locationId,
+      window,
+    );
+    if (approvedAuditIds === null) throw new U05IndirectCohortNotStable();
     const proof = readR2ProofAttestation();
     if (!proof) throw new U05IndirectCohortNotStable();
     const attested = await tx.query<{ readonly valid: boolean }>(
@@ -136,8 +140,31 @@ export async function requireU05StableIndirectCohort(
            'public.issue300_prevent_relation_rewrite()', 'EXECUTE')
          AND NOT has_function_privilege(current_user,
            'public.issue300_prevent_attribution_rewrite()', 'EXECUTE')
+         AND NOT EXISTS (
+           SELECT 1 FROM public.audit_events a
+           WHERE a.organization_id = $2::uuid AND a.location_id = $3::uuid
+             AND a.created_at <= $4::timestamptz
+             AND (a.pagination_birth_xid IS NULL OR
+               pg_visible_in_snapshot(a.pagination_birth_xid, $5::pg_snapshot))
+             AND ($6::timestamptz IS NULL OR a.occurred_at >= $6::timestamptz)
+             AND ($7::timestamptz IS NULL OR a.occurred_at < $7::timestamptz)
+             AND (a.entity_type IN ('Task','TASK','Incident','INCIDENT',
+                                    'Vehicle','VEHICLE')
+               OR (a.event_type = 'VALET_SESSION_PARKED'
+                  AND a.metadata_json ? 'taskId'))
+             AND NOT (a.id = ANY($8::uuid[]))
+         )
        ) AS valid`,
-      [proof.postgresStartedAt],
+      [
+        proof.postgresStartedAt,
+        scope.organizationId,
+        scope.locationId,
+        snapshot.now,
+        snapshot.database,
+        window?.from ?? null,
+        window?.to ?? null,
+        approvedAuditIds,
+      ],
     );
     if (attested.rowCount !== 1 || attested.rows[0]?.valid !== true)
       throw new U05IndirectCohortNotStable();

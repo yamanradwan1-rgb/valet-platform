@@ -98,6 +98,19 @@ async function main() {
     assert.match(scope.locationId, /^[a-f0-9-]{36}$/);
     assert.equal(typeof scope.timeline, "boolean");
     assert(
+      Array.isArray(scope.approvedAuditEventIds) &&
+        scope.approvedAuditEventIds.length <= 200,
+    );
+    assert.equal(
+      new Set(scope.approvedAuditEventIds).size,
+      scope.approvedAuditEventIds.length,
+    );
+    for (const id of scope.approvedAuditEventIds)
+      assert.match(
+        id,
+        /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/,
+      );
+    assert(
       Array.isArray(scope.searchWindows) && scope.searchWindows.length <= 12,
     );
     for (const window of scope.searchWindows) {

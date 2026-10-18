@@ -60,6 +60,8 @@ export const locationMemberParticipationSql = `(
          AND a.actor_membership_id = member.id
          AND a.event_type::text = ANY($6::text[])
          AND (a.actor_type IS NULL OR a.actor_type = 'MEMBERSHIP')
+         AND NOT (a.event_type = 'VALET_SESSION_PARKED'
+           AND NOT (a.metadata_json ? 'taskId'))
          -- An old explicit Session entity can support WINDOW discovery, but
          -- its absent provenance cannot certify historical actor identity.
          AND (a.valet_session_id IS NOT NULL
@@ -114,19 +116,35 @@ export async function listAuditInvestigationFilterOptions(
 ): Promise<AuditInvestigationFilterResponse> {
   const result = await transaction.query<SelectorRow>(
     query.kind === "KEY_SLOT" ? slotSql : memberSql,
-    [scope.organizationId, scope.locationId, escapeSelectorPrefix(query.text), query.limit + 1,
-      ...(query.kind === "MEMBER" ? [afterMemberId, managementAuditKnownEventTypes] : [])],
+    [
+      scope.organizationId,
+      scope.locationId,
+      escapeSelectorPrefix(query.text),
+      query.limit + 1,
+      ...(query.kind === "MEMBER"
+        ? [afterMemberId, managementAuditKnownEventTypes]
+        : []),
+    ],
   );
   const hasMore = result.rows.length > query.limit;
   return {
     kind: query.kind,
     items: result.rows.slice(0, query.limit).map((row) => {
-      const label = typeof row.label === "string" && row.label.trim() === row.label &&
-        row.label.length > 0 && row.label.length <= 201 && !/\p{Cc}/u.test(row.label)
-        ? row.label : null;
+      const label =
+        typeof row.label === "string" &&
+        row.label.trim() === row.label &&
+        row.label.length > 0 &&
+        row.label.length <= 201 &&
+        !/\p{Cc}/u.test(row.label)
+          ? row.label
+          : null;
       return {
         id: row.id,
-        currentLabel: { value: label, basis: "CURRENT", unavailable: label === null },
+        currentLabel: {
+          value: label,
+          basis: "CURRENT",
+          unavailable: label === null,
+        },
       };
     }),
     nextCursor: null,

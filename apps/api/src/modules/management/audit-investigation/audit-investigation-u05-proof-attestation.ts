@@ -6,6 +6,7 @@ interface AllowedScope {
   readonly organizationId: string;
   readonly locationId: string;
   readonly timeline: boolean;
+  readonly approvedAuditEventIds: readonly string[];
   readonly searchWindows: readonly {
     readonly from: string;
     readonly to: string;
@@ -162,6 +163,11 @@ export function readR2ProofAttestation(): R2ProofAttestation | null {
         typeof scope.timeline !== "boolean" ||
         !Array.isArray(scope.searchWindows) ||
         scope.searchWindows.length > 12 ||
+        !Array.isArray(scope.approvedAuditEventIds) ||
+        scope.approvedAuditEventIds.length > 200 ||
+        scope.approvedAuditEventIds.some((id: string) => !uuid.test(id)) ||
+        new Set(scope.approvedAuditEventIds).size !==
+          scope.approvedAuditEventIds.length ||
         scope.searchWindows.some(
           (range: { from: string; to: string }) =>
             !range ||
@@ -183,22 +189,21 @@ export function readR2ProofAttestation(): R2ProofAttestation | null {
 /** Exact authorized Location and exact signed discovery window, or an
  * explicitly allowlisted whole-Location Timeline proof. No broad wildcard.
  */
-export function r2ProofCoversScope(
+export function r2ProofApprovedAuditIds(
   organizationId: string,
   locationId: string,
   window?: { readonly from: string; readonly to: string },
-): boolean {
+): readonly string[] | null {
   const proof = readR2ProofAttestation();
-  return (
-    proof?.allowedScopes.some(
-      (item) =>
-        item.organizationId === organizationId &&
-        item.locationId === locationId &&
-        (window
-          ? item.searchWindows.some(
-              (range) => range.from === window.from && range.to === window.to,
-            )
-          : item.timeline),
-    ) ?? false
+  const scope = proof?.allowedScopes.find(
+    (item) =>
+      item.organizationId === organizationId &&
+      item.locationId === locationId &&
+      (window
+        ? item.searchWindows.some(
+            (range) => range.from === window.from && range.to === window.to,
+          )
+        : item.timeline),
   );
+  return scope?.approvedAuditEventIds ?? null;
 }
