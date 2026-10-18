@@ -97,10 +97,15 @@ export function assertTargetManifest(m, env, observed) {
     assert.equal(Number(ports[0].HostPort), m.resource.dbPort);
     assert(observed.Mounts?.some((mount) => {
       if (mount.Type !== "bind") return false;
-      const source = mount.Source.toLowerCase().replaceAll("\\", "/");
-      return source.includes("issue300-r2-w7-acceptance-") &&
-        (source.startsWith("d:/") || source.includes("/host/d/"));
-    }), "Owned PG bind mount must reside on D");
+      const source = mount.Source.toLowerCase().replaceAll("\\", "/")
+        .replace(/^\/(?:run\/desktop\/mnt\/host|host_mnt|host)\/d\//,
+          "d:/").replace(/\/+$/, "");
+      const expected = m.resource.dataPath.toLowerCase()
+        .replaceAll("\\", "/").replace(/\/+$/, "");
+      return source === expected &&
+        mount.Destination === "/var/lib/postgresql/data" &&
+        mount.RW === true;
+    }), "PG data mount must be EXACT owned D path and PGDATA destination");
   }
   return m;
 }

@@ -7,6 +7,8 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import { readTarget, assertOwnedUri } from "./issue300-w8-target.mjs";
+import { verifiedSourceOracle } from "./issue300-w8-http-evidence.mjs";
+import { verifySyntheticSources } from "./issue300-w8-oracle.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(resolve(root,"apps/api/package.json"));
@@ -28,6 +30,9 @@ function load(file,imports={}) {
 }
 
 export async function canonicalSql(scope, snapshot, m) {
+  assert.match(snapshot.database ?? "", /^\d+:\d+:(?:[\d,]*)$/);
+  assert.match(snapshot.cutoff ?? "",
+    /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{6}Z$/);
   const witness=load("search/search-witness-sql.ts");
   const search=load("search/search-page-query.ts",{
     "./search-witness-sql":witness,
@@ -44,23 +49,54 @@ export async function canonicalSql(scope, snapshot, m) {
     from:m.planProbe.from,to:m.planProbe.to,limit:25,
     sessionId:m.planProbe.sessionId,
   },{makePrefix:null,modelPrefix:null,plate:null,plateCountry:null},
-  {cutoff:snapshot.now,database:snapshot.snapshot},undefined);
+  {now:snapshot.now,cutoff:snapshot.cutoff,
+    database:snapshot.database},undefined);
   const timeline=load("timeline/timeline-source-query.ts");
   await timeline.readTimelineSources(stub,scope,
     m.planProbe.sessionId,101,undefined,{
-      cutoff:snapshot.now,database:snapshot.snapshot,
+      cutoff:snapshot.cutoff,database:snapshot.database,
     });
   await timeline.readTimelineSources(stub,scope,
     m.planProbe.sessionId,2,{
       source:m.planProbe.detailSource,id:m.planProbe.detailId,
-    },{cutoff:snapshot.now,database:snapshot.snapshot});
+    },{cutoff:snapshot.cutoff,database:snapshot.database});
   assert.equal(statements.length,3);
+  assert.equal(statements[0].params[8],snapshot.cutoff);
+  assert.equal(statements[0].params[9],snapshot.database);
+  for (const statement of statements.slice(1)) {
+    assert.equal(statement.params[6],snapshot.database);
+    assert.equal(statement.params[7],snapshot.cutoff);
+  }
   return statements;
+}
+
+export function assertNonemptyPlan(plan, rows, endpoint, expected) {
+  assert(Number.isFinite(plan?.Plan?.["Actual Rows"]) &&
+    plan.Plan["Actual Rows"] > 0,
+    `False-fast ${endpoint} EXPLAIN: empty root rows`);
+  assert(Array.isArray(rows) && rows.length>0,
+    `No measured ${endpoint} SQL evidence rows`);
+  if (endpoint==="search")
+    assert(rows.some((r)=>r.sessionId===expected.search.sessionId &&
+      Number(r.matchingRecordCount)>0),"Search SQL missing signed Session witness");
+  else {
+    const key=endpoint==="timeline"?expected.timeline:expected.detail;
+    assert(rows.some((r)=>r.source===key.source && r.id===key.eventId),
+      `${endpoint} SQL missing independently signed source ID`);
+  }
+  return true;
 }
 
 async function run() {
   const m=readTarget();
+  const oracle=verifiedSourceOracle(m);
+  assert.equal(m.planProbe.sessionId,oracle.expected.search.sessionId);
+  assert.equal(m.planProbe.detailSource,oracle.expected.detail.source);
+  assert.equal(m.planProbe.detailId,oracle.expected.detail.eventId);
   assertOwnedUri(process.env.ISSUE300_W8_RUNTIME_DB_URL,m,"db");
+  const counted=await verifySyntheticSources(m,
+    process.env.ISSUE300_W8_RUNTIME_DB_URL);
+  assert(counted.scopedPersistedSourceRecords>=m.targetTier);
   assert.match(m.planProbe?.sessionId ?? "",
     /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i);
   assert.match(m.planProbe?.detailId ?? "",
@@ -76,9 +112,13 @@ async function run() {
   await db.connect();
   try {
     await db.query("BEGIN READ ONLY");
-    const scopeCheck=(await db.query(`SELECT current_user AS role,
-      current_database() AS db, clock_timestamp() AS now,
-      pg_current_snapshot()::text AS snapshot`)).rows[0];
+    const scopeCheck=(await db.query(`WITH capture AS MATERIALIZED (
+      SELECT clock_timestamp() AS stamp,pg_current_snapshot()::text AS snap)
+      SELECT current_user AS role,current_database() AS db,
+        capture.stamp AS now,
+        to_char(capture.stamp AT TIME ZONE 'UTC',
+          'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cutoff,
+        capture.snap AS database FROM capture`)).rows[0];
     assert.equal(scopeCheck.role,m.resource.runtimeRole);
     assert.equal(scopeCheck.db,m.resource.database);
     const statements=await canonicalSql(scope,scopeCheck,m);
@@ -90,6 +130,9 @@ async function run() {
       const fullExplainJson=response.rows[0]?.["QUERY PLAN"];
       assert(Array.isArray(fullExplainJson) && fullExplainJson.length===1);
       const plan=fullExplainJson[0];
+      const rows=(await db.query(sql,params)).rows;
+      assertNonemptyPlan(plan,rows,["search","timeline","detail"][i],
+        oracle.expected);
       plans.push({endpoint:["search","timeline","detail"][i],
         candidateSha:m.candidateSha,containerId:m.resource.containerId,
         role:scopeCheck.role,sqlSha256:digest(sql),

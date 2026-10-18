@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { performance } from "node:perf_hooks";
 import { readTarget, assertOwnedUri } from "./issue300-w8-target.mjs";
 import { verifySyntheticSources } from "./issue300-w8-oracle.mjs";
+import { verifiedSourceOracle, verifyPinnedRoutes,
+  assertExpectedHttp } from "./issue300-w8-http-evidence.mjs";
+import { verifyColdArtifact } from "./issue300-w8-cold.mjs";
 
 // W7 measures actual HTTP. Prime/W6 must run authentic independent operational
 // writers concurrently; a SQL fixture loop must never masquerade as a writer.
@@ -32,6 +35,8 @@ assert.equal(lease,owned.leaseId);
 const paths = JSON.parse(
   readFileSync(process.env.ISSUE300_W7_LOAD_PATHS, "utf8"),
 );
+const signed = verifiedSourceOracle(owned);
+verifyPinnedRoutes(paths.endpoints,owned,signed);
 const independent = await verifySyntheticSources(
   owned,process.env.ISSUE300_W8_RUNTIME_DB_URL);
 assert.deepEqual(paths.sourceCounts,independent.sourceCounts);
@@ -100,9 +105,7 @@ async function reader(index) {
         assert(reply.headers.get("cache-control")?.includes("no-store"),
           "HTTP evidence must be no-store");
         const body = await reply.json();
-        assert.ok(body && typeof body === "object");
-        if (endpoint !== "detail")
-          assert.ok(Array.isArray(body.items) && body.snapshotAt);
+        assertExpectedHttp(endpoint,body,signed);
       }
     } catch {
       status = 0;
@@ -183,6 +186,15 @@ for (const endpoint of endpoints)
     `Insufficient actual HTTP samples: ${endpoint}`,
   );
 
+// Writers must ENVELOPE the 600s reads, so their final proof is published
+// *after* readers complete. Bounded wait is not part of measured HTTP p95.
+const writerProofDeadline = performance.now() + 90_000;
+while (!existsSync(process.env.ISSUE300_W7_WRITER_LIVE) &&
+  performance.now() < writerProofDeadline)
+  await new Promise((resolve) => setTimeout(resolve, 500));
+assert(existsSync(process.env.ISSUE300_W7_WRITER_LIVE),
+  "No completed live canonical writer envelope proof");
+
 function securedArtifact(envName) {
   const item = JSON.parse(readFileSync(process.env[envName], "utf8"));
   assert.equal(item.candidateSha, candidate);
@@ -198,6 +210,7 @@ const baseline = securedArtifact("ISSUE300_W7_WRITER_BASELINE");
 const live = securedArtifact("ISSUE300_W7_WRITER_LIVE");
 const cold = securedArtifact("ISSUE300_W7_COLD_TRIALS");
 const explain = securedArtifact("ISSUE300_W7_EXPLAIN_PLANS");
+verifyColdArtifact(cold,owned);
 assert.equal(live.writerKind, "ACTUAL_OPERATIONAL_HTTP_OR_DOMAIN_COMMAND");
 assert.ok(live.writerClients >= expected.writers);
 assert.ok(typeof baseline.hardwareId === "string" && baseline.hardwareId);

@@ -1,9 +1,12 @@
 // Cold is independent owned-guest reboot + fresh OS boot ID, not warm PG restart.
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { createHash, createPublicKey, verify } from "node:crypto";
 import { readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
 import { performance } from "node:perf_hooks";
 import { readTarget, assertOwnedUri } from "./issue300-w8-target.mjs";
+import { verifiedSourceOracle, verifyPinnedRoutes, assertExpectedHttp,
+  verifyDetachedBytes } from "./issue300-w8-http-evidence.mjs";
 
 const sleep = (ms) => new Promise((ok)=>setTimeout(ok,ms));
 const p95 = (items) => [...items].sort((a,b)=>a-b)[Math.ceil(items.length*.95)-1];
@@ -25,8 +28,59 @@ export function verifyColdBoot(previous, next, vm, startEpoch, containerId) {
     "OS boot identity unchanged: PG-only or warm reset is not cold");
 }
 
+export function assertSignedGuestBoot(boot, m, startEpoch) {
+  verifyColdBoot(null,boot,m.resource.vmUuid,startEpoch,m.resource.containerId);
+  assert.equal(boot.provenance,"OWNED_GUEST_SIGNED_KERNEL_BOOT_ID");
+  assert.equal(boot.candidateSha,m.candidateSha);
+  assert.equal(boot.leaseId,m.leaseId);
+  assert.equal(boot.apiBundleSha256,m.resource.apiBundleSha256);
+  assert.equal(boot.apiPort,m.resource.apiPort);
+  assert.equal(boot.postgresVersion,m.resource.postgresVersion);
+  assert.equal(boot.osKernelBootVerified,true);
+  assert.equal(boot.pgProcessStartedAfterBoot,true);
+  return true;
+}
+
+export function verifyColdArtifact(cold, m, env=process.env) {
+  assert.equal(cold.methodology,"OWNED_GUEST_INDEPENDENT_OS_BOOT_ID");
+  assert.equal(cold.globalSharedCacheFlush,false);
+  const keyPath=realpathSync(env.ISSUE300_W8_GUEST_BOOT_KEY);
+  assert(keyPath.toLowerCase().replaceAll("\\","/").startsWith(
+    m.resource.dataPath.toLowerCase().replaceAll("\\","/")));
+  const publicKey=createPublicKey(readFileSync(keyPath));
+  assert.equal(publicKey.asymmetricKeyType,"ed25519");
+  const sha=createHash("sha256").update(publicKey.export({
+    type:"spki",format:"der"})).digest("hex");
+  assert.equal(sha,m.guestBootIssuerKeySha256);
+  assert.equal(sha,env.ISSUE300_W8_TRUSTED_GUEST_BOOT_KEY_SHA256);
+  const all=new Set();
+  for(const endpoint of Object.keys(budgets)){
+    const rows=cold.trials?.[endpoint];
+    assert(Array.isArray(rows) && rows.length===20);
+    for(const trial of rows){
+      const bytes=Buffer.from(trial.signedBootPayloadBase64 ?? "","base64");
+      const signature=Buffer.from(trial.signedBootSignatureBase64 ?? "","base64");
+      assert(bytes.length>0 && signature.length===64);
+      assert(verify(null,bytes,publicKey,signature),
+        "Missing/forged signed independent guest boot");
+      const boot=JSON.parse(bytes.toString("utf8"));
+      assertSignedGuestBoot(boot,m,Date.parse(trial.resetIssuedAt));
+      assert.equal(trial.guestBootId,boot.bootId);
+      assert.equal(trial.guestBootEvidenceAt,boot.recordedAt);
+      assert.equal(trial.cacheResetVerified,true);
+      assert.equal(trial.responseValidated,true);
+      assert(Number.isFinite(trial.httpElapsedMs) && trial.httpElapsedMs>=0);
+      assert(!all.has(boot.bootId),"Duplicate boot across endpoints");
+      all.add(boot.bootId);
+    }
+  }
+  assert.equal(all.size,60);
+  return true;
+}
+
 async function main() {
   const m = readTarget();
+  const oracle=verifiedSourceOracle(m);
   const rawApi = process.env.ISSUE300_W8_API_URL;
   const api = assertOwnedUri(rawApi,m,"api");
   const origin = process.env.ISSUE300_W8_ORIGIN;
@@ -42,17 +96,23 @@ async function main() {
   const evidencePath = realpathSync(process.env.ISSUE300_W8_GUEST_BOOT_EVIDENCE);
   assert(evidencePath.toLowerCase().startsWith(m.resource.dataPath.toLowerCase()));
   const paths = JSON.parse(readFileSync(process.env.ISSUE300_W7_LOAD_PATHS,"utf8"));
+  verifyPinnedRoutes(paths.endpoints,m,oracle);
   assert.equal(paths.candidateSha,m.candidateSha);
   assert.equal(paths.leaseId,m.leaseId);
   const token = process.env.ISSUE300_W7_STAFF_BEARER;
   assert.match(token ?? "",/^vsa1\.[A-Za-z0-9_-]{43}$/);
-  const before = JSON.parse(readFileSync(evidencePath,"utf8"));
-  assert.equal(before.vmUuid,m.resource.vmUuid);
+  const evidenceSignature=evidencePath+".sig";
+  const before=verifyDetachedBytes(m,{
+    key:process.env.ISSUE300_W8_GUEST_BOOT_KEY,
+    payload:evidencePath,signature:evidenceSignature,
+  },m.guestBootIssuerKeySha256,process.env,
+  "ISSUE300_W8_TRUSTED_GUEST_BOOT_KEY_SHA256");
+  assertSignedGuestBoot(before,m,0);
   let previous = before.bootId;
   const trials = {search:[],timeline:[],detail:[]};
+  const allBoots=new Set([previous]);
   for (const endpoint of Object.keys(budgets)) {
     const path = paths.endpoints[endpoint];
-    assert.match(path,/^\/v1\/staff\/management\//);
     for (let i=0;i<20;i++) {
       const startEpoch = Date.now();
       // ONLY this exact VM. Never reboot host, Docker Desktop or shared W7.
@@ -64,9 +124,17 @@ async function main() {
         try {
           const stat = statSync(evidencePath);
           if (stat.mtimeMs <= startEpoch) continue;
-          boot=JSON.parse(readFileSync(evidencePath,"utf8"));
+          boot=verifyDetachedBytes(m,{
+            key:process.env.ISSUE300_W8_GUEST_BOOT_KEY,
+            payload:evidencePath,signature:evidenceSignature,
+          },m.guestBootIssuerKeySha256,process.env,
+          "ISSUE300_W8_TRUSTED_GUEST_BOOT_KEY_SHA256");
+          assertSignedGuestBoot(boot,m,startEpoch);
           verifyColdBoot(previous,boot,m.resource.vmUuid,startEpoch,
             m.resource.containerId);
+          assert(!allBoots.has(boot.bootId),
+            "Guest boot reused across endpoint trials");
+          allBoots.add(boot.bootId);
           break;
         } catch { /* Await isolated guest boot evidence; never fake cold. */ }
       }
@@ -82,10 +150,14 @@ async function main() {
       assert.equal(response?.status,200,"No successful first cold HTTP");
       assert.equal(response.headers.get("cache-control")?.includes("no-store"),true);
       const body = await response.json();
-      assert(body && typeof body === "object");
+      assertExpectedHttp(endpoint,body,oracle);
       trials[endpoint].push({trial:i+1,guestBootId:boot.bootId,
         guestBootEvidenceAt:boot.recordedAt,httpElapsedMs:elapsedMs,
-        cacheResetVerified:true,method:"OWNED_VBOX_GUEST_OS_RESET"});
+        resetIssuedAt:new Date(startEpoch).toISOString(),
+        signedBootPayloadBase64:readFileSync(evidencePath).toString("base64"),
+        signedBootSignatureBase64:readFileSync(evidenceSignature).toString("base64"),
+        cacheResetVerified:true,responseValidated:true,
+        method:"OWNED_VBOX_GUEST_OS_RESET"});
     }
   }
   for (const [name,rows] of Object.entries(trials)) {
@@ -93,11 +165,13 @@ async function main() {
     assert.equal(new Set(rows.map((r)=>r.guestBootId)).size,20);
     assert(p95(rows.map((r)=>r.httpElapsedMs))<=budgets[name]);
   }
+  assert.equal(allBoots.size,61,"Exactly 60 fresh signed guest boots");
   const output={candidateSha:m.candidateSha,leaseId:m.leaseId,
     database:m.resource.database,containerId:m.resource.containerId,
     apiBundleSha256:m.resource.apiBundleSha256,targetTier:m.targetTier,
     methodology:"OWNED_GUEST_INDEPENDENT_OS_BOOT_ID",globalSharedCacheFlush:false,
     trials};
+  verifyColdArtifact(output,m);
   assert(process.env.ISSUE300_W7_COLD_TRIALS);
   writeFileSync(process.env.ISSUE300_W7_COLD_TRIALS,
     JSON.stringify(output,null,2),{flag:"wx",mode:0o600});

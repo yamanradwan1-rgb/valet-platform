@@ -2,6 +2,8 @@
 import assert from "node:assert/strict";
 import { readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { readTarget } from "./issue300-w8-target.mjs";
+import { verifiedSourceOracle, verifyPinnedRoutes } from
+  "./issue300-w8-http-evidence.mjs";
 
 function withinOwned(path, m) {
   assert(path);
@@ -9,7 +11,7 @@ function withinOwned(path, m) {
   assert(real.toLowerCase().startsWith(m.resource.dataPath.toLowerCase()));
   return real;
 }
-export function makeLoadPaths(m, fixture) {
+export function makeLoadPaths(m, fixture, signed) {
   assert.equal(fixture.candidateSha,m.candidateSha);
   assert.equal(fixture.leaseId,m.leaseId);
   assert.equal(fixture.database,m.resource.database);
@@ -21,15 +23,7 @@ export function makeLoadPaths(m, fixture) {
   for(const name of families)
     assert.equal(fixture.sourceCounts?.[name],m.targetTier/4);
   assert.equal(fixture.scopedPersistedSourceRecords,m.targetTier);
-  const endpoints={};
-  for(const endpoint of ["search","timeline","detail"]) {
-    const path=m.endpoints?.[endpoint];
-    assert(typeof path==="string");
-    assert.match(path,/^\/v1\/staff\/management\//);
-    assert(!path.includes("#") && !path.includes("accessToken"));
-    endpoints[endpoint]=path;
-  }
-  assert.equal(new Set(Object.values(endpoints)).size,3);
+  const endpoints=verifyPinnedRoutes(m.endpoints,m,signed);
   return {candidateSha:m.candidateSha,leaseId:m.leaseId,
     database:m.resource.database,databaseHost:m.resource.dbHost,
     databasePort:m.resource.dbPort,containerId:m.resource.containerId,
@@ -43,9 +37,10 @@ export function makeLoadPaths(m, fixture) {
 if(process.argv[1]?.endsWith("issue300-w8-paths.mjs")){
   try {
     const m=readTarget();
+    const signed=verifiedSourceOracle(m);
     const artifact=withinOwned(process.env.ISSUE300_W8_FIXTURE_OUTPUT,m);
     const fixture=JSON.parse(readFileSync(artifact,"utf8"));
-    const paths=makeLoadPaths(m,fixture);
+    const paths=makeLoadPaths(m,fixture,signed);
     assert(process.env.ISSUE300_W7_LOAD_PATHS);
     const dest=process.env.ISSUE300_W7_LOAD_PATHS;
     assert(dest.toLowerCase().startsWith(m.resource.dataPath.toLowerCase()));

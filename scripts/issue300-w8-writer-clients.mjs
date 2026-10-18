@@ -53,39 +53,77 @@ async function command(api, origin, c, db, runIndex) {
       description:"W8 disposable operational writer, private"};
     const result = await post(api,origin,c,path,body);
     assert.equal(result?.incidentId,incidentId);
+    const replay = await post(api,origin,c,path,body);
+    assert.deepEqual(replay,result,"Incident idempotent retry diverged");
     const readback = (await db.query(`SELECT i.pagination_birth_xid::text AS ib,
       a.pagination_birth_xid::text AS ab,
       i.valet_session_id AS sid, i.reported_by_membership_id AS actor,
-      a.id AS audit_id
+      a.id AS audit_id,a.valet_session_id AS audit_session,
+      a.actor_membership_id AS audit_actor
       FROM incidents i JOIN audit_events a
-        ON a.entity_type IN ('Incident','INCIDENT') AND a.entity_id=i.id
+        ON a.entity_type IN ('Incident','INCIDENT')
+        AND a.entity_id=i.id AND a.event_type='INCIDENT_OPENED'
+        AND a.organization_id=i.organization_id
+        AND a.location_id=i.location_id
+        AND a.valet_session_id=i.valet_session_id
       WHERE i.id=$1::uuid AND i.organization_id=$2::uuid
         AND i.location_id=$3::uuid`,
     [incidentId,c.organizationId,c.locationId])).rows;
     assert.equal(readback.length,1);
     assert.equal(readback[0].sid,c.sessionId);
     assert.equal(readback[0].actor,c.membershipId);
+    assert.equal(readback[0].audit_actor,c.membershipId);
+    assert.equal(readback[0].audit_session,c.sessionId);
     assert(readback[0].ib && readback[0].ab);
-    return {incidentId,source:"INCIDENT+AUDIT"};
+    return {sourceIds:[incidentId,readback[0].audit_id],
+      source:"INCIDENT+AUDIT",idempotencyVerified:true};
   }
   const before = (await db.query(`SELECT version FROM valet_sessions
     WHERE id=$1::uuid AND organization_id=$2::uuid AND location_id=$3::uuid`,
   [c.sessionId,c.organizationId,c.locationId])).rows[0];
   assert(Number.isInteger(before?.version));
+  const previousCustody = (await db.query(`SELECT id::text AS id
+    FROM key_custody_events WHERE organization_id=$1::uuid
+      AND location_id=$2::uuid AND valet_session_id=$3::uuid`,
+    [c.organizationId,c.locationId,c.sessionId])).rows.map((r)=>r.id);
+  const previousAudit = (await db.query(`SELECT id::text AS id
+    FROM audit_events WHERE organization_id=$1::uuid
+      AND location_id=$2::uuid AND valet_session_id=$3::uuid
+      AND event_type IN ('VALET_SESSION_KEY_SLOT_ASSIGNED',
+        'VALET_SESSION_KEY_SLOT_REASSIGNED')`,
+    [c.organizationId,c.locationId,c.sessionId])).rows.map((r)=>r.id);
   const slotCode = c.keySlots[runIndex % c.keySlots.length];
   const result = await post(api,origin,c,
     `/v1/staff/valet-sessions/${c.sessionId}/key-slot/assign`,
     {expectedVersion:before.version,keySlotCode:slotCode});
   assert.equal(result.version,before.version+1);
   assert.equal(result.keySlotCode,slotCode);
-  const custody = (await db.query(`SELECT count(*)::int AS n FROM key_custody_events
-    WHERE valet_session_id=$1::uuid AND organization_id=$2::uuid
-      AND location_id=$3::uuid AND actor_membership_id=$4::uuid
-      AND pagination_birth_xid IS NOT NULL`,
-    [c.sessionId,c.organizationId,c.locationId,c.membershipId])).rows[0];
-  assert(custody.n >= runIndex + 1,
-    "No persistent canonical custody witness for operational command");
-  return {source:"KEY_CUSTODY+AUDIT"};
+  const custody = (await db.query(`SELECT custody.id::text AS id
+    FROM key_custody_events custody JOIN key_slots slot
+      ON slot.id=custody.key_slot_id AND slot.organization_id=custody.organization_id
+      AND slot.location_id=custody.location_id
+    WHERE custody.valet_session_id=$1::uuid
+      AND custody.organization_id=$2::uuid AND custody.location_id=$3::uuid
+      AND custody.actor_membership_id=$4::uuid
+      AND custody.event_type='SLOT_ASSIGNED'
+      AND slot.code=$5::text AND custody.pagination_birth_xid IS NOT NULL
+      AND NOT(custody.id=ANY($6::uuid[]))`,
+    [c.sessionId,c.organizationId,c.locationId,c.membershipId,
+      slotCode,previousCustody])).rows;
+  assert.equal(custody.length,1,
+    "Each key operation must create exactly one NEW assigned-slot event");
+  const audit = (await db.query(`SELECT id::text AS id
+    FROM audit_events WHERE valet_session_id=$1::uuid
+      AND organization_id=$2::uuid AND location_id=$3::uuid
+      AND actor_membership_id=$4::uuid AND pagination_birth_xid IS NOT NULL
+      AND event_type IN ('VALET_SESSION_KEY_SLOT_ASSIGNED',
+        'VALET_SESSION_KEY_SLOT_REASSIGNED')
+      AND NOT(id=ANY($5::uuid[]))`,
+    [c.sessionId,c.organizationId,c.locationId,c.membershipId,
+      previousAudit])).rows;
+  assert.equal(audit.length,1,"Exactly one NEW canonical slot Audit is required");
+  return {source:"KEY_CUSTODY+AUDIT",
+    sourceIds:[custody[0].id,audit[0].id]};
 }
 
 async function main() {
@@ -124,9 +162,11 @@ async function main() {
       while (performance.now()-start < minDuration && !stop) {
         const began = performance.now();
         try {
-          await command(api,origin,c,db,index++);
+          const evidence = await command(api,origin,c,db,index++);
           raw.push({clientId:c.clientId,elapsedMs:performance.now()-began,
-            at:new Date().toISOString(),command:c.command});
+            at:new Date().toISOString(),command:c.command,
+            sourceIds:evidence.sourceIds,
+            idempotencyVerified:evidence.idempotencyVerified===true});
           succeeded++;
         } catch (error) {
           errors.push({clientId:c.clientId,category:error.code ?? "FAILED_COMMAND"});

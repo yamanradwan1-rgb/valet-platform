@@ -5,6 +5,39 @@
 measurements from this branch. No application, PostgreSQL schema/migration,
 human account, current R2:57285, G2:55480, W6 or W7 DB is modified.
 
+## W9 P1 follow-up — source-only fixes, still no U-004 PASS
+
+W9 found that the original SQL planner supplied the wrong snapshot keys,
+allowing a null cutoff/database snapshot and empty, falsely fast EXPLAIN.
+W8 now captures the exact UTC microsecond cutoff and PG snapshot together;
+it checks Search/Timeline fence parameter positions, positive EXPLAIN
+root rows, the independent actual-role four-source fixture count, and
+the independently attested Session/source/event IDs of SQL result rows.
+
+The HTTP reader now requires an independently produced, detached
+**Ed25519-signed source oracle** (Prime-pinned public-key fingerprint)
+binding SHA, lease, DB, container, source hash, expected Search/Timeline/
+Detail identities, and a recent independently attested API listener/
+bundle/port record. It pins the exact three controller route shapes,
+tenant, Location, query keys and IDs. HTTP200 with an empty or unrelated
+Search/Timeline/Detail payload **cannot** produce a successful sample.
+
+Additional W9 P1s: PG bind source path must match the **exact** manifest
+PGDATA path (not just a D-drive substring); Incident writer checks
+tenant/location/Session/actor, incident and Audit identity, immutable birth,
+and HTTP idempotent replay; each slot writer verifies *new* source IDs, not
+cumulative custody count. The cold verifier checks **60 unique, guest-origin
+signed** boot certificates with an independently pinned issuer and the
+correct guest VM/container/bundle identity; it refuses bare
+`cacheResetVerified=true` flags. The reader waits for the live writer
+envelope artifact after completing its 600-second measured phase instead
+of failing early or claiming missing writer overlap.
+
+**Only static/negative validation was executed.** No DB, service, external
+session, load, signed live Oracle, actual writer or physical cold-reset
+execution has been performed in this correction. U-004 is **GAP** pending
+Prime's exclusive capacity lease and independent review.
+
 ## Ownership and fail-closed envelope
 
 - New independent D-drive worktree branch
