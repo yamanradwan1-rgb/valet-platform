@@ -112,10 +112,7 @@ const readService = load("timeline-read-service.ts", {
     },
   },
   "./timeline-indirect-audit": {
-    hasAnchoredTimelineAuditAnomaly: async () => {
-      logged.push("audit-anomaly");
-      return false;
-    },
+    hasAnchoredTimelineAuditAnomaly: async () => (logged.push("audit-anomaly"), false),
     requireIndirectAuditSessionContainment: async () => {
       logged.push("indirect-guard");
       if (!indirectAuthorized) throw new SourceDenied();
@@ -198,14 +195,8 @@ test("bounded multi-source one-page never claims cross-request snapshot", async 
     source(13, "INCIDENT"),
   ];
   const result = await authorizedTimeline({ limit: 50 });
-  assert.deepEqual(logged, [
-    "authorize",
-    "snapshot",
-    "session",
-    "location",
-    "four-source-sql",
-    "audit-anomaly",
-  ]);
+  assert.deepEqual(logged, ["authorize", "snapshot", "session", "location",
+    "four-source-sql", "audit-anomaly"]);
   assert.equal(result.items.length, 4);
   assert.equal(result.nextCursor, null);
   assert.equal(result.order, "ASC");
