@@ -50,7 +50,8 @@ export async function requireU05StableIndirectCohort(
          ('audit_events_issue300_attribution_immutable','audit_events'),
          ('valet_sessions_issue300_origin_immutable','valet_sessions')
        ), enabled AS (
-         SELECT t.tgname, c.relname
+         SELECT t.tgname, c.relname, t.tgfoid, t.tgtype,
+                t.tgattr::text AS trigger_columns
          FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid
            JOIN pg_namespace n ON n.oid = c.relnamespace
          WHERE n.nspname = 'public' AND NOT t.tgisinternal
@@ -65,9 +66,21 @@ export async function requireU05StableIndirectCohort(
          AND to_regclass('public._prisma_migrations') IS NOT NULL
          AND NOT has_table_privilege(current_user, 'public._prisma_migrations', 'SELECT')
          AND (SELECT count(*) = 12 FROM birth b JOIN enabled e
-              ON e.tgname = b.name AND e.relname = b.table_name)
+              ON e.tgname = b.name AND e.relname = b.table_name
+              AND e.tgfoid = 'public.management_pagination_preserve_birth_xid()'::regprocedure
+              AND e.tgtype = CASE WHEN b.name LIKE '%_insert' THEN 7 ELSE 19 END
+              AND (b.name LIKE '%_insert' OR e.trigger_columns = (
+                SELECT a.attnum::text FROM pg_attribute a
+                WHERE a.attrelid = ('public.' || b.table_name)::regclass
+                  AND a.attname = 'pagination_birth_xid')))
          AND (SELECT count(*) = 6 FROM immutable i JOIN enabled e
-              ON e.tgname = i.name AND e.relname = i.table_name)
+              ON e.tgname = i.name AND e.relname = i.table_name
+              AND e.tgtype = 19
+              AND e.tgfoid = CASE
+                WHEN i.name IN ('audit_events_issue300_attribution_immutable',
+                  'valet_sessions_issue300_origin_immutable')
+                THEN 'public.issue300_prevent_attribution_rewrite()'::regprocedure
+                ELSE 'public.issue300_prevent_relation_rewrite()'::regprocedure END)
          AND (SELECT count(*) = 6 FROM pg_attribute a
               JOIN pg_class c ON c.oid = a.attrelid
               JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -80,8 +93,27 @@ export async function requireU05StableIndirectCohort(
          AND NOT EXISTS (SELECT 1 FROM pg_roles r WHERE r.rolname = current_user
            AND (r.rolsuper OR r.rolcreatedb OR r.rolcreaterole OR
                 r.rolreplication OR r.rolbypassrls OR r.rolinherit))
+         AND NOT EXISTS (SELECT 1 FROM pg_auth_members membership
+           JOIN pg_roles member ON member.oid = membership.member
+           WHERE member.rolname = current_user)
+         AND NOT EXISTS (SELECT 1 FROM pg_class class
+           JOIN pg_roles owner ON owner.oid = class.relowner
+           JOIN pg_namespace namespace ON namespace.oid = class.relnamespace
+           WHERE namespace.nspname = 'public' AND owner.rolname = current_user)
+         AND NOT EXISTS (SELECT 1 FROM pg_namespace namespace
+           JOIN pg_roles owner ON owner.oid = namespace.nspowner
+           WHERE namespace.nspname = 'public' AND owner.rolname = current_user)
+         AND NOT EXISTS (SELECT 1 FROM pg_database database
+           JOIN pg_roles owner ON owner.oid = database.datdba
+           WHERE database.datname = current_database() AND owner.rolname = current_user)
          AND NOT has_schema_privilege(current_user, 'public', 'CREATE')
          AND NOT has_database_privilege(current_user, current_database(), 'CREATE')
+         AND NOT has_table_privilege(current_user, 'public.tasks', 'DELETE')
+         AND NOT has_table_privilege(current_user, 'public.tasks', 'TRUNCATE')
+         AND NOT has_table_privilege(current_user, 'public.tasks', 'TRIGGER')
+         AND NOT has_table_privilege(current_user, 'public.valet_sessions', 'DELETE')
+         AND NOT has_table_privilege(current_user, 'public.valet_sessions', 'TRUNCATE')
+         AND NOT has_table_privilege(current_user, 'public.valet_sessions', 'TRIGGER')
          AND NOT has_table_privilege(current_user, 'public.audit_events', 'UPDATE')
          AND NOT has_table_privilege(current_user, 'public.audit_events', 'DELETE')
          AND NOT has_table_privilege(current_user, 'public.audit_events', 'TRUNCATE')

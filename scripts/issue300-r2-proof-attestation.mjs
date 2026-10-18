@@ -28,6 +28,34 @@ const sourceChecksum = (name) =>
     ),
   );
 
+function apiBundleHash() {
+  const base = join(root, "apps/api/dist");
+  const files = [];
+  const walk = (directory) => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      if (files.length > 12000 || entry.isSymbolicLink())
+        throw Error("Unexpected compiled API artifact");
+      const file = join(directory, entry.name);
+      if (entry.isDirectory()) walk(file);
+      else if (entry.isFile()) files.push(file);
+    }
+  };
+  walk(base);
+  assert(
+    files.includes(join(base, "main.js")),
+    "Compiled API entrypoint missing",
+  );
+  const hash = createHash("sha256");
+  for (const file of files.sort((a, b) => a.localeCompare(b, "en"))) {
+    hash
+      .update(file.slice(base.length + 1).replaceAll("\\", "/"))
+      .update("\0")
+      .update(readFileSync(file))
+      .update("\0");
+  }
+  return hash.digest("hex");
+}
+
 async function main() {
   validateSource();
   if (!process.argv.includes("--issue")) {
@@ -44,6 +72,14 @@ async function main() {
     cwd: root,
     encoding: "utf8",
   }).trim();
+  assert.equal(
+    execFileSync("git", ["status", "--porcelain=v1"], {
+      cwd: root,
+      encoding: "utf8",
+    }).trim(),
+    "",
+    "Uncommitted source invalidates the proof candidate",
+  );
   assert.equal(process.env.ISSUE300_R2_CANDIDATE_SHA, candidateSha);
   const scopePath = resolve(process.env.ISSUE300_R2_SCOPE_MANIFEST ?? "");
   assert.equal(
@@ -156,8 +192,7 @@ async function main() {
     assert.equal(denied.audit_update, false);
     assert.equal(denied.ledger_read, false);
     const now = Date.now();
-    const entrypoint = join(root, "apps/api/dist/main.js");
-    const apiEntrypointSha256 = digest(readFileSync(entrypoint));
+    const apiBundleSha256 = apiBundleHash();
     const document = {
       project: "issue300",
       mode: "ISOLATED_PROOF_CANDIDATE",
@@ -170,7 +205,7 @@ async function main() {
       port: 57285,
       serverVersionNum: 170010,
       postgresStartedAt: identity.started.toISOString(),
-      apiEntrypointSha256,
+      apiBundleSha256,
       containerName: "issue300_r2_pg17",
       containerId: target.containerId,
       containerLabel: "issue300-r2",

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
-import { isAbsolute } from "node:path";
+import { readFileSync, readdirSync } from "node:fs";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 
 interface AllowedScope {
   readonly organizationId: string;
@@ -24,7 +24,7 @@ interface R2ProofAttestation {
   readonly port: 57285;
   readonly serverVersionNum: 170010;
   readonly postgresStartedAt: string;
-  readonly apiEntrypointSha256: string;
+  readonly apiBundleSha256: string;
   readonly containerName: "issue300_r2_pg17";
   readonly containerId: string;
   readonly containerLabel: "issue300-r2";
@@ -47,6 +47,39 @@ const names = [
   "20261018009500_issue_300_option_b_task_relation_provenance",
   "20261018009600_issue_300_option_b_attribution_freeze",
 ] as const;
+
+/** An imported compiled Nest module can change while dist/main.js does not.
+ * Attest the complete compiled output, not only the entrypoint. */
+export function r2ApiBundleDigest(entrypoint: string): string | null {
+  try {
+    const main = resolve(entrypoint);
+    if (!main.endsWith(join("dist", "main.js"))) return null;
+    const base = dirname(main);
+    const files: string[] = [];
+    const walk = (directory: string): void => {
+      for (const entry of readdirSync(directory, { withFileTypes: true })) {
+        if (files.length > 12000 || entry.isSymbolicLink())
+          throw new Error("Unexpected compiled API artifact");
+        const file = join(directory, entry.name);
+        if (entry.isDirectory()) walk(file);
+        else if (entry.isFile()) files.push(file);
+      }
+    };
+    walk(base);
+    if (!files.includes(main)) return null;
+    const hash = createHash("sha256");
+    for (const file of files.sort((a, b) => a.localeCompare(b, "en"))) {
+      hash
+        .update(relative(base, file).replaceAll("\\", "/"))
+        .update("\0")
+        .update(readFileSync(file))
+        .update("\0");
+    }
+    return hash.digest("hex");
+  } catch {
+    return null;
+  }
+}
 
 /** Runtime never trusts a self-asserted env flag as an attestation. The owned
  * Prime preflight checks Docker, schema, role and all 96 migration checksums
@@ -90,17 +123,15 @@ export function readR2ProofAttestation(): R2ProofAttestation | null {
       issued > now ||
       !Number.isFinite(expires) ||
       expires <= now ||
-      expires - issued > 60 * 60_000 ||
+      expires - issued > 15 * 60_000 ||
       proof.database !== "issue300_r2" ||
       proof.host !== "127.0.0.1" ||
       proof.port !== 57285 ||
       proof.serverVersionNum !== 170010 ||
       !Number.isFinite(Date.parse(proof.postgresStartedAt)) ||
-      !sha256.test(proof.apiEntrypointSha256) ||
+      !sha256.test(proof.apiBundleSha256) ||
       !process.argv[1] ||
-      createHash("sha256")
-        .update(readFileSync(process.argv[1]))
-        .digest("hex") !== proof.apiEntrypointSha256 ||
+      r2ApiBundleDigest(process.argv[1]) !== proof.apiBundleSha256 ||
       proof.containerName !== "issue300_r2_pg17" ||
       !sha256.test(proof.containerId) ||
       proof.containerLabel !== "issue300-r2" ||

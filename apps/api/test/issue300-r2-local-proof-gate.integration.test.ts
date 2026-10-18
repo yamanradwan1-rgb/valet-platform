@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { PostgresTransaction } from "../src/common/database/postgres";
 import {
@@ -12,6 +12,7 @@ import {
   requireU05StableIndirectCohort,
   U05IndirectCohortNotStable,
 } from "../src/modules/management/audit-investigation/audit-investigation-u05-indirect-guard";
+import { r2ApiBundleDigest } from "../src/modules/management/audit-investigation/audit-investigation-u05-proof-attestation";
 
 const keys = [
   "NODE_ENV",
@@ -26,7 +27,9 @@ const keys = [
 ] as const;
 const previous = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
 const created: string[] = [];
+const priorEntrypoint = process.argv[1];
 afterEach(() => {
+  process.argv[1] = priorEntrypoint ?? "";
   for (const dir of created.splice(0))
     rmSync(dir, { recursive: true, force: true });
   for (const key of keys) {
@@ -60,6 +63,12 @@ function createProof(overrides: Record<string, unknown> = {}) {
   const dir = mkdtempSync(join(tmpdir(), "issue300-r2-gate-"));
   created.push(dir);
   const path = join(dir, "attestation.json");
+  const build = join(dir, "dist");
+  mkdirSync(build);
+  const main = join(build, "main.js");
+  writeFileSync(main, "// synthetic test API entrypoint");
+  writeFileSync(join(build, "indirect-guard.js"), "// compiled module v1");
+  process.argv[1] = main;
   const now = Date.now();
   const proof = {
     project: "issue300",
@@ -73,9 +82,7 @@ function createProof(overrides: Record<string, unknown> = {}) {
     port: 57285,
     serverVersionNum: 170010,
     postgresStartedAt: new Date(Date.now() - 60_000).toISOString(),
-    apiEntrypointSha256: createHash("sha256")
-      .update(readFileSync(process.argv[1]!))
-      .digest("hex"),
+    apiBundleSha256: r2ApiBundleDigest(main),
     containerName: "issue300_r2_pg17",
     containerId: "f".repeat(64),
     containerLabel: "issue300-r2",
@@ -198,6 +205,21 @@ describe("Issue300 R2 isolated HTTP cohort proof gate", () => {
     createProof({ containerName: "unowned_database" });
     expect(isU05R2IndirectHttpProofCandidate()).toBe(false);
     createProof({ allowedScopes: [] });
+    expect(isU05R2IndirectHttpProofCandidate()).toBe(false);
+    createProof({
+      expiresAt: new Date(Date.now() + 15 * 60_000 + 2_000).toISOString(),
+    });
+    expect(isU05R2IndirectHttpProofCandidate()).toBe(false);
+  });
+
+  it("invalidates imported compiled modules even if dist/main.js stays identical", () => {
+    const path = createProof();
+    process.env.ISSUE300_R2_INDIRECT_HTTP_PROOF_ENABLE = "1";
+    expect(isU05R2IndirectHttpProofCandidate()).toBe(true);
+    writeFileSync(
+      join(dirname(path), "dist", "indirect-guard.js"),
+      "// changed module v2",
+    );
     expect(isU05R2IndirectHttpProofCandidate()).toBe(false);
   });
 
