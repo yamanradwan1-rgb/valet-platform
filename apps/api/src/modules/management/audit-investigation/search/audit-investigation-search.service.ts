@@ -23,6 +23,7 @@ import { readU05IncidentPolicy } from "../audit-investigation-u05-policy";
 import { authorizeAuditInvestigationLocation } from "../security/audit-investigation-authorization";
 import {
   projectAuditInvestigationSearchItem,
+  queryAuditInvestigationLocationIntegrity,
   queryAuditInvestigationFirstPage,
   type NormalizedSearch,
   type SearchSnapshot,
@@ -114,6 +115,9 @@ export async function searchAuditInvestigationSessions(
          WHERE organization_id = $1::uuid AND id = $2::uuid`,
         [scope.organizationId, scope.locationId],
       )).rows[0]?.active === true;
+  const hasAuditIntegrityAnomaly = await queryAuditInvestigationLocationIntegrity(
+    tx, scope, query, snapshot,
+  );
   const available = { status: "AVAILABLE" as const };
   return auditInvestigationSearchResponseSchema.parse({
     items: page.map(projectAuditInvestigationSearchItem),
@@ -121,7 +125,9 @@ export async function searchAuditInvestigationSessions(
     snapshotAt: snapshot.now.toISOString(),
     semanticsVersion: 1,
     coverage: {
-      AUDIT: available, KEY_CUSTODY: available, DISPATCH: available,
+      AUDIT: hasAuditIntegrityAnomaly
+        ? { status: "PARTIAL", reason: "INTEGRITY_ANOMALY" } : available,
+      KEY_CUSTODY: available, DISPATCH: available,
       INCIDENT: incidentAvailable ? available : {
         status: "NOT_AUTHORIZED", reason: "DETAIL_RESTRICTED",
       },
