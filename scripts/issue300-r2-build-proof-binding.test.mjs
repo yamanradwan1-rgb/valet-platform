@@ -120,6 +120,10 @@ test("receipt path rejects symlink and Windows junction ancestors", (t) => {
     }
     assert.throws(() => readBoundReceiptFile(alternate, candidateSha,
       leaseId, receipt, verifyFixture), /ISSUE300_BUILD_ANCESTOR_REPARSE_DENIED/);
+    const alias = join(alternate, "worktree-alias");
+    symlinkSync(root, alias, process.platform === "win32" ? "junction" : "dir");
+    assert.throws(() => readBoundReceiptFile(alias, candidateSha,
+      leaseId, receipt, verifyFixture), /ISSUE300_BUILD_ROOT_ANCESTOR_REPARSE_DENIED/);
   } finally {
     rmSync(alternate, { recursive: true, force: true });
   }

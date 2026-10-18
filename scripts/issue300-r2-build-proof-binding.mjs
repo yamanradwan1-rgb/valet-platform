@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { lstatSync, readFileSync, realpathSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join, parse, relative, resolve } from "node:path";
 import {
   cleanCandidate, currentBuildEvidence, validateLease,
 } from "./issue300-r2-api-build-provenance.mjs";
@@ -18,8 +18,14 @@ const comparable = (path) => process.platform === "win32"
 
 function ownedReceiptFolder(root) {
   const worktree = resolve(root);
-  assert(!lstatSync(worktree).isSymbolicLink(),
-    "ISSUE300_BUILD_ROOT_REPARSE_DENIED");
+  const filesystemRoot = parse(worktree).root;
+  let ancestor = filesystemRoot;
+  for (const part of relative(filesystemRoot, worktree).split(/[\\/]/).filter(Boolean)) {
+    ancestor = join(ancestor, part);
+    const stat = lstatSync(ancestor);
+    assert(stat.isDirectory() && !stat.isSymbolicLink(),
+      "ISSUE300_BUILD_ROOT_ANCESTOR_REPARSE_DENIED");
+  }
   // Canonicalize the root to accommodate genuine Windows 8.3 paths.
   let current = realpathSync.native(worktree);
   for (const part of ["tmp", "issue300-r2-w17-build-owned"]) {
@@ -70,12 +76,15 @@ export function readBoundReceiptFile(root, candidateSha, leaseId, receipt,
     `R2_API_BUILD_${candidateSha}_${leaseId}.json`);
   const stat = lstatSync(path);
   assert(stat.isFile() && !stat.isSymbolicLink() && stat.nlink === 1 &&
-    stat.size > 0 && stat.size <= 8192, "ISSUE300_BUILD_RECEIPT_FILE_INVALID");
+    stat.size > 0 && stat.size <= 8192 &&
+    comparable(realpathSync.native(path)) === comparable(path),
+  "ISSUE300_BUILD_RECEIPT_FILE_INVALID");
   const bytes = readFileSync(path);
   const signaturePath = `${path}.sig`;
   const sigStat = lstatSync(signaturePath);
   assert(sigStat.isFile() && !sigStat.isSymbolicLink() &&
-    sigStat.nlink === 1 && sigStat.size >= 88 && sigStat.size <= 90,
+    sigStat.nlink === 1 && sigStat.size >= 88 && sigStat.size <= 90 &&
+    comparable(realpathSync.native(signaturePath)) === comparable(signaturePath),
   "ISSUE300_BUILD_SIGNATURE_FILE_INVALID");
   const signature = readFileSync(signaturePath, "utf8").trim();
   verifyOwner(bytes, signature);
