@@ -51,21 +51,32 @@ export function validateLane(lane, allowedScopes) {
     );
   }
   assert(
-    Array.isArray(lane.negativeScopePaths) &&
-      lane.negativeScopePaths.length >= 2,
-    "Negative cross-tenant and other-Location paths must be specified",
+    Array.isArray(lane.negativeScopes) && lane.negativeScopes.length === 2,
+    "Require independently identified foreign Org and different Location",
   );
-  assert(
-    lane.negativeScopePaths.every(
-      (path) =>
-        typeof path === "string" &&
-        path.startsWith("/v1/staff/management/") &&
-        !path.includes(
-          `/organizations/${lane.org}/locations/${lane.location}/`,
-        ),
-    ),
-    "Negative paths must target another tenant or Location",
-  );
+  assert.deepEqual(lane.negativeScopes.map((scope) => scope.kind).sort(), [
+    "FOREIGN_ORG",
+    "OTHER_LOCATION",
+  ]);
+  for (const scope of lane.negativeScopes) {
+    assert.match(scope.organizationId ?? "", uuid);
+    assert.match(scope.locationId ?? "", uuid);
+    assert.equal(
+      scope.kind === "OTHER_LOCATION",
+      scope.organizationId === lane.org,
+    );
+    assert.notEqual(scope.locationId, lane.location);
+    const path = new URL(scope.path, "http://127.0.0.1");
+    assert.equal(
+      path.pathname.startsWith(`/v1/staff/management/organizations/`),
+      true,
+    );
+    assert(
+      path.pathname.includes(
+        `/organizations/${scope.organizationId}/locations/${scope.locationId}/audit-investigations/sessions`,
+      ),
+    );
+  }
   for (const state of ["s0", "s1"]) {
     const expected = lane.expected?.[state];
     assert(
@@ -73,6 +84,18 @@ export function validateLane(lane, allowedScopes) {
     );
     assert(expected.counts && typeof expected.counts === "object");
     assert(expected.coverage && typeof expected.coverage === "object");
+    assert(
+      expected.qualityByKey && typeof expected.qualityByKey === "object",
+      "Source/indirect quality oracle must be independently signed",
+    );
+    assert(
+      expected.timeline.every((key) =>
+        ["RECORDED", "PARTIAL", "UNVERIFIABLE"].includes(
+          expected.qualityByKey[key],
+        ),
+      ),
+      "Every Timeline source key requires an explicit quality oracle",
+    );
     assert.equal(new Set(expected.timeline).size, expected.timeline.length);
     assert.equal(new Set(expected.search).size, expected.search.length);
     assert(
@@ -113,6 +136,30 @@ export function validateLane(lane, allowedScopes) {
     assert.equal(
       lane.expected.s1.timeline.includes(key),
       lane.outcome === "commit",
+    );
+  }
+  if (lane.kind === "TASK_PARENT" && lane.outcome === "commit") {
+    assert(
+      lane.preexistingIndirectAuditIds?.length > 0,
+      "Late Task parent needs independently known pre-existing Audit row",
+    );
+    assert(
+      lane.expected.s1.timeline.some(
+        (key) =>
+          lane.preexistingIndirectAuditIds.includes(
+            key.replace(/^AUDIT:/, ""),
+          ) && !lane.expected.s0.timeline.includes(key),
+      ),
+      "Late Task association must change actual authenticated S1 membership",
+    );
+    assert(
+      lane.expected.s1.search.includes(lane.session),
+      "Late Task association must resolve only the independently proven Session",
+    );
+    assert.notDeepEqual(
+      lane.expected.s1,
+      lane.expected.s0,
+      "Committed Task parent cannot silently pass unchanged snapshots",
     );
   }
   if (lane.outcome === "rollback") {

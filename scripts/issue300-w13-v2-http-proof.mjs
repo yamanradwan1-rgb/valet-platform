@@ -14,7 +14,11 @@ import {
   firstPage,
   cursorSecurity,
 } from "./issue300-w13-signed-http.mjs";
-import { createW13Verifier } from "./issue300-w13-verifier.mjs";
+import {
+  createW13Verifier,
+  assertLateTaskAssociation,
+} from "./issue300-w13-verifier.mjs";
+import { verifyStaffAuthority } from "./issue300-w13-staff-authority.mjs";
 
 // This runner only executes against Prime-certified disposable W7 V2 resources.
 // Its deliberately held SQL adversarial fixtures never count as domain writers.
@@ -64,9 +68,12 @@ async function runLane(lane, users) {
     const begunAt = new Date().toISOString();
     await stageHeldSource(writer, lane);
     await independentLateReadback(lane, false);
-    for (const viewer of [users.ca, users.lm]) {
+    for (const [role, viewer] of [
+      ["CA", users.ca],
+      ["LM", users.lm],
+    ]) {
       await assertDefaultDisabled(lane, viewer);
-      await assertScope(lane, viewer, users.foreign, users.supervisor);
+      await assertScope(lane, viewer, role, users.foreign, users.supervisor);
     }
     const before = {};
     for (const [role, viewer] of [
@@ -113,6 +120,7 @@ async function runLane(lane, users) {
       );
       assertExpected(s1Search, afterExpected, "search");
       assertExpected(s1Timeline, afterExpected, "timeline");
+      assertLateTaskAssociation(lane, s0Timeline, s1Timeline);
       assert.notEqual(
         s0Timeline.snapshot,
         s1Timeline.snapshot,
@@ -162,8 +170,51 @@ try {
               password,
             });
             assert.equal(reply.status, 200, "Supervisor real login failed");
-            return { token: reply.json.accessToken };
+            return {
+              token: reply.json.accessToken,
+              sessionId: reply.sessionId,
+            };
           })();
+  const foreignScope = plan.fixture.lanes[0].negativeScopes.find(
+    (scope) => scope.kind === "FOREIGN_ORG",
+  );
+  assert(foreignScope, "Missing real foreign tenant scope");
+  const membershipRoles = {
+    ca: {
+      role: "ORG_ADMIN",
+      organizationId: scopes[0].organizationId,
+      locationId: scopes[0].locationId,
+    },
+    lm: {
+      role: "LOCATION_MANAGER",
+      organizationId: scopes[0].organizationId,
+      locationId: scopes[0].locationId,
+    },
+    supervisor: {
+      role: "VALET_SUPERVISOR",
+      organizationId: scopes[0].organizationId,
+      locationId: scopes[0].locationId,
+      requireMfa: false,
+    },
+    foreign: {
+      role: "ORG_ADMIN",
+      organizationId: foreignScope.organizationId,
+      locationId: foreignScope.locationId,
+    },
+  };
+  for (const role of ["ca", "lm", "supervisor", "foreign"])
+    users[role].membershipId = await verifyStaffAuthority(
+      admin,
+      users[role],
+      plan.credentials[role],
+      membershipRoles[role],
+      client,
+    );
+  assert.notEqual(
+    users.ca.membershipId,
+    users.lm.membershipId,
+    "Distinct logins cannot prove two roles through the same membership",
+  );
   assert.equal(
     new Set(
       Object.values(users)

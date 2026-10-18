@@ -10,6 +10,8 @@ import {
   verifyDatabaseIdentity,
   stageHeldSource,
 } from "./issue300-w13-held-source.mjs";
+import { assertPrivateDenial } from "./issue300-w13-verifier.mjs";
+import { generateCurrentTotp } from "./issue300-w13-totp.mjs";
 
 const id = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const org = id(1);
@@ -31,6 +33,7 @@ const expected = {
   search,
   counts: countMap,
   matchReasonsBySession: reasons,
+  qualityByKey: Object.fromEntries(keys.map((key) => [key, "RECORDED"])),
   coverage: Object.fromEntries(
     ["search", "timeline"].map((kind) => [
       kind,
@@ -57,9 +60,19 @@ const lane = (kind) => ({
   outcome: "commit",
   searchPath: `/v1/staff/management/organizations/${org}/locations/${location}/audit-investigations/sessions?from=2026-10-16T11%3A00%3A00Z&to=2026-10-16T12%3A00%3A00Z&limit=100`,
   timelinePath: `/v1/staff/management/organizations/${org}/locations/${location}/audit-investigations/sessions/${session}/timeline?limit=100`,
-  negativeScopePaths: [
-    `/v1/staff/management/organizations/${id(97)}/locations/${id(98)}/audit-investigations/sessions?limit=1`,
-    `/v1/staff/management/organizations/${org}/locations/${id(99)}/audit-investigations/sessions?limit=1`,
+  negativeScopes: [
+    {
+      kind: "FOREIGN_ORG",
+      organizationId: id(97),
+      locationId: id(98),
+      path: `/v1/staff/management/organizations/${id(97)}/locations/${id(98)}/audit-investigations/sessions?limit=1`,
+    },
+    {
+      kind: "OTHER_LOCATION",
+      organizationId: org,
+      locationId: id(99),
+      path: `/v1/staff/management/organizations/${org}/locations/${id(99)}/audit-investigations/sessions?limit=1`,
+    },
   ],
   expected: {
     s0: expected,
@@ -67,15 +80,86 @@ const lane = (kind) => ({
       ...expected,
       timeline:
         kind === "TASK_PARENT"
-          ? keys
+          ? [...keys, `AUDIT:${id(9)}`]
           : [
               ...keys,
               `${kind === "INCIDENT_PARENT" ? "INCIDENT" : kind}:` +
                 (kind === "INCIDENT_PARENT" ? id(7) : id(5)),
             ],
+      qualityByKey: {
+        ...expected.qualityByKey,
+        [kind === "TASK_PARENT"
+          ? `AUDIT:${id(9)}`
+          : `${kind === "INCIDENT_PARENT" ? "INCIDENT" : kind}:` +
+            (kind === "INCIDENT_PARENT" ? id(7) : id(5))]: "PARTIAL",
+      },
+      search: kind === "TASK_PARENT" ? [...search, session] : search,
+      counts: kind === "TASK_PARENT" ? { ...countMap, [session]: 1 } : countMap,
+      matchReasonsBySession:
+        kind === "TASK_PARENT"
+          ? { ...reasons, [session]: [`AUDIT:${id(9)}`] }
+          : reasons,
     },
   },
   preexistingIndirectAuditIds: kind.endsWith("PARENT") ? [id(9)] : [],
+});
+
+test("real private denials have exact status/code and cannot false-PASS", () => {
+  const reply = {
+    status: 404,
+    cache: "no-store",
+    json: { code: "AUTHORIZATION_DENIED", requestId: "local-request" },
+  };
+  assert.doesNotThrow(() =>
+    assertPrivateDenial(reply, 404, "AUTHORIZATION_DENIED"),
+  );
+  for (const status of [200, 401, 500, 503])
+    assert.throws(() =>
+      assertPrivateDenial({ ...reply, status }, 404, "AUTHORIZATION_DENIED"),
+    );
+  assert.throws(() =>
+    assertPrivateDenial(
+      { ...reply, json: { message: "Cannot GET" } },
+      404,
+      "AUTHORIZATION_DENIED",
+    ),
+  );
+});
+
+test("normal RFC 6238 TOTP matches SHA1 reference and refuses invalid secrets", () => {
+  assert.equal(
+    generateCurrentTotp("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ", 59_000),
+    "287082",
+  );
+  assert.throws(() => generateCurrentTotp("invalid secret", 59_000));
+});
+
+test("committed Task parent cannot falsely PASS unchanged or unqualified S1", () => {
+  const good = lane("TASK_PARENT");
+  assert.doesNotThrow(() => validateLane(good, [scope]));
+  assert.throws(() =>
+    validateLane({ ...good, expected: { s0: expected, s1: expected } }, [
+      scope,
+    ]),
+  );
+  assert.throws(() =>
+    validateLane(
+      {
+        ...good,
+        expected: {
+          s0: expected,
+          s1: { ...good.expected.s1, qualityByKey: expected.qualityByKey },
+        },
+      },
+      [scope],
+    ),
+  );
+  const rolledBack = {
+    ...good,
+    outcome: "rollback",
+    expected: { s0: expected, s1: expected },
+  };
+  assert.doesNotThrow(() => validateLane(rolledBack, [scope]));
 });
 
 test("V2 excludes all human database targets and credentials", () => {

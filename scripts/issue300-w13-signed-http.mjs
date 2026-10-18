@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { URL } from "node:url";
-import { generate } from "otplib";
+import { generateCurrentTotp } from "./issue300-w13-totp.mjs";
 
 export function createHttpClient(api, origin) {
   async function request(path, token, body, target = api) {
@@ -51,13 +51,7 @@ export async function loginActualMfa(request, account) {
   assert.match(token ?? "", /^vsa1\.[A-Za-z0-9_-]{43}$/);
   assert.match(login.sessionId ?? "", /^[a-f0-9-]{36}$/i);
   if (account.mfaSecretBase32) {
-    const code = await generate({
-      strategy: "totp",
-      algorithm: "sha1",
-      digits: 6,
-      period: 30,
-      secret: account.mfaSecretBase32,
-    });
+    const code = generateCurrentTotp(account.mfaSecretBase32);
     const stepped = await request("/v1/staff/auth/mfa/step-up", token, {
       code,
     });
@@ -80,13 +74,7 @@ export async function loginActualMfa(request, account) {
     assert.equal(begin.status, 200, "Real MFA enrollment failed");
     const secret = begin.json?.provisioning?.secretBase32;
     assert.match(secret ?? "", /^[A-Z2-7]+$/);
-    const code = await generate({
-      strategy: "totp",
-      algorithm: "sha1",
-      digits: 6,
-      period: 30,
-      secret,
-    });
+    const code = generateCurrentTotp(secret);
     const confirmed = await request(
       "/v1/staff/auth/mfa/enrollment/confirm",
       token,

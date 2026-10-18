@@ -1,6 +1,48 @@
 import assert from "node:assert/strict";
 import { firstPage, followPages } from "./issue300-w13-signed-http.mjs";
 
+export function assertPrivateDenial(reply, status, code) {
+  assert.equal(reply.status, status, "Unexpected authorization status");
+  assert.equal(reply.cache, "no-store", "Denial must not be cached");
+  assert.equal(reply.json?.code, code, "Denial lacks expected safe error code");
+  assert.equal(
+    typeof reply.json?.requestId,
+    "string",
+    "Denial must be a real managed API response, not a missing route",
+  );
+}
+
+export function assertLateTaskAssociation(lane, oldTimeline, freshTimeline) {
+  if (lane.kind !== "TASK_PARENT" || lane.outcome !== "commit") return;
+  for (const auditId of lane.preexistingIndirectAuditIds) {
+    const key = `AUDIT:${auditId}`;
+    assert.equal(
+      oldTimeline.ids.includes(key),
+      false,
+      "Old signed S0 admitted previously uncommitted Task relation",
+    );
+    const event = freshTimeline.all.find(
+      (row) => row.key?.source === "AUDIT" && row.key?.eventId === auditId,
+    );
+    assert(
+      event,
+      "Fresh signed S1 has no exact independently certified Audit ID",
+    );
+    assert(
+      event.references?.some(
+        (reference) =>
+          reference.kind === "SESSION" && reference.id === lane.session,
+      ),
+      "Late Task association lacks safe reference to certified Session",
+    );
+    assert.equal(
+      event.quality,
+      lane.expected.s1.qualityByKey[key],
+      "Late Task parent altered historical confidence without oracle proof",
+    );
+  }
+}
+
 /** Independent source, pagination, and auth denial oracles. */
 export function createW13Verifier({ plan, admin, client, ordinary, scopes }) {
   function assertLeaseLive() {
@@ -47,15 +89,17 @@ export function createW13Verifier({ plan, admin, client, ordinary, scopes }) {
         );
       }
     } else {
-      for (const item of page.all) {
-        const key = `${item.key?.source}:${item.key?.eventId}`;
-        if (Object.hasOwn(expected.qualityByKey ?? {}, key))
-          assert.equal(
-            item.quality,
-            expected.qualityByKey[key],
-            "Indirect association confidence differs from signed independent oracle",
-          );
-      }
+      const qualities = Object.fromEntries(
+        page.all.map((item) => [
+          `${item.key?.source}:${item.key?.eventId}`,
+          item.quality,
+        ]),
+      );
+      assert.deepEqual(
+        qualities,
+        expected.qualityByKey,
+        "Every Timeline source quality must match signed independent oracle",
+      );
     }
     for (const item of page.all) {
       const fields = JSON.stringify(item);
@@ -76,39 +120,61 @@ export function createW13Verifier({ plan, admin, client, ordinary, scopes }) {
   async function assertDefaultDisabled(lane, viewer) {
     for (const path of [lane.searchPath, lane.timelinePath]) {
       const denied = await ordinary(path, viewer.token);
-      assert.equal(
-        denied.status,
+      assertPrivateDenial(
+        denied,
         503,
-        "Ordinary unproven cohort must be HTTP 503 with valid MFA",
+        path === lane.searchPath
+          ? "AUDIT_INVESTIGATION_SNAPSHOT_UNAVAILABLE"
+          : "AUDIT_INVESTIGATION_TIMELINE_UNAVAILABLE",
       );
-      assert.equal(denied.cache, "no-store");
     }
   }
 
-  async function assertScope(lane, viewer, foreign, supervisor) {
+  async function assertScope(lane, viewer, viewerRole, foreign, supervisor) {
     for (const path of [lane.searchPath, lane.timelinePath]) {
       const anonymous = await client(path, null);
-      assert.equal(anonymous.status, 401);
-      assert.equal(anonymous.cache, "no-store");
+      assertPrivateDenial(anonymous, 401, "STAFF_AUTHENTICATION_REQUIRED");
       for (const other of [foreign, supervisor]) {
         const denied = await client(path, other.token);
-        assert.notEqual(
-          denied.status,
-          200,
-          "Wrong tenant/role read Investigation",
-        );
-        assert.equal(denied.cache, "no-store");
+        assertPrivateDenial(denied, 404, "AUTHORIZATION_DENIED");
       }
     }
-    for (const path of lane.negativeScopePaths ?? []) {
-      assert(path.startsWith("/v1/staff/management/"));
-      const denied = await client(path, viewer.token);
-      assert.notEqual(
-        denied.status,
-        200,
-        "Unexpected authorization outside attested Location/tenant",
+    for (const negative of lane.negativeScopes) {
+      const rows = (
+        await admin.query(
+          `SELECT location.id::text AS id FROM public.locations AS location
+         JOIN public.organizations AS organization ON organization.id=location.organization_id
+         WHERE organization.id=$1::uuid AND location.id=$2::uuid
+           AND organization.status='ACTIVE' AND location.status='ACTIVE'`,
+          [negative.organizationId, negative.locationId],
+        )
+      ).rows;
+      assert.equal(
+        rows.length,
+        1,
+        "The rejected scope must be a real, independently verified Location",
       );
-      assert.equal(denied.cache, "no-store");
+      if (negative.kind === "OTHER_LOCATION") {
+        if (viewerRole === "CA") continue; // Company Admin has whole-Org access.
+        const grant = (
+          await admin.query(
+            `SELECT 1 FROM membership_location_access AS access
+           WHERE access.organization_id=$1::uuid AND access.location_id=$2::uuid
+             AND access.membership_id=$3::uuid LIMIT 1`,
+            [negative.organizationId, negative.locationId, viewer.membershipId],
+          )
+        ).rows;
+        assert.equal(
+          grant.length,
+          0,
+          "Other Location must have no current LM grant",
+        );
+      }
+      assertPrivateDenial(
+        await client(negative.path, viewer.token),
+        404,
+        "AUTHORIZATION_DENIED",
+      );
     }
   }
 
