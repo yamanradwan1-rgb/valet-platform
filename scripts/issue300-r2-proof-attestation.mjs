@@ -10,6 +10,7 @@ import { pgClient, validateSource } from "./issue300-closure-migration-proof.mjs
 import { r2ApiBundleHash } from "./issue300-r2-api-bundle-hash.mjs";
 import { readOwnedGuardFunctionHash } from "./issue300-r2-function-fingerprint.mjs";
 import { requireOwnedScopeEvidence } from "./issue300-r2-scope-proof.mjs";
+import { attestV2LedgerHelper } from "./issue300-r2-v2-ledger-issuer.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const owned = join(root, "tmp/issue300-r2-w7-acceptance-v2-owned");
@@ -237,6 +238,8 @@ async function main() {
     ).rows[0];
     assert.equal(denied.audit_update, false);
     assert.equal(denied.ledger_read, false);
+    const ledgerHelperFunctionSha256 = await attestV2LedgerHelper(
+      admin, runtime, migrationLedgerSha256);
     const now = Date.now();
     const document = {
       project: "issue300",
@@ -250,6 +253,7 @@ async function main() {
       apiBundleSha256,
       resourceManifestSha256: target.manifestSha256,
       migrationLedgerSha256,
+      ledgerHelperFunctionSha256,
       containerId: target.manifest.containerId,
       actualRoleVerified: true,
       migrationsApplied: 96,

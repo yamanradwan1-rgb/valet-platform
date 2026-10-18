@@ -33,6 +33,7 @@ interface R2ProofAttestation {
   readonly apiBundleSha256: string;
   readonly resourceManifestSha256: string;
   readonly migrationLedgerSha256: string;
+  readonly ledgerHelperFunctionSha256: string;
   readonly guardFunctionsSha256: string;
   readonly containerName: "issue300_r2_w7_acceptance_v2_pg17";
   readonly containerId: string;
@@ -199,6 +200,7 @@ export function readR2ProofAttestation(): R2ProofAttestation | null {
       !sha256.test(proof.apiBundleSha256) ||
       !sha256.test(proof.resourceManifestSha256) ||
       !sha256.test(proof.migrationLedgerSha256) ||
+      !sha256.test(proof.ledgerHelperFunctionSha256) ||
       !sha256.test(proof.guardFunctionsSha256) ||
       !process.argv[1] ||
       r2ApiBundleDigest(process.argv[1]) !== proof.apiBundleSha256 ||

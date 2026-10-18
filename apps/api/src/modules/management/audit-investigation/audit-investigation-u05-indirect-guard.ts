@@ -1,6 +1,7 @@
 import type { PostgresTransaction } from "../../../common/database/postgres";
 import type { AuditInvestigationLocationAuthorization } from "./security/audit-investigation-authorization";
 import { readU05R2IndirectProofCandidate } from "./audit-investigation-u05-gate";
+import { verifyU05V2LedgerRuntime } from "./audit-investigation-u05-ledger-runtime";
 import {
   r2ProofApprovedAuditIds,
 } from "./audit-investigation-u05-proof-attestation";
@@ -180,6 +181,8 @@ export async function requireU05StableIndirectCohort(
       ],
     );
     if (attested.rowCount !== 1 || attested.rows[0]?.valid !== true)
+      throw new U05IndirectCohortNotStable();
+    if (!await verifyU05V2LedgerRuntime(tx, proof))
       throw new U05IndirectCohortNotStable();
     return;
   }
