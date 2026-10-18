@@ -42,22 +42,24 @@ const scope = {
   role: "LOCATION_MANAGER",
 };
 
-test("indirect authority excludes direct, Vehicle, unrelated Task/Incident and conflicting parking", () => {
+test("indirect authority requires the Audit row's own Session entity and excludes unproven parent-only linkage", () => {
   const sql = indirectAuditContainmentSql;
   assert.match(sql, /audit\.valet_session_id IS NULL/);
   assert.match(sql, /session\.organization_id = \$1::uuid/);
   assert.match(sql, /session\.location_id = \$2::uuid/);
   assert.match(sql, /session\.id = \$3::uuid/);
   assert.match(sql, /audit\.id = \$4::uuid/);
-  assert.match(sql, /task\.valet_session_id = session\.id/);
-  assert.match(sql, /incident\.valet_session_id = session\.id/);
+  assert.match(sql, /audit\.entity_type IN \('ValetSession', 'VALET_SESSION'\)/);
+  assert.match(sql, /audit\.entity_id = session\.id/);
+  assert.doesNotMatch(sql, /OR \(audit\.entity_type IN \('Task', 'TASK'\)/);
+  assert.doesNotMatch(sql, /OR \(audit\.entity_type IN \('Incident', 'INCIDENT'\)/);
   assert.match(sql, /parked_task\.valet_session_id = session\.id/);
   assert.doesNotMatch(sql, /audit\.entity_type = 'Vehicle'/);
   assert.doesNotMatch(
     sql,
     /incident\.description|dispatch\.reason|resolution_notes/i,
   );
-  assert.match(sql, /FOR SHARE OF session, audit/);
+  assert.match(sql, /FOR SHARE OF session\s*$/);
 });
 
 test("indirect scope denies missing proof and binds four UUID parameters exactly", async () => {

@@ -112,6 +112,10 @@ const readService = load("timeline-read-service.ts", {
     },
   },
   "./timeline-indirect-audit": {
+    hasAnchoredTimelineAuditAnomaly: async () => {
+      logged.push("audit-anomaly");
+      return false;
+    },
     requireIndirectAuditSessionContainment: async () => {
       logged.push("indirect-guard");
       if (!indirectAuthorized) throw new SourceDenied();
@@ -200,6 +204,7 @@ test("bounded multi-source one-page never claims cross-request snapshot", async 
     "session",
     "location",
     "four-source-sql",
+    "audit-anomaly",
   ]);
   assert.equal(result.items.length, 4);
   assert.equal(result.nextCursor, null);
