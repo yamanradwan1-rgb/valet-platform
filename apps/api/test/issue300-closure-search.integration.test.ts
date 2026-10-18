@@ -3,7 +3,7 @@ import { Client } from "pg";
 import type { PostgresTransaction } from "../src/common/database/postgres";
 import { auditInvestigationIntegritySql, queryAuditInvestigationLocationIntegrity } from
   "../src/modules/management/audit-investigation/search/search-page-query";
-import { locationMemberParticipationSql } from
+import { auditInvestigationSelectorStatements, locationMemberParticipationSql } from
   "../src/modules/management/audit-investigation/search/search-selector-query";
 import { searchAuditInvestigationSessions } from
   "../src/modules/management/audit-investigation/search/audit-investigation-search.service";
@@ -147,8 +147,7 @@ describe.skipIf(!dbAuthorized)("W2 disposable PostgreSQL selector/coverage parit
   }
   async function isSelectable() {
     const response = await client.query(
-      `SELECT member.id FROM organization_memberships member
-       WHERE member.organization_id=$1::uuid AND ${locationMemberParticipationSql}`,
+      auditInvestigationSelectorStatements.memberSql,
       [org, loc, null, 2, null, ["VALET_SESSION_PARKED", "TASK_ASSIGNED"]],
     );
     return response.rows.length === 1;
@@ -176,6 +175,22 @@ describe.skipIf(!dbAuthorized)("W2 disposable PostgreSQL selector/coverage parit
     expect(await isSelectable()).toBe(false);
     await seed("ValetSession", session);
     expect(await isSelectable()).toBe(true);
+  });
+  it("keeps absent metadata with a legacy Session entity as EVENT only", async () => {
+    await seed("ValetSession", session, undefined, null);
+    expect(await isSelectable()).toBe(false);
+    const rows = await searchAuditRows();
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.session_id).toBe(session);
+    expect(rows[0]?.actor_id).toBeNull();
+    const boundary = (await client.query(
+      "SELECT clock_timestamp() AS now, pg_current_snapshot()::text AS snapshot",
+    )).rows[0] as { now: Date; snapshot: string };
+    expect((await client.query(auditInvestigationIntegritySql,
+      [org, loc, from, to, boundary.now, boundary.snapshot]))
+      .rows[0]?.hasAnomaly).toBe(false);
+    await seed("ValetSession", session, null, null);
+    expect(await searchAuditRows()).toEqual([]);
   });
   it("requires exact Task identity even for two PARKING Tasks in one Session", async () => {
     await seed("Task", task, otherTask);

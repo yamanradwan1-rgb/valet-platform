@@ -16,8 +16,10 @@ witnesses AS MATERIALIZED (
                    -- W3 records a legacy NULL-birth Session-entity anchor as
                    -- UNVERIFIABLE, without its historical actor.
                    AND NOT (a.valet_session_id IS NULL
-                     AND a.pagination_birth_xid IS NULL
-                     AND a.entity_type IN ('ValetSession', 'VALET_SESSION'))
+                     AND a.entity_type IN ('ValetSession', 'VALET_SESSION')
+                     AND (a.pagination_birth_xid IS NULL
+                       OR (a.event_type = 'VALET_SESSION_PARKED'
+                         AND NOT (a.metadata_json ? 'taskId'))))
            THEN a.actor_membership_id ELSE NULL END AS actor_id,
          NULL::uuid AS previous_id, NULL::uuid AS new_id,
          NULL::uuid AS reporter_id
@@ -64,9 +66,7 @@ witnesses AS MATERIALIZED (
      -- Even matching birth XIDs are insufficient proof of that relationship.
      AND (a.valet_session_id IS NOT NULL
        OR (a.entity_type IN ('ValetSession', 'VALET_SESSION')
-         AND a.entity_id = resolved.id
-         AND (a.event_type <> 'VALET_SESSION_PARKED'
-           OR (a.metadata_json ? 'taskId' AND task_meta.id IS NOT NULL))))
+         AND a.entity_id = resolved.id))
      AND (a.valet_session_id IS NULL OR a.valet_session_id = resolved.id)
      -- A direct Session pointer does not override a contradictory Vehicle
      -- entity reference. Otherwise a malformed Audit row could become a

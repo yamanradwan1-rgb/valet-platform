@@ -179,10 +179,6 @@ SELECT EXISTS (
       -- event window come from Audit itself, never the disputed parent.
       (a.valet_session_id IS NULL
         AND a.entity_type IN ('Task', 'TASK', 'Incident', 'INCIDENT'))
-      OR (a.valet_session_id IS NULL
-        AND a.event_type = 'VALET_SESSION_PARKED'
-        AND a.entity_type IN ('ValetSession', 'VALET_SESSION')
-        AND NOT (a.metadata_json ? 'taskId'))
       OR
       (direct_session.id IS NOT NULL AND (
         (a.entity_type IN ('ValetSession', 'VALET_SESSION')
