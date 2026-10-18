@@ -8,7 +8,8 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, URL } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const ownDirectory = join(root, "tmp/issue300-r2-w7-v2-owned");
+// Exact ignored location shared by Prime's V2 attestation issuer and API guard.
+const ownDirectory = join(root, "tmp/issue300-r2-w7-acceptance-v2-owned");
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const hexSha = /^[a-f0-9]{64}$/;
 const gitSha = /^[a-f0-9]{40}$/;
