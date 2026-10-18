@@ -62,9 +62,9 @@ export async function requireU05StableIndirectCohort(
            AND t.tgenabled IN ('O', 'A')
        )
        SELECT (
-         current_database() = 'issue300_r2'
-         AND current_user = 'issue300_r2_w6_runtime'
-         AND session_user = 'issue300_r2_w6_runtime'
+         current_database() = $9::text
+         AND current_user = $10::text
+         AND session_user = $10::text
          AND current_setting('server_version_num')::integer = 170010
          AND date_trunc('milliseconds', pg_postmaster_start_time()) = $1::timestamptz
          AND to_regclass('public._prisma_migrations') IS NOT NULL
@@ -164,6 +164,8 @@ export async function requireU05StableIndirectCohort(
         window?.from ?? null,
         window?.to ?? null,
         approvedAuditIds,
+        proof.database,
+        proof.runtimeRole,
       ],
     );
     if (attested.rowCount !== 1 || attested.rows[0]?.valid !== true)
