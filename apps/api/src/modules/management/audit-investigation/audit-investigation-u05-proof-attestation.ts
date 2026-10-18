@@ -1,5 +1,5 @@
 import { createHash, verify } from "node:crypto";
-import { readFileSync, readdirSync } from "node:fs";
+import { lstatSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 
 interface AllowedScope {
@@ -31,6 +31,9 @@ interface R2ProofAttestation {
   readonly serverVersionNum: 170010;
   readonly postgresStartedAt: string;
   readonly apiBundleSha256: string;
+  readonly contractsBundleSha256: string;
+  readonly sourceSha256: string;
+  readonly apiBuildReceiptSha256: string;
   readonly resourceManifestSha256: string;
   readonly migrationLedgerSha256: string;
   readonly ledgerHelperFunctionSha256: string;
@@ -52,8 +55,7 @@ interface R2ProofAttestation {
 
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 const sha256 = /^[a-f0-9]{64}$/;
-// Prime's reviewed Ed25519 SPKI is pinned at build time. Never take a public
-// key from the local environment, certificate or mutable resource manifest.
+// Owner Ed25519 SPKI is source-pinned, never read from environment or manifest.
 const ownerSigningKeySpki = `-----BEGIN PUBLIC KEY-----
 MCowBQYDK2VwAyEApth1azlOHaJPPtirnSl5TB3UcAV/GOuWQeUFRx7wy/c=
 -----END PUBLIC KEY-----`;
@@ -76,8 +78,28 @@ const names = [
   "20261018009600_issue_300_option_b_attribution_freeze",
 ] as const;
 
-/** The source-baked resource allowlist and a separately captured exact-owned
- * manifest must agree before the test-only certificate is considered live. */
+/** Signed cert and SHA-bound manifest must agree on built source/receipt/contracts. */
+export function r2BuildEvidenceMatches(
+  entrypoint: string,
+  proof: R2ProofAttestation,
+  manifest: R2ProofAttestation,
+): boolean {
+  for (const field of [
+    "contractsBundleSha256", "sourceSha256", "apiBuildReceiptSha256",
+  ] as const) {
+    if (!sha256.test(proof[field]) || !sha256.test(manifest[field]) ||
+        proof[field] !== manifest[field]) return false;
+  }
+  const contracts = resolve(dirname(entrypoint), "../../../packages/contracts/dist/index.js");
+  return r2ApiBundleDigest(contracts, "index.js") === proof.contractsBundleSha256;
+}
+export function r2AttestationIsFresh(issuedAt: string, expiresAt: string,
+  now = Date.now()): boolean {
+  const issued = Date.parse(issuedAt), expires = Date.parse(expiresAt);
+  return Number.isFinite(issued) && issued <= now && Number.isFinite(expires) &&
+    expires > now && expires - issued <= 15 * 60_000;
+}
+/** Source-pinned target and SHA-bound owned manifest must agree. */
 function matchingOwnedManifest(entrypoint: string, proof: R2ProofAttestation): boolean {
   try {
     const file = resolve(dirname(resolve(entrypoint)),
@@ -90,7 +112,8 @@ function matchingOwnedManifest(entrypoint: string, proof: R2ProofAttestation): b
     for (const [field, value] of Object.entries(r2OwnedProofTarget)) {
       if (manifest[field as keyof R2ProofAttestation] !== value) return false;
     }
-    if (manifest.containerId !== proof.containerId ||
+    if (!r2BuildEvidenceMatches(entrypoint, proof, manifest) ||
+        manifest.containerId !== proof.containerId ||
         manifest.leaseId !== proof.leaseId ||
         manifest.candidateSha !== proof.candidateSha ||
         manifest.postgresStartedAt !== proof.postgresStartedAt ||
@@ -107,12 +130,12 @@ function matchingOwnedManifest(entrypoint: string, proof: R2ProofAttestation): b
   } catch { return false; }
 }
 
-/** An imported compiled Nest module can change while dist/main.js does not.
- * Attest the complete compiled output, not only the entrypoint. */
-export function r2ApiBundleDigest(entrypoint: string): string | null {
+/** Fingerprint all compiled modules, not only dist/main.js. */
+export function r2ApiBundleDigest(entrypoint: string,
+  expectedEntry: "main.js" | "index.js" = "main.js"): string | null {
   try {
     const main = resolve(entrypoint);
-    if (!main.endsWith(join("dist", "main.js"))) return null;
+    if (!main.endsWith(join("dist", expectedEntry))) return null;
     const base = dirname(main);
     const files: string[] = [];
     const walk = (directory: string): void => {
@@ -121,7 +144,11 @@ export function r2ApiBundleDigest(entrypoint: string): string | null {
           throw new Error("Unexpected compiled API artifact");
         const file = join(directory, entry.name);
         if (entry.isDirectory()) walk(file);
-        else if (entry.isFile()) files.push(file);
+        else if (entry.isFile()) {
+          if (expectedEntry === "index.js" && lstatSync(file).nlink !== 1)
+            throw Error("Hard-linked contract forbidden");
+          files.push(file);
+        } else throw new Error("Unexpected compiled artifact");
       }
     };
     walk(base);
@@ -140,10 +167,7 @@ export function r2ApiBundleDigest(entrypoint: string): string | null {
   }
 }
 
-/** Runtime never trusts a self-asserted env flag as an attestation. The owned
- * Prime preflight checks Docker, schema, role and all 96 migration checksums
- * BEFORE issuing this short-lived non-secret, digest-pinned local certificate.
- */
+/** Runtime requires Owner-signed short-lived proof, never a self-asserted env flag. */
 export function readR2ProofAttestation(): R2ProofAttestation | null {
   const path = process.env.ISSUE300_R2_ATTESTATION_PATH;
   const expected = process.env.ISSUE300_R2_ATTESTATION_SHA256;
@@ -174,19 +198,12 @@ export function readR2ProofAttestation(): R2ProofAttestation | null {
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
       return null;
     const proof = parsed as R2ProofAttestation;
-    const issued = Date.parse(proof.issuedAt);
-    const expires = Date.parse(proof.expiresAt);
-    const now = Date.now();
     if (
       proof.project !== "issue300" ||
       proof.mode !== "ISOLATED_PROOF_CANDIDATE" ||
       proof.leaseId !== lease ||
       proof.candidateSha !== candidate ||
-      !Number.isFinite(issued) ||
-      issued > now ||
-      !Number.isFinite(expires) ||
-      expires <= now ||
-      expires - issued > 15 * 60_000 ||
+      !r2AttestationIsFresh(proof.issuedAt, proof.expiresAt) ||
       proof.database !== r2OwnedProofTarget.database ||
       proof.host !== r2OwnedProofTarget.host ||
       proof.port !== r2OwnedProofTarget.port ||

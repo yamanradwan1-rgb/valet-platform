@@ -12,7 +12,7 @@ import {
   requireU05StableIndirectCohort,
   U05IndirectCohortNotStable,
 } from "../src/modules/management/audit-investigation/audit-investigation-u05-indirect-guard";
-import { r2ApiBundleDigest } from "../src/modules/management/audit-investigation/audit-investigation-u05-proof-attestation";
+import { r2ApiBundleDigest, r2AttestationIsFresh, r2BuildEvidenceMatches } from "../src/modules/management/audit-investigation/audit-investigation-u05-proof-attestation";
 import { r2OwnedProofTarget } from "../src/modules/management/audit-investigation/audit-investigation-u05-proof-attestation";
 
 const keys = [
@@ -69,6 +69,10 @@ function createProof(overrides: Record<string, unknown> = {}) {
   const main = join(build, "main.js");
   writeFileSync(main, "// synthetic test API entrypoint");
   writeFileSync(join(build, "indirect-guard.js"), "// compiled module v1");
+  const contractsDir = join(dir, "packages/contracts/dist");
+  mkdirSync(contractsDir, { recursive: true });
+  writeFileSync(join(contractsDir, "index.js"), "// synthetic contracts");
+  writeFileSync(join(contractsDir, "staff-auth.js"), "// imported contracts");
   process.argv[1] = main;
   const now = Date.now();
   const checksums = Object.fromEntries([
@@ -81,12 +85,18 @@ function createProof(overrides: Record<string, unknown> = {}) {
     ["20261018009600_issue_300_option_b_attribution_freeze", "f".repeat(64)],
   ]);
   const hash = (value: string) => createHash("sha256").update(value).digest("hex");
+  const provenance = {
+    sourceSha256: "1".repeat(64),
+    apiBuildReceiptSha256: "2".repeat(64),
+    contractsBundleSha256: r2ApiBundleDigest(join(contractsDir, "index.js"), "index.js"),
+  };
   const manifest = {
     ...r2OwnedProofTarget, containerId: "f".repeat(64),
     candidateSha: process.env.ISSUE300_R2_CANDIDATE_SHA,
     leaseId: process.env.ISSUE300_R2_PROOF_LEASE_ID,
     postgresStartedAt: new Date(now - 60_000).toISOString(),
     apiBundleSha256: r2ApiBundleDigest(main), migrationChecksums: checksums,
+    ...provenance,
   };
   const manifestFile = join(dir, "tmp/issue300-r2-w7-acceptance-v2-owned/R2_OWNED_RESOURCE_MANIFEST.json");
   mkdirSync(dirname(manifestFile), { recursive: true });
@@ -105,6 +115,7 @@ function createProof(overrides: Record<string, unknown> = {}) {
     ...r2OwnedProofTarget,
     postgresStartedAt: manifest.postgresStartedAt,
     apiBundleSha256: r2ApiBundleDigest(main),
+    ...provenance,
     containerId: "f".repeat(64),
     resourceManifestSha256: hash(manifestBytes), migrationLedgerSha256,
     actualRoleVerified: true,
@@ -144,7 +155,66 @@ function createProof(overrides: Record<string, unknown> = {}) {
   return path;
 }
 
+function evidence(path: string) {
+  const main = join(dirname(path), "apps/api/dist/main.js");
+  const proof = JSON.parse(readFileSync(path, "utf8"));
+  const manifest = JSON.parse(readFileSync(join(dirname(path),
+    "tmp/issue300-r2-w7-acceptance-v2-owned/R2_OWNED_RESOURCE_MANIFEST.json"), "utf8"));
+  return { main, proof, manifest };
+}
+
 describe("Issue300 R2 isolated HTTP cohort proof gate", () => {
+  it("rejects stale, future-issued and over-15-minute attestation timestamps", () => {
+    const now = Date.parse("2026-10-19T00:00:00.000Z");
+    const iso = (delta: number) => new Date(now + delta).toISOString();
+    expect(r2AttestationIsFresh(iso(-1000), iso(60_000), now)).toBe(true);
+    expect(r2AttestationIsFresh(iso(-1000), iso(-1), now)).toBe(false);
+    expect(r2AttestationIsFresh(iso(1000), iso(60_000), now)).toBe(false);
+    expect(r2AttestationIsFresh(iso(-1000), iso(900_001), now)).toBe(false);
+    expect(r2AttestationIsFresh("invalid", iso(60_000), now)).toBe(false);
+    expect(r2AttestationIsFresh(iso(-1000), "invalid", now)).toBe(false);
+  });
+
+  it("requires complete matching SHA256 build provenance in both signed documents", () => {
+    const { main, proof, manifest } = evidence(createProof());
+    expect(r2BuildEvidenceMatches(main, proof, manifest)).toBe(true);
+    for (const field of ["contractsBundleSha256", "sourceSha256",
+      "apiBuildReceiptSha256"]) {
+      const legacy = { ...proof };
+      delete legacy[field];
+      expect(r2BuildEvidenceMatches(main, legacy, manifest)).toBe(false);
+      const oldManifest = { ...manifest };
+      delete oldManifest[field];
+      expect(r2BuildEvidenceMatches(main, proof, oldManifest)).toBe(false);
+      expect(r2BuildEvidenceMatches(main,
+        { ...proof, [field]: "a".repeat(64) }, manifest)).toBe(false);
+      expect(r2BuildEvidenceMatches(main,
+        proof, { ...manifest, [field]: "a".repeat(64) })).toBe(false);
+      expect(r2BuildEvidenceMatches(main,
+        { ...proof, [field]: "invalid" }, manifest)).toBe(false);
+    }
+  });
+
+  it("rejects altered compiled contract modules even when API and source remain unchanged", () => {
+    const { main, proof, manifest } = evidence(createProof());
+    const contracts = join(dirname(main), "../../../packages/contracts/dist");
+    expect(r2BuildEvidenceMatches(main, proof, manifest)).toBe(true);
+    writeFileSync(join(contracts, "staff-auth.js"), "// tampered contracts");
+    expect(r2BuildEvidenceMatches(main, proof, manifest)).toBe(false);
+    expect(r2BuildEvidenceMatches(main, { ...proof,
+      contractsBundleSha256: "f".repeat(64) }, { ...manifest,
+      contractsBundleSha256: "f".repeat(64) })).toBe(false);
+  });
+
+  it("never admits even a matching legacy source/receipt pair without contracts proof", () => {
+    const { main, proof, manifest } = evidence(createProof());
+    delete proof.contractsBundleSha256;
+    delete manifest.contractsBundleSha256;
+    expect(r2BuildEvidenceMatches(main, proof, manifest)).toBe(false);
+    process.env.ISSUE300_R2_INDIRECT_HTTP_PROOF_ENABLE = "1";
+    expect(isU05R2IndirectHttpProofCandidate()).toBe(false);
+  });
+
   it("is disabled without candidate attestation and explicit opt-in", () => {
     process.env.NODE_ENV = "test";
     process.env.DATABASE_URL =
