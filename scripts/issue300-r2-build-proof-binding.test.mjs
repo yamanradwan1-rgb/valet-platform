@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import { generateKeyPairSync, sign } from "node:crypto";
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync,
+  writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, test } from "node:test";
 import {
   assertBuildBinding, assertManifestBuildBinding, receiptBinding,
-  readBoundReceiptFile,
+  readBoundReceiptFile, currentBoundBuild,
 } from "./issue300-r2-build-proof-binding.mjs";
 import {
   assertOwnerBuildLease, requireSignedBuildLease,
@@ -67,6 +68,61 @@ test("fresh test-only signed fixture binds source, both output trees and raw rec
   assert.equal(bound.contractsBundleSha256, receipt.contractsBundleSha256);
   assert.equal(assertManifestBuildBinding({ ...bound }, bound), bound);
   assert.equal(requireSignedBuildLease(root, receipt, now, verifyFixture), true);
+});
+
+test("currentBoundBuild completes the real signed receipt/lease path", () => {
+  writeFixture();
+  let snapshotCount = 0;
+  let receiptChecks = 0;
+  const deps = {
+    head: () => candidateSha,
+    lease: (env, candidate) => {
+      assert.equal(candidate, candidateSha);
+      assert.equal(env.NODE_ENV, "test");
+      return { leaseId };
+    },
+    receiptFile: (...args) => {
+      receiptChecks++;
+      return readBoundReceiptFile(...args, verifyFixture);
+    },
+    ownerLease: (path, value) =>
+      requireSignedBuildLease(path, value, now, verifyFixture),
+  };
+  const verified = () => {
+    snapshotCount++;
+    return { ...receipt };
+  };
+  const result = currentBoundBuild(root, { NODE_ENV: "test" }, verified, deps);
+  assert.equal(result.apiBundleSha256, receipt.apiBundleSha256);
+  assert.equal(result.contractsBundleSha256, receipt.contractsBundleSha256);
+  assert.equal(result.sourceSha256, receipt.sourceSha256);
+  assert.match(result.apiBuildReceiptSha256, /^[a-f0-9]{64}$/);
+  assert.equal(snapshotCount, 2);
+  assert.equal(receiptChecks, 2);
+  assert.throws(() => currentBoundBuild(root, { NODE_ENV: "test" },
+    () => ++snapshotCount === 4 ? { ...receipt, apiBundleSha256: hash("f") }
+      : { ...receipt }, deps), /BUILD_VERIFY_RACE/);
+});
+
+test("receipt path rejects symlink and Windows junction ancestors", (t) => {
+  writeFixture();
+  const alternate = mkdtempSync(join(tmpdir(), "issue300-build-link-"));
+  try {
+    try {
+      symlinkSync(join(root, "tmp"), join(alternate, "tmp"),
+        process.platform === "win32" ? "junction" : "dir");
+    } catch (error) {
+      if (["EPERM", "EACCES", "ENOTSUP"].includes(error?.code)) {
+        t.skip("Creating a test-only directory link requires OS permissions");
+        return;
+      }
+      throw error;
+    }
+    assert.throws(() => readBoundReceiptFile(alternate, candidateSha,
+      leaseId, receipt, verifyFixture), /ISSUE300_BUILD_ANCESTOR_REPARSE_DENIED/);
+  } finally {
+    rmSync(alternate, { recursive: true, force: true });
+  }
 });
 
 test("missing, unsigned, forged and replaced build receipts are always rejected", () => {

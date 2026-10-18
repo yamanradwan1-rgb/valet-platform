@@ -1,8 +1,8 @@
 // Exact lease/source/output receipt binding shared by V2 manifest and HTTP issuer.
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { lstatSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { lstatSync, readFileSync, realpathSync } from "node:fs";
+import { join, resolve } from "node:path";
 import {
   cleanCandidate, currentBuildEvidence, validateLease,
 } from "./issue300-r2-api-build-provenance.mjs";
@@ -13,6 +13,24 @@ const sha40 = /^[a-f0-9]{40}$/;
 const sha64 = /^[a-f0-9]{64}$/;
 const leasePattern = /^issue300-r2-[a-z0-9-]{8,}$/;
 const sha = (bytes) => createHash("sha256").update(bytes).digest("hex");
+const comparable = (path) => process.platform === "win32"
+  ? path.toLowerCase() : path;
+
+function ownedReceiptFolder(root) {
+  const worktree = resolve(root);
+  assert(!lstatSync(worktree).isSymbolicLink(),
+    "ISSUE300_BUILD_ROOT_REPARSE_DENIED");
+  // Canonicalize the root to accommodate genuine Windows 8.3 paths.
+  let current = realpathSync.native(worktree);
+  for (const part of ["tmp", "issue300-r2-w17-build-owned"]) {
+    current = join(current, part);
+    const stat = lstatSync(current);
+    assert(stat.isDirectory() && !stat.isSymbolicLink() &&
+      comparable(realpathSync.native(current)) === comparable(current),
+    "ISSUE300_BUILD_ANCESTOR_REPARSE_DENIED");
+  }
+  return current;
+}
 
 export function assertBuildBinding(binding, candidateSha, leaseId) {
   assert.match(candidateSha ?? "", sha40);
@@ -46,7 +64,9 @@ export function receiptBinding(receipt, rawBytes, candidateSha, leaseId) {
 
 export function readBoundReceiptFile(root, candidateSha, leaseId, receipt,
   verifyOwner = verifyBuildOwnerSignature) {
-  const path = join(root, "tmp/issue300-r2-w17-build-owned",
+  assert.match(candidateSha ?? "", sha40);
+  assert.match(leaseId ?? "", leasePattern);
+  const path = join(ownedReceiptFolder(root),
     `R2_API_BUILD_${candidateSha}_${leaseId}.json`);
   const stat = lstatSync(path);
   assert(stat.isFile() && !stat.isSymbolicLink() && stat.nlink === 1 &&
@@ -66,16 +86,20 @@ export function readBoundReceiptFile(root, candidateSha, leaseId, receipt,
   return binding;
 }
 
-export function currentBoundBuild(root, env, verified = currentBuildEvidence) {
-  const candidateSha = cleanCandidate(root);
-  const { leaseId } = validateLease(env, candidateSha);
+export function currentBoundBuild(root, env, verified = currentBuildEvidence,
+  { head = cleanCandidate, lease = validateLease,
+    receiptFile = readBoundReceiptFile,
+    ownerLease = requireSignedBuildLease } = {}) {
+  const candidateSha = head(root);
+  const { leaseId } = lease(env, candidateSha);
   const receipt = verified(root, leaseId);
-  const binding = readBoundReceiptFile(root, candidateSha, leaseId, receipt);
-  requireSignedBuildLease(root, receipt);
-  assert.equal(cleanCandidate(root), candidateSha, "ISSUE300_BUILD_HEAD_RACE");
+  const binding = receiptFile(root, candidateSha, leaseId, receipt);
+  ownerLease(root, receipt);
+  assert.equal(head(root), candidateSha, "ISSUE300_BUILD_HEAD_RACE");
   // A fresh read also catches output/source swaps during receipt hashing.
   assert.deepEqual(verified(root, leaseId), receipt, "ISSUE300_BUILD_VERIFY_RACE");
-  assert(readFileSync(path).equals(bytes), "ISSUE300_BUILD_RECEIPT_RACE");
+  assert.deepEqual(receiptFile(root, candidateSha, leaseId, receipt), binding,
+    "ISSUE300_BUILD_RECEIPT_RACE");
   return binding;
 }
 
