@@ -10,6 +10,8 @@ export function createNativeConditionPhotoTransport(
   apiOrigin: string,
   auth: NativeAuthSession,
   files: NativeConditionPhotoFiles,
+  onUploadDispatch?: () => void,
+  onUploadResponse?: (outcome: "success" | "error") => void,
 ) {
   return createEmployeeConditionPhotoTransport(
     (signal) => createNativeEmployeeClient(apiOrigin, auth, signal),
@@ -19,5 +21,7 @@ export function createNativeConditionPhotoTransport(
       body.append("image", files.file(handle));
       return body;
     },
+    onUploadDispatch,
+    onUploadResponse,
   );
 }

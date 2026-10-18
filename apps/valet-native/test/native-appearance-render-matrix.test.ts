@@ -170,6 +170,37 @@ function normalizeConditionPhotoLoading(
   };
 }
 
+/** #303's only approved Shift appearance delta is three pinned content sections. */
+function normalizeIssue303PinnedSections(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    const kept = value.filter((item) => {
+      const node = item as Partial<RenderNode> | null;
+      return !node?.props ||
+        !["native-shift-pinned-incident", "native-shift-pinned-photo",
+          "native-shift-pinned-crypto"].includes(String(node.props.testID));
+    });
+    if (value.length > 0 && kept.length === 0) return undefined;
+    return kept.map(normalizeIssue303PinnedSections)
+      .filter((item) => item !== undefined);
+  }
+  if (!value || typeof value !== "object") return value;
+  const node = value as Partial<RenderNode>;
+  if (!node.props) return Object.fromEntries(Object.entries(value)
+    .map(([key, entry]) => [key, normalizeIssue303PinnedSections(entry)]));
+  return { ...node, props: Object.fromEntries(Object.entries(node.props)
+    .map(([key, entry]) => [key, normalizeIssue303PinnedSections(entry)])) };
+}
+
+function issue303PinnedSections(value: unknown): string[] {
+  if (Array.isArray(value)) return value.flatMap(issue303PinnedSections);
+  if (!value || typeof value !== "object") return [];
+  const node = value as Partial<RenderNode>;
+  if (!node.props) return Object.values(value).flatMap(issue303PinnedSections);
+  const current = String(node.props.testID ?? "");
+  return [...(current.startsWith("native-shift-pinned-") ? [current] : []),
+    ...issue303PinnedSections(node.props.children)];
+}
+
 describe("Native EN/AR appearance render matrix at 320px host width", () => {
   afterEach(() => {
     vi.useRealTimers();
@@ -207,11 +238,16 @@ describe("Native EN/AR appearance render matrix at 320px host width", () => {
           renderCaseProps(c, dark, locale),
           true,
         );
+        if (c.name === "Shift") expect(issue303PinnedSections(after)).toEqual([
+          "native-shift-pinned-incident",
+          "native-shift-pinned-photo",
+          "native-shift-pinned-crypto",
+        ]);
         expect(
           c.name === "shell header"
             ? normalizeIssue265LightHeader(after)
             : c.name === "Shift"
-              ? normalizeActiveShiftCashEditability(after)
+              ? normalizeActiveShiftCashEditability(normalizeIssue303PinnedSections(after))
               : c.name === "condition"
                 ? normalizeConditionPhotoLoading(after, locale)
                 : after,

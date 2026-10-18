@@ -17,6 +17,8 @@ export interface ConditionPhotoTransport {
 export function createEmployeeConditionPhotoTransport(
   client: (signal: AbortSignal) => EmployeeClient,
   multipart: (operationId: string, handle: string) => unknown,
+  onUploadDispatch?: () => void,
+  onUploadResponse?: (outcome: "success" | "error") => void,
 ): ConditionPhotoTransport {
   const base = (sessionId: string) =>
     `/v1/staff/check-in/sessions/${encodeURIComponent(sessionId)}`;
@@ -51,11 +53,23 @@ export function createEmployeeConditionPhotoTransport(
       return checkedStatus(value, sessionId, operationId);
     },
     async upload(sessionId, operationId, handle, signal) {
-      const value = await client(signal).request<unknown>({
+      const requestClient = client(signal);
+      const body = multipart(operationId, handle);
+      try { onUploadDispatch?.(); } catch {
+        // A diagnostics observer must never interrupt authorized photo upload.
+      }
+      const value = await requestClient.request<unknown>({
         method: "POST", path: `${base(sessionId)}/condition-photo-uploads`,
-        body: multipart(operationId, handle),
+        body,
       });
-      return checkedStatus(value, sessionId, operationId);
+      try {
+        const checked = checkedStatus(value, sessionId, operationId);
+        try { onUploadResponse?.("success"); } catch { /* fail-open */ }
+        return checked;
+      } catch (error) {
+        try { onUploadResponse?.("error"); } catch { /* fail-open */ }
+        throw error;
+      }
     },
   };
 }

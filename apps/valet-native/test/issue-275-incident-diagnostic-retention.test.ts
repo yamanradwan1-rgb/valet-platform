@@ -49,10 +49,12 @@ describe("Issue #275 privacy-safe incident failure retention", () => {
     const view = nativeSupportDiagnosticsView(snapshot, 10);
     expect(view.eventRows).toHaveLength(10);
     expect(view.eventCount).toBe(200);
-    expect(view.eventRows[0]).toBe(
-      "recovery preflight incident-recovery error secure-uuid.error incident-mutation-not-attempted",
-    );
-    expect(view.eventRows.slice(1).every((line) => line.includes("task-queue")))
+    expect(view.pinnedSections[0]).toMatchObject({
+      firstFailedStage: "secure-uuid",
+      classification: "incident-mutation-not-attempted",
+      status: "failed",
+    });
+    expect(view.eventRows.every((line) => line.includes("task-queue")))
       .toBe(true);
     expect(nativeSupportDiagnosticsView(snapshot, 0).eventRows).toEqual([]);
   });
@@ -61,16 +63,16 @@ describe("Issue #275 privacy-safe incident failure retention", () => {
     setup();
     recordNativeIncidentPreflight({ stage: "reserve-transport", outcome: "error" });
     floodTaskQueue();
-    expect(nativeSupportDiagnosticsView(getNativeTelemetry().snapshot(), 10).eventRows[0])
-      .toContain("reserve-transport.error reservation-attempted-outcome-unknown");
+    expect(nativeSupportDiagnosticsView(getNativeTelemetry().snapshot(), 10)
+      .pinnedSections[0]?.classification).toBe("reservation-attempted-outcome-unknown");
 
     // A second explicit submit begins at context.success; the first
     // attempt has aborted and is never automatically replayed.
     recordNativeIncidentPreflight({ stage: "context", outcome: "success" });
     recordNativeIncidentPreflight({ stage: "report-transport", outcome: "error" });
     floodTaskQueue();
-    expect(nativeSupportDiagnosticsView(getNativeTelemetry().snapshot(), 10).eventRows[0])
-      .toContain("report-transport.error incident-post-attempted-outcome-unknown");
+    expect(nativeSupportDiagnosticsView(getNativeTelemetry().snapshot(), 10)
+      .pinnedSections[0]?.classification).toBe("incident-post-attempted-outcome-unknown");
   });
 
   it("does not retain attacker-supplied codes or business fields", () => {
@@ -119,7 +121,7 @@ describe("Issue #275 privacy-safe incident failure retention", () => {
     recordNativeIncidentPreflight({ stage: "reserve-transport", outcome: "error" });
     floodTaskQueue();
     expect(getNativeTelemetry().snapshot().latestIncidentFailureStage).toBe("reserve-transport");
-    expect(nativeSupportDiagnosticsView(getNativeTelemetry().snapshot(), 10).eventRows[0])
-      .toContain("reservation-attempted-outcome-unknown");
+    expect(nativeSupportDiagnosticsView(getNativeTelemetry().snapshot(), 10)
+      .pinnedSections[0]?.classification).toBe("reservation-attempted-outcome-unknown");
   });
 });

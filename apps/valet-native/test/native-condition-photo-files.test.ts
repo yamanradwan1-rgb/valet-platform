@@ -6,6 +6,10 @@ const state = vi.hoisted(() => ({
   failDeletes: new Set<string>(),
   failCopyAfterPartialWrite: false,
   failOwnedDelete: false,
+  failRender: false,
+  failSave: false,
+  failResize: false,
+  failManipulate: false,
 }));
 
 vi.mock("expo-file-system", () => {
@@ -45,17 +49,26 @@ vi.mock("expo-file-system", () => {
 vi.mock("expo-image-manipulator", () => ({
   SaveFormat: { JPEG: "jpeg" },
   ImageManipulator: {
-    manipulate: () => ({
-      resize: () => undefined,
-      renderAsync: async () => ({
+    manipulate: () => {
+      if (state.failManipulate) throw new Error("PRIVATE_INIT_ERROR");
+      return ({
+      resize: () => {
+        if (state.failResize) throw new Error("PRIVATE_RESIZE_ERROR");
+      },
+      renderAsync: async () => {
+        if (state.failRender) throw new Error("private renderer failure");
+        return {
         saveAsync: async () => {
+          if (state.failSave) throw new Error("private JPEG failure");
           state.files.set("file:///app/cache/rendered.jpg", 512);
           return { uri: "file:///app/cache/rendered.jpg" };
         },
         release: () => undefined,
-      }),
+      };
+      },
       release: () => undefined,
-    }),
+      });
+    },
   },
 }));
 
@@ -68,9 +81,81 @@ beforeEach(() => {
   state.failDeletes.clear();
   state.failCopyAfterPartialWrite = false;
   state.failOwnedDelete = false;
+  state.failRender = false;
+  state.failSave = false;
+  state.failResize = false;
+  state.failManipulate = false;
 });
 
 describe("Native condition photo private source and cache", () => {
+  it.each([
+    ["cache-uri", "file:///sdcard/outside.jpg"],
+    ["source-file", "file:///app/cache/no-such.jpg"],
+  ])("captures the first failed stage %s without revealing a URI", async (stage, uri) => {
+    const events: string[] = [];
+    const files = new NativeConditionPhotoFiles();
+    await expect(files.capture(uri, 1200, 900, (name, outcome) => {
+      events.push(`${name}.${outcome}`);
+    })).rejects.toThrow();
+    expect(events).toContain(`${stage}.error`);
+    expect(events.join(" ")).not.toContain(uri);
+  });
+
+  it.each([
+    ["image-render", "failRender"],
+    ["jpeg-save", "failSave"],
+  ] as const)("reports %s as the actual first failed processing stage", async (stage, flag) => {
+    state[flag] = true;
+    const source = "file:///app/cache/Camera/probe.jpg";
+    state.files.set(source, 1024);
+    const events: string[] = [];
+    await expect(new NativeConditionPhotoFiles().capture(
+      source, 800, 600, (name, outcome) => events.push(`${name}.${outcome}`),
+    )).rejects.toThrow();
+    expect(events.find((value) => value.endsWith(".error"))).toBe(`${stage}.error`);
+  });
+
+  it("separates a throwing resize from later cleanup without leaking errors", async () => {
+    state.failResize = true;
+    const uri = "file:///app/cache/Camera/large.jpg";
+    state.files.set(uri, 1024);
+    const trace: string[] = [];
+    await expect(new NativeConditionPhotoFiles().capture(
+      uri, 5000, 3500, (stage, outcome) => trace.push(`${stage}.${outcome}`),
+    )).rejects.toThrow();
+    expect(trace.find((value) => value.endsWith(".error")))
+      .toBe("image-resize.error");
+    expect(trace).toContain("cleanup.success");
+    expect(trace.join(" ")).not.toContain("PRIVATE_RESIZE_ERROR");
+  });
+
+  it("deletes the captured camera JPEG when manipulator initialization fails", async () => {
+    state.failManipulate = true;
+    const uri = "file:///app/cache/Camera/init-failure.jpg";
+    state.files.set(uri, 2048);
+    const trace: string[] = [];
+    await expect(new NativeConditionPhotoFiles().capture(
+      uri, 1200, 900, (stage, outcome) => trace.push(`${stage}.${outcome}`),
+    )).rejects.toThrow();
+    expect(trace.find((line) => line.endsWith(".error")))
+      .toBe("manipulator-init.error");
+    expect(trace).toContain("cleanup.success");
+    expect(state.deleted).toContain(uri);
+    expect(state.files.has(uri)).toBe(false);
+  });
+
+  it("deletes app-owned raw photo when capture dimensions are invalid", async () => {
+    const uri = "file:///app/cache/Camera/invalid-dimensions.jpg";
+    state.files.set(uri, 1024);
+    const trace: string[] = [];
+    await expect(new NativeConditionPhotoFiles().capture(
+      uri, 0, 900, (stage, outcome) => trace.push(`${stage}.${outcome}`),
+    )).rejects.toThrow();
+    expect(trace.find((line) => line.endsWith(".error")))
+      .toBe("source-file.error");
+    expect(state.deleted).toContain(uri);
+    expect(trace).toContain("cleanup.success");
+  });
   it.each([
     "file:///sdcard/DCIM/photo.jpg",
     "https://example.com/photo.jpg",
