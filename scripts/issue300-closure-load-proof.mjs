@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync, writeFileSync } from "node:fs";
 import { performance } from "node:perf_hooks";
+import { readTarget, assertOwnedUri } from "./issue300-w8-target.mjs";
+import { verifySyntheticSources } from "./issue300-w8-oracle.mjs";
 
 // W7 measures actual HTTP. Prime/W6 must run authentic independent operational
 // writers concurrently; a SQL fixture loop must never masquerade as a writer.
@@ -13,6 +15,7 @@ const lease = process.env.ISSUE300_W7_EXCLUSIVE_LEASE;
 const apiRaw = process.env.ISSUE300_R2_API_URL;
 const token = process.env.ISSUE300_W7_STAFF_BEARER;
 const origin = process.env.ISSUE300_R2_DASHBOARD_ORIGIN;
+const owned = readTarget();
 assert.ok(
   candidate &&
     lease &&
@@ -22,17 +25,27 @@ assert.ok(
     process.env.ISSUE300_W7_LOAD_PATHS,
 );
 const api = new URL(apiRaw);
-assert.equal(api.hostname, "127.0.0.1");
-assert.match(api.port, /^\d{4,5}$/);
-assert.equal(api.pathname, "/");
+assertOwnedUri(apiRaw,owned,"api");
+assertOwnedUri(origin,owned,"dashboard");
+assert.equal(candidate,owned.candidateSha);
+assert.equal(lease,owned.leaseId);
 const paths = JSON.parse(
   readFileSync(process.env.ISSUE300_W7_LOAD_PATHS, "utf8"),
 );
+const independent = await verifySyntheticSources(
+  owned,process.env.ISSUE300_W8_RUNTIME_DB_URL);
+assert.deepEqual(paths.sourceCounts,independent.sourceCounts);
+assert.equal(paths.scopedPersistedSourceRecords,
+  independent.scopedPersistedSourceRecords);
+assert.equal(paths.targetTier,owned.targetTier);
 assert.equal(paths.candidateSha, candidate);
 assert.equal(paths.leaseId, lease);
-assert.equal(paths.database, "issue300_r2");
+assert.equal(paths.database, owned.resource.database);
 assert.equal(paths.databaseHost, "127.0.0.1");
-assert.equal(paths.databasePort, 57285);
+assert.equal(paths.databasePort, owned.resource.dbPort);
+assert.equal(paths.containerId, owned.resource.containerId);
+assert.equal(paths.apiBundleSha256, owned.resource.apiBundleSha256);
+assert.equal(paths.sourceFixtureHash, owned.sourceFixtureHash);
 assert.ok(
   [100_000, 1_000_000].includes(paths.targetTier),
   "Exactly one of the approved 100k or 1m workload tiers is required",
@@ -51,6 +64,7 @@ const endpoints = ["search", "timeline", "detail"];
 for (const endpoint of endpoints) {
   assert.match(paths.endpoints[endpoint], /^\/v1\/staff\/management\//);
 }
+assert.equal(new Set(Object.values(paths.endpoints)).size,3);
 assert.ok(process.env.ISSUE300_W7_WRITER_BASELINE);
 assert.ok(process.env.ISSUE300_W7_WRITER_LIVE);
 assert.ok(process.env.ISSUE300_W7_COLD_TRIALS);
@@ -83,6 +97,8 @@ async function reader(index) {
       });
       status = reply.status;
       if (status === 200) {
+        assert(reply.headers.get("cache-control")?.includes("no-store"),
+          "HTTP evidence must be no-store");
         const body = await reply.json();
         assert.ok(body && typeof body === "object");
         if (endpoint !== "detail")
@@ -116,6 +132,11 @@ const finishedAt = new Date().toISOString();
 const report = {
   candidate,
   lease,
+  candidateSha:candidate,
+  leaseId:lease,
+  database:owned.resource.database,
+  containerId:owned.resource.containerId,
+  apiBundleSha256:owned.resource.apiBundleSha256,
   mode,
   targetTier: paths.targetTier,
   sourceCounts: paths.sourceCounts,
@@ -128,6 +149,8 @@ const report = {
   raw,
   http: {},
   unsuccessful,
+  resource: { containerId:owned.resource.containerId,
+    dbPort:owned.resource.dbPort,apiPort:owned.resource.apiPort },
 };
 for (const endpoint of endpoints) {
   const rows = raw[endpoint].filter((r) => r.status === 200);
@@ -164,7 +187,10 @@ function securedArtifact(envName) {
   const item = JSON.parse(readFileSync(process.env[envName], "utf8"));
   assert.equal(item.candidateSha, candidate);
   assert.equal(item.leaseId, lease);
-  assert.equal(item.database, "issue300_r2");
+  assert.equal(item.database, owned.resource.database);
+  assert.equal(item.containerId, owned.resource.containerId);
+  assert.equal(item.apiBundleSha256, owned.resource.apiBundleSha256);
+  assert.equal(item.targetTier, paths.targetTier);
   return item;
 }
 
@@ -180,6 +206,7 @@ assert.ok(
     /^[a-f0-9]{64}$/.test(live.sourceFixtureHash),
 );
 assert.equal(baseline.hardwareId, live.hardwareId);
+assert.equal(live.hardwareId, owned.resource.hardwareId);
 assert.equal(baseline.sourceFixtureHash, live.sourceFixtureHash);
 assert.equal(live.sourceFixtureHash, paths.sourceFixtureHash);
 assert.ok(Array.isArray(live.writerClientIds));
@@ -191,6 +218,7 @@ assert.equal(live.lockTimeouts, 0);
 assert.ok(Date.parse(live.startedAt) <= Date.parse(startedAt));
 assert.ok(Date.parse(live.finishedAt) >= Date.parse(finishedAt));
 assert.ok(baseline.successfulCommands > 0);
+assert.ok(baseline.writerClients >= expected.writers);
 assert.ok(baseline.p95Ms >= 0 && live.p95Ms >= 0);
 assert.ok(
   live.p95Ms <= baseline.p95Ms * 1.2,
@@ -206,6 +234,8 @@ for (const item of explain.plans) {
   assert.match(item.sqlSha256, /^[a-f0-9]{64}$/);
   assert.match(item.planSha256, /^[a-f0-9]{64}$/);
   assert.ok(item.role && item.fullExplainJson && item.buffers);
+  assert.equal(item.candidateSha,candidate);
+  assert.equal(item.containerId,owned.resource.containerId);
 }
 
 const warmBudgets = { search: 1500, timeline: 750, detail: 400 };

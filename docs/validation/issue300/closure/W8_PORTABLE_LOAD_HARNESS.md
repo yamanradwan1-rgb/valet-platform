@@ -1,0 +1,124 @@
+# W8 U-004 — Test-only portable load instrumentation (source review)
+
+**Status: IMPLEMENTED / STATIC-VERIFIED ONLY.** This is not evidence of
+100k/1m U-004 acceptance. There are no latency, writer-impact or cold-cache
+measurements from this branch. No application, PostgreSQL schema/migration,
+human account, current R2:57285, G2:55480, W6 or W7 DB is modified.
+
+## Ownership and fail-closed envelope
+
+- New independent D-drive worktree branch
+  `codex/issue-300-r2-w8-load-portable` from exact baseline
+  `a0a6fb1c032088be67437e93e8f4b5dbb9461a5a`.
+- Dedicated test-only `issue300-r2-w7-acceptance-*` resource, owned
+  `D:\kndoom\valet-platform\tmp\issue300-r2-w7-acceptance-*\data\`,
+  unique PG/API/Dashboard loopback ports, exact Docker container ID and
+  labels, PG **17.10**, known bundle SHA256, 96 completed migrations,
+  dedicated guest VM and approved runtime/fixture roles.
+- `issue300-w8-target.mjs` enforces test NODE_ENV, opt-in, exclusive
+  unexpired W8 lease, Prime-approved capacity flag, clean committed source
+  SHA, exact compiled API bundle bytes, Docker identity and D-drive bind,
+  no legacy/shared ports. Missing evidence fails before connecting.
+- Private DB URL and bearer/roster are **environment/file inputs only**;
+  do not commit or print them. Only expected source statistics and timing
+  metadata enter reports; original `tmp/` is gitignored.
+- Base `scripts/issue300-closure-load-proof.mjs` is reused, with strict
+  owned W7 DB/port/candidate/lease/bundle binding in place of legacy
+  `issue300_r2:57285`. Existing default production/U05 guards are untouched.
+
+## Entry points (all under 300 physical lines)
+
+| File | Function / truthful evidence |
+| --- | --- |
+| `issue300-w8-target.mjs` | Rejects non-owned resource, stale lease, human ports, dirty SHA, wrong API build and container |
+| `issue300-w8-fixture.mjs` | Deterministic PostgreSQL **synthetic-only** four-source history generator at exactly 100k or 1m; counted and tier-tagged |
+| `issue300-w8-oracle.mjs` | Independent runtime-role READ-ONLY exact-source-ID count and born-XID verification at tier, with Session count |
+| `issue300-w8-paths.mjs` | Scoped endpoint/fixture count → strict W7 load-path artifact, explicitly marked synthetic |
+| `issue300-w8-writer-clients.mjs` | Distinct real staff API clients, supported Incident POST and key-slot assignment, persisted Incident/Audit or custody evidence; 2 or 8 actual client IDs |
+| `issue300-w8-run.mjs` | One single heavy lease at a time: separately measured 600s writer-only baseline, then 630s real writers enveloping 600s genuine HTTP readers |
+| `issue300-w8-cold.mjs` | **20 owned guest OS resets per endpoint**, distinct boot IDs and container identity, exactly one first post-boot HTTP GET; rejects PG-only restart and repeats |
+| `issue300-w8-plans.mjs` | Three actual-runtime-role `EXPLAIN (ANALYZE, BUFFERS, WAL, FORMAT JSON)` plans from current source SQL; statement/plan SHA256, IO/buffers/spills |
+| `issue300-closure-load-proof.mjs` | W7 reused 600s/5 or 25 HTTP readers, ≥1,000 successes per endpoint, p95 budgets, real writer baseline ≤20% **and** ≤100ms increase, full cold/plan requirements |
+| `issue300-w8-harness.test.mjs` | No-DB negative tests for target isolation, supported tiers, real writer roster and cold-boot evidence |
+
+### Staging and replay contract
+
+Only after Prime integrates the reviewed commit and explicitly grants an
+**exclusive fresh W8 lease** with adequate stable capacity:
+
+1. Build/test the **exact integrated candidate SHA**, generate an API bundle
+   checksum, provision a new W7-labelled PostgreSQL 17.10 inside a genuinely
+   W8-owned guest on D:, apply **fresh migrations 0→96**, check ordinary-role
+   grants/trigger security and create an Owner-attested local-only resource
+   manifest with `candidateSha`, `leaseId`, `lease` (owner, exclusive,
+   issued/expires), `resource` (container ID/name, labels, D: bind and
+   volume ID, ports, PG minor, role identities, bundle digest and VM UUID),
+   `scope`, `fixtureSeed`, `targetTier`, `endpoints` and `planProbe`.
+   Never point this harness at old W7:58385, human :57285/3114/3165 or G2.
+2. Provision safe CA/LM assurance, test-only staff authorization, 2 or 8
+   uniquely named writer credentials and independently created per-client
+   Sessions/slots with actual canonical prior state. Private bearer and
+   passwords remain in ignored D-drive files, never in the manifest/reports.
+3. For **100k**: run `issue300-w8-fixture.mjs` once with
+   `ISSUE300_W8_FIXTURE_ACK=SYNTHETIC_ONLY` and independent, limited fixture
+   DB role. Require four source counts of **25,000** each and **1,000**
+   deterministic Sessions, plus evidence-born XIDs. Keep all SQL-generated
+   source history labelled synthetic; **do not** count it as domain writes.
+   The ID oracle rechecks the actual rows at runtime.
+4. Bind the source hash and independently authorized HTTP paths in the W8
+   manifest. Generate `issue300-w8-paths.mjs` output. Run
+   `issue300-w8-plans.mjs` under the ordinary runtime role and save unredacted
+   JSON plans in task-private ignored local artifacts; do not paste sensitive
+   SQL parameters or bearer into visible logs.
+5. Run `issue300-w8-cold.mjs` **without concurrent writers**, after the
+   approved guest's boot evidence writer is installed. Each endpoint requires
+   20 distinct **guest OS** boot IDs, matching PG container identity, isolated
+   boot timestamp and one first request, **not** 20 warm retries. Never
+   flush global host caches or restart shared Docker/WSL.
+6. Run `issue300-w8-run.mjs` in `baseline` with **two writer clients** for
+   ≥600s, then `normal` with **two writer clients and five independent
+   HTTP readers** for ≥600s. Require ≥1,000 HTTP200/no-store samples each
+   for Search/Timeline/detail and zero writer failures/deadlocks/lock
+   timeouts. Continue separately with eight-client writer-only baseline
+   (set `ISSUE300_W8_BASELINE_WRITERS=8`) and `stress`: **eight real writer
+   clients + 25 readers for 600s**. The runner overlaps actual writers,
+   not background SQL fixture insertion.
+7. Increase the same owned deterministic seed from 100k to **1,000,000**
+   synthetic source rows, each source count now **250,000**, Sessions
+   **10,000**; independently verify the count and reissue tier-bound
+   artifacts. Repeat steps 4–6. Keep stage runs sequential, not overlapping
+   the other agents' DB or human services.
+8. For every tier and phase save: candidate SHA, data hash, PG identity,
+   migration checksums/role evidence, real writer effects and p95 baseline/
+   delta, raw HTTP samples, plan JSON, CPU/RAM/IO/pool waits, cold boot
+   IDs and actual source counts/skew. Mark **GAP** if *any* required evidence
+   is absent. Delete/release only the exact owned VM/PG/volume after verifying
+   exclusive custody.
+
+Warm HTTP p95 thresholds: Search **≤1,500ms**, Timeline **≤750ms**,
+detail **≤400ms**. Cold p95 after independent reset: **≤3,000/1,500/800ms**.
+Concurrent operational writer p95 must degrade **≤20% and ≤100ms** versus
+the **same** tier/client-count writer-only baseline; zero unexpected
+deadlocks/lock timeouts/failed commands. Stress is a capacity characterization
+and never substitutes for normal acceptance.
+
+### Important limits — independent review required
+
+- A prepared external resource manifest is an attestation **input**, not
+  proof of live lease authorization or capacity. Prime must issue one.
+- Incident and key-slot endpoints are actual supported domain commands,
+  but writer credentials/active shifts and permitted initial Session/slot
+  fixtures still require W7-authenticated operational setup.
+- The synthetic generator does not create one million real check-ins, nor
+  does it attest foreign-noise/inactive-actor distribution without a separate
+  independently audited skew fixture. Full U-004 mix/skew qualification
+  therefore remains **GAP** until the live oracle demonstrates it.
+- The detail SQL plan captures the same persisted timeline source lookup
+  used by detail; separately measured HTTP detail includes any other read
+  stages. The three SQL plans must **not** be portrayed as whole HTTP plans.
+- Cold certification presupposes a guest-generated boot attestation tying
+  the very same PG container to the same dedicated VM. An external Docker
+  Desktop container plus an unrelated VM reset cannot pass as cold.
+- No U-004 test run, seeded database, 600-second reader/writer period or
+  20-reset series was executed as part of this code-only change. These
+  require independent review and Prime's exclusive capacity lease.
