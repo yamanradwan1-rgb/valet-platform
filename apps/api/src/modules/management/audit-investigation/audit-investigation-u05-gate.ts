@@ -1,4 +1,4 @@
-import { readR2ProofAttestation } from "./audit-investigation-u05-proof-attestation";
+import { r2OwnedProofTarget, readR2ProofAttestation } from "./audit-investigation-u05-proof-attestation";
 
 /** The approved R2 test lane is neither a production feature flag nor an
  * attestation on its own. W6 must first attest the exact disposable cluster,
@@ -18,7 +18,10 @@ function proofTarget(): "G2" | "R2" | null {
       return null;
     if (target.port === "55480" && target.pathname === "/issue300_g2")
       return "G2";
-    if (target.port === "57285" && target.pathname === "/issue300_r2")
+    if (target.port === String(r2OwnedProofTarget.port) &&
+        target.pathname === `/${r2OwnedProofTarget.database}` &&
+        decodeURIComponent(target.username) === r2OwnedProofTarget.runtimeRole &&
+        target.password.length > 0)
       return "R2";
     return null;
   } catch {

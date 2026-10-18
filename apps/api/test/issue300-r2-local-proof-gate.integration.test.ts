@@ -1,5 +1,5 @@
-import { createHash } from "node:crypto";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { createHash, generateKeyPairSync, sign } from "node:crypto";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -13,6 +13,7 @@ import {
   U05IndirectCohortNotStable,
 } from "../src/modules/management/audit-investigation/audit-investigation-u05-indirect-guard";
 import { r2ApiBundleDigest } from "../src/modules/management/audit-investigation/audit-investigation-u05-proof-attestation";
+import { r2OwnedProofTarget } from "../src/modules/management/audit-investigation/audit-investigation-u05-proof-attestation";
 
 const keys = [
   "NODE_ENV",
@@ -42,12 +43,12 @@ afterEach(() => {
 function r2Proof() {
   process.env.NODE_ENV = "test";
   process.env.DATABASE_URL =
-    "postgresql://example:example@127.0.0.1:57285/issue300_r2";
+    "postgresql://issue300_r2_w7_runtime_v2:example@127.0.0.1:58387/issue300_r2_w7_acceptance_v2";
   process.env.ISSUE300_U05_G2_PROOF_ENABLE = "1";
   process.env.ISSUE300_R2_PROOF_LEASE_ID = "issue300-r2-owned-proof-001";
   process.env.ISSUE300_R2_CANDIDATE_SHA = "a".repeat(40);
   process.env.ISSUE300_R2_ATTESTATION_SHA256 = "b".repeat(64);
-  process.env.ISSUE300_R2_RUNTIME_ROLE = "issue300_r2_w6_runtime";
+  process.env.ISSUE300_R2_RUNTIME_ROLE = r2OwnedProofTarget.runtimeRole;
 }
 
 const scope = {
@@ -63,13 +64,37 @@ function createProof(overrides: Record<string, unknown> = {}) {
   const dir = mkdtempSync(join(tmpdir(), "issue300-r2-gate-"));
   created.push(dir);
   const path = join(dir, "attestation.json");
-  const build = join(dir, "dist");
-  mkdirSync(build);
+  const build = join(dir, "apps/api/dist");
+  mkdirSync(build, { recursive: true });
   const main = join(build, "main.js");
   writeFileSync(main, "// synthetic test API entrypoint");
   writeFileSync(join(build, "indirect-guard.js"), "// compiled module v1");
   process.argv[1] = main;
   const now = Date.now();
+  const checksums = Object.fromEntries([
+    ...Array.from({ length: 92 }, (_, i) =>
+      [`2024010100${String(i).padStart(4, "0")}_synthetic_${i}`,
+        createHash("sha256").update(String(i)).digest("hex")]),
+    ["20260919004500_mgt_fix_02_pagination_snapshot_membership", "c".repeat(64)],
+    ["20261018009400_issue_300_u05_birth_xid", "d".repeat(64)],
+    ["20261018009500_issue_300_option_b_task_relation_provenance", "e".repeat(64)],
+    ["20261018009600_issue_300_option_b_attribution_freeze", "f".repeat(64)],
+  ]);
+  const hash = (value: string) => createHash("sha256").update(value).digest("hex");
+  const manifest = {
+    ...r2OwnedProofTarget, containerId: "f".repeat(64),
+    candidateSha: process.env.ISSUE300_R2_CANDIDATE_SHA,
+    leaseId: process.env.ISSUE300_R2_PROOF_LEASE_ID,
+    postgresStartedAt: new Date(now - 60_000).toISOString(),
+    apiBundleSha256: r2ApiBundleDigest(main), migrationChecksums: checksums,
+  };
+  const manifestFile = join(dir, "tmp/issue300-r2-w7-acceptance-v2-owned/R2_OWNED_RESOURCE_MANIFEST.json");
+  mkdirSync(dirname(manifestFile), { recursive: true });
+  const manifestBytes = JSON.stringify(manifest);
+  writeFileSync(manifestFile, manifestBytes);
+  const migrationLedgerSha256 = hash(Object.entries(checksums)
+    .sort(([a], [b]) => a.localeCompare(b, "en"))
+    .map(([name, sum]) => `${name}:${sum}`).join("\n"));
   const proof = {
     project: "issue300",
     mode: "ISOLATED_PROOF_CANDIDATE",
@@ -77,17 +102,11 @@ function createProof(overrides: Record<string, unknown> = {}) {
     candidateSha: process.env.ISSUE300_R2_CANDIDATE_SHA,
     issuedAt: new Date(now - 1000).toISOString(),
     expiresAt: new Date(now + 50_000).toISOString(),
-    database: "issue300_r2",
-    host: "127.0.0.1",
-    port: 57285,
-    serverVersionNum: 170010,
-    postgresStartedAt: new Date(Date.now() - 60_000).toISOString(),
+    ...r2OwnedProofTarget,
+    postgresStartedAt: manifest.postgresStartedAt,
     apiBundleSha256: r2ApiBundleDigest(main),
-    containerName: "issue300_r2_pg17",
     containerId: "f".repeat(64),
-    containerLabel: "issue300-r2",
-    volume: "issue300_r2_pgdata",
-    runtimeRole: "issue300_r2_w6_runtime",
+    resourceManifestSha256: hash(manifestBytes), migrationLedgerSha256,
     actualRoleVerified: true,
     migrationsApplied: 96,
     birthTriggers: 12,
@@ -129,7 +148,7 @@ describe("Issue300 R2 isolated HTTP cohort proof gate", () => {
   it("is disabled without candidate attestation and explicit opt-in", () => {
     process.env.NODE_ENV = "test";
     process.env.DATABASE_URL =
-      "postgresql://user:pass@127.0.0.1:57285/issue300_r2";
+      "postgresql://issue300_r2_w7_runtime_v2:pass@127.0.0.1:58387/issue300_r2_w7_acceptance_v2";
     process.env.ISSUE300_U05_G2_PROOF_ENABLE = "1";
     delete process.env.ISSUE300_R2_ATTESTATION_SHA256;
     expect(isU05LocalProofEnabled()).toBe(false);
@@ -145,10 +164,12 @@ describe("Issue300 R2 isolated HTTP cohort proof gate", () => {
   });
 
   it.each([
-    "postgresql://user:pass@127.0.0.1:5432/issue300_r2",
-    "postgresql://user:pass@localhost:57285/issue300_r2",
-    "postgresql://user:pass@127.0.0.1:57285/postgres",
-    "postgresql://user:pass@127.0.0.1:57285/issue300_r2?sslmode=disable",
+    "postgresql://issue300_r2_w7_runtime_v2:pass@127.0.0.1:57285/issue300_r2",
+    "postgresql://issue300_r2_w7_runtime_v2:pass@127.0.0.1:5432/issue300_r2_w7_acceptance_v2",
+    "postgresql://issue300_r2_w7_runtime_v2:pass@localhost:58387/issue300_r2_w7_acceptance_v2",
+    "postgresql://issue300_r2_w7_runtime_v2:pass@127.0.0.1:58387/postgres",
+    "postgresql://wrong:pass@127.0.0.1:58387/issue300_r2_w7_acceptance_v2",
+    "postgresql://issue300_r2_w7_runtime_v2:pass@127.0.0.1:58387/issue300_r2_w7_acceptance_v2?sslmode=disable",
   ])("rejects an unowned or option-bearing URL", (url) => {
     r2Proof();
     process.env.DATABASE_URL = url;
@@ -172,34 +193,33 @@ describe("Issue300 R2 isolated HTTP cohort proof gate", () => {
     expect(String(query.mock.calls[0]?.[0])).toContain("SELECT EXISTS (");
   });
 
-  it("requires a live real-role/catalog/privilege check before test-only cohort proof", async () => {
+  it("rejects a self-issued JSON/SHA certificate before R2 SQL", async () => {
     createProof();
     process.env.ISSUE300_R2_INDIRECT_HTTP_PROOF_ENABLE = "1";
-    expect(isU05R2IndirectHttpProofCandidate()).toBe(true);
-    const query = vi
-      .fn()
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ valid: false }] })
-      .mockResolvedValueOnce({ rowCount: 1, rows: [{ valid: true }] });
+    expect(isU05R2IndirectHttpProofCandidate()).toBe(false);
+    const query = vi.fn().mockResolvedValue({ rowCount: 1, rows: [{ unsafe: true }] });
     const tx = { query } as unknown as PostgresTransaction;
     await expect(
       requireU05StableIndirectCohort(tx, scope, snapshot),
     ).rejects.toBeInstanceOf(U05IndirectCohortNotStable);
-    await expect(
-      requireU05StableIndirectCohort(tx, scope, snapshot),
-    ).resolves.toBeUndefined();
-    expect(query).toHaveBeenCalledTimes(2);
+    expect(query).toHaveBeenCalledTimes(1);
     const sql = String(query.mock.calls[0]?.[0]);
-    expect(sql).toContain("current_database() = 'issue300_r2'");
-    expect(sql).toContain("current_user = 'issue300_r2_w6_runtime'");
-    expect(sql).toContain("NOT has_table_privilege");
-    expect(sql).toContain("pg_trigger");
-    expect(sql).toContain("AND NOT (a.id = ANY($8::uuid[]))");
+    expect(sql).toContain("SELECT EXISTS (");
   });
 
-  it("refuses mismatch, stale or malformed certificate without querying SQL", async () => {
+  it("rejects a valid Ed25519 signature from any unpinned attacker key", () => {
+    const path = createProof();
+    const { privateKey } = generateKeyPairSync("ed25519");
+    const signature = sign(null, readFileSync(path), privateKey);
+    writeFileSync(`${path}.sig`, signature.toString("base64"));
+    process.env.ISSUE300_R2_INDIRECT_HTTP_PROOF_ENABLE = "1";
+    expect(isU05R2IndirectHttpProofCandidate()).toBe(false);
+  });
+
+  it("refuses unsigned, mismatch, stale or malformed certificates", () => {
     const path = createProof();
     process.env.ISSUE300_R2_INDIRECT_HTTP_PROOF_ENABLE = "1";
-    expect(isU05R2IndirectHttpProofCandidate()).toBe(true);
+    expect(isU05R2IndirectHttpProofCandidate()).toBe(false);
     writeFileSync(path, "{}");
     expect(isU05R2IndirectHttpProofCandidate()).toBe(false);
     createProof({ expiresAt: new Date(Date.now() - 1).toISOString() });
@@ -216,19 +236,40 @@ describe("Issue300 R2 isolated HTTP cohort proof gate", () => {
 
   it("invalidates imported compiled modules even if dist/main.js stays identical", () => {
     const path = createProof();
-    process.env.ISSUE300_R2_INDIRECT_HTTP_PROOF_ENABLE = "1";
-    expect(isU05R2IndirectHttpProofCandidate()).toBe(true);
+    const main = join(dirname(path), "apps/api/dist/main.js");
+    const before = r2ApiBundleDigest(main);
     writeFileSync(
-      join(dirname(path), "dist", "indirect-guard.js"),
+      join(dirname(path), "apps/api/dist", "indirect-guard.js"),
       "// changed module v2",
     );
+    expect(r2ApiBundleDigest(main)).not.toBe(before);
+  });
+
+  it("denies altered 96-checksum resource manifest after attestation", () => {
+    const path = createProof();
+    process.env.ISSUE300_R2_INDIRECT_HTTP_PROOF_ENABLE = "1";
+    expect(isU05R2IndirectHttpProofCandidate()).toBe(false);
+    const manifestPath = join(dirname(path),
+      "tmp/issue300-r2-w7-acceptance-v2-owned/R2_OWNED_RESOURCE_MANIFEST.json");
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+    manifest.migrationChecksums[Object.keys(manifest.migrationChecksums)[0]] = "a".repeat(64);
+    writeFileSync(manifestPath, JSON.stringify(manifest));
     expect(isU05R2IndirectHttpProofCandidate()).toBe(false);
   });
+
+  it.each([{ bindPort: 57285 }, { migrationRole: "postgres" },
+    { volume: "existing_human_data" }, { database: "issue300_r2" }])(
+    "rejects unowned resource field %o", (override) => {
+      createProof(override);
+      process.env.ISSUE300_R2_INDIRECT_HTTP_PROOF_ENABLE = "1";
+      expect(isU05R2IndirectHttpProofCandidate()).toBe(false);
+    },
+  );
 
   it("cannot bypass veto in an unlisted tenant, Location or Search window", async () => {
     createProof();
     process.env.ISSUE300_R2_INDIRECT_HTTP_PROOF_ENABLE = "1";
-    const query = vi.fn();
+    const query = vi.fn().mockResolvedValue({ rowCount: 1, rows: [{ unsafe: true }] });
     const tx = { query } as unknown as PostgresTransaction;
     await expect(
       requireU05StableIndirectCohort(
@@ -243,6 +284,6 @@ describe("Issue300 R2 isolated HTTP cohort proof gate", () => {
         to: "2026-10-18T12:00:00.000Z",
       }),
     ).rejects.toBeInstanceOf(U05IndirectCohortNotStable);
-    expect(query).not.toHaveBeenCalled();
+    expect(query).toHaveBeenCalledTimes(2);
   });
 });

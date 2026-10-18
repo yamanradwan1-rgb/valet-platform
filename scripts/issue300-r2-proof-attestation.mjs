@@ -1,19 +1,24 @@
-// Issue #300 R2: explicitly leased, read-only, disposable runtime attestation.
-// This script never creates fixtures, grants privileges or turns the API gate on.
+/* global process, console, Buffer, URL */
+// R2 leased disposable attestation; never creates fixtures, grants or enables gates.
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
+import { createHash, sign } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  getAttestedTarget,
-  pgClient,
-  validateSource,
-} from "./issue300-closure-migration-proof.mjs";
+import { pgClient, validateSource } from "./issue300-closure-migration-proof.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const owned = join(root, "tmp/issue300-r2-owned");
+const owned = join(root, "tmp/issue300-r2-w7-acceptance-v2-owned");
+// This is the ONLY candidate. Never substitute an operator-supplied host,
+// inherited :57285 human service, wildcard port or production database.
+const exact = Object.freeze({
+  database: "issue300_r2_w7_acceptance_v2", host: "127.0.0.1", port: 58387,
+  bindHost: "127.0.0.1", bindPort: 58387, serverVersionNum: 170010,
+  containerName: "issue300_r2_w7_acceptance_v2_pg17", containerLabel: "issue300-r2-w7-acceptance-v2",
+  volume: "issue300_r2_w7_acceptance_v2_pgdata", migrationRole: "issue300_r2_w7_owner_v2",
+  runtimeRole: "issue300_r2_w7_runtime_v2",
+});
 const names = [
   "20260919004500_mgt_fix_02_pagination_snapshot_membership",
   "20261018009400_issue_300_u05_birth_xid",
@@ -28,19 +33,62 @@ const sourceChecksum = (name) =>
     ),
   );
 
+function ownedConnection(value, role) {
+  let url;
+  try { url = new URL(value ?? ""); }
+  catch { throw Error("Unapproved isolated database URL"); }
+  assert(url.protocol === "postgresql:" && url.hostname === exact.host &&
+    url.port === String(exact.port) && url.pathname === `/${exact.database}` &&
+    decodeURIComponent(url.username) === role && url.password.length > 0 &&
+    url.search === "" && url.hash === "", "Unapproved isolated database URL");
+  return url.href;
+}
+
+/** Static allowlist + Prime's task-owned ignored non-secret manifest + Docker
+ * inspection all have to match before opening either database connection. */
+function getOwnedAttestedTarget(candidateSha, leaseId, apiBundleSha256) {
+  const manifestPath = join(owned, "R2_OWNED_RESOURCE_MANIFEST.json");
+  const bytes = readFileSync(manifestPath);
+  assert(bytes.length > 0 && bytes.length <= 20_480,
+    "Missing or oversized task-owned resource manifest");
+  const manifest = JSON.parse(bytes.toString("utf8"));
+  for (const [key, value] of Object.entries(exact))
+    assert.equal(manifest[key], value, `Unapproved resource ${key}`);
+  assert.equal(manifest.candidateSha, candidateSha);
+  assert.equal(manifest.leaseId, leaseId);
+  assert.equal(manifest.apiBundleSha256, apiBundleSha256);
+  assert.match(manifest.containerId ?? "", /^[a-f0-9]{64}$/);
+  assert(Number.isFinite(Date.parse(manifest.postgresStartedAt)));
+  assert(manifest.migrationChecksums &&
+    Object.keys(manifest.migrationChecksums).length === 96);
+  const docker = JSON.parse(execFileSync("docker", ["inspect", exact.containerName],
+    { encoding: "utf8", windowsHide: true }))[0];
+  const published = docker?.NetworkSettings?.Ports?.["5432/tcp"] ?? [];
+  const volume = docker?.Mounts?.filter((item) => item.Type === "volume" &&
+    item.Name === exact.volume && item.Destination === "/var/lib/postgresql/data");
+  assert(docker?.Id === manifest.containerId &&
+    docker.Name === `/${exact.containerName}` && docker.State?.Running === true &&
+    docker.Config?.Labels?.["com.vaylet.task"] === exact.containerLabel &&
+    volume?.length === 1 && published.length === 1 &&
+    published[0].HostIp === exact.bindHost &&
+    published[0].HostPort === String(exact.bindPort) &&
+    Object.keys(docker?.NetworkSettings?.Ports ?? {}).length === 1,
+  "Docker container/label/volume/bind is not the exact owned resource");
+  const migrationUrl = ownedConnection(
+    process.env.ISSUE300_R2_OWNED_MIGRATION_DATABASE_URL, exact.migrationRole);
+  const runtimeUrl = ownedConnection(
+    process.env.ISSUE300_R2_OWNED_RUNTIME_DATABASE_URL, exact.runtimeRole);
+  return { manifest, manifestSha256: digest(bytes), migrationUrl, runtimeUrl };
+}
+
 function apiBundleHash() {
   const base = join(root, "apps/api/dist");
-  const files = [];
-  const walk = (directory) => {
-    for (const entry of readdirSync(directory, { withFileTypes: true })) {
-      if (files.length > 12000 || entry.isSymbolicLink())
-        throw Error("Unexpected compiled API artifact");
-      const file = join(directory, entry.name);
-      if (entry.isDirectory()) walk(file);
-      else if (entry.isFile()) files.push(file);
-    }
-  };
-  walk(base);
+  const files = readdirSync(base, { withFileTypes: true, recursive: true })
+    .map((entry) => {
+      assert(!entry.isSymbolicLink(), "Unexpected compiled API symlink");
+      return entry.isFile() ? join(entry.parentPath, entry.name) : null;
+    }).filter(Boolean);
+  assert(files.length <= 12000, "Unexpected compiled API artifact count");
   assert(
     files.includes(join(base, "main.js")),
     "Compiled API entrypoint missing",
@@ -122,10 +170,8 @@ async function main() {
     }
   }
 
-  // W6's helper checks exact owner env file, Docker ID, task label, owned
-  // volume, unique loopback port, migration-file bytes and role-derived URL.
-  const target = getAttestedTarget();
-  assert.equal(target.database, "issue300_r2");
+  const apiBundleSha256 = apiBundleHash();
+  const target = getOwnedAttestedTarget(candidateSha, leaseId, apiBundleSha256);
   const admin = pgClient(target.migrationUrl);
   const runtime = pgClient(target.runtimeUrl);
   await Promise.all([admin.connect(), runtime.connect()]);
@@ -137,17 +183,14 @@ async function main() {
         "SELECT current_database() AS name, current_user AS role, current_setting('server_version_num')::int AS version, pg_postmaster_start_time() AS started",
       )
     ).rows[0];
-    assert.equal(identity.name, "issue300_r2");
-    assert.equal(identity.role, "issue300_r2_owner");
-    assert.equal(identity.version, 170010);
-    assert.equal(
-      (
-        await runtime.query(
-          "SELECT current_user AS role, session_user AS login",
-        )
-      ).rows[0].role,
-      target.runtimeRole,
-    );
+    assert.equal(identity.name, exact.database);
+    assert.equal(identity.role, exact.migrationRole);
+    assert.equal(identity.version, exact.serverVersionNum);
+    assert.equal(identity.started.toISOString(), target.manifest.postgresStartedAt);
+    const runtimeIdentity = (await runtime.query(
+      "SELECT current_user AS role, session_user AS login")).rows[0];
+    assert.equal(runtimeIdentity.role, exact.runtimeRole);
+    assert.equal(runtimeIdentity.login, exact.runtimeRole);
     const history = (
       await admin.query(
         "SELECT migration_name, checksum, finished_at, rolled_back_at FROM public._prisma_migrations",
@@ -164,13 +207,18 @@ async function main() {
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name);
     assert.equal(expectedNames.length, 96);
+    assert.equal(Object.keys(target.manifest.migrationChecksums).length, 96);
     for (const name of expectedNames) {
       const found = history.find((entry) => entry.migration_name === name);
       assert(
-        found && found.checksum === sourceChecksum(name),
+        found && found.checksum === sourceChecksum(name) &&
+        target.manifest.migrationChecksums[name] === found.checksum,
         `Complete migration history discrepancy at ${name}`,
       );
     }
+    const migrationLedgerSha256 = digest(Object.entries(target.manifest.migrationChecksums)
+      .sort(([a], [b]) => a.localeCompare(b, "en"))
+      .map(([name, sum]) => `${name}:${sum}`).join("\n"));
     const migrationChecksums = {};
     for (const name of names) {
       const value = history.find((entry) => entry.migration_name === name);
@@ -193,7 +241,7 @@ async function main() {
     const role = (
       await admin.query(
         "SELECT rolsuper, rolcreatedb, rolcreaterole, rolreplication, rolbypassrls, rolinherit FROM pg_roles WHERE rolname=$1",
-        [target.runtimeRole],
+        [exact.runtimeRole],
       )
     ).rows[0];
     assert(role && Object.values(role).every((value) => value === false));
@@ -205,7 +253,6 @@ async function main() {
     assert.equal(denied.audit_update, false);
     assert.equal(denied.ledger_read, false);
     const now = Date.now();
-    const apiBundleSha256 = apiBundleHash();
     const document = {
       project: "issue300",
       mode: "ISOLATED_PROOF_CANDIDATE",
@@ -213,17 +260,12 @@ async function main() {
       candidateSha,
       issuedAt: new Date(now).toISOString(),
       expiresAt: new Date(now + 15 * 60_000).toISOString(),
-      database: "issue300_r2",
-      host: "127.0.0.1",
-      port: 57285,
-      serverVersionNum: 170010,
+      ...exact,
       postgresStartedAt: identity.started.toISOString(),
       apiBundleSha256,
-      containerName: "issue300_r2_pg17",
-      containerId: target.containerId,
-      containerLabel: "issue300-r2",
-      volume: "issue300_r2_pgdata",
-      runtimeRole: target.runtimeRole,
+      resourceManifestSha256: target.manifestSha256,
+      migrationLedgerSha256,
+      containerId: target.manifest.containerId,
       actualRoleVerified: true,
       migrationsApplied: 96,
       birthTriggers: catalog.birth,
@@ -234,6 +276,14 @@ async function main() {
     };
     const bytes = Buffer.from(JSON.stringify(document));
     const path = join(owned, "R2_SIGNED_HTTP_LOCAL_ATTESTATION.json");
+    // Prime owns the ignored key; never print, commit or select it via env.
+    const signature = sign(null, bytes,
+      readFileSync(join(root, "tmp/issue300-r2-v2-prime-owned/issuer-private.pem")));
+    assert.equal(signature.length, 64, "Owner attestation signing failed");
+    // Sidecar first, certificate last as the commit marker. Any interruption
+    // leaves one missing side and the runtime verifier fails closed.
+    writeFileSync(`${path}.sig`, signature.toString("base64"),
+      { flag: "wx", mode: 0o600 });
     writeFileSync(path, bytes, { flag: "wx", mode: 0o600 });
     console.log(
       `PASS task-owned attestation created; SHA256=${digest(bytes)}; valid 15 minutes; no API activation`,

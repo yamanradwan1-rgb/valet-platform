@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, verify } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 
@@ -20,17 +20,22 @@ interface R2ProofAttestation {
   readonly candidateSha: string;
   readonly issuedAt: string;
   readonly expiresAt: string;
-  readonly database: "issue300_r2";
+  readonly database: "issue300_r2_w7_acceptance_v2";
   readonly host: "127.0.0.1";
-  readonly port: 57285;
+  readonly port: 58387;
+  readonly bindHost: "127.0.0.1";
+  readonly bindPort: 58387;
   readonly serverVersionNum: 170010;
   readonly postgresStartedAt: string;
   readonly apiBundleSha256: string;
-  readonly containerName: "issue300_r2_pg17";
+  readonly resourceManifestSha256: string;
+  readonly migrationLedgerSha256: string;
+  readonly containerName: "issue300_r2_w7_acceptance_v2_pg17";
   readonly containerId: string;
-  readonly containerLabel: "issue300-r2";
-  readonly volume: "issue300_r2_pgdata";
-  readonly runtimeRole: "issue300_r2_w6_runtime";
+  readonly containerLabel: "issue300-r2-w7-acceptance-v2";
+  readonly volume: "issue300_r2_w7_acceptance_v2_pgdata";
+  readonly migrationRole: "issue300_r2_w7_owner_v2";
+  readonly runtimeRole: "issue300_r2_w7_runtime_v2";
   readonly actualRoleVerified: true;
   readonly migrationsApplied: 96;
   readonly birthTriggers: 12;
@@ -42,12 +47,57 @@ interface R2ProofAttestation {
 
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 const sha256 = /^[a-f0-9]{64}$/;
+// Prime's reviewed Ed25519 SPKI is pinned at build time. Never take a public
+// key from the local environment, certificate or mutable resource manifest.
+const ownerSigningKeySpki = `-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEApth1azlOHaJPPtirnSl5TB3UcAV/GOuWQeUFRx7wy/c=
+-----END PUBLIC KEY-----`;
+/** Closed local allowlist; never promote an arbitrary manifest-supplied target. */
+export const r2OwnedProofTarget = {
+  database: "issue300_r2_w7_acceptance_v2", host: "127.0.0.1", port: 58387,
+  bindHost: "127.0.0.1", bindPort: 58387,
+  serverVersionNum: 170010, containerName: "issue300_r2_w7_acceptance_v2_pg17",
+  containerLabel: "issue300-r2-w7-acceptance-v2", volume: "issue300_r2_w7_acceptance_v2_pgdata",
+  migrationRole: "issue300_r2_w7_owner_v2",
+  runtimeRole: "issue300_r2_w7_runtime_v2",
+} as const;
 const names = [
   "20260919004500_mgt_fix_02_pagination_snapshot_membership",
   "20261018009400_issue_300_u05_birth_xid",
   "20261018009500_issue_300_option_b_task_relation_provenance",
   "20261018009600_issue_300_option_b_attribution_freeze",
 ] as const;
+
+/** The source-baked resource allowlist and a separately captured exact-owned
+ * manifest must agree before the test-only certificate is considered live. */
+function matchingOwnedManifest(entrypoint: string, proof: R2ProofAttestation): boolean {
+  try {
+    const file = resolve(dirname(resolve(entrypoint)),
+      "../../../tmp/issue300-r2-w7-acceptance-v2-owned/R2_OWNED_RESOURCE_MANIFEST.json");
+    const bytes = readFileSync(file);
+    if (bytes.length === 0 || bytes.length > 20_480 ||
+        createHash("sha256").update(bytes).digest("hex") !== proof.resourceManifestSha256)
+      return false;
+    const manifest = JSON.parse(bytes.toString("utf8")) as R2ProofAttestation;
+    for (const [field, value] of Object.entries(r2OwnedProofTarget)) {
+      if (manifest[field as keyof R2ProofAttestation] !== value) return false;
+    }
+    if (manifest.containerId !== proof.containerId ||
+        manifest.leaseId !== proof.leaseId ||
+        manifest.candidateSha !== proof.candidateSha ||
+        manifest.postgresStartedAt !== proof.postgresStartedAt ||
+        manifest.apiBundleSha256 !== proof.apiBundleSha256 ||
+        !manifest.migrationChecksums ||
+        Object.keys(manifest.migrationChecksums).length !== 96 ||
+        Object.entries(manifest.migrationChecksums).some(([name, sum]) =>
+          !/^\d{14}_[a-z0-9_]+$/.test(name) || !sha256.test(sum))) return false;
+    const ledger = Object.entries(manifest.migrationChecksums)
+      .sort(([a], [b]) => a.localeCompare(b, "en"))
+      .map(([name, sum]) => `${name}:${sum}`).join("\n");
+    return createHash("sha256").update(ledger).digest("hex") === proof.migrationLedgerSha256 &&
+      names.every((name) => proof.migrationChecksums[name] === manifest.migrationChecksums[name]);
+  } catch { return false; }
+}
 
 /** An imported compiled Nest module can change while dist/main.js does not.
  * Attest the complete compiled output, not only the entrypoint. */
@@ -97,7 +147,7 @@ export function readR2ProofAttestation(): R2ProofAttestation | null {
     !sha256.test(expected ?? "") ||
     !/^[a-f0-9]{40}$/.test(candidate ?? "") ||
     !/^issue300-r2-[a-z0-9-]{8,}$/.test(lease ?? "") ||
-    process.env.ISSUE300_R2_RUNTIME_ROLE !== "issue300_r2_w6_runtime"
+    process.env.ISSUE300_R2_RUNTIME_ROLE !== r2OwnedProofTarget.runtimeRole
   )
     return null;
   try {
@@ -107,6 +157,10 @@ export function readR2ProofAttestation(): R2ProofAttestation | null {
       bytes.length > 8192 ||
       createHash("sha256").update(bytes).digest("hex") !== expected
     )
+      return null;
+    const signature = readFileSync(`${path}.sig`, "utf8").trim();
+    if (!/^[A-Za-z0-9+/]{86}==$/.test(signature) ||
+        !verify(null, bytes, ownerSigningKeySpki, Buffer.from(signature, "base64")))
       return null;
     const parsed: unknown = JSON.parse(bytes.toString("utf8"));
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
@@ -125,19 +179,24 @@ export function readR2ProofAttestation(): R2ProofAttestation | null {
       !Number.isFinite(expires) ||
       expires <= now ||
       expires - issued > 15 * 60_000 ||
-      proof.database !== "issue300_r2" ||
-      proof.host !== "127.0.0.1" ||
-      proof.port !== 57285 ||
-      proof.serverVersionNum !== 170010 ||
+      proof.database !== r2OwnedProofTarget.database ||
+      proof.host !== r2OwnedProofTarget.host ||
+      proof.port !== r2OwnedProofTarget.port ||
+      proof.bindHost !== r2OwnedProofTarget.bindHost ||
+      proof.bindPort !== r2OwnedProofTarget.bindPort ||
+      proof.serverVersionNum !== r2OwnedProofTarget.serverVersionNum ||
       !Number.isFinite(Date.parse(proof.postgresStartedAt)) ||
       !sha256.test(proof.apiBundleSha256) ||
+      !sha256.test(proof.resourceManifestSha256) ||
+      !sha256.test(proof.migrationLedgerSha256) ||
       !process.argv[1] ||
       r2ApiBundleDigest(process.argv[1]) !== proof.apiBundleSha256 ||
-      proof.containerName !== "issue300_r2_pg17" ||
+      proof.containerName !== r2OwnedProofTarget.containerName ||
       !sha256.test(proof.containerId) ||
-      proof.containerLabel !== "issue300-r2" ||
-      proof.volume !== "issue300_r2_pgdata" ||
-      proof.runtimeRole !== "issue300_r2_w6_runtime" ||
+      proof.containerLabel !== r2OwnedProofTarget.containerLabel ||
+      proof.volume !== r2OwnedProofTarget.volume ||
+      proof.migrationRole !== r2OwnedProofTarget.migrationRole ||
+      proof.runtimeRole !== r2OwnedProofTarget.runtimeRole ||
       proof.actualRoleVerified !== true ||
       proof.migrationsApplied !== 96 ||
       proof.birthTriggers !== 12 ||
@@ -147,6 +206,7 @@ export function readR2ProofAttestation(): R2ProofAttestation | null {
       names.some(
         (name) => !sha256.test(proof.migrationChecksums[name] ?? ""),
       ) ||
+      !matchingOwnedManifest(process.argv[1], proof) ||
       !Array.isArray(proof.allowedCohorts) ||
       proof.allowedCohorts.length !== 1 ||
       proof.allowedCohorts[0] !== "SIGNED_HTTP_SOURCE_PARENT_CANDIDATE" ||
