@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { expect, test } from "@playwright/test";
 import {
   consumeOneTimeMfaState, readOneTimeMfaState,
+  firstTimelineCollector, readOwnedBrowserAttestation,
   requireOwnedBrowserTarget, requireSignedContinuation,
 } from "./issue300-browser-safety";
 
@@ -13,13 +14,18 @@ const storageState = process.env.ISSUE300_W7_BROWSER_STORAGE_STATE;
 const scenarioFile = process.env.ISSUE300_W7_BROWSER_SCENARIO;
 const lease = process.env.ISSUE300_W7_EXCLUSIVE_LEASE;
 const candidate = process.env.ISSUE300_R2_CANDIDATE_SHA;
+const testOnly = process.env.ISSUE300_W7_TEST_ONLY_BROWSER_PROOF;
+const attestationFile = process.env.ISSUE300_W7_BROWSER_OWNER_ATTESTATION_FILE;
+const pinnedDigest = process.env.ISSUE300_W7_BROWSER_OWNER_ATTESTATION_SHA256;
 // A static HttpOnly refresh cookie MUST NOT be replayed in 34 new contexts:
 // replaying an already-rotated cookie revokes the underlying Staff session.
 const singleCase = process.env.ISSUE300_W7_SINGLE_FRESH_MFA_CASE;
-if (baseURL) requireOwnedBrowserTarget(baseURL, "/audit-log");
 const ready = Boolean(
-  baseURL && storageState && scenarioFile && lease && candidate && singleCase,
+  baseURL && storageState && scenarioFile && lease && candidate && singleCase &&
+  testOnly === "1" && attestationFile && pinnedDigest,
 );
+const target = ready ? readOwnedBrowserAttestation({ baseURL: baseURL!, candidateSha: candidate!,
+  leaseId: lease!, testOnly, attestationFile: attestationFile!, pinnedDigest: pinnedDigest! }) : null;
 test.skip(
   !ready,
   "GAP: independent one-time MFA session/lease and single browser case required",
@@ -27,8 +33,6 @@ test.skip(
 // The credential is read and validated only when the full owned session/lease
 // context is present. Playwright receives these captured bytes as an object,
 // not a path it could re-read after the one-use marker is claimed.
-const frozenState = ready ? readOneTimeMfaState(storageState!) : undefined;
-if (baseURL && frozenState) test.use({ baseURL, storageState: frozenState });
 test.use({ trace: "off", screenshot: "off", video: "off" });
 const scenario = ready
   ? (JSON.parse(readFileSync(resolve(scenarioFile!), "utf8")) as {
@@ -47,8 +51,11 @@ const scenario = ready
 if (scenario) {
   expect(scenario.candidateSha).toBe(candidate);
   expect(scenario.leaseId).toBe(lease);
-  requireOwnedBrowserTarget(baseURL!, scenario.auditPath);
+  requireOwnedBrowserTarget(baseURL!, "/audit-log", target!);
+  requireOwnedBrowserTarget(baseURL!, scenario.auditPath, target!);
 }
+const frozenState = ready ? readOneTimeMfaState(storageState!) : undefined;
+if (baseURL && frozenState) test.use({ baseURL, storageState: frozenState });
 test.beforeAll(() => {
   if (ready && frozenState) consumeOneTimeMfaState(frozenState);
 });
@@ -124,8 +131,11 @@ safeOneTimeCase("T56/T57/T58/T70: actual authorized UI pagination and failure re
 }) => {
   const requests: { path: string; status: number }[] = [];
   const actualSourceKeys: string[] = [];
+  const firstTimeline = firstTimelineCollector(baseURL!, scenario!.expectedSessionUuid);
   page.on("response", (response) => {
-    const path = new URL(response.url()).pathname;
+    const url = new URL(response.url());
+    const path = url.pathname;
+    firstTimeline.capture(response);
     if (
       path.includes("/audit-investigations/") ||
       path.endsWith("/audit-events")
@@ -173,14 +183,13 @@ safeOneTimeCase("T56/T57/T58/T70: actual authorized UI pagination and failure re
   const expectedResult = results.filter({ hasText: scenario!.expectedSessionUuid });
   await expect(expectedResult).toHaveCount(1);
   await expect(expectedResult).toBeVisible();
-  const firstTimeline = page.waitForResponse((response) => {
-    const path = new URL(response.url()).pathname;
-    return path.includes("/audit-investigations/sessions/") &&
-      path.endsWith(`/${scenario!.expectedSessionUuid}/timeline`);
-  });
   await expectedResult.click();
-  const firstTimelineReply = await firstTimeline;
+  // The controller auto-loads the first Search result before a user click.
+  // The response listener above is installed BEFORE submitting Search.
+  await expect.poll(() => firstTimeline.first).not.toBeNull();
+  const firstTimelineReply = firstTimeline.first!;
   expect(firstTimelineReply.status()).toBe(200);
+  expect(firstTimelineReply.headers()["cache-control"]).toContain("no-store");
   const timelinePage = await firstTimelineReply.json();
   expect(typeof timelinePage.snapshotAt).toBe("string");
   expect(Array.isArray(timelinePage.items)).toBe(true);
