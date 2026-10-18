@@ -274,7 +274,7 @@ if (phase === "capture") {
   assert.notEqual((await get(fixture.searchPath, null)).status, 200, "Anonymous request unexpectedly authorized");
   console.log(
     JSON.stringify({
-      verdict: fixture.writerKind === "ACTUAL_DOMAIN_WRITER" ? "PASS" : "PARTIAL",
+      verdict: fixture.writerKind === "ACTUAL_DOMAIN_WRITER" && phase === "verify" ? "PASS" : "PARTIAL",
       sourceFixtureKind: fixture.writerKind,
       proof:
         phase === "verify"
