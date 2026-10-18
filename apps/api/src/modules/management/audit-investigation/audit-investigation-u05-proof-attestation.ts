@@ -30,6 +30,7 @@ interface R2ProofAttestation {
   readonly apiBundleSha256: string;
   readonly resourceManifestSha256: string;
   readonly migrationLedgerSha256: string;
+  readonly guardFunctionsSha256: string;
   readonly containerName: "issue300_r2_w7_acceptance_v2_pg17";
   readonly containerId: string;
   readonly containerLabel: "issue300-r2-w7-acceptance-v2";
@@ -189,6 +190,7 @@ export function readR2ProofAttestation(): R2ProofAttestation | null {
       !sha256.test(proof.apiBundleSha256) ||
       !sha256.test(proof.resourceManifestSha256) ||
       !sha256.test(proof.migrationLedgerSha256) ||
+      !sha256.test(proof.guardFunctionsSha256) ||
       !process.argv[1] ||
       r2ApiBundleDigest(process.argv[1]) !== proof.apiBundleSha256 ||
       proof.containerName !== r2OwnedProofTarget.containerName ||
@@ -253,9 +255,9 @@ export function r2ProofApprovedAuditIds(
   organizationId: string,
   locationId: string,
   window?: { readonly from: string; readonly to: string },
+  signedProof: R2ProofAttestation | null = readR2ProofAttestation(),
 ): readonly string[] | null {
-  const proof = readR2ProofAttestation();
-  const scope = proof?.allowedScopes.find(
+  const scope = signedProof?.allowedScopes.find(
     (item) =>
       item.organizationId === organizationId &&
       item.locationId === locationId &&

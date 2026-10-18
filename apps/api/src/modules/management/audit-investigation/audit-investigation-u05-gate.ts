@@ -47,9 +47,16 @@ export function isU05LocalProofEnabled(): boolean {
  * This flag never changes the ordinary/default HTTP 503 path.
  */
 export function isU05R2IndirectHttpProofCandidate(): boolean {
-  return (
-    isU05LocalProofEnabled() &&
-    proofTarget() === "R2" &&
-    process.env.ISSUE300_R2_INDIRECT_HTTP_PROOF_ENABLE === "1"
-  );
+  return readU05R2IndirectProofCandidate() !== null;
+}
+
+/** One certificate evaluation for the R2 indirect guard's CURRENT request.
+ * Do not cache attestations or authorization across HTTP requests.
+ */
+export function readU05R2IndirectProofCandidate() {
+  if (process.env.NODE_ENV !== "test" ||
+      process.env.ISSUE300_U05_G2_PROOF_ENABLE !== "1" ||
+      process.env.ISSUE300_R2_INDIRECT_HTTP_PROOF_ENABLE !== "1" ||
+      proofTarget() !== "R2") return null;
+  return readR2ProofAttestation();
 }

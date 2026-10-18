@@ -7,6 +7,9 @@ import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { pgClient, validateSource } from "./issue300-closure-migration-proof.mjs";
+import { r2ApiBundleHash } from "./issue300-r2-api-bundle-hash.mjs";
+import { readOwnedGuardFunctionHash } from "./issue300-r2-function-fingerprint.mjs";
+import { requireOwnedScopeEvidence } from "./issue300-r2-scope-proof.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const owned = join(root, "tmp/issue300-r2-w7-acceptance-v2-owned");
@@ -81,29 +84,6 @@ function getOwnedAttestedTarget(candidateSha, leaseId, apiBundleSha256) {
   return { manifest, manifestSha256: digest(bytes), migrationUrl, runtimeUrl };
 }
 
-function apiBundleHash() {
-  const base = join(root, "apps/api/dist");
-  const files = readdirSync(base, { withFileTypes: true, recursive: true })
-    .map((entry) => {
-      assert(!entry.isSymbolicLink(), "Unexpected compiled API symlink");
-      return entry.isFile() ? join(entry.parentPath, entry.name) : null;
-    }).filter(Boolean);
-  assert(files.length <= 12000, "Unexpected compiled API artifact count");
-  assert(
-    files.includes(join(base, "main.js")),
-    "Compiled API entrypoint missing",
-  );
-  const hash = createHash("sha256");
-  for (const file of files.sort((a, b) => a.localeCompare(b, "en"))) {
-    hash
-      .update(file.slice(base.length + 1).replaceAll("\\", "/"))
-      .update("\0")
-      .update(readFileSync(file))
-      .update("\0");
-  }
-  return hash.digest("hex");
-}
-
 async function main() {
   validateSource();
   if (!process.argv.includes("--issue")) {
@@ -170,7 +150,7 @@ async function main() {
     }
   }
 
-  const apiBundleSha256 = apiBundleHash();
+  const apiBundleSha256 = r2ApiBundleHash(join(root, "apps/api/dist"));
   const target = getOwnedAttestedTarget(candidateSha, leaseId, apiBundleSha256);
   const admin = pgClient(target.migrationUrl);
   const runtime = pgClient(target.runtimeUrl);
@@ -191,6 +171,7 @@ async function main() {
       "SELECT current_user AS role, session_user AS login")).rows[0];
     assert.equal(runtimeIdentity.role, exact.runtimeRole);
     assert.equal(runtimeIdentity.login, exact.runtimeRole);
+    await requireOwnedScopeEvidence(admin, allowedScopes);
     const history = (
       await admin.query(
         "SELECT migration_name, checksum, finished_at, rolled_back_at FROM public._prisma_migrations",
@@ -238,6 +219,7 @@ async function main() {
     ).rows[0];
     assert.equal(catalog.birth, 12);
     assert.equal(catalog.immutable, 6);
+    const guardFunctionsSha256 = await readOwnedGuardFunctionHash(admin);
     const role = (
       await admin.query(
         "SELECT rolsuper, rolcreatedb, rolcreaterole, rolreplication, rolbypassrls, rolinherit FROM pg_roles WHERE rolname=$1",
@@ -270,12 +252,16 @@ async function main() {
       migrationsApplied: 96,
       birthTriggers: catalog.birth,
       immutableTriggers: catalog.immutable,
+      guardFunctionsSha256,
       migrationChecksums,
       allowedCohorts: ["SIGNED_HTTP_SOURCE_PARENT_CANDIDATE"],
       allowedScopes,
     };
     const bytes = Buffer.from(JSON.stringify(document));
-    const path = join(owned, "R2_SIGNED_HTTP_LOCAL_ATTESTATION.json");
+    // Each short-lived certificate is immutable. An expired or interrupted
+    // previous issue must never be overwritten or silently reused.
+    const path = join(owned,
+      `R2_SIGNED_HTTP_LOCAL_ATTESTATION_${candidateSha.slice(0, 12)}_${now}_${leaseId}.json`);
     // Prime owns the ignored key; never print, commit or select it via env.
     const signature = sign(null, bytes,
       readFileSync(join(root, "tmp/issue300-r2-v2-prime-owned/issuer-private.pem")));
@@ -286,7 +272,7 @@ async function main() {
       { flag: "wx", mode: 0o600 });
     writeFileSync(path, bytes, { flag: "wx", mode: 0o600 });
     console.log(
-      `PASS task-owned attestation created; SHA256=${digest(bytes)}; valid 15 minutes; no API activation`,
+      `PASS task-owned attestation created; path=${path}; SHA256=${digest(bytes)}; valid 15 minutes; no API activation`,
     );
   } finally {
     await Promise.allSettled([

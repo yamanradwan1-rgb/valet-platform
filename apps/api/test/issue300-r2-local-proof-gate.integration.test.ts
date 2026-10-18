@@ -252,7 +252,9 @@ describe("Issue300 R2 isolated HTTP cohort proof gate", () => {
     const manifestPath = join(dirname(path),
       "tmp/issue300-r2-w7-acceptance-v2-owned/R2_OWNED_RESOURCE_MANIFEST.json");
     const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
-    manifest.migrationChecksums[Object.keys(manifest.migrationChecksums)[0]] = "a".repeat(64);
+    const firstMigration = Object.keys(manifest.migrationChecksums)[0];
+    if (!firstMigration) throw new Error("Test fixture has no migration ledger");
+    manifest.migrationChecksums[firstMigration] = "a".repeat(64);
     writeFileSync(manifestPath, JSON.stringify(manifest));
     expect(isU05R2IndirectHttpProofCandidate()).toBe(false);
   });

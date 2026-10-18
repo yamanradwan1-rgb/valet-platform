@@ -1,8 +1,7 @@
 import type { PostgresTransaction } from "../../../common/database/postgres";
 import type { AuditInvestigationLocationAuthorization } from "./security/audit-investigation-authorization";
-import { isU05R2IndirectHttpProofCandidate } from "./audit-investigation-u05-gate";
+import { readU05R2IndirectProofCandidate } from "./audit-investigation-u05-gate";
 import {
-  readR2ProofAttestation,
   r2ProofApprovedAuditIds,
 } from "./audit-investigation-u05-proof-attestation";
 
@@ -20,7 +19,8 @@ export async function requireU05StableIndirectCohort(
   snapshot: { readonly cutoff: string; readonly database: string },
   window?: { readonly from: string; readonly to: string },
 ): Promise<void> {
-  if (isU05R2IndirectHttpProofCandidate()) {
+  const proof = readU05R2IndirectProofCandidate();
+  if (proof) {
     // The independently issued certificate permits ONLY this precise scope /
     // discovery window. No other Location/cohort can bypass the conservative
     // veto. The source/parent XID fences and fresh authorization still apply.
@@ -28,10 +28,9 @@ export async function requireU05StableIndirectCohort(
       scope.organizationId,
       scope.locationId,
       window,
+      proof,
     );
     if (approvedAuditIds === null) throw new U05IndirectCohortNotStable();
-    const proof = readR2ProofAttestation();
-    if (!proof) throw new U05IndirectCohortNotStable();
     const attested = await tx.query<{ readonly valid: boolean }>(
       `WITH birth(name, table_name) AS (VALUES
          ('audit_events_pagination_birth_insert','audit_events'),
@@ -67,6 +66,17 @@ export async function requireU05StableIndirectCohort(
          AND session_user = $10::text
          AND current_setting('server_version_num')::integer = 170010
          AND date_trunc('milliseconds', pg_postmaster_start_time()) = $1::timestamptz
+         AND (SELECT count(*) = 3 AND
+                encode(sha256(convert_to(
+                  string_agg(p.proname || ':' || pg_get_functiondef(p.oid),
+                    chr(10) ORDER BY p.proname COLLATE "C"), 'UTF8'
+                )), 'hex') = $11::text
+              FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+              WHERE n.nspname='public' AND p.proname IN (
+                'management_pagination_preserve_birth_xid',
+                'issue300_prevent_relation_rewrite',
+                'issue300_prevent_attribution_rewrite')
+                AND pg_get_function_identity_arguments(p.oid)='')
          AND to_regclass('public._prisma_migrations') IS NOT NULL
          AND NOT has_table_privilege(current_user, 'public._prisma_migrations', 'SELECT')
          AND (SELECT count(*) = 12 FROM birth b JOIN enabled e
@@ -166,6 +176,7 @@ export async function requireU05StableIndirectCohort(
         approvedAuditIds,
         proof.database,
         proof.runtimeRole,
+        proof.guardFunctionsSha256,
       ],
     );
     if (attested.rowCount !== 1 || attested.rows[0]?.valid !== true)
