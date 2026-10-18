@@ -54,19 +54,27 @@ evidence AS (
     ON linked_task.organization_id = session.organization_id
    AND linked_task.location_id = session.location_id
    AND linked_task.valet_session_id = session.id
-   AND (
-     (audit.entity_type IN ('Task', 'TASK') AND audit.entity_id = linked_task.id)
-     OR (audit.entity_type NOT IN ('Task', 'TASK')
-         AND audit.event_type = 'VALET_SESSION_PARKED'
-         AND linked_task.task_type = 'PARKING'
-         AND linked_task.id::text = audit.metadata_json->>'taskId')
-   )
+   AND audit.entity_type IN ('Task', 'TASK')
+   AND audit.entity_id = linked_task.id
+   AND ($7::pg_snapshot IS NULL OR linked_task.pagination_birth_xid IS NULL OR
+     pg_visible_in_snapshot(linked_task.pagination_birth_xid, $7::pg_snapshot))
+  LEFT JOIN tasks AS parked_task
+    ON parked_task.organization_id = session.organization_id
+   AND parked_task.location_id = session.location_id
+   AND parked_task.valet_session_id = session.id
+   AND parked_task.task_type = 'PARKING'
+   AND audit.event_type = 'VALET_SESSION_PARKED'
+   AND parked_task.id::text = audit.metadata_json->>'taskId'
+   AND ($7::pg_snapshot IS NULL OR parked_task.pagination_birth_xid IS NULL OR
+     pg_visible_in_snapshot(parked_task.pagination_birth_xid, $7::pg_snapshot))
   LEFT JOIN incidents AS linked_incident
     ON linked_incident.organization_id = session.organization_id
    AND linked_incident.location_id = session.location_id
    AND linked_incident.valet_session_id = session.id
    AND audit.entity_type IN ('Incident', 'INCIDENT')
    AND audit.entity_id = linked_incident.id
+   AND ($7::pg_snapshot IS NULL OR linked_incident.pagination_birth_xid IS NULL OR
+     pg_visible_in_snapshot(linked_incident.pagination_birth_xid, $7::pg_snapshot))
   WHERE (
     audit.valet_session_id = session.id
     OR (audit.valet_session_id IS NULL AND (
@@ -75,9 +83,7 @@ evidence AS (
       OR (audit.entity_type IN ('Task', 'TASK') AND linked_task.id IS NOT NULL)
       OR (audit.entity_type IN ('Incident', 'INCIDENT') AND linked_incident.id IS NOT NULL)
       OR (audit.event_type = 'VALET_SESSION_PARKED'
-          AND linked_task.id IS NOT NULL
-          AND linked_task.task_type = 'PARKING'
-          AND linked_task.id::text = audit.metadata_json->>'taskId')
+          AND parked_task.id IS NOT NULL)
     ))
   )
   AND (
@@ -92,8 +98,17 @@ evidence AS (
         AND audit.entity_id = session.vehicle_id)
   )
   AND (audit.event_type <> 'VALET_SESSION_PARKED'
-       OR audit.metadata_json->>'taskId' IS NULL
-       OR linked_task.id IS NOT NULL)
+       OR NOT (audit.metadata_json ? 'taskId')
+       OR parked_task.id IS NOT NULL)
+  AND (audit.event_type <> 'VALET_SESSION_PARKED'
+       OR audit.entity_type NOT IN ('Task', 'TASK')
+       OR NOT (audit.metadata_json ? 'taskId')
+       OR linked_task.id = parked_task.id)
+  AND (audit.event_type <> 'VALET_SESSION_PARKED'
+       OR audit.entity_type IN ('ValetSession', 'VALET_SESSION', 'Task', 'TASK'))
+  AND (audit.event_type <> 'VALET_SESSION_PARKED'
+       OR audit.entity_type NOT IN ('Task', 'TASK')
+       OR linked_task.task_type = 'PARKING')
   AND ($7::pg_snapshot IS NULL OR audit.pagination_birth_xid IS NULL OR
        pg_visible_in_snapshot(audit.pagination_birth_xid, $7::pg_snapshot))
   AND ($8::timestamptz IS NULL OR audit.created_at <= $8::timestamptz)
@@ -131,6 +146,8 @@ evidence AS (
    AND task.location_id = session.location_id
    AND task.valet_session_id = session.id
    AND task.id = dispatch.task_id
+   AND ($7::pg_snapshot IS NULL OR task.pagination_birth_xid IS NULL OR
+     pg_visible_in_snapshot(task.pagination_birth_xid, $7::pg_snapshot))
    AND ($7::pg_snapshot IS NULL OR dispatch.pagination_birth_xid IS NULL OR
      pg_visible_in_snapshot(dispatch.pagination_birth_xid, $7::pg_snapshot))
    AND ($8::timestamptz IS NULL OR dispatch.created_at <= $8::timestamptz)

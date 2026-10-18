@@ -124,18 +124,25 @@ try {
   );
   await db.query("COMMIT"); pending = false;
   const after = await query();
-  const correlated = (after[0]?.reasons ?? []).map((r) => r.eventId);
   const laterTimeline = await history();
-  const newlyResolved = laterTimeline.filter((r) =>
-    [ids.auditTask,ids.auditIncident].includes(r.id)).map((r) => r.id);
-  assert.equal(after.length,1);
+  assert.equal(after.length,0,
+    "Option B: old S0 cannot admit an Audit linked by a later parent");
+  assert.equal(laterTimeline.length,0,
+    "Option B: old S0 excludes later parent and old indirect Audit");
+  const fresh = (await db.query(
+    `SELECT clock_timestamp() AS now, pg_current_snapshot()::text AS snapshot`
+  )).rows[0];
+  const freshSearch = (await db.query(search.auditInvestigationFirstPageSql, [
+    seed.org,seed.loc,"2026-10-16T11:00:00Z","2026-10-16T12:00:00Z",
+    null,null,null,null,fresh.now,fresh.snapshot,101,null,null,
+    ids.session,known,null,null,
+  ])).rows;
+  assert.equal(freshSearch.length,1);
   assert.ok([ids.auditTask,ids.auditIncident].every((id) =>
-    correlated.includes(id) && newlyResolved.includes(id)));
-  assert.ok(!laterTimeline.some((r) => r.source === "INCIDENT" &&
-    r.id === ids.incident));
+    freshSearch[0].reasons.some((r) => r.eventId === id)));
   await assert.rejects(cohort.requireU05StableIndirectCohort(db, scope, snapshot),
     /U05_INDIRECT_TASK_INCIDENT_COHORT_UNPROVEN/);
-  globalThis.console.log("PASS U05 P0 regression: old S0 can gain indirect Audit Task/Incident after later COMMIT; new snapshot cohort guard REFUSES both Search and Timeline pagination before and after link creation, rather than claiming stable pages.");
+  globalThis.console.log("PASS U05 Option B regression: old S0 remains free of post-snapshot Task/Incident links, fresh snapshot includes them, and old HTTP503 guard still refuses unsafe overfull pagination.");
 } finally {
   if (pending) await db.query("ROLLBACK").catch(() => undefined);
   if (committed) {

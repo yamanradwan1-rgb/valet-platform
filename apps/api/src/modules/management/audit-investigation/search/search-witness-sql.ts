@@ -21,10 +21,14 @@ witnesses AS MATERIALIZED (
       AND a.entity_type IN ('Task', 'TASK')
       AND task_ref.organization_id = $1::uuid
       AND task_ref.location_id = $2::uuid
+      AND (task_ref.pagination_birth_xid IS NULL OR
+        pg_visible_in_snapshot(task_ref.pagination_birth_xid, $10::pg_snapshot))
     LEFT JOIN incidents incident_ref ON incident_ref.id = a.entity_id
       AND a.entity_type IN ('Incident', 'INCIDENT')
       AND incident_ref.organization_id = $1::uuid
       AND incident_ref.location_id = $2::uuid
+      AND (incident_ref.pagination_birth_xid IS NULL OR
+        pg_visible_in_snapshot(incident_ref.pagination_birth_xid, $10::pg_snapshot))
     -- DEC-103 third discovery arm. Text equality avoids casting untrusted
     -- JSON to uuid, and only the canonical PARKED event uses this path.
     LEFT JOIN tasks task_meta ON task_meta.id::text = a.metadata_json->>'taskId'
@@ -32,6 +36,8 @@ witnesses AS MATERIALIZED (
       AND task_meta.task_type = 'PARKING'
       AND task_meta.organization_id = $1::uuid
       AND task_meta.location_id = $2::uuid
+      AND (task_meta.pagination_birth_xid IS NULL OR
+        pg_visible_in_snapshot(task_meta.pagination_birth_xid, $10::pg_snapshot))
     JOIN valet_sessions resolved
       ON resolved.id = COALESCE(a.valet_session_id,
         CASE WHEN a.entity_type IN ('ValetSession', 'VALET_SESSION')
@@ -65,6 +71,20 @@ witnesses AS MATERIALIZED (
      AND (a.event_type <> 'VALET_SESSION_PARKED'
        OR NOT (a.metadata_json ? 'taskId')
        OR (task_meta.id IS NOT NULL AND task_meta.valet_session_id = resolved.id))
+     -- Two independently valid Task references must identify the SAME
+     -- historical Task, not merely two Tasks belonging to one Session.
+     AND (a.event_type <> 'VALET_SESSION_PARKED'
+       OR a.entity_type NOT IN ('Task', 'TASK')
+       OR NOT (a.metadata_json ? 'taskId')
+       OR task_ref.id = task_meta.id)
+     -- The known PARKED writer records a ValetSession entity; a verified
+     -- Task entity is a conservative legacy alternative. A Task metadata
+     -- hint must never certify an unknown or contradictory entity type.
+     AND (a.event_type <> 'VALET_SESSION_PARKED'
+       OR a.entity_type IN ('ValetSession', 'VALET_SESSION', 'Task', 'TASK'))
+     AND (a.event_type <> 'VALET_SESSION_PARKED'
+       OR a.entity_type NOT IN ('Task', 'TASK')
+       OR task_ref.task_type = 'PARKING')
   UNION ALL
   SELECT 'KEY_CUSTODY', k.id, k.valet_session_id, k.occurred_at,
          k.key_slot_id, k.actor_membership_id, NULL::uuid, NULL::uuid, NULL::uuid
@@ -86,6 +106,8 @@ witnesses AS MATERIALIZED (
     JOIN tasks t ON t.organization_id = d.organization_id
       AND t.location_id = d.location_id AND t.id = d.task_id
       AND t.valet_session_id = d.valet_session_id
+      AND (t.pagination_birth_xid IS NULL OR
+        pg_visible_in_snapshot(t.pagination_birth_xid, $10::pg_snapshot))
     JOIN valet_sessions s ON s.organization_id = d.organization_id
       AND s.location_id = d.location_id AND s.id = d.valet_session_id
    WHERE d.organization_id = $1::uuid AND d.location_id = $2::uuid

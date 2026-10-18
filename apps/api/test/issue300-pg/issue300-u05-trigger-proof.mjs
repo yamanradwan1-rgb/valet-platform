@@ -18,7 +18,12 @@ try {
     `SELECT count(*)::integer AS total FROM _prisma_migrations
      WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
   );
-  assert.equal(migrations.rows[0].total, 94);
+  assert.ok(migrations.rows[0].total >= 94);
+  const migration94 = await client.query(
+    `SELECT count(*)::int AS total FROM _prisma_migrations
+     WHERE migration_name='20261018009400_issue_300_u05_birth_xid'
+       AND finished_at IS NOT NULL AND rolled_back_at IS NULL`);
+  assert.equal(migration94.rows[0].total, 1);
   const legacy = await client.query(
     `SELECT 'key_custody_events' AS name, count(*)::int AS total,
       count(*) FILTER (WHERE pagination_birth_xid IS NULL)::int AS null_count

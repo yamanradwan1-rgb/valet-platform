@@ -1,5 +1,19 @@
 # Issue #300 — Independent T01–T70 Acceptance Ledger
 
+> **Option B local follow-up, 2026-10-18 (not a re-approval of the
+> historical 70-row ledger):** independent pre-migration and post-candidate
+> security reviews, forward-only Task relation / attribution migrations
+> 95–96 on dedicated disposable G2 only, held two-connection late-parent
+> S0/S1 Search+Timeline SQL regression, PARKED conflicting-Task negatives
+> and real writer-shaped positives, immutable trigger/ACL checks PASS
+> in their stated subsets. Existing 503 overfull indirect guard remains
+> enabled. Newly linked Audit signed HTTP pagination, comprehensive
+> legacy/anomaly diagnostics, 100k/1m cold/concurrent performance,
+> revocation-race and full independent physical UI/browser acceptance
+> **remain GAP**. Latest measured 3,500-Session/900-Custody SQL-only
+> p95 **1,968.88 ms** is a performance concern. See
+> `U05_OPTION_B_LOCAL_VALIDATION.md`. Issue #300 is NOT ACCEPTED.
+
 > **Additional G2 actual T01 writer lane, 2026-10-18 (new evidence,
 > historical 70-row candidate SHA unchanged):** The Owner-authorized
 > disposable database now contains a successful independently read-back
