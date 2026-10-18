@@ -38,6 +38,9 @@ function fixedSourceTable(source: AuditInvestigationDetailSource): string {
  *
  * Only DIRECT persisted Session evidence is proven here. Indirect Audit links
  * via Task/Incident/entity require a separately reviewed W3 scoped join.
+ * Lock the proven Session only. Append-only evidence tables have SELECT but
+ * no runtime UPDATE privilege, which PostgreSQL requires for FOR SHARE.
+ * The final canonical detail reader rechecks its source in this transaction.
  * This function is not an authorization to read free-text, raw metadata,
  * private photo bytes, storage keys or Incident descriptions.
  *
@@ -70,7 +73,7 @@ export async function requireAuditInvestigationDetailSource(
        AND session.location_id = $2
        AND session.id = $3
        AND evidence.id = $4
-     FOR SHARE OF session, evidence`,
+     FOR SHARE OF session`,
     [
       scope.organizationId,
       scope.locationId,
