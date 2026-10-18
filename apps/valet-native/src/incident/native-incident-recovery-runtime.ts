@@ -1,10 +1,12 @@
 import {
   createIncidentRecoveryTransport,
+  createIncidentRecoveryId,
   IncidentRecoveryState,
   type EmployeeClient,
   type IncidentRecoveryStore,
 } from "@valet/employee-client";
 import { recordNativeIncidentPreflight } from "./native-incident-preflight";
+import { nativeSecureRandomValues } from "../crypto/native-secure-crypto";
 
 export function createNativeIncidentRecoveryState(
   store: IncidentRecoveryStore,
@@ -13,7 +15,7 @@ export function createNativeIncidentRecoveryState(
   return new IncidentRecoveryState(
     store,
     createIncidentRecoveryTransport(client, recordNativeIncidentPreflight),
-    undefined,
+    () => createIncidentRecoveryId({ getRandomValues: nativeSecureRandomValues }),
     undefined,
     recordNativeIncidentPreflight,
   );

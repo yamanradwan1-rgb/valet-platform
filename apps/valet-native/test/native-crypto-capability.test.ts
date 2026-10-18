@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { NativePinnedDiagnostics } from "../src/telemetry/native-pinned-diagnostics";
 import { probeNativeCryptoCapability } from "../src/telemetry/native-crypto-capability";
 
@@ -47,5 +47,34 @@ describe("Native CSPRNG availability probe", () => {
     });
     expect(JSON.stringify(secureCompatible)).not.toContain("550e8400");
     expect(JSON.stringify(throwing)).not.toContain("SECRET");
+  });
+
+  it("succeeds with native provider even when physical Android global Crypto is absent", () => {
+    vi.stubGlobal("crypto", undefined);
+    try {
+      const native = inspect({
+        getRandomValues: (bytes: Uint8Array) => {
+          bytes.set(Uint8Array.from({ length: bytes.length }, (_, i) => i));
+          return bytes;
+        },
+        randomUUID: () => "12345678-1234-4123-8123-123456789abc",
+      });
+      expect(native?.status).toBe("success");
+      expect(native?.firstFailedStage).toBeNull();
+      expect(native?.stages).toContainEqual({ stage: "random-uuid", outcome: "success" });
+    } finally { vi.unstubAllGlobals(); }
+  });
+
+  it("never claims Crypto ready when provider rejects the adapter's same-array contract", () => {
+    const mismatch = inspect({
+      getRandomValues: () => new Uint8Array(16),
+      randomUUID: () => "12345678-1234-4123-8123-123456789abc",
+    });
+    expect(mismatch).toMatchObject({
+      status: "failed", firstFailedStage: "get-random-values",
+    });
+    expect(mismatch?.stages).toContainEqual({
+      stage: "uuid-v8-validation", outcome: "missing",
+    });
   });
 });

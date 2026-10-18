@@ -1,5 +1,7 @@
 import { createIncidentRecoveryId } from "@valet/employee-client";
 import { NativePinnedDiagnostics } from "./native-pinned-diagnostics";
+import { resolveNativeSecureCrypto } from "../crypto/native-secure-crypto";
+import { nativeSecureRandomValues, type NativeSecureCrypto } from "../crypto/native-secure-crypto";
 
 const UUID_V4_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -11,7 +13,9 @@ export function probeNativeCryptoCapability(
 ): void {
   const token = pinned.begin("crypto");
   try {
-    const value = arguments.length > 1 ? cryptoObject : globalThis.crypto;
+    // The physical Android JS runtime has no globalThis.crypto. Test the
+    // actual autolinked Expo Native provider, never a browser-like polyfill.
+    const value = arguments.length > 1 ? cryptoObject : resolveNativeSecureCrypto();
     if (value === null || typeof value !== "object") {
       pinned.stage("crypto", token, "crypto-object", "missing");
       pinned.complete("crypto", token, "failed", "not-attempted");
@@ -28,13 +32,14 @@ export function probeNativeCryptoCapability(
     } else {
       try {
         const bytes = new Uint8Array(16);
-        const result = provider.getRandomValues(bytes);
-        if (!(result instanceof Uint8Array) || result.length !== 16)
-          throw new Error("Crypto fill did not return a valid byte array");
+        // Probe the exact fail-closed operational adapter, not only Expo's
+        // method shape. A green probe must not contradict Incident preflight.
+        nativeSecureRandomValues(bytes, provider as NativeSecureCrypto);
         pinned.stage("crypto", token, "get-random-values", "success");
         try {
           createIncidentRecoveryId({
-            getRandomValues: (value) => provider.getRandomValues!(value),
+            getRandomValues: (value) =>
+              nativeSecureRandomValues(value, provider as NativeSecureCrypto),
           });
           pinned.stage("crypto", token, "uuid-v8-validation", "success");
         } catch {

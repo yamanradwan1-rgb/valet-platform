@@ -22,7 +22,7 @@ function setup() {
   return ring;
 }
 
-function floodTaskQueue(count = 240) {
+function floodTaskQueue(count = 275) {
   for (let index = 0; index < count; index += 1) {
     getNativeTelemetry().record({
       classification: "response",

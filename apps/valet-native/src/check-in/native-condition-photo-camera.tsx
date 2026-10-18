@@ -6,7 +6,7 @@ import type { EmployeeConditionPhotoSession, EmployeeLocale } from "@valet/emplo
 import { useEmployeeStyles } from "../appearance/employee-appearance-context";
 import { EmployeeButton } from "../employee-ui/employee-controls";
 import { stylesTheme } from "../foundation/foundation-styles";
-import { isOwnedCameraCacheUri, type NativeConditionPhotoFiles } from "./native-condition-photo-files";
+import type { NativeConditionPhotoFiles } from "./native-condition-photo-files";
 import { nativeConditionPhotoCopy } from "./native-condition-photo-copy";
 import { photoOpening, photoOpeningIsCurrent } from "./native-condition-photo-scope";
 import { getNativeTelemetry } from "../telemetry/native-telemetry-owner";
@@ -82,6 +82,12 @@ export function NativeConditionPhotoCamera({
     if (permission !== "granted" || !ready || inFlight.current || !active()) return;
     const pinned = getNativeTelemetry().pinned;
     const token = pinned.begin("photo");
+    if (!files.canCapture()) {
+      pinned.stage("photo", token, "cleanup", "error");
+      pinned.complete("photo", token, "failed", "not-attempted");
+      setError(true);
+      return;
+    }
     const observe: NativePhotoStageObserver = (stage, outcome) =>
       pinned.stage("photo", token, stage, outcome);
     pinned.stage("photo", token, "camera-readiness", "success");
@@ -89,7 +95,11 @@ export function NativeConditionPhotoCamera({
     setBusy(true);
     const stamp = ++revision.current;
     setError(false);
+    let rawWasHandled = false;
+    let captureStarted = false;
     try {
+      files.beginCapture();
+      captureStarted = true;
       const picture = await observePhotoStageAsync(observe, "camera-capture",
         async () => camera.current?.takePictureAsync({
           quality: 0.8, exif: false, base64: false, skipProcessing: false,
@@ -99,14 +109,12 @@ export function NativeConditionPhotoCamera({
       });
       if (!picture) throw new Error("CONDITION_PHOTO_CAPTURE_UNAVAILABLE");
       if (stamp !== revision.current || !active()) {
-        if (isOwnedCameraCacheUri(picture.uri)) {
-          const { File } = await import("expo-file-system");
-          const source = new File(picture.uri);
-          if (source.exists) source.delete();
-        }
+        rawWasHandled = true;
+        files.discardCapturedCameraSource(picture.uri);
         pinned.cancel("photo", token);
         return;
       }
+      rawWasHandled = true;
       const owned = await files.capture(picture.uri, picture.width, picture.height, observe);
       if (stamp !== revision.current || !active()) {
         await files.discard(owned);
@@ -132,6 +140,11 @@ export function NativeConditionPhotoCamera({
         pinned.cancel("photo", token);
       }
     } finally {
+      if (rawWasHandled) {
+        try { files.finishCapture(); } catch { setError(true); }
+      } else if (captureStarted) {
+        try { files.resolveUnknownCapture(); } catch { setError(true); }
+      }
       inFlight.current = false;
       setBusy(false);
     }

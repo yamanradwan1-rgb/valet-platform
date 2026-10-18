@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const hooks = vi.hoisted(() => ({ states: [] as unknown[] }));
+vi.mock("../src/crypto/native-secure-crypto", () => ({
+  nativeSecureRandomUUID: () => "11111111-1111-4111-8111-111111111111",
+}));
 vi.mock("react", () => ({
   useState: (initial: unknown) => [
     hooks.states.length

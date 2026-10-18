@@ -56,4 +56,32 @@ describe("Issue #302/#303 pinned diagnostic ownership", () => {
     expect(JSON.stringify(owner.snapshot())).not.toContain("file://");
     expect(new NativePinnedDiagnostics().snapshot().photo.lastCompleted).toBeNull();
   });
+
+  it("replaces an old Crypto failure only after a new completed attempt", () => {
+    const owner = new NativePinnedDiagnostics();
+    const missing = owner.begin("crypto");
+    owner.stage("crypto", missing, "crypto-object", "missing");
+    owner.complete("crypto", missing, "failed", "not-attempted");
+    const failed = owner.snapshot().crypto.lastCompleted;
+
+    const next = owner.begin("crypto");
+    expect(owner.snapshot().crypto).toMatchObject({
+      running: true, lastCompleted: failed,
+    });
+    owner.stage("crypto", missing, "random-uuid", "error");
+    owner.complete("crypto", missing, "failed", "not-attempted");
+    expect(owner.snapshot().crypto.lastCompleted).toBe(failed);
+
+    owner.stage("crypto", next, "crypto-object", "success");
+    owner.stage("crypto", next, "get-random-values", "success");
+    owner.stage("crypto", next, "uuid-v8-validation", "success");
+    owner.stage("crypto", next, "random-uuid", "success");
+    owner.complete("crypto", next, "success", "not-attempted");
+    expect(owner.snapshot().crypto).toMatchObject({
+      running: false, lastCompleted: {
+        status: "success", firstFailedStage: null,
+        lastSucceededStage: "random-uuid",
+      },
+    });
+  });
 });

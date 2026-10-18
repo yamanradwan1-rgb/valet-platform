@@ -2,30 +2,31 @@ import { conditionPhotoOperationIdSchema } from "@valet/contracts";
 import type { ConditionPhotoTransport } from "@valet/employee-client";
 import type { NativePinnedDiagnostics } from "../telemetry/native-pinned-diagnostics";
 import { observePhotoStage } from "./native-photo-stage";
+import { nativeSecureRandomUUID } from "../crypto/native-secure-crypto";
 
 /** Tracks only closed stages, never operation IDs, handles or HTTP contents. */
 export function instrumentConditionPhotoUpload(
   sourceOrFactory: ConditionPhotoTransport |
-    ((onUploadDispatch: () => void,
-      onUploadResponse: (outcome: "success" | "error") => void) => ConditionPhotoTransport),
+    ((onUploadDispatch: (signal: AbortSignal) => void,
+      onUploadResponse: (signal: AbortSignal, outcome: "success" | "error") => void) => ConditionPhotoTransport),
   pinned: NativePinnedDiagnostics,
   uuid: () => string = () => {
-    if (typeof globalThis.crypto?.randomUUID !== "function")
-      throw new Error("CONDITION_PHOTO_RANDOM_UNAVAILABLE");
-    return globalThis.crypto.randomUUID();
+    try { return nativeSecureRandomUUID(); }
+    catch { throw new Error("CONDITION_PHOTO_RANDOM_UNAVAILABLE"); }
   },
 ) {
   let active: number | null = null;
   let dispatchedToken: number | null = null;
   let responseErrorToken: number | null = null;
+  let activeSignal: AbortSignal | null = null;
   const source = typeof sourceOrFactory === "function"
-    ? sourceOrFactory(() => {
-      if (active !== null) {
+    ? sourceOrFactory((signal) => {
+      if (active !== null && activeSignal === signal && !signal.aborted) {
         dispatchedToken = active;
         pinned.stage("photo", active, "upload-body", "success");
       }
-    }, (outcome) => {
-      if (active !== null) {
+    }, (signal, outcome) => {
+      if (active !== null && activeSignal === signal && !signal.aborted) {
         pinned.stage("photo", active, "upload-response", outcome);
         if (outcome === "error") responseErrorToken = active;
       }
@@ -33,6 +34,7 @@ export function instrumentConditionPhotoUpload(
   const cancel = () => {
     if (active !== null) pinned.cancel("photo", active);
     active = null;
+    activeSignal = null;
   };
   const createOperationId = () => {
     const token = pinned.begin("photo");
@@ -52,6 +54,7 @@ export function instrumentConditionPhotoUpload(
     async upload(sessionId, operationId, handle, signal) {
       const token = active ?? pinned.begin("photo");
       active = token;
+      activeSignal = signal;
       dispatchedToken = null;
       responseErrorToken = null;
       pinned.stage("photo", token, "upload-body", "start");
@@ -80,7 +83,7 @@ export function instrumentConditionPhotoUpload(
         }
         throw error;
       } finally {
-        if (active === token) active = null;
+        if (active === token) { active = null; activeSignal = null; }
       }
     },
   };

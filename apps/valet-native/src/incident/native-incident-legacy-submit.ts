@@ -5,13 +5,10 @@ import {
   type ReportIncidentResponse,
 } from "@valet/employee-client";
 import type { NativeIncidentSubmitInput } from "./native-incident-types";
+import { nativeSecureRandomUUID } from "../crypto/native-secure-crypto";
 
 export function createNativeLegacyIncidentId(): string {
-  const value = globalThis.crypto?.randomUUID?.();
-  if (value === undefined) {
-    throw new Error("Secure UUID generation is unavailable.");
-  }
-  return value;
+  return nativeSecureRandomUUID();
 }
 
 export async function submitLegacyIncident(input: {

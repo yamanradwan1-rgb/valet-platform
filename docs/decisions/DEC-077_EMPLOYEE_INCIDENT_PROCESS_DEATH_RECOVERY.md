@@ -247,6 +247,19 @@ contracts/Zod validator, API parsing and PostgreSQL UUID type all accept it. If
 current platform primitives cannot do so without a new dependency, implementation
 must stop and return for owner review before changing dependencies.
 
+**Implementation-specific owner approval (2026-10-18, Issues #302/#303):**
+Following physical Android confirmation that `globalThis.crypto` is absent,
+the Owner explicitly approved `expo-crypto@~57.0.4` for the existing isolated
+Native feature branch. Approval is limited to a fail-closed Native CSPRNG adapter
+using `getRandomValues` for the unchanged recovery UUIDv8 generator and
+`randomUUID` for existing Native UUIDv4 operations, with updated pinned Crypto
+diagnostics, security tests, independent review and a signed QA APK. It grants
+**no** global polyfill, JS PRNG fallback, protocol/authorization/idempotency
+downgrade, server or migration change, or permission to merge/push/deploy/close.
+The general original Accepted decision and its dependency approval gate remain
+binding for any other dependency or security-semantic change. Implementation
+evidence and owner approval record: `docs/validation/ISSUE_302_303_CRYPTO_REPAIR_APPROVAL_GATE.md`.
+
 Before enabling the protocol, a data check must also confirm no current client
 has used the selected version/discriminator as a legacy ID; if that assumption is
 false, acceptance must choose another fixed recovery-ID discriminator. This is a

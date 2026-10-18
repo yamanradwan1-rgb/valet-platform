@@ -10,8 +10,8 @@ export function createNativeConditionPhotoTransport(
   apiOrigin: string,
   auth: NativeAuthSession,
   files: NativeConditionPhotoFiles,
-  onUploadDispatch?: () => void,
-  onUploadResponse?: (outcome: "success" | "error") => void,
+  onUploadDispatch?: (signal: AbortSignal) => void,
+  onUploadResponse?: (signal: AbortSignal, outcome: "success" | "error") => void,
 ) {
   return createEmployeeConditionPhotoTransport(
     (signal) => createNativeEmployeeClient(apiOrigin, auth, signal),

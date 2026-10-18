@@ -10,6 +10,14 @@ const state = vi.hoisted(() => ({
   failSave: false,
   failResize: false,
   failManipulate: false,
+  nativeCryptoMissing: false,
+}));
+
+vi.mock("../src/crypto/native-secure-crypto", () => ({
+  nativeSecureRandomUUID: () => {
+    if (state.nativeCryptoMissing) throw new Error("NATIVE_CSPRNG_UNAVAILABLE");
+    return "00000000-0000-4000-8000-000000000001";
+  },
 }));
 
 vi.mock("expo-file-system", () => {
@@ -44,7 +52,7 @@ vi.mock("expo-file-system", () => {
       state.files.delete(this.uri);
     }
   }
-  return { File, Directory, Paths: { cache: { uri: "file:///app/cache" } } };
+  return { File, Directory, Paths: { cache: { uri: "file:///app/cache" }, document: { uri: "file:///app/docs" } } };
 });
 vi.mock("expo-image-manipulator", () => ({
   SaveFormat: { JPEG: "jpeg" },
@@ -74,7 +82,6 @@ vi.mock("expo-image-manipulator", () => ({
 
 const { NativeConditionPhotoFiles, isOwnedCameraCacheUri } =
   await import("../src/check-in/native-condition-photo-files");
-
 beforeEach(() => {
   state.files.clear();
   state.deleted.length = 0;
@@ -85,9 +92,30 @@ beforeEach(() => {
   state.failSave = false;
   state.failResize = false;
   state.failManipulate = false;
+  state.nativeCryptoMissing = false;
 });
-
 describe("Native condition photo private source and cache", () => {
+  it("reproduces missing Android Crypto at photo-handle-uuid and cleans camera/JPEG files", async () => {
+    state.nativeCryptoMissing = true;
+    try {
+      const uri = "file:///app/cache/Camera/crypto-missing.jpg";
+      state.files.set(uri, 1024);
+      const stages: string[] = [];
+      await expect(new NativeConditionPhotoFiles().capture(uri, 800, 600,
+        (stage, outcome) => stages.push(`${stage}.${outcome}`)))
+        .rejects.toThrow("CONDITION_PHOTO_RANDOM_UNAVAILABLE");
+      expect(stages).toContain("photo-handle-uuid.error");
+      expect(stages).toContain("cleanup.success");
+      expect(state.deleted).toContain(uri);
+      expect(state.deleted).toContain("file:///app/cache/rendered.jpg");
+      expect(Array.from(state.files.keys()).some((path) => path.includes("vaylet-condition-photos-v1")))
+        .toBe(false);
+      expect(stages.join("|")).not.toContain(uri);
+    } finally {
+      state.nativeCryptoMissing = false;
+    }
+  });
+
   it.each([
     ["cache-uri", "file:///sdcard/outside.jpg"],
     ["source-file", "file:///app/cache/no-such.jpg"],
@@ -227,16 +255,46 @@ describe("Native condition photo private source and cache", () => {
     state.failOwnedDelete = true;
     const files = new NativeConditionPhotoFiles();
     await expect(files.capture(source, 1200, 900)).rejects.toThrow();
+    expect(files.canCapture()).toBe(false);
     expect(Array.from(state.files.keys()).some((uri) =>
       uri.includes("vaylet-condition-photos-v1"))).toBe(true);
+    const newCamera = "file:///app/cache/Camera/new-sensitive.jpg";
+    state.files.set(newCamera, 2056);
+    await expect(files.capture(newCamera, 1200, 900)).rejects.toThrow(
+      "CONDITION_PHOTO_CLEANUP_UNAVAILABLE",
+    );
+    expect(state.deleted).toContain(newCamera);
+    expect(state.files.has(newCamera)).toBe(false);
     await expect(files.capture(source, 1200, 900)).rejects.toThrow(
       "CONDITION_PHOTO_CLEANUP_UNAVAILABLE",
     );
     state.failOwnedDelete = false;
     state.failCopyAfterPartialWrite = false;
     files.purgeStartup();
+    expect(files.canCapture()).toBe(true);
     state.files.set(source, 1024);
     const handle = await files.capture(source, 1200, 900);
     expect(files.file(handle).exists).toBe(true);
+  });
+
+  it("retains private camera-source retry custody when raw JPEG delete fails", async () => {
+    const source = "file:///app/cache/Camera/delete-error.jpg";
+    state.files.set(source, 2048);
+    state.failDeletes.add(source);
+    const files = new NativeConditionPhotoFiles();
+    const stages: string[] = [];
+    await expect(files.capture(source, 1200, 900,
+      (stage, outcome) => stages.push(`${stage}.${outcome}`)))
+      .rejects.toThrow("CONDITION_PHOTO_CLEANUP_UNAVAILABLE");
+    expect(files.canCapture()).toBe(false);
+    expect(state.files.has(source)).toBe(true);
+    expect(stages).toContain("cleanup.error");
+    expect(stages.join(" ")).not.toContain(source);
+    expect(() => files.purgeStartup()).toThrow("CONDITION_PHOTO_CLEANUP_UNAVAILABLE");
+    expect(files.canCapture()).toBe(false);
+    state.failDeletes.delete(source);
+    files.purgeStartup();
+    expect(state.files.has(source)).toBe(false);
+    expect(files.canCapture()).toBe(true);
   });
 });
