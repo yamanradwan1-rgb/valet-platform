@@ -1,14 +1,40 @@
-/** Owner approval is for local IMPLEMENTATION and VALIDATION, not activation.
- * The newly migrated G2 database may exercise pagination only in a guarded
- * test run. Runtime remains the old safe 503 until R01–R09 are ALL proven.
+/** The approved R2 test lane is neither a production feature flag nor an
+ * attestation on its own. W6 must first attest the exact disposable cluster,
+ * migrated schema and provisioned runtime role. The source/parent HTTP proof
+ * then uses only these exact loopback targets and an explicit owned lease.
+ * All other targets and unproven cohorts remain fail-closed.
  */
+function proofTarget(): "G2" | "R2" | null {
+  try {
+    const target = new URL(process.env.DATABASE_URL ?? "");
+    if (target.hostname !== "127.0.0.1" || target.search || target.hash ||
+        target.protocol !== "postgresql:" && target.protocol !== "postgres:") return null;
+    if (target.port === "55480" && target.pathname === "/issue300_g2") return "G2";
+    if (target.port === "57285" && target.pathname === "/issue300_r2") return "R2";
+    return null;
+  } catch { return null; }
+}
+
 export function isU05LocalProofEnabled(): boolean {
   if (process.env.NODE_ENV !== "test" ||
       process.env.ISSUE300_U05_G2_PROOF_ENABLE !== "1") return false;
-  try {
-    const target = new URL(process.env.DATABASE_URL ?? "");
-    return target.hostname === "127.0.0.1" && target.port === "55480" &&
-      target.pathname === "/issue300_g2" && target.search === "" &&
-      target.hash === "";
-  } catch { return false; }
+  const target = proofTarget();
+  return target === "G2" || (target === "R2" && r2ProofLeasePresent());
+}
+
+function r2ProofLeasePresent(): boolean {
+  return /^issue300-r2-[a-z0-9-]{8,}$/.test(process.env.ISSUE300_R2_PROOF_LEASE_ID ?? "") &&
+    /^[a-f0-9]{40}$/.test(process.env.ISSUE300_R2_CANDIDATE_SHA ?? "") &&
+    /^[a-f0-9]{64}$/.test(process.env.ISSUE300_R2_ATTESTATION_SHA256 ?? "") &&
+    process.env.ISSUE300_R2_RUNTIME_ROLE === "issue300_r2_w6_runtime";
+}
+
+/** Only a specifically attested local API test candidate may evaluate a
+ * previously guarded indirect cohort. It still must pass the database-owned
+ * identity, strict runtime role, trigger and append-only privilege recheck.
+ * This flag never changes the ordinary/default HTTP 503 path.
+ */
+export function isU05R2IndirectHttpProofCandidate(): boolean {
+  return isU05LocalProofEnabled() && proofTarget() === "R2" &&
+    process.env.ISSUE300_R2_INDIRECT_HTTP_PROOF_ENABLE === "1";
 }

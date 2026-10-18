@@ -1,5 +1,6 @@
 import type { PostgresTransaction } from "../../../common/database/postgres";
 import type { AuditInvestigationLocationAuthorization } from "./security/audit-investigation-authorization";
+import { isU05R2IndirectHttpProofCandidate } from "./audit-investigation-u05-gate";
 
 /** A signed pg_snapshot does NOT freeze an Audit row's indirect Task/Incident
  * Session relationship. Neither Task nor its key columns have an approved
@@ -15,6 +16,31 @@ export async function requireU05StableIndirectCohort(
   snapshot: { readonly now: Date; readonly database: string },
   window?: { readonly from: string; readonly to: string },
 ): Promise<void> {
+  if (isU05R2IndirectHttpProofCandidate()) {
+    // The whole-cohort SQL selection still applies source and every parent
+    // birth-XID fence; ONLY the coarse pre-proof availability veto is skipped
+    // in this explicitly isolated candidate. Recheck DB/ordinary ACL first.
+    const attested = await tx.query<{ readonly valid: boolean }>(
+      `SELECT (
+         current_database() = 'issue300_r2'
+         AND current_user = 'issue300_r2_w6_runtime'
+         AND current_setting('server_version_num')::integer BETWEEN 170000 AND 179999
+         AND NOT has_table_privilege(current_user, 'public.audit_events', 'UPDATE')
+         AND NOT has_table_privilege(current_user, 'public.key_custody_events', 'UPDATE')
+         AND NOT has_table_privilege(current_user, 'public.dispatch_events', 'UPDATE')
+         AND NOT has_table_privilege(current_user, 'public.incidents', 'UPDATE')
+         AND (SELECT count(*) >= 10 FROM pg_trigger
+              WHERE NOT tgisinternal AND tgenabled IN ('O', 'A')
+                AND tgname LIKE '%pagination_birth%')
+         AND (SELECT count(*) >= 6 FROM pg_trigger
+              WHERE NOT tgisinternal AND tgenabled IN ('O', 'A')
+                AND tgname LIKE '%issue300%immutable')
+       ) AS valid`,
+    );
+    if (attested.rowCount !== 1 || attested.rows[0]?.valid !== true)
+      throw new U05IndirectCohortNotStable();
+    return;
+  }
   const result = await tx.query<{ readonly unsafe: boolean }>(
     `SELECT EXISTS (
        SELECT 1 FROM audit_events AS a
