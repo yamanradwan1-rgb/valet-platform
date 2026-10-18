@@ -120,7 +120,10 @@ async function main() {
   "ISSUE300_W8_TRUSTED_GUEST_BOOT_KEY_SHA256");
   assertSignedGuestBoot(before,m,0);
   let previous = before.bootId;
-  const trials = {search:[],timeline:[],detail:[]};
+  // Keep the executed cold lanes identical to the signed four-lane budget.
+  // A hard-coded three-key bag silently omitted busySlotSearch and failed
+  // on its first actual cold response instead of measuring all 80 trials.
+  const trials = Object.fromEntries(Object.keys(budgets).map((key) => [key, []]));
   const allBoots=new Set([previous]);
   for (const endpoint of Object.keys(budgets)) {
     const path = paths.endpoints[endpoint];
