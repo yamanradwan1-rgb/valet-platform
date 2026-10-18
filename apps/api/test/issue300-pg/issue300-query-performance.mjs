@@ -107,9 +107,28 @@ try {
   assert.equal(plan.Plan["Actual Rows"], 101,
     "Real committed fixture must fill the 101-row bounded first page");
   const methods = [];
-  function walk(node) {
+  const expensiveNodes = [];
+  function walk(node, parent = null) {
     if (node["Sort Method"]) methods.push(node["Sort Method"]);
-    for (const sub of node.Plans ?? []) walk(sub);
+    const childHits = (node.Plans ?? []).reduce(
+      (total, child) => total + (child["Shared Hit Blocks"] ?? 0), 0);
+    // EXPLAIN's descendant/CTE buffer counters are inclusive and can be
+    // repeated; these are *estimates*, never additive self-work attribution.
+    const apparentLocalHits = Math.max(0,
+      (node["Shared Hit Blocks"] ?? 0) - childHits);
+    expensiveNodes.push({
+      node: node["Node Type"], parent,
+      relation: node["Relation Name"] ?? null,
+      index: node["Index Name"] ?? null,
+      loops: node["Actual Loops"], rows: node["Actual Rows"],
+      timeMs: node["Actual Total Time"], apparentLocalHits,
+      inclusiveHits: node["Shared Hit Blocks"] ?? 0,
+      join: node["Join Type"] ?? null,
+      indexCondition: node["Index Cond"] ?? null,
+      filter: node.Filter ?? null,
+      rowsRemovedByFilter: node["Rows Removed by Filter"] ?? null,
+    });
+    for (const sub of node.Plans ?? []) walk(sub, node["Node Type"]);
   }
   walk(plan.Plan);
   const measurements = [];
@@ -132,6 +151,10 @@ try {
       reads: plan.Plan["Shared Read Blocks"] },
     sortMethods: methods, p50Ms: percentile(0.5), p95Ms: percentile(0.95),
     samples: sorted.length, resultCap: 101,
+    hotspotNodes: expensiveNodes.sort((a, b) =>
+      b.apparentLocalHits - a.apparentLocalHits ||
+      b.timeMs - a.timeMs).slice(0, 10),
+    bufferAttributionCaveat: "EXPLAIN Shared Hit Blocks inclusive/nonadditive (CTE counters may repeat); hotspotNodes show apparent-local estimates only",
     disclaimer: "Single-client hot-cache timing, not p95 under operational load or 100k/1m",
   }));
 } finally {

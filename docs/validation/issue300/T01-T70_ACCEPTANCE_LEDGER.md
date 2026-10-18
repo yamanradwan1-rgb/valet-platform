@@ -1,5 +1,16 @@
 # Issue #300 — Independent T01–T70 Acceptance Ledger
 
+> **Latest separate T70 follow-up (2026-10-18, do not repin historical
+> 70-row SHA):** after earlier real-browser Search abort coverage, the
+> same G2-bound CA+MFA Chromium test additionally aborts **Timeline** and
+> **point Detail** independently, checks zero partial event cards/no false
+> detail dialog/no automatic request loop, and confirms user-triggered
+> Apply and detail selection recovers authenticated 200 reads. Focus after
+> Escape returns to event card. Full T70 remains **PARTIAL/GAP**:
+> missing multi-scope revocation-during-fault, repeated abort/generation
+> races, physical zoom, real locale/theme behavior, and full reliability
+> stress. No frozen React/CSS component was edited.
+
 **Owner:** Worker 7 (original independent ledger), updated by Prime against
 actual code candidate `f90c3cabbff07c57df57ee783f052b30a70b0a21`.
 **Status:** **2 narrowly scoped DB/HTTP fixture criteria PASS, 68 full acceptance

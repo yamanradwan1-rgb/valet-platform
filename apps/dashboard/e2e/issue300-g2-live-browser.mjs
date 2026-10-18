@@ -120,6 +120,80 @@ try {
   await explicitRetry;
   await page.locator('#audit-investigation-panel button[aria-pressed]').first().waitFor();
   stage = "REAL_AUTHORIZED_EXPLICIT_RETRY_AFTER_NETWORK_ABORT";
+  // T70 narrow extension: fail the *Timeline* read after successful Search.
+  // The partially loaded Session must disappear rather than pretending
+  // that all four sources were read successfully.
+  let timelineAborts = 0;
+  const isTimelineRead = (url) =>
+    url.pathname.includes("/audit-investigations/sessions/") &&
+    url.pathname.endsWith("/timeline");
+  const abortTimeline = (route) => {
+    timelineAborts += 1;
+    return route.abort("failed");
+  };
+  await page.route(isTimelineRead, abortTimeline);
+  const timelineSearch = page.waitForResponse((res) =>
+    res.url().includes("/audit-investigations/sessions") &&
+    res.status() === 200 && !res.url().includes("/timeline"));
+  await form.locator('button[type="submit"]').click();
+  await timelineSearch;
+  await page.locator('#audit-investigation-panel button[aria-pressed]').first()
+    .waitFor({ state: "detached" });
+  assert.equal(timelineAborts, 1,
+    "Timeline network failure must not produce an autonomous retry loop");
+  assert.equal(await page.locator('#audit-investigation-panel li[data-kind]').count(),
+    0, "Timeline failure cannot leave a partial or stale evidence list");
+  await page.unroute(isTimelineRead, abortTimeline);
+  const timelineRetry = page.waitForResponse((res) =>
+    isTimelineRead(new URL(res.url())) && res.status() === 200);
+  await form.locator('button[type="submit"]').click();
+  await timelineRetry;
+  const retriedEvent = page.locator(
+    '#audit-investigation-panel li[data-kind] button').first();
+  await retriedEvent.waitFor();
+  stage = "REAL_TIMELINE_ABORT_AND_EXPLICIT_RETRY";
+
+  // T70 separate point Detail GET failure: no fallback from cached/mock
+  // drawer content and no automatic replay until another deliberate click.
+  let detailAborts = 0;
+  const isDetailRead = (url) =>
+    url.pathname.includes("/audit-investigations/sessions/") &&
+    url.pathname.includes("/events/");
+  const abortDetail = (route) => {
+    detailAborts += 1;
+    return route.abort("failed");
+  };
+  await page.route(isDetailRead, abortDetail);
+  const detailFailure = page.waitForEvent("requestfailed",
+    (req) => isDetailRead(new URL(req.url())));
+  await retriedEvent.click();
+  await detailFailure;
+  assert.equal(detailAborts, 1,
+    "One explicit detail click must create only one failing GET");
+  assert.equal(await page.getByRole("dialog").count(), 0,
+    "Failed point Detail GET must not open unverified or cached evidence");
+  await page.unroute(isDetailRead, abortDetail);
+  // Deliberate user recovery through Apply creates a fresh, authorized
+  // Search/Timeline selection before re-opening the point detail.
+  // Retrying the stale point control alone is not a guaranteed UI contract.
+  const recoverTimeline = page.waitForResponse((res) =>
+    isTimelineRead(new URL(res.url())) && res.status() === 200);
+  await form.locator('button[type="submit"]').click();
+  await recoverTimeline;
+  const restoredEvent = page.locator(
+    '#audit-investigation-panel li[data-kind] button').first();
+  await restoredEvent.waitFor();
+  const detailRetry = page.waitForResponse((res) =>
+    isDetailRead(new URL(res.url())) && res.status() === 200);
+  await restoredEvent.click();
+  await detailRetry;
+  const recoveredDialog = page.getByRole("dialog");
+  await recoveredDialog.waitFor();
+  await page.keyboard.press("Escape");
+  await recoveredDialog.waitFor({ state: "detached" });
+  assert.equal(await restoredEvent.evaluate((node) =>
+    document.activeElement === node), true);
+  stage = "REAL_DETAIL_ABORT_AND_EXPLICIT_RETRY";
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     for (const locale of ["en", "ar"]) {
@@ -162,6 +236,7 @@ try {
   console.log("PASS real-browser: actual Company Admin login, MFA and location selection");
   console.log("PASS real-browser: source event drawer Escape/focus return and no hidden Audit Events requests");
   console.log("PASS real-browser: one G2-only aborted Search, no repeated loop/stale timeline, explicit re-Apply returns authorized 200");
+  console.log("PASS real-browser: separate Timeline and point Detail network abort, no partial or cached evidence, each recovered only by explicit user retry");
   console.log("PASS real-browser: 32 panel-presence cases at synthetic DOM locale/theme and CSS zoom1/2, NOT physical 200% parity");
   console.log("REAL_BROWSER_HTTP_INVESTIGATION_200=" +
     responses.filter((r) => r.status === 200 && r.endpoint.includes("audit-investigations")).length);

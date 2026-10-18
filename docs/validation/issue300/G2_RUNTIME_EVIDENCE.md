@@ -1,5 +1,22 @@
 # Issue #300 — G2 isolated PostgreSQL / authenticated HTTP / local candidate
 
+> **Newest T70/G2 test-only continuation (2026-10-18):**
+> Real local Dashboard Chromium run behind the existing
+> `issue300-auth-http-proof.mjs` authenticated CA with Argon2 and fresh MFA,
+> then deliberately aborted **Search, Timeline and source point Detail**
+> separately. All three failures showed no unverified/partial stale evidence
+> and no autonomous retry; explicit user Apply recovered Search/Timeline,
+> explicit Apply plus selecting the event recovered Detail. Escape/close
+> returned focus to the exact event, and hidden Audit Events API requests
+> remained zero. Final browser `REAL_BROWSER_HTTP_INVESTIGATION_200=32`;
+> all 32 locale/theme/CSS-zoom combinations only prove synthetic panel
+> presence. These are **T70 subsets**, not actual network timeout/backoff,
+> scope-race revocation in all three failure modes, physical 200% zoom,
+> accessibility compliance or T70 full PASS. No visual/source UI edits.
+> Also completed signed Search *and* Timeline late-held-writer pages for
+> each source with S0 rejection and fresh S1 admission. Additional EXPLAIN
+> loops/performance variance appear in `U05_OPTION_A_LOCAL_VALIDATION.md`.
+
 > **Latest locally committed follow-up, 2026-10-18
 > `33fc913c9cba26453288ac148f080016cdf1902d`:** Signed HTTP Timeline
 > held-writer page1/continuation experiments PASS separately for Audit,

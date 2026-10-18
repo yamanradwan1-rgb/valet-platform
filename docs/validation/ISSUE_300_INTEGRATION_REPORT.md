@@ -1,5 +1,14 @@
 # VAYLET Issue #300 — Local Backend and Concept A Live-Data Integration
 
+> **T70 / R01–R02 local proof continuation, 2026-10-18:** G2 signed
+> page1→next-page held writer cases PASS for **both Search and Timeline**
+> in four separate source cases, including admitted precommitted controls
+> and excluded earlier-BEGIN/later-COMMIT facts. Authenticated real-browser
+> Search, Timeline and point-Detail network abort tests PASS independently
+> with explicit retry and no hidden loops/stale facts. These are subsets:
+> indirect Audit parent XID provenance, complete T70, real 200% browser
+> zoom and 100k/1m performance still GAP. No new UI changes.
+
 > **Latest local continuation (`33fc913c9cba26453288ac148f080016cdf1902d`,
 > 2026-10-18):** Three additional G2-only test scripts PASS. The four source
 > types now have individually demonstrated signed HTTP Timeline continuation

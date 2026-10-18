@@ -20,6 +20,10 @@ const db = new pg.Client({ connectionString: raw,
 const writer = new pg.Client({ connectionString: raw,
   application_name: "issue300_r01_held_writer" });
 const created = [];
+const searchControl = {
+  vehicle: randomUUID(), session: randomUUID(), audit: randomUUID(),
+};
+let searchControlCreated = false;
 let held = false;
 let cleanupError;
 const sources = ["AUDIT", "KEY_CUSTODY", "DISPATCH", "INCIDENT"];
@@ -115,12 +119,55 @@ try {
     digits: 6, period: 30, secret: begin.json.provisioning.secretBase32 });
   assert.equal((await call("/v1/staff/auth/mfa/enrollment/confirm",
     token, { factorId: begin.json.factorId, code: otp })).status, 200);
+  // One additional committed Session makes actual Search page1/next-page
+  // possible. Its high timestamp ensures the held source always belongs to
+  // a later page's Session aggregate, not the already-returned first row.
+  await db.query("BEGIN");
+  try {
+    await db.query(
+      `INSERT INTO vehicles(id,organization_id,temporary_descriptor,updated_at)
+       VALUES($1,$2,'G2 HELD SEARCH CONTROL',now())`,
+      [searchControl.vehicle, ids.org],
+    );
+    await db.query(
+      `INSERT INTO valet_sessions(id,organization_id,location_id,vehicle_id,
+         state,checked_in_by_membership_id,customer_access_token_hash,
+         customer_access_expires_at,updated_at)
+       VALUES($1,$2,$3,$4,'PARKED',$5,$6,now()+interval '1 day',now())`,
+      [searchControl.session, ids.org, ids.location, searchControl.vehicle,
+        users.admin.membershipId, "held-search-control:" + randomUUID()],
+    );
+    await db.query(
+      `INSERT INTO audit_events(id,organization_id,location_id,
+         valet_session_id,actor_membership_id,actor_type,event_type,
+         entity_type,entity_id,metadata_json,occurred_at)
+       VALUES($1,$2,$3,$4,$5,'MEMBERSHIP','VALET_SESSION_PARKED',
+         'ValetSession',$4,'{}'::jsonb,'2026-10-16T11:30:00Z')`,
+      [searchControl.audit, ids.org, ids.location, searchControl.session,
+        users.admin.membershipId],
+    );
+    await db.query("COMMIT");
+    searchControlCreated = true;
+  } catch (error) {
+    await db.query("ROLLBACK");
+    throw error;
+  }
   const route = `/v1/staff/management/organizations/${ids.org}` +
     `/locations/${ids.location}/audit-investigations/sessions/` +
     `${ids.session}/timeline?limit=1`;
   const fullRoute = route.replace("limit=1", "limit=100");
+  const searchRoute = `/v1/staff/management/organizations/${ids.org}` +
+    `/locations/${ids.location}/audit-investigations/sessions` +
+    `?from=2026-10-16T11%3A00%3A00Z&to=2026-10-16T12%3A00%3A00Z` +
+    `&membershipId=${users.admin.membershipId}&limit=1`;
+  const fullSearch = searchRoute.replace("limit=1", "limit=100");
 
   for (const source of sources) {
+    const baseline = await call(fullSearch, token);
+    assert.equal(baseline.status, 200, JSON.stringify(baseline.json));
+    const original = baseline.json.items.find((item) =>
+      item.sessionId === ids.session);
+    assert.ok(original);
     const beforeId = randomUUID();
     const lateId = randomUUID();
     // Begin the delayed transaction BEFORE the control commits, so its
@@ -141,6 +188,11 @@ try {
     assert.ok(first.json.nextCursor);
     assert.equal(first.json.items.length, 1);
     assert.equal(first.json.items[0].key.source, "KEY_CUSTODY");
+    const searchFirst = await call(searchRoute, token);
+    assert.equal(searchFirst.status, 200, JSON.stringify(searchFirst.json));
+    assert.equal(searchFirst.json.items.length, 1);
+    assert.equal(searchFirst.json.items[0].sessionId, searchControl.session);
+    assert.ok(searchFirst.json.nextCursor);
     await writer.query("COMMIT");
     held = false;
 
@@ -155,9 +207,27 @@ try {
     assert.equal(fresh.status, 200, JSON.stringify(fresh.json));
     assert.ok(fresh.json.items.some((event) =>
       event.key.source === source && event.key.eventId === lateId));
+    const oldSearch = await readAllPages(searchRoute, token, searchFirst);
+    const unchanged = oldSearch.find((item) => item.sessionId === ids.session);
+    assert.ok(unchanged);
+    // The control row was committed AFTER the baseline query but BEFORE S0.
+    assert.equal(unchanged.matchingRecordCount,
+      original.matchingRecordCount + 1);
+    assert.ok(unchanged.matchReasons.some((reason) =>
+      reason.source === source && reason.eventId === beforeId));
+    assert.ok(!unchanged.matchReasons.some((reason) =>
+      reason.source === source && reason.eventId === lateId));
+    const newSearch = await call(fullSearch, token);
+    assert.equal(newSearch.status, 200, JSON.stringify(newSearch.json));
+    const updated = newSearch.json.items.find((item) =>
+      item.sessionId === ids.session);
+    assert.equal(updated.matchingRecordCount,
+      original.matchingRecordCount + 2);
+    assert.ok(updated.matchReasons.some((reason) =>
+      reason.source === source && reason.eventId === lateId));
     globalThis.console.log(`PASS U05 R01/R02 signed HTTP ${source}: ` +
       "committed control admitted, held earlier-BEGIN/later-COMMIT excluded " +
-      "across page1/next pages, fresh snapshot admits late fact");
+      "across Timeline and Search pages; fresh snapshot admits late fact");
   }
 } finally {
   if (held) await writer.query("ROLLBACK").catch(() => undefined);
@@ -168,6 +238,15 @@ try {
       DISPATCH: "dispatch_events", INCIDENT: "incidents" }[row.source];
     try {
       await db.query(`DELETE FROM ${table} WHERE id=$1`, [row.id]);
+    } catch (error) {
+      cleanupError ??= error;
+    }
+  }
+  if (searchControlCreated) {
+    try {
+      await db.query("DELETE FROM audit_events WHERE id=$1", [searchControl.audit]);
+      await db.query("DELETE FROM valet_sessions WHERE id=$1", [searchControl.session]);
+      await db.query("DELETE FROM vehicles WHERE id=$1", [searchControl.vehicle]);
     } catch (error) {
       cleanupError ??= error;
     }

@@ -173,6 +173,32 @@ No push, PR, main merge, deployment, production migration or Issue closure.
 
 ## 2026-10-18 continuation — independently reviewed G2-only HTTP and real writers
 
+**Further current-worktree follow-up (after `33fc913c`):** the held-writer
+HTTP proof now validates **Search and Timeline** signed page1→continuation
+under each of the four sources. The Search test holds one direct pre-S0
+transaction inserting an older-timestamp source row, commits one separate
+control row before S0, captures both Search and Timeline page1, then commits
+the held transaction. S0 Search retains the exact precommitted count/reason
+and excludes the later source event; fresh S1 includes it. All four Search
+and Timeline runs **PASS**. This narrows the previously stated Search race
+gap but **does not** fix indirect Audit→Task/Incident parent association,
+mutable owner/maintenance links, high-concurrency or full R01–R09 scope.
+
+**Measured node-level EXPLAIN follow-up, same committed disposable
+3,500/900 tier:** two independent warmed runs varied materially. One
+reported 1,993,522 shared hits, p50 56.77ms/p95 61.98ms; a second reported
+2,015,235 hits, p50 93.16ms/p95 1875.24ms (20 warm samples each). Both
+showed a `valet_sessions_organization_id_id_key` Index Scan invoked
+approximately **901 times**, traversing approximately 1,700–1,800 rows
+per loop and consuming around 1.58–1.61M inclusive buffer hits. The
+`vehicles_organization_id_id_key` Index Scan was also invoked 901
+times with ~400k hits. PostgreSQL CTE buffer counters are **inclusive and
+not additive**; do not sum the reported child/hotspot rows or assert
+exactly which SQL fragment caused them. The diagnostic test now emits
+actual loops, filter and index conditions without secrets. No Search SQL
+optimization or index/schema change has been made: current timing is
+unstable and neither the earlier ~970ms nor new runs prove target p95.
+
 Additional **local test-only commit**:
 `33fc913c9cba26453288ac148f080016cdf1902d`.
 All three executable scripts below returned **exit 0** against the existing
