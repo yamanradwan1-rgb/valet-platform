@@ -260,7 +260,10 @@ describe("Issue300 R2 isolated HTTP cohort proof gate", () => {
   });
 
   it.each([{ bindPort: 57285 }, { migrationRole: "postgres" },
-    { volume: "existing_human_data" }, { database: "issue300_r2" }])(
+    { volume: "existing_human_data" }, { database: "issue300_r2" },
+    { apiOrigin: "http://127.0.0.1:3165" },
+    { defaultApiOrigin: "http://127.0.0.1:3167" },
+    { dashboardOrigin: "http://127.0.0.1:3114" }])(
     "rejects unowned resource field %o", (override) => {
       createProof(override);
       process.env.ISSUE300_R2_INDIRECT_HTTP_PROOF_ENABLE = "1";

@@ -25,6 +25,9 @@ interface R2ProofAttestation {
   readonly port: 58387;
   readonly bindHost: "127.0.0.1";
   readonly bindPort: 58387;
+  readonly apiOrigin: "http://127.0.0.1:3167";
+  readonly defaultApiOrigin: "http://127.0.0.1:3168";
+  readonly dashboardOrigin: "http://127.0.0.1:3117";
   readonly serverVersionNum: 170010;
   readonly postgresStartedAt: string;
   readonly apiBundleSha256: string;
@@ -57,6 +60,9 @@ MCowBQYDK2VwAyEApth1azlOHaJPPtirnSl5TB3UcAV/GOuWQeUFRx7wy/c=
 export const r2OwnedProofTarget = {
   database: "issue300_r2_w7_acceptance_v2", host: "127.0.0.1", port: 58387,
   bindHost: "127.0.0.1", bindPort: 58387,
+  apiOrigin: "http://127.0.0.1:3167",
+  defaultApiOrigin: "http://127.0.0.1:3168",
+  dashboardOrigin: "http://127.0.0.1:3117",
   serverVersionNum: 170010, containerName: "issue300_r2_w7_acceptance_v2_pg17",
   containerLabel: "issue300-r2-w7-acceptance-v2", volume: "issue300_r2_w7_acceptance_v2_pgdata",
   migrationRole: "issue300_r2_w7_owner_v2",
@@ -185,6 +191,9 @@ export function readR2ProofAttestation(): R2ProofAttestation | null {
       proof.port !== r2OwnedProofTarget.port ||
       proof.bindHost !== r2OwnedProofTarget.bindHost ||
       proof.bindPort !== r2OwnedProofTarget.bindPort ||
+      proof.apiOrigin !== r2OwnedProofTarget.apiOrigin ||
+      proof.defaultApiOrigin !== r2OwnedProofTarget.defaultApiOrigin ||
+      proof.dashboardOrigin !== r2OwnedProofTarget.dashboardOrigin ||
       proof.serverVersionNum !== r2OwnedProofTarget.serverVersionNum ||
       !Number.isFinite(Date.parse(proof.postgresStartedAt)) ||
       !sha256.test(proof.apiBundleSha256) ||

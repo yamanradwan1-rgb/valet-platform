@@ -18,6 +18,9 @@ const owned = join(root, "tmp/issue300-r2-w7-acceptance-v2-owned");
 const exact = Object.freeze({
   database: "issue300_r2_w7_acceptance_v2", host: "127.0.0.1", port: 58387,
   bindHost: "127.0.0.1", bindPort: 58387, serverVersionNum: 170010,
+  apiOrigin: "http://127.0.0.1:3167",
+  defaultApiOrigin: "http://127.0.0.1:3168",
+  dashboardOrigin: "http://127.0.0.1:3117",
   containerName: "issue300_r2_w7_acceptance_v2_pg17", containerLabel: "issue300-r2-w7-acceptance-v2",
   volume: "issue300_r2_w7_acceptance_v2_pgdata", migrationRole: "issue300_r2_w7_owner_v2",
   runtimeRole: "issue300_r2_w7_runtime_v2",
