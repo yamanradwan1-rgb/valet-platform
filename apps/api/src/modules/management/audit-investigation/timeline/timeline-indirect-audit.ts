@@ -20,7 +20,8 @@ WHERE session.organization_id = $1::uuid
   AND audit.entity_id = session.id
   AND (
     audit.event_type <> 'VALET_SESSION_PARKED'
-    OR ((audit.metadata_json ? 'taskId') AND EXISTS (
+    OR NOT (audit.metadata_json ? 'taskId')
+    OR (jsonb_typeof(audit.metadata_json->'taskId') = 'string' AND EXISTS (
       SELECT 1 FROM tasks AS parked_task
       WHERE parked_task.organization_id = session.organization_id
         AND parked_task.location_id = session.location_id
@@ -94,8 +95,8 @@ export async function hasAnchoredTimelineAuditAnomaly(
               AND incident.created_at <= $5::timestamptz))
           OR (audit.event_type = 'VALET_SESSION_PARKED' AND (
             audit.entity_type NOT IN ('ValetSession', 'VALET_SESSION', 'Task', 'TASK')
-            OR NOT (audit.metadata_json ? 'taskId')
-            OR jsonb_typeof(audit.metadata_json->'taskId') IS DISTINCT FROM 'string'
+            OR (audit.metadata_json ? 'taskId'
+                AND jsonb_typeof(audit.metadata_json->'taskId') IS DISTINCT FROM 'string')
             OR (audit.metadata_json ? 'taskId' AND EXISTS (
               SELECT 1 FROM tasks AS task
               WHERE task.organization_id = session.organization_id

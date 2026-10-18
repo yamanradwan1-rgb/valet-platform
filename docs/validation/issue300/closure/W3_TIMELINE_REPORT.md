@@ -57,6 +57,35 @@ Status: **LOCAL SOURCE IMPLEMENTED; DATABASE/HTTP ACCEPTANCE GAP**
    reject the whole page. Incident's current active-Location disclosure rule
    and CURRENT status basis remain in place.
 
+### W4 P1 follow-up — absent versus present-null PARKED Task hint
+
+The W1 independent `issue300ExpectedParkedLink` oracle permits an **absent**
+`metadata_json.taskId` for a source with its own valid Session anchor; it
+explicitly rejects **present JSON null** and a mismatched/late/foreign or
+wrong-type Task. Timeline now retains that anchored Audit **event fact** even
+when `taskId` is entirely absent. Directly anchored missing-hint PARKED has
+`PARTIAL` quality; legacy NULL-birth Session-entity-only PARKED has
+`UNVERIFIABLE` quality. Neither receives an inferred Task, responsibility,
+actor/participants, related evidence or custody transition.
+
+When `taskId` is present it must be a JSON string resolving to a canonical
+same-Organization/Location/Session PARKING Task visible under the selected
+snapshot. Explicit JSON null, non-string, wrong type, missing/invisible or
+conflicting references remain excluded. The NULL-direct point-detail
+containment uses the same absent/present condition, retaining the Session-only
+lock and an independent final four-source read. F01's scoped integrity signal
+no longer treats the absent hint alone as corruption; only a **present invalid**
+type or an independently visible contradictory relationship can trigger it.
+This classification deliberately does not assert that missing Task metadata
+proves writer corruption across legacy cohorts.
+
+Coordination: at the time of W3 inspection, W2's Search/selector branch
+still required a Task hint for NULL-direct Session-entity PARKED and flagged
+its absence as an anomaly.
+Prime was informed to align W2's owned files and consider suppressing
+unsupported PARKED actor/employee witness when the hint is absent. The W3
+commit alone cannot establish cross-reader parity until W2's update lands.
+
 ## Checks run on this isolated worktree
 
 | Check | Observation | Evidence level |
@@ -65,7 +94,7 @@ Status: **LOCAL SOURCE IMPLEMENTED; DATABASE/HTTP ACCEPTANCE GAP**
 | `pnpm --filter @valet/api typecheck` | PASS | Static |
 | Focused ESLint for four sources and W3 test | PASS, zero warnings | Static |
 | `pnpm architecture:check` | PASS; existing grandfathered non-W3 warnings only | Architecture |
-| `pnpm --filter @valet/api exec vitest run --config vitest.config.mjs --project api-non-postgres test/issue300-closure-timeline.integration.test.ts` | **5/5 PASS** | Local mock/contract and SQL-shape validation only |
+| `pnpm --filter @valet/api exec vitest run --config vitest.config.mjs --project api-non-postgres test/issue300-closure-timeline.integration.test.ts` | **6/6 PASS** after missing-hint follow-up | Local mock/contract and SQL-shape validation only |
 | `pnpm --filter @valet/api exec node --test test/issue300-timeline/timeline-provenance.test.mjs test/issue300-timeline/timeline-indirect-audit.test.mjs test/issue300-timeline/timeline-boundaries.test.mjs` | **15/18 PASS; 3 stale-harness failures** | Existing non-DB regression |
 | `git diff --check` and ≤300 physical source/test lines | PASS | Structural |
 

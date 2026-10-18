@@ -48,7 +48,12 @@ evidence AS (
          NULL::uuid AS reporter_id, NULL::uuid AS key_slot_id,
          NULL::uuid AS task_id, NULL::text AS incident_type,
          NULL::text AS incident_severity, NULL::text AS incident_status,
-         CASE WHEN audit.valet_session_id = session.id THEN 'RECORDED'
+         CASE WHEN audit.event_type = 'VALET_SESSION_PARKED'
+                    AND NOT (audit.metadata_json ? 'taskId')
+                THEN CASE WHEN audit.valet_session_id IS NULL
+                            AND audit.pagination_birth_xid IS NULL
+                          THEN 'UNVERIFIABLE' ELSE 'PARTIAL' END
+              WHEN audit.valet_session_id = session.id THEN 'RECORDED'
               WHEN audit.pagination_birth_xid IS NULL THEN 'UNVERIFIABLE'
               ELSE 'PARTIAL' END::text AS evidence_quality
   FROM scoped AS session
@@ -89,7 +94,8 @@ evidence AS (
       audit.entity_type IN ('ValetSession', 'VALET_SESSION')
       AND audit.entity_id = session.id
       AND (audit.event_type <> 'VALET_SESSION_PARKED'
-           OR (audit.metadata_json ? 'taskId' AND parked_task.id IS NOT NULL))
+           OR NOT (audit.metadata_json ? 'taskId')
+           OR parked_task.id IS NOT NULL)
     ))
   )
   AND (
@@ -105,7 +111,8 @@ evidence AS (
   )
   AND (audit.event_type <> 'VALET_SESSION_PARKED'
        OR NOT (audit.metadata_json ? 'taskId')
-       OR parked_task.id IS NOT NULL)
+       OR (jsonb_typeof(audit.metadata_json->'taskId') = 'string'
+           AND parked_task.id IS NOT NULL))
   AND (audit.event_type <> 'VALET_SESSION_PARKED'
        OR audit.entity_type NOT IN ('Task', 'TASK')
        OR NOT (audit.metadata_json ? 'taskId')

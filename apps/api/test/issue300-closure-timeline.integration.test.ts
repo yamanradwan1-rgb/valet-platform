@@ -57,6 +57,24 @@ describe("U-002 Timeline confidence and safe identity", () => {
     expect(projected.actor).toBeNull();
     expect(JSON.stringify(projected)).not.toContain("PRIVATE_CUSTOM_KIND");
   });
+
+  it("shows only independently anchored PARKED event facts without Task hint", () => {
+    const directMissingHint = projectTimelineRow(auditRow("PARTIAL"), sessionId);
+    const legacyEntityMissingHint = projectTimelineRow(auditRow("UNVERIFIABLE"), sessionId);
+    for (const event of [directMissingHint, legacyEntityMissingHint]) {
+      expect(event.kind).toBe("VALET_SESSION_PARKED");
+      expect(event.actor).toBeNull();
+      expect(event.participants).toEqual([]);
+      expect(event.references).toEqual([{ kind: "SESSION", id: sessionId }]);
+      expect(event.relatedEvidence).toEqual([]);
+    }
+    expect(directMissingHint.quality).toBe("PARTIAL");
+    expect(legacyEntityMissingHint.quality).toBe("UNVERIFIABLE");
+    const detail = projectTimelineDetail(auditRow("PARTIAL"), sessionId);
+    expect(detail.actor).toBeNull();
+    expect(JSON.stringify(detail)).not.toContain("Samir Khalil");
+    expect(detail.references).toEqual([{ kind: "SESSION", id: sessionId }]);
+  });
 });
 
 describe("historical association and privilege boundaries", () => {
@@ -68,6 +86,10 @@ describe("historical association and privilege boundaries", () => {
     expect(association).toBeDefined();
     expect(association).not.toMatch(/linked_task\.id|linked_incident\.id/);
     expect(association).not.toMatch(/audit\.pagination_birth_xid IS NOT NULL/);
+    expect(association).toMatch(/OR NOT \(audit\.metadata_json \? 'taskId'\)/);
+    expect(timelineSourceSql).toMatch(/audit\.event_type = 'VALET_SESSION_PARKED'\s+AND NOT \(audit\.metadata_json \? 'taskId'\)/);
+    expect(timelineSourceSql).toMatch(/THEN 'UNVERIFIABLE' ELSE 'PARTIAL'/);
+    expect(timelineSourceSql).toMatch(/jsonb_typeof\(audit\.metadata_json->'taskId'\) = 'string'\s+AND parked_task\.id IS NOT NULL/);
     expect(timelineSourceSql).not.toContain("linked_task.pagination_birth_xid <= audit.pagination_birth_xid");
     expect(timelineSourceSql).not.toContain("linked_incident.pagination_birth_xid <= audit.pagination_birth_xid");
     expect(timelineSourceSql).toMatch(/audit\.metadata_json \? 'taskId'/);
@@ -90,8 +112,9 @@ describe("historical association and privilege boundaries", () => {
     expect(indirectAuditContainmentSql).toMatch(/FOR SHARE OF session\s*$/);
     expect(indirectAuditContainmentSql).not.toMatch(/FOR SHARE OF session, audit/);
     expect(indirectAuditContainmentSql).toContain("audit.valet_session_id IS NULL");
-    expect(indirectAuditContainmentSql).toContain("(audit.metadata_json ? 'taskId') AND EXISTS");
-    expect(indirectAuditContainmentSql).toContain("task.task_type = 'PARKING'");
+    expect(indirectAuditContainmentSql).toContain("OR NOT (audit.metadata_json ? 'taskId')");
+    expect(indirectAuditContainmentSql).toContain("jsonb_typeof(audit.metadata_json->'taskId') = 'string' AND EXISTS");
+    expect(indirectAuditContainmentSql).toContain("parked_task.task_type = 'PARKING'");
     expect(indirectAuditContainmentSql).toContain("audit.entity_id = session.id");
     expect(indirectAuditContainmentSql).not.toContain("task.pagination_birth_xid <= audit.pagination_birth_xid");
     const calls: unknown[][] = [];
@@ -120,6 +143,8 @@ describe("historical association and privilege boundaries", () => {
     expect(queries[0]?.sql).toContain("audit.created_at <= $5::timestamptz");
     expect(queries[0]?.sql).toContain("pg_visible_in_snapshot");
     expect(queries[0]?.sql).not.toContain("NOT EXISTS");
+    expect(queries[0]?.sql).not.toContain("OR NOT (audit.metadata_json ? 'taskId')");
+    expect(queries[0]?.sql).toContain("audit.metadata_json ? 'taskId'\n");
     expect(queries[0]?.sql).not.toMatch(/count\s*\(|SELECT\s+audit\.id/i);
   });
 });
