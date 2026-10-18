@@ -12,7 +12,9 @@ import {
   validateOwnerTarget, verifyOwnedDocker, v2LedgerTarget,
 } from "./issue300-r2-v2-ledger-helper.mjs";
 import { attestV2LedgerHelper } from "./issue300-r2-v2-ledger-issuer.mjs";
-import { r2ApiBundleHash } from "./issue300-r2-api-bundle-hash.mjs";
+import {
+  assertBuildBinding, currentBoundBuild,
+} from "./issue300-r2-build-proof-binding.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const owned = join(root, "tmp/issue300-r2-w7-acceptance-v2-owned");
@@ -88,11 +90,11 @@ function readPrepared() {
   return JSON.parse(bytes.toString("utf8"));
 }
 
-export function prepareSourceRecord(candidateSha, apiBundleSha256, checksums) {
+export function prepareSourceRecord(candidateSha, binding, checksums, leaseId) {
   assert.match(candidateSha, gitSha);
-  assert.match(apiBundleSha256, hex);
+  assertBuildBinding(binding, candidateSha, leaseId);
   const migrationLedgerSha256 = expectedLedgerDigest(checksums);
-  return { candidateSha, apiBundleSha256,
+  return { ...binding,
     migrationLedgerSha256, migrationChecksums: checksums };
 }
 export function assertLease(env) {
@@ -115,6 +117,12 @@ function validateConnection(raw, role) {
 function assertSourceFresh(prepared, fresh) {
   assert.deepEqual(prepared, fresh, "V2_PREPARED_SOURCE_STALE");
 }
+function preparedBinding(prepared) {
+  const { candidateSha, leaseId, apiBundleSha256, contractsBundleSha256,
+    sourceSha256, apiBuildReceiptSha256 } = prepared;
+  return { candidateSha, leaseId, apiBundleSha256, contractsBundleSha256,
+    sourceSha256, apiBuildReceiptSha256 };
+}
 export function assembleOwnedManifest(prepared, docker, identity, rows, leaseId) {
   assert.match(leaseId, leasePattern);
   assert.match(docker?.Id ?? "", hex, "V2_CONTAINER_ID_DENIED");
@@ -132,6 +140,9 @@ export function assembleOwnedManifest(prepared, docker, identity, rows, leaseId)
   const manifest = { ...fixed, containerId: docker?.Id,
     candidateSha: prepared.candidateSha, leaseId, postgresStartedAt,
     apiBundleSha256: prepared.apiBundleSha256,
+    contractsBundleSha256: prepared.contractsBundleSha256,
+    sourceSha256: prepared.sourceSha256,
+    apiBuildReceiptSha256: prepared.apiBuildReceiptSha256,
     migrationChecksums: prepared.migrationChecksums };
   verifyOwnedDocker(manifest, docker);
   return manifest;
@@ -145,6 +156,7 @@ export async function issueWithClients({
   attest = attestV2LedgerHelper, publish = (value) => immutableJson(manifestName, value),
 }) {
   const leaseId = assertLease(env);
+  assertBuildBinding(preparedBinding(prepared), prepared.candidateSha, leaseId);
   assertSourceFresh(prepared, fresh);
   validateConnection(ownerDatabaseUrl, fixed.migrationRole);
   assert(admin?.connectionParameters?.host === fixed.host &&
@@ -203,21 +215,25 @@ export async function issueWithClients({
     ledgerSha256: full.migrationLedgerSha256 };
 }
 
-function currentSource() {
-  return prepareSourceRecord(cleanHead(), r2ApiBundleHash(join(root, "apps/api/dist")),
-    expectedLedgerFromSource());
+function currentSource(env) {
+  const leaseId = assertLease(env);
+  const candidateSha = cleanHead();
+  assert.equal(env.ISSUE300_R2_CANDIDATE_SHA, candidateSha);
+  const binding = currentBoundBuild(root, env);
+  return prepareSourceRecord(candidateSha, binding,
+    expectedLedgerFromSource(), leaseId);
 }
 export async function runCli(argv, env = process.env) {
   assert(argv.length === 1 && ["--prepare-source", "--issue"].includes(argv[0]),
     "Use exactly --prepare-source or --issue");
+  // Both modes must verify final clean source, exact build and expiring lease.
+  assertLease(env);
+  const fresh = currentSource(env);
   if (argv[0] === "--prepare-source") {
-    const output = immutableJson(preparedName, currentSource());
+    const output = immutableJson(preparedName, fresh);
     return { mode: "SOURCE_ONLY", ...output };
   }
-  // This check must precede ALL Docker, PostgreSQL and credential access.
-  assertLease(env);
   const prepared = readPrepared();
-  const fresh = currentSource();
   assertSourceFresh(prepared, fresh);
   const ownerUrl = validateConnection(env.ISSUE300_R2_OWNED_MIGRATION_DATABASE_URL,
     fixed.migrationRole);

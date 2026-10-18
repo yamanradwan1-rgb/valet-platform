@@ -7,7 +7,10 @@ import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { pgClient, validateSource } from "./issue300-closure-migration-proof.mjs";
-import { r2ApiBundleHash } from "./issue300-r2-api-bundle-hash.mjs";
+import { cleanCandidate } from "./issue300-r2-api-build-provenance.mjs";
+import {
+  assertManifestBuildBinding, currentBoundBuild,
+} from "./issue300-r2-build-proof-binding.mjs";
 import { readOwnedGuardFunctionHash } from "./issue300-r2-function-fingerprint.mjs";
 import { requireOwnedScopeEvidence } from "./issue300-r2-scope-proof.mjs";
 import { attestV2LedgerHelper } from "./issue300-r2-v2-ledger-issuer.mjs";
@@ -53,7 +56,7 @@ function ownedConnection(value, role) {
 
 /** Static allowlist + Prime's task-owned ignored non-secret manifest + Docker
  * inspection all have to match before opening either database connection. */
-function getOwnedAttestedTarget(candidateSha, leaseId, apiBundleSha256) {
+function getOwnedAttestedTarget(candidateSha, leaseId, build) {
   const manifestPath = join(owned, "R2_OWNED_RESOURCE_MANIFEST.json");
   const bytes = readFileSync(manifestPath);
   assert(bytes.length > 0 && bytes.length <= 20_480,
@@ -63,7 +66,7 @@ function getOwnedAttestedTarget(candidateSha, leaseId, apiBundleSha256) {
     assert.equal(manifest[key], value, `Unapproved resource ${key}`);
   assert.equal(manifest.candidateSha, candidateSha);
   assert.equal(manifest.leaseId, leaseId);
-  assert.equal(manifest.apiBundleSha256, apiBundleSha256);
+  assertManifestBuildBinding(manifest, build);
   assert.match(manifest.containerId ?? "", /^[a-f0-9]{64}$/);
   assert(Number.isFinite(Date.parse(manifest.postgresStartedAt)));
   assert(manifest.migrationChecksums &&
@@ -100,19 +103,9 @@ async function main() {
   assert.equal(process.env.ISSUE300_R2_ATTESTATION_ISSUE_ENABLE, "1");
   const leaseId = process.env.ISSUE300_R2_PROOF_LEASE_ID;
   assert.match(leaseId ?? "", /^issue300-r2-[a-z0-9-]{8,}$/);
-  const candidateSha = execFileSync("git", ["rev-parse", "HEAD"], {
-    cwd: root,
-    encoding: "utf8",
-  }).trim();
-  assert.equal(
-    execFileSync("git", ["status", "--porcelain=v1"], {
-      cwd: root,
-      encoding: "utf8",
-    }).trim(),
-    "",
-    "Uncommitted source invalidates the proof candidate",
-  );
+  const candidateSha = cleanCandidate(root);
   assert.equal(process.env.ISSUE300_R2_CANDIDATE_SHA, candidateSha);
+  const build = currentBoundBuild(root, process.env);
   const scopePath = resolve(process.env.ISSUE300_R2_SCOPE_MANIFEST ?? "");
   assert.equal(
     dirname(scopePath),
@@ -154,8 +147,7 @@ async function main() {
     }
   }
 
-  const apiBundleSha256 = r2ApiBundleHash(join(root, "apps/api/dist"));
-  const target = getOwnedAttestedTarget(candidateSha, leaseId, apiBundleSha256);
+  const target = getOwnedAttestedTarget(candidateSha, leaseId, build);
   const admin = pgClient(target.migrationUrl);
   const runtime = pgClient(target.runtimeUrl);
   await Promise.all([admin.connect(), runtime.connect()]);
@@ -250,7 +242,10 @@ async function main() {
       expiresAt: new Date(now + 15 * 60_000).toISOString(),
       ...exact,
       postgresStartedAt: identity.started.toISOString(),
-      apiBundleSha256,
+      apiBundleSha256: build.apiBundleSha256,
+      contractsBundleSha256: build.contractsBundleSha256,
+      sourceSha256: build.sourceSha256,
+      apiBuildReceiptSha256: build.apiBuildReceiptSha256,
       resourceManifestSha256: target.manifestSha256,
       migrationLedgerSha256,
       ledgerHelperFunctionSha256,
@@ -265,6 +260,9 @@ async function main() {
       allowedScopes,
     };
     const bytes = Buffer.from(JSON.stringify(document));
+    assert.deepEqual(currentBoundBuild(root, process.env), build,
+      "BUILD_CHANGED_BEFORE_OWNER_SIGNATURE");
+    assertManifestBuildBinding(target.manifest, build);
     // Each short-lived certificate is immutable. An expired or interrupted
     // previous issue must never be overwritten or silently reused.
     const path = join(owned,

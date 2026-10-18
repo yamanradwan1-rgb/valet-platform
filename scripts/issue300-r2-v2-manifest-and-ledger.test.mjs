@@ -17,8 +17,15 @@ const target = {
   runtimeRole: "issue300_r2_w7_runtime_v2",
 };
 const checksums = expectedLedgerFromSource();
-const prepared = prepareSourceRecord("a".repeat(40), "b".repeat(64), checksums);
 const lease = "issue300-r2-owned-v2-source-lease";
+const binding = {
+  candidateSha: "a".repeat(40), leaseId: lease,
+  apiBundleSha256: "b".repeat(64),
+  contractsBundleSha256: "d".repeat(64),
+  sourceSha256: "f".repeat(64),
+  apiBuildReceiptSha256: "9".repeat(64),
+};
+const prepared = prepareSourceRecord(binding.candidateSha, binding, checksums, lease);
 const env = {
   NODE_ENV: "test",
   ISSUE300_R2_V2_MANIFEST_ENABLE: "ISSUE_EXACT_OWNED_V2",
@@ -100,10 +107,13 @@ test("prepare-source produces only bounded migration/checksum and candidate dige
   assert.equal(Object.keys(prepared.migrationChecksums).length, 96);
   assert.match(prepared.migrationLedgerSha256, /^[a-f0-9]{64}$/);
   assert.deepEqual(Object.keys(prepared).sort(),
-    ["apiBundleSha256", "candidateSha", "migrationChecksums", "migrationLedgerSha256"]);
+    ["apiBuildReceiptSha256", "apiBundleSha256", "candidateSha",
+      "contractsBundleSha256", "leaseId", "migrationChecksums",
+      "migrationLedgerSha256", "sourceSha256"].sort());
   assert(!JSON.stringify(prepared).includes("password"));
-  assert.throws(() => prepareSourceRecord("x", "b".repeat(64), checksums));
-  assert.throws(() => prepareSourceRecord("a".repeat(40), "x", checksums));
+  assert.throws(() => prepareSourceRecord("x", binding, checksums, lease));
+  assert.throws(() => prepareSourceRecord(binding.candidateSha,
+    { ...binding, contractsBundleSha256: "x" }, checksums, lease));
 });
 test("issue refuses absent/production/wrong lease before touching DB", async () => {
   for (const bad of [
@@ -122,6 +132,9 @@ test("sanitized owned manifest matches exact live V2 Docker, owner and 96 ledger
   assert.equal(manifest.database, target.database);
   assert.equal(manifest.apiOrigin, "http://127.0.0.1:3167");
   assert.equal(manifest.containerId, container.Id);
+  assert.equal(manifest.contractsBundleSha256, binding.contractsBundleSha256);
+  assert.equal(manifest.apiBuildReceiptSha256, binding.apiBuildReceiptSha256);
+  assert.equal(manifest.sourceSha256, binding.sourceSha256);
   assert.equal(manifest.postgresStartedAt, started.toISOString());
   assert.deepEqual(manifest.migrationChecksums, checksums);
   for (const pair of [
