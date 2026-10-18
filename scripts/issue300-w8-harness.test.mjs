@@ -3,12 +3,11 @@ import assert from "node:assert/strict";
 import { assertTargetManifest, assertOwnedUri } from "./issue300-w8-target.mjs";
 import { fixturePlan, fixtureStatement } from "./issue300-w8-fixture.mjs";
 import { assertWriterRoster } from "./issue300-w8-writer-clients.mjs";
-import { verifyColdBoot } from "./issue300-w8-cold.mjs";
+import { verifyColdBoot, assertSignedGuestBoot } from "./issue300-w8-cold.mjs";
 import { canonicalSql } from "./issue300-w8-plans.mjs";
 import { assertNonemptyPlan } from "./issue300-w8-plans.mjs";
 import { verifyPinnedRoutes, assertExpectedHttp, verifiedSourceOracle } from
   "./issue300-w8-http-evidence.mjs";
-import { assertSignedGuestBoot } from "./issue300-w8-cold.mjs";
 import { createHash, generateKeyPairSync, sign } from "node:crypto";
 import { mkdtempSync, writeFileSync, rmSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -53,7 +52,6 @@ const observed={Id:resource.containerId,Name:"/"+own,
   Mounts:[{Type:"bind",Source:dataPath,
     Destination:"/var/lib/postgresql/data",RW:true}],
 };
-
 test("exact owned W7 accept target (no human DB) is accepted",()=>{
   assert.equal(assertTargetManifest(manifest,env,observed),manifest);
   assert.equal(assertOwnedUri("postgresql://"+
@@ -125,14 +123,19 @@ test("guest cold proof rejects same boot and stale certification",()=>{
   const signed={...boot,pgContainerId:resource.containerId,
     provenance:"OWNED_GUEST_SIGNED_KERNEL_BOOT_ID",candidateSha:sha,
     leaseId:lease,apiBundleSha256:resource.apiBundleSha256,
+    targetTier:100000,sourceFixtureHash:"f".repeat(64),
     apiPort:resource.apiPort,postgresVersion:"17.10",
-    osKernelBootVerified:true,pgProcessStartedAfterBoot:true};
+    osKernelBootVerified:true,pgProcessStartedAfterBoot:true,
+    apiPid:4321,apiProcessStartedAt:new Date(when-1000).toISOString()};
   assertSignedGuestBoot(signed,{candidateSha:sha,leaseId:lease,
+    targetTier:100000,sourceFixtureHash:"f".repeat(64),
     resource},when);
   assert.throws(()=>assertSignedGuestBoot({...signed,
-    apiPort:3114},{candidateSha:sha,leaseId:lease,resource},when));
+    apiPort:3114},{candidateSha:sha,leaseId:lease,
+      targetTier:100000,sourceFixtureHash:"f".repeat(64),resource},when));
   assert.throws(()=>assertSignedGuestBoot({...signed,
-    pgContainerId:"d".repeat(64)},{candidateSha:sha,leaseId:lease,resource},when));
+    pgContainerId:"d".repeat(64)},{candidateSha:sha,leaseId:lease,
+      targetTier:100000,sourceFixtureHash:"f".repeat(64),resource},when));
 });
 test("canonical SQL plans come from current Search and Timeline source",async()=>{
   const sid="10000000-0000-4000-8000-000000000011";
@@ -140,22 +143,27 @@ test("canonical SQL plans come from current Search and Timeline source",async()=
     from:"2026-10-16T11:00:00Z",to:"2026-10-16T12:00:00Z",
     sessionId:sid,detailSource:"INCIDENT",detailId:sid,
     knownAuditTypes:["VALET_SESSION_PARKED","INCIDENT_OPENED"],
-  }};
+  },scope:{slotId:"10000000-0000-4000-8000-000000000024"}};
   const statements=await canonicalSql({
     organizationId:"10000000-0000-4000-8000-000000000012",
     locationId:"10000000-0000-4000-8000-000000000013",
   },{now:new Date("2026-10-18T11:00:00Z"),
     cutoff:"2026-10-18T11:00:00.123456Z",database:"1:2:"},m);
-  assert.equal(statements.length,3);
+  assert.equal(statements.length,4);
   assert.match(statements[0].sql,/WITH scoped_location|WITH\s+scoped_location/);
-  assert.match(statements[1].sql,/WITH scoped AS MATERIALIZED/);
-  assert.equal(statements[1].sql,statements[2].sql);
+  assert.equal(statements[0].sql,statements[1].sql);
+  assert.match(statements[2].sql,/WITH scoped AS MATERIALIZED/);
+  assert.equal(statements[2].sql,statements[3].sql);
   assert.equal(statements[0].params.length,17);
-  assert.equal(statements[1].params.length,11);
+  assert.equal(statements[2].params.length,11);
   assert.equal(statements[0].params[8],"2026-10-18T11:00:00.123456Z");
   assert.equal(statements[0].params[9],"1:2:");
-  assert.equal(statements[1].params[6],"1:2:");
-  assert.equal(statements[1].params[7],"2026-10-18T11:00:00.123456Z");
+  assert.equal(statements[0].params[13],null);
+  assert.equal(statements[1].params[13],null);
+  assert.equal(statements[0].params[4],null);
+  assert.equal(statements[1].params[4],m.scope.slotId);
+  assert.equal(statements[2].params[6],"1:2:");
+  assert.equal(statements[2].params[7],"2026-10-18T11:00:00.123456Z");
   await assert.rejects(()=>canonicalSql({
     organizationId:"10000000-0000-4000-8000-000000000012",
     locationId:"10000000-0000-4000-8000-000000000013",
@@ -167,17 +175,21 @@ const org="10000000-0000-4000-8000-000000000033";
 const loc="10000000-0000-4000-8000-000000000034";
 const expected={
   search:{sessionId,source:"AUDIT",eventId:sourceId},
+  busySlotSearch:{sessionId,source:"KEY_CUSTODY",eventId:sourceId,
+    keySlotId:"10000000-0000-4000-8000-000000000035"},
   timeline:{sessionId,source:"AUDIT",eventId:sourceId},
   detail:{sessionId,source:"AUDIT",eventId:sourceId},
 };
 const base=`/v1/staff/management/organizations/${org}/locations/${loc}/audit-investigations`;
+const window={from:"2026-10-16T11:00:00Z",to:"2026-10-16T12:00:00Z"};
 const routes={
-  search:`${base}/sessions?from=2026-10-16T11:00:00Z&to=2026-10-16T12:00:00Z&sessionId=${sessionId}&limit=100`,
+  search:`${base}/sessions?from=${window.from}&to=${window.to}&limit=100`,
+  busySlotSearch:`${base}/sessions?from=${window.from}&to=${window.to}&keySlotId=${expected.busySlotSearch.keySlotId}&limit=100`,
   timeline:`${base}/sessions/${sessionId}/timeline?limit=100`,
   detail:`${base}/sessions/${sessionId}/events/AUDIT/${sourceId}`,
 };
 test("signed expected IDs reject HTTP200 with empty or unrelated data",()=>{
-  const source={expected};
+  const source={expected,workloadWindow:window};
   assert.deepEqual(verifyPinnedRoutes(routes,{
     scope:{organizationId:org,locationId:loc},
   },source),routes);
@@ -190,6 +202,11 @@ test("signed expected IDs reject HTTP200 with empty or unrelated data",()=>{
   assert.throws(()=>verifyPinnedRoutes({...routes,search:
     routes.search+"&includeAll=true"},{scope:{
       organizationId:org,locationId:loc}},source));
+  assert.throws(()=>verifyPinnedRoutes({...routes,search:
+    routes.search+"&sessionId="+sessionId},{scope:{
+      organizationId:org,locationId:loc}},source));
+  assert.throws(()=>verifyPinnedRoutes({...routes,busySlotSearch:
+    routes.search},{scope:{organizationId:org,locationId:loc}},source));
   assert.throws(()=>assertExpectedHttp("search",{items:[],
     snapshotAt:"x"},source));
   assert.throws(()=>assertExpectedHttp("timeline",{items:[{key:{
@@ -198,13 +215,21 @@ test("signed expected IDs reject HTTP200 with empty or unrelated data",()=>{
     key:{source:"AUDIT",eventId:sessionId}},source));
   assertExpectedHttp("search",{items:[{sessionId,matchingRecordCount:1,
     matchReasons:[{source:"AUDIT",eventId:sourceId}]}],snapshotAt:"x"},source);
+  assert.throws(()=>assertExpectedHttp("busySlotSearch",{
+    items:[{sessionId,matchingRecordCount:1,
+      matchReasons:[{source:"KEY_CUSTODY",eventId:sourceId,
+        matchedBy:"WINDOW"}]}],snapshotAt:"x"},source));
+  assertExpectedHttp("busySlotSearch",{items:[{sessionId,matchingRecordCount:1,
+    matchReasons:[{source:"KEY_CUSTODY",eventId:sourceId,
+      matchedBy:"KEY_SLOT"}]}],snapshotAt:"x"},source);
   assertExpectedHttp("timeline",{items:[{key:{source:"AUDIT",
     eventId:sourceId}}],snapshotAt:"x"},source);
   assertExpectedHttp("detail",{sessionId,source:"AUDIT",
     key:{source:"AUDIT",eventId:sourceId}},source);
 });
 test("zero-row EXPLAIN cannot masquerade as performance proof",()=>{
-  const rows=[{sessionId,matchingRecordCount:2}];
+  const rows=[{sessionId,matchingRecordCount:2,
+    reasons:[{source:"AUDIT",eventId:sourceId}]}];
   assert.throws(()=>assertNonemptyPlan({Plan:{"Actual Rows":0}},rows,
     "search",expected));
   assert.throws(()=>assertNonemptyPlan({Plan:{"Actual Rows":1}},[],
@@ -212,6 +237,9 @@ test("zero-row EXPLAIN cannot masquerade as performance proof",()=>{
   assert.throws(()=>assertNonemptyPlan({Plan:{"Actual Rows":1}},[
     {sessionId,matchingRecordCount:0}],"search",expected));
   assertNonemptyPlan({Plan:{"Actual Rows":1}},rows,"search",expected);
+  assert.throws(()=>assertNonemptyPlan({Plan:{"Actual Rows":1}},[
+    {sessionId,matchingRecordCount:2,reasons:[{source:"KEY_CUSTODY",
+      eventId:sourceId,matchedBy:"WINDOW"}]}],"busySlotSearch",expected));
   assert.throws(()=>assertNonemptyPlan({Plan:{"Actual Rows":1}},
     [{source:"AUDIT",id:sessionId}],"detail",expected));
 });
@@ -227,9 +255,19 @@ test("independent source oracle signature and runtime listener are mandatory",()
     const sourceFixtureHash="c".repeat(64);
     const m={candidateSha:sha,leaseId:lease,sourceFixtureHash,
       oracleIssuerKeySha256:fingerprint,targetTier:100000,
+      scope:{slotId:expected.busySlotSearch.keySlotId},
       resource:{...resource,dataPath:directory+"/"}};
     const payload={provenance:"INDEPENDENT_SOURCE_DB_READ_ONLY",
       candidateSha:sha,leaseId:lease,sourceFixtureHash,
+      workloadWindow:window,writerCohorts:{
+        2:{rosterDigest:"d".repeat(64),clientIds:["w1","w2"],
+          commandMix:{INCIDENT_REPORT:1,KEY_SLOT_ASSIGN:1}},
+        8:{rosterDigest:"e".repeat(64),
+          clientIds:["w1","w2","w3","w4","w5","w6","w7","w8"],
+          commandMix:{INCIDENT_REPORT:4,KEY_SLOT_ASSIGN:4}}},
+      skew:{busySlot:{keySlotId:expected.busySlotSearch.keySlotId,
+        source:"KEY_CUSTODY",persistedCustodyRows:25000,
+        distinctSessions:1000}},
       database:resource.database,containerId:resource.containerId,
       targetTier:100000,sourceCounts:{
         AUDIT:25000,KEY_CUSTODY:25000,DISPATCH:25000,INCIDENT:25000},

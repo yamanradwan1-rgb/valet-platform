@@ -7,6 +7,9 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { performance } from "node:perf_hooks";
 import { readTarget, assertOwnedUri } from "./issue300-w8-target.mjs";
+import { verifiedSourceOracle } from "./issue300-w8-http-evidence.mjs";
+import { assertWriterCohort, verifyWriterCoverage } from
+  "./issue300-w8-writer-proof.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const { Client } = createRequire(resolve(root, "apps/api/package.json"))("pg");
@@ -128,6 +131,7 @@ async function command(api, origin, c, db, runIndex) {
 
 async function main() {
   const target = readTarget();
+  const oracle=verifiedSourceOracle(target);
   const mode = process.env.ISSUE300_W8_WRITER_MODE;
   assert(["baseline","normal","stress"].includes(mode));
   const required = mode === "baseline" ?
@@ -142,6 +146,7 @@ async function main() {
     target.resource.dataPath.toLowerCase()));
   const all = JSON.parse(readFileSync(rosterPath,"utf8"));
   const roster = assertWriterRoster(all.clients?.slice(0,required),target,required);
+  const cohort=assertWriterCohort(roster,oracle,required);
   assert.equal(all.candidateSha,target.candidateSha);
   assert.equal(all.leaseId,target.leaseId);
   const raw = [];
@@ -193,12 +198,18 @@ async function main() {
     sourceFixtureHash:target.sourceFixtureHash,mode,
     writerKind:"ACTUAL_OPERATIONAL_HTTP_OR_DOMAIN_COMMAND",
     writerClients:required,writerClientIds:roster.map((c)=>c.clientId),
+    rosterDigest:cohort.rosterDigest,
+    commandCounts:{
+      INCIDENT_REPORT:raw.filter((r)=>r.command==="INCIDENT_REPORT").length,
+      KEY_SLOT_ASSIGN:raw.filter((r)=>r.command==="KEY_SLOT_ASSIGN").length,
+    },
     startedAt,finishedAt,elapsedMs,successfulCommands:times.length,
     failedCommands:errors.length,deadlocks:errors.filter((e)=>e.category==="40P01").length,
     lockTimeouts:errors.filter((e)=>e.category==="55P03").length,
     p95Ms:times.length?p95(times):null,raw,clientProof,
     errors:errors.map((e)=>e.category),
   };
+  verifyWriterCoverage(report,oracle,required);
   assert(process.env.ISSUE300_W8_WRITER_RESULT_PATH);
   writeFileSync(process.env.ISSUE300_W8_WRITER_RESULT_PATH,
     JSON.stringify(report,null,2),{flag:"wx",mode:0o600});

@@ -38,6 +38,60 @@ session, load, signed live Oracle, actual writer or physical cold-reset
 execution has been performed in this correction. U-004 is **GAP** pending
 Prime's exclusive capacity lease and independent review.
 
+## W9 re-audit — broad 100k/1m and skewed Key Slot acceptance
+
+The formerly pinned single-Session Search is **not** accepted as U-004
+Search performance. Four separately measured HTTP workloads are mandatory,
+**per tier (100k and 1m), per 600-second 2W/5R and 8W/25R phase**:
+
+- `search`: broad, no `sessionId`, no `keySlotId`, 100-item first page,
+  independently signed actual Session + source/event ID within that page
+- `busySlotSearch`: independently proven high-skew `keySlotId`, no
+  `sessionId`, 100-item first page, independently signed
+  `KEY_CUSTODY` event matched specifically as `KEY_SLOT`
+- `timeline`: actual scoped Session timeline + source/event ID
+- `detail`: exact event detail + independently signed source/event ID
+
+The independently signed oracle must bind the **same UTC from/to window** to
+both broad Search routes, an exact busy-slot ID, at least `tier/4` persisted
+custody events and `tier/100` independently counted Sessions for that
+slot. The runtime ordinary role independently recounts the deterministic
+source rows and verifies actual distinct Sessions for the busy slot. Full
+current-source SQL `EXPLAIN (ANALYZE, BUFFERS, WAL, FORMAT JSON)` measures
+**four** queries: broad Search with parameter `sessionId=NULL`,
+slot-filtered broad Search with `sessionId=NULL`, Timeline and detail.
+Every plan requires nonzero root rows, actual returned rows containing the
+signed expected Session/source event and an exact plan/query SHA.
+
+Each of the four HTTP workloads requires **≥1,000 independently checked
+nonempty HTTP 200/no-store samples**, with p95 per workload:
+`search<=1500 ms`, `busySlotSearch<=1500 ms`, `timeline<=750 ms`,
+`detail<=400 ms`. Cold trials require **20 independently rebooted and
+independently signed guest boots per workload** (80 total per tier), p95
+limits `3000/3000/1500/800 ms`. A distinct independent timing witness must
+sign the **entire** cold trial: reset receipt/timestamp, exact boot and API
+process, workload path/source ID, response digest/status, observed elapsed
+and start/finish clocks; boot signature alone cannot certify cold p95.
+Missing trial signer or producer = **GAP**, never a substitute warm number.
+
+The signed writer cohort must pin client IDs, protected commands, Session
+IDs, balanced Incident/KeySlot command mix and roster SHA256 for **2W and
+8W**. Baseline and loaded writer proof must match exactly in these
+dimensions, independently log two persisted source IDs for every accepted
+operation, maintain productive output by every client in every 30-second
+interval, and avoid >20% throughput loss per command family. Relative and
+absolute writer p95 gates remain in force.
+
+The owned guest listener is now independently signed at least once every
+30 seconds throughout the **full 600-second reader phase**, plus pre/post,
+with fixed PID, startup time, compiled bundle SHA, port, container, lease,
+tier and source fixture hash. Missing or stale checkpoints, process restart,
+unexpected listener PID/compiled hash, or any alternate service fails.
+This is **test-only source instrumentation**, not proof that an external
+source-Oracle/guest-timing/continuity issuer has been provisioned. Those
+signers must be independently reviewed/authorized; absent trusted actual
+evidence the harness remains deliberately in U-004 **GAP**.
+
 ## Ownership and fail-closed envelope
 
 - New independent D-drive worktree branch

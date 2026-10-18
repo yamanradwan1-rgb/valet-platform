@@ -3,9 +3,12 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { performance } from "node:perf_hooks";
 import { readTarget, assertOwnedUri } from "./issue300-w8-target.mjs";
 import { verifySyntheticSources } from "./issue300-w8-oracle.mjs";
-import { verifiedSourceOracle, verifyPinnedRoutes,
-  assertExpectedHttp } from "./issue300-w8-http-evidence.mjs";
+import { verifiedSourceOracle, verifyPinnedRoutes, assertExpectedHttp,
+  u004Endpoints, u004WarmBudgets, u004ColdBudgets } from
+  "./issue300-w8-http-evidence.mjs";
 import { verifyColdArtifact } from "./issue300-w8-cold.mjs";
+import { runtimeContinuity } from "./issue300-w8-runtime-continuity.mjs";
+import { assertComparableWriters } from "./issue300-w8-writer-proof.mjs";
 
 // W7 measures actual HTTP. Prime/W6 must run authentic independent operational
 // writers concurrently; a SQL fixture loop must never masquerade as a writer.
@@ -36,12 +39,15 @@ const paths = JSON.parse(
   readFileSync(process.env.ISSUE300_W7_LOAD_PATHS, "utf8"),
 );
 const signed = verifiedSourceOracle(owned);
+const liveProcess=runtimeContinuity(owned,signed);
 verifyPinnedRoutes(paths.endpoints,owned,signed);
 const independent = await verifySyntheticSources(
   owned,process.env.ISSUE300_W8_RUNTIME_DB_URL);
 assert.deepEqual(paths.sourceCounts,independent.sourceCounts);
 assert.equal(paths.scopedPersistedSourceRecords,
   independent.scopedPersistedSourceRecords);
+assert.deepEqual(independent.slotSkew,signed.skew.busySlot);
+assert.deepEqual(paths.busySlotSkew,signed.skew.busySlot);
 assert.equal(paths.targetTier,owned.targetTier);
 assert.equal(paths.candidateSha, candidate);
 assert.equal(paths.leaseId, lease);
@@ -65,11 +71,7 @@ assert.ok(
       (kind) => paths.sourceCounts[kind] > 0,
     ),
 );
-const endpoints = ["search", "timeline", "detail"];
-for (const endpoint of endpoints) {
-  assert.match(paths.endpoints[endpoint], /^\/v1\/staff\/management\//);
-}
-assert.equal(new Set(Object.values(paths.endpoints)).size,3);
+const endpoints = u004Endpoints;
 assert.ok(process.env.ISSUE300_W7_WRITER_BASELINE);
 assert.ok(process.env.ISSUE300_W7_WRITER_LIVE);
 assert.ok(process.env.ISSUE300_W7_COLD_TRIALS);
@@ -91,6 +93,7 @@ function percentile(samples, fraction) {
 async function reader(index) {
   let iteration = index;
   while (performance.now() < end && !abortReaders) {
+    liveProcess.check();
     const endpoint = endpoints[iteration++ % endpoints.length];
     const path = paths.endpoints[endpoint];
     const at = performance.now();
@@ -132,6 +135,7 @@ const failures = await Promise.allSettled(
   Array.from({ length: expected.readers }, (_, i) => reader(i)),
 );
 const finishedAt = new Date().toISOString();
+const processContinuity=liveProcess.finish(startedAt,finishedAt);
 const report = {
   candidate,
   lease,
@@ -152,6 +156,7 @@ const report = {
   raw,
   http: {},
   unsuccessful,
+  processContinuity,
   resource: { containerId:owned.resource.containerId,
     dbPort:owned.resource.dbPort,apiPort:owned.resource.apiPort },
 };
@@ -210,7 +215,7 @@ const baseline = securedArtifact("ISSUE300_W7_WRITER_BASELINE");
 const live = securedArtifact("ISSUE300_W7_WRITER_LIVE");
 const cold = securedArtifact("ISSUE300_W7_COLD_TRIALS");
 const explain = securedArtifact("ISSUE300_W7_EXPLAIN_PLANS");
-verifyColdArtifact(cold,owned);
+verifyColdArtifact(cold,owned,signed);
 assert.equal(live.writerKind, "ACTUAL_OPERATIONAL_HTTP_OR_DOMAIN_COMMAND");
 assert.ok(live.writerClients >= expected.writers);
 assert.ok(typeof baseline.hardwareId === "string" && baseline.hardwareId);
@@ -228,20 +233,14 @@ assert.ok(live.successfulCommands > 0);
 assert.equal(live.failedCommands, 0);
 assert.equal(live.deadlocks, 0);
 assert.equal(live.lockTimeouts, 0);
+assertComparableWriters(baseline,live,signed,expected.writers);
 assert.ok(Date.parse(live.startedAt) <= Date.parse(startedAt));
 assert.ok(Date.parse(live.finishedAt) >= Date.parse(finishedAt));
 assert.ok(baseline.successfulCommands > 0);
 assert.ok(baseline.writerClients >= expected.writers);
-assert.ok(baseline.p95Ms >= 0 && live.p95Ms >= 0);
-assert.ok(
-  live.p95Ms <= baseline.p95Ms * 1.2,
-  "Real writer p95 degraded by more than 20%",
-);
-assert.ok(
-  live.p95Ms - baseline.p95Ms <= 100,
-  "Real writer p95 degraded by more than 100 ms",
-);
-assert.ok(explain.plans?.length >= 3);
+// assertComparableWriters above enforces both p95 gates per pinned cohort.
+assert.equal(explain.plans?.length,endpoints.length);
+assert.deepEqual(explain.plans.map((p)=>p.endpoint),endpoints);
 for (const item of explain.plans) {
   assert.ok(endpoints.includes(item.endpoint));
   assert.match(item.sqlSha256, /^[a-f0-9]{64}$/);
@@ -249,10 +248,14 @@ for (const item of explain.plans) {
   assert.ok(item.role && item.fullExplainJson && item.buffers);
   assert.equal(item.candidateSha,candidate);
   assert.equal(item.containerId,owned.resource.containerId);
+  assert(item.fullExplainJson[0]?.Plan?.["Actual Rows"]>0,
+    "No false-fast empty EXPLAIN allowed");
+  assert.equal(item.expectedSourceId,signed.expected[item.endpoint].eventId);
+  assert.equal(item.expectedSessionId,signed.expected[item.endpoint].sessionId);
 }
 
-const warmBudgets = { search: 1500, timeline: 750, detail: 400 };
-const coldBudgets = { search: 3000, timeline: 1500, detail: 800 };
+const warmBudgets = u004WarmBudgets;
+const coldBudgets = u004ColdBudgets;
 for (const endpoint of endpoints) {
   assert.ok(
     report.http[endpoint].p95Ms <= warmBudgets[endpoint],

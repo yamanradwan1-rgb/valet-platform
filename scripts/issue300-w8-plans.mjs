@@ -7,7 +7,8 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import { readTarget, assertOwnedUri } from "./issue300-w8-target.mjs";
-import { verifiedSourceOracle } from "./issue300-w8-http-evidence.mjs";
+import { u004Endpoints, verifiedSourceOracle } from
+  "./issue300-w8-http-evidence.mjs";
 import { verifySyntheticSources } from "./issue300-w8-oracle.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -45,12 +46,15 @@ export async function canonicalSql(scope, snapshot, m) {
   const stub={query:async(sql,params)=>{
     statements.push({sql,params});return{rows:[]};
   }};
-  await search.queryAuditInvestigationFirstPage(stub,scope,{
-    from:m.planProbe.from,to:m.planProbe.to,limit:25,
-    sessionId:m.planProbe.sessionId,
-  },{makePrefix:null,modelPrefix:null,plate:null,plateCountry:null},
-  {now:snapshot.now,cutoff:snapshot.cutoff,
-    database:snapshot.database},undefined);
+  for(const name of ["search","busySlotSearch"]){
+    await search.queryAuditInvestigationFirstPage(stub,scope,{
+      from:m.planProbe.from,to:m.planProbe.to,limit:100,
+      keySlotId:name==="busySlotSearch"?m.scope.slotId:undefined,
+      // Explicitly no Session anchor on either performance Search workload.
+    },{makePrefix:null,modelPrefix:null,plate:null,plateCountry:null},
+    {now:snapshot.now,cutoff:snapshot.cutoff,
+      database:snapshot.database},undefined);
+  }
   const timeline=load("timeline/timeline-source-query.ts");
   await timeline.readTimelineSources(stub,scope,
     m.planProbe.sessionId,101,undefined,{
@@ -60,10 +64,16 @@ export async function canonicalSql(scope, snapshot, m) {
     m.planProbe.sessionId,2,{
       source:m.planProbe.detailSource,id:m.planProbe.detailId,
     },{cutoff:snapshot.cutoff,database:snapshot.database});
-  assert.equal(statements.length,3);
-  assert.equal(statements[0].params[8],snapshot.cutoff);
-  assert.equal(statements[0].params[9],snapshot.database);
-  for (const statement of statements.slice(1)) {
+  assert.equal(statements.length,u004Endpoints.length);
+  for(const statement of statements.slice(0,2)){
+    assert.equal(statement.params[8],snapshot.cutoff);
+    assert.equal(statement.params[9],snapshot.database);
+    assert.equal(statement.params[13],null,
+      "Search plans must NOT use sessionId predicate");
+  }
+  assert.equal(statements[0].params[4],null);
+  assert.equal(statements[1].params[4],m.scope.slotId);
+  for (const statement of statements.slice(2)) {
     assert.equal(statement.params[6],snapshot.database);
     assert.equal(statement.params[7],snapshot.cutoff);
   }
@@ -76,9 +86,15 @@ export function assertNonemptyPlan(plan, rows, endpoint, expected) {
     `False-fast ${endpoint} EXPLAIN: empty root rows`);
   assert(Array.isArray(rows) && rows.length>0,
     `No measured ${endpoint} SQL evidence rows`);
-  if (endpoint==="search")
-    assert(rows.some((r)=>r.sessionId===expected.search.sessionId &&
-      Number(r.matchingRecordCount)>0),"Search SQL missing signed Session witness");
+  if (endpoint==="search" || endpoint==="busySlotSearch") {
+    const key=expected[endpoint];
+    assert(rows.some((r)=>r.sessionId===key.sessionId &&
+      Number(r.matchingRecordCount)>0 && Array.isArray(r.reasons) &&
+      r.reasons.some((reason)=>reason.source===key.source &&
+        reason.eventId===key.eventId &&
+        (endpoint!=="busySlotSearch" || reason.matchedBy==="KEY_SLOT"))),
+    `${endpoint} SQL missing independently signed source-qualified witness`);
+  }
   else {
     const key=endpoint==="timeline"?expected.timeline:expected.detail;
     assert(rows.some((r)=>r.source===key.source && r.id===key.eventId),
@@ -90,13 +106,16 @@ export function assertNonemptyPlan(plan, rows, endpoint, expected) {
 async function run() {
   const m=readTarget();
   const oracle=verifiedSourceOracle(m);
-  assert.equal(m.planProbe.sessionId,oracle.expected.search.sessionId);
+  assert.equal(m.planProbe.from,oracle.workloadWindow.from);
+  assert.equal(m.planProbe.to,oracle.workloadWindow.to);
+  assert.equal(m.planProbe.sessionId,oracle.expected.timeline.sessionId);
   assert.equal(m.planProbe.detailSource,oracle.expected.detail.source);
   assert.equal(m.planProbe.detailId,oracle.expected.detail.eventId);
   assertOwnedUri(process.env.ISSUE300_W8_RUNTIME_DB_URL,m,"db");
   const counted=await verifySyntheticSources(m,
     process.env.ISSUE300_W8_RUNTIME_DB_URL);
   assert(counted.scopedPersistedSourceRecords>=m.targetTier);
+  assert.deepEqual(counted.slotSkew,oracle.skew.busySlot);
   assert.match(m.planProbe?.sessionId ?? "",
     /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i);
   assert.match(m.planProbe?.detailId ?? "",
@@ -131,10 +150,13 @@ async function run() {
       assert(Array.isArray(fullExplainJson) && fullExplainJson.length===1);
       const plan=fullExplainJson[0];
       const rows=(await db.query(sql,params)).rows;
-      assertNonemptyPlan(plan,rows,["search","timeline","detail"][i],
+      assertNonemptyPlan(plan,rows,u004Endpoints[i],
         oracle.expected);
-      plans.push({endpoint:["search","timeline","detail"][i],
+      plans.push({endpoint:u004Endpoints[i],
         candidateSha:m.candidateSha,containerId:m.resource.containerId,
+        expectedSourceId:oracle.expected[u004Endpoints[i]].eventId,
+        expectedSessionId:oracle.expected[u004Endpoints[i]].sessionId,
+        scopedHighSkewCount: counted.slotSkew.persistedCustodyRows,
         role:scopeCheck.role,sqlSha256:digest(sql),
         planSha256:digest(JSON.stringify(plan)),
         fullExplainJson, buffers:{sharedHit:plan.Plan?.["Shared Hit Blocks"],
@@ -151,7 +173,7 @@ async function run() {
     writeFileSync(process.env.ISSUE300_W7_EXPLAIN_PLANS,
       JSON.stringify(report,null,2),{flag:"wx",mode:0o600});
     await db.query("ROLLBACK");
-    console.log(JSON.stringify({verdict:"THREE_JSON_SQL_PLANS_RECORDED",
+    console.log(JSON.stringify({verdict:"FOUR_JSON_SQL_PLANS_RECORDED",
       endpoints:plans.map((p)=>p.endpoint)}));
   } catch(e) {await db.query("ROLLBACK").catch(()=>{});throw e;}
   finally {await db.end();}

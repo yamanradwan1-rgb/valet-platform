@@ -2,15 +2,17 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash, createPublicKey, verify } from "node:crypto";
-import { readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
 import { performance } from "node:perf_hooks";
+import { join, resolve, sep } from "node:path";
 import { readTarget, assertOwnedUri } from "./issue300-w8-target.mjs";
 import { verifiedSourceOracle, verifyPinnedRoutes, assertExpectedHttp,
-  verifyDetachedBytes } from "./issue300-w8-http-evidence.mjs";
+  verifyDetachedBytes, u004ColdBudgets } from "./issue300-w8-http-evidence.mjs";
+import { verifySignedColdTrial } from "./issue300-w8-cold-trial.mjs";
 
 const sleep = (ms) => new Promise((ok)=>setTimeout(ok,ms));
 const p95 = (items) => [...items].sort((a,b)=>a-b)[Math.ceil(items.length*.95)-1];
-const budgets = {search:3000,timeline:1500,detail:800};
+const budgets = u004ColdBudgets;
 const bootPattern = /^[a-f0-9-]{36}$/;
 const vbox = "C:\\Program Files\\Oracle\\VirtualBox\\VBoxManage.exe";
 
@@ -33,15 +35,20 @@ export function assertSignedGuestBoot(boot, m, startEpoch) {
   assert.equal(boot.provenance,"OWNED_GUEST_SIGNED_KERNEL_BOOT_ID");
   assert.equal(boot.candidateSha,m.candidateSha);
   assert.equal(boot.leaseId,m.leaseId);
+  assert.equal(boot.targetTier,m.targetTier);
+  assert.equal(boot.sourceFixtureHash,m.sourceFixtureHash);
   assert.equal(boot.apiBundleSha256,m.resource.apiBundleSha256);
   assert.equal(boot.apiPort,m.resource.apiPort);
   assert.equal(boot.postgresVersion,m.resource.postgresVersion);
   assert.equal(boot.osKernelBootVerified,true);
   assert.equal(boot.pgProcessStartedAfterBoot,true);
+  assert(Number.isInteger(boot.apiPid) && boot.apiPid>0);
+  assert(Number.isFinite(Date.parse(boot.apiProcessStartedAt)));
+  assert(Date.parse(boot.apiProcessStartedAt)<=Date.parse(boot.recordedAt));
   return true;
 }
 
-export function verifyColdArtifact(cold, m, env=process.env) {
+export function verifyColdArtifact(cold, m, oracle, env=process.env) {
   assert.equal(cold.methodology,"OWNED_GUEST_INDEPENDENT_OS_BOOT_ID");
   assert.equal(cold.globalSharedCacheFlush,false);
   const keyPath=realpathSync(env.ISSUE300_W8_GUEST_BOOT_KEY);
@@ -70,11 +77,12 @@ export function verifyColdArtifact(cold, m, env=process.env) {
       assert.equal(trial.cacheResetVerified,true);
       assert.equal(trial.responseValidated,true);
       assert(Number.isFinite(trial.httpElapsedMs) && trial.httpElapsedMs>=0);
+      verifySignedColdTrial(trial,m,oracle,endpoint,boot,env);
       assert(!all.has(boot.bootId),"Duplicate boot across endpoints");
       all.add(boot.bootId);
     }
   }
-  assert.equal(all.size,60);
+  assert.equal(all.size,20*Object.keys(budgets).length);
   return true;
 }
 
@@ -101,6 +109,9 @@ async function main() {
   assert.equal(paths.leaseId,m.leaseId);
   const token = process.env.ISSUE300_W7_STAFF_BEARER;
   assert.match(token ?? "",/^vsa1\.[A-Za-z0-9_-]{43}$/);
+  const receiptDir=realpathSync(process.env.ISSUE300_W8_COLD_RECEIPTS_DIR);
+  assert(receiptDir.toLowerCase().startsWith(
+    (resolve(m.resource.dataPath)+sep).toLowerCase()));
   const evidenceSignature=evidencePath+".sig";
   const before=verifyDetachedBytes(m,{
     key:process.env.ISSUE300_W8_GUEST_BOOT_KEY,
@@ -146,18 +157,33 @@ async function main() {
         headers:{Authorization:`Bearer ${token}`,Origin:origin},
         signal:AbortSignal.timeout(15_000),
       });
-      const elapsedMs=performance.now()-started;
+      const localHttpElapsedMs=performance.now()-started;
       assert.equal(response?.status,200,"No successful first cold HTTP");
       assert.equal(response.headers.get("cache-control")?.includes("no-store"),true);
       const body = await response.json();
       assertExpectedHttp(endpoint,body,oracle);
-      trials[endpoint].push({trial:i+1,guestBootId:boot.bootId,
-        guestBootEvidenceAt:boot.recordedAt,httpElapsedMs:elapsedMs,
+      const receipt=join(receiptDir,`${endpoint}-${i+1}.json`);
+      const receiptSig=receipt+".sig";
+      for(let n=0;n<40 && (!existsSync(receipt) ||
+        !existsSync(receiptSig));n++) await sleep(250);
+      assert(existsSync(receipt) && existsSync(receiptSig),
+        "Independent timing observer did not sign the entire cold trial");
+      const payloadBytes=readFileSync(receipt);
+      const observed=JSON.parse(payloadBytes.toString("utf8"));
+      const trial={trial:i+1,guestBootId:boot.bootId,
+        guestBootEvidenceAt:boot.recordedAt,
+        httpElapsedMs:observed.httpElapsedMs,localHttpElapsedMs,
+        responseSha256:createHash("sha256")
+          .update(JSON.stringify(body)).digest("hex"),
         resetIssuedAt:new Date(startEpoch).toISOString(),
         signedBootPayloadBase64:readFileSync(evidencePath).toString("base64"),
         signedBootSignatureBase64:readFileSync(evidenceSignature).toString("base64"),
+        signedTrialPayloadBase64:payloadBytes.toString("base64"),
+        signedTrialSignatureBase64:readFileSync(receiptSig).toString("base64"),
         cacheResetVerified:true,responseValidated:true,
-        method:"OWNED_VBOX_GUEST_OS_RESET"});
+        method:"OWNED_VBOX_GUEST_OS_RESET"};
+      verifySignedColdTrial(trial,m,oracle,endpoint,boot);
+      trials[endpoint].push(trial);
     }
   }
   for (const [name,rows] of Object.entries(trials)) {
@@ -165,13 +191,14 @@ async function main() {
     assert.equal(new Set(rows.map((r)=>r.guestBootId)).size,20);
     assert(p95(rows.map((r)=>r.httpElapsedMs))<=budgets[name]);
   }
-  assert.equal(allBoots.size,61,"Exactly 60 fresh signed guest boots");
+  assert.equal(allBoots.size,1+20*Object.keys(budgets).length,
+    "Exactly one distinct signed OS boot per cold trial");
   const output={candidateSha:m.candidateSha,leaseId:m.leaseId,
     database:m.resource.database,containerId:m.resource.containerId,
     apiBundleSha256:m.resource.apiBundleSha256,targetTier:m.targetTier,
     methodology:"OWNED_GUEST_INDEPENDENT_OS_BOOT_ID",globalSharedCacheFlush:false,
     trials};
-  verifyColdArtifact(output,m);
+  verifyColdArtifact(output,m,oracle);
   assert(process.env.ISSUE300_W7_COLD_TRIALS);
   writeFileSync(process.env.ISSUE300_W7_COLD_TRIALS,
     JSON.stringify(output,null,2),{flag:"wx",mode:0o600});

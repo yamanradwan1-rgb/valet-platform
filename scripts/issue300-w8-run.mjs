@@ -5,6 +5,8 @@ import { readFileSync, existsSync } from "node:fs";
 import { dirname, resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readTarget, assertOwnedUri } from "./issue300-w8-target.mjs";
+import { verifiedSourceOracle } from "./issue300-w8-http-evidence.mjs";
+import { verifyWriterCoverage } from "./issue300-w8-writer-proof.mjs";
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),"..");
 const delay=(ms)=>new Promise((ok)=>setTimeout(ok,ms));
@@ -44,6 +46,7 @@ function checkArtifact(file,m,mode) {
 
 async function main() {
   const m=readTarget();
+  const oracle=verifiedSourceOracle(m);
   const mode=process.env.ISSUE300_W8_STAGE;
   assert(["baseline","normal","stress"].includes(mode));
   assertOwnedUri(process.env.ISSUE300_W8_API_URL,m,"api");
@@ -57,7 +60,7 @@ async function main() {
   if(mode!=="baseline") {
     const baseline=checkArtifact(process.env.ISSUE300_W7_WRITER_BASELINE,m,"baseline");
     assert.equal(baseline.writerClients,expectedWriters);
-    assert.equal(baseline.writerKind,"ACTUAL_OPERATIONAL_HTTP_OR_DOMAIN_COMMAND");
+    verifyWriterCoverage(baseline,oracle,expectedWriters);
     checkArtifact(process.env.ISSUE300_W7_COLD_TRIALS,m,"cold");
     checkArtifact(process.env.ISSUE300_W7_EXPLAIN_PLANS,m,"plans");
   }
@@ -71,7 +74,9 @@ async function main() {
   if(mode==="baseline"){
     const outcome=await writer.finished;
     assert.equal(outcome.code,0,"Baseline real writer not qualified");
-    checkArtifact(writerEnv.ISSUE300_W8_WRITER_RESULT_PATH,m,"baseline");
+    verifyWriterCoverage(
+      checkArtifact(writerEnv.ISSUE300_W8_WRITER_RESULT_PATH,m,"baseline"),
+      oracle,expectedWriters);
     console.log("W8 writer-only baseline completed; NO reader-phase claimed");
     return;
   }

@@ -30,6 +30,7 @@ export function makeLoadPaths(m, fixture, signed) {
     apiBundleSha256:m.resource.apiBundleSha256,targetTier:m.targetTier,
     sourceFixtureHash:m.sourceFixtureHash,
     sourceCounts:fixture.sourceCounts,
+    busySlotSkew:signed.skew.busySlot,
     scopedPersistedSourceRecords:fixture.scopedPersistedSourceRecords,
     endpoints,fixtureProvenance:fixture.provenance};
 }

@@ -7,7 +7,12 @@ import { resolve, sep } from "node:path";
 const uuid = "[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}";
 const idPattern = new RegExp(`^${uuid}$`, "i");
 const sources = ["AUDIT", "KEY_CUSTODY", "DISPATCH", "INCIDENT"];
-const endpoints = ["search", "timeline", "detail"];
+export const u004Endpoints =
+  ["search", "busySlotSearch", "timeline", "detail"];
+export const u004WarmBudgets =
+  {search:1500,busySlotSearch:1500,timeline:750,detail:400};
+export const u004ColdBudgets =
+  {search:3000,busySlotSearch:3000,timeline:1500,detail:800};
 const digest = (buf) => createHash("sha256").update(buf).digest("hex");
 
 function ownedPath(path, root) {
@@ -50,6 +55,12 @@ export function verifiedSourceOracle(m, env = process.env) {
   assert.equal(oracle.containerId, m.resource.containerId);
   assert.equal(oracle.targetTier, m.targetTier);
   assert.equal(oracle.sourceFixtureHash, m.sourceFixtureHash);
+  assert.equal(typeof oracle.workloadWindow?.from,"string");
+  assert.equal(typeof oracle.workloadWindow?.to,"string");
+  const from=Date.parse(oracle.workloadWindow.from);
+  const to=Date.parse(oracle.workloadWindow.to);
+  assert(Number.isFinite(from) && Number.isFinite(to) &&
+    to>from && to-from<=31*86400_000);
   const runtime=oracle.apiRuntime;
   assert.equal(runtime?.kind,"OWNED_GUEST_RUNTIME_LISTENER_ATTESTATION");
   assert.equal(runtime?.host,"127.0.0.1");
@@ -66,11 +77,20 @@ export function verifiedSourceOracle(m, env = process.env) {
     Date.parse(runtime.probedAt) <= Date.now(),
     "Runtime listener proof stale or in future");
   assert.deepEqual(Object.keys(oracle.expected ?? {}).sort(),
-    [...endpoints].sort());
+    [...u004Endpoints].sort());
   const expected = oracle.expected;
-  assert.match(expected.search.sessionId, idPattern);
-  assert.match(expected.search.source, /^(AUDIT|KEY_CUSTODY|DISPATCH|INCIDENT)$/);
-  assert.match(expected.search.eventId, idPattern);
+  for(const name of ["search","busySlotSearch"]) {
+    assert.match(expected[name].sessionId, idPattern);
+    assert.match(expected[name].source, /^(AUDIT|KEY_CUSTODY|DISPATCH|INCIDENT)$/);
+    assert.match(expected[name].eventId, idPattern);
+  }
+  assert.equal(expected.busySlotSearch.source,"KEY_CUSTODY");
+  assert.equal(expected.busySlotSearch.keySlotId,m.scope.slotId);
+  assert.equal(oracle.skew?.busySlot?.keySlotId,m.scope.slotId);
+  assert.equal(oracle.skew?.busySlot?.source,"KEY_CUSTODY");
+  assert(oracle.skew.busySlot.persistedCustodyRows >= m.targetTier/4);
+  assert(oracle.skew.busySlot.distinctSessions >= m.targetTier/100,
+    "Independently proven high-skew slot Session distribution required");
   assert.match(expected.timeline.source, /^(AUDIT|KEY_CUSTODY|DISPATCH|INCIDENT)$/);
   assert.match(expected.timeline.eventId, idPattern);
   assert.match(expected.detail.source, /^(AUDIT|KEY_CUSTODY|DISPATCH|INCIDENT)$/);
@@ -79,16 +99,23 @@ export function verifiedSourceOracle(m, env = process.env) {
   assert.equal(expected.detail.sessionId, expected.search.sessionId);
   assert(oracle.sourceCounts &&
     sources.every((source) => oracle.sourceCounts[source] === m.targetTier/4));
+  for(const count of [2,8]){
+    const cohort=oracle.writerCohorts?.[String(count)];
+    assert.match(cohort?.rosterDigest??"",/^[a-f0-9]{64}$/);
+    assert(Array.isArray(cohort.clientIds) && cohort.clientIds.length===count);
+    assert.deepEqual(cohort.commandMix,{
+      INCIDENT_REPORT:count/2,KEY_SLOT_ASSIGN:count/2});
+  }
   return oracle;
 }
 
 export function verifyPinnedRoutes(paths, m, oracle) {
-  assert.deepEqual(Object.keys(paths).sort(), [...endpoints].sort());
+  assert.deepEqual(Object.keys(paths).sort(), [...u004Endpoints].sort());
   const prefix = `/v1/staff/management/organizations/${m.scope.organizationId}` +
     `/locations/${m.scope.locationId}/audit-investigations`;
   const expected = oracle.expected;
   const result = {};
-  for (const name of endpoints) {
+  for (const name of u004Endpoints) {
     const raw = paths[name];
     assert.equal(typeof raw, "string");
     assert(!raw.includes("%") && !raw.includes("#") &&
@@ -96,16 +123,23 @@ export function verifyPinnedRoutes(paths, m, oracle) {
     const parsed = new URL(raw, "http://127.0.0.1");
     assert.equal(parsed.origin, "http://127.0.0.1");
     assert.equal(parsed.hash, "");
-    if (name === "search") {
+    if (name === "search" || name === "busySlotSearch") {
       assert.equal(parsed.pathname, prefix + "/sessions");
-      assert.deepEqual([...parsed.searchParams.keys()].sort(),
-        ["from", "limit", "sessionId", "to"]);
-      assert.equal(parsed.searchParams.get("sessionId"),
-        expected.search.sessionId);
+      const keys=name==="search" ? ["from","limit","to"] :
+        ["from","keySlotId","limit","to"];
+      assert.deepEqual([...parsed.searchParams.keys()].sort(),keys,
+        "Search workloads must be BROAD, without sessionId");
+      assert.equal(parsed.searchParams.has("sessionId"),false);
+      if(name==="busySlotSearch")
+        assert.equal(parsed.searchParams.get("keySlotId"),
+          expected.busySlotSearch.keySlotId);
+      else assert.equal(parsed.searchParams.has("keySlotId"),false);
       assert.equal(parsed.searchParams.get("limit"), "100");
       const from = Date.parse(parsed.searchParams.get("from"));
       const to = Date.parse(parsed.searchParams.get("to"));
       assert(Number.isFinite(from) && Number.isFinite(to) && from < to);
+      assert.equal(parsed.searchParams.get("from"),oracle.workloadWindow.from);
+      assert.equal(parsed.searchParams.get("to"),oracle.workloadWindow.to);
     } else if (name === "timeline") {
       assert.equal(parsed.pathname, prefix +
         `/sessions/${expected.timeline.sessionId}/timeline`);
@@ -119,15 +153,15 @@ export function verifyPinnedRoutes(paths, m, oracle) {
     }
     result[name] = raw;
   }
-  assert.equal(new Set(Object.values(result)).size, 3);
+  assert.equal(new Set(Object.values(result)).size, u004Endpoints.length);
   return result;
 }
 
 export function assertExpectedHttp(endpoint, body, oracle) {
-  assert(endpoints.includes(endpoint));
+  assert(u004Endpoints.includes(endpoint));
   assert(body && typeof body === "object" && !Array.isArray(body));
   const id = oracle.expected[endpoint];
-  if (endpoint === "search") {
+  if (endpoint === "search" || endpoint === "busySlotSearch") {
     assert(Array.isArray(body.items) && body.items.length > 0);
     assert(typeof body.snapshotAt === "string" && body.snapshotAt.length > 0);
     const session = body.items.find((r) => r.sessionId === id.sessionId);
@@ -136,7 +170,8 @@ export function assertExpectedHttp(endpoint, body, oracle) {
       session.matchingRecordCount > 0);
     assert(Array.isArray(session.matchReasons) &&
       session.matchReasons.some((r) =>
-        r.source === id.source && r.eventId === id.eventId),
+        r.source === id.source && r.eventId === id.eventId &&
+        (endpoint!=="busySlotSearch" || r.matchedBy==="KEY_SLOT")),
       "Independent signed source event absent from Search witnesses");
   } else if (endpoint === "timeline") {
     assert(Array.isArray(body.items) && body.items.length > 0);

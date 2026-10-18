@@ -54,9 +54,25 @@ export async function verifySyntheticSources(m,raw) {
       m.scope.locationId,
     ])).rows[0]?.n;
     assert.equal(sessions,m.targetTier/100);
+    const skew=(await db.query(`SELECT count(*)::int AS custody_rows,
+      count(DISTINCT k.valet_session_id)::int AS sessions
+      FROM generate_series(1,$1::int) i
+      JOIN key_custody_events k ON k.id=
+        md5($2::text || ':KEY_CUSTODY:' || i::text)::uuid
+      WHERE k.organization_id=$3::uuid AND k.location_id=$4::uuid
+        AND k.key_slot_id=$5::uuid AND k.pagination_birth_xid IS NOT NULL`,[
+      m.targetTier/4,m.fixtureSeed,m.scope.organizationId,
+      m.scope.locationId,m.scope.slotId,
+    ])).rows[0];
+    assert.equal(skew.custody_rows,m.targetTier/4,
+      "Busy Key Slot must contain the FULL independently counted cohort");
+    assert.equal(skew.sessions,m.targetTier/100,
+      "Busy Key Slot must spread across all synthetic Sessions");
     await db.query("ROLLBACK");
     return {sourceCounts,sessions,scopedPersistedSourceRecords:
-      Object.values(sourceCounts).reduce((a,b)=>a+b,0)};
+      Object.values(sourceCounts).reduce((a,b)=>a+b,0),
+      slotSkew:{keySlotId:m.scope.slotId,source:"KEY_CUSTODY",
+        persistedCustodyRows:skew.custody_rows,distinctSessions:skew.sessions}};
   } catch(error) {
     await db.query("ROLLBACK").catch(()=>{});
     throw error;
