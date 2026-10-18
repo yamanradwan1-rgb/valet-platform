@@ -1,5 +1,18 @@
 # Issue #300 — Independent T01–T70 Acceptance Ledger
 
+> **Additional G2 actual T01 writer lane, 2026-10-18 (new evidence,
+> historical 70-row candidate SHA unchanged):** The Owner-authorized
+> disposable database now contains a successful independently read-back
+> **real Check-in→Key A/B/C→Parking→Guest Retrieval→verified Handoff
+>→COMPLETED** HTTP flow. Historic A search ignores current C, then two
+> distinct Parking/Retrieval checkouts, guest QUEUED null actor,
+> consumed Handoff verification, final RELEASED and equal-time
+> VEHICLE_RELEASED/COMPLETED Audit remain distinct. Fully detailed
+> evidence and known SQL-setup versus writer boundaries are in
+> `T01_ACTUAL_G2_LIFECYCLE.md`. The original older SHA/70 rows below
+> are not silently repinned; broader role/adversarial/target-scale,
+> frozen UI acceptance and snapshot indirect-provenance remain GAP.
+
 > **Latest separate T70 follow-up (2026-10-18, do not repin historical
 > 70-row SHA):** after earlier real-browser Search abort coverage, the
 > same G2-bound CA+MFA Chromium test additionally aborts **Timeline** and

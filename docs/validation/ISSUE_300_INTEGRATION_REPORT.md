@@ -1,5 +1,15 @@
 # VAYLET Issue #300 — Local Backend and Concept A Live-Data Integration
 
+> **Latest real-domain writer continuation (2026-10-18):** End-to-end
+> **single G2 task-only lifecycle PASS**: authenticated Check-in, A→B→C
+> custody, Parking, Guest Retrieval, Dispatch, READY, pickup-code
+> Handoff verification and COMPLETED release. Persisted Custody,
+> Dispatch and Audit evidence has independent source birth XIDs;
+> Company Admin MFA Timeline reconciles exact source UUIDs. See
+> `issue300/T01_ACTUAL_G2_LIFECYCLE.md`. One sequential workflow
+> does not close T01–T70 as a whole or U05-R09 target load/provenance.
+> No production enable, UI change or release operations.
+
 > **T70 / R01–R02 local proof continuation, 2026-10-18:** G2 signed
 > page1→next-page held writer cases PASS for **both Search and Timeline**
 > in four separate source cases, including admitted precommitted controls

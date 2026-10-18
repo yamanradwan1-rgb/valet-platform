@@ -1,5 +1,19 @@
 # Issue #300 — G2 isolated PostgreSQL / authenticated HTTP / local candidate
 
+> **Actual end-to-end T01 on task G2, 2026-10-18:** An isolated,
+> explicit `3163` local proof API with correctly configured
+> 32-byte Handoff HMAC (not logged), staff Origin and no MFA/financial
+> bypass permitted real Supervisor Check-in→Key A/B/C→Parking, actual
+> Guest retrieval, Task dispatch/accept, RETRIEVING→READY→
+> HANDOFF_PENDING, Guest pickup-code verification and COMPLETED
+> Handoff. Independent PostgreSQL born-XID records, consumed verification,
+> null current slot, equal-time distinct vehicle release/completion Audit
+> and CA/MFA source-key Timeline were verified, final **exit 0**.
+> The G2 prereqs are direct SQL setup, not real resource/Shift writers.
+> Details and preserved limitations:
+> `T01_ACTUAL_G2_LIFECYCLE.md`. **Overall U05/R09 and Issue #300
+> remain PARTIAL/GAP**, with the indirect Audit P0 fail-closed.
+
 > **Newest T70/G2 test-only continuation (2026-10-18):**
 > Real local Dashboard Chromium run behind the existing
 > `issue300-auth-http-proof.mjs` authenticated CA with Argon2 and fresh MFA,

@@ -173,6 +173,19 @@ No push, PR, main merge, deployment, production migration or Issue closure.
 
 ## 2026-10-18 continuation — independently reviewed G2-only HTTP and real writers
 
+**Subsequent full writer-chain G2 proof:** the separately opt-in real
+operational test progressed beyond Check-in/key A→B→C through Parking,
+Guest-requested Retrieval, supervisor Task assignment/acceptance, READY,
+Guest-issued pickup-code verification and fully completed Handoff under
+the real anti-abuse/financial/verification guards. Independently sourced
+`CHECKED_OUT` (Parking versus Retrieval separately), `RETURNED_TO_SLOT`,
+`RELEASED`, Dispatch state events and seven final Audit lifecycle types
+were checked by born-XID and exact CA/MFA Timeline event IDs. See
+`T01_ACTUAL_G2_LIFECYCLE.md` for commands, secure temporary local
+API 3163 and proof limitations. **R09 remains PARTIAL** because target
+100k/1m skew, concurrent writer/read p95, source-parent immutability and
+the remaining operational/identity matrix have NOT been accepted.
+
 **Further current-worktree follow-up (after `33fc913c`):** the held-writer
 HTTP proof now validates **Search and Timeline** signed page1→continuation
 under each of the four sources. The Search test holds one direct pre-S0
