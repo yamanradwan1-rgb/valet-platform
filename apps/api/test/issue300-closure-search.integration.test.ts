@@ -7,6 +7,8 @@ import { locationMemberParticipationSql } from
   "../src/modules/management/audit-investigation/search/search-selector-query";
 import { searchAuditInvestigationSessions } from
   "../src/modules/management/audit-investigation/search/audit-investigation-search.service";
+import { searchWitnessSql } from
+  "../src/modules/management/audit-investigation/search/search-witness-sql";
 
 const org = "10000000-0000-4000-8000-000000000001";
 const loc = "10000000-0000-4000-8000-000000000002";
@@ -27,6 +29,29 @@ const scope = {
 };
 
 describe("W2 response coverage without PostgreSQL", () => {
+  it("allows only direct or explicit Session entity Audit anchors", () => {
+    expect(searchWitnessSql).toContain("a.valet_session_id IS NOT NULL");
+    expect(searchWitnessSql).toContain("a.entity_id = resolved.id");
+    expect(searchWitnessSql).not.toMatch(/task_ref\.pagination_birth_xid <= a\.pagination_birth_xid/);
+    expect(locationMemberParticipationSql).toContain("a.valet_session_id = audit_session.id");
+    expect(locationMemberParticipationSql).toContain("a.entity_id = audit_session.id");
+    expect(locationMemberParticipationSql).not.toContain(
+      "task_ref.valet_session_id = audit_session.id)\n            OR",
+    );
+    expect(locationMemberParticipationSql).toContain("a.pagination_birth_xid IS NOT NULL");
+  });
+
+  it("does not inspect cross-tenant parent rows when determining scoped coverage", () => {
+    for (const alias of ["entity_task", "entity_incident", "metadata_task"]) {
+      const joined = auditInvestigationIntegritySql.split(
+        new RegExp(`LEFT JOIN (?:tasks|incidents) ${alias} ON`),
+      )[1]?.split("LEFT JOIN")[0];
+      expect(joined).toContain(`${alias}.organization_id = $1::uuid`);
+      expect(joined).toContain(`${alias}.location_id = $2::uuid`);
+      expect(joined).toContain(`${alias}.pagination_birth_xid`);
+    }
+  });
+
   it("reports a generic location-only anomaly, with no rejected identifiers or count", async () => {
     const query = vi.fn(async (sql: string) => {
       if (sql === auditInvestigationIntegritySql) return { rows: [{ hasAnomaly: true }] };
@@ -108,24 +133,43 @@ describe.skipIf(!dbAuthorized)("W2 disposable PostgreSQL selector/coverage parit
   });
 
   async function seed(entityType: string, entityId: string, taskId?: unknown,
-    direct: string | null = session, location = loc) {
+    direct: string | null = session, location = loc,
+    eventType = "VALET_SESSION_PARKED") {
     await client.query("DELETE FROM audit_events");
     const metadata = taskId === undefined ? {} : { taskId };
     await client.query(
       `INSERT INTO audit_events VALUES (
-        $1,$2,$3,$4,$5,$6,'VALET_SESSION_PARKED',$7,$8,'MEMBERSHIP',
+        $1,$2,$3,$4,$5,$6,$10,$7,$8,'MEMBERSHIP',
         $9,$9,NULL)`,
       [event, org, location, direct, entityType, entityId,
-        JSON.stringify(metadata), member, from],
+        JSON.stringify(metadata), member, from, eventType],
     );
   }
   async function isSelectable() {
     const response = await client.query(
       `SELECT member.id FROM organization_memberships member
        WHERE member.organization_id=$1::uuid AND ${locationMemberParticipationSql}`,
-      [org, loc, null, 2, null, ["VALET_SESSION_PARKED"]],
+      [org, loc, null, 2, null, ["VALET_SESSION_PARKED", "TASK_ASSIGNED"]],
     );
     return response.rows.length === 1;
+  }
+
+  // Run the actual Audit arm, not a second implementation of its joins.
+  const auditArm = searchWitnessSql.slice(
+    searchWitnessSql.indexOf("SELECT 'AUDIT'"),
+    searchWitnessSql.indexOf("  UNION ALL\n  SELECT 'KEY_CUSTODY'"),
+  ).replaceAll("$15::text[]", "$7::text[]")
+    .replaceAll("$10::pg_snapshot", "$6::pg_snapshot")
+    .replaceAll("$9::timestamptz", "$5::timestamptz");
+  async function searchAuditRows() {
+    const boundary = (await client.query(
+      "SELECT clock_timestamp() AS now, pg_current_snapshot()::text AS snapshot",
+    )).rows[0] as { now: Date; snapshot: string };
+    const response = await client.query(auditArm, [
+      org, loc, from, to, boundary.now, boundary.snapshot,
+      ["VALET_SESSION_PARKED", "TASK_ASSIGNED"],
+    ]);
+    return response.rows as Array<{ id: string; session_id: string; actor_id: string | null }>;
   }
   it("rejects present JSON-null but accepts absent PARKED taskId", async () => {
     await seed("ValetSession", session, null);
@@ -155,6 +199,46 @@ describe.skipIf(!dbAuthorized)("W2 disposable PostgreSQL selector/coverage parit
     await seed("ValetSession", session, undefined, session,
       "20000000-0000-4000-8000-000000000002");
     expect(await isSelectable()).toBe(false);
+  });
+  it("denies sole membership and Search witness via legacy Task-only association", async () => {
+    await seed("Task", task, task, null);
+    expect(await isSelectable()).toBe(false);
+    expect(await searchAuditRows()).toEqual([]);
+    await seed("Task", task, undefined, null, loc, "TASK_ASSIGNED");
+    expect(await isSelectable()).toBe(false);
+    expect(await searchAuditRows()).toEqual([]);
+    await seed("Incident", task, undefined, null, loc, "TASK_ASSIGNED");
+    expect(await isSelectable()).toBe(false);
+    expect(await searchAuditRows()).toEqual([]);
+  });
+  it("preserves direct and explicit Session anchors with legacy actor limits", async () => {
+    await seed("ValetSession", session, task, null);
+    expect(await isSelectable()).toBe(false);
+    expect(await searchAuditRows()).toEqual([{
+      source: "AUDIT", id: event, session_id: session, occurred_at: new Date(from),
+      slot_id: null, actor_id: null, previous_id: null, new_id: null,
+      reporter_id: null,
+    }]);
+    await seed("ValetSession", session, task);
+    expect(await isSelectable()).toBe(true);
+    expect((await searchAuditRows())[0]?.actor_id).toBe(member);
+  });
+  it("does not leak foreign parent existence through integrity coverage", async () => {
+    const snapshot = (await client.query(
+      "SELECT clock_timestamp() AS now, pg_current_snapshot()::text AS snapshot",
+    )).rows[0] as { now: Date; snapshot: string };
+    const params = [org, loc, from, to, snapshot.now, snapshot.snapshot];
+    await seed("ValetSession", session, foreignTask);
+    const foreignFlag = (await client.query(
+      auditInvestigationIntegritySql, params,
+    )).rows[0]?.hasAnomaly;
+    await seed("ValetSession", session,
+      "30000000-0000-4000-8000-000000000099");
+    const unknownFlag = (await client.query(
+      auditInvestigationIntegritySql, params,
+    )).rows[0]?.hasAnomaly;
+    expect(foreignFlag).toBe(unknownFlag);
+    expect(foreignFlag).toBe(false);
   });
   it("marks malformed scoped Audit generically, never an absent late parent", async () => {
     const snapshot = (await client.query(

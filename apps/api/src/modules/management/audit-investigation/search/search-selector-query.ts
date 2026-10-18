@@ -53,18 +53,19 @@ export const locationMemberParticipationSql = `(
          ON audit_session.organization_id = $1::uuid
         AND audit_session.location_id = $2::uuid
         AND (a.valet_session_id = audit_session.id
-          OR (a.valet_session_id IS NULL AND (
-            (a.entity_type IN ('ValetSession','VALET_SESSION')
-              AND a.entity_id = audit_session.id)
-            OR (task_ref.valet_session_id = audit_session.id)
-            OR (incident_ref.valet_session_id = audit_session.id)
-            OR (a.event_type = 'VALET_SESSION_PARKED'
-                AND parked_task.valet_session_id = audit_session.id)
-          )))
+          OR (a.valet_session_id IS NULL
+            AND a.entity_type IN ('ValetSession', 'VALET_SESSION')
+            AND a.entity_id = audit_session.id
+            AND (a.event_type <> 'VALET_SESSION_PARKED'
+              OR (a.metadata_json ? 'taskId' AND parked_task.id IS NOT NULL))))
        WHERE a.organization_id = $1::uuid AND a.location_id = $2::uuid
          AND a.actor_membership_id = member.id
          AND a.event_type::text = ANY($6::text[])
          AND (a.actor_type IS NULL OR a.actor_type = 'MEMBERSHIP')
+         -- An old explicit Session entity can support WINDOW discovery, but
+         -- its absent provenance cannot certify historical actor identity.
+         AND (a.valet_session_id IS NOT NULL
+           OR a.pagination_birth_xid IS NOT NULL)
          AND (a.entity_type NOT IN ('ValetSession','VALET_SESSION')
            OR a.entity_id = audit_session.id)
          AND (a.entity_type NOT IN ('Vehicle','VEHICLE')

@@ -152,14 +152,20 @@ SELECT EXISTS (
       pg_visible_in_snapshot(direct_session.pagination_birth_xid, $6::pg_snapshot))
   LEFT JOIN tasks entity_task ON entity_task.id = a.entity_id
     AND a.entity_type IN ('Task', 'TASK')
+    AND entity_task.organization_id = $1::uuid
+    AND entity_task.location_id = $2::uuid
     AND (entity_task.pagination_birth_xid IS NULL OR
       pg_visible_in_snapshot(entity_task.pagination_birth_xid, $6::pg_snapshot))
   LEFT JOIN incidents entity_incident ON entity_incident.id = a.entity_id
     AND a.entity_type IN ('Incident', 'INCIDENT')
+    AND entity_incident.organization_id = $1::uuid
+    AND entity_incident.location_id = $2::uuid
     AND (entity_incident.pagination_birth_xid IS NULL OR
       pg_visible_in_snapshot(entity_incident.pagination_birth_xid, $6::pg_snapshot))
   LEFT JOIN tasks metadata_task ON metadata_task.id::text = a.metadata_json->>'taskId'
     AND a.event_type = 'VALET_SESSION_PARKED'
+    AND metadata_task.organization_id = $1::uuid
+    AND metadata_task.location_id = $2::uuid
     AND (metadata_task.pagination_birth_xid IS NULL OR
       pg_visible_in_snapshot(metadata_task.pagination_birth_xid, $6::pg_snapshot))
   WHERE a.organization_id = $1::uuid AND a.location_id = $2::uuid
@@ -168,19 +174,25 @@ SELECT EXISTS (
     AND (a.pagination_birth_xid IS NULL OR
       pg_visible_in_snapshot(a.pagination_birth_xid, $6::pg_snapshot))
     AND (
+      -- Current Task/Incident ownership cannot establish a missing Audit
+      -- Session pointer, irrespective of birth-XID equality. The scope and
+      -- event window come from Audit itself, never the disputed parent.
+      (a.valet_session_id IS NULL
+        AND a.entity_type IN ('Task', 'TASK', 'Incident', 'INCIDENT'))
+      OR (a.valet_session_id IS NULL
+        AND a.event_type = 'VALET_SESSION_PARKED'
+        AND a.entity_type IN ('ValetSession', 'VALET_SESSION')
+        AND NOT (a.metadata_json ? 'taskId'))
+      OR
       (direct_session.id IS NOT NULL AND (
         (a.entity_type IN ('ValetSession', 'VALET_SESSION')
           AND a.entity_id <> direct_session.id)
         OR (a.entity_type IN ('Vehicle', 'VEHICLE')
           AND a.entity_id <> direct_session.vehicle_id)
-        OR (entity_task.id IS NOT NULL AND (
-          entity_task.organization_id <> $1::uuid
-          OR entity_task.location_id <> $2::uuid
-          OR entity_task.valet_session_id <> direct_session.id))
-        OR (entity_incident.id IS NOT NULL AND (
-          entity_incident.organization_id <> $1::uuid
-          OR entity_incident.location_id <> $2::uuid
-          OR entity_incident.valet_session_id <> direct_session.id))
+        OR (entity_task.id IS NOT NULL
+          AND entity_task.valet_session_id <> direct_session.id)
+        OR (entity_incident.id IS NOT NULL
+          AND entity_incident.valet_session_id <> direct_session.id)
       ))
       OR (a.event_type = 'VALET_SESSION_PARKED' AND (
         (a.entity_type IS NULL OR
@@ -194,8 +206,6 @@ SELECT EXISTS (
         OR (entity_task.id IS NOT NULL AND entity_task.task_type <> 'PARKING')
         OR (metadata_task.id IS NOT NULL AND (
           metadata_task.task_type <> 'PARKING'
-          OR metadata_task.organization_id <> $1::uuid
-          OR metadata_task.location_id <> $2::uuid
           OR (direct_session.id IS NOT NULL
             AND metadata_task.valet_session_id <> direct_session.id)
         ))

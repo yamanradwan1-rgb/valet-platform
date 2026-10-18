@@ -15,9 +15,10 @@
 predicate now demands the same scoped Task/Incident/Session containment as
 the Search Audit source arm. For `VALET_SESSION_PARKED`:
 
-1. `metadata_json ? 'taskId'` distinguishes an absent key (permitted when
-   another canonical association proves the Session) from JSON `null`
-   (present invalid reference, rejected).
+1. `metadata_json ? 'taskId'` distinguishes an absent key (permitted for
+   direct Session association) from JSON `null` (present invalid reference,
+   rejected). A NULL-direct PARKED Session-entity anchor additionally requires
+   an existing validated metadata Task, matching the W3 Timeline predicate.
 2. A Task entity must be `PARKING` and, when both entity Task and metadata
    Task are present, the **exact persisted Task ID must match**. Two Tasks in
    one Session do not prove the same event relation.
@@ -44,6 +45,44 @@ late parent birth cannot be mistaken for corruption. Unproven association
 anomalies may remain unreported (conservative false negatives). A source
 query failure fails the Search response, not a partial success page.
 Matching record counts and reasons still come from admitted source/id witnesses.
+
+### W4 P1 corrective follow-up — independent historical anchors
+
+The first W2 commit `318e4f8405762017c7cfae9de99964c45ff37e3a`
+retained legacy NULL-direct Audit association through Task/Incident/PARKED
+current parent ownership. W4 correctly flagged the mismatch with R2 §7.1.
+The corrective diff now admits a Search Audit source only where the Audit row
+persisted the exact scoped `valet_session_id`, or itself directly identifies
+the scoped Session via `entity_type = ValetSession` and matching `entity_id`.
+A NULL-direct PARKED entity-Session additionally needs validated metadata
+Task as in W3. A Task, Incident, or PARKED parent alone cannot resolve a
+Session, even if both source and parent birth XIDs are set or equal.
+Canonical writers explicitly store direct Session for TASK_*, INCIDENT_OPENED,
+and PARKED; current parent relationship is not historical proof.
+
+Selectors use that same Audit admission predicate. An older NULL-birth
+explicit Session-entity Audit may remain a window witness, but its actor does
+not qualify an employee selector or Search employee match, consistent with
+Timeline's UNVERIFIABLE safe projection. Direct legacy source facts with a
+validated Session retain their own evidence subject to separate S0 visibility.
+Source, Task/Incident/metadata-parent, and Session birth-XID snapshot fences
+remain separate; the original witness count, same-Session AND and signed keyset
+have not been widened.
+
+The response-level Audit integrity check now flags a NULL-direct
+Task/Incident source as a **generic Location-only** anomaly on independently
+scoped Audit/window/S0 evidence. Unsupported NULL-direct PARKED Session-entity
+without Task metadata is also a generic scope signal. Its Task/Incident/
+PARKED parent joins are now independently restricted to the **same** tenant,
+Location and parent S0 before any comparison. Neither presence nor status of
+a foreign parent may alter the returned boolean. No record ID, rejected count,
+or guessed Session/actor is emitted.
+
+The new gated adversarial suite also evaluates the actual Audit SELECT arm,
+rejecting legacy Task-only, Incident-only and PARKED Task-only sources,
+comparing sole-member selector participation with Search admission,
+preserving direct and explicit Session witnesses, and testing foreign-parent
+existence neutrality. These database assertions await exclusive W2 lease.
 
 **U-003 — mutable CURRENT vehicle identity.** Existing fail-closed
 `InvestigationSnapshotPaginationUnavailable` on >limit current Make/Model/
