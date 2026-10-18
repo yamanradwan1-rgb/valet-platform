@@ -1,6 +1,10 @@
 import type { PostgresTransaction } from "../../../common/database/postgres";
 import type { AuditInvestigationLocationAuthorization } from "./security/audit-investigation-authorization";
 import { isU05R2IndirectHttpProofCandidate } from "./audit-investigation-u05-gate";
+import {
+  readR2ProofAttestation,
+  r2ProofCoversScope,
+} from "./audit-investigation-u05-proof-attestation";
 
 /** A signed pg_snapshot does NOT freeze an Audit row's indirect Task/Incident
  * Session relationship. Neither Task nor its key columns have an approved
@@ -17,25 +21,91 @@ export async function requireU05StableIndirectCohort(
   window?: { readonly from: string; readonly to: string },
 ): Promise<void> {
   if (isU05R2IndirectHttpProofCandidate()) {
-    // The whole-cohort SQL selection still applies source and every parent
-    // birth-XID fence; ONLY the coarse pre-proof availability veto is skipped
-    // in this explicitly isolated candidate. Recheck DB/ordinary ACL first.
+    // The independently issued certificate permits ONLY this precise scope /
+    // discovery window. No other Location/cohort can bypass the conservative
+    // veto. The source/parent XID fences and fresh authorization still apply.
+    if (!r2ProofCoversScope(scope.organizationId, scope.locationId, window))
+      throw new U05IndirectCohortNotStable();
+    const proof = readR2ProofAttestation();
+    if (!proof) throw new U05IndirectCohortNotStable();
     const attested = await tx.query<{ readonly valid: boolean }>(
-      `SELECT (
+      `WITH birth(name, table_name) AS (VALUES
+         ('audit_events_pagination_birth_insert','audit_events'),
+         ('audit_events_pagination_birth_update','audit_events'),
+         ('valet_sessions_pagination_birth_insert','valet_sessions'),
+         ('valet_sessions_pagination_birth_update','valet_sessions'),
+         ('key_custody_events_pagination_birth_insert','key_custody_events'),
+         ('key_custody_events_pagination_birth_update','key_custody_events'),
+         ('dispatch_events_pagination_birth_insert','dispatch_events'),
+         ('dispatch_events_pagination_birth_update','dispatch_events'),
+         ('incidents_pagination_birth_insert','incidents'),
+         ('incidents_pagination_birth_update','incidents'),
+         ('tasks_pagination_birth_insert','tasks'),
+         ('tasks_pagination_birth_update','tasks')
+       ), immutable(name, table_name) AS (VALUES
+         ('tasks_issue300_relation_immutable','tasks'),
+         ('incidents_issue300_relation_immutable','incidents'),
+         ('valet_sessions_issue300_relation_immutable','valet_sessions'),
+         ('audit_events_issue300_relation_immutable','audit_events'),
+         ('audit_events_issue300_attribution_immutable','audit_events'),
+         ('valet_sessions_issue300_origin_immutable','valet_sessions')
+       ), enabled AS (
+         SELECT t.tgname, c.relname
+         FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid
+           JOIN pg_namespace n ON n.oid = c.relnamespace
+         WHERE n.nspname = 'public' AND NOT t.tgisinternal
+           AND t.tgenabled IN ('O', 'A')
+       )
+       SELECT (
          current_database() = 'issue300_r2'
          AND current_user = 'issue300_r2_w6_runtime'
-         AND current_setting('server_version_num')::integer BETWEEN 170000 AND 179999
+         AND session_user = 'issue300_r2_w6_runtime'
+         AND current_setting('server_version_num')::integer = 170010
+         AND date_trunc('milliseconds', pg_postmaster_start_time()) = $1::timestamptz
+         AND to_regclass('public._prisma_migrations') IS NOT NULL
+         AND NOT has_table_privilege(current_user, 'public._prisma_migrations', 'SELECT')
+         AND (SELECT count(*) = 12 FROM birth b JOIN enabled e
+              ON e.tgname = b.name AND e.relname = b.table_name)
+         AND (SELECT count(*) = 6 FROM immutable i JOIN enabled e
+              ON e.tgname = i.name AND e.relname = i.table_name)
+         AND (SELECT count(*) = 6 FROM pg_attribute a
+              JOIN pg_class c ON c.oid = a.attrelid
+              JOIN pg_namespace n ON n.oid = c.relnamespace
+              JOIN pg_attrdef d ON d.adrelid = c.oid AND d.adnum = a.attnum
+              WHERE n.nspname = 'public'
+                AND c.relname IN ('audit_events','valet_sessions',
+                  'key_custody_events','dispatch_events','incidents','tasks')
+                AND a.attname = 'pagination_birth_xid'
+                AND pg_get_expr(d.adbin,d.adrelid) = 'pg_current_xact_id()')
+         AND NOT EXISTS (SELECT 1 FROM pg_roles r WHERE r.rolname = current_user
+           AND (r.rolsuper OR r.rolcreatedb OR r.rolcreaterole OR
+                r.rolreplication OR r.rolbypassrls OR r.rolinherit))
+         AND NOT has_schema_privilege(current_user, 'public', 'CREATE')
+         AND NOT has_database_privilege(current_user, current_database(), 'CREATE')
          AND NOT has_table_privilege(current_user, 'public.audit_events', 'UPDATE')
+         AND NOT has_table_privilege(current_user, 'public.audit_events', 'DELETE')
+         AND NOT has_table_privilege(current_user, 'public.audit_events', 'TRUNCATE')
+         AND NOT has_table_privilege(current_user, 'public.audit_events', 'TRIGGER')
+         AND NOT has_table_privilege(current_user, 'public.incidents', 'DELETE')
+         AND NOT has_table_privilege(current_user, 'public.incidents', 'TRUNCATE')
+         AND NOT has_table_privilege(current_user, 'public.incidents', 'TRIGGER')
          AND NOT has_table_privilege(current_user, 'public.key_custody_events', 'UPDATE')
+         AND NOT has_table_privilege(current_user, 'public.key_custody_events', 'DELETE')
+         AND NOT has_table_privilege(current_user, 'public.key_custody_events', 'TRIGGER')
          AND NOT has_table_privilege(current_user, 'public.dispatch_events', 'UPDATE')
+         AND NOT has_table_privilege(current_user, 'public.dispatch_events', 'DELETE')
+         AND NOT has_table_privilege(current_user, 'public.dispatch_events', 'TRIGGER')
          AND NOT has_table_privilege(current_user, 'public.incidents', 'UPDATE')
-         AND (SELECT count(*) >= 10 FROM pg_trigger
-              WHERE NOT tgisinternal AND tgenabled IN ('O', 'A')
-                AND tgname LIKE '%pagination_birth%')
-         AND (SELECT count(*) >= 6 FROM pg_trigger
-              WHERE NOT tgisinternal AND tgenabled IN ('O', 'A')
-                AND tgname LIKE '%issue300%immutable')
+         AND has_table_privilege(current_user, 'public.audit_events', 'SELECT')
+         AND has_table_privilege(current_user, 'public.valet_sessions', 'UPDATE')
+         AND NOT has_function_privilege(current_user,
+           'public.management_pagination_preserve_birth_xid()', 'EXECUTE')
+         AND NOT has_function_privilege(current_user,
+           'public.issue300_prevent_relation_rewrite()', 'EXECUTE')
+         AND NOT has_function_privilege(current_user,
+           'public.issue300_prevent_attribution_rewrite()', 'EXECUTE')
        ) AS valid`,
+      [proof.postgresStartedAt],
     );
     if (attested.rowCount !== 1 || attested.rows[0]?.valid !== true)
       throw new U05IndirectCohortNotStable();
@@ -55,8 +125,14 @@ export async function requireU05StableIndirectCohort(
            OR (a.event_type = 'VALET_SESSION_PARKED'
              AND a.metadata_json ? 'taskId'))
      ) AS unsafe`,
-    [scope.organizationId, scope.locationId, snapshot.now,
-      snapshot.database, window?.from ?? null, window?.to ?? null],
+    [
+      scope.organizationId,
+      scope.locationId,
+      snapshot.now,
+      snapshot.database,
+      window?.from ?? null,
+      window?.to ?? null,
+    ],
   );
   // No database denial or transient error is converted to "safe".
   if (result.rowCount !== 1 || result.rows[0]?.unsafe !== false) {
