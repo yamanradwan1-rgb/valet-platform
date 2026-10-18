@@ -53,7 +53,18 @@ async function bootstrap() {
   app.enableShutdownHooks([...applicationShutdownSignals]);
   armEarlyShutdownWithdrawal(app, app.get(ApplicationDrainState), process);
   const port = Number.parseInt(process.env.PORT ?? "3001", 10);
-  await app.listen(port);
+  // The Owner-approved Issue #300 R2 local proof may not expose either
+  // disposable test API listener beyond loopback. All other boot paths retain
+  // their original binding behavior.
+  if (
+    process.env.NODE_ENV === "test" &&
+    process.env.ISSUE300_R2_LOCAL_API_ONLY === "1" &&
+    (port === 3164 || port === 3165)
+  ) {
+    await app.listen(port, "127.0.0.1");
+  } else {
+    await app.listen(port);
+  }
 }
 
 void bootstrap();
