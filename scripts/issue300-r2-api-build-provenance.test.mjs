@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from "node:fs";
+import { linkSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, test } from "node:test";
@@ -8,6 +8,18 @@ import {
   fingerprintSource, validateLease, buildReceipt, verifyBuildReceipt,
 } from "./issue300-r2-api-build-provenance.mjs";
 import { contractsBundleHash } from "./issue300-r2-contracts-build-hash.mjs";
+import { r2ApiBundleHash } from "./issue300-r2-api-bundle-hash.mjs";
+
+test("compiled API digest refuses externally writable hardlinked modules", () => {
+  const dist = join(tmp, "api-hardlink-dist");
+  mkdirSync(dist, { recursive: true });
+  const main = join(dist, "main.js");
+  const copied = join(tmp, "external-hardlink.js");
+  writeFileSync(main, "module.exports = {};");
+  assert.match(r2ApiBundleHash(dist), /^[a-f0-9]{64}$/);
+  linkSync(main, copied);
+  assert.throws(() => r2ApiBundleHash(dist), /Hard-linked API artifact denied/);
+});
 
 const tmp = mkdtempSync(join(tmpdir(), "issue300-build-receipt-test-"));
 after(() => rmSync(tmp, { recursive: true, force: true }));

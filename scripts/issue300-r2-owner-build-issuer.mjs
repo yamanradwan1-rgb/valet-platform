@@ -234,6 +234,8 @@ export function issueOwnerBuild(projectRoot = root, env = process.env) {
   const privateKey = requireOwnerSigner(privatePem);
   const signature = sign(null, bytes, privateKey);
   assert.equal(signature.length, 64, "BUILD_OWNER_SIGNER_FAILED");
+  assert(Date.now() < lease.expiresAtMs,
+    "BUILD_OWNER_LEASE_EXPIRED_AFTER_SIGN");
   const sidecar = `${receiptPath}.sig`;
   // Last write is the atomic verification marker; W17 must demand this sidecar.
   writeFileSync(sidecar, signature.toString("base64"), {
@@ -245,6 +247,13 @@ export function issueOwnerBuild(projectRoot = root, env = process.env) {
     loadExact(sidecar, buildFolder, 256).toString("utf8"),
   );
   currentBuildEvidence(projectRoot, leaseId);
+  const finalAuthority = verifiedOwnerLease(
+    loadExact(leasePath, ownerFolder, 4096),
+    loadExact(`${leasePath}.sig`, ownerFolder, 256).toString("utf8"),
+    candidateSha, leaseId,
+  );
+  assert.equal(finalAuthority.sha256, lease.sha256,
+    "BUILD_OWNER_LEASE_CHANGED_AFTER_SIGN");
   return {
     candidateSha,
     leaseId,
