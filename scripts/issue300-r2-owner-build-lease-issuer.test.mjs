@@ -65,7 +65,9 @@ test("random leaseId format, exact clean SHA and explicit Owner opt-in",()=>{
     {ISSUE300_R2_CANDIDATE_SHA:"c".repeat(40)},
   ])assert.throws(()=>requireIssueAuthorization({...legitimate,...bad},sha));
   for(const changed of [
-    {candidateSha:"c".repeat(40)},
+    // encodeLease validates shape; cleanCandidate + requireIssueAuthorization
+    // separately bind a well-formed foreign SHA to the signed checkout.
+    {candidateSha:"c".repeat(39)},
     {leaseId:"issue300-r2-w17-untrusted"},
     {leaseId:"issue300-r2-w17-"+"z".repeat(40)},
     {ttlMs:900001}, {ttlMs:0}, {now:NaN},
