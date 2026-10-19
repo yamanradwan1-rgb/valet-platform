@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { Buffer } from "node:buffer";
 import { execFileSync } from "node:child_process";
-import { lstatSync, realpathSync } from "node:fs";
+import { lstatSync, realpathSync, statSync } from "node:fs";
 import { dirname, join, parse, resolve, sep } from "node:path";
 import process from "node:process";
 
@@ -25,10 +25,16 @@ export function assertOwnerKeyCustody(keyPath, folder) {
   }
   for (const path of ancestors) {
     const state = lstatSync(path);
-    assert(state.isDirectory() && !state.isSymbolicLink() &&
-      (process.platform !== "win32" ||
-      realpathSync.native(path).toLowerCase() === path.toLowerCase()),
-    "OWNER_KEY_CUSTODY_ANCESTOR_REPARSE");
+    assert(state.isDirectory() && !state.isSymbolicLink(),
+      "OWNER_KEY_CUSTODY_ANCESTOR_REPARSE");
+    if (process.platform === "win32" &&
+        realpathSync.native(path).toLowerCase() !== path.toLowerCase()) {
+      const target = statSync(path);
+      // Genuine 8.3 aliases retain the same inode; junctions do not.
+      assert(/~[0-9]+(?:\\|$)/i.test(path) &&
+        state.dev === target.dev && state.ino === target.ino,
+      "OWNER_KEY_CUSTODY_ALIAS_OR_REPARSE");
+    }
   }
   if (process.platform !== "win32") {
     assert((directory.mode & 0o077) === 0 && (key.mode & 0o077) === 0,
@@ -62,19 +68,26 @@ foreach ($entry in $paths) {
       ($entry.strict -and -not $acl.AreAccessRulesProtected)) {
     throw 'OWNER_DACL_OWNER_OR_INHERITANCE_UNSAFE'
   }
-  $unsafe = [Security.AccessControl.FileSystemRights]::WriteData -bor
+  $unsafe = [long]([Security.AccessControl.FileSystemRights]::WriteData -bor
     [Security.AccessControl.FileSystemRights]::AppendData -bor
     [Security.AccessControl.FileSystemRights]::WriteAttributes -bor
     [Security.AccessControl.FileSystemRights]::WriteExtendedAttributes -bor
     [Security.AccessControl.FileSystemRights]::Delete -bor
     [Security.AccessControl.FileSystemRights]::DeleteSubdirectoriesAndFiles -bor
     [Security.AccessControl.FileSystemRights]::ChangePermissions -bor
-    [Security.AccessControl.FileSystemRights]::TakeOwnership
-  $aces = $acl.GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier])
-  foreach ($ace in $aces) {
-    if ($ace.AccessControlType -eq [Security.AccessControl.AccessControlType]::Allow -and
-      -not ($allowed -contains $ace.IdentityReference.Value) -and
-      ($entry.strict -or ($ace.FileSystemRights -band $unsafe) -ne 0)) {
+    [Security.AccessControl.FileSystemRights]::TakeOwnership) -bor
+    0x40000000 -bor 0x10000000 -bor 0x02000000 -bor 0x01000000
+  foreach ($ace in $raw.DiscretionaryAcl) {
+    if ($ace -isnot [Security.AccessControl.QualifiedAce]) {
+      throw 'OWNER_DACL_UNKNOWN_ACE_TYPE'
+    }
+    if ($ace.AceQualifier -ne [Security.AccessControl.AceQualifier]::AccessAllowed -and
+        $ace.AceQualifier -ne [Security.AccessControl.AceQualifier]::AccessDenied) {
+      throw 'OWNER_DACL_UNSUPPORTED_ACE_QUALIFIER'
+    }
+    if ($ace.AceQualifier -eq [Security.AccessControl.AceQualifier]::AccessAllowed -and
+      -not ($allowed -contains $ace.SecurityIdentifier.Value) -and
+      ($entry.strict -or (([long]$ace.AccessMask -band $unsafe) -ne 0))) {
       throw 'OWNER_DACL_FOREIGN_ALLOW_ACE'
     }
   }
@@ -85,6 +98,7 @@ foreach ($entry in $paths) {
   const output = execFileSync(executable, ["-NoProfile", "-NonInteractive",
     "-EncodedCommand", Buffer.from(script, "utf16le").toString("base64")],
   { encoding: "utf8", windowsHide: true, timeout: 10000,
+    stdio: ["ignore", "pipe", "pipe"],
     maxBuffer: 4096 });
   assert.equal(output.trim(), "OWNER_DACL_VERIFIED", "OWNER_DACL_NOT_VERIFIED");
   return true;

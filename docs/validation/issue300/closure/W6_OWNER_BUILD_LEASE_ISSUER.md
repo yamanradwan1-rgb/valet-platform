@@ -33,6 +33,9 @@ The real consumer is `scripts/issue300-r2-owner-build-lease.mjs`.
   untrusted Owner SIDs, and untrusted write/create/delete/DELETE_CHILD/
   WRITE_DAC/WRITE_OWNER rights. Ancestors may allow ordinary read/traverse;
   the Owner directory and private PEM must have protected, restricted DACLs.
+  Raw Windows ACE masks (not merely interpreted FileSystemRights) additionally
+  reject GENERIC_WRITE, GENERIC_ALL, MAXIMUM_ALLOWED and unrecognized ACE
+  qualifiers; ambiguous discretionary access is denied.
   Repeat all custody checks before and after publication; the underlying
   Windows DACL negative/rename-race integration test remains **NOT RUN**.
 - Random crypto-generated `issue300-r2-w17-<40 lowercase hex>`
