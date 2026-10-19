@@ -7,6 +7,18 @@ import { lstatSync, realpathSync, statSync } from "node:fs";
 import { dirname, join, parse, resolve, sep } from "node:path";
 import process from "node:process";
 
+// Explicit file-write/delete/ACL/ownership and generic Windows rights.
+// Keep the production PowerShell check and the offline mask test tied to
+// the same constant, rather than duplicating security-critical bit masks.
+export const unsafeAncestorAccessMask = 0x530d0156;
+
+export function foreignAceUnsafe(mask, flags, strict = false) {
+  const access = Number(mask) >>> 0;
+  const inheritOnly = (Number(flags) & 8) !== 0;
+  return strict || (!inheritOnly &&
+    (access & unsafeAncestorAccessMask) !== 0);
+}
+
 export function assertOwnerKeyCustody(keyPath, folder) {
   assert.equal(dirname(keyPath), folder, "OWNER_KEY_OUTSIDE_CUSTODY");
   const directory = lstatSync(folder);
@@ -59,24 +71,19 @@ $ErrorActionPreference = 'Stop'
 $paths = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${encodedPaths}')) | ConvertFrom-Json
 $caller = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
 $allowed = @($caller, 'S-1-5-18', 'S-1-5-32-544')
+$trustedInstaller = 'S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464'
 foreach ($entry in $paths) {
   $acl = Get-Acl -LiteralPath $entry.path
   $raw = [Security.AccessControl.RawSecurityDescriptor]::new($acl.GetSecurityDescriptorBinaryForm(), 0)
   if ($null -eq $raw.DiscretionaryAcl) { throw 'OWNER_DACL_NULL_OR_ABSENT' }
   $owner = $acl.GetOwner([Security.Principal.SecurityIdentifier]).Value
-  if (-not ($allowed -contains $owner) -or
+  $volumeRoot = [IO.Path]::GetPathRoot($entry.path)
+  $systemVolumeOwner = $entry.path -eq $volumeRoot -and $owner -eq $trustedInstaller
+  if (-not (($allowed -contains $owner) -or $systemVolumeOwner) -or
       ($entry.strict -and -not $acl.AreAccessRulesProtected)) {
     throw 'OWNER_DACL_OWNER_OR_INHERITANCE_UNSAFE'
   }
-  $unsafe = [long]([Security.AccessControl.FileSystemRights]::WriteData -bor
-    [Security.AccessControl.FileSystemRights]::AppendData -bor
-    [Security.AccessControl.FileSystemRights]::WriteAttributes -bor
-    [Security.AccessControl.FileSystemRights]::WriteExtendedAttributes -bor
-    [Security.AccessControl.FileSystemRights]::Delete -bor
-    [Security.AccessControl.FileSystemRights]::DeleteSubdirectoriesAndFiles -bor
-    [Security.AccessControl.FileSystemRights]::ChangePermissions -bor
-    [Security.AccessControl.FileSystemRights]::TakeOwnership) -bor
-    0x40000000 -bor 0x10000000 -bor 0x02000000 -bor 0x01000000
+  $unsafe = [long]${unsafeAncestorAccessMask}
   foreach ($ace in $raw.DiscretionaryAcl) {
     if ($ace -isnot [Security.AccessControl.QualifiedAce]) {
       throw 'OWNER_DACL_UNKNOWN_ACE_TYPE'
@@ -85,8 +92,13 @@ foreach ($entry in $paths) {
         $ace.AceQualifier -ne [Security.AccessControl.AceQualifier]::AccessDenied) {
       throw 'OWNER_DACL_UNSUPPORTED_ACE_QUALIFIER'
     }
+    # Inherit-only ACEs do not grant rights to THIS ancestor; every actual
+    # descendant is checked separately, and the protected issuer folder/key
+    # reject foreign ACEs regardless of inheritance flags.
+    $inheritedOnly = (([int]$ace.AceFlags -band 8) -ne 0)
     if ($ace.AceQualifier -eq [Security.AccessControl.AceQualifier]::AccessAllowed -and
       -not ($allowed -contains $ace.SecurityIdentifier.Value) -and
+      ($entry.strict -or -not $inheritedOnly) -and
       ($entry.strict -or (([long]$ace.AccessMask -band $unsafe) -ne 0))) {
       throw 'OWNER_DACL_FOREIGN_ALLOW_ACE'
     }
@@ -95,11 +107,20 @@ foreach ($entry in $paths) {
 'OWNER_DACL_VERIFIED'
 `;
   const executable = "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe";
-  const output = execFileSync(executable, ["-NoProfile", "-NonInteractive",
-    "-EncodedCommand", Buffer.from(script, "utf16le").toString("base64")],
-  { encoding: "utf8", windowsHide: true, timeout: 10000,
-    stdio: ["ignore", "pipe", "pipe"],
-    maxBuffer: 4096 });
+  let output;
+  try {
+    output = execFileSync(executable, ["-NoProfile", "-NonInteractive",
+      "-EncodedCommand", Buffer.from(script, "utf16le").toString("base64")],
+    { encoding: "utf8", windowsHide: true, timeout: 10000,
+      stdio: ["ignore", "pipe", "pipe"], maxBuffer: 4096 });
+  } catch (error) {
+    const failure = String(error?.stderr ?? "");
+    const reasons = ["OWNER_DACL_FOREIGN_ALLOW_ACE",
+      "OWNER_DACL_OWNER_OR_INHERITANCE_UNSAFE", "OWNER_DACL_NULL_OR_ABSENT",
+      "OWNER_DACL_UNKNOWN_ACE_TYPE", "OWNER_DACL_UNSUPPORTED_ACE_QUALIFIER"];
+    const reason = reasons.find(item => failure.includes(item)) ?? "OWNER_DACL_PROBE_FAILED";
+    throw Error(reason);
+  }
   assert.equal(output.trim(), "OWNER_DACL_VERIFIED", "OWNER_DACL_NOT_VERIFIED");
   return true;
 }
