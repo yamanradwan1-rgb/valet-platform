@@ -9,11 +9,11 @@ import { lstatSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readV2Evidence } from "./issue300-r2-v2-versioned-evidence.mjs";
+import { publishSignedPreflight } from "./issue300-r2-browser-preflight-files.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const owned = join(root, "tmp/issue300-r2-v2-prime-owned");
 const v2Owned = join(root, "tmp/issue300-r2-w7-acceptance-v2-owned");
-const targetFile = join(owned, "W7_V2_INDEPENDENT_LIVE_PREFLIGHT.json");
 const spki = "MCowBQYDK2VwAyEApth1azlOHaJPPtirnSl5TB3UcAV/GOuWQeUFRx7wy/c=";
 const key = createPublicKey({ key: Buffer.from(spki, "base64"), format: "der", type: "spki" });
 const exact = Object.freeze({
@@ -258,10 +258,9 @@ async function issue() {
   const privateKey = readFileSync(privatePath);
   const signature = sign(null, bytes, privateKey);
   assert(signature.length === 64 && verify(null, bytes, key, signature), "GAP: owner signing key mismatch");
-  // Sidecar first, manifest last; fixed ignored Prime paths, never env-selected.
-  writeFileSync(targetFile + ".sig", signature, { flag: "wx", mode: 0o600 });
-  writeFileSync(targetFile, bytes, { flag: "wx", mode: 0o600 });
-  console.log(`PASS live V2 browser preflight signed; SHA256=${sha(bytes)}; 60s TTL`);
+  // Per-SHA/lease/epoch files: no fixed alias to overwrite on renewal.
+  const output = publishSignedPreflight(owned, bytes, signature, key);
+  console.log(`PASS live V2 browser preflight signed; SHA256=${sha(bytes)}; 60s TTL; file=${output.path}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

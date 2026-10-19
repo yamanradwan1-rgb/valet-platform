@@ -8,10 +8,10 @@ import { execFileSync } from "node:child_process";
 import { lstatSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { selectSignedPreflight } from "./issue300-r2-browser-preflight-files.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ownerDir = join(root, "tmp", "issue300-r2-v2-prime-owned");
-const proofPath = join(ownerDir, "W7_V2_INDEPENDENT_LIVE_PREFLIGHT.json");
 const privateKeyPath = join(ownerDir, "issuer-private.pem");
 const pinnedSpki = "MCowBQYDK2VwAyEApth1azlOHaJPPtirnSl5TB3UcAV/GOuWQeUFRx7wy/c=";
 const publicKey = createPublicKey({
@@ -74,7 +74,8 @@ function validateLivePreflight(proof, { candidateSha, leaseId, now }) {
   const issued = Date.parse(proof.issuedAt);
   const expires = Date.parse(proof.expiresAt);
   assert(
-    Number.isFinite(issued) && issued <= now && now - issued <= 90_000 && Number.isFinite(expires) && expires > now && expires - issued <= 15 * 60_000,
+    Number.isFinite(issued) && issued <= now && now - issued < 60_000 &&
+      Number.isFinite(expires) && expires > now && expires - issued === 60_000,
     "GAP: missing, stale or overlong independently signed preflight",
   );
   exactKeys(proof.dashboard, ["loopbackOnly", "listenerVerified", "processOwned", "candidateSha", "bundleSha256"]);
@@ -172,10 +173,18 @@ function issue() {
   requireExact(process.env.ISSUE300_R2_CANDIDATE_SHA, candidateSha, "approved immutable checkout");
   const leaseId = process.env.ISSUE300_W7_EXCLUSIVE_LEASE;
   const now = Date.now();
-  // This file is generated/signed by Prime's independent live verifier, NOT
-  // produced by this script, W7 Playwright, or an env-supplied input path.
-  const live = verifyPreflight(safeFile(proofPath, 8192), safeFile(proofPath + ".sig", 64), { candidateSha, leaseId, now });
+  // Only the newest Owner-signed live preflight is eligible, never an env path.
+  const selected = selectSignedPreflight(ownerDir, candidateSha, leaseId,
+    now, publicKey);
+  const live = verifyPreflight(selected.bytes, selected.signature,
+    { candidateSha, leaseId, now });
   const bytes = browserManifest(live, now);
+  const confirmed = selectSignedPreflight(ownerDir, candidateSha, leaseId,
+    Date.now(), publicKey);
+  assert(confirmed.path === selected.path &&
+    confirmed.bytes.equals(selected.bytes) &&
+    confirmed.signature.equals(selected.signature),
+  "GAP: signed browser preflight changed during issuance");
   // Only after all validations may this Prime-only command read the issuer key.
   const privateKey = createPrivateKey(safeFile(privateKeyPath, 8192));
   assert(privateKey.asymmetricKeyType === "ed25519");
@@ -206,7 +215,7 @@ function selfTest() {
     candidateSha,
     leaseId,
     issuedAt: new Date(now - 2000).toISOString(),
-    expiresAt: new Date(now + 10 * 60_000).toISOString(),
+    expiresAt: new Date(now + 58_000).toISOString(),
     dashboardOrigin: V2.dashboardOrigin,
     apiOrigin: V2.apiOrigin,
     apiRewriteOrigin: V2.apiOrigin,
