@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { createHash, createPublicKey, sign, verify } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
-import { lstatSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { lstatSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readV2Evidence } from "./issue300-r2-v2-versioned-evidence.mjs";

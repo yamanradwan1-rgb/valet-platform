@@ -1,6 +1,8 @@
 // Task-only immutable browser preflight: newest exact SHA/lease/epoch, never env paths.
 import assert from "node:assert/strict";
+import { Buffer } from "node:buffer";
 import { verify } from "node:crypto";
+import process from "node:process";
 import { constants, closeSync, fstatSync, lstatSync, openSync,
   readFileSync, readdirSync, realpathSync, statSync, writeFileSync } from "node:fs";
 import { basename, join, parse, resolve, sep } from "node:path";

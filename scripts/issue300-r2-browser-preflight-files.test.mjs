@@ -1,6 +1,8 @@
 // Offline only: synthetic task-owned proof files and disposable Ed25519 keys.
 import assert from "node:assert/strict";
+import { Buffer } from "node:buffer";
 import { generateKeyPairSync, sign } from "node:crypto";
+import process from "node:process";
 import { linkSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync,
   symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
