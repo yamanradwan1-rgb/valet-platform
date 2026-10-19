@@ -63,7 +63,8 @@ function createProof(overrides: Record<string, unknown> = {}) {
   r2Proof();
   const dir = mkdtempSync(join(tmpdir(), "issue300-r2-gate-"));
   created.push(dir);
-  const path = join(dir, "attestation.json");
+  const owned = join(dir, "tmp/issue300-r2-w7-acceptance-v2-owned");
+  const path = join(owned, `R2_SIGNED_HTTP_LOCAL_ATTESTATION_${"a".repeat(12)}_${Date.now()}_issue300-r2-owned-proof-001.json`);
   const build = join(dir, "apps/api/dist");
   mkdirSync(build, { recursive: true });
   const main = join(build, "main.js");
@@ -88,7 +89,8 @@ function createProof(overrides: Record<string, unknown> = {}) {
     postgresStartedAt: new Date(now - 60_000).toISOString(),
     apiBundleSha256: r2ApiBundleDigest(main), migrationChecksums: checksums,
   };
-  const manifestFile = join(dir, "tmp/issue300-r2-w7-acceptance-v2-owned/R2_OWNED_RESOURCE_MANIFEST.json");
+  const manifestName = `R2_OWNED_RESOURCE_MANIFEST.v1.${"a".repeat(40)}.issue300-r2-owned-proof-001.json`;
+  const manifestFile = join(owned, manifestName);
   mkdirSync(dirname(manifestFile), { recursive: true });
   const manifestBytes = JSON.stringify(manifest);
   writeFileSync(manifestFile, manifestBytes);
@@ -100,6 +102,7 @@ function createProof(overrides: Record<string, unknown> = {}) {
     mode: "ISOLATED_PROOF_CANDIDATE",
     leaseId: process.env.ISSUE300_R2_PROOF_LEASE_ID,
     candidateSha: process.env.ISSUE300_R2_CANDIDATE_SHA,
+    artifactVersion: 1, resourceManifestFilename: manifestName,
     issuedAt: new Date(now - 1000).toISOString(),
     expiresAt: new Date(now + 50_000).toISOString(),
     ...r2OwnedProofTarget,
@@ -236,10 +239,10 @@ describe("Issue300 R2 isolated HTTP cohort proof gate", () => {
 
   it("invalidates imported compiled modules even if dist/main.js stays identical", () => {
     const path = createProof();
-    const main = join(dirname(path), "apps/api/dist/main.js");
+    const main = join(dirname(path), "../../apps/api/dist/main.js");
     const before = r2ApiBundleDigest(main);
     writeFileSync(
-      join(dirname(path), "apps/api/dist", "indirect-guard.js"),
+      join(dirname(path), "../../apps/api/dist", "indirect-guard.js"),
       "// changed module v2",
     );
     expect(r2ApiBundleDigest(main)).not.toBe(before);
@@ -250,7 +253,7 @@ describe("Issue300 R2 isolated HTTP cohort proof gate", () => {
     process.env.ISSUE300_R2_INDIRECT_HTTP_PROOF_ENABLE = "1";
     expect(isU05R2IndirectHttpProofCandidate()).toBe(false);
     const manifestPath = join(dirname(path),
-      "tmp/issue300-r2-w7-acceptance-v2-owned/R2_OWNED_RESOURCE_MANIFEST.json");
+      `R2_OWNED_RESOURCE_MANIFEST.v1.${"a".repeat(40)}.issue300-r2-owned-proof-001.json`);
     const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
     const firstMigration = Object.keys(manifest.migrationChecksums)[0];
     if (!firstMigration) throw new Error("Test fixture has no migration ledger");
