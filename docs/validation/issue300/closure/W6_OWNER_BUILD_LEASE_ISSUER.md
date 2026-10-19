@@ -21,6 +21,13 @@ The real consumer is `scripts/issue300-r2-owner-build-lease.mjs`.
   `tmp/issue300-r2-v2-prime-owned/issuer-private.pem`. No code
   reads/prints/copies the real key except a future explicitly authorized
   Owner-only issuance; this worker has not accessed it.
+- New `scripts/issue300-r2-owner-key-custody.mjs` fails closed **before**
+  opening the private PEM. On Windows it checks the task folder and PEM's
+  owner SIDs and explicit protected DACLs using trusted system PowerShell,
+  allowing only the current Owner identity, SYSTEM and Administrators;
+  any other allow ACE or inherited DACL is denied. On POSIX it requires
+  no group/other mode bits. This does not protect against the same
+  already-compromised Owner identity or a privileged SYSTEM/admin actor.
 - Random crypto-generated `issue300-r2-w17-<40 lowercase hex>`
   lease ID; ten-minute TTL (below the fifteen-minute maximum).
   The raw JSON contains **only** version, purpose, candidateSha,
@@ -33,6 +40,9 @@ The real consumer is `scripts/issue300-r2-owner-build-lease.mjs`.
 - Re-reads both files and verifies the persisted raw JSON, digest and
   Owner-pinned signature before returning only public receipt metadata.
   A failed second write cannot produce a verified pair; no broad cleanup.
+- Rechecks clean HEAD and ten-minute signed-lease expiry immediately
+  before publishing and after verifying persisted bytes. Path/DACL and
+  TOCTOU acceptance tests remain pending on a safe host.
 
 ## Validation and limitations
 

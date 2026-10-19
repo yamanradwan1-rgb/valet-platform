@@ -15,6 +15,7 @@ import {
   buildOwnerDirectories, loadExact, ownedLocation,
 } from "./issue300-r2-owner-build-paths.mjs";
 import { verifyBuildOwnerSignature } from "./issue300-r2-owner-build-signature.mjs";
+import { assertOwnerKeyCustody } from "./issue300-r2-owner-key-custody.mjs";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const exactPurpose = "ISSUE300_R2_OWNER_BUILD_LEASE";
@@ -90,12 +91,20 @@ export function issueOwnerBuildLease(root = projectRoot, env = process.env) {
   // No issuer-folder creation by an untrusted CLI; Prime must provision it
   // with Owner-only permissions. Refuse directory aliases and hardlinks.
   const folder = ownedLocation(canonicalRoot, buildOwnerDirectories.issuer);
+  assertOwnerKeyCustody(join(folder, keyFile), folder);
   const privatePem = loadExact(join(folder, keyFile), folder, 8192);
   const privateKey = requireOwnerSigner(privatePem);
   const ownerPublicKey = createPublicKey(privateKey);
   const leaseId = "issue300-r2-w17-" + randomBytes(20).toString("hex");
   const bytes = encodeLease({ candidateSha, leaseId });
   const encoded = signLeaseBytes(bytes, privateKey, ownerPublicKey);
+  assert.equal(ownedLocation(canonicalRoot, buildOwnerDirectories.issuer),
+    folder, "BUILD_LEASE_OWNER_FOLDER_CHANGED");
+  assertOwnerKeyCustody(join(folder, keyFile), folder);
+  assert.equal(cleanCandidate(canonicalRoot), candidateSha,
+    "BUILD_LEASE_SOURCE_CHANGED_BEFORE_PUBLICATION");
+  assert(Date.now() < Date.parse(JSON.parse(bytes.toString("utf8")).expiresAt),
+    "BUILD_LEASE_EXPIRED_BEFORE_PUBLICATION");
   // Consumer requires canonical JSON + detached base64 signature of
   // EXACT raw bytes; never use a JSON signature envelope or binary .sig.
   const basename = `W17_BUILD_LEASE_${candidateSha}_${leaseId}.json`;
@@ -118,6 +127,13 @@ export function issueOwnerBuildLease(root = projectRoot, env = process.env) {
     "BUILD_LEASE_ISSUER_NONCANONICAL");
   assert.equal(record.candidateSha, candidateSha);
   assert.equal(record.leaseId, leaseId);
+  assert.equal(ownedLocation(canonicalRoot, buildOwnerDirectories.issuer),
+    folder, "BUILD_LEASE_OWNER_FOLDER_CHANGED_AFTER_PUBLICATION");
+  assertOwnerKeyCustody(join(folder, keyFile), folder);
+  assert.equal(cleanCandidate(canonicalRoot), candidateSha,
+    "BUILD_LEASE_SOURCE_CHANGED_AFTER_PUBLICATION");
+  assert(Date.now() < Date.parse(record.expiresAt),
+    "BUILD_LEASE_EXPIRED_AFTER_PUBLICATION");
   return Object.freeze({
     candidateSha, leaseId, expiresAt: record.expiresAt,
     leaseSha256: digest(reread), leasePath: target,
