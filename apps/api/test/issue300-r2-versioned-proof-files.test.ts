@@ -1,4 +1,4 @@
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync,
+import { linkSync, mkdtempSync, mkdirSync, readFileSync, rmSync, symlinkSync, unlinkSync,
   writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -43,7 +43,8 @@ it("derives only closed v1 per-SHA/lease names", () => {
   expect(r2VersionedManifestName("../", lease)).toBeNull();
   expect(r2VersionedManifestName(sha, "../escape")).toBeNull();
   expect(r2ReadVersionedManifest(entrypoint,
-    { ...proof, artifactVersion: undefined })).toBeNull();
+    { candidateSha: sha, leaseId: lease,
+      resourceManifestFilename: name })).toBeNull();
   expect(r2ReadVersionedManifest(entrypoint,
     { ...proof, resourceManifestFilename: "R2_OWNED_RESOURCE_MANIFEST.json" }))
     .toBeNull();
@@ -65,7 +66,7 @@ it("new lease and SHA reject the stale old resource even if fixed alias exists",
   })).toBeNull();
 });
 
-it("rejects forged leaf symlink, hard link, changed bytes and foreign folder", () => {
+it("rejects forged leaf symlinks and hard links; exposes changed bytes for digest checks", () => {
   const { entrypoint, owned, path } = caseFiles();
   const alias = join(owned, r2VersionedManifestName(otherSha, lease)!);
   symlinkSync(path, alias, "file");
@@ -73,12 +74,20 @@ it("rejects forged leaf symlink, hard link, changed bytes and foreign folder", (
     artifactVersion: 1, candidateSha: otherSha, leaseId: lease,
     resourceManifestFilename: r2VersionedManifestName(otherSha, lease)!,
   })).toBeNull();
-  const previous = readFileSync(path);
-  writeFileSync(path, Buffer.concat([previous, Buffer.from("changed")]));
+  const hardAlias = join(owned, "hardlink-alias.bin");
+  linkSync(path, hardAlias);
   expect(r2ReadVersionedManifest(entrypoint, {
     artifactVersion: 1, candidateSha: sha, leaseId: lease,
     resourceManifestFilename: r2VersionedManifestName(sha, lease)!,
-  })).not.toEqual(previous);
+  })).toBeNull();
+  unlinkSync(hardAlias);
+  const previous = readFileSync(path);
+  const changed = Buffer.concat([previous, Buffer.from("changed")]);
+  writeFileSync(path, changed);
+  expect(r2ReadVersionedManifest(entrypoint, {
+    artifactVersion: 1, candidateSha: sha, leaseId: lease,
+    resourceManifestFilename: r2VersionedManifestName(sha, lease)!,
+  })).toEqual(changed);
 });
 
 it("accepts only exact owned signed-certificate filenames and sidecars", () => {

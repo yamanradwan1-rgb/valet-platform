@@ -17,8 +17,8 @@ export function r2ApiBundleDigest(entrypoint: string,
         const file = join(directory, entry.name);
         if (entry.isDirectory()) walk(file);
         else if (entry.isFile()) {
-          if (expectedEntry === "index.js" && lstatSync(file).nlink !== 1)
-            throw Error("Hard-linked contract forbidden");
+          if (lstatSync(file).nlink !== 1)
+            throw Error("Hard-linked compiled module forbidden");
           files.push(file);
         } else throw new Error("Unexpected compiled artifact");
       }

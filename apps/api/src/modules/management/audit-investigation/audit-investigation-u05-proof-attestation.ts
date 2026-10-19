@@ -141,6 +141,8 @@ export function readR2ProofAttestation(): R2ProofAttestation | null {
   const lease = process.env.ISSUE300_R2_PROOF_LEASE_ID;
   if (
     !path ||
+    !candidate ||
+    !lease ||
     !sha256.test(expected ?? "") ||
     !/^[a-f0-9]{40}$/.test(candidate ?? "") ||
     !/^issue300-r2-[a-z0-9-]{8,}$/.test(lease ?? "") ||
