@@ -40,7 +40,7 @@ vi.mock("expo-file-system", () => {
     }
     get exists() { return state.files.has(this.uri); }
     get size() { return state.files.get(this.uri) ?? 0; }
-    copy(dest: File) {
+    async copy(dest: File): Promise<void> {
       state.files.set(dest.uri, state.failCopyAfterPartialWrite ? 99 : this.size);
       if (state.failCopyAfterPartialWrite) throw new Error("copy partially wrote JPEG");
     }

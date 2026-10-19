@@ -7,12 +7,14 @@ import { hasUndiscardedSdkJpeg, isOwnedCameraCacheUri,
 export { isOwnedCameraCacheUri } from "./native-condition-photo-path";
 import { notify, observePhotoStage, observePhotoStageAsync,
   type NativePhotoStageObserver } from "./native-photo-stage";
+import { NativeConditionPhotoOwnedCopy } from "./native-condition-photo-owned-copy";
 
 /** Only files copied into this feature's private cache are owned here. */
 export class NativeConditionPhotoFiles {
   private readonly folder = new Directory(Paths.cache, "vaylet-condition-photos-v1");
   private readonly recoveryFile = new File(Paths.document, "vaylet-photo-source-cleanup-v1.json");
   private readonly handles = new Map<string, File>();
+  private readonly ownedCopy = new NativeConditionPhotoOwnedCopy();
   /** Private, in-process retry handles; never exported or added to telemetry. */
   private readonly pendingSourceCleanup = new Map<string, File>();
   private cleanupBlocked = false;
@@ -90,6 +92,10 @@ export class NativeConditionPhotoFiles {
     }
   }
   purgeStartup(): void {
+    if (!this.ownedCopy.canPurge()) {
+      this.cleanupBlocked = true;
+      throw new Error("CONDITION_PHOTO_CLEANUP_UNAVAILABLE");
+    }
     let journalInvalid = false;
     if (this.recoveryFile.exists) {
       try {
@@ -149,6 +155,7 @@ export class NativeConditionPhotoFiles {
     uri: string, width: number, height: number,
     observe?: NativePhotoStageObserver,
   ): Promise<string> {
+    const generation = this.ownedCopy.generation();
     if (this.cleanupBlocked) {
       // The camera already created a new raw JPEG before this call. Discard
       // only verified camera-cache input even while owned-cache cleanup is blocked.
@@ -218,22 +225,14 @@ export class NativeConditionPhotoFiles {
         if (output.size > CONDITION_PHOTO_MAX_JPEG_BYTES) continue;
         const handle = observePhotoStage(observe, "photo-handle-uuid",
           createPhotoHandle);
-        const owned = observePhotoStage(observe, "owned-copy", () => {
-          const file = new File(this.folder, `${handle}.jpg`);
-          this.handles.set(handle, file);
-          return file;
-        });
+        const owned = new File(this.folder, `${handle}.jpg`);
+        this.handles.set(handle, owned);
         try {
-          observePhotoStage(observe, "owned-copy", () => {
-            this.folder.create({ idempotent: true, intermediates: true });
-            output.copy(owned);
-          });
-          observePhotoStage(observe, "copy-verify", () => {
-            if (!owned.exists || owned.size !== output.size)
-              throw new Error("CONDITION_PHOTO_FILE_INVALID");
-          });
+          await this.ownedCopy.copyAndVerify(handle, output, owned, this.folder,
+            generation, observe);
         } catch {
           try { await this.discard(handle); } catch { /* retained for purge */ }
+          if (this.cleanupBlocked) throw new Error("CONDITION_PHOTO_CLEANUP_UNAVAILABLE");
           throw new Error("CONDITION_PHOTO_FILE_INVALID");
         }
         claimedHandle = handle;
@@ -276,6 +275,7 @@ export class NativeConditionPhotoFiles {
     const file = this.handles.get(handle);
     if (file === undefined) return;
     try {
+      await this.ownedCopy.settleBeforeDiscard(handle);
       if (file.exists) file.delete();
       this.handles.delete(handle);
     } catch {
@@ -286,6 +286,7 @@ export class NativeConditionPhotoFiles {
   }
 
   async discardAll(): Promise<void> {
+    this.ownedCopy.retireScope();
     let failure = false;
     for (const handle of Array.from(this.handles.keys())) {
       try { await this.discard(handle); } catch { failure = true; }
