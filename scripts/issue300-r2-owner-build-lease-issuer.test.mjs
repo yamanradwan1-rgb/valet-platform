@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
-import { generateKeyPairSync, sign } from "node:crypto";
+import { Buffer } from "node:buffer";
+import { generateKeyPairSync } from "node:crypto";
+import process from "node:process";
 import { linkSync, mkdirSync, mkdtempSync, readFileSync, rmSync,
   symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";

@@ -141,7 +141,7 @@ beforeEach(() => { injection.enabled = false; injection.testPublicKey = ""; });
 afterEach(() => {
   injection.enabled = false;
   injection.testPublicKey = "";
-  process.argv[1] = originalEntry;
+  process.argv[1] = originalEntry ?? "";
   for (const key of Object.keys(process.env))
     if (!(key in originalEnv)) delete process.env[key];
   Object.assign(process.env, originalEnv);
