@@ -1,4 +1,5 @@
 import { createHash, verify } from "node:crypto";
+import { dirname, resolve } from "node:path";
 import { r2ApiBundleDigest } from "./audit-investigation-u05-build-digest";
 import { r2ReadSignedCertificateFile, r2ReadVersionedManifest } from
   "./audit-investigation-u05-proof-files";
