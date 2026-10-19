@@ -1,6 +1,8 @@
 // Narrow immutable filenames for the disposable V2 proof lane.
 import assert from "node:assert/strict";
+import { Buffer } from "node:buffer";
 import { createHash } from "node:crypto";
+import process from "node:process";
 import { constants, closeSync, existsSync, fstatSync, lstatSync,
   mkdirSync, openSync, readFileSync, realpathSync, statSync,
   writeFileSync } from "node:fs";
