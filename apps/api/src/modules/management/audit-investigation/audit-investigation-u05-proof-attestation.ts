@@ -1,6 +1,8 @@
 import { createHash, verify } from "node:crypto";
-import { lstatSync, readFileSync, readdirSync } from "node:fs";
-import { dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { r2ApiBundleDigest } from "./audit-investigation-u05-build-digest";
+import { r2ReadSignedCertificateFile, r2ReadVersionedManifest } from
+  "./audit-investigation-u05-proof-files";
+export { r2ApiBundleDigest } from "./audit-investigation-u05-build-digest";
 
 interface AllowedScope {
   readonly organizationId: string;
@@ -34,6 +36,8 @@ interface R2ProofAttestation {
   readonly contractsBundleSha256: string;
   readonly sourceSha256: string;
   readonly apiBuildReceiptSha256: string;
+  readonly artifactVersion: 1;
+  readonly resourceManifestFilename: string;
   readonly resourceManifestSha256: string;
   readonly migrationLedgerSha256: string;
   readonly ledgerHelperFunctionSha256: string;
@@ -102,10 +106,8 @@ export function r2AttestationIsFresh(issuedAt: string, expiresAt: string,
 /** Source-pinned target and SHA-bound owned manifest must agree. */
 function matchingOwnedManifest(entrypoint: string, proof: R2ProofAttestation): boolean {
   try {
-    const file = resolve(dirname(resolve(entrypoint)),
-      "../../../tmp/issue300-r2-w7-acceptance-v2-owned/R2_OWNED_RESOURCE_MANIFEST.json");
-    const bytes = readFileSync(file);
-    if (bytes.length === 0 || bytes.length > 20_480 ||
+    const bytes = r2ReadVersionedManifest(entrypoint, proof);
+    if (!bytes ||
         createHash("sha256").update(bytes).digest("hex") !== proof.resourceManifestSha256)
       return false;
     const manifest = JSON.parse(bytes.toString("utf8")) as R2ProofAttestation;
@@ -130,43 +132,6 @@ function matchingOwnedManifest(entrypoint: string, proof: R2ProofAttestation): b
   } catch { return false; }
 }
 
-/** Fingerprint all compiled modules, not only dist/main.js. */
-export function r2ApiBundleDigest(entrypoint: string,
-  expectedEntry: "main.js" | "index.js" = "main.js"): string | null {
-  try {
-    const main = resolve(entrypoint);
-    if (!main.endsWith(join("dist", expectedEntry))) return null;
-    const base = dirname(main);
-    const files: string[] = [];
-    const walk = (directory: string): void => {
-      for (const entry of readdirSync(directory, { withFileTypes: true })) {
-        if (files.length > 12000 || entry.isSymbolicLink())
-          throw new Error("Unexpected compiled API artifact");
-        const file = join(directory, entry.name);
-        if (entry.isDirectory()) walk(file);
-        else if (entry.isFile()) {
-          if (expectedEntry === "index.js" && lstatSync(file).nlink !== 1)
-            throw Error("Hard-linked contract forbidden");
-          files.push(file);
-        } else throw new Error("Unexpected compiled artifact");
-      }
-    };
-    walk(base);
-    if (!files.includes(main)) return null;
-    const hash = createHash("sha256");
-    for (const file of files.sort((a, b) => a.localeCompare(b, "en"))) {
-      hash
-        .update(relative(base, file).replaceAll("\\", "/"))
-        .update("\0")
-        .update(readFileSync(file))
-        .update("\0");
-    }
-    return hash.digest("hex");
-  } catch {
-    return null;
-  }
-}
-
 /** Runtime requires Owner-signed short-lived proof, never a self-asserted env flag. */
 export function readR2ProofAttestation(): R2ProofAttestation | null {
   const path = process.env.ISSUE300_R2_ATTESTATION_PATH;
@@ -175,7 +140,6 @@ export function readR2ProofAttestation(): R2ProofAttestation | null {
   const lease = process.env.ISSUE300_R2_PROOF_LEASE_ID;
   if (
     !path ||
-    !isAbsolute(path) ||
     !sha256.test(expected ?? "") ||
     !/^[a-f0-9]{40}$/.test(candidate ?? "") ||
     !/^issue300-r2-[a-z0-9-]{8,}$/.test(lease ?? "") ||
@@ -183,14 +147,17 @@ export function readR2ProofAttestation(): R2ProofAttestation | null {
   )
     return null;
   try {
-    const bytes = readFileSync(path);
+    const bytes = r2ReadSignedCertificateFile(process.argv[1] ?? "",
+      path, candidate, lease);
     if (
-      !bytes.length ||
-      bytes.length > 8192 ||
+      !bytes ||
       createHash("sha256").update(bytes).digest("hex") !== expected
     )
       return null;
-    const signature = readFileSync(`${path}.sig`, "utf8").trim();
+    const signatureBytes = r2ReadSignedCertificateFile(process.argv[1] ?? "",
+      `${path}.sig`, candidate, lease, true);
+    if (!signatureBytes) return null;
+    const signature = signatureBytes.toString("utf8").trim();
     if (!/^[A-Za-z0-9+/]{86}==$/.test(signature) ||
         !verify(null, bytes, ownerSigningKeySpki, Buffer.from(signature, "base64")))
       return null;
@@ -215,6 +182,8 @@ export function readR2ProofAttestation(): R2ProofAttestation | null {
       proof.serverVersionNum !== r2OwnedProofTarget.serverVersionNum ||
       !Number.isFinite(Date.parse(proof.postgresStartedAt)) ||
       !sha256.test(proof.apiBundleSha256) ||
+      proof.artifactVersion !== 1 ||
+      typeof proof.resourceManifestFilename !== "string" ||
       !sha256.test(proof.resourceManifestSha256) ||
       !sha256.test(proof.migrationLedgerSha256) ||
       !sha256.test(proof.ledgerHelperFunctionSha256) ||

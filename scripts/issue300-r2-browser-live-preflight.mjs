@@ -8,6 +8,7 @@ import { createRequire } from "node:module";
 import { lstatSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { readV2Evidence } from "./issue300-r2-v2-versioned-evidence.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const owned = join(root, "tmp/issue300-r2-v2-prime-owned");
@@ -29,7 +30,6 @@ const exact = Object.freeze({
 });
 const hex64 = /^[a-f0-9]{64}$/;
 const sha = (v) => createHash("sha256").update(v).digest("hex");
-const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 const command = (program, args) => execFileSync(program, args, { cwd: root, encoding: "utf8", windowsHide: true, timeout: 8000, maxBuffer: 1024 * 1024 }).trim();
 
 export function checkSource({ head, clean, env, lease, resource, now }) {
@@ -230,7 +230,8 @@ async function issue() {
   const head = command("git", ["rev-parse", "HEAD"]);
   const clean = command("git", ["status", "--porcelain=v1"]) === "";
   const lease = process.env.ISSUE300_W7_EXCLUSIVE_LEASE;
-  const resource = readJson(join(v2Owned, "R2_OWNED_RESOURCE_MANIFEST.json"));
+  const resource = JSON.parse(readV2Evidence(v2Owned, "manifest", head,
+    lease).bytes.toString("utf8"));
   checkSource({ head, clean, env: process.env, lease, resource, now: Date.now() });
   const currentDocker = () => JSON.parse(command("docker", ["inspect", exact.containerName]))[0];
   const dockerId = checkDocker(currentDocker(), resource);

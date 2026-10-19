@@ -14,6 +14,7 @@ import {
 import { readOwnedGuardFunctionHash } from "./issue300-r2-function-fingerprint.mjs";
 import { requireOwnedScopeEvidence } from "./issue300-r2-scope-proof.mjs";
 import { attestV2LedgerHelper } from "./issue300-r2-v2-ledger-issuer.mjs";
+import { readV2Evidence } from "./issue300-r2-v2-versioned-evidence.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const owned = join(root, "tmp/issue300-r2-w7-acceptance-v2-owned");
@@ -57,10 +58,8 @@ function ownedConnection(value, role) {
 /** Static allowlist + Prime's task-owned ignored non-secret manifest + Docker
  * inspection all have to match before opening either database connection. */
 function getOwnedAttestedTarget(candidateSha, leaseId, build) {
-  const manifestPath = join(owned, "R2_OWNED_RESOURCE_MANIFEST.json");
-  const bytes = readFileSync(manifestPath);
-  assert(bytes.length > 0 && bytes.length <= 20_480,
-    "Missing or oversized task-owned resource manifest");
+  const { bytes, name } = readV2Evidence(owned, "manifest",
+    candidateSha, leaseId);
   const manifest = JSON.parse(bytes.toString("utf8"));
   for (const [key, value] of Object.entries(exact))
     assert.equal(manifest[key], value, `Unapproved resource ${key}`);
@@ -88,7 +87,8 @@ function getOwnedAttestedTarget(candidateSha, leaseId, build) {
     process.env.ISSUE300_R2_OWNED_MIGRATION_DATABASE_URL, exact.migrationRole);
   const runtimeUrl = ownedConnection(
     process.env.ISSUE300_R2_OWNED_RUNTIME_DATABASE_URL, exact.runtimeRole);
-  return { manifest, manifestSha256: digest(bytes), migrationUrl, runtimeUrl };
+  return { manifest, manifestFilename: name,
+    manifestSha256: digest(bytes), migrationUrl, runtimeUrl };
 }
 
 async function main() {
@@ -246,6 +246,8 @@ async function main() {
       contractsBundleSha256: build.contractsBundleSha256,
       sourceSha256: build.sourceSha256,
       apiBuildReceiptSha256: build.apiBuildReceiptSha256,
+      artifactVersion: 1,
+      resourceManifestFilename: target.manifestFilename,
       resourceManifestSha256: target.manifestSha256,
       migrationLedgerSha256,
       ledgerHelperFunctionSha256,

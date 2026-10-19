@@ -26,9 +26,10 @@ import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  readCanonicalManifest, recoverCommittedPrerequisites,
+  recoverCommittedPrerequisites,
   verifyExactFixtureRows, writeUniqueReceipt,
 } from "./issue300-r2-v2-org-fixture-recovery.mjs";
+import { readV2Evidence } from "./issue300-r2-v2-versioned-evidence.mjs";
 export { verifyExactFixtureRows as verifyReadback } from "./issue300-r2-v2-org-fixture-recovery.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -217,8 +218,9 @@ async function issue() {
   assert(process.argv.length === 3 && ["--issue", "--recover-receipt"].includes(process.argv[2]),
     "Usage: node scripts/issue300-r2-v2-org-fixture.mjs --issue|--recover-receipt");
   const recover = process.argv[2] === "--recover-receipt";
-  const manifest = readCanonicalManifest(join(owned, "R2_OWNED_RESOURCE_MANIFEST.json"), owned);
   const candidateSha = command("git", ["rev-parse", "HEAD"]);
+  const manifest = JSON.parse(readV2Evidence(owned, "manifest", candidateSha,
+    process.env.ISSUE300_R2_PROOF_LEASE_ID).bytes.toString("utf8"));
   const { leaseId, url } = validateTarget({ env: process.env, candidateSha, clean: command("git", ["status", "--porcelain=v1"]) === "", manifest });
   const docker = () => JSON.parse(command("docker", ["inspect", exact.containerName]))[0];
   verifyDocker(manifest, docker());

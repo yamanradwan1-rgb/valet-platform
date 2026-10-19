@@ -2,11 +2,11 @@
 // Prime-only V2 source receipt and expressly leased manifest issuance.
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { createHash } from "node:crypto";
-import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { publishV2Evidence, readV2Evidence } from
+  "./issue300-r2-v2-versioned-evidence.mjs";
 import {
   expectedLedgerFromSource, expectedLedgerDigest, installOwnedV2LedgerHelper,
   validateOwnerTarget, verifyOwnedDocker, v2LedgerTarget,
@@ -18,12 +18,9 @@ import {
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const owned = join(root, "tmp/issue300-r2-w7-acceptance-v2-owned");
-const preparedName = "R2_PREPARED_SOURCE.json";
-const manifestName = "R2_OWNED_RESOURCE_MANIFEST.json";
 const hex = /^[a-f0-9]{64}$/;
 const gitSha = /^[a-f0-9]{40}$/;
 const leasePattern = /^issue300-r2-[a-z0-9-]{8,}$/;
-const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const fixed = Object.freeze({
   database: v2LedgerTarget.database, host: v2LedgerTarget.host,
   port: v2LedgerTarget.port, bindHost: v2LedgerTarget.host,
@@ -49,23 +46,6 @@ function cleanHead() {
   assert.match(candidateSha, gitSha);
   return candidateSha;
 }
-function safeOwnedPath(name) {
-  assert([preparedName, manifestName].includes(name));
-  // The only permitted output directory is ignored inside THIS worktree.
-  const tmp = join(root, "tmp");
-  if (existsSync(tmp)) assert(!lstatSync(tmp).isSymbolicLink() &&
-    realpathSync.native(tmp).toLowerCase() === resolve(tmp).toLowerCase(),
-  "V2_TASK_TMP_REPARSE_DENIED");
-  mkdirSync(owned, { recursive: true, mode: 0o700 });
-  assert(!lstatSync(owned).isSymbolicLink() &&
-    realpathSync.native(owned).toLowerCase() === resolve(owned).toLowerCase(),
-  "V2_OWNED_FOLDER_REPARSE_DENIED");
-  const path = join(owned, name);
-  if (existsSync(path)) assert(lstatSync(path).isFile() &&
-    !lstatSync(path).isSymbolicLink() && lstatSync(path).nlink === 1,
-  "V2_OWNED_FILE_ALIAS_DENIED");
-  return path;
-}
 /** The same candidate/lease can retry safely, but changing any attested
  * resource requires a new explicit owner reconciliation, never overwrite. */
 export function assertImmutableReplay(previousBytes, nextBytes) {
@@ -73,20 +53,8 @@ export function assertImmutableReplay(previousBytes, nextBytes) {
     previousBytes.equals(nextBytes),
   "V2_IMMUTABLE_RECORD_MISMATCH_NEVER_OVERWRITE");
 }
-function immutableJson(name, record) {
-  const bytes = Buffer.from(JSON.stringify(record));
-  assert(bytes.length > 0 && bytes.length <= 20_480, "V2_RECORD_OVERSIZE");
-  const path = safeOwnedPath(name);
-  if (existsSync(path)) {
-    assertImmutableReplay(readFileSync(path), bytes);
-    return { path, sha256: hash(bytes), reused: true };
-  }
-  writeFileSync(path, bytes, { flag: "wx", mode: 0o600 });
-  return { path, sha256: hash(bytes), reused: false };
-}
-function readPrepared() {
-  const bytes = readFileSync(safeOwnedPath(preparedName));
-  assert(bytes.length > 0 && bytes.length <= 20_480);
+function readPrepared(candidateSha, leaseId) {
+  const { bytes } = readV2Evidence(owned, "prepared", candidateSha, leaseId);
   return JSON.parse(bytes.toString("utf8"));
 }
 
@@ -153,7 +121,8 @@ export function assembleOwnedManifest(prepared, docker, identity, rows, leaseId)
 export async function issueWithClients({
   prepared, fresh, env, docker, admin, runtime,
   ownerDatabaseUrl, install = installOwnedV2LedgerHelper,
-  attest = attestV2LedgerHelper, publish = (value) => immutableJson(manifestName, value),
+  attest = attestV2LedgerHelper,
+  publish = (value) => publishV2Evidence(owned, "manifest", value),
 }) {
   const leaseId = assertLease(env);
   assertBuildBinding(preparedBinding(prepared), prepared.candidateSha, leaseId);
@@ -230,10 +199,10 @@ export async function runCli(argv, env = process.env) {
   assertLease(env);
   const fresh = currentSource(env);
   if (argv[0] === "--prepare-source") {
-    const output = immutableJson(preparedName, fresh);
+    const output = publishV2Evidence(owned, "prepared", fresh);
     return { mode: "SOURCE_ONLY", ...output };
   }
-  const prepared = readPrepared();
+  const prepared = readPrepared(fresh.candidateSha, fresh.leaseId);
   assertSourceFresh(prepared, fresh);
   const ownerUrl = validateConnection(env.ISSUE300_R2_OWNED_MIGRATION_DATABASE_URL,
     fixed.migrationRole);
