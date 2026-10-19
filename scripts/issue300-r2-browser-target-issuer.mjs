@@ -179,12 +179,6 @@ function issue() {
   const live = verifyPreflight(selected.bytes, selected.signature,
     { candidateSha, leaseId, now });
   const bytes = browserManifest(live, now);
-  const confirmed = selectSignedPreflight(ownerDir, candidateSha, leaseId,
-    Date.now(), publicKey);
-  assert(confirmed.path === selected.path &&
-    confirmed.bytes.equals(selected.bytes) &&
-    confirmed.signature.equals(selected.signature),
-  "GAP: signed browser preflight changed during issuance");
   // Only after all validations may this Prime-only command read the issuer key.
   const privateKey = createPrivateKey(safeFile(privateKeyPath, 8192));
   assert(privateKey.asymmetricKeyType === "ed25519");
@@ -194,6 +188,12 @@ function issue() {
   );
   const signature = sign(null, bytes, privateKey);
   assert(signature.length === 64 && verify(null, bytes, publicKey, signature));
+  const confirmed = selectSignedPreflight(ownerDir, candidateSha, leaseId,
+    Date.now(), publicKey);
+  assert(confirmed.path === selected.path &&
+    confirmed.bytes.equals(selected.bytes) &&
+    confirmed.signature.equals(selected.signature),
+  "GAP: signed browser preflight changed during issuance");
   // Derive only from verified SHA and clock under FIXED ignored owner directory;
   // fresh grants support sequential one-use browser tests without overwrites.
   const outputPath = join(ownerDir, `W7_BROWSER_TARGET_${candidateSha.slice(0, 12)}_${now}.json`);
