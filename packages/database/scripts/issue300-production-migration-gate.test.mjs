@@ -15,6 +15,24 @@ test("production, unset and staging migrations refuse until separate rollout", (
 test("isolated ordinary local migration testing is not forbidden", () => {
   for (const NODE_ENV of ["development", "test"]) {
     assert.doesNotThrow(() =>
-      assertIssue300ProductionMigrationsDeferred({ NODE_ENV }));
+      assertIssue300ProductionMigrationsDeferred({
+        NODE_ENV,
+        MIGRATION_DATABASE_URL: "postgresql://test:test@localhost:58387/issue300_test",
+      }));
+  }
+});
+
+test("forged development/test env never enables a remote database migration", () => {
+  for (const NODE_ENV of ["test", "development"]) {
+    for (const MIGRATION_DATABASE_URL of [
+      undefined,
+      "postgresql://migration:private@database.internal:5432/valet",
+      "postgresql://migration:private@10.10.10.10:5432/valet",
+      "invalid",
+    ]) {
+      assert.throws(() => assertIssue300ProductionMigrationsDeferred({
+        NODE_ENV, MIGRATION_DATABASE_URL,
+      }), /ISSUE300_MIGRATION_LOCAL_TARGET_REQUIRED/);
+    }
   }
 });

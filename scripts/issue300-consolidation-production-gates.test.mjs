@@ -27,3 +27,9 @@ test("production migrate:deploy checks Issue #300 deferral before Prisma spawn",
   assert(migration.indexOf("assertIssue300ProductionMigrationsDeferred()") <
     migration.indexOf("parseMigrationDatabaseUrl("));
 });
+
+test("CI explicitly declares test-only migration environment", () => {
+  const workflow = read(".github/workflows/ci.yml");
+  assert.match(workflow,
+    /- name: Run database migrations\s+run: pnpm --filter @valet\/database migrate:deploy\s+env:\s+(?:#[^\n]*\n\s*)?NODE_ENV: test\s+MIGRATION_DATABASE_URL: postgresql:\/\/valet:valet@localhost:5432\/valet/);
+});

@@ -291,6 +291,8 @@ jobs:
       - name: Run database migrations
         run: pnpm --filter @valet/database migrate:deploy
         env:
+          # This is a disposable CI PostgreSQL service, never a production rollout.
+          NODE_ENV: test
           MIGRATION_DATABASE_URL: postgresql://valet:valet@localhost:5432/valet
 
       - name: Provision runtime role
