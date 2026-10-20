@@ -79,14 +79,18 @@ revision/restart solution requires:
    tampering, inactive Location, legacy rows and PostgreSQL role boundaries.
    Measure extra lock/scan cost before release.
 
-**Smallest external dependency:** a task-owned disposable PostgreSQL 17
-instance with isolated admin/migration and runtime roles, enough resources for
-concurrent writers and readers, and a separately reviewed *forward-only*
-epoch migration/deployment admission. The general CI #514 PostgreSQL PASS
-tests the **existing** 94–96 schema; it did **not** execute this proposed
-epoch design. The Owner already approved U03's consistency goal, so this
-states an engineering prerequisite rather than inventing a new UI/product
-decision.
+**Remaining engineering and release dependency:** A task-owned isolated
+PostgreSQL 17 sandbox is now available and was used for a **synthetic** race
+proof below. However, the proposed *forward-only migration 97*, hardened
+writer-trigger/reader-lock function, runtime role ACL, new strict signed Search
+cursor version, real two-session authenticated API paging, migration upgrade
+and rollback/lock admission have **not** been implemented or independently
+certified. The original W16/V3 source guards expressly pin migrations 1–96;
+changing this tree would invalidate prior reviewed proof and requires a
+separately reviewed new migration/acceptance baseline. A synthetic schema
+cannot substitute for that evidence. The Owner already approved U03's
+consistency goal; this is an engineering proof dependency, not another UI
+product decision.
 
 **Approved but strictly weaker alternative (U03):** the master plan also
 permits explicitly disclosed **live-current** matching across pages, with
@@ -103,13 +107,57 @@ mutation tests, without modifying Concept A/UI-M1 layout or relaxing U05.
 
 ## Verification and decision
 
+### Additional authentic PostgreSQL 17.10 experiment (2026-10-20)
+
+Created **only** in a new isolated `postgres:17-alpine` Docker container, with
+192 MiB ephemeral tmpfs data, a 256 MiB process-memory limit and **no host
+port published**. It had three **synthetic** Vehicle/Session/Event rows and
+an immutable event `birth_xid xid8 DEFAULT pg_current_xact_id()`; it did not
+connect to any VAYLET, shared, human, or production database. Each `docker
+exec psql` invocation used a distinct database connection.
+
+- Captured snapshot `S0=756:756:`. Page one of `make='Toyota'` with
+  descending event time and `LIMIT 1` returned **S1 (11:00)**; S2 (12:00)
+  initially had current make BMW, and S3 (10:00) Toyota.
+- Between HTTP-equivalent database reads, committed `UPDATE vehicles SET
+  make='Toyota'` for S2. Page two with **the same S0 birth-XID filter and
+  keyset strictly before (11:00,S1)** returned **only S3**.
+- A full read under the **same S0 birth filter**, using the new current make,
+  correctly showed **S2, S1, S3**. Thus removing the current filter-503
+  without an epoch would silently omit S2; this is an **executed PostgreSQL
+  counterexample**, not a source-test conjecture. Event insertion-XID
+  fencing did not freeze mutable Vehicle identity.
+- Separately prototyped an **unshipped** synthetic per-Organization revision
+  row, trigger and `SECURITY DEFINER ... FOR SHARE` reader. With the reader's
+  transaction holding the row lock, a concurrent vehicle update timed out
+  inside its trigger while attempting to bump the revision; the writer did
+  **not** commit silently. A restricted proof role could call the narrowly
+  granted reader, but direct epoch `UPDATE` returned `permission denied`.
+  A later committed Vehicle update advanced revision **1 -> 2**, making an
+  earlier revision-1 continuation invalid. This demonstrates the possible
+  lock primitive, **not** a production-ready security/rollout design.
+
+**Evidence limits:** these short SQL experiments did not migrate the real
+1–96 schema, prove all VAYLET Vehicle write paths, verify Pg roles/owner
+definers for migration 97, run real CA/LM MFA HTTP or cover legacy NULL
+cohorts and operational lock/load latencies. Docker startup was successful
+for the synthetic proof; it is no longer correct to call the absence of a
+PostgreSQL engine the blocker. The outstanding gate is **validated production
+integration of a new identity-revision mechanism**, with non-forgeable DB
+updates, signed cursor and complete W16/V3 rebaseline.
+
 Source-only focused execution on this exact source: `pnpm --filter
 @valet/api exec vitest run --config vitest.config.mjs --project
 api-non-postgres test/issue300-search/search-query.test.ts
 test/issue300-security/investigation-cursor.test.ts
 test/issue300-production-safe-cohort.test.ts
 test/issue300-production-route-registration.test.ts`:
-**31/31 PASS in 4 files**. Existing test cases verify overfull
+**31/31 PASS in 4 files** on the previously unchanged source, then **32/32
+PASS in the same 4 files** after adding an isolated production-mode HTTP
+transport test. This new test sends a real Nest request through the real
+Search pagination guard and verifies `503` with 26 synthetic matches. Its
+database result rows and Staff resolver are deliberately mocked, not a
+disposable PostgreSQL-backed authenticated application request. Existing cases verify overfull
 make/model/plate/country refusal, safe first-page response, HMAC normalized
 filter/session/Location/Incident-policy mismatch and production-mode Nest
 registration with **mocked** Staff/database services. Those are not real MFA,

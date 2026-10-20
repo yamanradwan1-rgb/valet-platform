@@ -2,13 +2,18 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { Module } from "@nestjs/common";
 import { MODULE_METADATA, PATH_METADATA } from "@nestjs/common/constants";
 import { NestFactory } from "@nestjs/core";
+import type { AuditInvestigationSearchQuery } from "@valet/contracts";
+import type { PostgresTransaction } from "../src/common/database/postgres";
 
 import { ApiOperationRunner } from "../src/common/http/api-operation-runner";
+import { MONOTONIC_CLOCK, OPERATION_OBSERVER }
+  from "../src/common/observability/operation-observability";
 import { STAFF_SESSION_CONTEXT_RESOLVER } from "../src/modules/auth/staff-session-context";
 import { ManagementModule } from "../src/modules/management/management.module";
 import { ManagementAuditController } from "../src/modules/management/management-audit.controller";
 import { AuditInvestigationSearchController } from "../src/modules/management/audit-investigation/search/audit-investigation-search.controller";
-import { AuditInvestigationSearchService } from "../src/modules/management/audit-investigation/search/audit-investigation-search.service";
+import { AuditInvestigationSearchService, searchAuditInvestigationSessions }
+  from "../src/modules/management/audit-investigation/search/audit-investigation-search.service";
 import { AuditInvestigationTimelineController, AuditInvestigationTimelineService } from "../src/modules/management/audit-investigation/timeline/timeline.controller";
 
 const ids = {
@@ -27,16 +32,32 @@ const auth = { Authorization: "Bearer isolated-test-only-no-real-login" };
   controllers: [AuditInvestigationSearchController, AuditInvestigationTimelineController],
   providers: [
     { provide: AuditInvestigationSearchService, useValue: {
-      search: async () => ({ route: "sessions" }),
+      search: async (_context: unknown, organizationId: string,
+        locationId: string, query: AuditInvestigationSearchQuery) => {
+        if (query.make !== "Toyota") return { route: "sessions" };
+        // Only the DB result is simulated. Run the *real* production Search
+        // pagination guard through the real Nest HTTP error transport.
+        const tx = { query: async () => ({ rows: Array(26).fill({}) }) } as unknown as PostgresTransaction;
+        return searchAuditInvestigationSessions(tx, {
+          organizationId, locationId,
+          membershipId: ids.session, role: "LOCATION_MANAGER",
+        }, query, {
+          now: new Date("2026-10-18T12:00:00.000Z"),
+          cutoff: "2026-10-18T12:00:00.000000Z", database: "100:101:",
+        }, {
+          purpose: "SEARCH_SESSIONS", organizationId, locationId,
+          viewerSessionDigest: "a".repeat(64), filterDigest: "b".repeat(64),
+        });
+      },
       filters: async () => ({ route: "filters" }),
     } },
     { provide: AuditInvestigationTimelineService, useValue: {
       timeline: async () => ({ route: "timeline" }),
       detail: async () => ({ route: "detail" }),
     } },
-    { provide: ApiOperationRunner, useValue: {
-      run: async (_name: string, _request: unknown, action: () => Promise<unknown>) => action(),
-    } },
+    ApiOperationRunner,
+    { provide: MONOTONIC_CLOCK, useValue: { now: () => 0 } },
+    { provide: OPERATION_OBSERVER, useValue: { observe: async () => undefined } },
     { provide: STAFF_SESSION_CONTEXT_RESOLVER, useValue: {
       resolve: async () => ({ staffAuthSessionId: "isolated-stub" }),
     } },
@@ -87,5 +108,14 @@ describe("production Investigation router (isolated transport; no real users)", 
   it("rejects absent bearer authorization before calling any mock service", async () => {
     const response = await fetch(`${origin}${base}/sessions?from=2026-10-18T00%3A00%3A00.000Z&to=2026-10-19T00%3A00%3A00.000Z`);
     expect(response.status).toBe(401);
+  });
+
+  it("returns real production HTTP 503, not partial 200, for 26 same-filter vehicle matches", async () => {
+    const response = await fetch(origin + `${base}/sessions?from=2026-10-18T00%3A00%3A00.000Z&to=2026-10-19T00%3A00%3A00.000Z&make=Toyota&limit=25`, { headers: auth });
+    expect(response.status).toBe(503);
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    expect(await response.json()).toMatchObject({
+      code: "AUDIT_INVESTIGATION_SNAPSHOT_UNAVAILABLE",
+    });
   });
 });
