@@ -127,7 +127,7 @@ export function ResourceLabelDialog(props: {
   }
 
   return (
-    <div className={presentation.labelHost}>
+    <div className={presentation.labelHost} data-issue304-label-locale={props.issue304Variant ? locale : undefined}>
       <FocusDialog label={t.resourceLabel} onClose={props.onClose}>
         {props.issue304Variant ? (
           <Issue304Option3Heading kicker="resource-label" title={locale === "ar" ? "ملصق المورد" : "Resource label"} locale={locale} onClose={props.onClose} />
@@ -154,7 +154,7 @@ export function ResourceLabelDialog(props: {
               <img className="issue304-modal-label-qr" alt={`${label.resourceType} ${label.code} QR`} src={qrUrl} />
             </div>
             <p className="issue304-modal-disclaimer">
-              {locale === "ar" ? "رمز QR حقيقي للمورد المحفوظ في الموقع المحدد." : "Live QR code for this persisted resource in the selected Location."}
+              {locale === "ar" ? "رمز QR حقيقي للمورد المحفوظ في الموقع المحدد ويمكن مسحه للتعرّف عليه." : "Live QR code for this persisted resource in the selected Location."}
             </p>
           </>
         ) : label && qrUrl ? (

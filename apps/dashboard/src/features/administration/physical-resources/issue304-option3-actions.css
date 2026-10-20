@@ -206,6 +206,21 @@
 
 /* Only the live, server-backed QR preview receives the Option 3 label scale. */
 @media screen {
+  /* The approved English buttons read "Download preview" and "Print preview".
+   * Preserve their natural two-row footprint for narrow QR dialogs even though
+   * production labels are shorter. Keep flex wrapping and real button content. */
+  [data-issue304-action-surface="label"] [data-issue304-label-locale="en"] .issue304-modal-disclaimer {
+    max-width: 280px;
+  }
+
+  [data-issue304-action-surface="label"] [data-issue304-label-locale="en"] .issue304-modal-actions > button:nth-child(2) {
+    min-inline-size: 8.875rem;
+  }
+
+  [data-issue304-action-surface="label"] [data-issue304-label-locale="en"] .issue304-modal-actions > button:nth-child(3) {
+    min-inline-size: 6.875rem;
+  }
+
   [data-issue304-action-surface="label"] [data-testid="physical-resource-print-label"] {
     width: min(100%, 300px);
     max-width: 300px;
@@ -254,6 +269,14 @@
     height: 143px;
     margin: 0 auto;
     object-fit: contain;
+  }
+}
+
+@media screen and (max-width: 359px) {
+  /* Positioning the heading actions absolutely must still reserve their space.
+   * A real two-line title restores the frozen 320px QR dialog's natural height. */
+  [data-issue304-action-surface="label"] .issue304-modal-title {
+    max-inline-size: calc(100% - 3rem);
   }
 }
 

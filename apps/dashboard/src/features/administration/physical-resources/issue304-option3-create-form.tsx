@@ -36,19 +36,19 @@ export function Issue304Option3CreateForm(props: {
       <p className="issue304-modal-disclaimer">
         {props.locale === "ar"
           ? "سيُحفظ المورد في الموقع المحدد بعد التحقق من الصلاحيات."
-          : "This creates a persisted resource in the selected Location after authorization."}
+          : isSpot ? "Create this resource in the selected Location." : "This creates a persisted resource in the selected Location after authorization."}
       </p>
       <form className="issue304-modal-form" onSubmit={onSubmit}>
         <label>
-          <span>{t.code}</span>
+          <span>{isSpot ? (props.locale === "ar" ? "رمز المورد" : "Resource code") : t.code}</span>
           <input autoComplete="off" dir="ltr" maxLength={100} required
             placeholder={isSpot ? "P-08" : "K-08"}
             value={props.code} onChange={(event) => props.onCode(event.target.value)} />
         </label>
         <label>
-          <span>{t.label}{!isSpot ? (props.locale === "ar" ? " (اختياري)" : " (optional)") : ""}</span>
+          <span>{isSpot ? (props.locale === "ar" ? "اسم العرض" : "Display label") : t.label + (props.locale === "ar" ? " (اختياري)" : " (optional)")}</span>
           <input autoComplete="off" maxLength={160} required={isSpot}
-            placeholder={props.locale === "ar" ? "المكتب الأمامي" : "Front desk"}
+            placeholder={props.locale === "ar" ? "المكتب الأمامي" : "Front desk C"}
             value={props.label} onChange={(event) => props.onLabel(event.target.value)} />
         </label>
         {isSpot ? (
@@ -56,7 +56,7 @@ export function Issue304Option3CreateForm(props: {
             <span>{t.parkingZone}</span>
             <select required disabled={props.zonePage.loading} value={props.zoneId}
               onChange={(event) => props.onZone(event.target.value)}>
-              <option value="">{t.selectZone}</option>
+              <option value="">{props.locale === "ar" ? "اختر منطقة وقوف" : "Choose a parking zone"}</option>
               {props.zones.map((zone) => (
                 <option value={zone.parkingZoneId} key={zone.parkingZoneId}>
                   {zone.label} — {zone.code}

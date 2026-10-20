@@ -59,6 +59,10 @@ describe("Issue #304 native dialog optional variant safety", () => {
     expect(legacy).not.toContain("issue304-modal-heading");
     expect(approved).toContain("PARKING ZONE");
     expect(approved).toContain('aria-label="Close"');
+    expect(approved).toContain('placeholder="Z-C"');
+    expect(approved).toContain("Resource code");
+    expect(approved).toContain("Display label");
+    expect(approved).toContain("Create a parking zone in this Location.");
   });
 
   it("preserves live QR read semantics while changing only optional label presentation", () => {
@@ -74,6 +78,8 @@ describe("Issue #304 native dialog optional variant safety", () => {
     expect(legacy).toContain("Physical resource label");
     expect(legacy).not.toContain("issue304-modal-heading");
     expect(approved).toContain("RESOURCE LABEL");
+    expect(approved).toContain('data-issue304-label-locale="en"');
+    expect(legacy).not.toContain("data-issue304-label-locale");
     expect(approved).not.toContain("DESIGN PREVIEW");
     // Before the authenticated label GET resolves, neither mode invents a QR.
     expect(legacy).not.toContain("<img");

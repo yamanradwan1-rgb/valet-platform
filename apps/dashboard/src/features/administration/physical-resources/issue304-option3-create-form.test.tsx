@@ -55,6 +55,12 @@ describe("Issue #304 approved live creation layout", () => {
   it("matches the approved Spot code/label/zone field trio without nested Add Zone", () => {
     const markup = render("parking-spot");
     expect((markup.match(/<label/g) ?? []).length).toBe(3);
+    expect(markup).toContain("Resource code");
+    expect(markup).toContain("Display label");
+    expect(markup).toContain("Front desk C");
+    expect(markup).toContain("Choose a parking zone");
+    expect(markup).toContain("Create this resource in the selected Location.");
+    expect(markup).not.toContain("after authorization");
     expect(markup).toContain("North Zone");
     expect(markup).toContain("ZONE-A");
     expect(markup).toContain("Parking Zone");

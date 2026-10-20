@@ -136,7 +136,7 @@ export function ParkingZoneCreateDialog(props: {
         )}
         {props.issue304Variant ? (
           <p className="issue304-modal-disclaimer">
-            {locale === "ar" ? "سيتم حفظ منطقة الوقوف في الموقع المحدد بعد التحقق من الصلاحيات." : "This creates a persisted parking zone in the selected Location after authorization."}
+            {locale === "ar" ? "سيتم حفظ منطقة الوقوف في الموقع المحدد بعد التحقق من الصلاحيات." : "Create a parking zone in this Location."}
           </p>
         ) : null}
         <form
@@ -147,19 +147,19 @@ export function ParkingZoneCreateDialog(props: {
           }}
         >
           <label className={props.issue304Variant ? undefined : presentation.field}>
-            <span>{t.code}</span>
+            <span>{props.issue304Variant ? (locale === "ar" ? "رمز المورد" : "Resource code") : t.code}</span>
             <input
               autoComplete="off"
               dir="ltr"
               maxLength={100}
-              placeholder={props.issue304Variant ? "ZONE-C" : undefined}
+              placeholder={props.issue304Variant ? "Z-C" : undefined}
               required
               value={code}
               onChange={(event) => setCode(event.target.value)}
             />
           </label>
           <label className={props.issue304Variant ? undefined : presentation.field}>
-            <span>{t.label}</span>
+            <span>{props.issue304Variant ? (locale === "ar" ? "اسم العرض" : "Display label") : t.label}</span>
             <input
               autoComplete="off"
               maxLength={160}
