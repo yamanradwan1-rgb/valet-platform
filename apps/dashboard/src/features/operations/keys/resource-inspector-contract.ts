@@ -2,6 +2,7 @@ import {
   physicalResourceOverviewResponseSchema,
   physicalResourceCustodyResponseSchema,
   type PhysicalResourceOverviewResponse,
+  type PhysicalResourceOverviewQuery,
   type PhysicalResourceCustodyResponse,
 } from "@valet/contracts";
 
@@ -12,7 +13,7 @@ import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
 export type InspectorOverview = PhysicalResourceOverviewResponse;
 export type InspectorCustody = PhysicalResourceCustodyResponse;
 export type InspectorFamily = "keys" | "spots";
-export type InspectorFilter = "all" | "busy" | "available" | "inactive";
+export type InspectorFilter = NonNullable<PhysicalResourceOverviewQuery["keyFilter"]>;
 export type InspectorResource = {
   readonly id: string;
   readonly family: InspectorFamily;
@@ -63,6 +64,8 @@ export function readResourceInspectorOverview(
   locationId: string,
   keyCursor: string | null,
   spotCursor: string | null,
+  keyFilter: InspectorFilter,
+  spotFilter: InspectorFilter,
   signal: AbortSignal,
 ): Promise<InspectorOverview> {
   return api.request(
@@ -73,6 +76,8 @@ export function readResourceInspectorOverview(
       signal,
       query: {
         limit: 50,
+        keyFilter,
+        spotFilter,
         ...(keyCursor ? { keyCursor } : {}),
         ...(spotCursor ? { spotCursor } : {}),
       },

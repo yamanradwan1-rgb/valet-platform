@@ -24,7 +24,6 @@ export function ResourceInspectorMaster(props: {
   readonly loading: boolean;
   readonly error: Error | null;
   readonly canNext: boolean;
-  readonly partialPage: boolean;
   readonly onFilter: (next: InspectorFilter) => void;
   readonly onSelect: (id: string, button: HTMLButtonElement) => void;
   readonly onLoadMore: () => void;
@@ -139,7 +138,7 @@ export function ResourceInspectorMaster(props: {
       <div className="c-master-foot">
         <div className="c-foot-scope">
           <span className="c-foot-dot" aria-hidden="true" />
-          <span>{props.partialPage ? t.partialPage : t.scopeNote}</span>
+          <span>{t.scopeNote}</span>
         </div>
       </div>
     </section>

@@ -37,18 +37,21 @@ export function ResourceInspector(props: {
   readonly scopeKey: string;
   readonly api: DashboardApiClient;
   readonly next: Readonly<Record<InspectorFamily, boolean>>;
+  readonly filters: Readonly<Record<InspectorFamily, InspectorFilter>>;
+  readonly onFilter: (family: InspectorFamily, filter: InspectorFilter) => void;
   readonly onLoadMore: (family: InspectorFamily) => void;
   readonly actions: ResourceInspectorActions;
 }) {
   const { locale } = useDashboardLocale();
   const t = inspectorCopy(locale);
   const [family, setFamily] = useState<InspectorFamily>("keys");
-  const [filter, setFilter] = useState<InspectorFilter>("all");
   const [selected, setSelected] = useState<{ keys: string | null; spots: string | null }>({ keys: null, spots: null });
   const [mobileDetails, setMobileDetails] = useState(false);
   const rowReturn = useRef<HTMLButtonElement | null>(null);
   const familyRows = props.overview ? inspectorRows(props.overview, family) : [];
-  const filtered = familyRows.filter((item) => resourceMatches(item, filter));
+  // W3 paginates matching rows authoritatively. This client predicate is only
+  // a defensive check and must never be the source of filtered pagination.
+  const filtered = familyRows.filter((item) => resourceMatches(item, props.filters[family]));
   const selectedRow = filtered.find((item) => item.id === selected[family]) ??
     filtered.find((item) => item.status === "ACTIVE" && resourceIsBusy(item)) ??
     filtered[0] ?? null;
@@ -72,7 +75,6 @@ export function ResourceInspector(props: {
 
   function selectFamily(nextFamily: InspectorFamily) {
     setFamily(nextFamily);
-    setFilter("all");
     setMobileDetails(false);
   }
 
@@ -137,12 +139,11 @@ export function ResourceInspector(props: {
           canNext={props.next[family]}
           error={props.error}
           family={family}
-          filter={filter}
+          filter={props.filters[family]}
           loading={props.loading}
-          onFilter={setFilter}
+          onFilter={(nextFilter) => props.onFilter(family, nextFilter)}
           onLoadMore={() => props.onLoadMore(family)}
           onRetry={props.onRetry}
-          partialPage={props.next[family]}
           onSelect={(id, button) => {
             const item = filtered.find((candidate) => candidate.id === id);
             if (item) selectResource(item, button);

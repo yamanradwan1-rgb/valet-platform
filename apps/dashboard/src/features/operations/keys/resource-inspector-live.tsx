@@ -18,6 +18,7 @@ import { ResourceInspectorKeyCreate } from "./resource-inspector-key-create";
 import {
   readResourceInspectorOverview,
   type InspectorFamily,
+  type InspectorFilter,
   type InspectorOverview,
 } from "./resource-inspector-contract";
 
@@ -31,10 +32,13 @@ export function ResourceInspectorLive() {
     (scope.authority === "COMPANY_ADMIN" ||
       (scope.authority === "LOCATION_MANAGER" && exactLocation)));
 
+  const [filters, setFilters] = useState<Record<InspectorFamily, InspectorFilter>>({ keys: "all", spots: "all" });
+  const filterKey = `${filters.keys}:${filters.spots}`;
   const [pages, setPages] = useState<{
+    filterKey: string;
     keys: InspectorOverview["keySlots"][];
     spots: InspectorOverview["parkingSpots"][];
-  }>({ keys: [], spots: [] });
+  }>({ filterKey: "all:all", keys: [], spots: [] });
   const pending = useRef({ keys: false, spots: false });
   const requestEpoch = useRef(0);
   const controllers = useRef<AbortController[]>([]);
@@ -48,12 +52,14 @@ export function ResourceInspectorLive() {
       location?.locationId ?? "",
       null,
       null,
+      filters.keys,
+      filters.spots,
       signal,
     ),
-    [dashboard.api, location?.locationId],
+    [dashboard.api, location?.locationId, filters.keys, filters.spots],
   );
   const read = useAuthoritativeRead(
-    `${scopeKey}:304:inspector:first`,
+    `${scopeKey}:304:inspector:${filterKey}:first`,
     load,
     enabled,
   );
@@ -62,29 +68,45 @@ export function ResourceInspectorLive() {
     controllers.current.forEach((controller) => controller.abort());
   }, []);
 
-  const nextKey = pages.keys.length
-    ? pages.keys[pages.keys.length - 1]?.nextCursor ?? null : read.data?.keySlots.nextCursor ?? null;
-  const nextSpot = pages.spots.length
-    ? pages.spots[pages.spots.length - 1]?.nextCursor ?? null : read.data?.parkingSpots.nextCursor ?? null;
+  // Never mix a previous filter's appended pages into a newly scoped read.
+  const activePages = pages.filterKey === filterKey ? pages : { keys: [], spots: [] };
+  const nextKey = activePages.keys.length
+    ? activePages.keys[activePages.keys.length - 1]?.nextCursor ?? null : read.data?.keySlots.nextCursor ?? null;
+  const nextSpot = activePages.spots.length
+    ? activePages.spots[activePages.spots.length - 1]?.nextCursor ?? null : read.data?.parkingSpots.nextCursor ?? null;
   const overview: InspectorOverview | null = read.data ? {
     counts: read.data.counts,
     keySlots: {
-      items: [...read.data.keySlots.items, ...pages.keys.flatMap((page) => page.items)],
+      items: [...read.data.keySlots.items, ...activePages.keys.flatMap((page) => page.items)],
       nextCursor: nextKey,
     },
     parkingSpots: {
-      items: [...read.data.parkingSpots.items, ...pages.spots.flatMap((page) => page.items)],
+      items: [...read.data.parkingSpots.items, ...activePages.spots.flatMap((page) => page.items)],
       nextCursor: nextSpot,
     },
   } : null;
 
-  function refresh() {
+  function invalidatePages() {
     requestEpoch.current += 1;
     controllers.current.forEach((controller) => controller.abort());
     controllers.current = [];
     pending.current = { keys: false, spots: false };
-    setPages({ keys: [], spots: [] });
+  }
+
+  function refresh() {
+    invalidatePages();
+    setPages({ filterKey, keys: [], spots: [] });
     read.refresh();
+  }
+
+  function changeFilter(family: InspectorFamily, filter: InspectorFilter) {
+    if (filters[family] === filter) return;
+    const nextFilters = { ...filters, [family]: filter };
+    invalidatePages();
+    setPages({ filterKey: `${nextFilters.keys}:${nextFilters.spots}`, keys: [], spots: [] });
+    setFilters(nextFilters);
+    // useAuthoritativeRead starts a fresh abortable GET from the first cursor
+    // through its filter-scoped request key. No mutation or implicit retry.
   }
 
   async function loadMore(family: InspectorFamily) {
@@ -99,13 +121,17 @@ export function ResourceInspectorLive() {
         dashboard.api, location.locationId,
         family === "keys" ? cursor : null,
         family === "spots" ? cursor : null,
+        filters.keys,
+        filters.spots,
         controller.signal,
       );
       if (controller.signal.aborted || requestEpoch.current !== epoch) return;
       if (family === "keys") {
-        setPages((current) => ({ ...current, keys: [...current.keys, result.keySlots] }));
+        setPages((current) => current.filterKey === filterKey
+          ? { ...current, keys: [...current.keys, result.keySlots] } : current);
       } else {
-        setPages((current) => ({ ...current, spots: [...current.spots, result.parkingSpots] }));
+        setPages((current) => current.filterKey === filterKey
+          ? { ...current, spots: [...current.spots, result.parkingSpots] } : current);
       }
     } catch {
       // Keep the current server-confirmed rows. The next scroll retries the page.
@@ -144,6 +170,8 @@ export function ResourceInspectorLive() {
         keys: Boolean(nextKey),
         spots: Boolean(nextSpot),
       }}
+      filters={filters}
+      onFilter={changeFilter}
       onLoadMore={(family) => { void loadMore(family); }}
       onRetry={refresh}
       overview={overview}
