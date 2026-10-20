@@ -8,6 +8,7 @@ import {
   lstatSync,
   openSync,
   readFileSync,
+  readSync,
   realpathSync,
   statSync,
 } from "node:fs";
@@ -115,6 +116,38 @@ export function safeOwnedFile(path, ownedDirectory, max = 262_144) {
   }
 }
 
+// Stream large raw HTTP evidence without allocating a second multi-MB copy.
+export function sha256OwnedFile(path, ownedDirectory, max = 1_073_741_824) {
+  const directory = guardedPath(ownedDirectory, true).full;
+  const file = guardedPath(path, false);
+  assert.equal(canonical(dirname(file.full)), canonical(directory));
+  assert(file.info.size > 0 && file.info.size <= max && file.info.nlink === 1);
+  const fd = openSync(file.full,
+    constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0));
+  try {
+    const original = fstatSync(fd);
+    assert(original.isFile() && original.dev === file.info.dev &&
+      original.ino === file.info.ino && original.size === file.info.size &&
+      original.nlink === 1);
+    const hash = createHash("sha256");
+    const buffer = Buffer.allocUnsafe(65536);
+    let total = 0, n;
+    while ((n = readSync(fd, buffer, 0, buffer.length, null)) > 0) {
+      total += n;
+      assert(total <= max);
+      hash.update(buffer.subarray(0, n));
+    }
+    const after = fstatSync(fd);
+    const pathAfter = guardedPath(path, false).info;
+    assert(total === original.size && after.size === original.size &&
+      after.dev === original.dev && after.ino === original.ino &&
+      pathAfter.dev === original.dev && pathAfter.ino === original.ino &&
+      pathAfter.size === original.size,
+    "Raw evidence was replaced or changed during hash");
+    return hash.digest("hex");
+  } finally { closeSync(fd); }
+}
+
 export function assertSignature(bytes, signatureText, key = ownerKey) {
   const raw = signatureText.trim();
   assert.match(
@@ -157,7 +190,7 @@ function rejectSecretMaterial(value) {
 }
 
 export function assertProducerCommitments(m) {
-  assert.equal(m.provenance, "PRIME_OWNER_SIGNED_W8_RESOURCE_V1");
+  assert.equal(m.provenance, "PRIME_OWNER_SIGNED_W8_RESOURCE_V2");
   assert.match(m.candidateSha ?? "", /^[a-f0-9]{40}$/);
   assert.match(m.leaseId ?? "", /^issue300-r2-w8-[a-z0-9-]{12,}$/);
   assert([100_000, 1_000_000].includes(m.targetTier));
@@ -168,6 +201,7 @@ export function assertProducerCommitments(m) {
     "guestBootIssuerKeySha256",
     "coldTrialIssuerKeySha256",
     "runtimeIssuerKeySha256",
+    "phaseSealIssuerKeySha256",
   ]) {
     assert.match(m[key] ?? "", hex, `${key} missing from Owner manifest`);
   }
@@ -177,9 +211,10 @@ export function assertProducerCommitments(m) {
       m.guestBootIssuerKeySha256,
       m.coldTrialIssuerKeySha256,
       m.runtimeIssuerKeySha256,
+      m.phaseSealIssuerKeySha256,
     ]).size,
-    4,
-    "Oracle/guest/runtime/cold require independent Owner-pinned issuers",
+    5,
+    "Oracle/guest/runtime/cold/phase seal require independent Owner issuers",
   );
   assert.notEqual(
     m.oracleIssuerKeySha256,

@@ -197,6 +197,15 @@ export function readTarget() {
   return assertTargetManifest(m, process.env, container);
 }
 
+export function assertLeaseActive(manifest,minimumRemainingMs=0,now=Date.now()){
+  assert.equal(manifest.lease?.owner,"W8");
+  assert.equal(manifest.lease?.exclusive,true);
+  assert(Number.isSafeInteger(minimumRemainingMs) && minimumRemainingMs>=0);
+  assert(Number.isFinite(Date.parse(manifest.lease?.expiresAt)) &&
+    Date.parse(manifest.lease.expiresAt)>=now+minimumRemainingMs,
+    "Signed exclusive W8 lease expired or insufficient for this phase");
+}
+
 export function assertOwnedUri(raw, target, kind) {
   const u = new URL(raw);
   assert.equal(u.hostname, "127.0.0.1");

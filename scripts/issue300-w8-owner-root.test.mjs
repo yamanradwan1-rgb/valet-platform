@@ -28,9 +28,9 @@ function context(t) {
   t.after(() => rmSync(parent, { recursive: true, force: true }));
   const owned = join(parent, "owned");
   mkdirSync(owned);
-  const keys = Array.from({ length: 4 }, () => generateKeyPairSync("ed25519"));
+  const keys = Array.from({ length: 5 }, () => generateKeyPairSync("ed25519"));
   const manifest = {
-    provenance: "PRIME_OWNER_SIGNED_W8_RESOURCE_V1",
+    provenance: "PRIME_OWNER_SIGNED_W8_RESOURCE_V2",
     candidateSha: "a".repeat(40),
     leaseId: "issue300-r2-w8-test-lease-123",
     targetTier: 100_000,
@@ -40,6 +40,7 @@ function context(t) {
     guestBootIssuerKeySha256: fingerprint(keys[1].publicKey),
     coldTrialIssuerKeySha256: fingerprint(keys[2].publicKey),
     runtimeIssuerKeySha256: fingerprint(keys[3].publicKey),
+    phaseSealIssuerKeySha256: fingerprint(keys[4].publicKey),
     scope: {
       organizationId: "00000000-0000-4000-8000-000000000011",
       locationId: "00000000-0000-4000-8000-000000000012",
@@ -107,6 +108,7 @@ test("raw signature missing, tampered bytes and bad encoding fail closed", (t) =
 test("tier, candidate, lease, sources and all producer fingerprints mandatory", (t) => {
   const { manifest: m } = context(t);
   const changes = [
+    { provenance: "PRIME_OWNER_SIGNED_W8_RESOURCE_V1" },
     { targetTier: 1 },
     { candidateSha: "f" },
     { leaseId: "owner-unknown" },
@@ -116,6 +118,8 @@ test("tier, candidate, lease, sources and all producer fingerprints mandatory", 
     { runtimeIssuerKeySha256: m.oracleIssuerKeySha256 },
     { guestBootIssuerKeySha256: "0" },
     { coldTrialIssuerKeySha256: null },
+    { phaseSealIssuerKeySha256: null },
+    { phaseSealIssuerKeySha256: m.runtimeIssuerKeySha256 },
     { resource: { ...m.resource, apiBundleSha256: "untrusted" } },
     { resource: { ...m.resource, containerId: "untrusted" } },
     { resource: { ...m.resource, vmUuid: null } },

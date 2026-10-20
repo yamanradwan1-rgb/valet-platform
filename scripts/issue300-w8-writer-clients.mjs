@@ -6,7 +6,7 @@ import { readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { performance } from "node:perf_hooks";
-import { readTarget, assertOwnedUri } from "./issue300-w8-target.mjs";
+import { readTarget, assertOwnedUri, assertLeaseActive } from "./issue300-w8-target.mjs";
 import { verifiedSourceOracle } from "./issue300-w8-http-evidence.mjs";
 import { assertWriterCohort, verifyWriterCoverage } from
   "./issue300-w8-writer-proof.mjs";
@@ -165,6 +165,7 @@ async function main() {
     let succeeded = 0, index = 0;
     try {
       while (performance.now()-start < minDuration && !stop) {
+        assertLeaseActive(target);
         const began = performance.now();
         try {
           const evidence = await command(api,origin,c,db,index++);
@@ -186,6 +187,7 @@ async function main() {
     } finally {await db.end();}
   };
   await Promise.all(roster.map(perClient));
+  assertLeaseActive(target);
   const finishedAt = new Date().toISOString();
   const elapsedMs = performance.now()-start;
   const times = raw.map((r)=>r.elapsedMs);
@@ -215,7 +217,7 @@ async function main() {
     JSON.stringify(report,null,2),{flag:"wx",mode:0o600});
   assert(elapsedMs >= minDuration && errors.length===0 &&
     Object.values(clientProof).every((n)=>n>0));
-  console.log(JSON.stringify({verdict:"PASS_REAL_WRITER_ONLY",
+  console.log(JSON.stringify({verdict:"RAW_REAL_WRITER_ONLY_UNSEALED",
     mode,writerClients:required,successfulCommands:times.length,p95Ms:report.p95Ms}));
 }
 

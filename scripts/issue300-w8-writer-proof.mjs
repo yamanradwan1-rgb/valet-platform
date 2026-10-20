@@ -63,6 +63,10 @@ export function verifyWriterCoverage(report,oracle,clients){
     byCommand[command.command].push(command.elapsedMs);
   }
   assert.equal(report.raw.length,report.successfulCommands);
+  const latency=report.raw.map((r)=>r.elapsedMs);
+  const measuredP95=percentile95(latency);
+  assert(Number.isFinite(report.p95Ms) && report.p95Ms===measuredP95,
+    "Reported writer p95 must match actual command timings");
   for(const [id,events] of Object.entries(perClient)){
     assert(events.length>=20,`Nonproductive writer client ${id}`);
     events.sort((a,b)=>a.at-b.at);
@@ -90,9 +94,18 @@ export function assertComparableWriters(baseline,live,oracle,required){
   for(const key of Object.keys(earlier)){
     assert(later[key].length >= earlier[key].length*.8,
       `Writer throughput collapsed for ${key}`);
+    const before=percentile95(earlier[key]);
+    const after=percentile95(later[key]);
+    assert(after<=before*1.2 && after-before<=100,
+      `Live ${key} writer p95 exceeds absolute/relative budget`);
   }
   assert(live.p95Ms<=baseline.p95Ms*1.2 &&
     live.p95Ms-baseline.p95Ms<=100,
     "Live writer p95 exceeds both absolute and relative budget");
   return true;
+}
+
+function percentile95(items){
+  assert(items.length>0);
+  return [...items].sort((a,b)=>a-b)[Math.ceil(items.length*.95)-1];
 }

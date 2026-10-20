@@ -4,7 +4,7 @@ import { spawn } from "node:child_process";
 import { readFileSync, existsSync } from "node:fs";
 import { dirname, resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { readTarget, assertOwnedUri } from "./issue300-w8-target.mjs";
+import { readTarget, assertOwnedUri, assertLeaseActive } from "./issue300-w8-target.mjs";
 import { verifiedSourceOracle } from "./issue300-w8-http-evidence.mjs";
 import { verifyWriterCoverage } from "./issue300-w8-writer-proof.mjs";
 
@@ -57,6 +57,7 @@ async function main() {
   const expectedWriters=mode==="stress"?8:
     mode==="normal"?2:Number(process.env.ISSUE300_W8_BASELINE_WRITERS);
   assert([2,8].includes(expectedWriters));
+  assertLeaseActive(m,mode==="baseline"?610_000:700_000);
   if(mode!=="baseline") {
     const baseline=checkArtifact(process.env.ISSUE300_W7_WRITER_BASELINE,m,"baseline");
     assert.equal(baseline.writerClients,expectedWriters);
@@ -77,6 +78,7 @@ async function main() {
     verifyWriterCoverage(
       checkArtifact(writerEnv.ISSUE300_W8_WRITER_RESULT_PATH,m,"baseline"),
       oracle,expectedWriters);
+    assertLeaseActive(m);
     console.log("W8 writer-only baseline completed; NO reader-phase claimed");
     return;
   }
@@ -93,6 +95,7 @@ async function main() {
   assert.equal(readResult.code,0,"Search/Timeline/detail reader proof failed");
   checkArtifact(process.env.ISSUE300_W7_WRITER_LIVE,m,"real-writer");
   checkArtifact(process.env.ISSUE300_W7_RESULTS_PATH,m,"HTTP-readers");
+  assertLeaseActive(m);
   console.log(JSON.stringify({verdict:"NORMAL_OR_STRESS_ATTESTED",
     mode,tier:m.targetTier,writers:expectedWriters,
     readers:mode==="normal"?5:25,durationMs:600000}));

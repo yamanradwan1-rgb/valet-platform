@@ -5,7 +5,7 @@ import { createHash, verify } from "node:crypto";
 import { existsSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
 import { performance } from "node:perf_hooks";
 import { join, resolve, sep } from "node:path";
-import { readTarget, assertOwnedUri } from "./issue300-w8-target.mjs";
+import { readTarget, assertOwnedUri, assertLeaseActive } from "./issue300-w8-target.mjs";
 import { verifiedSourceOracle, verifyPinnedRoutes, assertExpectedHttp,
   verifyDetachedBytes, u004ColdBudgets } from "./issue300-w8-http-evidence.mjs";
 import { verifySignedColdTrial } from "./issue300-w8-cold-trial.mjs";
@@ -133,6 +133,7 @@ async function main() {
   for (const endpoint of Object.keys(budgets)) {
     const path = paths.endpoints[endpoint];
     for (let i=0;i<20;i++) {
+      assertLeaseActive(m);
       const resetStarted=performance.now();
       const startEpoch = Date.now();
       // ONLY this exact VM. Never reboot host, Docker Desktop or shared W7.
@@ -197,6 +198,7 @@ async function main() {
         cacheResetVerified:true,responseValidated:true,
         method:"OWNED_VBOX_GUEST_OS_RESET"};
       verifySignedColdTrial(trial,m,oracle,endpoint,boot);
+      assertLeaseActive(m);
       trials[endpoint].push(trial);
     }
   }
@@ -214,6 +216,7 @@ async function main() {
     methodology:"OWNED_GUEST_INDEPENDENT_OS_BOOT_ID",globalSharedCacheFlush:false,
     trials};
   verifyColdArtifact(output,m,oracle);
+  assertLeaseActive(m);
   assert(process.env.ISSUE300_W7_COLD_TRIALS);
   writeFileSync(process.env.ISSUE300_W7_COLD_TRIALS,
     JSON.stringify(output,null,2),{flag:"wx",mode:0o600});
