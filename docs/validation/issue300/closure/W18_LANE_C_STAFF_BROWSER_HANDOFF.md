@@ -6,6 +6,16 @@ It adds only bounded test planning, independent identity/grant oracles and
 offline negative tests. No fixture, account, MFA factor, cookie, signed
 attestation or domain-writer event has been issued by this branch.
 
+**Owner final exception (2026-10-20):** Owner signing is an
+**OWNER-ACCEPTED SIGNING EXCEPTION — NOT CRYPTOGRAPHICALLY VERIFIED**,
+**not PASS**, for ordinary isolated functional engineering. It does not
+unlock or waive the existing W10/W13/W7 proof verifiers or the 34
+Playwright cases: those remain genuinely signed-proof-only. Separately
+owned, non-production ordinary PG/API/auth/UI tests may be reported as
+**LOCAL VERIFIED ONLY**, never Issue300 acceptance. Do not forge/replace
+an Owner signature, weaken a verifier, reuse human credentials, or enable
+`VAYLET_LOCAL_DISABLE_MFA` to manufacture assurance.
+
 ## Target identity and irreversible-operation gate
 
 The sole candidate resources are W10/W13-owned PG17.10
@@ -201,6 +211,59 @@ one exact case using `--grep`. Launch the first functional canary before
 the remaining 33; validate the source-record/paging and session-identity
 proof before promoting it. There is **no 34-context shortcut**.
 
-All output remains unclaimed until the Owner-signed runtime dependencies
-and actual API/DB/browser evidence exist. No signing key, secret or cookie
-belongs in this report or repository.
+All proof output remains unclaimed until the authentically signed runtime
+dependencies and actual API/DB/browser evidence exist. No signing key,
+secret or cookie belongs in this report or repository.
+
+## 2026-10-20 W18 resumed local admission record (unsigned, read-only)
+
+Checked clean isolated branch `codex/issue300-r2-w18-lane-c`, starting
+from `9cc28b2f0897fa76b17eb750e927323e2d8b4115`.
+Windows host AMD Ryzen 5 3600, 16 GiB RAM. Two memory snapshots had
+~1,142 MiB and ~2,357 MiB free; CPU sampled at 21% and 19%.
+Docker Desktop Linux engine named pipe was absent. No listening target
+on reserved task ports PG `:58387`/`:58427`, API `:3167`/`:3168`,
+Dashboard `:3117`. Existing native PostgreSQL on all interfaces
+`:5432` (PID 6880) and COS loopback `:54387` were **not task-owned**
+and were **not contacted**. No task-owned V2 receipt directory, npm
+dependencies, reviewed active manifest/lease, four fresh Staff accounts,
+or admissible running target was present in this isolated checkout.
+
+Prime explicitly confirmed W16's **exclusive Docker/PG ownership** pending
+handoff. W18 performed **no** Docker startup, PG connection, DB migration,
+HTTP request, credential issuance, MFA enrollment, browser session,
+cookie access or browser run. These are **BLOCKED/NOT RUN**, not failure
+of the product and not accepted proof. Even an unsigned ordinary local
+test requires a **separate verified task-owned target**, adequate resource
+samples and exclusive handoff; the existing signed proof scripts must not
+be repurposed or bypassed. Native `:5432` and human credentials remain
+strictly off-limits.
+
+Genuine product source inspected: `apps/api/tools/provision-staff.ts`
+reads passwords through non-interactive stdin, validates active
+Organization/Location grants, writes Argon2 Staff accounts and
+`STAFF_ACCOUNT_PROVISIONED` inside a transaction;
+`StaffAuthController` authenticates login; `StaffMfaController`
+exposes enrollment begin/confirm, state and step-up; services require
+active Staff sessions and fresh current TOTP. This is a **source
+inspection**, not evidence of actual API/database behavior.
+
+Added `scripts/issue300-w18-auth-protocol.test.mjs`: seven offline
+**mocked request** protocol checks exercise the actual W13
+`loginActualMfa` orchestration. They assert ordinary login then
+existing-factor current TOTP step-up, fresh-only enrollment
+begin/confirm, and rejection of unauthorized enrollment and
+login/step-up/enrollment/confirmation failures. The mock returns test
+responses; these tests **cannot prove server authorization, Argon2, PG
+persistence, working TOTP verification or real 34-browser execution**.
+The combined W10/W13/W18 source/offline suite passed **26/26**.
+
+Required future runtime evidence, upon W16 handoff and resource
+admission: independently verified task-owned PG with genuine migrations,
+canonical product Staff CLI receipts and live grants/audit readback,
+distinct fresh CA/LM/Supervisor/foreign logins, real current TOTP for
+CA/LM/foreign, ordinary authenticated API responses, and independently
+observed UI outcomes. Report each ordinary local test distinctly from
+Owner-signature-dependent acceptance. The **34** proof-only cases remain
+**BLOCKED** without their unchanged valid signed Owner browser target
+and 34 unique one-use MFA cookie states.
