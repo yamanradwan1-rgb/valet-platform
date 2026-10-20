@@ -256,7 +256,11 @@
   .shell { grid-template-columns: 1fr; }
   .sidebar { display: none; }
   .mobile-menu { display: inline-flex; }
-  .topbar { padding-inline: 1rem; }
+  .topbar {
+    height: auto;
+    flex: 0 0 auto;
+    padding-inline: 1rem;
+  }
   .content { padding: 1.25rem; }
   .content-grid { grid-template-columns: 1fr; }
 }
