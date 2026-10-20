@@ -23,7 +23,7 @@ export async function configureApprovedHtml(page: Page, locale: "en" | "ar", the
   const html = page.locator("html");
   if (locale === "ar") await page.locator('[data-shell-locale]').click();
   await expect(html).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
-  if (theme === "dark") await page.locator('[data-shell-theme="dark"]').click();
+  await page.locator(`[data-shell-theme="${theme}"]`).click();
   await expect(html).toHaveAttribute("data-theme", theme);
 }
 

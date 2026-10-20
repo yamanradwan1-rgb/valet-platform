@@ -1,0 +1,52 @@
+{
+  "approvedHash": "31e655ee1dc83311ea473705661a32638d59a17bf13c4d50ee6a00fc0ec939f2",
+  "width": 768,
+  "locale": "en",
+  "theme": "dark",
+  "approved": {
+    "detail": {
+      "x": 21,
+      "y": 460.171875,
+      "width": 726,
+      "height": 763.25
+    },
+    "vehicle": {
+      "x": 37,
+      "y": 633.203125,
+      "width": 694,
+      "height": 103.515625
+    },
+    "custodyText": "02Key custody\n            Recent sample checkout / return events\n            Checked out14:26Valet 02Returned13:10Valet 01Checked out12:42Valet 01\n            No recent custody activity for this slot."
+  },
+  "integrated": {
+    "detail": {
+      "x": 21,
+      "y": 196.171875,
+      "width": 726,
+      "height": 704.21875
+    },
+    "vehicle": {
+      "x": 37,
+      "y": 369.203125,
+      "width": 694,
+      "height": 103.515625
+    },
+    "custodyText": "02Key custodyRead-only custody informationNo recent custody history is available in this view."
+  },
+  "diagnosticPixelDelta": {
+    "referenceSize": [
+      768,
+      900
+    ],
+    "liveSize": [
+      768,
+      900
+    ],
+    "changedPixels": 47839,
+    "comparedPixels": 270000,
+    "changedRatio": 0.1771814814814815,
+    "note": "Diagnostic only: images resized to common canvas; manual review required"
+  },
+  "visualGate": "PENDING_INDEPENDENT_REVIEW",
+  "note": "Approved custody activity is demo-only; real Dashboard uses bounded API-backed events"
+}

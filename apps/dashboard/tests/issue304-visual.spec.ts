@@ -5,7 +5,7 @@ import { enterInspector, inspector, languages, setLocale, setTheme, themes, widt
 import { issue304Fixture } from "./issue304-fixture";
 import { approvedHtml, compareViewportPixels, configureApprovedHtml, visualLandmarks } from "./issue304-parity";
 
-const evidence = join(process.cwd(), "../../docs/validation/issue304-w6/visual");
+const evidence = join(process.cwd(), "../../docs/validation/issue304-w6/visual-final");
 
 for (const width of widths) for (const locale of languages) for (const theme of themes) {
   test(`Issue304 approved exact HTML vs actual Dashboard ${width} ${locale}/${theme}`, async ({ browser, page }) => {

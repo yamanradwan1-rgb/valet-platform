@@ -6,23 +6,27 @@ import { issue304Fixture } from "./issue304-fixture";
 test("Issue304 pagination fetches the next API page and resets on A→B→A", async ({ page }) => {
   const seen: string[] = [];
   const fixture = issue304Fixture({ paged: true, onRequest: (path, request) => {
-    if (/\/overview\/keys$|\/physical-resources\/key-slots$/u.test(path))
+    if (/\/physical-resources\/overview$/u.test(path))
       seen.push(`${path}?${new URL(request.url()).searchParams.toString()}`);
     return undefined;
   } });
   await fixture.install(page);
   await enterInspector(page);
   await selectFamily(page, "keys");
-  await expect(inspector(page).getByText("K-02", { exact: true })).toBeVisible();
-  await expect(inspector(page).getByText("K-08", { exact: true })).toHaveCount(0);
-  await inspector(page).getByRole("button", { name: /Next/u }).click();
-  await expect(inspector(page).getByText("K-08", { exact: true })).toBeVisible();
-  expect(seen.some((url) => url.includes("cursor=issue304-next"))).toBe(true);
+  await expect(inspector(page).locator('[data-issue304-resource-list] [data-resource-code="K-02"]')).toBeVisible();
+  await expect(inspector(page).locator('[data-issue304-resource-list] [data-resource-code="K-08"]')).toHaveCount(0);
+  await inspector(page).locator("[data-issue304-resource-list] button").last().focus();
+  await inspector(page).locator(".c-master-scroll").evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+    element.dispatchEvent(new Event("scroll", { bubbles: true }));
+  });
+  await expect(inspector(page).locator('[data-issue304-resource-list] [data-resource-code="K-08"]')).toBeVisible();
+  expect(seen.some((url) => url.includes("keyCursor=issue304-next"))).toBe(true);
   await selectLocation(page, "B");
-  await expect(inspector(page).getByText("K-12", { exact: true })).toBeVisible();
+  await expect(inspector(page).locator('[data-issue304-resource-list] [data-resource-code="K-12"]')).toBeVisible();
   await selectLocation(page, "A");
-  await expect(inspector(page).getByText("K-02", { exact: true })).toBeVisible();
-  await expect(inspector(page).getByText("K-08", { exact: true })).toHaveCount(0);
+  await expect(inspector(page).locator('[data-issue304-resource-list] [data-resource-code="K-02"]')).toBeVisible();
+  await expect(inspector(page).locator('[data-issue304-resource-list] [data-resource-code="K-08"]')).toHaveCount(0);
   expect(seen.some((url) => url.includes(LOCATION_A.locationId))).toBe(true);
 });
 
@@ -31,12 +35,12 @@ test("Issue304 vehicle and custody are truthful, QR dialog is keyboard accessibl
   await fixture.install(page);
   await enterInspector(page);
   await selectFamily(page, "keys");
-  const row = inspector(page).getByRole("button", { name: /K-02/u }).first();
+  const row = inspector(page).locator('[data-resource-code="K-02"]');
   await expect(row).toContainText("DEMO 4821");
   await row.click();
-  await expect(inspector(page).getByText("DEMO 4821", { exact: true })).toBeVisible();
+  await expect(inspector(page).locator(".c-vehicle strong")).toContainText("DEMO 4821");
   await expect(inspector(page)).toContainText(/Key custody|عهدة المفتاح/u);
-  const qr = inspector(page).getByRole("button", { name: /QR|ملصق/u }).first();
+  const qr = inspector(page).locator(".c-detail .c-qr-action");
   await qr.focus();
   await page.keyboard.press("Enter");
   const dialog = page.getByRole("dialog");

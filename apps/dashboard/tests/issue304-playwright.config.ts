@@ -8,8 +8,8 @@ export default defineConfig({
   retries: 0,
   timeout: 90_000,
   expect: { timeout: 15_000 },
-  reporter: [["list"], ["json", { outputFile: "../../docs/validation/issue304-w6/results.json" }]],
-  outputDir: "../../docs/validation/issue304-w6/playwright-artifacts",
+  reporter: [["list"], ["json", { outputFile: "../../../docs/validation/issue304-w6/results.json" }]],
+  outputDir: "../../../docs/validation/issue304-w6/playwright-artifacts",
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3003",
     browserName: "chromium",

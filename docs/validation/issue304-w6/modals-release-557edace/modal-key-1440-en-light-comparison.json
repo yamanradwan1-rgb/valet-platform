@@ -1,0 +1,267 @@
+{
+  "approvedSha256": "31e655ee1dc83311ea473705661a32638d59a17bf13c4d50ee6a00fc0ec939f2",
+  "kind": "key",
+  "width": 1440,
+  "locale": "en",
+  "theme": "light",
+  "approved": {
+    "rect": {
+      "x": 495,
+      "y": 267,
+      "width": 450,
+      "height": 365
+    },
+    "padding": "21.6px",
+    "radius": "14.4px",
+    "background": "rgb(255, 255, 255)",
+    "headingText": "Add Key Slot",
+    "headingFont": "20px",
+    "headingBox": {
+      "x": 518,
+      "y": 317,
+      "width": 121,
+      "height": 27,
+      "display": "block",
+      "fontSize": "20px",
+      "lineHeight": "normal",
+      "padding": "0px",
+      "margin": "6.4px 0px 0px"
+    },
+    "disclaimer": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "display": "block",
+      "fontSize": "11.68px",
+      "lineHeight": "18.688px",
+      "padding": "0px",
+      "margin": "13.6px 0px 19.2px"
+    },
+    "qrArt": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "display": "block",
+      "fontSize": "16px",
+      "lineHeight": "normal",
+      "padding": "0px",
+      "margin": "0px auto"
+    },
+    "actions": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "display": "flex",
+      "fontSize": "16px",
+      "lineHeight": "normal",
+      "padding": "0px",
+      "margin": "20.8px 0px 0px"
+    },
+    "controls": [
+      {
+        "name": "Close",
+        "rect": {
+          "x": 890,
+          "y": 290,
+          "width": 32,
+          "height": 32,
+          "display": "block",
+          "fontSize": "23.2px",
+          "lineHeight": "normal",
+          "padding": "1px 6px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Close",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Download preview",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Print preview",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Cancel",
+        "rect": {
+          "x": 736,
+          "y": 571,
+          "width": 69,
+          "height": 39,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Preview draft",
+        "rect": {
+          "x": 814,
+          "y": 571,
+          "width": 108,
+          "height": 39,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      }
+    ],
+    "focusInside": true
+  },
+  "integrated": {
+    "rect": {
+      "x": 495,
+      "y": 267,
+      "width": 450,
+      "height": 365
+    },
+    "padding": "21.6px",
+    "radius": "14.4px",
+    "background": "rgb(255, 255, 255)",
+    "headingText": "Add Key Slot",
+    "headingFont": "20px",
+    "headingBox": {
+      "x": 518,
+      "y": 317,
+      "width": 121,
+      "height": 27,
+      "display": "block",
+      "fontSize": "20px",
+      "lineHeight": "normal",
+      "padding": "0px",
+      "margin": "6.4px 0px 0px"
+    },
+    "disclaimer": {
+      "x": 518,
+      "y": 360,
+      "width": 405,
+      "height": 19,
+      "display": "block",
+      "fontSize": "11.68px",
+      "lineHeight": "18.688px",
+      "padding": "0px",
+      "margin": "13.6px 0px 19.2px"
+    },
+    "qrArt": null,
+    "actions": {
+      "x": 518,
+      "y": 571,
+      "width": 405,
+      "height": 39,
+      "display": "flex",
+      "fontSize": "16px",
+      "lineHeight": "normal",
+      "padding": "0px",
+      "margin": "20.8px 0px 0px"
+    },
+    "controls": [
+      {
+        "name": "Close",
+        "rect": {
+          "x": 890,
+          "y": 290,
+          "width": 32,
+          "height": 32,
+          "display": "block",
+          "fontSize": "23.2px",
+          "lineHeight": "normal",
+          "padding": "1px 6px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Cancel",
+        "rect": {
+          "x": 739,
+          "y": 571,
+          "width": 69,
+          "height": 39,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Add Key Slot",
+        "rect": {
+          "x": 817,
+          "y": 571,
+          "width": 105,
+          "height": 39,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      }
+    ],
+    "focusInside": true
+  },
+  "widthDeltaPx": 0,
+  "geometryDelta": {
+    "x": 0,
+    "y": 0,
+    "width": 0,
+    "height": 0
+  },
+  "exactDialogRect": true,
+  "pixelDelta": {
+    "referenceSize": [
+      1440,
+      900
+    ],
+    "liveSize": [
+      1440,
+      900
+    ],
+    "changedPixels": 3756,
+    "comparedPixels": 270000,
+    "changedRatio": 0.013911111111111112,
+    "note": "Diagnostic only: images resized to common canvas; manual review required"
+  },
+  "classification": "PENDING_INDEPENDENT_VISUAL_REVIEW",
+  "note": "Production QR uses real persisted payload; approved HTML QR is illustrative"
+}

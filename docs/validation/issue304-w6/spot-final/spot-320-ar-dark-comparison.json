@@ -1,0 +1,193 @@
+{
+  "sourceHash": "31e655ee1dc83311ea473705661a32638d59a17bf13c4d50ee6a00fc0ec939f2",
+  "variant": "spot-320-ar-dark",
+  "approved": {
+    "root": {
+      "x": 20,
+      "y": -669
+    },
+    "header": {
+      "x": 0,
+      "y": 0,
+      "width": 280,
+      "height": 152,
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "size": "14px",
+      "radius": "0px"
+    },
+    "kpis": {
+      "x": 0,
+      "y": 170,
+      "width": 280,
+      "height": 352,
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "size": "14px",
+      "radius": "0px"
+    },
+    "command": {
+      "x": 0,
+      "y": 541,
+      "width": 280,
+      "height": 209,
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "size": "14px",
+      "radius": "0px"
+    },
+    "master": {
+      "x": -20,
+      "y": 669,
+      "width": 0,
+      "height": 0,
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "size": "14px",
+      "radius": "0px"
+    },
+    "detail": {
+      "x": 1,
+      "y": 768,
+      "width": 278,
+      "height": 966,
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "size": "14px",
+      "radius": "0px"
+    },
+    "vehicle": {
+      "x": 17,
+      "y": 993,
+      "width": 246,
+      "height": 103,
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "size": "14px",
+      "radius": "12px"
+    },
+    "hero": {
+      "x": 17,
+      "y": 843,
+      "width": 246,
+      "height": 131,
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "size": "14px",
+      "radius": "0px"
+    },
+    "status": {
+      "x": 17,
+      "y": 1115,
+      "width": 246,
+      "height": 122,
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "size": "14px",
+      "radius": "0px"
+    },
+    "lower": {
+      "x": 17,
+      "y": 1263,
+      "width": 246,
+      "height": 387,
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "size": "14px",
+      "radius": "0px"
+    }
+  },
+  "integrated": {
+    "root": {
+      "x": 20,
+      "y": -633
+    },
+    "header": {
+      "x": 0,
+      "y": 0,
+      "width": 280,
+      "height": 150,
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "size": "14px",
+      "radius": "0px"
+    },
+    "kpis": {
+      "x": 0,
+      "y": 168,
+      "width": 280,
+      "height": 352,
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "size": "14px",
+      "radius": "0px"
+    },
+    "command": {
+      "x": 0,
+      "y": 540,
+      "width": 280,
+      "height": 209,
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "size": "14px",
+      "radius": "0px"
+    },
+    "master": {
+      "x": -20,
+      "y": 633,
+      "width": 0,
+      "height": 0,
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "size": "14px",
+      "radius": "0px"
+    },
+    "detail": {
+      "x": 1,
+      "y": 766,
+      "width": 278,
+      "height": 940,
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "size": "14px",
+      "radius": "0px"
+    },
+    "vehicle": {
+      "x": 17,
+      "y": 991,
+      "width": 246,
+      "height": 103,
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "size": "14px",
+      "radius": "12px"
+    },
+    "hero": {
+      "x": 17,
+      "y": 841,
+      "width": 246,
+      "height": 131,
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "size": "14px",
+      "radius": "0px"
+    },
+    "status": {
+      "x": 17,
+      "y": 1113,
+      "width": 246,
+      "height": 122,
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "size": "14px",
+      "radius": "0px"
+    },
+    "lower": {
+      "x": 17,
+      "y": 1262,
+      "width": 246,
+      "height": 360,
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "size": "14px",
+      "radius": "0px"
+    }
+  },
+  "diagnosticPixelDifference": {
+    "referenceSize": [
+      320,
+      900
+    ],
+    "liveSize": [
+      320,
+      900
+    ],
+    "changedPixels": 32731,
+    "comparedPixels": 270000,
+    "changedRatio": 0.12122592592592593,
+    "note": "Diagnostic only: images resized to common canvas; manual review required"
+  },
+  "visualGate": "PENDING_MANUAL_REVIEW"
+}

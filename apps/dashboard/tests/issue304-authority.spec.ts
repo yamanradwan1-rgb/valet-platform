@@ -14,7 +14,7 @@ for (const role of ["CA", "LM"] as const) {
     await expect(inspector(page)).toBeVisible();
     await selectLocation(page, "B");
     await expect(inspector(page)).toBeVisible();
-    await page.locator(".topbar").getByRole("button", { name: "Change scope" }).click();
+    await page.locator(".topbar").getByRole("button", { name: /Change scope|تغيير النطاق/u }).click();
     await expect(page.getByRole("option", { name: "All Locations" })).toHaveCount(0);
     await page.keyboard.press("Escape");
   });
@@ -28,7 +28,10 @@ test("Issue304 supervisor cannot enter Company/Location Manager resource inspect
   await own.install(page);
   await page.goto("/keys");
   await signInOnCurrentPage(page, "supervisor@example.com");
-  await page.getByRole("button", { name: `${ORG_A.name} · ${LOCATION_A.name}` }).click();
+  await expect(page.getByRole("region", { name: "Supervisor" })).toContainText(
+    "No eligible Management workspace",
+  );
+  await expect(page.getByRole("button", { name: `${ORG_A.name} · ${LOCATION_A.name}` })).toHaveCount(0);
   await expect(inspector(page)).toHaveCount(0);
   const resourcePaths = [...own.counts.keys()].filter((path) =>
     /\/physical-resources\/|\/overview\/keys$/u.test(path));
@@ -38,7 +41,7 @@ test("Issue304 supervisor cannot enter Company/Location Manager resource inspect
 test("Issue304 API denial clears vehicle/plate and does not expose stale privileged detail", async ({ page }) => {
   let denied = false;
   const fixture = issue304Fixture({ onRequest: (path) => denied &&
-    /\/physical-resources\/parking-spots$/u.test(path)
+    /\/physical-resources\/overview$/u.test(path)
     ? { status: 403, body: { code: "AUTHORIZATION_DENIED", message: "Denied", requestId: "issue304" } }
     : undefined });
   await fixture.install(page);

@@ -40,7 +40,7 @@ for (const locale of languages) for (const theme of themes) {
     const root = inspector(page);
     await expect(root.getByRole("heading", { level: 1 })).toHaveCount(1);
     await expect(root.getByRole("group", { name: /Resource family|نوع المورد/u })).toBeVisible();
-    const family = root.getByRole("button", { name: /Parking Spots|مواقف السيارات/u }).first();
+    const family = root.locator('[data-c-family="spots"]');
     await family.focus();
     await page.keyboard.press("Enter");
     await expect(family).toHaveAttribute("aria-pressed", "true");
@@ -62,7 +62,7 @@ test("Issue304 at actual Chromium page-scale 200% keeps actions reachable", asyn
   try {
     await client.send("Emulation.setPageScaleFactor", { pageScaleFactor: 2 });
     await expect.poll(() => page.evaluate(() => visualViewport?.scale ?? 1)).toBe(2);
-    const button = inspector(page).getByRole("button", { name: /Parking Spots|مواقف السيارات/u }).first();
+    const button = inspector(page).locator('[data-c-family="spots"]');
     await button.focus();
     await page.keyboard.press("Enter");
     await expect(button).toHaveAttribute("aria-pressed", "true");

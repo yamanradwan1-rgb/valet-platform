@@ -71,9 +71,9 @@ function resources(location: Location) {
 function keyItem(resource: Resource, index: number, location: Location) {
   return {
     keySlotId: id(location, "keys", index + 1), code: resource.code,
-    slotStatus: resource.active ? "ACTIVE" : "INACTIVE",
     status: resource.active ? "ACTIVE" : "INACTIVE",
-    createdAt: stamp, updatedAt: stamp,
+    label: null,
+    usage: !resource.active ? "UNKNOWN" : resource.busy ? "IN_USE" : "AVAILABLE",
     holdingSessionId: resource.busy ? id(location, "spots", index + 30) : null,
     holdingVehicle: resource.busy ? vehicle(resource) : null,
   };
@@ -83,6 +83,7 @@ function spotItem(resource: Resource, index: number, location: Location) {
     parkingSpotId: id(location, "spots", index + 1), code: resource.code,
     label: resource.label || resource.code,
     status: resource.active ? "ACTIVE" : "INACTIVE",
+    usage: !resource.active ? "UNKNOWN" : resource.busy ? "OCCUPIED" : "AVAILABLE",
     createdAt: stamp, updatedAt: stamp,
     parkingZone: index === 4 ? null : {
       parkingZoneId: id(location, "spots", 29), code: "ZA", label: "Demo Zone", status: "ACTIVE",
@@ -97,6 +98,21 @@ export const ISSUE304_EXPECTED = {
   A: [6, 2, 4, 7, 3, 4],
   B: [2, 1, 1, 2, 1, 1],
 } as const;
+
+function counts(location: Location) {
+  const total = resources(location);
+  const count = (family: Family, active: boolean, busy?: boolean) =>
+    total[family].filter((row) => row.active === active &&
+      (busy === undefined || row.busy === busy)).length;
+  return {
+    keySlots: { configured: total.keys.length, active: count("keys", true),
+      available: count("keys", true, false), inUse: count("keys", true, true),
+      unknown: count("keys", false) },
+    parkingSpots: { configured: total.spots.length, active: count("spots", true),
+      available: count("spots", true, false), occupied: count("spots", true, true),
+      unknown: count("spots", false) },
+  };
+}
 
 export function fixtureData(location: Location, family: Family) {
   const entries = resources(location)[family];
@@ -125,14 +141,40 @@ export function issue304Fixture(options: {
       const location = path.includes(LOCATION_A.locationId) ? "A"
         : path.includes(LOCATION_B.locationId) ? "B" : null;
       if (!location) return undefined;
-      const family = /\/overview\/keys$|\/physical-resources\/key-slots$/u.test(path)
-        ? "keys" : /\/physical-resources\/parking-spots$/u.test(path) ? "spots" : null;
-      if (!family) return undefined;
       if (request.method() !== "GET") return undefined;
-      const all = fixtureData(location, family);
-      const cursor = new URL(request.url()).searchParams.get("cursor");
-      const page = paged ? all.slice(cursor ? 4 : 0, cursor ? undefined : 4) : all;
-      return { body: { items: page, nextCursor: paged && !cursor ? "issue304-next" : null } };
+      if (path.endsWith("/physical-resources/parking-zones")) {
+        return { body: { items: [{
+          parkingZoneId: id(location, "spots", 29),
+          code: "ZA", label: "Demo Zone", status: "ACTIVE",
+        }], nextCursor: null } };
+      }
+      const custody = path.match(/\/physical-resources\/key-slots\/([^/]+)\/custody$/u);
+      if (custody) return { body: { items: [], hasMore: false } };
+      const label = path.match(/\/physical-resources\/(key-slots|parking-spots)\/([^/]+)\/label$/u);
+      if (label) {
+        const family = label[1] === "key-slots" ? "keys" : "spots";
+        const row = fixtureData(location, family).find((item) =>
+          ("keySlotId" in item ? item.keySlotId : item.parkingSpotId) === label[2]);
+        if (!row) return undefined;
+        return { body: {
+          resourceType: family === "keys" ? "KEY_SLOT" : "PARKING_SPOT",
+          resourceId: label[2], code: row.code, version: "V2",
+          qrPayload: `vaylet:v2:${family === "keys" ? "key-slot" : "parking-spot"}:${label[2]}:${row.code}`,
+          location: { locationId: location === "A" ? LOCATION_A.locationId : LOCATION_B.locationId,
+            name: location === "A" ? LOCATION_A.name : LOCATION_B.name,
+            code: location === "A" ? LOCATION_A.code : LOCATION_B.code },
+        } };
+      }
+      if (!path.endsWith("/physical-resources/overview")) return undefined;
+      const search = new URL(request.url()).searchParams;
+      const getPage = (family: Family, cursor: string | null) => {
+        const all = fixtureData(location, family);
+        return { items: paged ? all.slice(cursor ? 4 : 0, cursor ? undefined : 4) : all,
+          nextCursor: paged && !cursor && all.length > 4 ? "issue304-next" : null };
+      };
+      return { body: { counts: counts(location),
+        keySlots: getPage("keys", search.get("keyCursor")),
+        parkingSpots: getPage("spots", search.get("spotCursor")) } };
     },
   });
   return fixture;

@@ -29,7 +29,7 @@ export async function enterInspector(page: Page, role: "CA" | "LM" = "CA") {
 
 export async function selectLocation(page: Page, location: "A" | "B") {
   const name = location === "A" ? LOCATION_A.name : LOCATION_B.name;
-  const scope = page.locator(".topbar").getByRole("button", { name: "Change scope" });
+  const scope = page.locator(".topbar .location-context");
   await scope.click();
   await page.getByRole("option", { name, exact: true }).click();
   await expect(page.locator(".topbar .location-context")).toContainText(name);
@@ -38,7 +38,7 @@ export async function selectLocation(page: Page, location: "A" | "B") {
 export async function setLocale(page: Page, locale: "en" | "ar") {
   const html = page.locator("html");
   if (await html.getAttribute("lang") !== locale)
-    await page.getByRole("button", { name: "Language" }).click();
+    await page.locator(".topbar-actions").getByRole("button", { name: /Language|اللغة/u }).click();
   await expect(html).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr");
   await expect(html).toHaveAttribute("lang", locale);
 }
@@ -46,14 +46,13 @@ export async function setLocale(page: Page, locale: "en" | "ar") {
 export async function setTheme(page: Page, theme: "light" | "dark") {
   const html = page.locator("html");
   if (await html.getAttribute("data-theme") !== theme) {
-    await page.getByRole("button", { name: theme === "dark" ? "Dark" : "Light" }).click();
+    await page.locator(".topbar-actions .theme-segmented button").nth(theme === "dark" ? 1 : 0).click();
   }
   await expect(html).toHaveAttribute("data-theme", theme);
 }
 
 export async function selectFamily(page: Page, family: "keys" | "spots") {
-  const name = family === "keys" ? /Key Slots|خانات المفاتيح/u : /Parking Spots|مواقف السيارات/u;
-  const button = inspector(page).getByRole("button", { name }).first();
+  const button = inspector(page).locator(`[data-c-family="${family}"]`);
   await button.click();
   await expect(button).toHaveAttribute("aria-pressed", "true");
 }

@@ -1,0 +1,261 @@
+{
+  "approvedSha256": "31e655ee1dc83311ea473705661a32638d59a17bf13c4d50ee6a00fc0ec939f2",
+  "kind": "qr",
+  "width": 390,
+  "locale": "ar",
+  "theme": "light",
+  "approved": {
+    "rect": {
+      "x": 16,
+      "y": 187,
+      "width": 358,
+      "height": 525
+    },
+    "padding": "21.6px",
+    "radius": "14.4px",
+    "background": "rgb(255, 255, 255)",
+    "headingText": "معاينة ملصق المورد",
+    "headingFont": "20px",
+    "headingBox": {
+      "x": 185,
+      "y": 237,
+      "width": 166,
+      "height": 27,
+      "display": "block",
+      "fontSize": "20px",
+      "lineHeight": "normal",
+      "padding": "0px",
+      "margin": "6.4px 0px 0px"
+    },
+    "disclaimer": {
+      "x": 39,
+      "y": 593,
+      "width": 313,
+      "height": 37,
+      "display": "block",
+      "fontSize": "11.68px",
+      "lineHeight": "18.688px",
+      "padding": "0px",
+      "margin": "13.6px 0px 19.2px"
+    },
+    "qrArt": {
+      "x": 124,
+      "y": 413,
+      "width": 143,
+      "height": 143,
+      "display": "block",
+      "fontSize": "16px",
+      "lineHeight": "normal",
+      "padding": "0px",
+      "margin": "0px 55.9062px"
+    },
+    "actions": {
+      "x": 39,
+      "y": 651,
+      "width": 313,
+      "height": 39,
+      "display": "flex",
+      "fontSize": "16px",
+      "lineHeight": "normal",
+      "padding": "0px",
+      "margin": "20.8px 0px 0px"
+    },
+    "controls": [
+      {
+        "name": "إغلاق",
+        "rect": {
+          "x": 39,
+          "y": 210,
+          "width": 32,
+          "height": 32,
+          "display": "block",
+          "fontSize": "23.2px",
+          "lineHeight": "normal",
+          "padding": "1px 6px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "إغلاق",
+        "rect": {
+          "x": 260,
+          "y": 651,
+          "width": 58,
+          "height": 39,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "تنزيل المعاينة",
+        "rect": {
+          "x": 151,
+          "y": 651,
+          "width": 100,
+          "height": 39,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "طباعة المعاينة",
+        "rect": {
+          "x": 39,
+          "y": 651,
+          "width": 104,
+          "height": 39,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "إلغاء",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "معاينة المسودة",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      }
+    ],
+    "focusInside": true
+  },
+  "integrated": {
+    "rect": {
+      "x": 16,
+      "y": 187,
+      "width": 358,
+      "height": 526
+    },
+    "padding": "21.6px",
+    "radius": "14.4px",
+    "background": "rgb(255, 255, 255)",
+    "headingText": "معاينة ملصق المورد",
+    "headingFont": "20px",
+    "headingBox": {
+      "x": 39,
+      "y": 237,
+      "width": 313,
+      "height": 27,
+      "display": "block",
+      "fontSize": "20px",
+      "lineHeight": "27px",
+      "padding": "0px",
+      "margin": "6.4px 0px 0px"
+    },
+    "disclaimer": null,
+    "qrArt": null,
+    "actions": null,
+    "controls": [
+      {
+        "name": "إغلاق",
+        "rect": {
+          "x": 39,
+          "y": 210,
+          "width": 32,
+          "height": 32,
+          "display": "grid",
+          "fontSize": "23.2px",
+          "lineHeight": "23.2px",
+          "padding": "0px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "إغلاق",
+        "rect": {
+          "x": 240,
+          "y": 651,
+          "width": 58,
+          "height": 39,
+          "display": "flex",
+          "fontSize": "12px",
+          "lineHeight": "14.4px",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "تنزيل QR",
+        "rect": {
+          "x": 152,
+          "y": 651,
+          "width": 79,
+          "height": 39,
+          "display": "flex",
+          "fontSize": "12px",
+          "lineHeight": "14.4px",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "طباعة الملصق",
+        "rect": {
+          "x": 39,
+          "y": 651,
+          "width": 105,
+          "height": 39,
+          "display": "flex",
+          "fontSize": "12px",
+          "lineHeight": "14.4px",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      }
+    ],
+    "focusInside": true
+  },
+  "widthDeltaPx": 0,
+  "geometryDelta": {
+    "x": 0,
+    "y": 0,
+    "width": 0,
+    "height": 1
+  },
+  "exactDialogRect": false,
+  "pixelDelta": {
+    "referenceSize": [
+      390,
+      900
+    ],
+    "liveSize": [
+      390,
+      900
+    ],
+    "changedPixels": 24528,
+    "comparedPixels": 270000,
+    "changedRatio": 0.09084444444444445,
+    "note": "Diagnostic only: images resized to common canvas; manual review required"
+  },
+  "classification": "PENDING_INDEPENDENT_VISUAL_REVIEW",
+  "note": "Production QR uses real persisted payload; approved HTML QR is illustrative"
+}

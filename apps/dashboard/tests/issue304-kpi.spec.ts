@@ -32,9 +32,7 @@ for (const width of widths) for (const locale of languages) for (const theme of 
     }
     for (const location of [LOCATION_A, LOCATION_B]) {
       const base = `/v1/staff/dashboard/locations/${location.locationId}`;
-      expect(fixture.count(`${base}/overview/keys`) +
-        fixture.count(`${base}/physical-resources/key-slots`)).toBeGreaterThan(0);
-      expect(fixture.count(`${base}/physical-resources/parking-spots`)).toBeGreaterThan(0);
+      expect(fixture.count(`${base}/physical-resources/overview`)).toBeGreaterThan(0);
     }
   });
 }

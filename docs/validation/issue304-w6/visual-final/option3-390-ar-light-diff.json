@@ -1,0 +1,131 @@
+{
+  "sourceHash": "31e655ee1dc83311ea473705661a32638d59a17bf13c4d50ee6a00fc0ec939f2",
+  "size": 390,
+  "locale": "ar",
+  "theme": "light",
+  "delta": {
+    "referenceSize": [
+      390,
+      900
+    ],
+    "liveSize": [
+      390,
+      900
+    ],
+    "changedPixels": 37850,
+    "comparedPixels": 270000,
+    "changedRatio": 0.1401851851851852,
+    "note": "Diagnostic only: images resized to common canvas; manual review required"
+  },
+  "reference": {
+    "title": {
+      "x": 35,
+      "y": 114,
+      "width": 335,
+      "height": 30
+    },
+    "kpis": [
+      {
+        "x": 199,
+        "y": 231,
+        "width": 171,
+        "height": 110
+      },
+      {
+        "x": 20,
+        "y": 231,
+        "width": 171,
+        "height": 110
+      },
+      {
+        "x": 199,
+        "y": 349,
+        "width": 171,
+        "height": 110
+      },
+      {
+        "x": 20,
+        "y": 349,
+        "width": 171,
+        "height": 110
+      },
+      {
+        "x": 199,
+        "y": 467,
+        "width": 171,
+        "height": 110
+      },
+      {
+        "x": 20,
+        "y": 467,
+        "width": 171,
+        "height": 110
+      }
+    ],
+    "familySwitcher": {
+      "x": 158,
+      "y": 597,
+      "width": 212,
+      "height": 98
+    },
+    "documentWidth": 390,
+    "viewportWidth": 390,
+    "titleFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+  },
+  "integrated": {
+    "title": {
+      "x": 35,
+      "y": 142,
+      "width": 335,
+      "height": 30
+    },
+    "kpis": [
+      {
+        "x": 199,
+        "y": 258,
+        "width": 171,
+        "height": 110
+      },
+      {
+        "x": 20,
+        "y": 258,
+        "width": 171,
+        "height": 110
+      },
+      {
+        "x": 199,
+        "y": 376,
+        "width": 171,
+        "height": 110
+      },
+      {
+        "x": 20,
+        "y": 376,
+        "width": 171,
+        "height": 110
+      },
+      {
+        "x": 199,
+        "y": 494,
+        "width": 171,
+        "height": 110
+      },
+      {
+        "x": 20,
+        "y": 494,
+        "width": 171,
+        "height": 110
+      }
+    ],
+    "familySwitcher": {
+      "x": 158,
+      "y": 624,
+      "width": 212,
+      "height": 98
+    },
+    "documentWidth": 390,
+    "viewportWidth": 390,
+    "titleFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+  },
+  "manualVisualApproval": "PENDING_REVIEW"
+}
