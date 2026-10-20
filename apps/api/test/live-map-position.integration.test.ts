@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { LiveMapTestContext } from "./live-map-test-context";
@@ -139,14 +140,29 @@ describe("VAL-007G live tracker and position projection", () => {
 
   it("omits wrong task status, type, or null current Task owner", async () => {
     for (const mutation of [
-      `status = 'COMPLETED'`,
-      `task_type = 'RETRIEVAL'`,
-      `status = 'QUEUED', current_assignee_membership_id = NULL`,
+      "completed",
+      "retrieval",
+      "unassigned",
     ]) {
       const fixture = await context.createParkingTrackingFixture();
       const manager = await context.manager(fixture);
-      await context.adminPool.query(
-        `UPDATE tasks SET ${mutation} WHERE id = $1`,
+      if (mutation === "retrieval") {
+        const retrievalTaskId = randomUUID();
+        await context.adminPool.query(
+          `INSERT INTO tasks (id, organization_id, location_id, valet_session_id,
+            task_type, status, current_assignee_membership_id, version, updated_at)
+           SELECT $2, organization_id, location_id, valet_session_id,
+             'RETRIEVAL', status, current_assignee_membership_id, version, updated_at
+           FROM tasks WHERE id = $1`,
+          [fixture.movementTaskId, retrievalTaskId],
+        );
+        await context.adminPool.query(
+          `UPDATE task_tracking_sessions SET task_id = $2 WHERE id = $1`,
+          [fixture.trackingSessionId, retrievalTaskId],
+        );
+      } else await context.adminPool.query(
+        `UPDATE tasks SET ${mutation === "completed" ? "status = 'COMPLETED'" :
+          "status = 'QUEUED', current_assignee_membership_id = NULL"} WHERE id = $1`,
         [fixture.movementTaskId],
       );
       expect(

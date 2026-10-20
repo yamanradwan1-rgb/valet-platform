@@ -55,7 +55,7 @@ test("T56/T59: LIVE source/time/current facts are not fixture-derived", () => {
 
 test("T45/T62/T63: normal signed pagination retains specific unsafe-cohort veto", () => {
   assert.doesNotMatch(search, /parsed\.data\.cursor !== undefined && !isU05LocalProofEnabled\(\)/);
-  assert.match(search, /hasMore && \(!binding \|\| mutableVehicleFilter\)/);
+  assert.match(search, /mutableVehicleFilter && \(hasMore \|\| after\)/);
   assert.match(search, /await requireU05StableIndirectCohort\(tx, scope, snapshot/);
   const gate = file("apps/api/src/modules/management/audit-investigation/audit-investigation-u05-gate.ts");
   assert.match(gate, /process\.env\.NODE_ENV !== "test"/);

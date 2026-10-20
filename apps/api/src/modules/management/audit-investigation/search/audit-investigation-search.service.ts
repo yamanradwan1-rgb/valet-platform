@@ -77,7 +77,9 @@ export async function searchAuditInvestigationSessions(
   // Until a verified identity revision/restart oracle exists, a continuation
   // with vehicle filters could omit/duplicate Sessions. Keep THAT lane closed.
   const mutableVehicleFilter = Boolean(query.make || query.model || query.plate || query.plateCountry);
-  if (hasMore && (!binding || mutableVehicleFilter))
+  // Refuse both cursor issuance AND any continuation for mutable labels. A
+  // signed filter digest cannot attest historical vehicle-filter membership.
+  if ((hasMore && !binding) || (mutableVehicleFilter && (hasMore || after)))
     throw new InvestigationSnapshotPaginationUnavailable();
   if (hasMore && snapshot.database.length > 512)
     throw new InvestigationSnapshotPaginationUnavailable();

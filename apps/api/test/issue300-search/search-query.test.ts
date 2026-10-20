@@ -230,6 +230,34 @@ describe("#300 first-page historical SQL (no PostgreSQL execution)", () => {
       searchAuditInvestigationSessions(tx, scope, query, snapshot),
     ).rejects.toBeInstanceOf(InvestigationSnapshotPaginationUnavailable);
   });
+  it.each(["make", "model", "plate", "plateCountry"] as const)(
+    "never mints or accepts a continuation with a mutable %s selector",
+    async (field) => {
+      const filtered = auditInvestigationSearchQuerySchema.parse({
+        from: query.from, to: query.to,
+        [field]: field === "plateCountry" ? "JO" : query[field],
+      });
+      const binding = {
+        purpose: "SEARCH_SESSIONS" as const,
+        organizationId, locationId,
+        viewerSessionDigest: "a".repeat(64), filterDigest: "b".repeat(64),
+      };
+      const overfull = fakeTx(Array(filtered.limit + 1).fill(row));
+      await expect(searchAuditInvestigationSessions(
+        overfull.tx,
+        scope, filtered, snapshot, binding,
+      )).rejects.toBeInstanceOf(InvestigationSnapshotPaginationUnavailable);
+      expect(overfull.querySpy).toHaveBeenCalledTimes(1);
+      const continued = fakeTx([row]);
+      await expect(searchAuditInvestigationSessions(
+        continued.tx, scope, filtered, snapshot, binding,
+        { lastMatchedAt: row.lastMatchedAtCursor, sessionId },
+      )).rejects.toBeInstanceOf(InvestigationSnapshotPaginationUnavailable);
+      // Reject the mutable continuation directly; no fallback cohort-query
+      // failure may impersonate this test's intended 503 reason.
+      expect(continued.querySpy).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it("returns contract-shaped first page only when no continuation exists", async () => {
     const { tx } = fakeTx([row]);

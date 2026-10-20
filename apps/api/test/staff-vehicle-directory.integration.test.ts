@@ -48,12 +48,6 @@ describe("Staff Vehicle Directory Authority Integration", () => {
     });
   }
 
-  async function pinCreatedAt(sessionId: string, iso: string) {
-    await harness.context.adminPool.query(
-      `UPDATE valet_sessions SET created_at = $2 WHERE id = $1`,
-      [sessionId, iso],
-    );
-  }
 
   it("preserves the exact strict legacy response for requests without the visibility capability", async () => {
     const { fixture, token } = await harness.fixtureWithToken({
@@ -90,12 +84,14 @@ describe("Staff Vehicle Directory Authority Integration", () => {
     const queued = await harness.createSession(fixture, {
       keySlotId: slotId,
       state: "AWAITING_PARKING",
+      createdAt: new Date("2026-08-25T10:01:00Z"),
     });
     const parking = await harness.createSession(fixture, {
       parkedAt: new Date(),
       parkingStartedAt: new Date(),
       parkingZoneId: zoneId,
       state: "PARKED",
+      createdAt: new Date("2026-08-25T10:02:00Z"),
     });
     await harness.createTask(fixture, parking.sessionId, {
       assigneeMembershipId: employee.membershipId,
@@ -109,8 +105,6 @@ describe("Staff Vehicle Directory Authority Integration", () => {
       [completed.sessionId],
     );
     // Newest-first deterministic order regardless of insertion-time ties.
-    await pinCreatedAt(queued.sessionId, "2026-08-25T10:01:00Z");
-    await pinCreatedAt(parking.sessionId, "2026-08-25T10:02:00Z");
 
     const res = await directory(token, `locationId=${fixture.locationId}`);
     expect(res.status).toBe(200);
@@ -144,11 +138,8 @@ describe("Staff Vehicle Directory Authority Integration", () => {
     const employee = await harness.addMember(fixture, "VALET_EMPLOYEE", true);
     const draft = await harness.createSession(fixture, {
       state: "CHECKING_IN",
+      checkedInByMembershipId: employee.membershipId,
     });
-    await harness.context.adminPool.query(
-      `UPDATE valet_sessions SET checked_in_by_membership_id = $2 WHERE id = $1`,
-      [draft.sessionId, employee.membershipId],
-    );
     const handoff = await harness.createSession(fixture, {
       parkedAt: new Date(),
       parkingStartedAt: new Date(),

@@ -45,11 +45,10 @@ async function slaSample(input: {
 async function seedWorkEvidence() {
   const fixture = await context.managerFixture();
   const members = await Promise.all(Array.from({ length: 9 }, () => actor()));
-  const checked = await analyticsSeedSession(context, { createdAtIso: inPeriod, state: "PARKED" });
-  await context.adminPool.query(
-    `UPDATE valet_sessions SET checked_in_by_membership_id=$2 WHERE id=$1`,
-    [checked, members[0]!.membershipId],
-  );
+  await analyticsSeedSession(context, {
+    createdAtIso: inPeriod, state: "PARKED",
+    checkedInByMembershipId: members[0]!.membershipId,
+  });
   const condition = await analyticsSeedSession(context, { createdAtIso: outside, state: "PARKED" });
   await context.adminPool.query(
     `UPDATE valet_sessions

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
@@ -137,9 +138,18 @@ describe("VAL-007D GPS ingestion authorization", () => {
     await expectDenied(physical, physical.userId, "TASK_INVALID_STATE");
 
     const type = await context.createParkingTrackingFixture();
+    const retrievalTaskId = randomUUID();
     await context.adminPool.query(
-      `UPDATE tasks SET task_type = 'RETRIEVAL' WHERE id = $1`,
-      [type.movementTaskId],
+      `INSERT INTO tasks (id, organization_id, location_id, valet_session_id,
+        task_type, status, current_assignee_membership_id, version, updated_at)
+       SELECT $2, organization_id, location_id, valet_session_id,
+         'RETRIEVAL', status, current_assignee_membership_id, version, updated_at
+         FROM tasks WHERE id = $1`,
+      [type.movementTaskId, retrievalTaskId],
+    );
+    await context.adminPool.query(
+      `UPDATE task_tracking_sessions SET task_id = $2 WHERE id = $1`,
+      [type.trackingSessionId, retrievalTaskId],
     );
     await expectDenied(type, type.userId, "TASK_INVALID_STATE");
 

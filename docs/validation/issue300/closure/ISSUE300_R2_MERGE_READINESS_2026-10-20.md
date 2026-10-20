@@ -1,5 +1,20 @@
 # Issue #300 R2 — source merge-readiness, evidence ownership and blocking gates
 
+**2026-10-20 consolidation supersession (without changing the historical
+rows below):** The source-only default-OFF narrative in row `#300
+default/production feature gate` is superseded for **ordinary product routes**
+by `docs/validation/OWNER_ISSUE300_PRODUCTION_AVAILABILITY_2026-10-20.md`:
+normal CA/LM Search, Timeline, Event Detail and Dashboard switch register in
+production and still require live MFA, scope, signed cursor, and U05 checks.
+U005 signed proof/certification remains a distinct restricted test-only lane.
+Combined CI #512 at `e0f877d61989c7461e72f929837291430b3db4bb` had
+five successful and six failed jobs; current source edits target those genuine
+test regressions but must pass CI again on their exact pushed SHA. Some
+combined source tests did run after this original report; **full 79-row #300
+acceptance, real CA/LM MFA, V3 runtime, full 34 browsers and 100k/1m load
+remain unverified**. Owner signing exception remains **NOT CRYPTOGRAPHICALLY
+VERIFIED**. Read this dated addendum before relying on original row 18 or 21.
+
 **Recorded:** 2026-10-20. **Source package:** `38ec1e40dfc754c5e2f83e25866735421ec2f4d2` (`codex/issue300-r2-local-closure-package`). **Decision:** prepared for independent source/PR review; **NOT engineering accepted; NOT runtime/release ready**. This report author performed documentation/source inspection only and has not run tests on an integrated #300+#302+#303 branch.
 
 ## Exact issue boundary

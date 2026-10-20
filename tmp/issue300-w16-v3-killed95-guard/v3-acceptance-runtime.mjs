@@ -168,7 +168,7 @@ export function checkSourceBoundary(){
   assert(/^[a-f0-9]{40}$/.test(latest),"Git HEAD could not be pinned");
   run("git",["-C",root,"merge-base","--is-ancestor",anchorSha,latest]);
   // Keep the approved database runtime/schema/migration tree pinned. Only
-  // three previously reviewed deployment guard paths and thirteen explicitly
+  // three previously reviewed deployment guard paths and eighteen explicitly
   // scoped TEST-only migration-listing updates are excluded: those test-only
   // files assert the historical 93-prefix plus exactly three new migrations.
   // No migration SQL, Prisma schema, runtime ACL, or DB source policy exempt.
@@ -188,7 +188,12 @@ export function checkSourceBoundary(){
     ":(exclude)packages/database/src/seed.integration.test.ts",
     ":(exclude)packages/database/src/payment-collection-migration.integration.test.ts",
     ":(exclude)packages/database/src/basic-branding-runtime-privilege.integration.test.ts",
-    ":(exclude)packages/database/src/phase4-runtime-role.integration.test.ts"];
+    ":(exclude)packages/database/src/phase4-runtime-role.integration.test.ts",
+    ":(exclude)packages/database/src/audit-foundation-runtime-role.integration.test.ts",
+    ":(exclude)packages/database/src/management-pagination-snapshot-migration.integration.test.ts",
+    ":(exclude)packages/database/src/staff-activation-migration.integration.test.ts",
+    ":(exclude)packages/database/src/staff-identity-migration.integration.test.ts",
+    ":(exclude)packages/database/src/staff-onboarding-migration.integration.test.ts"];
   run("git",["-C",root,"diff","--exit-code",anchorSha,latest,"--",...releaseGateOnly]);
   run("git",["-C",root,"diff","--exit-code","HEAD","--",...releaseGateOnly]);
   return latest;

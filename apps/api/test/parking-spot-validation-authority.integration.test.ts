@@ -133,10 +133,18 @@ describe("#264 exact current operational authority", () => {
     if (scenario === "wrong-session")
       input.sessionId = (await context.createConfirmParkedFixture()).sessionId;
     if (scenario === "retrieval")
-      await context.adminPool.query(
-        `UPDATE tasks SET task_type = 'RETRIEVAL' WHERE id = $1`,
-        [f.taskId],
-      );
+      {
+        const retrievalTaskId = randomUUID();
+        await context.adminPool.query(
+          `INSERT INTO tasks (id, organization_id, location_id, valet_session_id,
+            task_type, status, current_assignee_membership_id, version, updated_at)
+           SELECT $2, organization_id, location_id, valet_session_id,
+             'RETRIEVAL', status, current_assignee_membership_id, version, updated_at
+           FROM tasks WHERE id = $1`,
+          [f.taskId, retrievalTaskId],
+        );
+        input.taskId = retrievalTaskId;
+      }
     await expect(
       createParkingSpotValidationQuery(context.runtimePool)(input),
     ).rejects.toMatchObject({ code: "TASK_NOT_FOUND_OR_FORBIDDEN" });

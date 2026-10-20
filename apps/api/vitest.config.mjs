@@ -18,7 +18,11 @@ function ownedFiles(projectName) {
   const files = ownership[projectName] ?? [];
   if (files.length === 0)
     throw new Error(`Vitest project ${projectName} owns zero tests.`);
-  return files.map((file) => `test/${file}`);
+  // Node's own test runner owns native node:test .mjs suites. The package
+  // test script executes these separately, so Vitest must not collect them
+  // as zero-test suites (which otherwise fails CI without running the tests).
+  return files.filter((file) => !file.endsWith(".test.mjs"))
+    .map((file) => `test/${file}`);
 }
 
 function postgresProject(projectName, profileName) {

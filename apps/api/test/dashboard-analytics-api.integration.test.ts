@@ -131,15 +131,11 @@ describe("VAL-009D analytics HTTP boundary", () => {
       [berlin],
     );
     // 2026-07-15T22:30Z is 2026-07-16 00:30 in Berlin (CEST, UTC+2 in July).
-    const berlinSession = await analyticsSeedSession(context, {
+    await analyticsSeedSession(context, {
       state: "COMPLETED",
       completedAtIso: "2026-07-15T22:30:00Z",
+      locationId: berlin,
     });
-    await context.adminPool.query(
-      `UPDATE valet_sessions SET location_id = $2 WHERE id = $1`,
-      [berlinSession, berlin],
-    );
-    void berlin;
     const berlinLocationId = (
       await context.adminPool.query<{ id: string }>(
         `SELECT id::text AS id FROM locations

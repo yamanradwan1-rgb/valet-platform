@@ -59,31 +59,25 @@ describe("Staff Vehicle Directory Employee Visibility Integration", () => {
     const zoneId = await harness.createParkingZone(fixture, "ZONE-E");
     const slotId = await harness.createKeySlot(fixture, "K-Q");
 
-    async function pinCreatedAt(sessionId: string, iso: string) {
-      await harness.context.adminPool.query(
-        `UPDATE valet_sessions SET created_at = $2 WHERE id = $1`,
-        [sessionId, iso],
-      );
-    }
-
     const ownDraft = await harness.createSession(fixture, {
       state: "CHECKING_IN",
+      createdAt: new Date("2026-08-25T10:01:00Z"),
     });
     const peerDraft = await harness.createSession(fixture, {
       state: "CHECKING_IN",
+      checkedInByMembershipId: peer.membershipId,
+      createdAt: new Date("2026-08-25T10:02:00Z"),
     });
-    await harness.context.adminPool.query(
-      `UPDATE valet_sessions SET checked_in_by_membership_id = $2 WHERE id = $1`,
-      [peerDraft.sessionId, peer.membershipId],
-    );
     const queued = await harness.createSession(fixture, {
       keySlotId: slotId,
       state: "AWAITING_PARKING",
+      createdAt: new Date("2026-08-25T10:05:00Z"),
     });
     await harness.createTask(fixture, queued.sessionId, { status: "QUEUED" });
     const peerParking = await harness.createSession(fixture, {
       parkingStartedAt: new Date(),
       state: "PARKING",
+      createdAt: new Date("2026-08-25T10:04:00Z"),
     });
     await harness.createTask(fixture, peerParking.sessionId, {
       assigneeMembershipId: peer.membershipId,
@@ -94,26 +88,23 @@ describe("Staff Vehicle Directory Employee Visibility Integration", () => {
       parkingStartedAt: new Date(),
       parkingZoneId: zoneId,
       state: "PARKED",
+      createdAt: new Date("2026-08-25T10:03:00Z"),
     });
     await harness.createTask(fixture, peerParked.sessionId, {
       assigneeMembershipId: peer.membershipId,
       status: "COMPLETED",
     });
     // COMPLETED custody is never part of the active directory.
-    const finished = await harness.createSession(fixture);
+    const finished = await harness.createSession(fixture, {
+      createdAt: new Date("2026-08-25T10:00:00Z"),
+    });
     await harness.context.adminPool.query(
       `UPDATE valet_sessions
        SET state = 'COMPLETED', completed_at = transaction_timestamp()
        WHERE id = $1`,
       [finished.sessionId],
     );
-    // Deterministic newest-first presentation order.
-    await pinCreatedAt(queued.sessionId, "2026-08-25T10:05:00Z");
-    await pinCreatedAt(peerParking.sessionId, "2026-08-25T10:04:00Z");
-    await pinCreatedAt(peerParked.sessionId, "2026-08-25T10:03:00Z");
-    await pinCreatedAt(peerDraft.sessionId, "2026-08-25T10:02:00Z");
-    await pinCreatedAt(ownDraft.sessionId, "2026-08-25T10:01:00Z");
-    await pinCreatedAt(finished.sessionId, "2026-08-25T10:00:00Z");
+    // Immutable creation timestamps were seeded in chronological order.
 
     const ownerView = await directory(ownerToken, fixture.locationId);
     expect(ownerView.status).toBe(200);
@@ -241,21 +232,14 @@ describe("Staff Vehicle Directory Employee Visibility Integration", () => {
     // page trim deterministically.
     const visibleA = await harness.createSession(fixture, {
       state: "AWAITING_PARKING",
+      createdAt: new Date("2026-08-25T11:00:00Z"),
     });
     const visibleB = await harness.createSession(fixture, {
       state: "AWAITING_PARKING",
+      createdAt: new Date("2026-08-25T10:59:00Z"),
     });
     await harness.createTask(fixture, visibleA.sessionId, { status: "QUEUED" });
     await harness.createTask(fixture, visibleB.sessionId, { status: "QUEUED" });
-    for (const [sessionId, iso] of [
-      [visibleA.sessionId, "2026-08-25T11:00:00Z"],
-      [visibleB.sessionId, "2026-08-25T10:59:00Z"],
-    ] as const) {
-      await harness.context.adminPool.query(
-        `UPDATE valet_sessions SET created_at = $2 WHERE id = $1`,
-        [sessionId, iso],
-      );
-    }
 
     const supervisorView = await directory(supervisorToken, fixture.locationId);
     expect(supervisorView.status).toBe(200);

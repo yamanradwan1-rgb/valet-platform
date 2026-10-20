@@ -188,11 +188,21 @@ describe("Staff Push send-time eligibility", () => {
       ],
       [
         "non-RETRIEVAL Task",
-        async (f) =>
-          void (await context.adminPool.query(
-            "UPDATE tasks SET task_type = 'PARKING' WHERE id = $1",
-            [f.task_id],
-          )),
+        async (f) => {
+          const parkingTaskId = randomUUID();
+          await context.adminPool.query(
+            `INSERT INTO tasks (id, organization_id, location_id, valet_session_id,
+              task_type, status, current_assignee_membership_id, version, updated_at)
+             SELECT $2, organization_id, location_id, valet_session_id,
+               'PARKING', status, current_assignee_membership_id, version, updated_at
+             FROM tasks WHERE id = $1`,
+            [f.task_id, parkingTaskId],
+          );
+          await context.adminPool.query(
+            "UPDATE staff_push_intents SET task_id = $2 WHERE id = $1",
+            [f.intent_id, parkingTaskId],
+          );
+        },
       ],
       ...(["DISABLED", "SUPERSEDED", "PROVIDER_INVALID"] as const).map(
         (

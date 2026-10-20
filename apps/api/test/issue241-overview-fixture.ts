@@ -26,10 +26,6 @@ export async function seedIssue241Overview(context: DashboardApiTestContext) {
     [staff.membershipId],
   );
   const keySlotId = await context.seedKeySlot("K-12");
-  const sessionId = await context.seedSession({ state: "PARKED", keySlotId });
-  const secondId = await context.seedSession({ state: "PARKED" });
-  const checkingId = await context.seedSession({ state: "CHECKING_IN" });
-  await context.seedSession({ state: "COMPLETED" });
   const zoneId = randomUUID();
   const spotId = randomUUID();
   await context.adminPool.query(
@@ -42,11 +38,14 @@ export async function seedIssue241Overview(context: DashboardApiTestContext) {
       VALUES ($1,$2,$3,$4,'P-4','North','INACTIVE',clock_timestamp())`,
     [spotId, fixture.organizationId, fixture.locationId, zoneId],
   );
-  await context.adminPool.query(
-    `UPDATE valet_sessions SET parking_zone_id=$2,parking_spot_id=$3,current_assignee_membership_id=$4,
-      created_at=clock_timestamp()-interval '1 hour' WHERE id=$1`,
-    [sessionId, zoneId, spotId, fixture.membershipId],
-  );
+  const sessionId = await context.seedSession({
+    state: "PARKED", keySlotId, parkingZoneId: zoneId, parkingSpotId: spotId,
+    currentAssigneeMembershipId: fixture.membershipId,
+    createdAtIso: new Date(Date.now() - 60 * 60_000).toISOString(),
+  });
+  const secondId = await context.seedSession({ state: "PARKED" });
+  const checkingId = await context.seedSession({ state: "CHECKING_IN" });
+  await context.seedSession({ state: "COMPLETED" });
   await context.adminPool.query(
     `UPDATE vehicles SET make='Toyota',model='Camry',color='Black'
       WHERE id=(SELECT vehicle_id FROM valet_sessions WHERE id=$1)`,

@@ -1,5 +1,39 @@
 # VAYLET #300 / #302 / #303 — Verified combined-source validation
 
+## PR #307 CI remediation update — 2026-10-20 (later than the source report below)
+
+At remote HEAD `e0f877d61989c7461e72f929837291430b3db4bb`, GitHub
+Actions run #512 (39363140046) **FAILED**. Windows/Ubuntu platforms,
+static-build, Employee E2E and Issue215 PG passed. The API unit lane misrouted
+six native Node `node:test` `.test.mjs` suites into Vitest; PostgreSQL DB
+assertions expected pre-94/95/96 schema and error families; API standard,
+compound and race tests still rewrote Session origin or Task type after INSERT
+despite approved immutable triggers. The race lane also timed out one
+40,000-row Shift History plan test at the unrelated default 5-second limit.
+The downstream quality job failed because required lanes failed.
+
+The corrective integration patch retains every immutable DB trigger, original
+migration SQL, runtime permissions and existing security verifier. It routes
+native Node tests through `node --test`, updates exact migration expectations,
+seeds immutable provenance at INSERT, and generates independent Task fixtures
+for negative compatibility cases. On the uncommitted patch, local Node suites
+40/40 and API non-PG Vitest 1048/1048 (6 skipped) passed; TypeScript, ESLint,
+architecture, V3 **source-only** guard passed. These are **not** final
+PostgreSQL CI or genuine V3 acceptance results. Original dated SHA-specific
+results below remain intact. The final pushed SHA and GitHub CI must be
+verified separately before merge.
+
+**Owner decision remains in force:** ordinary CA/LM Investigation routes and
+Dashboard tab are production-enabled, per the Owner correction linked below.
+Only optional U005 *proof/certification* remains isolated, with the Owner
+signing exception explicitly **NOT CRYPTOGRAPHICALLY VERIFIED**. Mutable
+make/model/plate/country-filter Search spanning multiple pages remains
+fail-closed (503) because no DB-backed vehicle identity revision/membership
+epoch has been approved or verified. No false partial 200 or signed cursor
+claim is made. The original 79 full #300 criteria remain 57 BLOCKED /
+22 NOT RUN; real MFA/CA/LM, actual V3 93→96/killed95, UI-M1 34-browser and
+100k/1m load/cold acceptance are not promoted to PASS by CI source results.
+
 **Dated Owner product-decision supersession:** The former `#300 production
 disabled` integration posture below has been overridden. See
 [`OWNER_ISSUE300_PRODUCTION_AVAILABILITY_2026-10-20.md`](OWNER_ISSUE300_PRODUCTION_AVAILABILITY_2026-10-20.md)

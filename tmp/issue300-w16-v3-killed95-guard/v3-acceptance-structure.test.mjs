@@ -137,7 +137,12 @@ test("V3 pins whole DB runtime/Prisma tree except named rollout and test-only ma
     "seed.integration.test.ts",
     "payment-collection-migration.integration.test.ts",
     "basic-branding-runtime-privilege.integration.test.ts",
-    "phase4-runtime-role.integration.test.ts"]) {
+    "phase4-runtime-role.integration.test.ts",
+    "audit-foundation-runtime-role.integration.test.ts",
+    "management-pagination-snapshot-migration.integration.test.ts",
+    "staff-activation-migration.integration.test.ts",
+    "staff-identity-migration.integration.test.ts",
+    "staff-onboarding-migration.integration.test.ts"]) {
     assert.match(runtime, new RegExp("\\(exclude\\)packages/database/src/"+expected.replace(/\./g,"\\.")));
   }
   assert.doesNotMatch(runtime, /\(exclude\)packages\/database\/prisma/);
