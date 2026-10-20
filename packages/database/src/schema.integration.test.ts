@@ -7135,7 +7135,7 @@ describe("check-in intake persistence", () => {
 });
 
 describe("intake session creation persistence", () => {
-  it("preserves all 93 baseline migrations and appends 94–96 in order", () => {
+  it("preserves the 93 baseline migrations and appends 94–97 in order", () => {
     expect(appliedMigrationDirectories).toEqual(expectedCurrentMigrationDirectories);
     expect(appliedMigrationDirectories.at(-1)).toBe(
       expectedCurrentMigrationDirectories.at(-1),
