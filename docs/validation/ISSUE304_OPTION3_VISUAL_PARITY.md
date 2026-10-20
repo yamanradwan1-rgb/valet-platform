@@ -24,7 +24,7 @@ Directory: docs/validation/issue304-w6/modals-release-557edace/ contains 64 mach
 
 ## Other executed browser tests
 
-80/80 non-modal production Playwright cases PASS on the earlier source revision before only localized W2/W4 disclaimer/QR copy adjustments: Key K-02 and Spot P-02 selected detail (16 states each); general responsive Option 3 (16); 16 KPI A→B→A; authority and denial (4); interaction/custody/QR creation controls (4); filtered pagination over 100 records (2); keyboard/accessibility (5); actual browser native page zoom (1). Do NOT represent all 80 as rerun on source SHA 557edace. Evidence includes docs/validation/issue304-w6/key-detail-final, spot-final, visual-final, and zoom-final.
+80/80 non-modal production Playwright cases PASS, **rerun on final product-source revision 557edace after the localized W2/W4 copy fixes**: Key K-02 and Spot P-02 selected detail (16 states each); general responsive Option 3 (16); 16 KPI A→B→A; authority and denial (4); interaction/custody/QR creation controls (4); filtered pagination over 100 records (2); keyboard/accessibility (5); actual browser native page zoom (1). Evidence includes docs/validation/issue304-w6/key-detail-final, spot-final, visual-final, and zoom-final; the evidence-only commit 0fa8ae17 did not change product-source code.
 
 Native Chrome host page zoom independently used chrome.tabs.setZoom(2) and chrome.tabs.getZoom, changing innerWidth/clientWidth 1280 to 640 CSS px while outerWidth stayed 1280 and DPR changed 1 to 2, with keyboard activation still working. This is real browser zoom, not CDP pinch-scale. Evidence: issue304-w6/zoom-final/native-tab-zoom200.json and PNG.
 

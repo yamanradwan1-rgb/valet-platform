@@ -1,6 +1,6 @@
 ﻿# VAYLET Issue #304 — final acceptance ledger
 
-Status at source SHA 557edace23fdb37d7cf308491995c48dc405380c: VISUAL GO / functional synthetic checks PASS; overall release PENDING security, PR/CI and schema deployment gate. No main merge or deployment performed by this report.
+Status at source SHA 557edace23fdb37d7cf308491995c48dc405380c: VISUAL GO / integrated synthetic-browser and focused source checks PASS; overall release PENDING independent security, PR/CI and schema rollout gate. Evidence was committed separately as 0fa8ae1740382f2a2b7668cfcbad1f14639d9375 without product-source modifications. No main merge or deployment performed by this report.
 Date: 2026-10-21.
 
 ## Immutable baseline
@@ -22,6 +22,8 @@ Date: 2026-10-21.
 | Native 200% browser page zoom | Chrome tabs.setZoom(2), innerWidth 1280→640, DPR 1→2, keyboard still usable | PASS |
 | Correct scoped KPIs and A→B→A | 16/16 synthetic browser scenarios; server filters before LIMIT, full-Location counts | PASS in synthetic browser and isolated PG tests |
 | Scope authorization | CA, LM authorized; Supervisor denied; 403 stale data cleared, 4/4 browser | PASS in synthetic browser; production not tested |
+| Final complete non-modal browser matrix | 80/80 Playwright tests against locally built source SHA 557edace, including Key/Spot, KPIs, scope, paging, keyboard and real native browser 200% zoom | PASS on locked source |
+| Exact-source resource unit suite | Contracts 4/4, API overview/cursor/idempotency 12/12, Dashboard interaction and UI 24/24 focused Vitest tests | PASS on release-candidate source |
 | Paging, resource details, custody, QR intent | 4 interaction tests, 2 pagination over 125 items each resource type, vehicle/QR rendered | PASS in synthetic browser |
 | Repeated Spot create, MFA and label idempotency | Focused React, API and PostgreSQL regressions recorded in code and backend ledger | PASS in local focused suites |
 | Dashboard production build | Next.js 16.2.11, 26 static/dynamic routes including /keys | PASS on candidate SHA using loopback API_ORIGIN |
@@ -31,13 +33,13 @@ Date: 2026-10-21.
 | GitHub PR and exact pushed SHA CI | No PR/CI check verified as of this ledger | PENDING |
 | Production deployment | Explicitly excluded by owner | NOT RUN |
 
-The separate 80/80 non-modal browser suite ran before the final narrow locale/wrapping fixes, which did not change business logic. It must not be advertised as a rerun on SHA 557edace. The 64-dialog visual test and production build WERE executed on that exact source revision. Synthetic fixture success is not proof of live production API or database rollout.
+The **80/80 non-modal browser suite was rerun successfully** against a fresh local production Next build of exact product source revision `557edace` after the final locale/wrapping fixes. Earlier runs remain historical. The **64/64** dialog matrix and production build also ran on `557edace`. The subsequent `0fa8ae17` commit records tests, reports and evidence without modifying product code; exact pushed-head CI must still run on the final PR SHA. Synthetic fixture success is not proof of live production API or database rollout.
 
 ## Evidence inventory
 
 - docs/validation/ISSUE304_OPTION3_VISUAL_PARITY.md — final visual metrics and approved hash.
 - docs/validation/issue304-w6/modals-release-557edace/ — 64 JSON plus 128 approved/integrated PNG, no personal customer records.
-- docs/validation/issue304-w6/key-detail-final/, spot-final/, visual-final/ — selected and responsive production-browser comparisons from the prior non-modal test.
+- docs/validation/issue304-w6/key-detail-final/, spot-final/, visual-final/ — selected and responsive production-browser comparisons; 80-case suite also rerun PASS against final product source without modifying those immutable image files.
 - docs/validation/issue304-w6/zoom-final/native-tab-zoom200.json — genuine browser zoom evidence.
 - docs/validation/ISSUE304_BACKEND_RESOURCE_CONTRACTS.md — SQL, real custody and grant/migration API details.
 - docs/validation/ISSUE304_MOBILE_HEADER_FIX.md — exact scoped CSS fix and measured rectangles.
@@ -49,7 +51,7 @@ Do not merge if a material unapproved visual delta, tenant/Location access leak,
 
 ## Exact final declaration (as currently evidenced)
 
-- APPROVED OPTION 3 VISUAL PARITY: PASS for modal gate (W1 independent).
+- APPROVED OPTION 3 VISUAL PARITY: PASS for modal gate (W1 independent); final PR exact-SHA release acceptance remains conditional on security/CI.
 - UNRELATED DASHBOARD UI CHANGES: ZERO source changes other than approved mobile Header geometry, pending full visual review of unrelated routes.
 - MOBILE HEADER OVERFLOW: RESOLVED in synthetic integrated/browser conditions.
 - REAL RESOURCE DATA AND ACTIONS: VERIFIED at source and authorized synthetic integration-test level, NOT VERIFIED against production or a deployed API.
