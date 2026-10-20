@@ -12,13 +12,17 @@ export function Issue304Option3Heading(props: {
     "parking-zone": { en: "PARKING ZONE", ar: "منطقة وقوف" },
     "resource-label": { en: "RESOURCE LABEL", ar: "ملصق المورد" },
   } as const;
+  // The real, persisted QR label is a preview of its current printable image.
+  const heading = props.kicker === "resource-label"
+    ? (props.locale === "ar" ? "معاينة ملصق المورد" : "Resource label preview")
+    : props.title;
   return (
     <div className="issue304-modal-heading">
       <div className="issue304-modal-title">
         <span className="issue304-modal-kicker">
           {copy[props.kicker][props.locale]}
         </span>
-        <h2>{props.title}</h2>
+        <h2>{heading}</h2>
       </div>
       <div className="issue304-modal-heading-actions">
         {props.children}

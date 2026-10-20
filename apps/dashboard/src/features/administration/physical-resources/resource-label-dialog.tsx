@@ -130,9 +130,7 @@ export function ResourceLabelDialog(props: {
     <div className={presentation.labelHost}>
       <FocusDialog label={t.resourceLabel} onClose={props.onClose}>
         {props.issue304Variant ? (
-          <Issue304Option3Heading kicker="resource-label" title={t.resourceLabel} locale={locale} onClose={props.onClose}>
-            {props.fromKeysWorkspace ? <ScopedContextHelp helpKey="keys.resourceDetails" /> : null}
-          </Issue304Option3Heading>
+          <Issue304Option3Heading kicker="resource-label" title={locale === "ar" ? "ملصق المورد" : "Resource label"} locale={locale} onClose={props.onClose} />
         ) : (
           <div className={styles.toolbar}>
             <h2 className={styles.dialogTitle}>{t.resourceLabel}</h2>
@@ -142,14 +140,26 @@ export function ResourceLabelDialog(props: {
         )}
         {busy && label === null ? <div className={styles.empty}>…</div> : null}
         {error ? <div className={styles.error} role="alert">{error}</div> : null}
-        {label && qrUrl ? (
-          <div className={`${presentation.label} ${print.printRoot}`} data-testid="physical-resource-print-label">
-            {props.issue304Variant ? (
+        {label && qrUrl && props.issue304Variant ? (
+          <>
+            <div className={`${presentation.label} ${print.printRoot} issue304-modal-label-preview`} data-testid="physical-resource-print-label">
               <div className="issue304-modal-label-brand">
-                <span aria-hidden="true">V</span>
-                <strong>VAYLET</strong>
+                <span aria-hidden="true">V</span><strong>VAYLET</strong>
               </div>
-            ) : <p className={presentation.brand}>VAYLET</p>}
+              <div className="issue304-modal-label-resource">
+                <span>{label.resourceType === "KEY_SLOT" ? t.keySlot : t.parkingSpot}</span>
+                <bdi dir="ltr">{label.code}</bdi>
+                <span>{label.location.name} · <bdi dir="ltr">{label.location.code}</bdi></span>
+              </div>
+              <img className="issue304-modal-label-qr" alt={`${label.resourceType} ${label.code} QR`} src={qrUrl} />
+            </div>
+            <p className="issue304-modal-disclaimer">
+              {locale === "ar" ? "رمز QR حقيقي للمورد المحفوظ في الموقع المحدد." : "Live QR code for this persisted resource in the selected Location."}
+            </p>
+          </>
+        ) : label && qrUrl ? (
+          <div className={`${presentation.label} ${print.printRoot}`} data-testid="physical-resource-print-label">
+            <p className={presentation.brand}>VAYLET</p>
             <p className={presentation.resourceType}>{label.resourceType === "KEY_SLOT" ? t.keySlot : t.parkingSpot}</p>
             <bdi className={presentation.resourceCode} dir="ltr">{label.code}</bdi>
             <img alt={`${label.resourceType} ${label.code} QR`} className={presentation.qr} src={qrUrl} />
@@ -157,9 +167,10 @@ export function ResourceLabelDialog(props: {
             <bdi className={presentation.location} dir="ltr">{label.location.code}</bdi>
           </div>
         ) : null}
-        <div className={`${presentation.labelActions} ${print.printHidden}`}>
-          <button className={styles.secondary} disabled={busy || label === null} onClick={() => void download()} type="button"><Download aria-hidden="true" size={15} /> {t.download}</button>
-          <button className={styles.primary} disabled={busy || label === null} onClick={() => void printLabel()} type="button"><Printer aria-hidden="true" size={15} /> {t.print}</button>
+        <div className={`${presentation.labelActions} ${print.printHidden} ${props.issue304Variant ? "issue304-modal-actions" : ""}`}>
+          {props.issue304Variant ? <button type="button" className="issue304-modal-quiet" onClick={props.onClose}>{locale === "ar" ? "إغلاق" : "Close"}</button> : null}
+          <button className={props.issue304Variant ? "issue304-modal-quiet" : styles.secondary} disabled={busy || label === null} onClick={() => void download()} type="button">{!props.issue304Variant ? <Download aria-hidden="true" size={15} /> : null} {t.download}</button>
+          <button className={props.issue304Variant ? "issue304-modal-primary" : styles.primary} disabled={busy || label === null} onClick={() => void printLabel()} type="button">{!props.issue304Variant ? <Printer aria-hidden="true" size={15} /> : null} {t.print}</button>
         </div>
       </FocusDialog>
     </div>

@@ -127,38 +127,43 @@ export function ParkingZoneCreateDialog(props: {
     <div className={presentation.dialogHost}>
       <FocusDialog label={t.addParkingZone} onClose={props.onClose}>
         {props.issue304Variant ? (
-          <Issue304Option3Heading kicker="parking-zone" title={t.addParkingZone} locale={locale} onClose={props.onClose}>
-            {props.fromKeysWorkspace && helpMounted ? <ScopedContextHelp helpKey="keys.resourceDetails" /> : null}
-          </Issue304Option3Heading>
+          <Issue304Option3Heading kicker="parking-zone" title={t.addParkingZone} locale={locale} onClose={props.onClose} />
         ) : (
           <div className={presentation.headingRow}>
             <h2>{t.addParkingZone}</h2>
             {props.fromKeysWorkspace && helpMounted ? <ScopedContextHelp helpKey="keys.resourceDetails" /> : null}
           </div>
         )}
+        {props.issue304Variant ? (
+          <p className="issue304-modal-disclaimer">
+            {locale === "ar" ? "سيتم حفظ منطقة الوقوف في الموقع المحدد بعد التحقق من الصلاحيات." : "This creates a persisted parking zone in the selected Location after authorization."}
+          </p>
+        ) : null}
         <form
-          className={presentation.form}
+          className={props.issue304Variant ? "issue304-modal-form" : presentation.form}
           onSubmit={(event) => {
             event.preventDefault();
             void submit();
           }}
         >
-          <label className={presentation.field}>
+          <label className={props.issue304Variant ? undefined : presentation.field}>
             <span>{t.code}</span>
             <input
               autoComplete="off"
               dir="ltr"
               maxLength={100}
+              placeholder={props.issue304Variant ? "ZONE-C" : undefined}
               required
               value={code}
               onChange={(event) => setCode(event.target.value)}
             />
           </label>
-          <label className={presentation.field}>
+          <label className={props.issue304Variant ? undefined : presentation.field}>
             <span>{t.label}</span>
             <input
               autoComplete="off"
               maxLength={160}
+              placeholder={props.issue304Variant ? (locale === "ar" ? "منطقة وقوف جديدة" : "New parking zone") : undefined}
               required
               value={label}
               onChange={(event) => setLabel(event.target.value)}
@@ -169,9 +174,9 @@ export function ParkingZoneCreateDialog(props: {
               {error}
             </p>
           ) : null}
-          <div className={presentation.dialogActions}>
+          <div className={props.issue304Variant ? "issue304-modal-actions" : presentation.dialogActions}>
             <button
-              className={styles.secondary}
+              className={props.issue304Variant ? "issue304-modal-quiet" : styles.secondary}
               type="button"
               disabled={busy}
               onClick={props.onClose}
@@ -179,7 +184,7 @@ export function ParkingZoneCreateDialog(props: {
               {t.cancel}
             </button>
             <button
-              className={styles.primary}
+              className={props.issue304Variant ? "issue304-modal-primary" : styles.primary}
               type="submit"
               disabled={busy || !code.trim() || !label.trim()}
             >

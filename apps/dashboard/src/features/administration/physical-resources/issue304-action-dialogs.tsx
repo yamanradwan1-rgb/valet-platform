@@ -45,14 +45,7 @@ export interface Issue304ActionDialogsProps {
  * disposes old dialog state on a Location/auth identity transition.
  */
 export function Issue304ActionDialogs(props: Issue304ActionDialogsProps) {
-  const [createdLabel, setCreatedLabel] = useState<{
-    readonly kind: Issue304ResourceKind;
-    readonly resourceId: string;
-    readonly actionKey: string;
-  } | null>(null);
-
   if (!issue304ActionIsCurrent(props.action, props)) return null;
-
   const action = props.action;
   const actionKey = [
     props.scopeKey,
@@ -61,10 +54,28 @@ export function Issue304ActionDialogs(props: Issue304ActionDialogsProps) {
     action.type === "create" || action.type === "label" ? action.kind : "",
     action.type === "label" ? action.resourceId : "",
   ].join(":");
-  const label =
-    createdLabel?.actionKey === actionKey
-      ? createdLabel
-      : action.type === "label" ? action : null;
+  // Destroy successful-create QR state whenever the intent is cleared or the
+  // authorized scope changes. A repeated create in the same scope has an
+  // identical actionKey, so state must not live on this persistent host.
+  return <ActiveIssue304Action key={actionKey} {...props} action={action} actionKey={actionKey} />;
+}
+
+function ActiveIssue304Action(
+  props: Issue304ActionDialogsProps & {
+    readonly action: Issue304ActionIntent;
+    readonly actionKey: string;
+  },
+) {
+  const [createdLabel, setCreatedLabel] = useState<{
+    readonly kind: Issue304ResourceKind;
+    readonly resourceId: string;
+  } | null>(null);
+  const { action, actionKey } = props;
+  const closeAction = () => {
+    setCreatedLabel(null);
+    props.onClose();
+  };
+  const label = createdLabel ?? (action.type === "label" ? action : null);
 
   if (label !== null) {
     return (
@@ -78,7 +89,7 @@ export function Issue304ActionDialogs(props: Issue304ActionDialogsProps) {
           scopeKey={`${actionKey}:label:${label.resourceId}`}
           fromKeysWorkspace
           issue304Variant
-          onClose={props.onClose}
+          onClose={closeAction}
         />
       </div>
     );
@@ -95,11 +106,11 @@ export function Issue304ActionDialogs(props: Issue304ActionDialogsProps) {
           scopeKey={actionKey}
           fromKeysWorkspace
           issue304Variant
-          onClose={props.onClose}
+          onClose={closeAction}
           onReconcile={props.onReconcile}
           onCreated={(zone) => {
             props.onChanged({ type: "parking-zone", resourceId: zone.parkingZoneId });
-            props.onClose();
+            closeAction();
           }}
         />
       </div>
@@ -117,11 +128,11 @@ export function Issue304ActionDialogs(props: Issue304ActionDialogsProps) {
         scopeKey={actionKey}
         fromKeysWorkspace
         issue304Variant
-        onClose={props.onClose}
+        onClose={closeAction}
         onReconcile={props.onReconcile}
         onCreated={(resourceId) => {
           props.onChanged({ type: action.kind, resourceId });
-          setCreatedLabel({ kind: action.kind, resourceId, actionKey });
+          setCreatedLabel({ kind: action.kind, resourceId });
         }}
       />
     </div>

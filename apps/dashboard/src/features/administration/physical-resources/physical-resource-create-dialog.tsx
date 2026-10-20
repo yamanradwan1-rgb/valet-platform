@@ -24,6 +24,7 @@ import { ParkingZoneCreateDialog } from "./parking-zone-create-dialog";
 import { ParkingZonePicker } from "./parking-zone-picker";
 import { useParkingZonePage } from "./use-parking-zone-page";
 import { Issue304Option3Heading } from "./issue304-option3-heading";
+import { Issue304Option3CreateForm } from "./issue304-option3-create-form";
 
 export function PhysicalResourceCreateDialog(props: {
   readonly api: DashboardApiClient;
@@ -108,7 +109,7 @@ export function PhysicalResourceCreateDialog(props: {
     setError(null);
     const requestKey =
       props.kind === "key-slot"
-        ? JSON.stringify({ code: code.trim() })
+        ? JSON.stringify({ code: code.trim(), ...(props.issue304Variant && label.trim() ? { label: label.trim() } : {}) })
         : JSON.stringify({
             code: code.trim(),
             label: label.trim(),
@@ -125,6 +126,7 @@ export function PhysicalResourceCreateDialog(props: {
         const result = await createKeySlot(props.api, props.locationId, {
           code,
           operationId,
+          ...(props.issue304Variant && label.trim() ? { label: label.trim() } : {}),
         });
         clearPhysicalResourceOperationId(
           props.identityGeneration,
@@ -188,15 +190,22 @@ export function PhysicalResourceCreateDialog(props: {
     <div className={presentation.dialogHost}>
       <FocusDialog label={title} onClose={props.onClose}>
         {props.issue304Variant ? (
-          <Issue304Option3Heading kicker="resource-create" title={title} locale={locale} onClose={props.onClose}>
-            {props.fromKeysWorkspace && helpMounted ? <ScopedContextHelp helpKey="keys.resourceDetails" /> : null}
-          </Issue304Option3Heading>
+          <Issue304Option3Heading kicker="resource-create" title={title} locale={locale} onClose={props.onClose} />
         ) : (
           <div className={presentation.headingRow}>
             <h2>{title}</h2>
             {props.fromKeysWorkspace && helpMounted ? <ScopedContextHelp helpKey="keys.resourceDetails" /> : null}
           </div>
         )}
+        {props.issue304Variant ? (
+          <Issue304Option3CreateForm
+            kind={props.kind} locale={locale} code={code} label={label} zoneId={zoneId}
+            zones={zones} zonePage={zonePage} busy={busy} error={error}
+            onCode={setCode} onLabel={setLabel}
+            onZone={(id) => { setZoneId(id); setSelectedZone(zones.find((zone) => zone.parkingZoneId === id) ?? null); }}
+            onCancel={props.onClose} onSubmit={() => void submit()}
+          />
+        ) : (
         <form
           className={presentation.form}
           onSubmit={(event) => {
@@ -271,6 +280,7 @@ export function PhysicalResourceCreateDialog(props: {
             </button>
           </div>
         </form>
+        )}
         {mfaOpen ? (
           <SensitiveMfaDialog
             api={props.api}
