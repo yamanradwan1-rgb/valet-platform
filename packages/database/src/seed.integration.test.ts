@@ -5,8 +5,8 @@ import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { readDemoOperationalFixtureState } from "./seed-operational-fixture-state";
-import { expectedMigrationDirectories } from "./migration-manifest.js";
-import { issue300AppendedMigrationDirectories } from "./issue300-migration-source-appendix.js";
+
+import { expectedCurrentMigrationDirectories } from "./issue304-migration-source-appendix.js";
 
 const adminDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
@@ -229,7 +229,7 @@ describe("demo seed data foundation", () => {
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL
        ORDER BY migration_name`,
     );
-    expect(result.rows.map((row) => row.migration_name)).toEqual([...expectedMigrationDirectories, ...issue300AppendedMigrationDirectories]);
+    expect(result.rows.map((row) => row.migration_name)).toEqual(expectedCurrentMigrationDirectories);
   });
 
   it("refuses production without modifying the database", async () => {
