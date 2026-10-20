@@ -3,6 +3,7 @@ import type {
   ParkingSpotListEntry,
   PhysicalResourceLabel,
   PhysicalResourceListQuery,
+  PhysicalResourceUsageFilter,
 } from "@valet/contracts";
 
 import type { PostgresTransaction } from "../../common/database/postgres";
@@ -91,10 +92,12 @@ export async function listParkingSpots(
   transaction: PostgresTransaction,
   authority: PhysicalResourceAuthority,
   query: PhysicalResourceListQuery,
+  filter: PhysicalResourceUsageFilter = "all",
 ) {
   const codec = physicalResourceCursorCodec(
     "parking-spots",
     authority.locationId,
+    filter,
   );
   const cursor = codec.decode(query.cursor);
   const parameters: unknown[] = [
@@ -106,6 +109,14 @@ export async function listParkingSpots(
     parameters.push(cursor.sortKey, cursor.id);
     keyset = `AND (spot.code, spot.id) > ($3, $4::uuid)`;
   }
+  const usageClause =
+    filter === "busy"
+      ? "AND spot.status = 'ACTIVE' AND location.status = 'ACTIVE' AND session.id IS NOT NULL"
+      : filter === "available"
+        ? "AND spot.status = 'ACTIVE' AND location.status = 'ACTIVE' AND session.id IS NULL"
+        : filter === "inactive"
+          ? "AND spot.status = 'INACTIVE'"
+          : "";
   parameters.push(query.limit + 1);
   const result = await transaction.query<ParkingSpotRow>(
     `SELECT spot.id::text AS "parkingSpotId", spot.code, spot.label,
@@ -132,7 +143,7 @@ export async function listParkingSpots(
       AND location.status = 'ACTIVE'
      LEFT JOIN vehicles AS vehicle
        ON vehicle.id = session.vehicle_id AND vehicle.organization_id = session.organization_id
-     WHERE spot.organization_id = $1 AND spot.location_id = $2 ${keyset}
+     WHERE spot.organization_id = $1 AND spot.location_id = $2 ${keyset} ${usageClause}
      ORDER BY spot.code, spot.id LIMIT $${parameters.length}`,
     parameters,
   );

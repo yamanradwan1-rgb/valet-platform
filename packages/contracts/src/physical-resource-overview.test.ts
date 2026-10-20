@@ -25,6 +25,29 @@ describe("Issue #304 physical-resource overview contract", () => {
     ).toBe(false);
   });
 
+  it("accepts independent optional resource filters and rejects unsupported filters", () => {
+    expect(physicalResourceOverviewQuerySchema.parse({})).toEqual({
+      limit: 50,
+    });
+    expect(
+      physicalResourceOverviewQuerySchema.parse({
+        keyFilter: "busy",
+        spotFilter: "inactive",
+        limit: "1",
+      }),
+    ).toEqual({ keyFilter: "busy", spotFilter: "inactive", limit: 1 });
+    expect(
+      physicalResourceOverviewQuerySchema.safeParse({
+        keyFilter: "occupied",
+      }).success,
+    ).toBe(false);
+    expect(
+      physicalResourceOverviewQuerySchema.safeParse({
+        spotFilter: ["busy", "available"],
+      }).success,
+    ).toBe(false);
+  });
+
   it("preserves unknown availability as nullable counts, not fake zeros", () => {
     const response = {
       counts: {

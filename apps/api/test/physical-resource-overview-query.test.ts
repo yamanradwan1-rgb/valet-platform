@@ -178,4 +178,50 @@ describe("Issue #304 resource overview projection", () => {
       ),
     ).rejects.toThrow();
   });
+
+  it("pushes both independent usage filters into scoped SQL before keyset LIMIT", async () => {
+    const { tx, statements } = fakeTx();
+    const result = await readPhysicalResourceOverview(tx, authority, {
+      limit: 1,
+      keyFilter: "busy",
+      spotFilter: "inactive",
+    });
+    expect(result.counts.keySlots.configured).toBe(8);
+    expect(result.counts.parkingSpots.configured).toBe(8);
+    expect(statements).toHaveLength(3);
+    const keySql = statements[1]!.sql;
+    const spotSql = statements[2]!.sql;
+    expect(keySql).toContain(
+      "slot.status = 'ACTIVE' AND location.status = 'ACTIVE' AND holder.id IS NOT NULL",
+    );
+    expect(spotSql).toContain("spot.status = 'INACTIVE'");
+    expect(keySql.indexOf("holder.id IS NOT NULL")).toBeLessThan(
+      keySql.indexOf("ORDER BY slot.code"),
+    );
+    expect(spotSql.indexOf("spot.status = 'INACTIVE'")).toBeLessThan(
+      spotSql.indexOf("ORDER BY spot.code"),
+    );
+    expect(statements[0]!.sql).not.toContain("LIMIT");
+    expect(statements[1]!.args.slice(0, 2)).toEqual([ORG, LOCATION]);
+    expect(statements[2]!.args.slice(0, 2)).toEqual([ORG, LOCATION]);
+  });
+
+  it("keeps legacy unfiltered SQL and excludes unknown from available", async () => {
+    const { tx, statements } = fakeTx();
+    await readPhysicalResourceOverview(tx, authority, { limit: 2 });
+    expect(statements[1]!.sql).not.toContain("holder.id IS NULL");
+    expect(statements[2]!.sql).not.toContain("session.id IS NULL");
+    const filtered = fakeTx();
+    await readPhysicalResourceOverview(filtered.tx, authority, {
+      limit: 2,
+      keyFilter: "available",
+      spotFilter: "available",
+    });
+    expect(filtered.statements[1]!.sql).toContain(
+      "slot.status = 'ACTIVE' AND location.status = 'ACTIVE' AND holder.id IS NULL",
+    );
+    expect(filtered.statements[2]!.sql).toContain(
+      "spot.status = 'ACTIVE' AND location.status = 'ACTIVE' AND session.id IS NULL",
+    );
+  });
 });

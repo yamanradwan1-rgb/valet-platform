@@ -19,19 +19,46 @@ describe("Issue #232 physical-resource cursors", () => {
   });
 
   it("rejects a cursor in another Location or resource family", () => {
-    const encoded = physicalResourceCursorCodec("key-slots", LOCATION_A).encode({
-      id: RESOURCE_ID,
-      sortKey: "K-01",
-    });
+    const encoded = physicalResourceCursorCodec("key-slots", LOCATION_A).encode(
+      {
+        id: RESOURCE_ID,
+        sortKey: "K-01",
+      },
+    );
 
-    expect(() => physicalResourceCursorCodec("key-slots", LOCATION_B).decode(encoded))
-      .toThrow(ApiTransportValidationError);
-    expect(() => physicalResourceCursorCodec("parking-spots", LOCATION_A).decode(encoded))
-      .toThrow(ApiTransportValidationError);
+    expect(() =>
+      physicalResourceCursorCodec("key-slots", LOCATION_B).decode(encoded),
+    ).toThrow(ApiTransportValidationError);
+    expect(() =>
+      physicalResourceCursorCodec("parking-spots", LOCATION_A).decode(encoded),
+    ).toThrow(ApiTransportValidationError);
   });
 
   it("rejects malformed cursors instead of widening scope", () => {
-    expect(() => physicalResourceCursorCodec("key-slots", LOCATION_A).decode("not-a-cursor"))
-      .toThrow(ApiTransportValidationError);
+    expect(() =>
+      physicalResourceCursorCodec("key-slots", LOCATION_A).decode(
+        "not-a-cursor",
+      ),
+    ).toThrow(ApiTransportValidationError);
+  });
+
+  it("binds filtered cursors to exactly one filter without changing legacy bytes", () => {
+    const value = { id: RESOURCE_ID, sortKey: "K-111" };
+    const legacy = physicalResourceCursorCodec("key-slots", LOCATION_A);
+    expect(
+      physicalResourceCursorCodec("key-slots", LOCATION_A, "all").encode(value),
+    ).toBe(legacy.encode(value));
+    const busy = physicalResourceCursorCodec("key-slots", LOCATION_A, "busy");
+    const encoded = busy.encode(value);
+    expect(busy.decode(encoded)).toEqual(value);
+    expect(() => legacy.decode(encoded)).toThrow(ApiTransportValidationError);
+    expect(() =>
+      physicalResourceCursorCodec("key-slots", LOCATION_A, "available").decode(
+        encoded,
+      ),
+    ).toThrow(ApiTransportValidationError);
+    expect(() => busy.decode(legacy.encode(value))).toThrow(
+      ApiTransportValidationError,
+    );
   });
 });

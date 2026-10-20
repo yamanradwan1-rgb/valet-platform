@@ -1,9 +1,8 @@
 import { ApiTransportValidationError } from "../../common/http/api-errors";
+import type { PhysicalResourceUsageFilter } from "@valet/contracts";
 
 export type PhysicalResourceCursorDomain =
-  | "key-slots"
-  | "parking-spots"
-  | "parking-zones";
+  "key-slots" | "parking-spots" | "parking-zones";
 
 interface CursorValue {
   readonly id: string;
@@ -16,6 +15,7 @@ const uuidPattern =
 export function physicalResourceCursorCodec(
   domain: PhysicalResourceCursorDomain,
   locationId: string,
+  filter: PhysicalResourceUsageFilter = "all",
 ) {
   return {
     decode(value?: string): CursorValue | null {
@@ -27,16 +27,18 @@ export function physicalResourceCursorCodec(
         if (typeof decoded !== "object" || decoded === null) throw new Error();
         const item = decoded as Record<string, unknown>;
         if (
-          Object.keys(item).length !== 5 ||
+          Object.keys(item).length !== (filter === "all" ? 5 : 6) ||
           item.v !== 1 ||
           item.d !== domain ||
           item.l !== locationId ||
+          (filter !== "all" && item.f !== filter) ||
           typeof item.s !== "string" ||
           item.s.length < 1 ||
           item.s.length > 160 ||
           typeof item.i !== "string" ||
           !uuidPattern.test(item.i)
-        ) throw new Error();
+        )
+          throw new Error();
         return { id: item.i, sortKey: item.s };
       } catch {
         throw new ApiTransportValidationError();
@@ -44,7 +46,14 @@ export function physicalResourceCursorCodec(
     },
     encode(value: CursorValue): string {
       return Buffer.from(
-        JSON.stringify({ v: 1, d: domain, l: locationId, s: value.sortKey, i: value.id }),
+        JSON.stringify({
+          v: 1,
+          d: domain,
+          l: locationId,
+          s: value.sortKey,
+          i: value.id,
+          ...(filter === "all" ? {} : { f: filter }),
+        }),
         "utf8",
       ).toString("base64url");
     },

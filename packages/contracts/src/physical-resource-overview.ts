@@ -9,12 +9,20 @@ import { resourceVehicleIdentitySchema } from "./resource-vehicle-identity.js";
 
 const uuid = z.string().uuid();
 const cursor = physicalResourceListQuerySchema.shape.cursor;
+export const physicalResourceUsageFilterSchema = z.enum([
+  "all",
+  "busy",
+  "available",
+  "inactive",
+]);
 
 export const physicalResourceOverviewQuerySchema = z
   .object({
     limit: physicalResourceListQuerySchema.shape.limit,
     keyCursor: cursor,
     spotCursor: cursor,
+    keyFilter: physicalResourceUsageFilterSchema.optional(),
+    spotFilter: physicalResourceUsageFilterSchema.optional(),
   })
   .strict();
 
@@ -117,6 +125,9 @@ export const physicalResourceCustodyResponseSchema = z
 
 export type PhysicalResourceOverviewQuery = z.infer<
   typeof physicalResourceOverviewQuerySchema
+>;
+export type PhysicalResourceUsageFilter = z.infer<
+  typeof physicalResourceUsageFilterSchema
 >;
 export type PhysicalResourceOverviewResponse = z.infer<
   typeof physicalResourceOverviewResponseSchema

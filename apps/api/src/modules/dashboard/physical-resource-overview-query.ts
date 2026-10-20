@@ -110,11 +110,23 @@ export async function listUnifiedKeySlots(
   authority: PhysicalResourceAuthority,
   query: PhysicalResourceOverviewQuery,
 ): Promise<PhysicalResourceOverviewResponse["keySlots"]> {
-  const codec = physicalResourceCursorCodec("key-slots", authority.locationId);
+  const codec = physicalResourceCursorCodec(
+    "key-slots",
+    authority.locationId,
+    query.keyFilter,
+  );
   const cursor = codec.decode(query.keyCursor);
   const params: unknown[] = [authority.organizationId, authority.locationId];
   const cursorClause =
     cursor === null ? "" : "AND (slot.code,slot.id) > ($3,$4::uuid)";
+  const usageClause =
+    query.keyFilter === "busy"
+      ? "AND slot.status = 'ACTIVE' AND location.status = 'ACTIVE' AND holder.id IS NOT NULL"
+      : query.keyFilter === "available"
+        ? "AND slot.status = 'ACTIVE' AND location.status = 'ACTIVE' AND holder.id IS NULL"
+        : query.keyFilter === "inactive"
+          ? "AND slot.status = 'INACTIVE'"
+          : "";
   if (cursor !== null) params.push(cursor.sortKey, cursor.id);
   params.push(query.limit + 1);
   const result = await tx.query<KeyOverviewRow>(
@@ -139,7 +151,7 @@ export async function listUnifiedKeySlots(
        ON vehicle.id = holder.vehicle_id
       AND vehicle.organization_id = holder.organization_id
      WHERE slot.organization_id = $1 AND slot.location_id = $2
-       ${cursorClause}
+       ${cursorClause} ${usageClause}
      ORDER BY slot.code, slot.id LIMIT $${params.length}`,
     params,
   );
@@ -180,10 +192,15 @@ export async function readPhysicalResourceOverview(
 ): Promise<PhysicalResourceOverviewResponse> {
   const counts = await countPhysicalResources(tx, authority);
   const keySlots = await listUnifiedKeySlots(tx, authority, query);
-  const existingSpots = await listParkingSpots(tx, authority, {
-    limit: query.limit,
-    ...(query.spotCursor ? { cursor: query.spotCursor } : {}),
-  });
+  const existingSpots = await listParkingSpots(
+    tx,
+    authority,
+    {
+      limit: query.limit,
+      ...(query.spotCursor ? { cursor: query.spotCursor } : {}),
+    },
+    query.spotFilter,
+  );
   const parkingSpots = {
     nextCursor: existingSpots.nextCursor,
     items: existingSpots.items.map((spot) => ({
