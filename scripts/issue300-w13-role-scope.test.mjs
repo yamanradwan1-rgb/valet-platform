@@ -11,6 +11,9 @@ const main = { organizationId: plan.mainOrganizationId,
 const foreign = { kind: "FOREIGN_ORG",
   organizationId: plan.foreignOrganizationId,
   locationId: plan.foreignLocationId };
+const other = { kind: "OTHER_LOCATION",
+  organizationId: plan.mainOrganizationId,
+  locationId: plan.locationIds[0] };
 const proof = { allowedScopes: [
   { organizationId: plan.mainOrganizationId,
     locationId: plan.locationIds[0] },
@@ -18,7 +21,7 @@ const proof = { allowedScopes: [
 ] };
 const fixture = { lanes: Array.from({ length: 6 }, () => ({
   org: main.organizationId, location: main.locationId,
-  negativeScopes: [foreign],
+  negativeScopes: [foreign, other],
 })) };
 
 test("LM scope derives exact Location B, not first attested Location A", () => {
@@ -27,6 +30,10 @@ test("LM scope derives exact Location B, not first attested Location A", () => {
   assert.deepEqual(scopes.foreign, {
     organizationId: foreign.organizationId,
     locationId: foreign.locationId,
+  });
+  assert.deepEqual(scopes.other, {
+    organizationId: other.organizationId,
+    locationId: other.locationId,
   });
 });
 
@@ -45,8 +52,17 @@ test("reordered scopes, foreign tenant swaps, missing B all fail closed", () => 
     proof: { allowedScopes: [proof.allowedScopes[0]] }, fixture }),
   /LOCATION_B_SCOPE_REQUIRED/);
   const lanes = fixture.lanes.map(lane => ({ ...lane,
-    negativeScopes: [{ ...foreign, locationId: plan.locationIds[0] }],
+    negativeScopes: [{ ...foreign, locationId: plan.locationIds[0] }, other],
   }));
   assert.throws(() => assertW13RoleScope({ candidate, lease, proof,
     fixture: { lanes } }), /EXACT_FOREIGN/);
+  const wrongOther = fixture.lanes.map(lane => ({ ...lane,
+    negativeScopes: [foreign, { ...other, locationId:
+      "99999999-9999-4999-8999-999999999999" }],
+  }));
+  assert.throws(() => assertW13RoleScope({ candidate, lease, proof,
+    fixture: { lanes: wrongOther } }), /EXACT_LOCATION_A/);
+  assert.throws(() => assertW13RoleScope({ candidate, lease,
+    proof: { allowedScopes: [...proof.allowedScopes, foreign] }, fixture }),
+  /MUST_NOT_AUTHORIZE_FOREIGN_TENANT/);
 });

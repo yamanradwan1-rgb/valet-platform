@@ -35,7 +35,9 @@
   deterministic SHA+lease Org/Location fixture, not the first attested scope
   entry. The currently shared CA+LM held lanes MUST be Location B (LM's only
   authorized Location); Location A, foreign-scope drift and missing B fail
-  closed. All W13 scope/session offline regressions 6/6 PASS total.
+  closed. The OTHER_LOCATION negative is exactly W10 Location A; the signed
+  `allowedScopes` permit only W10 main-org Locations A/B, NEVER the foreign
+  negative tenant. All W13 scope/session offline regressions 6/6 PASS total.
 - Synthetic Windows ACL policy/bitmask tests and an actual nonsecret ACL
   denial probe: 2/2 PASS after separating model masks from live filesystem
   permissions; the positive full-path ACL check is still **GAP** because
