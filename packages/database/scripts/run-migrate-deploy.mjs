@@ -1,6 +1,7 @@
 import "dotenv/config";
 
 import { spawn } from "node:child_process";
+import process from "node:process";
 
 import pg from "pg";
 
@@ -9,10 +10,16 @@ import {
   parseMigrationDatabaseUrl,
   verifyMigrationConnectionTls,
 } from "./database-connection-policy.mjs";
+import { assertIssue300ProductionMigrationsDeferred }
+  from "./issue300-production-migration-gate.mjs";
 
 const { Client } = pg;
 
 async function preflight() {
+  // This candidate contains unapproved Issue #300 history migrations.
+  // Never run Prisma's unconditional pending migration list in production
+  // until a separate Owner-approved migration rollout is merged.
+  assertIssue300ProductionMigrationsDeferred();
   const migration = parseMigrationDatabaseUrl(
     process.env.MIGRATION_DATABASE_URL,
     process.env.NODE_ENV,

@@ -51,6 +51,15 @@ import {
   PresenceCaExceptionController,
 } from "./presence-management.controller";
 
+// Issue #300 is source-integrated for local acceptance only. Its protected
+// production rollout is NOT approved: never register any Investigation route
+// on a production/unknown NODE_ENV, including filters, first pages and detail.
+// The existing Audit Events controller and routes remain registered.
+const localInvestigationControllers =
+  process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test"
+    ? [AuditInvestigationSearchController, AuditInvestigationTimelineController]
+    : [];
+
 @Module({
   controllers: [
     PresenceCompanyController,
@@ -59,8 +68,7 @@ import {
     PresenceCaExceptionController,
     ManagementContextController,
     ManagementAuditController,
-    AuditInvestigationSearchController,
-    AuditInvestigationTimelineController,
+    ...localInvestigationControllers,
     StaffManagementController,
     StaffShiftHistoryController,
     StaffShiftForceEndController,
@@ -116,8 +124,7 @@ export class ManagementModule implements NestModule {
         PresenceCaExceptionController,
         ManagementContextController,
         ManagementAuditController,
-        AuditInvestigationSearchController,
-        AuditInvestigationTimelineController,
+        ...localInvestigationControllers,
         StaffManagementController,
         StaffShiftHistoryController,
         StaffShiftForceEndController,
