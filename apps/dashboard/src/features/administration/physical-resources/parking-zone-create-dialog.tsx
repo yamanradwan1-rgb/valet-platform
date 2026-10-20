@@ -20,6 +20,7 @@ import {
 import { createParkingZone } from "./physical-resources-api";
 import { physicalResourcesCopy } from "./physical-resources-copy";
 import presentation from "./physical-resources.module.css";
+import { Issue304Option3Heading } from "./issue304-option3-heading";
 
 export function ParkingZoneCreateDialog(props: {
   readonly api: DashboardApiClient;
@@ -30,6 +31,7 @@ export function ParkingZoneCreateDialog(props: {
   readonly onCreated: (zone: ParkingZoneSelector) => void;
   readonly onReconcile: () => void;
   readonly fromKeysWorkspace?: boolean | undefined;
+  readonly issue304Variant?: boolean | undefined;
 }) {
   const { locale } = useDashboardLocale();
   const t = physicalResourcesCopy(locale);
@@ -124,10 +126,16 @@ export function ParkingZoneCreateDialog(props: {
   return (
     <div className={presentation.dialogHost}>
       <FocusDialog label={t.addParkingZone} onClose={props.onClose}>
-        <div className={presentation.headingRow}>
-          <h2>{t.addParkingZone}</h2>
-          {props.fromKeysWorkspace && helpMounted ? <ScopedContextHelp helpKey="keys.resourceDetails" /> : null}
-        </div>
+        {props.issue304Variant ? (
+          <Issue304Option3Heading kicker="parking-zone" title={t.addParkingZone} locale={locale} onClose={props.onClose}>
+            {props.fromKeysWorkspace && helpMounted ? <ScopedContextHelp helpKey="keys.resourceDetails" /> : null}
+          </Issue304Option3Heading>
+        ) : (
+          <div className={presentation.headingRow}>
+            <h2>{t.addParkingZone}</h2>
+            {props.fromKeysWorkspace && helpMounted ? <ScopedContextHelp helpKey="keys.resourceDetails" /> : null}
+          </div>
+        )}
         <form
           className={presentation.form}
           onSubmit={(event) => {

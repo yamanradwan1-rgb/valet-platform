@@ -20,6 +20,7 @@ import {
   resourceLabelFilename,
   resourceQrDataUrl,
 } from "./resource-label-png";
+import { Issue304Option3Heading } from "./issue304-option3-heading";
 
 export function ResourceLabelDialog(props: {
   readonly api: DashboardApiClient;
@@ -29,6 +30,7 @@ export function ResourceLabelDialog(props: {
   readonly resourceId: string;
   readonly scopeKey: string;
   readonly fromKeysWorkspace?: boolean | undefined;
+  readonly issue304Variant?: boolean | undefined;
 }) {
   const { locale } = useDashboardLocale();
   const t = physicalResourcesCopy(locale);
@@ -127,16 +129,27 @@ export function ResourceLabelDialog(props: {
   return (
     <div className={presentation.labelHost}>
       <FocusDialog label={t.resourceLabel} onClose={props.onClose}>
-        <div className={styles.toolbar}>
-          <h2 className={styles.dialogTitle}>{t.resourceLabel}</h2>
-          <button aria-label={t.cancel} className={`${styles.quiet} ${presentation.resourceClose}`} onClick={props.onClose} type="button"><X aria-hidden="true" size={16} /></button>
-          {props.fromKeysWorkspace ? <span className={presentation.resourceHelp}><ScopedContextHelp helpKey="keys.resourceDetails" /></span> : null}
-        </div>
+        {props.issue304Variant ? (
+          <Issue304Option3Heading kicker="resource-label" title={t.resourceLabel} locale={locale} onClose={props.onClose}>
+            {props.fromKeysWorkspace ? <ScopedContextHelp helpKey="keys.resourceDetails" /> : null}
+          </Issue304Option3Heading>
+        ) : (
+          <div className={styles.toolbar}>
+            <h2 className={styles.dialogTitle}>{t.resourceLabel}</h2>
+            <button aria-label={t.cancel} className={`${styles.quiet} ${presentation.resourceClose}`} onClick={props.onClose} type="button"><X aria-hidden="true" size={16} /></button>
+            {props.fromKeysWorkspace ? <span className={presentation.resourceHelp}><ScopedContextHelp helpKey="keys.resourceDetails" /></span> : null}
+          </div>
+        )}
         {busy && label === null ? <div className={styles.empty}>…</div> : null}
         {error ? <div className={styles.error} role="alert">{error}</div> : null}
         {label && qrUrl ? (
           <div className={`${presentation.label} ${print.printRoot}`} data-testid="physical-resource-print-label">
-            <p className={presentation.brand}>VAYLET</p>
+            {props.issue304Variant ? (
+              <div className="issue304-modal-label-brand">
+                <span aria-hidden="true">V</span>
+                <strong>VAYLET</strong>
+              </div>
+            ) : <p className={presentation.brand}>VAYLET</p>}
             <p className={presentation.resourceType}>{label.resourceType === "KEY_SLOT" ? t.keySlot : t.parkingSpot}</p>
             <bdi className={presentation.resourceCode} dir="ltr">{label.code}</bdi>
             <img alt={`${label.resourceType} ${label.code} QR`} className={presentation.qr} src={qrUrl} />

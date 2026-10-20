@@ -1,0 +1,153 @@
+/*
+ * #304 Option 3: visual-only treatment of existing authenticated dialogs.
+ * The data attribute is rendered ONLY by Issue304ActionDialogs. FocusDialog,
+ * its keyboard trap, idempotent mutations and actual QR payload stay intact.
+ */
+[data-issue304-action-surface] > div > .dialog-backdrop {
+  z-index: 65;
+  padding: 1rem;
+  background: rgba(3, 10, 26, .64);
+}
+
+/* Double class intentionally outranks the native CSS-module host rule. */
+[data-issue304-action-surface] > div > .dialog-backdrop > .dialog-panel.dialog-panel {
+  box-sizing: border-box;
+  width: min(450px, 100%);
+  max-height: min(90dvh, 750px);
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: .9rem;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 24px 90px rgba(0, 0, 0, .25);
+  padding: 1.35rem;
+  font-family: Inter, "Segoe UI", Tahoma, Arial, sans-serif;
+}
+
+[data-issue304-action-surface] .dialog-panel button:focus-visible,
+[data-issue304-action-surface] .dialog-panel input:focus-visible,
+[data-issue304-action-surface] .dialog-panel select:focus-visible {
+  outline: 2px solid var(--focus, var(--accent));
+  outline-offset: 3px;
+}
+
+[data-issue304-action-surface] .issue304-modal-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .8rem;
+  margin-block-end: 1rem;
+}
+
+[data-issue304-action-surface] .issue304-modal-title {
+  min-width: 0;
+}
+
+[data-issue304-action-surface] .issue304-modal-kicker {
+  color: var(--muted);
+  font-size: .74rem;
+  font-weight: 740;
+  letter-spacing: .015em;
+}
+
+[data-issue304-action-surface] .issue304-modal-heading h2 {
+  margin: .4rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 750;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+[data-issue304-action-surface] .issue304-modal-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+}
+
+[data-issue304-action-surface] .issue304-modal-close {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: .5rem;
+  color: var(--text);
+  background: var(--surface);
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+[data-issue304-action-surface="label"] .issue304-modal-label-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  font-size: .85rem;
+  font-weight: 790;
+  letter-spacing: .12em;
+}
+
+[data-issue304-action-surface="label"] .issue304-modal-label-brand > span {
+  display: inline-grid;
+  place-items: center;
+  padding: .2rem .38rem;
+  border-radius: .3rem;
+  background: #1253d4;
+  color: #fff;
+  font-size: .73rem;
+}
+
+[data-issue304-action-surface="label"] [class*="labelActions"] {
+  justify-content: flex-end;
+  gap: .55rem;
+  margin-block-start: 1.3rem;
+}
+
+/* Only the live, server-backed QR preview receives the Option 3 label scale. */
+@media screen {
+  [data-issue304-action-surface="label"] [data-testid="physical-resource-print-label"] {
+    width: min(100%, 300px);
+    max-width: 300px;
+    padding: 1.35rem;
+    border: 1px solid #d8dfe9;
+    border-radius: .6rem;
+    background: #fff;
+    color: #111c31;
+    gap: .25rem;
+  }
+
+  [data-issue304-action-surface="label"] [data-testid="physical-resource-print-label"] > :first-child {
+    order: 0;
+  }
+
+  [data-issue304-action-surface="label"] [data-testid="physical-resource-print-label"] > :nth-child(2) {
+    order: 1;
+  }
+
+  [data-issue304-action-surface="label"] [data-testid="physical-resource-print-label"] > :nth-child(3) {
+    order: 2;
+  }
+
+  [data-issue304-action-surface="label"] [data-testid="physical-resource-print-label"] > :nth-child(5),
+  [data-issue304-action-surface="label"] [data-testid="physical-resource-print-label"] > :nth-child(6) {
+    order: 3;
+  }
+
+  [data-issue304-action-surface="label"] [data-testid="physical-resource-print-label"] > img {
+    order: 4;
+    width: 143px;
+    height: 143px;
+    margin-block-start: .6rem;
+    object-fit: contain;
+  }
+}
+
+@media print {
+  /* The existing print-only label rules remain authoritative. */
+  [data-issue304-action-surface] > div > .dialog-backdrop > .dialog-panel.dialog-panel {
+    box-shadow: none;
+  }
+}

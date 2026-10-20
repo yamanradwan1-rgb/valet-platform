@@ -5,20 +5,20 @@ import { Issue304ActionDialogs } from "./issue304-action-dialogs";
 import type { Issue304ActionDialogsProps } from "./issue304-action-dialogs";
 
 vi.mock("./physical-resource-create-dialog", () => ({
-  PhysicalResourceCreateDialog: ({ kind, scopeKey }: { kind: string; scopeKey: string }) => (
-    <div data-dialog="create" data-kind={kind} data-scope={scopeKey} />
+  PhysicalResourceCreateDialog: ({ kind, scopeKey, issue304Variant }: { kind: string; scopeKey: string; issue304Variant?: boolean }) => (
+    <div data-dialog="create" data-kind={kind} data-scope={scopeKey} data-option3={issue304Variant ? "true" : "false"} />
   ),
 }));
 
 vi.mock("./parking-zone-create-dialog", () => ({
-  ParkingZoneCreateDialog: ({ scopeKey }: { scopeKey: string }) => (
-    <div data-dialog="zone" data-scope={scopeKey} />
+  ParkingZoneCreateDialog: ({ scopeKey, issue304Variant }: { scopeKey: string; issue304Variant?: boolean }) => (
+    <div data-dialog="zone" data-scope={scopeKey} data-option3={issue304Variant ? "true" : "false"} />
   ),
 }));
 
 vi.mock("./resource-label-dialog", () => ({
-  ResourceLabelDialog: ({ kind, resourceId }: { kind: string; resourceId: string }) => (
-    <div data-dialog="persisted-label" data-kind={kind} data-resource-id={resourceId} />
+  ResourceLabelDialog: ({ kind, resourceId, issue304Variant }: { kind: string; resourceId: string; issue304Variant?: boolean }) => (
+    <div data-dialog="persisted-label" data-kind={kind} data-resource-id={resourceId} data-option3={issue304Variant ? "true" : "false"} />
   ),
 }));
 
@@ -46,8 +46,10 @@ function page(changes: Partial<Issue304ActionDialogsProps> = {}) {
 
 describe("Issue #304 reusable persisted action dialogs", () => {
   it("routes key and spot creation through existing production create dialog", () => {
+    expect(page()).toContain('data-issue304-action-surface="create"');
     expect(page()).toContain('data-dialog="create"');
     expect(page()).toContain('data-kind="key-slot"');
+    expect(page()).toContain('data-option3="true"');
     expect(page({
       action: { type: "create", kind: "parking-spot", scopeKey: base.scopeKey, identityGeneration: 2 },
     })).toContain('data-kind="parking-spot"');
@@ -56,7 +58,13 @@ describe("Issue #304 reusable persisted action dialogs", () => {
   it("routes zone creation through the production zone create dialog", () => {
     expect(page({
       action: { type: "create-zone", scopeKey: base.scopeKey, identityGeneration: 2 },
+    })).toContain('data-issue304-action-surface="create-zone"');
+    expect(page({
+      action: { type: "create-zone", scopeKey: base.scopeKey, identityGeneration: 2 },
     })).toContain('data-dialog="zone"');
+    expect(page({
+      action: { type: "create-zone", scopeKey: base.scopeKey, identityGeneration: 2 },
+    })).toContain('data-option3="true"');
   });
 
   it("renders a server-fetched label dialog for a persisted resource ID", () => {
@@ -70,7 +78,9 @@ describe("Issue #304 reusable persisted action dialogs", () => {
       },
     });
     expect(result).toContain('data-dialog="persisted-label"');
+    expect(result).toContain('data-issue304-action-surface="label"');
     expect(result).toContain('data-resource-id="saved-spot-uuid"');
+    expect(result).toContain('data-option3="true"');
     expect(result).not.toContain('data-dialog="create"');
   });
 

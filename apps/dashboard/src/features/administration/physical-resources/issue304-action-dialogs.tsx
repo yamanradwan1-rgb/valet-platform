@@ -12,6 +12,7 @@ import {
   type Issue304ResourceKind,
 } from "./issue304-action-intent";
 import { ResourceLabelDialog } from "./resource-label-dialog";
+import "./issue304-option3-actions.css";
 
 export type {
   Issue304ActionIntent,
@@ -67,53 +68,62 @@ export function Issue304ActionDialogs(props: Issue304ActionDialogsProps) {
 
   if (label !== null) {
     return (
-      <ResourceLabelDialog
-        api={props.api}
-        kind={label.kind}
-        resourceId={label.resourceId}
-        key={`${actionKey}:label:${label.resourceId}`}
-        locationId={props.locationId}
-        scopeKey={`${actionKey}:label:${label.resourceId}`}
-        fromKeysWorkspace
-        onClose={props.onClose}
-      />
+      <div data-issue304-action-surface="label">
+        <ResourceLabelDialog
+          api={props.api}
+          kind={label.kind}
+          resourceId={label.resourceId}
+          key={`${actionKey}:label:${label.resourceId}`}
+          locationId={props.locationId}
+          scopeKey={`${actionKey}:label:${label.resourceId}`}
+          fromKeysWorkspace
+          issue304Variant
+          onClose={props.onClose}
+        />
+      </div>
     );
   }
 
   if (action.type === "create-zone") {
     return (
-      <ParkingZoneCreateDialog
-        api={props.api}
-        identityGeneration={props.identityGeneration}
-        key={actionKey}
-        locationId={props.locationId}
-        scopeKey={actionKey}
-        fromKeysWorkspace
-        onClose={props.onClose}
-        onReconcile={props.onReconcile}
-        onCreated={(zone) => {
-          props.onChanged({ type: "parking-zone", resourceId: zone.parkingZoneId });
-          props.onClose();
-        }}
-      />
+      <div data-issue304-action-surface="create-zone">
+        <ParkingZoneCreateDialog
+          api={props.api}
+          identityGeneration={props.identityGeneration}
+          key={actionKey}
+          locationId={props.locationId}
+          scopeKey={actionKey}
+          fromKeysWorkspace
+          issue304Variant
+          onClose={props.onClose}
+          onReconcile={props.onReconcile}
+          onCreated={(zone) => {
+            props.onChanged({ type: "parking-zone", resourceId: zone.parkingZoneId });
+            props.onClose();
+          }}
+        />
+      </div>
     );
   }
 
   return (
-    <PhysicalResourceCreateDialog
-      api={props.api}
-      identityGeneration={props.identityGeneration}
-      key={actionKey}
-      kind={action.kind}
-      locationId={props.locationId}
-      scopeKey={actionKey}
-      fromKeysWorkspace
-      onClose={props.onClose}
-      onReconcile={props.onReconcile}
-      onCreated={(resourceId) => {
-        props.onChanged({ type: action.kind, resourceId });
-        setCreatedLabel({ kind: action.kind, resourceId, actionKey });
-      }}
-    />
+    <div data-issue304-action-surface="create">
+      <PhysicalResourceCreateDialog
+        api={props.api}
+        identityGeneration={props.identityGeneration}
+        key={actionKey}
+        kind={action.kind}
+        locationId={props.locationId}
+        scopeKey={actionKey}
+        fromKeysWorkspace
+        issue304Variant
+        onClose={props.onClose}
+        onReconcile={props.onReconcile}
+        onCreated={(resourceId) => {
+          props.onChanged({ type: action.kind, resourceId });
+          setCreatedLabel({ kind: action.kind, resourceId, actionKey });
+        }}
+      />
+    </div>
   );
 }
