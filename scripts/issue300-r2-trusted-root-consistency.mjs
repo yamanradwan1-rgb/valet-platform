@@ -1,10 +1,14 @@
 // Pure source-only consistency guard; never creates, loads, or signs with an
 // Owner private key. A consistent pin is NOT proof of Owner authorization.
 import assert from "node:assert/strict";
+import { Buffer } from "node:buffer";
 import { createHash, createPublicKey } from "node:crypto";
 import { readFileSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import process from "node:process";
 import { fileURLToPath } from "node:url";
+
+/* global console */
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const spkiPattern = /MCowBQYDK2VwAyEA[A-Za-z0-9+/]{43}=/g;
