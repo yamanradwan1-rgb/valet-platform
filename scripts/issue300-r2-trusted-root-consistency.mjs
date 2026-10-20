@@ -25,7 +25,7 @@ export const mandatoryOwnerPinSources = Object.freeze([
   // The now-tracked hardened V3 proof must be repinned along with the legacy
   // ignored W6 copy below; otherwise a genuine new Owner root signs HTTP
   // but V3 still verifies a different old root.
-  "tmp/issue300-w16-v3-killed95-guard/v3-acceptance.mjs",
+  "tmp/issue300-w16-v3-killed95-guard/v3-acceptance-runtime.mjs",
 ]);
 export const v3IgnoredPinSource =
   "tmp/issue300-r2-w6-v3-owned/v3-acceptance.mjs";
