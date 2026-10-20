@@ -21,6 +21,7 @@ export const keySlotConfigurationSchema = z
   .object({
     keySlotId: uuidSchema,
     code: physicalResourceCodeSchema,
+    label: parkingSpotLabelSchema.nullable().optional(),
     status: physicalResourceStatusSchema,
     createdAt: timestampSchema,
     updatedAt: timestampSchema,
@@ -89,6 +90,7 @@ export const createKeySlotRequestSchema = z
   .object({
     operationId: uuidSchema,
     code: physicalResourceCodeSchema,
+    label: parkingSpotLabelSchema.optional(),
   })
   .strict();
 

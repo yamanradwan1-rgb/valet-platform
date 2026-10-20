@@ -17,6 +17,7 @@ export function parkingZoneCreateFingerprint(
     kind: "PARKING_ZONE",
     locationId,
     code: request.code,
+    ...(request.label === undefined ? {} : { label: request.label }),
     label: request.label,
   });
 }

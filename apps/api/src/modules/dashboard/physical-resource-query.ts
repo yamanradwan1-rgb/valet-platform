@@ -14,6 +14,7 @@ interface KeySlotRow {
   readonly code: string;
   readonly createdAt: Date;
   readonly keySlotId: string;
+  readonly label: string | null;
   readonly status: "ACTIVE" | "INACTIVE";
   readonly updatedAt: Date;
 }
@@ -62,7 +63,7 @@ export async function listKeySlots(
   }
   parameters.push(query.limit + 1);
   const result = await transaction.query<KeySlotRow>(
-    `SELECT slot.id::text AS "keySlotId", slot.code,
+    `SELECT slot.id::text AS "keySlotId", slot.code, slot.label,
             slot.status::text AS status, slot.created_at AS "createdAt",
             slot.updated_at AS "updatedAt"
      FROM key_slots AS slot

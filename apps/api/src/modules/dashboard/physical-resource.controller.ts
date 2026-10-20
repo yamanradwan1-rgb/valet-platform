@@ -14,6 +14,10 @@ import {
   parkingZoneSelectorListSchema,
   physicalResourceLabelSchema,
   physicalResourceListQuerySchema,
+  physicalResourceOverviewQuerySchema,
+  physicalResourceOverviewResponseSchema,
+  physicalResourceCustodyQuerySchema,
+  physicalResourceCustodyResponseSchema,
 } from "@valet/contracts";
 
 import { ApiTransportValidationError } from "../../common/http/api-errors";
@@ -41,6 +45,66 @@ export class PhysicalResourceController {
     @Inject(STAFF_SESSION_CONTEXT_RESOLVER)
     private readonly sessions: StaffSessionContextResolver,
   ) {}
+
+  @Get("overview")
+  overview(
+    @Req() request: ApiRequest,
+    @Headers("authorization") authorization: string | undefined,
+    @Param("locationId") locationId: string,
+    @Query() rawQuery: unknown,
+    @Res({ passthrough: true }) response: HeaderResponse,
+  ) {
+    setNoStoreResponseHeaders(response);
+    return this.runner.run(
+      "DASHBOARD_PHYSICAL_OVERVIEW_READ",
+      request,
+      async () => {
+        requireSingleManagementAuthorization(request);
+        const parsed = physicalResourceOverviewQuerySchema.safeParse(
+          rawQuery ?? {},
+        );
+        if (!parsed.success) throw new ApiTransportValidationError();
+        return physicalResourceOverviewResponseSchema.parse(
+          await this.reads.overview(
+            await this.sessions.resolve(authorization),
+            requireManagementUuid(locationId),
+            parsed.data,
+          ),
+        );
+      },
+    );
+  }
+
+  @Get("key-slots/:resourceId/custody")
+  keyCustody(
+    @Req() request: ApiRequest,
+    @Headers("authorization") authorization: string | undefined,
+    @Param("locationId") locationId: string,
+    @Param("resourceId") resourceId: string,
+    @Query() rawQuery: unknown,
+    @Res({ passthrough: true }) response: HeaderResponse,
+  ) {
+    setNoStoreResponseHeaders(response);
+    return this.runner.run(
+      "DASHBOARD_PHYSICAL_KEY_CUSTODY_READ",
+      request,
+      async () => {
+        requireSingleManagementAuthorization(request);
+        const parsed = physicalResourceCustodyQuerySchema.safeParse(
+          rawQuery ?? {},
+        );
+        if (!parsed.success) throw new ApiTransportValidationError();
+        return physicalResourceCustodyResponseSchema.parse(
+          await this.reads.keyCustody(
+            await this.sessions.resolve(authorization),
+            requireManagementUuid(locationId),
+            requireManagementUuid(resourceId),
+            parsed.data,
+          ),
+        );
+      },
+    );
+  }
 
   @Get("key-slots")
   keySlots(
