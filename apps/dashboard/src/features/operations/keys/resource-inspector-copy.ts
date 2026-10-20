@@ -82,6 +82,8 @@ const en = {
   currentPage: "Current page",
   help: "View help",
   close: "Close", cancel: "Cancel", labelPlaceholder: "Front desk C",
+  retryExplicit: "Review the refreshed list, then submit again if needed.",
+  unknownOutcome: "The result is uncertain. Review the refreshed resources and explicitly resubmit the same draft if needed.",
 } as const;
 
 const ar: Record<keyof typeof en, string> = {
@@ -125,6 +127,8 @@ const ar: Record<keyof typeof en, string> = {
   previous: "الصفحة السابقة", next: "الصفحة التالية", currentPage: "الصفحة الحالية",
   help: "عرض المساعدة",
   close: "إغلاق", cancel: "إلغاء", labelPlaceholder: "الاستقبال ج",
+  retryExplicit: "راجع القائمة المحدّثة ثم أعد الإرسال يدويًا عند الحاجة.",
+  unknownOutcome: "نتيجة الإنشاء غير مؤكدة. راجع الموارد المحدّثة ثم أعد إرسال البيانات نفسها يدويًا عند الحاجة.",
 };
 
 export function inspectorCopy(locale: DashboardLocale) {

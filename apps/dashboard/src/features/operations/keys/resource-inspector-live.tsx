@@ -154,7 +154,9 @@ export function ResourceInspectorLive() {
         api={dashboard.api}
         identityGeneration={dashboard.identityGeneration}
         locationId={location.locationId}
+        scopeKey={actionScopeKey}
         onClose={() => setKeyCreateOpen(false)}
+        onReconcile={refresh}
         onCreated={(resourceId) => {
           setKeyCreateOpen(false);
           refresh();

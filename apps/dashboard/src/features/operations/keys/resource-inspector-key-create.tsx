@@ -1,8 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from "react";
 
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
+import { DashboardApiError } from "../../../lib/api/dashboard-api-error";
+import {
+  administrationErrorMessage,
+  isMfaRequired,
+} from "../../administration/administration-error";
+import { SensitiveMfaDialog } from "../../administration/sensitive-mfa-dialog";
 import { issue304CreateKeySlot } from "../../administration/physical-resources/issue304-create-key-slot";
 import type { inspectorCopy } from "./resource-inspector-copy";
 
@@ -12,34 +18,47 @@ export function ResourceInspectorKeyCreate(props: {
   readonly api: DashboardApiClient;
   readonly identityGeneration: number;
   readonly locationId: string;
+  readonly scopeKey: string;
   readonly t: Copy;
   readonly onCreated: (keySlotId: string) => void;
   readonly onClose: () => void;
+  readonly onReconcile: () => void;
 }) {
   const { t } = props;
   const [code, setCode] = useState("");
   const [label, setLabel] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mfaOpen, setMfaOpen] = useState(false);
   const dialog = useRef<HTMLElement | null>(null);
-  const alive = useRef(true);
+  const alive = useRef(false);
+  const busyRef = useRef(false);
+  const currentScope = useRef(props.scopeKey);
+  const currentIdentity = useRef(props.identityGeneration);
+  const currentLocation = useRef(props.locationId);
+
+  useLayoutEffect(() => {
+    alive.current = true;
+    currentScope.current = props.scopeKey;
+    currentIdentity.current = props.identityGeneration;
+    currentLocation.current = props.locationId;
+    return () => { alive.current = false; };
+  }, [props.scopeKey, props.identityGeneration, props.locationId]);
 
   useEffect(() => {
-    alive.current = true;
     const focusReturn = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     dialog.current?.querySelector<HTMLInputElement>("input[name='code']")?.focus();
     return () => {
-      alive.current = false;
       if (focusReturn?.isConnected) focusReturn.focus();
     };
   }, []);
 
   function keydown(event: React.KeyboardEvent<HTMLElement>) {
-    if (event.key === "Escape" && !busy) {
+    if (event.key === "Escape" && !busy && !mfaOpen) {
       event.preventDefault();
       props.onClose();
     }
-    if (event.key !== "Tab") return;
+    if (event.key !== "Tab" || mfaOpen) return;
     const focusable = [...(dialog.current?.querySelectorAll<HTMLElement>(
       'button:not([disabled]),input:not([disabled]),select:not([disabled])',
     ) ?? [])];
@@ -57,26 +76,41 @@ export function ResourceInspectorKeyCreate(props: {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy || !code.trim()) return;
+    if (busyRef.current || mfaOpen || !code.trim()) return;
+    const scopeKey = props.scopeKey;
+    const identityGeneration = props.identityGeneration;
+    const locationId = props.locationId;
+    const isCurrent = () => alive.current && currentScope.current === scopeKey &&
+      currentIdentity.current === identityGeneration && currentLocation.current === locationId;
+    busyRef.current = true;
     setBusy(true);
     setError(null);
     try {
       const created = await issue304CreateKeySlot(
         props.api,
-        { identityGeneration: props.identityGeneration, locationId: props.locationId },
+        { identityGeneration, locationId },
         { code, ...(label.trim() ? { label } : {}) },
       );
-      if (alive.current) props.onCreated(created.keySlotId);
+      if (isCurrent()) props.onCreated(created.keySlotId);
     } catch (reason) {
-      if (alive.current) setError(reason instanceof Error ? reason.message : t.error);
+      if (!isCurrent()) return;
+      // A rejected mutation is never retried implicitly. Re-read the actual
+      // resource list before offering an explicit, idempotent resubmission.
+      props.onReconcile();
+      if (isMfaRequired(reason)) setMfaOpen(true);
+      else if (reason instanceof DashboardApiError &&
+        ["network", "malformed", "unknown"].includes(reason.kind)) {
+        setError(t.unknownOutcome);
+      } else setError(administrationErrorMessage(reason));
     } finally {
-      if (alive.current) setBusy(false);
+      busyRef.current = false;
+      if (isCurrent()) setBusy(false);
     }
   }
 
   return (
     <div className="c-modal-backdrop" onMouseDown={(event) => {
-      if (event.target === event.currentTarget && !busy) props.onClose();
+      if (event.target === event.currentTarget && !busy && !mfaOpen) props.onClose();
     }}>
       <section
         aria-labelledby="c-modal-title"
@@ -92,7 +126,7 @@ export function ResourceInspectorKeyCreate(props: {
             <span className="c-kicker">{t.keySlot}</span>
             <h2 id="c-modal-title">{t.addKey}</h2>
           </div>
-          <button className="c-close" aria-label={t.close} disabled={busy} onClick={props.onClose} type="button">×</button>
+          <button className="c-close" aria-label={t.close} disabled={busy || mfaOpen} onClick={props.onClose} type="button">×</button>
         </div>
         <form className="c-add-form" onSubmit={(event) => { void submit(event); }}>
           <label>
@@ -105,10 +139,25 @@ export function ResourceInspectorKeyCreate(props: {
           </label>
           {error ? <p className="c-modal-disclaimer" role="alert">{error}</p> : null}
           <div className="c-modal-actions">
-            <button className="c-quiet-action" disabled={busy} onClick={props.onClose} type="button">{t.cancel}</button>
-            <button className="c-outline-action" disabled={busy} type="submit">{busy ? t.loading : t.addKey}</button>
+            <button className="c-quiet-action" disabled={busy || mfaOpen} onClick={props.onClose} type="button">{t.cancel}</button>
+            <button className="c-outline-action" disabled={busy || mfaOpen} type="submit">{busy ? t.loading : t.addKey}</button>
           </div>
         </form>
+        {mfaOpen ? (
+          <SensitiveMfaDialog
+            api={props.api}
+            onAssured={() => {
+              if (!alive.current || currentScope.current !== props.scopeKey ||
+                currentIdentity.current !== props.identityGeneration ||
+                currentLocation.current !== props.locationId) return;
+              setMfaOpen(false);
+              setError(t.retryExplicit);
+            }}
+            onClose={() => {
+              if (alive.current && currentScope.current === props.scopeKey) setMfaOpen(false);
+            }}
+          />
+        ) : null}
       </section>
     </div>
   );
