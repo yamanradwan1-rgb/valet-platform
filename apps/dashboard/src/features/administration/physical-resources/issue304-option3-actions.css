@@ -98,6 +98,11 @@
   [data-issue304-action-surface="create-zone"] .issue304-modal-disclaimer[lang="en"] {
     max-inline-size: 200px;
   }
+  /* The shorter Parking Zone sentence also occupies two lines in the
+   * frozen 320px form; larger screens retain their natural line length. */
+  [data-issue304-action-surface="create-zone"] .issue304-modal-disclaimer[lang="en"] {
+    max-inline-size: 160px;
+  }
 }
 
 [data-issue304-action-surface] .issue304-modal-form {
