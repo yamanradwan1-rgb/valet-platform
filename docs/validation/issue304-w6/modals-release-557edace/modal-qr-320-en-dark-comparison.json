@@ -1,0 +1,261 @@
+{
+  "approvedSha256": "31e655ee1dc83311ea473705661a32638d59a17bf13c4d50ee6a00fc0ec939f2",
+  "kind": "qr",
+  "width": 320,
+  "locale": "en",
+  "theme": "dark",
+  "approved": {
+    "rect": {
+      "x": 16,
+      "y": 150,
+      "width": 288,
+      "height": 600
+    },
+    "padding": "21.6px",
+    "radius": "14.4px",
+    "background": "rgb(13, 21, 47)",
+    "headingText": "Resource label preview",
+    "headingFont": "20px",
+    "headingBox": {
+      "x": 39,
+      "y": 200,
+      "width": 199,
+      "height": 54,
+      "display": "block",
+      "fontSize": "20px",
+      "lineHeight": "normal",
+      "padding": "0px",
+      "margin": "6.4px 0px 0px"
+    },
+    "disclaimer": {
+      "x": 39,
+      "y": 582,
+      "width": 243,
+      "height": 37,
+      "display": "block",
+      "fontSize": "11.68px",
+      "lineHeight": "18.688px",
+      "padding": "0px",
+      "margin": "13.6px 0px 19.2px"
+    },
+    "qrArt": {
+      "x": 89,
+      "y": 403,
+      "width": 143,
+      "height": 143,
+      "display": "block",
+      "fontSize": "16px",
+      "lineHeight": "normal",
+      "padding": "0px",
+      "margin": "0px 27.3125px"
+    },
+    "actions": {
+      "x": 39,
+      "y": 640,
+      "width": 243,
+      "height": 87,
+      "display": "flex",
+      "fontSize": "16px",
+      "lineHeight": "normal",
+      "padding": "0px",
+      "margin": "20.8px 0px 0px"
+    },
+    "controls": [
+      {
+        "name": "Close",
+        "rect": {
+          "x": 251,
+          "y": 172,
+          "width": 31,
+          "height": 32,
+          "display": "block",
+          "fontSize": "23.2px",
+          "lineHeight": "normal",
+          "padding": "1px 6px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Close",
+        "rect": {
+          "x": 72,
+          "y": 640,
+          "width": 62,
+          "height": 39,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Download preview",
+        "rect": {
+          "x": 144,
+          "y": 640,
+          "width": 138,
+          "height": 39,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Print preview",
+        "rect": {
+          "x": 174,
+          "y": 688,
+          "width": 108,
+          "height": 39,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Cancel",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Preview draft",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      }
+    ],
+    "focusInside": true
+  },
+  "integrated": {
+    "rect": {
+      "x": 16,
+      "y": 150,
+      "width": 288,
+      "height": 601
+    },
+    "padding": "21.6px",
+    "radius": "14.4px",
+    "background": "rgb(13, 21, 47)",
+    "headingText": "Resource label preview",
+    "headingFont": "20px",
+    "headingBox": {
+      "x": 39,
+      "y": 200,
+      "width": 195,
+      "height": 54,
+      "display": "block",
+      "fontSize": "20px",
+      "lineHeight": "27px",
+      "padding": "0px",
+      "margin": "6.4px 0px 0px"
+    },
+    "disclaimer": null,
+    "qrArt": null,
+    "actions": null,
+    "controls": [
+      {
+        "name": "Close",
+        "rect": {
+          "x": 249,
+          "y": 172,
+          "width": 32,
+          "height": 32,
+          "display": "grid",
+          "fontSize": "23.2px",
+          "lineHeight": "23.2px",
+          "padding": "0px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Close",
+        "rect": {
+          "x": 68,
+          "y": 641,
+          "width": 62,
+          "height": 39,
+          "display": "flex",
+          "fontSize": "12px",
+          "lineHeight": "14.4px",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Download QR",
+        "rect": {
+          "x": 139,
+          "y": 641,
+          "width": 142,
+          "height": 39,
+          "display": "flex",
+          "fontSize": "12px",
+          "lineHeight": "14.4px",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Print Label",
+        "rect": {
+          "x": 171,
+          "y": 689,
+          "width": 110,
+          "height": 39,
+          "display": "flex",
+          "fontSize": "12px",
+          "lineHeight": "14.4px",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      }
+    ],
+    "focusInside": true
+  },
+  "widthDeltaPx": 0,
+  "geometryDelta": {
+    "x": 0,
+    "y": 0,
+    "width": 0,
+    "height": 1
+  },
+  "exactDialogRect": false,
+  "pixelDelta": {
+    "referenceSize": [
+      320,
+      900
+    ],
+    "liveSize": [
+      320,
+      900
+    ],
+    "changedPixels": 32532,
+    "comparedPixels": 270000,
+    "changedRatio": 0.1204888888888889,
+    "note": "Diagnostic only: images resized to common canvas; manual review required"
+  },
+  "classification": "PENDING_INDEPENDENT_VISUAL_REVIEW",
+  "note": "Production QR uses real persisted payload; approved HTML QR is illustrative"
+}

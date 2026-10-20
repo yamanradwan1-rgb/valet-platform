@@ -1,0 +1,52 @@
+{
+  "approvedHash": "31e655ee1dc83311ea473705661a32638d59a17bf13c4d50ee6a00fc0ec939f2",
+  "width": 768,
+  "locale": "ar",
+  "theme": "dark",
+  "approved": {
+    "detail": {
+      "x": 21,
+      "y": 460.171875,
+      "width": 726,
+      "height": 763.25
+    },
+    "vehicle": {
+      "x": 37,
+      "y": 633.203125,
+      "width": 694,
+      "height": 103.515625
+    },
+    "custodyText": "02عهدة المفتاح\n            نماذج حديثة من التسليم والإرجاع\n            تسليم المفتاح14:26Valet 02إرجاع المفتاح13:10Valet 01تسليم المفتاح12:42Valet 01\n            لا توجد أحداث عهدة حديثة لهذه الخانة."
+  },
+  "integrated": {
+    "detail": {
+      "x": 21,
+      "y": 196.171875,
+      "width": 726,
+      "height": 704.21875
+    },
+    "vehicle": {
+      "x": 37,
+      "y": 369.203125,
+      "width": 694,
+      "height": 103.515625
+    },
+    "custodyText": "02عهدة المفتاحمعلومات عهدة للقراءة فقطلا يتوفر سجل عهدة حديث في هذا العرض."
+  },
+  "diagnosticPixelDelta": {
+    "referenceSize": [
+      768,
+      900
+    ],
+    "liveSize": [
+      768,
+      900
+    ],
+    "changedPixels": 44189,
+    "comparedPixels": 270000,
+    "changedRatio": 0.16366296296296295,
+    "note": "Diagnostic only: images resized to common canvas; manual review required"
+  },
+  "visualGate": "PENDING_INDEPENDENT_REVIEW",
+  "note": "Approved custody activity is demo-only; real Dashboard uses bounded API-backed events"
+}

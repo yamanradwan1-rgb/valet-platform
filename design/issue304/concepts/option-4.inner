@@ -1,0 +1,234 @@
+<section id="concept-d" class="d-workspace" aria-labelledby="d-title">
+  <div class="d-titlebar">
+    <div class="d-intro">
+      <div class="d-breadcrumb"><span data-d-copy="section">OPERATIONS</span><span class="d-breadcrumb-rule"></span><span data-d-copy="register">RESOURCE REGISTER / CONCEPT D</span></div>
+      <h1 id="d-title" data-d-copy="title">Keys &amp; Spots</h1>
+      <p class="d-subtitle" data-d-copy="subtitle">Every space in its place. A structured view of where keys and vehicles belong.</p>
+    </div>
+    <div class="d-top-actions">
+      <button type="button" id="d-zone-create" class="d-button" hidden><span data-d-copy="addZone">New parking zone · preview</span></button>
+      <button type="button" id="d-create" class="d-button d-button-primary"><span class="d-button-icon" aria-hidden="true">＋</span><span data-d-copy="createKey">New key slot</span></button>
+    </div>
+  </div>
+
+  <div class="d-preview-disclosure"><span class="d-preview-dot" aria-hidden="true"></span><span data-d-copy="synthetic">DESIGN PREVIEW · Synthetic resources · Changes are never saved</span></div>
+
+  <div class="d-worktop">
+    <div class="d-tabs" role="group" aria-label="Resource type" id="d-tabs">
+      <button type="button" class="d-tab" data-d-kind="keys" aria-pressed="true"><span aria-hidden="true">◇</span><span data-d-copy="keys">Key Slots</span><span id="d-keys-count" class="d-tab-count">7</span></button>
+      <button type="button" class="d-tab" data-d-kind="spots" aria-pressed="false"><span aria-hidden="true">▥</span><span data-d-copy="spots">Parking Spots</span><span id="d-spots-count" class="d-tab-count">7</span></button>
+    </div>
+    <div class="d-toolbar">
+      <label class="d-search">
+        <span class="d-search-glyph" aria-hidden="true">⌕</span><span class="d-sr-only" data-d-copy="searchLabel">Find resource</span>
+        <input id="d-search" type="search" autocomplete="off" placeholder="Search resource, code or vehicle">
+      </label>
+      <label class="d-demo-field"><span data-d-copy="demoState">Preview state</span><select id="d-demo-state">
+        <option value="ready">Ready</option><option value="loading">Loading</option><option value="empty">Empty</option><option value="error">Error</option>
+      </select></label>
+    </div>
+  </div>
+
+  <div class="d-columns">
+    <section class="d-inventory" aria-labelledby="d-inventory-heading">
+      <header class="d-inventory-head">
+        <div><div class="d-section-tag" data-d-copy="overviewTag">GROUPED RESOURCE VIEW</div><h2 id="d-inventory-heading" data-d-copy="keyGroups">Key custody &amp; availability</h2></div>
+        <p id="d-results" class="d-results" role="status" aria-live="polite"></p>
+      </header>
+      <div class="d-group-list" id="d-group-list"></div>
+      <footer class="d-inventory-footer"><span class="d-foot-mark" aria-hidden="true">i</span><span data-d-copy="configNote">Configuration state is separate from usage. Details are illustrative.</span></footer>
+    </section>
+    <aside class="d-inspector" aria-label="Selected resource details" id="d-inspector">
+      <div class="d-inspector-content" id="d-inspector-content"></div>
+    </aside>
+  </div>
+  <p class="d-disclaimer" data-d-copy="truth">PROPOSED unified design. Key Slot labels, custody history and the combined operational view are illustrative, not one existing API response.</p>
+  <div id="d-toast" class="d-toast" role="status" aria-live="polite" hidden></div>
+  <dialog id="d-dialog" class="d-dialog" aria-labelledby="d-dialog-title">
+    <div id="d-dialog-content"></div>
+  </dialog>
+<script type="application/json" id="d-copy-json">
+{
+  "en": {
+    "section": "OPERATIONS",
+    "register": "RESOURCE REGISTER / CONCEPT D",
+    "title": "Keys & Spots",
+    "subtitle": "Every space in its place. A structured view of where keys and vehicles belong.",
+    "createKey": "New key slot",
+    "createSpot": "New parking spot",
+    "keys": "Key Slots",
+    "spots": "Parking Spots",
+    "synthetic": "DESIGN PREVIEW · Synthetic resources · Changes are never saved",
+    "overviewTag": "GROUPED RESOURCE VIEW",
+    "keyGroups": "Key custody & availability",
+    "spotGroups": "Parking zones & occupancy",
+    "searchLabel": "Find resource",
+    "searchHint": "Search resource, code or vehicle",
+    "demoState": "Preview state",
+    "ready": "Ready",
+    "loading": "Loading",
+    "empty": "Empty",
+    "error": "Error",
+    "configNote": "Configuration state is separate from usage. Details are illustrative.",
+    "truth": "PROPOSED unified design. Key Slot labels, custody history and the combined operational view are illustrative, not one existing API response.",
+    "inUse": "In use",
+    "available": "Available",
+    "inactive": "Inactive / unknown",
+    "occupied": "Occupied",
+    "inUseDesc": "Key custody currently linked to a vehicle",
+    "availableDesc": "Active slots ready for assignment",
+    "inactiveDesc": "Not confirmed available for use",
+    "groupZone": "Parking Zone",
+    "noZone": "Legacy / unassigned",
+    "noZoneDesc": "Spots with no assigned parking zone",
+    "spotsInZone": "Parking Spots grouped by actual zone",
+    "resources": "resources",
+    "groups": "groups",
+    "config": "Configuration",
+    "usage": "Usage",
+    "active": "Active",
+    "inactiveStatus": "Inactive",
+    "unknown": "Unknown",
+    "vehicle": "Vehicle",
+    "noVehicle": "No vehicle assigned",
+    "vehicleUnavailable": "Vehicle identity unavailable",
+    "nameFallback": "Unlabeled resource",
+    "location": "Location",
+    "zone": "Parking zone",
+    "keyHistory": "Key custody history",
+    "occupancy": "Occupancy",
+    "illustrative": "ILLUSTRATIVE",
+    "historyEmpty": "No custody events in this preview.",
+    "historyCheck": "Checked out",
+    "historyReturn": "Returned to slot",
+    "actor": "Employee",
+    "selectedKey": "KEY SLOT DETAILS",
+    "selectedSpot": "PARKING SPOT DETAILS",
+    "qr": "Preview QR label",
+    "createAnother": "New resource",
+    "viewDetails": "Select a resource for details",
+    "printPreview": "Print preview",
+    "downloadPreview": "Download preview",
+    "previewUnavailable": "Print and download are preview controls only.",
+    "emptyTitle": "No resources to display",
+    "emptyInfo": "This preview state has no records. Return to Ready to browse.",
+    "noMatches": "No matching resources",
+    "noMatchesInfo": "Try a different code, label or vehicle.",
+    "loadingTitle": "Loading resources",
+    "loadingInfo": "Illustrative loading state for this grouped register.",
+    "errorTitle": "Resources could not load",
+    "errorInfo": "An illustrative error state; no live request was sent.",
+    "reset": "Return to Ready",
+    "close": "Close",
+    "qrIntro": "Static label design only. Not a scannable QR code.",
+    "qrPreview": "LABEL PREVIEW · NOT SCANNABLE",
+    "labelPreview": "Example label",
+    "cannotQr": "QR label is unavailable for inactive resources.",
+    "newKey": "Create key slot · preview",
+    "newSpot": "Create parking spot · preview",
+    "newZone": "Create parking zone · preview",
+    "createIntro": "Explore the creation form. No record will be created or saved.",
+    "code": "Resource code",
+    "label": "Display label",
+    "zoneRequired": "Active parking zone",
+    "zoneCode": "Zone code",
+    "addZone": "New parking zone · preview",
+    "savePreview": "Preview create",
+    "discard": "Cancel",
+    "noSave": "Preview only — nothing was saved.",
+    "readyNote": "All examples are synthetic, location-scoped and read-only.",
+    "missingData": "Synthetic fixture unavailable in this preview."
+  },
+  "ar": {
+    "section": "العمليات",
+    "register": "سجل الموارد / التصور د",
+    "title": "المفاتيح والمواقف",
+    "subtitle": "كل مورد في مكانه. عرض منظم لمواقع المفاتيح والمركبات.",
+    "createKey": "إضافة خانة مفاتيح",
+    "createSpot": "إضافة موقف",
+    "keys": "خانات المفاتيح",
+    "spots": "مواقف السيارات",
+    "synthetic": "معاينة تصميم · بيانات تجريبية · لن يتم حفظ أي تغييرات",
+    "overviewTag": "عرض الموارد حسب المجموعات",
+    "keyGroups": "حيازة المفاتيح والتوفر",
+    "spotGroups": "مناطق الوقوف والإشغال",
+    "searchLabel": "البحث عن مورد",
+    "searchHint": "ابحث بالرمز أو الاسم أو المركبة",
+    "demoState": "حالة المعاينة",
+    "ready": "جاهز",
+    "loading": "جار التحميل",
+    "empty": "فارغ",
+    "error": "خطأ",
+    "configNote": "حالة التهيئة منفصلة عن الاستخدام. التفاصيل توضيحية فقط.",
+    "truth": "تصور موحد مقترح. أسماء خانات المفاتيح وسجل الحيازة والعرض التشغيلي المجمع بيانات توضيحية وليست استجابة واحدة من واجهة API حالية.",
+    "inUse": "قيد الاستخدام",
+    "available": "متاح",
+    "inactive": "غير نشط / غير معروف",
+    "occupied": "مشغول",
+    "inUseDesc": "حيازة مفتاح مرتبطة حاليًا بمركبة",
+    "availableDesc": "خانات نشطة جاهزة للاستخدام",
+    "inactiveDesc": "لا يمكن تأكيد إتاحتها للاستخدام",
+    "groupZone": "منطقة الوقوف",
+    "noZone": "قديم / غير معيّن",
+    "noZoneDesc": "مواقف لم تُعيّن لها منطقة",
+    "spotsInZone": "المواقف مصنفة حسب المنطقة الفعلية",
+    "resources": "مورد",
+    "groups": "مجموعات",
+    "config": "التهيئة",
+    "usage": "الاستخدام",
+    "active": "نشط",
+    "inactiveStatus": "غير نشط",
+    "unknown": "غير معروف",
+    "vehicle": "المركبة",
+    "noVehicle": "لا توجد مركبة مرتبطة",
+    "vehicleUnavailable": "هوية المركبة غير متاحة",
+    "nameFallback": "مورد دون تسمية",
+    "location": "الموقع",
+    "zone": "منطقة الوقوف",
+    "keyHistory": "سجل حيازة المفاتيح",
+    "occupancy": "الإشغال",
+    "illustrative": "توضيحي",
+    "historyEmpty": "لا توجد أحداث حيازة في هذه المعاينة.",
+    "historyCheck": "سحب المفتاح",
+    "historyReturn": "إعادة المفتاح إلى الخانة",
+    "actor": "الموظف",
+    "selectedKey": "تفاصيل خانة المفاتيح",
+    "selectedSpot": "تفاصيل الموقف",
+    "qr": "معاينة ملصق QR",
+    "createAnother": "مورد جديد",
+    "viewDetails": "اختر موردًا لعرض التفاصيل",
+    "printPreview": "معاينة الطباعة",
+    "downloadPreview": "معاينة التنزيل",
+    "previewUnavailable": "الطباعة والتنزيل متاحان كمعاينة فقط.",
+    "emptyTitle": "لا توجد موارد للعرض",
+    "emptyInfo": "حالة تجريبية بلا سجلات. اختر جاهز لاستعراض البيانات.",
+    "noMatches": "لا توجد نتائج مطابقة",
+    "noMatchesInfo": "جرّب رمزًا أو اسمًا أو مركبة أخرى.",
+    "loadingTitle": "جار تحميل الموارد",
+    "loadingInfo": "تمثيل توضيحي لحالة التحميل في هذا السجل.",
+    "errorTitle": "تعذر تحميل الموارد",
+    "errorInfo": "حالة خطأ توضيحية؛ لم يُرسل أي طلب حقيقي.",
+    "reset": "العودة إلى جاهز",
+    "close": "إغلاق",
+    "qrIntro": "تصميم الملصق فقط، هذا الرمز غير قابل للمسح.",
+    "qrPreview": "معاينة ملصق · غير قابل للمسح",
+    "labelPreview": "ملصق توضيحي",
+    "cannotQr": "ملصق QR غير متاح للموارد غير النشطة.",
+    "newKey": "إضافة خانة مفاتيح · معاينة",
+    "newSpot": "إضافة موقف · معاينة",
+    "newZone": "إضافة منطقة وقوف · معاينة",
+    "createIntro": "استعرض نموذج الإضافة. لن يتم إنشاء أو حفظ أي سجل.",
+    "code": "رمز المورد",
+    "label": "الاسم الظاهر",
+    "zoneRequired": "منطقة وقوف نشطة",
+    "zoneCode": "رمز المنطقة",
+    "addZone": "منطقة وقوف جديدة · معاينة",
+    "savePreview": "معاينة الإضافة",
+    "discard": "إلغاء",
+    "noSave": "معاينة فقط — لم يُحفظ أي شيء.",
+    "readyNote": "كل الأمثلة تجريبية ومحددة بموقع وللقراءة فقط.",
+    "missingData": "البيانات التجريبية غير متاحة لهذه المعاينة."
+  }
+}
+</script>
+</section>

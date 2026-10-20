@@ -43,6 +43,7 @@ describe("Issue #232 physical-resource runtime boundary", () => {
       { allowed: false, name: "management_physical_resource_append_audit" },
       { allowed: false, name: "management_physical_resource_authorize_actor" },
       { allowed: true, name: "management_physical_resource_create_key_slot" },
+      { allowed: true, name: "management_physical_resource_create_key_slot" },
       {
         allowed: true,
         name: "management_physical_resource_create_parking_spot",
@@ -56,6 +57,23 @@ describe("Issue #232 physical-resource runtime boundary", () => {
         allowed: false,
         name: "management_physical_resource_guard_audit_event",
       },
+    ]);
+    const keySlotOverloads = await adminPool.query<{
+      allowed: boolean;
+      arg_count: number;
+    }>(
+      `SELECT function.pronargs::int AS arg_count,
+              has_function_privilege($1,function.oid,'EXECUTE') AS allowed
+       FROM pg_proc AS function
+       JOIN pg_namespace AS namespace ON namespace.oid=function.pronamespace
+       WHERE namespace.nspname='public'
+         AND function.proname='management_physical_resource_create_key_slot'
+       ORDER BY function.pronargs`,
+      [runtimeRole],
+    );
+    expect(keySlotOverloads.rows).toEqual([
+      { arg_count: 6, allowed: true },
+      { arg_count: 7, allowed: true },
     ]);
   });
 

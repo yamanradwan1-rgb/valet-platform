@@ -29,6 +29,9 @@ export function keySlotCreateFingerprint(
     kind: "KEY_SLOT",
     locationId,
     code: request.code,
+    // Keep the exact legacy fingerprint when label is omitted. New labels
+    // participate in replay identity after canonical boundary trimming.
+    ...(request.label === undefined ? {} : { label: request.label.trim() }),
   });
 }
 

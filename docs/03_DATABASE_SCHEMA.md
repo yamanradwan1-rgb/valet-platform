@@ -1,5 +1,25 @@
 # Database Schema — Logical Design
 
+## Issue #304 — optional Key Slot label and authoritative read projection
+
+Forward-only migration `20261020009700_issue304_key_slot_label` adds nullable
+`key_slots.label` (trimmed, 1–160 characters when present). Existing rows
+remain NULL and existing six-argument Key Slot create calls continue unchanged.
+The seven-argument overload delegates to the existing authorized,
+audit-append-only, idempotent create function and fills the label only for a
+new successful create in the same transaction. Runtime EXECUTE entitlement for
+this overload is provisioned narrowly; table UPDATE/DELETE remain unavailable
+to ordinary runtime. QR identity remains based on canonical Key Slot code/UUID.
+
+The additive Location resource overview reads active-session KeySlot and
+ParkingSpot assignments without changes to physical custody, release, or
+parking workflows. Its six availability counts aggregate all resources in
+the authorized Location, independent of keyset pages. Inactive Locations
+return NULL availability metrics and UNKNOWN item use; inactive resources
+are never classified available. Missing vehicle plate/descriptor remains
+unknown identity and is not fabricated. Existing resource creation and
+pagination contracts remain supported.
+
 ## Issue #215 P1 — verified condition-photo persistence foundation
 
 Status: **P1 implementation pending independent acceptance; uploading and

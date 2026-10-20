@@ -1,0 +1,4266 @@
+[
+  {
+    "width": 320,
+    "kind": "mobile",
+    "locale": "en",
+    "theme": "light",
+    "before": {
+      "viewport": 320,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 64,
+        "right": 320,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 16,
+        "y": -13.296875,
+        "width": 145.328125,
+        "height": 89.59375,
+        "right": 161.328125,
+        "bottom": 76.296875
+      },
+      "actions": {
+        "x": 177.328125,
+        "y": -35.09375,
+        "width": 126.671875,
+        "height": 133.1875,
+        "right": 304,
+        "bottom": 98.09375
+      },
+      "controls": [
+        {
+          "name": "Open navigation",
+          "box": {
+            "x": 16,
+            "y": -13.296875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 70,
+            "bottom": 28.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Change scope",
+          "box": {
+            "x": 16,
+            "y": 36.296875,
+            "width": 145.328125,
+            "height": 40,
+            "right": 161.328125,
+            "bottom": 76.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Language",
+          "box": {
+            "x": 177.328125,
+            "y": -35.09375,
+            "width": 55.703125,
+            "height": 41.59375,
+            "right": 233.03125,
+            "bottom": 6.5
+          },
+          "centerUnobscured": false
+        },
+        {
+          "name": "Light",
+          "box": {
+            "x": 180.328125,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 215.328125,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Dark",
+          "box": {
+            "x": 215.328125,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 250.328125,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Sign out",
+          "box": {
+            "x": 177.328125,
+            "y": 56.5,
+            "width": 97.203125,
+            "height": 41.59375,
+            "right": 274.53125,
+            "bottom": 98.09375
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 320,
+      "valid": false,
+      "failures": [
+        "Open navigation outside topbar vertically",
+        "Change scope outside topbar vertically",
+        "Language outside topbar vertically",
+        "Language hit target obscured",
+        "Sign out outside topbar vertically"
+      ]
+    },
+    "after": {
+      "viewport": 320,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 134.1875,
+        "right": 320,
+        "bottom": 134.1875
+      },
+      "scope": {
+        "x": 16,
+        "y": 21.796875,
+        "width": 145.328125,
+        "height": 89.59375,
+        "right": 161.328125,
+        "bottom": 111.390625
+      },
+      "actions": {
+        "x": 177.328125,
+        "y": 0,
+        "width": 126.671875,
+        "height": 133.1875,
+        "right": 304,
+        "bottom": 133.1875
+      },
+      "controls": [
+        {
+          "name": "Open navigation",
+          "box": {
+            "x": 16,
+            "y": 21.796875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 70,
+            "bottom": 63.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Change scope",
+          "box": {
+            "x": 16,
+            "y": 71.390625,
+            "width": 145.328125,
+            "height": 40,
+            "right": 161.328125,
+            "bottom": 111.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Language",
+          "box": {
+            "x": 177.328125,
+            "y": 0,
+            "width": 55.703125,
+            "height": 41.59375,
+            "right": 233.03125,
+            "bottom": 41.59375
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Light",
+          "box": {
+            "x": 180.328125,
+            "y": 52.59375,
+            "width": 35,
+            "height": 28,
+            "right": 215.328125,
+            "bottom": 80.59375
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Dark",
+          "box": {
+            "x": 215.328125,
+            "y": 52.59375,
+            "width": 35,
+            "height": 28,
+            "right": 250.328125,
+            "bottom": 80.59375
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Sign out",
+          "box": {
+            "x": 177.328125,
+            "y": 91.59375,
+            "width": 97.203125,
+            "height": 41.59375,
+            "right": 274.53125,
+            "bottom": 133.1875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 320,
+      "valid": true,
+      "failures": []
+    }
+  },
+  {
+    "width": 320,
+    "kind": "mobile",
+    "locale": "en",
+    "theme": "dark",
+    "before": {
+      "viewport": 320,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 64,
+        "right": 320,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 16,
+        "y": -13.296875,
+        "width": 145.328125,
+        "height": 89.59375,
+        "right": 161.328125,
+        "bottom": 76.296875
+      },
+      "actions": {
+        "x": 177.328125,
+        "y": -35.09375,
+        "width": 126.671875,
+        "height": 133.1875,
+        "right": 304,
+        "bottom": 98.09375
+      },
+      "controls": [
+        {
+          "name": "Open navigation",
+          "box": {
+            "x": 16,
+            "y": -13.296875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 70,
+            "bottom": 28.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Change scope",
+          "box": {
+            "x": 16,
+            "y": 36.296875,
+            "width": 145.328125,
+            "height": 40,
+            "right": 161.328125,
+            "bottom": 76.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Language",
+          "box": {
+            "x": 177.328125,
+            "y": -35.09375,
+            "width": 55.703125,
+            "height": 41.59375,
+            "right": 233.03125,
+            "bottom": 6.5
+          },
+          "centerUnobscured": false
+        },
+        {
+          "name": "Light",
+          "box": {
+            "x": 180.328125,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 215.328125,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Dark",
+          "box": {
+            "x": 215.328125,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 250.328125,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Sign out",
+          "box": {
+            "x": 177.328125,
+            "y": 56.5,
+            "width": 97.203125,
+            "height": 41.59375,
+            "right": 274.53125,
+            "bottom": 98.09375
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 320,
+      "valid": false,
+      "failures": [
+        "Open navigation outside topbar vertically",
+        "Change scope outside topbar vertically",
+        "Language outside topbar vertically",
+        "Language hit target obscured",
+        "Sign out outside topbar vertically"
+      ]
+    },
+    "after": {
+      "viewport": 320,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 134.1875,
+        "right": 320,
+        "bottom": 134.1875
+      },
+      "scope": {
+        "x": 16,
+        "y": 21.796875,
+        "width": 145.328125,
+        "height": 89.59375,
+        "right": 161.328125,
+        "bottom": 111.390625
+      },
+      "actions": {
+        "x": 177.328125,
+        "y": 0,
+        "width": 126.671875,
+        "height": 133.1875,
+        "right": 304,
+        "bottom": 133.1875
+      },
+      "controls": [
+        {
+          "name": "Open navigation",
+          "box": {
+            "x": 16,
+            "y": 21.796875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 70,
+            "bottom": 63.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Change scope",
+          "box": {
+            "x": 16,
+            "y": 71.390625,
+            "width": 145.328125,
+            "height": 40,
+            "right": 161.328125,
+            "bottom": 111.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Language",
+          "box": {
+            "x": 177.328125,
+            "y": 0,
+            "width": 55.703125,
+            "height": 41.59375,
+            "right": 233.03125,
+            "bottom": 41.59375
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Light",
+          "box": {
+            "x": 180.328125,
+            "y": 52.59375,
+            "width": 35,
+            "height": 28,
+            "right": 215.328125,
+            "bottom": 80.59375
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Dark",
+          "box": {
+            "x": 215.328125,
+            "y": 52.59375,
+            "width": 35,
+            "height": 28,
+            "right": 250.328125,
+            "bottom": 80.59375
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Sign out",
+          "box": {
+            "x": 177.328125,
+            "y": 91.59375,
+            "width": 97.203125,
+            "height": 41.59375,
+            "right": 274.53125,
+            "bottom": 133.1875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 320,
+      "valid": true,
+      "failures": []
+    }
+  },
+  {
+    "width": 320,
+    "kind": "mobile",
+    "locale": "ar",
+    "theme": "light",
+    "before": {
+      "viewport": 320,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 64,
+        "right": 320,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 158.671875,
+        "y": -13.296875,
+        "width": 145.328125,
+        "height": 89.59375,
+        "right": 304,
+        "bottom": 76.296875
+      },
+      "actions": {
+        "x": 16,
+        "y": -35.09375,
+        "width": 126.671875,
+        "height": 133.1875,
+        "right": 142.671875,
+        "bottom": 98.09375
+      },
+      "controls": [
+        {
+          "name": "فتح التنقل",
+          "box": {
+            "x": 250,
+            "y": -13.296875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 304,
+            "bottom": 28.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تغيير النطاق",
+          "box": {
+            "x": 158.671875,
+            "y": 36.296875,
+            "width": 145.328125,
+            "height": 40,
+            "right": 304,
+            "bottom": 76.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "اللغة",
+          "box": {
+            "x": 87.515625,
+            "y": -35.09375,
+            "width": 55.15625,
+            "height": 41.59375,
+            "right": 142.671875,
+            "bottom": 6.5
+          },
+          "centerUnobscured": false
+        },
+        {
+          "name": "فاتح",
+          "box": {
+            "x": 104.671875,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 139.671875,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "داكن",
+          "box": {
+            "x": 69.671875,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 104.671875,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تسجيل الخروج",
+          "box": {
+            "x": 17.421875,
+            "y": 56.5,
+            "width": 125.25,
+            "height": 41.59375,
+            "right": 142.671875,
+            "bottom": 98.09375
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 320,
+      "valid": false,
+      "failures": [
+        "فتح التنقل outside topbar vertically",
+        "تغيير النطاق outside topbar vertically",
+        "اللغة outside topbar vertically",
+        "اللغة hit target obscured",
+        "تسجيل الخروج outside topbar vertically"
+      ]
+    },
+    "after": {
+      "viewport": 320,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 134.1875,
+        "right": 320,
+        "bottom": 134.1875
+      },
+      "scope": {
+        "x": 158.671875,
+        "y": 21.796875,
+        "width": 145.328125,
+        "height": 89.59375,
+        "right": 304,
+        "bottom": 111.390625
+      },
+      "actions": {
+        "x": 16,
+        "y": 0,
+        "width": 126.671875,
+        "height": 133.1875,
+        "right": 142.671875,
+        "bottom": 133.1875
+      },
+      "controls": [
+        {
+          "name": "فتح التنقل",
+          "box": {
+            "x": 250,
+            "y": 21.796875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 304,
+            "bottom": 63.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تغيير النطاق",
+          "box": {
+            "x": 158.671875,
+            "y": 71.390625,
+            "width": 145.328125,
+            "height": 40,
+            "right": 304,
+            "bottom": 111.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "اللغة",
+          "box": {
+            "x": 87.515625,
+            "y": 0,
+            "width": 55.15625,
+            "height": 41.59375,
+            "right": 142.671875,
+            "bottom": 41.59375
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "فاتح",
+          "box": {
+            "x": 104.671875,
+            "y": 52.59375,
+            "width": 35,
+            "height": 28,
+            "right": 139.671875,
+            "bottom": 80.59375
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "داكن",
+          "box": {
+            "x": 69.671875,
+            "y": 52.59375,
+            "width": 35,
+            "height": 28,
+            "right": 104.671875,
+            "bottom": 80.59375
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تسجيل الخروج",
+          "box": {
+            "x": 17.421875,
+            "y": 91.59375,
+            "width": 125.25,
+            "height": 41.59375,
+            "right": 142.671875,
+            "bottom": 133.1875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 320,
+      "valid": true,
+      "failures": []
+    }
+  },
+  {
+    "width": 320,
+    "kind": "mobile",
+    "locale": "ar",
+    "theme": "dark",
+    "before": {
+      "viewport": 320,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 64,
+        "right": 320,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 158.671875,
+        "y": -13.296875,
+        "width": 145.328125,
+        "height": 89.59375,
+        "right": 304,
+        "bottom": 76.296875
+      },
+      "actions": {
+        "x": 16,
+        "y": -35.09375,
+        "width": 126.671875,
+        "height": 133.1875,
+        "right": 142.671875,
+        "bottom": 98.09375
+      },
+      "controls": [
+        {
+          "name": "فتح التنقل",
+          "box": {
+            "x": 250,
+            "y": -13.296875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 304,
+            "bottom": 28.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تغيير النطاق",
+          "box": {
+            "x": 158.671875,
+            "y": 36.296875,
+            "width": 145.328125,
+            "height": 40,
+            "right": 304,
+            "bottom": 76.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "اللغة",
+          "box": {
+            "x": 87.515625,
+            "y": -35.09375,
+            "width": 55.15625,
+            "height": 41.59375,
+            "right": 142.671875,
+            "bottom": 6.5
+          },
+          "centerUnobscured": false
+        },
+        {
+          "name": "فاتح",
+          "box": {
+            "x": 104.671875,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 139.671875,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "داكن",
+          "box": {
+            "x": 69.671875,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 104.671875,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تسجيل الخروج",
+          "box": {
+            "x": 17.421875,
+            "y": 56.5,
+            "width": 125.25,
+            "height": 41.59375,
+            "right": 142.671875,
+            "bottom": 98.09375
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 320,
+      "valid": false,
+      "failures": [
+        "فتح التنقل outside topbar vertically",
+        "تغيير النطاق outside topbar vertically",
+        "اللغة outside topbar vertically",
+        "اللغة hit target obscured",
+        "تسجيل الخروج outside topbar vertically"
+      ]
+    },
+    "after": {
+      "viewport": 320,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 134.1875,
+        "right": 320,
+        "bottom": 134.1875
+      },
+      "scope": {
+        "x": 158.671875,
+        "y": 21.796875,
+        "width": 145.328125,
+        "height": 89.59375,
+        "right": 304,
+        "bottom": 111.390625
+      },
+      "actions": {
+        "x": 16,
+        "y": 0,
+        "width": 126.671875,
+        "height": 133.1875,
+        "right": 142.671875,
+        "bottom": 133.1875
+      },
+      "controls": [
+        {
+          "name": "فتح التنقل",
+          "box": {
+            "x": 250,
+            "y": 21.796875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 304,
+            "bottom": 63.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تغيير النطاق",
+          "box": {
+            "x": 158.671875,
+            "y": 71.390625,
+            "width": 145.328125,
+            "height": 40,
+            "right": 304,
+            "bottom": 111.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "اللغة",
+          "box": {
+            "x": 87.515625,
+            "y": 0,
+            "width": 55.15625,
+            "height": 41.59375,
+            "right": 142.671875,
+            "bottom": 41.59375
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "فاتح",
+          "box": {
+            "x": 104.671875,
+            "y": 52.59375,
+            "width": 35,
+            "height": 28,
+            "right": 139.671875,
+            "bottom": 80.59375
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "داكن",
+          "box": {
+            "x": 69.671875,
+            "y": 52.59375,
+            "width": 35,
+            "height": 28,
+            "right": 104.671875,
+            "bottom": 80.59375
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تسجيل الخروج",
+          "box": {
+            "x": 17.421875,
+            "y": 91.59375,
+            "width": 125.25,
+            "height": 41.59375,
+            "right": 142.671875,
+            "bottom": 133.1875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 320,
+      "valid": true,
+      "failures": []
+    }
+  },
+  {
+    "width": 390,
+    "kind": "mobile",
+    "locale": "en",
+    "theme": "light",
+    "before": {
+      "viewport": 390,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 64,
+        "right": 390,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 16,
+        "y": -13.296875,
+        "width": 156.796875,
+        "height": 89.59375,
+        "right": 172.796875,
+        "bottom": 76.296875
+      },
+      "actions": {
+        "x": 188.796875,
+        "y": -14.09375,
+        "width": 185.203125,
+        "height": 91.1875,
+        "right": 374,
+        "bottom": 77.09375
+      },
+      "controls": [
+        {
+          "name": "Open navigation",
+          "box": {
+            "x": 16,
+            "y": -13.296875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 70,
+            "bottom": 28.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Change scope",
+          "box": {
+            "x": 16,
+            "y": 36.296875,
+            "width": 145.328125,
+            "height": 40,
+            "right": 161.328125,
+            "bottom": 76.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Language",
+          "box": {
+            "x": 188.796875,
+            "y": -14.09375,
+            "width": 55.703125,
+            "height": 41.59375,
+            "right": 244.5,
+            "bottom": 27.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Light",
+          "box": {
+            "x": 255.5,
+            "y": -7.296875,
+            "width": 35,
+            "height": 28,
+            "right": 290.5,
+            "bottom": 20.703125
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Dark",
+          "box": {
+            "x": 290.5,
+            "y": -7.296875,
+            "width": 35,
+            "height": 28,
+            "right": 325.5,
+            "bottom": 20.703125
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Sign out",
+          "box": {
+            "x": 188.796875,
+            "y": 35.5,
+            "width": 97.203125,
+            "height": 41.59375,
+            "right": 286,
+            "bottom": 77.09375
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 390,
+      "valid": false,
+      "failures": [
+        "Open navigation outside topbar vertically",
+        "Change scope outside topbar vertically",
+        "Language outside topbar vertically",
+        "Light outside topbar vertically",
+        "Dark outside topbar vertically",
+        "Sign out outside topbar vertically"
+      ]
+    },
+    "after": {
+      "viewport": 390,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 92.1875,
+        "right": 390,
+        "bottom": 92.1875
+      },
+      "scope": {
+        "x": 16,
+        "y": 0.796875,
+        "width": 156.796875,
+        "height": 89.59375,
+        "right": 172.796875,
+        "bottom": 90.390625
+      },
+      "actions": {
+        "x": 188.796875,
+        "y": 0,
+        "width": 185.203125,
+        "height": 91.1875,
+        "right": 374,
+        "bottom": 91.1875
+      },
+      "controls": [
+        {
+          "name": "Open navigation",
+          "box": {
+            "x": 16,
+            "y": 0.796875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 70,
+            "bottom": 42.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Change scope",
+          "box": {
+            "x": 16,
+            "y": 50.390625,
+            "width": 145.328125,
+            "height": 40,
+            "right": 161.328125,
+            "bottom": 90.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Language",
+          "box": {
+            "x": 188.796875,
+            "y": 0,
+            "width": 55.703125,
+            "height": 41.59375,
+            "right": 244.5,
+            "bottom": 41.59375
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Light",
+          "box": {
+            "x": 255.5,
+            "y": 6.796875,
+            "width": 35,
+            "height": 28,
+            "right": 290.5,
+            "bottom": 34.796875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Dark",
+          "box": {
+            "x": 290.5,
+            "y": 6.796875,
+            "width": 35,
+            "height": 28,
+            "right": 325.5,
+            "bottom": 34.796875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Sign out",
+          "box": {
+            "x": 188.796875,
+            "y": 49.59375,
+            "width": 97.203125,
+            "height": 41.59375,
+            "right": 286,
+            "bottom": 91.1875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 390,
+      "valid": true,
+      "failures": []
+    }
+  },
+  {
+    "width": 390,
+    "kind": "mobile",
+    "locale": "en",
+    "theme": "dark",
+    "before": {
+      "viewport": 390,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 64,
+        "right": 390,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 16,
+        "y": -13.296875,
+        "width": 156.796875,
+        "height": 89.59375,
+        "right": 172.796875,
+        "bottom": 76.296875
+      },
+      "actions": {
+        "x": 188.796875,
+        "y": -14.09375,
+        "width": 185.203125,
+        "height": 91.1875,
+        "right": 374,
+        "bottom": 77.09375
+      },
+      "controls": [
+        {
+          "name": "Open navigation",
+          "box": {
+            "x": 16,
+            "y": -13.296875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 70,
+            "bottom": 28.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Change scope",
+          "box": {
+            "x": 16,
+            "y": 36.296875,
+            "width": 145.328125,
+            "height": 40,
+            "right": 161.328125,
+            "bottom": 76.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Language",
+          "box": {
+            "x": 188.796875,
+            "y": -14.09375,
+            "width": 55.703125,
+            "height": 41.59375,
+            "right": 244.5,
+            "bottom": 27.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Light",
+          "box": {
+            "x": 255.5,
+            "y": -7.296875,
+            "width": 35,
+            "height": 28,
+            "right": 290.5,
+            "bottom": 20.703125
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Dark",
+          "box": {
+            "x": 290.5,
+            "y": -7.296875,
+            "width": 35,
+            "height": 28,
+            "right": 325.5,
+            "bottom": 20.703125
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Sign out",
+          "box": {
+            "x": 188.796875,
+            "y": 35.5,
+            "width": 97.203125,
+            "height": 41.59375,
+            "right": 286,
+            "bottom": 77.09375
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 390,
+      "valid": false,
+      "failures": [
+        "Open navigation outside topbar vertically",
+        "Change scope outside topbar vertically",
+        "Language outside topbar vertically",
+        "Light outside topbar vertically",
+        "Dark outside topbar vertically",
+        "Sign out outside topbar vertically"
+      ]
+    },
+    "after": {
+      "viewport": 390,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 92.1875,
+        "right": 390,
+        "bottom": 92.1875
+      },
+      "scope": {
+        "x": 16,
+        "y": 0.796875,
+        "width": 156.796875,
+        "height": 89.59375,
+        "right": 172.796875,
+        "bottom": 90.390625
+      },
+      "actions": {
+        "x": 188.796875,
+        "y": 0,
+        "width": 185.203125,
+        "height": 91.1875,
+        "right": 374,
+        "bottom": 91.1875
+      },
+      "controls": [
+        {
+          "name": "Open navigation",
+          "box": {
+            "x": 16,
+            "y": 0.796875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 70,
+            "bottom": 42.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Change scope",
+          "box": {
+            "x": 16,
+            "y": 50.390625,
+            "width": 145.328125,
+            "height": 40,
+            "right": 161.328125,
+            "bottom": 90.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Language",
+          "box": {
+            "x": 188.796875,
+            "y": 0,
+            "width": 55.703125,
+            "height": 41.59375,
+            "right": 244.5,
+            "bottom": 41.59375
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Light",
+          "box": {
+            "x": 255.5,
+            "y": 6.796875,
+            "width": 35,
+            "height": 28,
+            "right": 290.5,
+            "bottom": 34.796875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Dark",
+          "box": {
+            "x": 290.5,
+            "y": 6.796875,
+            "width": 35,
+            "height": 28,
+            "right": 325.5,
+            "bottom": 34.796875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Sign out",
+          "box": {
+            "x": 188.796875,
+            "y": 49.59375,
+            "width": 97.203125,
+            "height": 41.59375,
+            "right": 286,
+            "bottom": 91.1875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 390,
+      "valid": true,
+      "failures": []
+    }
+  },
+  {
+    "width": 390,
+    "kind": "mobile",
+    "locale": "ar",
+    "theme": "light",
+    "before": {
+      "viewport": 390,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 64,
+        "right": 390,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 226.203125,
+        "y": -13.296875,
+        "width": 147.796875,
+        "height": 89.59375,
+        "right": 374,
+        "bottom": 76.296875
+      },
+      "actions": {
+        "x": 16,
+        "y": -14.09375,
+        "width": 194.203125,
+        "height": 91.1875,
+        "right": 210.203125,
+        "bottom": 77.09375
+      },
+      "controls": [
+        {
+          "name": "فتح التنقل",
+          "box": {
+            "x": 320,
+            "y": -13.296875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 374,
+            "bottom": 28.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تغيير النطاق",
+          "box": {
+            "x": 228.671875,
+            "y": 36.296875,
+            "width": 145.328125,
+            "height": 40,
+            "right": 374,
+            "bottom": 76.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "اللغة",
+          "box": {
+            "x": 155.046875,
+            "y": -14.09375,
+            "width": 55.15625,
+            "height": 41.59375,
+            "right": 210.203125,
+            "bottom": 27.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "فاتح",
+          "box": {
+            "x": 109.046875,
+            "y": -7.296875,
+            "width": 35,
+            "height": 28,
+            "right": 144.046875,
+            "bottom": 20.703125
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "داكن",
+          "box": {
+            "x": 74.046875,
+            "y": -7.296875,
+            "width": 35,
+            "height": 28,
+            "right": 109.046875,
+            "bottom": 20.703125
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تسجيل الخروج",
+          "box": {
+            "x": 84.953125,
+            "y": 35.5,
+            "width": 125.25,
+            "height": 41.59375,
+            "right": 210.203125,
+            "bottom": 77.09375
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 390,
+      "valid": false,
+      "failures": [
+        "فتح التنقل outside topbar vertically",
+        "تغيير النطاق outside topbar vertically",
+        "اللغة outside topbar vertically",
+        "فاتح outside topbar vertically",
+        "داكن outside topbar vertically",
+        "تسجيل الخروج outside topbar vertically"
+      ]
+    },
+    "after": {
+      "viewport": 390,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 92.1875,
+        "right": 390,
+        "bottom": 92.1875
+      },
+      "scope": {
+        "x": 226.203125,
+        "y": 0.796875,
+        "width": 147.796875,
+        "height": 89.59375,
+        "right": 374,
+        "bottom": 90.390625
+      },
+      "actions": {
+        "x": 16,
+        "y": 0,
+        "width": 194.203125,
+        "height": 91.1875,
+        "right": 210.203125,
+        "bottom": 91.1875
+      },
+      "controls": [
+        {
+          "name": "فتح التنقل",
+          "box": {
+            "x": 320,
+            "y": 0.796875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 374,
+            "bottom": 42.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تغيير النطاق",
+          "box": {
+            "x": 228.671875,
+            "y": 50.390625,
+            "width": 145.328125,
+            "height": 40,
+            "right": 374,
+            "bottom": 90.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "اللغة",
+          "box": {
+            "x": 155.046875,
+            "y": 0,
+            "width": 55.15625,
+            "height": 41.59375,
+            "right": 210.203125,
+            "bottom": 41.59375
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "فاتح",
+          "box": {
+            "x": 109.046875,
+            "y": 6.796875,
+            "width": 35,
+            "height": 28,
+            "right": 144.046875,
+            "bottom": 34.796875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "داكن",
+          "box": {
+            "x": 74.046875,
+            "y": 6.796875,
+            "width": 35,
+            "height": 28,
+            "right": 109.046875,
+            "bottom": 34.796875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تسجيل الخروج",
+          "box": {
+            "x": 84.953125,
+            "y": 49.59375,
+            "width": 125.25,
+            "height": 41.59375,
+            "right": 210.203125,
+            "bottom": 91.1875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 390,
+      "valid": true,
+      "failures": []
+    }
+  },
+  {
+    "width": 390,
+    "kind": "mobile",
+    "locale": "ar",
+    "theme": "dark",
+    "before": {
+      "viewport": 390,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 64,
+        "right": 390,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 226.203125,
+        "y": -13.296875,
+        "width": 147.796875,
+        "height": 89.59375,
+        "right": 374,
+        "bottom": 76.296875
+      },
+      "actions": {
+        "x": 16,
+        "y": -14.09375,
+        "width": 194.203125,
+        "height": 91.1875,
+        "right": 210.203125,
+        "bottom": 77.09375
+      },
+      "controls": [
+        {
+          "name": "فتح التنقل",
+          "box": {
+            "x": 320,
+            "y": -13.296875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 374,
+            "bottom": 28.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تغيير النطاق",
+          "box": {
+            "x": 228.671875,
+            "y": 36.296875,
+            "width": 145.328125,
+            "height": 40,
+            "right": 374,
+            "bottom": 76.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "اللغة",
+          "box": {
+            "x": 155.046875,
+            "y": -14.09375,
+            "width": 55.15625,
+            "height": 41.59375,
+            "right": 210.203125,
+            "bottom": 27.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "فاتح",
+          "box": {
+            "x": 109.046875,
+            "y": -7.296875,
+            "width": 35,
+            "height": 28,
+            "right": 144.046875,
+            "bottom": 20.703125
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "داكن",
+          "box": {
+            "x": 74.046875,
+            "y": -7.296875,
+            "width": 35,
+            "height": 28,
+            "right": 109.046875,
+            "bottom": 20.703125
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تسجيل الخروج",
+          "box": {
+            "x": 84.953125,
+            "y": 35.5,
+            "width": 125.25,
+            "height": 41.59375,
+            "right": 210.203125,
+            "bottom": 77.09375
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 390,
+      "valid": false,
+      "failures": [
+        "فتح التنقل outside topbar vertically",
+        "تغيير النطاق outside topbar vertically",
+        "اللغة outside topbar vertically",
+        "فاتح outside topbar vertically",
+        "داكن outside topbar vertically",
+        "تسجيل الخروج outside topbar vertically"
+      ]
+    },
+    "after": {
+      "viewport": 390,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 92.1875,
+        "right": 390,
+        "bottom": 92.1875
+      },
+      "scope": {
+        "x": 226.203125,
+        "y": 0.796875,
+        "width": 147.796875,
+        "height": 89.59375,
+        "right": 374,
+        "bottom": 90.390625
+      },
+      "actions": {
+        "x": 16,
+        "y": 0,
+        "width": 194.203125,
+        "height": 91.1875,
+        "right": 210.203125,
+        "bottom": 91.1875
+      },
+      "controls": [
+        {
+          "name": "فتح التنقل",
+          "box": {
+            "x": 320,
+            "y": 0.796875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 374,
+            "bottom": 42.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تغيير النطاق",
+          "box": {
+            "x": 228.671875,
+            "y": 50.390625,
+            "width": 145.328125,
+            "height": 40,
+            "right": 374,
+            "bottom": 90.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "اللغة",
+          "box": {
+            "x": 155.046875,
+            "y": 0,
+            "width": 55.15625,
+            "height": 41.59375,
+            "right": 210.203125,
+            "bottom": 41.59375
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "فاتح",
+          "box": {
+            "x": 109.046875,
+            "y": 6.796875,
+            "width": 35,
+            "height": 28,
+            "right": 144.046875,
+            "bottom": 34.796875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "داكن",
+          "box": {
+            "x": 74.046875,
+            "y": 6.796875,
+            "width": 35,
+            "height": 28,
+            "right": 109.046875,
+            "bottom": 34.796875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تسجيل الخروج",
+          "box": {
+            "x": 84.953125,
+            "y": 49.59375,
+            "width": 125.25,
+            "height": 41.59375,
+            "right": 210.203125,
+            "bottom": 91.1875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 390,
+      "valid": true,
+      "failures": []
+    }
+  },
+  {
+    "width": 768,
+    "kind": "mobile",
+    "locale": "en",
+    "theme": "light",
+    "before": {
+      "viewport": 768,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 768,
+        "height": 64,
+        "right": 768,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 16,
+        "y": 10.703125,
+        "width": 207.328125,
+        "height": 41.59375,
+        "right": 223.328125,
+        "bottom": 52.296875
+      },
+      "actions": {
+        "x": 507.09375,
+        "y": 10.703125,
+        "width": 244.90625,
+        "height": 41.59375,
+        "right": 752,
+        "bottom": 52.296875
+      },
+      "controls": [
+        {
+          "name": "Open navigation",
+          "box": {
+            "x": 16,
+            "y": 10.703125,
+            "width": 54,
+            "height": 41.59375,
+            "right": 70,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Change scope",
+          "box": {
+            "x": 78,
+            "y": 11.5,
+            "width": 145.328125,
+            "height": 40,
+            "right": 223.328125,
+            "bottom": 51.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Language",
+          "box": {
+            "x": 507.09375,
+            "y": 10.703125,
+            "width": 55.703125,
+            "height": 41.59375,
+            "right": 562.796875,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Light",
+          "box": {
+            "x": 573.796875,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 608.796875,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Dark",
+          "box": {
+            "x": 608.796875,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 643.796875,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Sign out",
+          "box": {
+            "x": 654.796875,
+            "y": 10.703125,
+            "width": 97.203125,
+            "height": 41.59375,
+            "right": 752,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 768,
+      "valid": true,
+      "failures": []
+    },
+    "after": {
+      "viewport": 768,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 768,
+        "height": 64,
+        "right": 768,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 16,
+        "y": 10.703125,
+        "width": 207.328125,
+        "height": 41.59375,
+        "right": 223.328125,
+        "bottom": 52.296875
+      },
+      "actions": {
+        "x": 507.09375,
+        "y": 10.703125,
+        "width": 244.90625,
+        "height": 41.59375,
+        "right": 752,
+        "bottom": 52.296875
+      },
+      "controls": [
+        {
+          "name": "Open navigation",
+          "box": {
+            "x": 16,
+            "y": 10.703125,
+            "width": 54,
+            "height": 41.59375,
+            "right": 70,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Change scope",
+          "box": {
+            "x": 78,
+            "y": 11.5,
+            "width": 145.328125,
+            "height": 40,
+            "right": 223.328125,
+            "bottom": 51.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Language",
+          "box": {
+            "x": 507.09375,
+            "y": 10.703125,
+            "width": 55.703125,
+            "height": 41.59375,
+            "right": 562.796875,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Light",
+          "box": {
+            "x": 573.796875,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 608.796875,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Dark",
+          "box": {
+            "x": 608.796875,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 643.796875,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Sign out",
+          "box": {
+            "x": 654.796875,
+            "y": 10.703125,
+            "width": 97.203125,
+            "height": 41.59375,
+            "right": 752,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 768,
+      "valid": true,
+      "failures": []
+    }
+  },
+  {
+    "width": 768,
+    "kind": "mobile",
+    "locale": "en",
+    "theme": "dark",
+    "before": {
+      "viewport": 768,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 768,
+        "height": 64,
+        "right": 768,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 16,
+        "y": 10.703125,
+        "width": 207.328125,
+        "height": 41.59375,
+        "right": 223.328125,
+        "bottom": 52.296875
+      },
+      "actions": {
+        "x": 507.09375,
+        "y": 10.703125,
+        "width": 244.90625,
+        "height": 41.59375,
+        "right": 752,
+        "bottom": 52.296875
+      },
+      "controls": [
+        {
+          "name": "Open navigation",
+          "box": {
+            "x": 16,
+            "y": 10.703125,
+            "width": 54,
+            "height": 41.59375,
+            "right": 70,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Change scope",
+          "box": {
+            "x": 78,
+            "y": 11.5,
+            "width": 145.328125,
+            "height": 40,
+            "right": 223.328125,
+            "bottom": 51.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Language",
+          "box": {
+            "x": 507.09375,
+            "y": 10.703125,
+            "width": 55.703125,
+            "height": 41.59375,
+            "right": 562.796875,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Light",
+          "box": {
+            "x": 573.796875,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 608.796875,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Dark",
+          "box": {
+            "x": 608.796875,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 643.796875,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Sign out",
+          "box": {
+            "x": 654.796875,
+            "y": 10.703125,
+            "width": 97.203125,
+            "height": 41.59375,
+            "right": 752,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 768,
+      "valid": true,
+      "failures": []
+    },
+    "after": {
+      "viewport": 768,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 768,
+        "height": 64,
+        "right": 768,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 16,
+        "y": 10.703125,
+        "width": 207.328125,
+        "height": 41.59375,
+        "right": 223.328125,
+        "bottom": 52.296875
+      },
+      "actions": {
+        "x": 507.09375,
+        "y": 10.703125,
+        "width": 244.90625,
+        "height": 41.59375,
+        "right": 752,
+        "bottom": 52.296875
+      },
+      "controls": [
+        {
+          "name": "Open navigation",
+          "box": {
+            "x": 16,
+            "y": 10.703125,
+            "width": 54,
+            "height": 41.59375,
+            "right": 70,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Change scope",
+          "box": {
+            "x": 78,
+            "y": 11.5,
+            "width": 145.328125,
+            "height": 40,
+            "right": 223.328125,
+            "bottom": 51.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Language",
+          "box": {
+            "x": 507.09375,
+            "y": 10.703125,
+            "width": 55.703125,
+            "height": 41.59375,
+            "right": 562.796875,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Light",
+          "box": {
+            "x": 573.796875,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 608.796875,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Dark",
+          "box": {
+            "x": 608.796875,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 643.796875,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Sign out",
+          "box": {
+            "x": 654.796875,
+            "y": 10.703125,
+            "width": 97.203125,
+            "height": 41.59375,
+            "right": 752,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 768,
+      "valid": true,
+      "failures": []
+    }
+  },
+  {
+    "width": 768,
+    "kind": "mobile",
+    "locale": "ar",
+    "theme": "light",
+    "before": {
+      "viewport": 768,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 768,
+        "height": 64,
+        "right": 768,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 544.671875,
+        "y": 10.703125,
+        "width": 207.328125,
+        "height": 41.59375,
+        "right": 752,
+        "bottom": 52.296875
+      },
+      "actions": {
+        "x": 16,
+        "y": 10.703125,
+        "width": 272.40625,
+        "height": 41.59375,
+        "right": 288.40625,
+        "bottom": 52.296875
+      },
+      "controls": [
+        {
+          "name": "فتح التنقل",
+          "box": {
+            "x": 698,
+            "y": 10.703125,
+            "width": 54,
+            "height": 41.59375,
+            "right": 752,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تغيير النطاق",
+          "box": {
+            "x": 544.671875,
+            "y": 11.5,
+            "width": 145.328125,
+            "height": 40,
+            "right": 690,
+            "bottom": 51.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "اللغة",
+          "box": {
+            "x": 233.25,
+            "y": 10.703125,
+            "width": 55.15625,
+            "height": 41.59375,
+            "right": 288.40625,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "فاتح",
+          "box": {
+            "x": 187.25,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 222.25,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "داكن",
+          "box": {
+            "x": 152.25,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 187.25,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تسجيل الخروج",
+          "box": {
+            "x": 16,
+            "y": 10.703125,
+            "width": 125.25,
+            "height": 41.59375,
+            "right": 141.25,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 768,
+      "valid": true,
+      "failures": []
+    },
+    "after": {
+      "viewport": 768,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 768,
+        "height": 64,
+        "right": 768,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 544.671875,
+        "y": 10.703125,
+        "width": 207.328125,
+        "height": 41.59375,
+        "right": 752,
+        "bottom": 52.296875
+      },
+      "actions": {
+        "x": 16,
+        "y": 10.703125,
+        "width": 272.40625,
+        "height": 41.59375,
+        "right": 288.40625,
+        "bottom": 52.296875
+      },
+      "controls": [
+        {
+          "name": "فتح التنقل",
+          "box": {
+            "x": 698,
+            "y": 10.703125,
+            "width": 54,
+            "height": 41.59375,
+            "right": 752,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تغيير النطاق",
+          "box": {
+            "x": 544.671875,
+            "y": 11.5,
+            "width": 145.328125,
+            "height": 40,
+            "right": 690,
+            "bottom": 51.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "اللغة",
+          "box": {
+            "x": 233.25,
+            "y": 10.703125,
+            "width": 55.15625,
+            "height": 41.59375,
+            "right": 288.40625,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "فاتح",
+          "box": {
+            "x": 187.25,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 222.25,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "داكن",
+          "box": {
+            "x": 152.25,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 187.25,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تسجيل الخروج",
+          "box": {
+            "x": 16,
+            "y": 10.703125,
+            "width": 125.25,
+            "height": 41.59375,
+            "right": 141.25,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 768,
+      "valid": true,
+      "failures": []
+    }
+  },
+  {
+    "width": 768,
+    "kind": "mobile",
+    "locale": "ar",
+    "theme": "dark",
+    "before": {
+      "viewport": 768,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 768,
+        "height": 64,
+        "right": 768,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 544.671875,
+        "y": 10.703125,
+        "width": 207.328125,
+        "height": 41.59375,
+        "right": 752,
+        "bottom": 52.296875
+      },
+      "actions": {
+        "x": 16,
+        "y": 10.703125,
+        "width": 272.40625,
+        "height": 41.59375,
+        "right": 288.40625,
+        "bottom": 52.296875
+      },
+      "controls": [
+        {
+          "name": "فتح التنقل",
+          "box": {
+            "x": 698,
+            "y": 10.703125,
+            "width": 54,
+            "height": 41.59375,
+            "right": 752,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تغيير النطاق",
+          "box": {
+            "x": 544.671875,
+            "y": 11.5,
+            "width": 145.328125,
+            "height": 40,
+            "right": 690,
+            "bottom": 51.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "اللغة",
+          "box": {
+            "x": 233.25,
+            "y": 10.703125,
+            "width": 55.15625,
+            "height": 41.59375,
+            "right": 288.40625,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "فاتح",
+          "box": {
+            "x": 187.25,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 222.25,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "داكن",
+          "box": {
+            "x": 152.25,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 187.25,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تسجيل الخروج",
+          "box": {
+            "x": 16,
+            "y": 10.703125,
+            "width": 125.25,
+            "height": 41.59375,
+            "right": 141.25,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 768,
+      "valid": true,
+      "failures": []
+    },
+    "after": {
+      "viewport": 768,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 768,
+        "height": 64,
+        "right": 768,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 544.671875,
+        "y": 10.703125,
+        "width": 207.328125,
+        "height": 41.59375,
+        "right": 752,
+        "bottom": 52.296875
+      },
+      "actions": {
+        "x": 16,
+        "y": 10.703125,
+        "width": 272.40625,
+        "height": 41.59375,
+        "right": 288.40625,
+        "bottom": 52.296875
+      },
+      "controls": [
+        {
+          "name": "فتح التنقل",
+          "box": {
+            "x": 698,
+            "y": 10.703125,
+            "width": 54,
+            "height": 41.59375,
+            "right": 752,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تغيير النطاق",
+          "box": {
+            "x": 544.671875,
+            "y": 11.5,
+            "width": 145.328125,
+            "height": 40,
+            "right": 690,
+            "bottom": 51.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "اللغة",
+          "box": {
+            "x": 233.25,
+            "y": 10.703125,
+            "width": 55.15625,
+            "height": 41.59375,
+            "right": 288.40625,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "فاتح",
+          "box": {
+            "x": 187.25,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 222.25,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "داكن",
+          "box": {
+            "x": 152.25,
+            "y": 17.5,
+            "width": 35,
+            "height": 28,
+            "right": 187.25,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تسجيل الخروج",
+          "box": {
+            "x": 16,
+            "y": 10.703125,
+            "width": 125.25,
+            "height": 41.59375,
+            "right": 141.25,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 768,
+      "valid": true,
+      "failures": []
+    }
+  },
+  {
+    "width": 1440,
+    "kind": "desktop",
+    "locale": "en",
+    "theme": "light",
+    "before": {
+      "viewport": 1440,
+      "topbar": {
+        "x": 260,
+        "y": 0,
+        "width": 1180,
+        "height": 64,
+        "right": 1440,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 284,
+        "y": 11.5,
+        "width": 145.328125,
+        "height": 40,
+        "right": 429.328125,
+        "bottom": 51.5
+      },
+      "actions": {
+        "x": 1104.234375,
+        "y": 10.703125,
+        "width": 311.765625,
+        "height": 41.59375,
+        "right": 1416,
+        "bottom": 52.296875
+      },
+      "controls": [
+        {
+          "name": "Change scope",
+          "box": {
+            "x": 284,
+            "y": 11.5,
+            "width": 145.328125,
+            "height": 40,
+            "right": 429.328125,
+            "bottom": 51.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Language",
+          "box": {
+            "x": 1104.234375,
+            "y": 10.703125,
+            "width": 55.703125,
+            "height": 41.59375,
+            "right": 1159.9375,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Light",
+          "box": {
+            "x": 1170.9375,
+            "y": 17.5,
+            "width": 69.46875,
+            "height": 28,
+            "right": 1240.40625,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Dark",
+          "box": {
+            "x": 1240.40625,
+            "y": 17.5,
+            "width": 67.390625,
+            "height": 28,
+            "right": 1307.796875,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Sign out",
+          "box": {
+            "x": 1318.796875,
+            "y": 10.703125,
+            "width": 97.203125,
+            "height": 41.59375,
+            "right": 1416,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 1440,
+      "valid": true,
+      "failures": []
+    },
+    "after": {
+      "viewport": 1440,
+      "topbar": {
+        "x": 260,
+        "y": 0,
+        "width": 1180,
+        "height": 64,
+        "right": 1440,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 284,
+        "y": 11.5,
+        "width": 145.328125,
+        "height": 40,
+        "right": 429.328125,
+        "bottom": 51.5
+      },
+      "actions": {
+        "x": 1104.234375,
+        "y": 10.703125,
+        "width": 311.765625,
+        "height": 41.59375,
+        "right": 1416,
+        "bottom": 52.296875
+      },
+      "controls": [
+        {
+          "name": "Change scope",
+          "box": {
+            "x": 284,
+            "y": 11.5,
+            "width": 145.328125,
+            "height": 40,
+            "right": 429.328125,
+            "bottom": 51.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Language",
+          "box": {
+            "x": 1104.234375,
+            "y": 10.703125,
+            "width": 55.703125,
+            "height": 41.59375,
+            "right": 1159.9375,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Light",
+          "box": {
+            "x": 1170.9375,
+            "y": 17.5,
+            "width": 69.46875,
+            "height": 28,
+            "right": 1240.40625,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Dark",
+          "box": {
+            "x": 1240.40625,
+            "y": 17.5,
+            "width": 67.390625,
+            "height": 28,
+            "right": 1307.796875,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Sign out",
+          "box": {
+            "x": 1318.796875,
+            "y": 10.703125,
+            "width": 97.203125,
+            "height": 41.59375,
+            "right": 1416,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 1440,
+      "valid": true,
+      "failures": []
+    }
+  },
+  {
+    "width": 1440,
+    "kind": "desktop",
+    "locale": "en",
+    "theme": "dark",
+    "before": {
+      "viewport": 1440,
+      "topbar": {
+        "x": 260,
+        "y": 0,
+        "width": 1180,
+        "height": 64,
+        "right": 1440,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 284,
+        "y": 11.5,
+        "width": 145.328125,
+        "height": 40,
+        "right": 429.328125,
+        "bottom": 51.5
+      },
+      "actions": {
+        "x": 1104.234375,
+        "y": 10.703125,
+        "width": 311.765625,
+        "height": 41.59375,
+        "right": 1416,
+        "bottom": 52.296875
+      },
+      "controls": [
+        {
+          "name": "Change scope",
+          "box": {
+            "x": 284,
+            "y": 11.5,
+            "width": 145.328125,
+            "height": 40,
+            "right": 429.328125,
+            "bottom": 51.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Language",
+          "box": {
+            "x": 1104.234375,
+            "y": 10.703125,
+            "width": 55.703125,
+            "height": 41.59375,
+            "right": 1159.9375,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Light",
+          "box": {
+            "x": 1170.9375,
+            "y": 17.5,
+            "width": 69.46875,
+            "height": 28,
+            "right": 1240.40625,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Dark",
+          "box": {
+            "x": 1240.40625,
+            "y": 17.5,
+            "width": 67.390625,
+            "height": 28,
+            "right": 1307.796875,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Sign out",
+          "box": {
+            "x": 1318.796875,
+            "y": 10.703125,
+            "width": 97.203125,
+            "height": 41.59375,
+            "right": 1416,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 1440,
+      "valid": true,
+      "failures": []
+    },
+    "after": {
+      "viewport": 1440,
+      "topbar": {
+        "x": 260,
+        "y": 0,
+        "width": 1180,
+        "height": 64,
+        "right": 1440,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 284,
+        "y": 11.5,
+        "width": 145.328125,
+        "height": 40,
+        "right": 429.328125,
+        "bottom": 51.5
+      },
+      "actions": {
+        "x": 1104.234375,
+        "y": 10.703125,
+        "width": 311.765625,
+        "height": 41.59375,
+        "right": 1416,
+        "bottom": 52.296875
+      },
+      "controls": [
+        {
+          "name": "Change scope",
+          "box": {
+            "x": 284,
+            "y": 11.5,
+            "width": 145.328125,
+            "height": 40,
+            "right": 429.328125,
+            "bottom": 51.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Language",
+          "box": {
+            "x": 1104.234375,
+            "y": 10.703125,
+            "width": 55.703125,
+            "height": 41.59375,
+            "right": 1159.9375,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Light",
+          "box": {
+            "x": 1170.9375,
+            "y": 17.5,
+            "width": 69.46875,
+            "height": 28,
+            "right": 1240.40625,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Dark",
+          "box": {
+            "x": 1240.40625,
+            "y": 17.5,
+            "width": 67.390625,
+            "height": 28,
+            "right": 1307.796875,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Sign out",
+          "box": {
+            "x": 1318.796875,
+            "y": 10.703125,
+            "width": 97.203125,
+            "height": 41.59375,
+            "right": 1416,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 1440,
+      "valid": true,
+      "failures": []
+    }
+  },
+  {
+    "width": 1440,
+    "kind": "desktop",
+    "locale": "ar",
+    "theme": "light",
+    "before": {
+      "viewport": 1440,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 1180,
+        "height": 64,
+        "right": 1180,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 1010.671875,
+        "y": 11.5,
+        "width": 145.328125,
+        "height": 40,
+        "right": 1156,
+        "bottom": 51.5
+      },
+      "actions": {
+        "x": 24,
+        "y": 10.703125,
+        "width": 326.6875,
+        "height": 41.59375,
+        "right": 350.6875,
+        "bottom": 52.296875
+      },
+      "controls": [
+        {
+          "name": "تغيير النطاق",
+          "box": {
+            "x": 1010.671875,
+            "y": 11.5,
+            "width": 145.328125,
+            "height": 40,
+            "right": 1156,
+            "bottom": 51.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "اللغة",
+          "box": {
+            "x": 295.53125,
+            "y": 10.703125,
+            "width": 55.15625,
+            "height": 41.59375,
+            "right": 350.6875,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "فاتح",
+          "box": {
+            "x": 223.890625,
+            "y": 17.5,
+            "width": 60.640625,
+            "height": 28,
+            "right": 284.53125,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "داكن",
+          "box": {
+            "x": 160.25,
+            "y": 17.5,
+            "width": 63.640625,
+            "height": 28,
+            "right": 223.890625,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تسجيل الخروج",
+          "box": {
+            "x": 24,
+            "y": 10.703125,
+            "width": 125.25,
+            "height": 41.59375,
+            "right": 149.25,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 1440,
+      "valid": true,
+      "failures": []
+    },
+    "after": {
+      "viewport": 1440,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 1180,
+        "height": 64,
+        "right": 1180,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 1010.671875,
+        "y": 11.5,
+        "width": 145.328125,
+        "height": 40,
+        "right": 1156,
+        "bottom": 51.5
+      },
+      "actions": {
+        "x": 24,
+        "y": 10.703125,
+        "width": 326.6875,
+        "height": 41.59375,
+        "right": 350.6875,
+        "bottom": 52.296875
+      },
+      "controls": [
+        {
+          "name": "تغيير النطاق",
+          "box": {
+            "x": 1010.671875,
+            "y": 11.5,
+            "width": 145.328125,
+            "height": 40,
+            "right": 1156,
+            "bottom": 51.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "اللغة",
+          "box": {
+            "x": 295.53125,
+            "y": 10.703125,
+            "width": 55.15625,
+            "height": 41.59375,
+            "right": 350.6875,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "فاتح",
+          "box": {
+            "x": 223.890625,
+            "y": 17.5,
+            "width": 60.640625,
+            "height": 28,
+            "right": 284.53125,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "داكن",
+          "box": {
+            "x": 160.25,
+            "y": 17.5,
+            "width": 63.640625,
+            "height": 28,
+            "right": 223.890625,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تسجيل الخروج",
+          "box": {
+            "x": 24,
+            "y": 10.703125,
+            "width": 125.25,
+            "height": 41.59375,
+            "right": 149.25,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 1440,
+      "valid": true,
+      "failures": []
+    }
+  },
+  {
+    "width": 1440,
+    "kind": "desktop",
+    "locale": "ar",
+    "theme": "dark",
+    "before": {
+      "viewport": 1440,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 1180,
+        "height": 64,
+        "right": 1180,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 1010.671875,
+        "y": 11.5,
+        "width": 145.328125,
+        "height": 40,
+        "right": 1156,
+        "bottom": 51.5
+      },
+      "actions": {
+        "x": 24,
+        "y": 10.703125,
+        "width": 326.6875,
+        "height": 41.59375,
+        "right": 350.6875,
+        "bottom": 52.296875
+      },
+      "controls": [
+        {
+          "name": "تغيير النطاق",
+          "box": {
+            "x": 1010.671875,
+            "y": 11.5,
+            "width": 145.328125,
+            "height": 40,
+            "right": 1156,
+            "bottom": 51.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "اللغة",
+          "box": {
+            "x": 295.53125,
+            "y": 10.703125,
+            "width": 55.15625,
+            "height": 41.59375,
+            "right": 350.6875,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "فاتح",
+          "box": {
+            "x": 223.890625,
+            "y": 17.5,
+            "width": 60.640625,
+            "height": 28,
+            "right": 284.53125,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "داكن",
+          "box": {
+            "x": 160.25,
+            "y": 17.5,
+            "width": 63.640625,
+            "height": 28,
+            "right": 223.890625,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تسجيل الخروج",
+          "box": {
+            "x": 24,
+            "y": 10.703125,
+            "width": 125.25,
+            "height": 41.59375,
+            "right": 149.25,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 1440,
+      "valid": true,
+      "failures": []
+    },
+    "after": {
+      "viewport": 1440,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 1180,
+        "height": 64,
+        "right": 1180,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 1010.671875,
+        "y": 11.5,
+        "width": 145.328125,
+        "height": 40,
+        "right": 1156,
+        "bottom": 51.5
+      },
+      "actions": {
+        "x": 24,
+        "y": 10.703125,
+        "width": 326.6875,
+        "height": 41.59375,
+        "right": 350.6875,
+        "bottom": 52.296875
+      },
+      "controls": [
+        {
+          "name": "تغيير النطاق",
+          "box": {
+            "x": 1010.671875,
+            "y": 11.5,
+            "width": 145.328125,
+            "height": 40,
+            "right": 1156,
+            "bottom": 51.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "اللغة",
+          "box": {
+            "x": 295.53125,
+            "y": 10.703125,
+            "width": 55.15625,
+            "height": 41.59375,
+            "right": 350.6875,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "فاتح",
+          "box": {
+            "x": 223.890625,
+            "y": 17.5,
+            "width": 60.640625,
+            "height": 28,
+            "right": 284.53125,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "داكن",
+          "box": {
+            "x": 160.25,
+            "y": 17.5,
+            "width": 63.640625,
+            "height": 28,
+            "right": 223.890625,
+            "bottom": 45.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تسجيل الخروج",
+          "box": {
+            "x": 24,
+            "y": 10.703125,
+            "width": 125.25,
+            "height": 41.59375,
+            "right": 149.25,
+            "bottom": 52.296875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 1440,
+      "valid": true,
+      "failures": []
+    }
+  },
+  {
+    "width": 384,
+    "kind": "zoom200",
+    "locale": "en",
+    "theme": "light",
+    "before": {
+      "viewport": 384,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 384,
+        "height": 64,
+        "right": 384,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 16,
+        "y": -13.296875,
+        "width": 154.046875,
+        "height": 89.59375,
+        "right": 170.046875,
+        "bottom": 76.296875
+      },
+      "actions": {
+        "x": 186.046875,
+        "y": -14.09375,
+        "width": 181.953125,
+        "height": 91.1875,
+        "right": 368,
+        "bottom": 77.09375
+      },
+      "controls": [
+        {
+          "name": "Open navigation",
+          "box": {
+            "x": 16,
+            "y": -13.296875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 70,
+            "bottom": 28.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Change scope",
+          "box": {
+            "x": 16,
+            "y": 36.296875,
+            "width": 145.328125,
+            "height": 40,
+            "right": 161.328125,
+            "bottom": 76.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Language",
+          "box": {
+            "x": 186.046875,
+            "y": -14.09375,
+            "width": 55.703125,
+            "height": 41.59375,
+            "right": 241.75,
+            "bottom": 27.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Light",
+          "box": {
+            "x": 252.75,
+            "y": -7.296875,
+            "width": 35,
+            "height": 28,
+            "right": 287.75,
+            "bottom": 20.703125
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Dark",
+          "box": {
+            "x": 287.75,
+            "y": -7.296875,
+            "width": 35,
+            "height": 28,
+            "right": 322.75,
+            "bottom": 20.703125
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Sign out",
+          "box": {
+            "x": 186.046875,
+            "y": 35.5,
+            "width": 97.203125,
+            "height": 41.59375,
+            "right": 283.25,
+            "bottom": 77.09375
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 384,
+      "valid": false,
+      "failures": [
+        "Open navigation outside topbar vertically",
+        "Change scope outside topbar vertically",
+        "Language outside topbar vertically",
+        "Light outside topbar vertically",
+        "Dark outside topbar vertically",
+        "Sign out outside topbar vertically"
+      ]
+    },
+    "after": {
+      "viewport": 384,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 384,
+        "height": 92.1875,
+        "right": 384,
+        "bottom": 92.1875
+      },
+      "scope": {
+        "x": 16,
+        "y": 0.796875,
+        "width": 154.046875,
+        "height": 89.59375,
+        "right": 170.046875,
+        "bottom": 90.390625
+      },
+      "actions": {
+        "x": 186.046875,
+        "y": 0,
+        "width": 181.953125,
+        "height": 91.1875,
+        "right": 368,
+        "bottom": 91.1875
+      },
+      "controls": [
+        {
+          "name": "Open navigation",
+          "box": {
+            "x": 16,
+            "y": 0.796875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 70,
+            "bottom": 42.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Change scope",
+          "box": {
+            "x": 16,
+            "y": 50.390625,
+            "width": 145.328125,
+            "height": 40,
+            "right": 161.328125,
+            "bottom": 90.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Language",
+          "box": {
+            "x": 186.046875,
+            "y": 0,
+            "width": 55.703125,
+            "height": 41.59375,
+            "right": 241.75,
+            "bottom": 41.59375
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Light",
+          "box": {
+            "x": 252.75,
+            "y": 6.796875,
+            "width": 35,
+            "height": 28,
+            "right": 287.75,
+            "bottom": 34.796875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Dark",
+          "box": {
+            "x": 287.75,
+            "y": 6.796875,
+            "width": 35,
+            "height": 28,
+            "right": 322.75,
+            "bottom": 34.796875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Sign out",
+          "box": {
+            "x": 186.046875,
+            "y": 49.59375,
+            "width": 97.203125,
+            "height": 41.59375,
+            "right": 283.25,
+            "bottom": 91.1875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 384,
+      "valid": true,
+      "failures": []
+    }
+  },
+  {
+    "width": 384,
+    "kind": "zoom200",
+    "locale": "en",
+    "theme": "dark",
+    "before": {
+      "viewport": 384,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 384,
+        "height": 64,
+        "right": 384,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 16,
+        "y": -13.296875,
+        "width": 154.046875,
+        "height": 89.59375,
+        "right": 170.046875,
+        "bottom": 76.296875
+      },
+      "actions": {
+        "x": 186.046875,
+        "y": -14.09375,
+        "width": 181.953125,
+        "height": 91.1875,
+        "right": 368,
+        "bottom": 77.09375
+      },
+      "controls": [
+        {
+          "name": "Open navigation",
+          "box": {
+            "x": 16,
+            "y": -13.296875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 70,
+            "bottom": 28.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Change scope",
+          "box": {
+            "x": 16,
+            "y": 36.296875,
+            "width": 145.328125,
+            "height": 40,
+            "right": 161.328125,
+            "bottom": 76.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Language",
+          "box": {
+            "x": 186.046875,
+            "y": -14.09375,
+            "width": 55.703125,
+            "height": 41.59375,
+            "right": 241.75,
+            "bottom": 27.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Light",
+          "box": {
+            "x": 252.75,
+            "y": -7.296875,
+            "width": 35,
+            "height": 28,
+            "right": 287.75,
+            "bottom": 20.703125
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Dark",
+          "box": {
+            "x": 287.75,
+            "y": -7.296875,
+            "width": 35,
+            "height": 28,
+            "right": 322.75,
+            "bottom": 20.703125
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Sign out",
+          "box": {
+            "x": 186.046875,
+            "y": 35.5,
+            "width": 97.203125,
+            "height": 41.59375,
+            "right": 283.25,
+            "bottom": 77.09375
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 384,
+      "valid": false,
+      "failures": [
+        "Open navigation outside topbar vertically",
+        "Change scope outside topbar vertically",
+        "Language outside topbar vertically",
+        "Light outside topbar vertically",
+        "Dark outside topbar vertically",
+        "Sign out outside topbar vertically"
+      ]
+    },
+    "after": {
+      "viewport": 384,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 384,
+        "height": 92.1875,
+        "right": 384,
+        "bottom": 92.1875
+      },
+      "scope": {
+        "x": 16,
+        "y": 0.796875,
+        "width": 154.046875,
+        "height": 89.59375,
+        "right": 170.046875,
+        "bottom": 90.390625
+      },
+      "actions": {
+        "x": 186.046875,
+        "y": 0,
+        "width": 181.953125,
+        "height": 91.1875,
+        "right": 368,
+        "bottom": 91.1875
+      },
+      "controls": [
+        {
+          "name": "Open navigation",
+          "box": {
+            "x": 16,
+            "y": 0.796875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 70,
+            "bottom": 42.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Change scope",
+          "box": {
+            "x": 16,
+            "y": 50.390625,
+            "width": 145.328125,
+            "height": 40,
+            "right": 161.328125,
+            "bottom": 90.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Language",
+          "box": {
+            "x": 186.046875,
+            "y": 0,
+            "width": 55.703125,
+            "height": 41.59375,
+            "right": 241.75,
+            "bottom": 41.59375
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Light",
+          "box": {
+            "x": 252.75,
+            "y": 6.796875,
+            "width": 35,
+            "height": 28,
+            "right": 287.75,
+            "bottom": 34.796875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Dark",
+          "box": {
+            "x": 287.75,
+            "y": 6.796875,
+            "width": 35,
+            "height": 28,
+            "right": 322.75,
+            "bottom": 34.796875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "Sign out",
+          "box": {
+            "x": 186.046875,
+            "y": 49.59375,
+            "width": 97.203125,
+            "height": 41.59375,
+            "right": 283.25,
+            "bottom": 91.1875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 384,
+      "valid": true,
+      "failures": []
+    }
+  },
+  {
+    "width": 384,
+    "kind": "zoom200",
+    "locale": "ar",
+    "theme": "light",
+    "before": {
+      "viewport": 384,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 384,
+        "height": 64,
+        "right": 384,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 222.671875,
+        "y": -13.296875,
+        "width": 145.328125,
+        "height": 89.59375,
+        "right": 368,
+        "bottom": 76.296875
+      },
+      "actions": {
+        "x": 16,
+        "y": -14.09375,
+        "width": 190.671875,
+        "height": 91.1875,
+        "right": 206.671875,
+        "bottom": 77.09375
+      },
+      "controls": [
+        {
+          "name": "فتح التنقل",
+          "box": {
+            "x": 314,
+            "y": -13.296875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 368,
+            "bottom": 28.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تغيير النطاق",
+          "box": {
+            "x": 222.671875,
+            "y": 36.296875,
+            "width": 145.328125,
+            "height": 40,
+            "right": 368,
+            "bottom": 76.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "اللغة",
+          "box": {
+            "x": 151.515625,
+            "y": -14.09375,
+            "width": 55.15625,
+            "height": 41.59375,
+            "right": 206.671875,
+            "bottom": 27.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "فاتح",
+          "box": {
+            "x": 105.515625,
+            "y": -7.296875,
+            "width": 35,
+            "height": 28,
+            "right": 140.515625,
+            "bottom": 20.703125
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "داكن",
+          "box": {
+            "x": 70.515625,
+            "y": -7.296875,
+            "width": 35,
+            "height": 28,
+            "right": 105.515625,
+            "bottom": 20.703125
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تسجيل الخروج",
+          "box": {
+            "x": 81.421875,
+            "y": 35.5,
+            "width": 125.25,
+            "height": 41.59375,
+            "right": 206.671875,
+            "bottom": 77.09375
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 384,
+      "valid": false,
+      "failures": [
+        "فتح التنقل outside topbar vertically",
+        "تغيير النطاق outside topbar vertically",
+        "اللغة outside topbar vertically",
+        "فاتح outside topbar vertically",
+        "داكن outside topbar vertically",
+        "تسجيل الخروج outside topbar vertically"
+      ]
+    },
+    "after": {
+      "viewport": 384,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 384,
+        "height": 92.1875,
+        "right": 384,
+        "bottom": 92.1875
+      },
+      "scope": {
+        "x": 222.671875,
+        "y": 0.796875,
+        "width": 145.328125,
+        "height": 89.59375,
+        "right": 368,
+        "bottom": 90.390625
+      },
+      "actions": {
+        "x": 16,
+        "y": 0,
+        "width": 190.671875,
+        "height": 91.1875,
+        "right": 206.671875,
+        "bottom": 91.1875
+      },
+      "controls": [
+        {
+          "name": "فتح التنقل",
+          "box": {
+            "x": 314,
+            "y": 0.796875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 368,
+            "bottom": 42.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تغيير النطاق",
+          "box": {
+            "x": 222.671875,
+            "y": 50.390625,
+            "width": 145.328125,
+            "height": 40,
+            "right": 368,
+            "bottom": 90.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "اللغة",
+          "box": {
+            "x": 151.515625,
+            "y": 0,
+            "width": 55.15625,
+            "height": 41.59375,
+            "right": 206.671875,
+            "bottom": 41.59375
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "فاتح",
+          "box": {
+            "x": 105.515625,
+            "y": 6.796875,
+            "width": 35,
+            "height": 28,
+            "right": 140.515625,
+            "bottom": 34.796875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "داكن",
+          "box": {
+            "x": 70.515625,
+            "y": 6.796875,
+            "width": 35,
+            "height": 28,
+            "right": 105.515625,
+            "bottom": 34.796875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تسجيل الخروج",
+          "box": {
+            "x": 81.421875,
+            "y": 49.59375,
+            "width": 125.25,
+            "height": 41.59375,
+            "right": 206.671875,
+            "bottom": 91.1875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 384,
+      "valid": true,
+      "failures": []
+    }
+  },
+  {
+    "width": 384,
+    "kind": "zoom200",
+    "locale": "ar",
+    "theme": "dark",
+    "before": {
+      "viewport": 384,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 384,
+        "height": 64,
+        "right": 384,
+        "bottom": 64
+      },
+      "scope": {
+        "x": 222.671875,
+        "y": -13.296875,
+        "width": 145.328125,
+        "height": 89.59375,
+        "right": 368,
+        "bottom": 76.296875
+      },
+      "actions": {
+        "x": 16,
+        "y": -14.09375,
+        "width": 190.671875,
+        "height": 91.1875,
+        "right": 206.671875,
+        "bottom": 77.09375
+      },
+      "controls": [
+        {
+          "name": "فتح التنقل",
+          "box": {
+            "x": 314,
+            "y": -13.296875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 368,
+            "bottom": 28.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تغيير النطاق",
+          "box": {
+            "x": 222.671875,
+            "y": 36.296875,
+            "width": 145.328125,
+            "height": 40,
+            "right": 368,
+            "bottom": 76.296875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "اللغة",
+          "box": {
+            "x": 151.515625,
+            "y": -14.09375,
+            "width": 55.15625,
+            "height": 41.59375,
+            "right": 206.671875,
+            "bottom": 27.5
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "فاتح",
+          "box": {
+            "x": 105.515625,
+            "y": -7.296875,
+            "width": 35,
+            "height": 28,
+            "right": 140.515625,
+            "bottom": 20.703125
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "داكن",
+          "box": {
+            "x": 70.515625,
+            "y": -7.296875,
+            "width": 35,
+            "height": 28,
+            "right": 105.515625,
+            "bottom": 20.703125
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تسجيل الخروج",
+          "box": {
+            "x": 81.421875,
+            "y": 35.5,
+            "width": 125.25,
+            "height": 41.59375,
+            "right": 206.671875,
+            "bottom": 77.09375
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 384,
+      "valid": false,
+      "failures": [
+        "فتح التنقل outside topbar vertically",
+        "تغيير النطاق outside topbar vertically",
+        "اللغة outside topbar vertically",
+        "فاتح outside topbar vertically",
+        "داكن outside topbar vertically",
+        "تسجيل الخروج outside topbar vertically"
+      ]
+    },
+    "after": {
+      "viewport": 384,
+      "topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 384,
+        "height": 92.1875,
+        "right": 384,
+        "bottom": 92.1875
+      },
+      "scope": {
+        "x": 222.671875,
+        "y": 0.796875,
+        "width": 145.328125,
+        "height": 89.59375,
+        "right": 368,
+        "bottom": 90.390625
+      },
+      "actions": {
+        "x": 16,
+        "y": 0,
+        "width": 190.671875,
+        "height": 91.1875,
+        "right": 206.671875,
+        "bottom": 91.1875
+      },
+      "controls": [
+        {
+          "name": "فتح التنقل",
+          "box": {
+            "x": 314,
+            "y": 0.796875,
+            "width": 54,
+            "height": 41.59375,
+            "right": 368,
+            "bottom": 42.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تغيير النطاق",
+          "box": {
+            "x": 222.671875,
+            "y": 50.390625,
+            "width": 145.328125,
+            "height": 40,
+            "right": 368,
+            "bottom": 90.390625
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "اللغة",
+          "box": {
+            "x": 151.515625,
+            "y": 0,
+            "width": 55.15625,
+            "height": 41.59375,
+            "right": 206.671875,
+            "bottom": 41.59375
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "فاتح",
+          "box": {
+            "x": 105.515625,
+            "y": 6.796875,
+            "width": 35,
+            "height": 28,
+            "right": 140.515625,
+            "bottom": 34.796875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "داكن",
+          "box": {
+            "x": 70.515625,
+            "y": 6.796875,
+            "width": 35,
+            "height": 28,
+            "right": 105.515625,
+            "bottom": 34.796875
+          },
+          "centerUnobscured": true
+        },
+        {
+          "name": "تسجيل الخروج",
+          "box": {
+            "x": 81.421875,
+            "y": 49.59375,
+            "width": 125.25,
+            "height": 41.59375,
+            "right": 206.671875,
+            "bottom": 91.1875
+          },
+          "centerUnobscured": true
+        }
+      ],
+      "scrollWidth": 384,
+      "valid": true,
+      "failures": []
+    }
+  }
+]

@@ -24,9 +24,12 @@ interface CommandRow {
 }
 
 function requireCommandRow(row: CommandRow | undefined): string {
-  if (row === undefined) throw new Error("Physical resource create returned no row.");
-  if (row.result_code !== "OK") throw new PhysicalResourceError(row.result_code);
-  if (row.resource_id === null) throw new Error("Physical resource create returned no id.");
+  if (row === undefined)
+    throw new Error("Physical resource create returned no row.");
+  if (row.result_code !== "OK")
+    throw new PhysicalResourceError(row.result_code);
+  if (row.resource_id === null)
+    throw new Error("Physical resource create returned no id.");
   return row.resource_id;
 }
 
@@ -39,7 +42,7 @@ export async function createKeySlot(
     const row = (
       await transaction.query<CommandRow>(
         `SELECT * FROM management_physical_resource_create_key_slot(
-           $1::uuid,$2::uuid,$3::uuid,$4::uuid,$5::text,$6::text)`,
+           $1::uuid,$2::uuid,$3::uuid,$4::uuid,$5::text,$6::text,$7::text)`,
         [
           authority.membershipId,
           authority.organizationId,
@@ -47,6 +50,7 @@ export async function createKeySlot(
           request.operationId,
           keySlotCreateFingerprint(authority.locationId, request),
           request.code,
+          request.label ?? null,
         ],
       )
     ).rows[0];
@@ -55,10 +59,11 @@ export async function createKeySlot(
       code: string;
       createdAt: Date;
       keySlotId: string;
+      label: string | null;
       status: "ACTIVE" | "INACTIVE";
       updatedAt: Date;
     }>(
-      `SELECT id::text AS "keySlotId", code, status::text AS status,
+      `SELECT id::text AS "keySlotId", code, label, status::text AS status,
               created_at AS "createdAt", updated_at AS "updatedAt"
        FROM key_slots
        WHERE id = $1 AND organization_id = $2 AND location_id = $3`,

@@ -6,8 +6,8 @@ import { fileURLToPath } from "node:url";
 import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { expectedMigrationDirectories } from "./migration-manifest.js";
-import { issue300AppendedMigrationDirectories } from "./issue300-migration-source-appendix.js";
+
+import { expectedCurrentMigrationDirectories } from "./issue304-migration-source-appendix.js";
 
 interface PostgresError extends Error {
   readonly code?: string;
@@ -104,8 +104,8 @@ afterAll(async () => {
 
 describe("migration 26 financial policy", () => {
   it("is exactly the next forward-only migration with exact enum values", async () => {
-    expect(migrationDirectories).toEqual([...expectedMigrationDirectories, ...issue300AppendedMigrationDirectories]);
-    expect(migrationDirectories).toHaveLength(expectedMigrationDirectories.length + 3);
+    expect(migrationDirectories).toEqual(expectedCurrentMigrationDirectories);
+    expect(migrationDirectories).toHaveLength(expectedCurrentMigrationDirectories.length);
     expect(migrationDirectories[25]).toBe(
       "20260815002600_phase6_financial_policy_payment_core",
     );

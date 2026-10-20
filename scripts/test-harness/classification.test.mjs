@@ -201,7 +201,8 @@ test("current API and database tests each have exactly one owner", () => {
     Object.values(database).flat().length,
     discoverTests(databaseRoot).length,
   );
-  assert.equal(database["database-non-postgres"].length, 7);
+  assert.equal(database["database-non-postgres"].length, 8);
+  assert.ok(database["database-non-postgres"].includes("issue304-migration-source-appendix.test.ts"));
   assert.equal(database["database-postgres-direct"].length, 41);
   assert.equal(database["database-postgres-provision"].length, 41);
   assert.deepEqual(database[ISSUE215_PROJECT], issue215PostgresFiles);

@@ -1,0 +1,308 @@
+/*
+ * #304 Option 3: visual-only treatment of existing authenticated dialogs.
+ * The data attribute is rendered ONLY by Issue304ActionDialogs. FocusDialog,
+ * its keyboard trap, idempotent mutations and actual QR payload stay intact.
+ */
+[data-issue304-action-surface] > div > .dialog-backdrop {
+  z-index: 65;
+  padding: 1rem;
+  background: rgba(3, 10, 26, .64);
+}
+
+/* Double class intentionally outranks the native CSS-module host rule. */
+[data-issue304-action-surface] > div > .dialog-backdrop > .dialog-panel.dialog-panel {
+  box-sizing: border-box;
+  width: min(450px, 100%);
+  max-height: min(90dvh, 750px);
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: .9rem;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 24px 90px rgba(0, 0, 0, .25);
+  padding: 1.35rem;
+  font-family: Inter, "Segoe UI", Tahoma, Arial, sans-serif;
+}
+
+[data-issue304-action-surface] .dialog-panel button:focus-visible,
+[data-issue304-action-surface] .dialog-panel input:focus-visible,
+[data-issue304-action-surface] .dialog-panel select:focus-visible {
+  outline: 2px solid var(--focus, var(--accent));
+  outline-offset: 3px;
+}
+
+[data-issue304-action-surface] .issue304-modal-heading {
+  position: relative;
+  display: block;
+  margin-block-end: 1rem;
+}
+
+[data-issue304-action-surface] .issue304-modal-title {
+  min-width: 0;
+}
+
+[data-issue304-action-surface] .issue304-modal-kicker {
+  color: var(--muted);
+  font-size: .74rem;
+  font-weight: 740;
+  letter-spacing: .015em;
+}
+
+[data-issue304-action-surface] .issue304-modal-heading h2 {
+  margin: .4rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 750;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+[data-issue304-action-surface] .issue304-modal-heading-actions {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+}
+
+[data-issue304-action-surface] .issue304-modal-close {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  min-height: 2rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: .5rem;
+  color: var(--text);
+  background: var(--surface-soft);
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+/* The frozen Option 3 draft uses the same compact form, explanatory
+ * paragraph and action spacing for Key, Spot, and Parking Zone. */
+[data-issue304-action-surface] .issue304-modal-disclaimer {
+  color: var(--muted);
+  font-size: .73rem;
+  line-height: 1.6;
+  margin: .85rem 0 1.2rem;
+  overflow-wrap: anywhere;
+}
+
+@media screen and (max-width: 359px) {
+  /* The frozen 320px English Create previews use a two-line introduction.
+   * Arabic operational copy remains one line at the same breakpoint. */
+  [data-issue304-action-surface="create"] .issue304-modal-disclaimer[lang="en"],
+  [data-issue304-action-surface="create-zone"] .issue304-modal-disclaimer[lang="en"] {
+    max-inline-size: 200px;
+  }
+  /* The shorter Parking Zone sentence also occupies two lines in the
+   * frozen 320px form; larger screens retain their natural line length. */
+  [data-issue304-action-surface="create-zone"] .issue304-modal-disclaimer[lang="en"] {
+    max-inline-size: 160px;
+  }
+}
+
+[data-issue304-action-surface] .issue304-modal-form {
+  display: grid;
+  gap: .85rem;
+}
+
+[data-issue304-action-surface] .issue304-modal-form label {
+  display: grid;
+  gap: .3rem;
+  min-width: 0;
+  color: var(--text);
+  font-size: .74rem;
+  font-weight: 740;
+}
+
+[data-issue304-action-surface] .issue304-modal-form input,
+[data-issue304-action-surface] .issue304-modal-form select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 2.6rem;
+  border: 1px solid var(--border);
+  border-radius: .5rem;
+  padding: .5rem .65rem;
+  background: var(--surface-soft);
+  color: var(--text);
+}
+
+[data-issue304-action-surface] .issue304-modal-form input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+[data-issue304-action-surface] .issue304-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: .55rem;
+  margin-block-start: 1.3rem;
+}
+
+[data-issue304-action-surface] .issue304-modal-quiet,
+[data-issue304-action-surface] .issue304-modal-primary,
+[data-issue304-action-surface] .issue304-modal-pagination button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: .35rem;
+  min-height: 2.45rem;
+  padding: .55rem .95rem;
+  border: 1px solid var(--border);
+  border-radius: .55rem;
+  font-size: .75rem;
+  font-weight: 740;
+  line-height: 1.2;
+}
+
+[data-issue304-action-surface] .issue304-modal-quiet,
+[data-issue304-action-surface] .issue304-modal-pagination button {
+  background: var(--surface);
+  color: var(--text);
+}
+
+[data-issue304-action-surface] .issue304-modal-primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+[data-issue304-action-surface] .issue304-modal-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .55rem;
+}
+
+[data-issue304-action-surface] .issue304-modal-form button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+[data-issue304-action-surface] .issue304-modal-error {
+  color: var(--danger);
+  font-size: .73rem;
+  line-height: 1.45;
+}
+
+[data-issue304-action-surface="label"] .issue304-modal-label-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  font-size: .85rem;
+  font-weight: 790;
+  letter-spacing: .12em;
+}
+
+[data-issue304-action-surface="label"] .issue304-modal-label-brand > span {
+  display: inline-grid;
+  place-items: center;
+  padding: .2rem .38rem;
+  border-radius: .3rem;
+  background: #1253d4;
+  color: #fff;
+  font-size: .73rem;
+}
+
+[data-issue304-action-surface="label"] [class*="labelActions"] {
+  justify-content: flex-end;
+  gap: .55rem;
+  margin-block-start: 1.3rem;
+}
+
+/* Only the live, server-backed QR preview receives the Option 3 label scale. */
+@media screen {
+  /* The approved English buttons read "Download preview" and "Print preview".
+   * Preserve their natural two-row footprint for narrow QR dialogs even though
+   * production labels are shorter. Keep flex wrapping and real button content. */
+  [data-issue304-action-surface="label"] [data-issue304-label-locale="en"] .issue304-modal-disclaimer {
+    max-width: 280px;
+  }
+
+  /* Match the native printable label's one-pixel baseline to the frozen
+   * illustrative QR card without imposing an artificial modal height. */
+  [data-issue304-action-surface="label"] .issue304-modal-disclaimer {
+    margin-block-start: calc(.85rem - 1px);
+  }
+
+  [data-issue304-action-surface="label"] [data-issue304-label-locale="en"] .issue304-modal-actions > button:nth-child(2) {
+    min-inline-size: 8.875rem;
+  }
+
+  [data-issue304-action-surface="label"] [data-issue304-label-locale="en"] .issue304-modal-actions > button:nth-child(3) {
+    min-inline-size: 6.875rem;
+  }
+
+  [data-issue304-action-surface="label"] [data-testid="physical-resource-print-label"] {
+    width: min(100%, 300px);
+    max-width: 300px;
+    padding: 1.35rem;
+    border: 1px solid #d8dfe9;
+    border-radius: .6rem;
+    background: #fff;
+    color: #111c31;
+    text-align: center;
+    gap: 0;
+  }
+
+  [data-issue304-action-surface="label"] .issue304-modal-label-resource {
+    display: grid;
+    justify-items: center;
+    gap: .15rem;
+    margin: 1rem 0 .65rem;
+    min-width: 0;
+  }
+
+  [data-issue304-action-surface="label"] .issue304-modal-label-resource > span:first-child {
+    color: #52627e;
+    font-size: .59rem;
+    font-weight: 780;
+    letter-spacing: .1em;
+  }
+
+  [data-issue304-action-surface="label"] .issue304-modal-label-resource > bdi {
+    direction: ltr;
+    unicode-bidi: isolate;
+    font-size: 1.5rem;
+    font-weight: 850;
+  }
+
+  [data-issue304-action-surface="label"] .issue304-modal-label-resource > span:last-child {
+    max-width: 100%;
+    color: #52627e;
+    font-size: .62rem;
+    font-weight: 400;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  [data-issue304-action-surface="label"] [data-testid="physical-resource-print-label"] > img {
+    width: 143px;
+    height: 143px;
+    margin: 0 auto;
+    object-fit: contain;
+  }
+}
+
+@media screen and (max-width: 359px) {
+  /* Positioning the heading actions absolutely must still reserve their space.
+   * A real two-line title restores the frozen 320px QR dialog's natural height. */
+  [data-issue304-action-surface="label"] .issue304-modal-title {
+    max-inline-size: calc(100% - 3rem);
+  }
+}
+
+@media print {
+  /* The existing print-only label rules remain authoritative. */
+  [data-issue304-action-surface] > div > .dialog-backdrop > .dialog-panel.dialog-panel {
+    box-shadow: none;
+  }
+}

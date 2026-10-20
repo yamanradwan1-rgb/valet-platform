@@ -1,6 +1,7 @@
 export const runtimePhysicalResourceFunctions = [
   "public.management_physical_resource_create_parking_zone(uuid,uuid,uuid,uuid,text,text,text)",
   "public.management_physical_resource_create_key_slot(uuid,uuid,uuid,uuid,text,text)",
+  "public.management_physical_resource_create_key_slot(uuid,uuid,uuid,uuid,text,text,text)",
   "public.management_physical_resource_create_parking_spot(uuid,uuid,uuid,uuid,text,uuid,text,text)",
 ];
 

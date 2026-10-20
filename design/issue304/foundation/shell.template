@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" dir="ltr" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>%%PAGE_TITLE%% — VAYLET Management</title>
+  <style data-issue304-shell>%%SHELL_CSS%%</style>
+  <style data-issue304-interior>%%INTERIOR_CSS%%</style>
+</head>
+<body>
+  <div class="shell" data-sidebar-collapsed="false" data-issue304-shell>
+    <aside class="sidebar" data-collapsed="false" aria-label="Sidebar">
+      <div class="sidebar-brand">
+        <span class="vaylet-logo" aria-label="VAYLET">
+          <img class="vaylet-logo-emblem" alt="" aria-hidden="true" width="32" height="32" src="%%EMBLEM%%">
+          <img class="vaylet-logo-wordmark" alt="" aria-hidden="true" width="108" height="16" src="%%WHITE_WORDMARK%%">
+        </span>
+      </div>
+      <button type="button" class="sidebar-scope" data-shell-org aria-label="Change organization">
+        %%BUILDING_ICON%%<bdi class="sidebar-scope-value" data-shell-organization>VAYLET Demo Organization</bdi>%%SIDEBAR_CHEVRON_ICON%%
+      </button>
+      <div class="sidebar-navigation"><nav aria-label="Management navigation"><ul class="nav-list" data-shell-nav="main">%%MAIN_NAV%%</ul></nav></div>
+      <div class="sidebar-utilities">
+        <nav aria-label="Management navigation"><ul class="nav-list" data-shell-nav="utility">%%UTILITY_NAV%%</ul></nav>
+        <button type="button" class="button button-quiet sidebar-collapse" data-shell-collapse aria-label="Collapse sidebar">%%COLLAPSE_ICON%%<span class="nav-label" data-copy="collapse">Collapse sidebar</span></button>
+      </div>
+    </aside>
+    <div class="shell-main">
+      <header class="topbar">
+        <div class="scope-line">
+          <button type="button" class="button button-quiet mobile-menu" data-shell-menu-trigger aria-haspopup="dialog" aria-expanded="false" aria-label="Open navigation">%%MENU_ICON%%</button>
+          <div class="shell-location-anchor">
+            <button type="button" class="location-context" data-shell-location-trigger aria-label="Change scope" aria-haspopup="listbox" aria-expanded="false">
+              %%MAP_PIN_ICON%%<bdi class="location-context-value" data-shell-location>%%LOCATION_A_EN%%</bdi>%%LOCATION_CHEVRON_ICON%%
+            </button>
+            <div class="shell-location-options" data-shell-location-list hidden role="listbox" aria-label="Select location">
+              <button type="button" role="option" aria-selected="true" data-shell-location-option="0">%%LOCATION_A_EN%%</button>
+              <button type="button" role="option" aria-selected="false" data-shell-location-option="1">%%LOCATION_B_EN%%</button>
+            </div>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button type="button" class="button button-quiet" data-shell-locale aria-label="Language">AR</button>
+          <div class="theme-segmented" role="group" aria-label="Theme">
+            <button type="button" class="theme-segment" data-shell-theme="light" aria-pressed="true">%%SUN_ICON%%<span data-copy="light">Light</span></button>
+            <button type="button" class="theme-segment" data-shell-theme="dark" aria-pressed="false">%%MOON_ICON%%<span data-copy="dark">Dark</span></button>
+          </div>
+          <button type="button" class="button button-quiet" data-shell-logout data-copy="logout">Sign out</button>
+        </div>
+      </header>
+      <main class="content"><div class="content-inner" id="keys-spots-design-content">%%INTERIOR_HTML%%</div></main>
+    </div>
+    <div class="dialog-backdrop" data-shell-mobile-dialog hidden role="presentation">
+      <div class="dialog-panel" role="dialog" aria-modal="true" aria-label="Management navigation" data-shell-dialog tabindex="-1">
+        <div class="stack"><div class="sidebar-brand"><span class="vaylet-logo" aria-label="VAYLET"><img class="vaylet-logo-emblem" alt="" width="32" height="32" src="%%EMBLEM%%"><img class="vaylet-logo-wordmark" alt="" width="108" height="16" data-shell-mobile-wordmark src="%%DARK_WORDMARK%%"></span><button type="button" class="button button-quiet" data-shell-menu-close aria-label="Close navigation">×</button></div>
+          <nav aria-label="Management navigation"><ul class="nav-list" data-shell-nav="mobile">%%ALL_NAV%%</ul></nav>
+        </div>
+      </div>
+    </div>
+    <p role="status" aria-live="polite" class="shell-demo-announcement" data-shell-announcement></p>
+  </div>
+  <script>%%SHELL_JS%%</script>
+  <script>%%INTERIOR_JS%%</script>
+</body>
+</html>

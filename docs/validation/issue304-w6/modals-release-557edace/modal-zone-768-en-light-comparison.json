@@ -1,0 +1,247 @@
+{
+  "approvedSha256": "31e655ee1dc83311ea473705661a32638d59a17bf13c4d50ee6a00fc0ec939f2",
+  "kind": "zone",
+  "width": 768,
+  "locale": "en",
+  "theme": "light",
+  "approved": {
+    "rect": {
+      "x": 159,
+      "y": 267,
+      "width": 450,
+      "height": 365
+    },
+    "padding": "21.6px",
+    "radius": "14.4px",
+    "background": "rgb(255, 255, 255)",
+    "headingText": "Add Parking Zone",
+    "headingFont": "20px",
+    "headingBox": {
+      "x": 182,
+      "y": 317,
+      "width": 169,
+      "height": 27,
+      "display": "block",
+      "fontSize": "20px",
+      "lineHeight": "normal",
+      "padding": "0px",
+      "margin": "6.4px 0px 0px"
+    },
+    "disclaimer": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "display": "block",
+      "fontSize": "11.68px",
+      "lineHeight": "18.688px",
+      "padding": "0px",
+      "margin": "13.6px 0px 19.2px"
+    },
+    "qrArt": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "display": "block",
+      "fontSize": "16px",
+      "lineHeight": "normal",
+      "padding": "0px",
+      "margin": "0px auto"
+    },
+    "actions": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0,
+      "display": "flex",
+      "fontSize": "16px",
+      "lineHeight": "normal",
+      "padding": "0px",
+      "margin": "20.8px 0px 0px"
+    },
+    "controls": [
+      {
+        "name": "Close",
+        "rect": {
+          "x": 554,
+          "y": 290,
+          "width": 32,
+          "height": 32,
+          "display": "block",
+          "fontSize": "23.2px",
+          "lineHeight": "normal",
+          "padding": "1px 6px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Close",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Download preview",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Print preview",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Cancel",
+        "rect": {
+          "x": 400,
+          "y": 571,
+          "width": 69,
+          "height": 39,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Preview draft",
+        "rect": {
+          "x": 478,
+          "y": 571,
+          "width": 108,
+          "height": 39,
+          "display": "block",
+          "fontSize": "12px",
+          "lineHeight": "normal",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      }
+    ],
+    "focusInside": true
+  },
+  "integrated": {
+    "rect": {
+      "x": 159,
+      "y": 267,
+      "width": 450,
+      "height": 365
+    },
+    "padding": "21.6px",
+    "radius": "14.4px",
+    "background": "rgb(255, 255, 255)",
+    "headingText": "Add Parking Zone",
+    "headingFont": "20px",
+    "headingBox": {
+      "x": 182,
+      "y": 317,
+      "width": 405,
+      "height": 27,
+      "display": "block",
+      "fontSize": "20px",
+      "lineHeight": "27px",
+      "padding": "0px",
+      "margin": "6.4px 0px 0px"
+    },
+    "disclaimer": null,
+    "qrArt": null,
+    "actions": null,
+    "controls": [
+      {
+        "name": "Close",
+        "rect": {
+          "x": 554,
+          "y": 290,
+          "width": 32,
+          "height": 32,
+          "display": "grid",
+          "fontSize": "23.2px",
+          "lineHeight": "23.2px",
+          "padding": "0px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Cancel",
+        "rect": {
+          "x": 440,
+          "y": 571,
+          "width": 69,
+          "height": 39,
+          "display": "flex",
+          "fontSize": "12px",
+          "lineHeight": "14.4px",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      },
+      {
+        "name": "Create",
+        "rect": {
+          "x": 518,
+          "y": 571,
+          "width": 69,
+          "height": 39,
+          "display": "flex",
+          "fontSize": "12px",
+          "lineHeight": "14.4px",
+          "padding": "8.8px 15.2px",
+          "margin": "0px"
+        }
+      }
+    ],
+    "focusInside": true
+  },
+  "widthDeltaPx": 0,
+  "geometryDelta": {
+    "x": 0,
+    "y": 0,
+    "width": 0,
+    "height": 0
+  },
+  "exactDialogRect": true,
+  "pixelDelta": {
+    "referenceSize": [
+      768,
+      900
+    ],
+    "liveSize": [
+      768,
+      900
+    ],
+    "changedPixels": 3923,
+    "comparedPixels": 270000,
+    "changedRatio": 0.01452962962962963,
+    "note": "Diagnostic only: images resized to common canvas; manual review required"
+  },
+  "classification": "PENDING_INDEPENDENT_VISUAL_REVIEW",
+  "note": "Production QR uses real persisted payload; approved HTML QR is illustrative"
+}

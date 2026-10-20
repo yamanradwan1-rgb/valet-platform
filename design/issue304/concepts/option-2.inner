@@ -1,0 +1,41 @@
+<section class="opt2" data-opt2-root aria-labelledby="opt2-title">
+  <header class="opt2-heading">
+    <div class="opt2-heading-main">
+      <div class="opt2-kicker"><span class="opt2-marker"></span><span data-opt2-copy="kicker">OPERATIONS / RESOURCE CONTROL</span><span class="opt2-index">02 / 04</span></div>
+      <h1 id="opt2-title" data-opt2-copy="title">Keys &amp; Spots</h1>
+      <p data-opt2-copy="subtitle">Know what is available, where vehicles are held, and what needs attention.</p>
+    </div>
+    <div class="opt2-heading-aside">
+      <span class="opt2-preview-flag"><span class="opt2-flag-dot"></span><span data-opt2-copy="sampleData">Synthetic preview data</span></span>
+      <div class="opt2-demo-control"><label for="opt2-demo-mode" data-opt2-copy="previewState">Preview state</label><select id="opt2-demo-mode" data-opt2-state><option value="ready">Ready</option><option value="loading">Loading</option><option value="empty">Empty</option><option value="error">Error</option></select></div>
+    </div>
+  </header>
+
+  <div class="opt2-location-line"><span class="opt2-location-label" data-opt2-copy="currentScope">Current location</span><strong data-opt2-location>Meridian Hotel — Main Entrance</strong><span class="opt2-location-divider"></span><span class="opt2-live-dot"></span><span data-opt2-copy="scopeNote">Location-level resource view</span></div>
+
+  <section class="opt2-metrics" aria-label="Resource availability summary" data-opt2-metrics></section>
+
+  <div class="opt2-tables">
+    <section class="opt2-panel" aria-labelledby="opt2-keys-heading">
+      <div class="opt2-panel-heading">
+        <div class="opt2-title-block"><span class="opt2-section-index">01</span><div><h2 id="opt2-keys-heading" data-opt2-copy="keysTitle">Key slots</h2><p data-opt2-summary="keys" class="opt2-section-summary"></p></div></div>
+        <button type="button" class="opt2-btn opt2-btn-primary" data-opt2-create="keys"><span aria-hidden="true">＋</span><span data-opt2-copy="addKey">Add key slot</span></button>
+      </div>
+      <div class="opt2-table-area" data-opt2-table="keys"></div>
+    </section>
+
+    <section class="opt2-panel" aria-labelledby="opt2-spots-heading">
+      <div class="opt2-panel-heading">
+        <div class="opt2-title-block"><span class="opt2-section-index">02</span><div><h2 id="opt2-spots-heading" data-opt2-copy="spotsTitle">Parking spots</h2><p data-opt2-summary="spots" class="opt2-section-summary"></p></div></div>
+        <div class="opt2-header-actions"><button type="button" class="opt2-btn opt2-btn-subtle" data-opt2-create="zone" data-opt2-copy="addZone">+ Zone</button><button type="button" class="opt2-btn opt2-btn-primary" data-opt2-create="spots"><span aria-hidden="true">＋</span><span data-opt2-copy="addSpot">Add spot</span></button></div>
+      </div>
+      <div class="opt2-table-area" data-opt2-table="spots"></div>
+    </section>
+  </div>
+
+  <p class="opt2-footnote"><span aria-hidden="true">ⓘ</span><span data-opt2-copy="dataCaveat">Availability is separate from configuration status. This concept combines proposed resource information; no live operations or data changes.</span></p>
+  <p class="opt2-sr-only" role="status" aria-live="polite" data-opt2-announcement></p>
+  <div class="opt2-dialog-backdrop" data-opt2-dialog-backdrop hidden>
+    <section class="opt2-dialog" role="dialog" aria-modal="true" aria-labelledby="opt2-dialog-title" tabindex="-1" data-opt2-dialog></section>
+  </div>
+</section>

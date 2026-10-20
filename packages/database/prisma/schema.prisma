@@ -1003,6 +1003,7 @@ model KeySlot {
   organizationId String        @map("organization_id") @db.Uuid
   locationId     String        @map("location_id") @db.Uuid
   code           String
+  label          String?
   status         KeySlotStatus @default(ACTIVE)
   createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)

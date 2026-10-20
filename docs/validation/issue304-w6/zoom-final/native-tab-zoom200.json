@@ -1,0 +1,22 @@
+{
+  "method": "Chrome extension chrome.tabs.setZoom: official browser tab host zoom",
+  "source": "synthetic fixture /keys",
+  "before": {
+    "innerWidth": 1280,
+    "clientWidth": 1280,
+    "outerWidth": 1280,
+    "devicePixelRatio": 1,
+    "visualScale": 1,
+    "scrollWidth": 1280
+  },
+  "after": {
+    "innerWidth": 640,
+    "clientWidth": 640,
+    "outerWidth": 1280,
+    "devicePixelRatio": 2,
+    "visualScale": 1,
+    "scrollWidth": 640
+  },
+  "reported": 2,
+  "note": "No CSS zoom, viewport-size emulation, or CDP pinch scale used"
+}

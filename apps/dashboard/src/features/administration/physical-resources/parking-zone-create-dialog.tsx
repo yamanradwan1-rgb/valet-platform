@@ -20,6 +20,7 @@ import {
 import { createParkingZone } from "./physical-resources-api";
 import { physicalResourcesCopy } from "./physical-resources-copy";
 import presentation from "./physical-resources.module.css";
+import { Issue304Option3Heading } from "./issue304-option3-heading";
 
 export function ParkingZoneCreateDialog(props: {
   readonly api: DashboardApiClient;
@@ -30,6 +31,7 @@ export function ParkingZoneCreateDialog(props: {
   readonly onCreated: (zone: ParkingZoneSelector) => void;
   readonly onReconcile: () => void;
   readonly fromKeysWorkspace?: boolean | undefined;
+  readonly issue304Variant?: boolean | undefined;
 }) {
   const { locale } = useDashboardLocale();
   const t = physicalResourcesCopy(locale);
@@ -124,33 +126,44 @@ export function ParkingZoneCreateDialog(props: {
   return (
     <div className={presentation.dialogHost}>
       <FocusDialog label={t.addParkingZone} onClose={props.onClose}>
-        <div className={presentation.headingRow}>
-          <h2>{t.addParkingZone}</h2>
-          {props.fromKeysWorkspace && helpMounted ? <ScopedContextHelp helpKey="keys.resourceDetails" /> : null}
-        </div>
+        {props.issue304Variant ? (
+          <Issue304Option3Heading kicker="parking-zone" title={t.addParkingZone} locale={locale} onClose={props.onClose} />
+        ) : (
+          <div className={presentation.headingRow}>
+            <h2>{t.addParkingZone}</h2>
+            {props.fromKeysWorkspace && helpMounted ? <ScopedContextHelp helpKey="keys.resourceDetails" /> : null}
+          </div>
+        )}
+        {props.issue304Variant ? (
+          <p className="issue304-modal-disclaimer" lang={locale}>
+            {locale === "ar" ? "ستُحفظ المنطقة في هذا الموقع." : "Create a parking zone in this Location."}
+          </p>
+        ) : null}
         <form
-          className={presentation.form}
+          className={props.issue304Variant ? "issue304-modal-form" : presentation.form}
           onSubmit={(event) => {
             event.preventDefault();
             void submit();
           }}
         >
-          <label className={presentation.field}>
-            <span>{t.code}</span>
+          <label className={props.issue304Variant ? undefined : presentation.field}>
+            <span>{props.issue304Variant ? (locale === "ar" ? "رمز المورد" : "Resource code") : t.code}</span>
             <input
               autoComplete="off"
               dir="ltr"
               maxLength={100}
+              placeholder={props.issue304Variant ? "Z-C" : undefined}
               required
               value={code}
               onChange={(event) => setCode(event.target.value)}
             />
           </label>
-          <label className={presentation.field}>
-            <span>{t.label}</span>
+          <label className={props.issue304Variant ? undefined : presentation.field}>
+            <span>{props.issue304Variant ? (locale === "ar" ? "اسم العرض" : "Display label") : t.label}</span>
             <input
               autoComplete="off"
               maxLength={160}
+              placeholder={props.issue304Variant ? (locale === "ar" ? "منطقة وقوف جديدة" : "New parking zone") : undefined}
               required
               value={label}
               onChange={(event) => setLabel(event.target.value)}
@@ -161,9 +174,9 @@ export function ParkingZoneCreateDialog(props: {
               {error}
             </p>
           ) : null}
-          <div className={presentation.dialogActions}>
+          <div className={props.issue304Variant ? "issue304-modal-actions" : presentation.dialogActions}>
             <button
-              className={styles.secondary}
+              className={props.issue304Variant ? "issue304-modal-quiet" : styles.secondary}
               type="button"
               disabled={busy}
               onClick={props.onClose}
@@ -171,7 +184,7 @@ export function ParkingZoneCreateDialog(props: {
               {t.cancel}
             </button>
             <button
-              className={styles.primary}
+              className={props.issue304Variant ? "issue304-modal-primary" : styles.primary}
               type="submit"
               disabled={busy || !code.trim() || !label.trim()}
             >

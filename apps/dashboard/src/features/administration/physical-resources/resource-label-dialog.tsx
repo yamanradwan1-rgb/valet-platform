@@ -20,6 +20,7 @@ import {
   resourceLabelFilename,
   resourceQrDataUrl,
 } from "./resource-label-png";
+import { Issue304Option3Heading } from "./issue304-option3-heading";
 
 export function ResourceLabelDialog(props: {
   readonly api: DashboardApiClient;
@@ -29,6 +30,7 @@ export function ResourceLabelDialog(props: {
   readonly resourceId: string;
   readonly scopeKey: string;
   readonly fromKeysWorkspace?: boolean | undefined;
+  readonly issue304Variant?: boolean | undefined;
 }) {
   const { locale } = useDashboardLocale();
   const t = physicalResourcesCopy(locale);
@@ -125,16 +127,37 @@ export function ResourceLabelDialog(props: {
   }
 
   return (
-    <div className={presentation.labelHost}>
+    <div className={presentation.labelHost} data-issue304-label-locale={props.issue304Variant ? locale : undefined}>
       <FocusDialog label={t.resourceLabel} onClose={props.onClose}>
-        <div className={styles.toolbar}>
-          <h2 className={styles.dialogTitle}>{t.resourceLabel}</h2>
-          <button aria-label={t.cancel} className={`${styles.quiet} ${presentation.resourceClose}`} onClick={props.onClose} type="button"><X aria-hidden="true" size={16} /></button>
-          {props.fromKeysWorkspace ? <span className={presentation.resourceHelp}><ScopedContextHelp helpKey="keys.resourceDetails" /></span> : null}
-        </div>
+        {props.issue304Variant ? (
+          <Issue304Option3Heading kicker="resource-label" title={locale === "ar" ? "ملصق المورد" : "Resource label"} locale={locale} onClose={props.onClose} />
+        ) : (
+          <div className={styles.toolbar}>
+            <h2 className={styles.dialogTitle}>{t.resourceLabel}</h2>
+            <button aria-label={t.cancel} className={`${styles.quiet} ${presentation.resourceClose}`} onClick={props.onClose} type="button"><X aria-hidden="true" size={16} /></button>
+            {props.fromKeysWorkspace ? <span className={presentation.resourceHelp}><ScopedContextHelp helpKey="keys.resourceDetails" /></span> : null}
+          </div>
+        )}
         {busy && label === null ? <div className={styles.empty}>…</div> : null}
         {error ? <div className={styles.error} role="alert">{error}</div> : null}
-        {label && qrUrl ? (
+        {label && qrUrl && props.issue304Variant ? (
+          <>
+            <div className={`${presentation.label} ${print.printRoot} issue304-modal-label-preview`} data-testid="physical-resource-print-label">
+              <div className="issue304-modal-label-brand">
+                <span aria-hidden="true">V</span><strong>VAYLET</strong>
+              </div>
+              <div className="issue304-modal-label-resource">
+                <span>{label.resourceType === "KEY_SLOT" ? (locale === "ar" ? "خانة مفتاح" : t.keySlot) : (locale === "ar" ? "موقف سيارة" : t.parkingSpot)}</span>
+                <bdi dir="ltr">{label.code}</bdi>
+                <span>{label.location.name} · <bdi dir="ltr">{label.location.code}</bdi></span>
+              </div>
+              <img className="issue304-modal-label-qr" alt={`${label.resourceType} ${label.code} QR`} src={qrUrl} />
+            </div>
+            <p className="issue304-modal-disclaimer">
+              {locale === "ar" ? "رمز QR حقيقي للمورد المحفوظ في الموقع المحدد ويمكن مسحه للتعرّف عليه." : "Live QR code for this persisted resource in the selected Location."}
+            </p>
+          </>
+        ) : label && qrUrl ? (
           <div className={`${presentation.label} ${print.printRoot}`} data-testid="physical-resource-print-label">
             <p className={presentation.brand}>VAYLET</p>
             <p className={presentation.resourceType}>{label.resourceType === "KEY_SLOT" ? t.keySlot : t.parkingSpot}</p>
@@ -144,9 +167,10 @@ export function ResourceLabelDialog(props: {
             <bdi className={presentation.location} dir="ltr">{label.location.code}</bdi>
           </div>
         ) : null}
-        <div className={`${presentation.labelActions} ${print.printHidden}`}>
-          <button className={styles.secondary} disabled={busy || label === null} onClick={() => void download()} type="button"><Download aria-hidden="true" size={15} /> {t.download}</button>
-          <button className={styles.primary} disabled={busy || label === null} onClick={() => void printLabel()} type="button"><Printer aria-hidden="true" size={15} /> {t.print}</button>
+        <div className={`${presentation.labelActions} ${print.printHidden} ${props.issue304Variant ? "issue304-modal-actions" : ""}`}>
+          {props.issue304Variant ? <button type="button" className="issue304-modal-quiet" onClick={props.onClose}>{locale === "ar" ? "إغلاق" : "Close"}</button> : null}
+          <button className={props.issue304Variant ? "issue304-modal-quiet" : styles.secondary} disabled={busy || label === null} onClick={() => void download()} type="button">{!props.issue304Variant ? <Download aria-hidden="true" size={15} /> : null} {t.download}</button>
+          <button className={props.issue304Variant ? "issue304-modal-primary" : styles.primary} disabled={busy || label === null} onClick={() => void printLabel()} type="button">{!props.issue304Variant ? <Printer aria-hidden="true" size={15} /> : null} {t.print}</button>
         </div>
       </FocusDialog>
     </div>
