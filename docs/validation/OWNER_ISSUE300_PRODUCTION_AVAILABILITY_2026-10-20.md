@@ -87,6 +87,16 @@ NULL-direct cohort verification and signed cursor. No claim is made that
 every approved filter works at high volume already. This limitation must be
 treated as a release-review finding, not silently hidden in a PASS status.
 
+**Dated exact diagnosis:** see
+[`ISSUE300_VEHICLE_FILTER_PAGINATION_DISPOSITION_2026-10-20.md`](issue300/closure/ISSUE300_VEHICLE_FILTER_PAGINATION_DISPOSITION_2026-10-20.md).
+Reusing a cursor after a filter edit fails correctly as a signed-filter
+validation error (`400`); the distinct **P1 OPEN** gap is unchanged
+vehicle-filter queries matching more than one page, which return `503`
+even with no actual vehicle mutation. An atomic, PostgreSQL-owned
+filter-membership epoch and tested cursor restart is the smallest strong
+consistency solution identified, not part of migrations 94–96 and not
+verified by the otherwise successful CI #514.
+
 ## Production-safe operational checklist (not an executed deployment)
 
 1. Confirm exact release commit, owner-approved destination and PG17 engine;

@@ -1,5 +1,15 @@
 # Issue #300 — Merge readiness at consolidated release-candidate review
 
+**2026-10-20 pagination disposition (latest source-specific finding):**
+Read [the exact vehicle-filter cursor diagnosis](ISSUE300_VEHICLE_FILTER_PAGINATION_DISPOSITION_2026-10-20.md)
+before proposing final Owner merge authorization. Changed-filter cursors
+correctly fail `400`, but unchanged current make/model/plate filters
+matching more than a page return `503` even without concurrent changes.
+This is an **open bounded P1 supported-workflow gap**, not a vulnerability
+fix or an acceptable claim of full U03/G1 acceptance. U05 indirect historical
+guards are independent, and #300 is still a normally registered production
+feature for CA/LM, not globally disabled.
+
 **2026-10-20 Owner supersession:** The following earlier production-disabled
 disposition was an assistant-imposed restriction, explicitly REJECTED by the
 Owner. The current product decision is **normal production Investigation for
