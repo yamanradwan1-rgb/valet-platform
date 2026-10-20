@@ -91,7 +91,7 @@ export function ResourceInspector(props: {
       </div>
       <ResourceInspectorKpis counts={props.overview?.counts ?? null} t={t} />
       <div className="c-command-row">
-        <div className="c-family-switch" role="group" aria-label={t.resourceList}>
+        <div className="c-family-switch" role="group" aria-label={t.familyLabel}>
           {(["keys", "spots"] as const).map((kind) => (
             <button
               key={kind}

@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react";
+
 import type {
   InspectorFamily,
   InspectorFilter,
@@ -30,6 +32,24 @@ export function ResourceInspectorMaster(props: {
 }) {
   const { t } = props;
   const filters: readonly InspectorFilter[] = ["all", "busy", "available", "inactive"];
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef(props.onLoadMore);
+  const canLoadRef = useRef(props.canNext && !props.loading && !props.error);
+  useEffect(() => { loadMoreRef.current = props.onLoadMore; }, [props.onLoadMore]);
+  useEffect(() => {
+    canLoadRef.current = Boolean(props.canNext && !props.loading && !props.error);
+  }, [props.canNext, props.loading, props.error]);
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node || typeof IntersectionObserver === "undefined") return;
+    // Stable across page appends: do not reobserve a continuously visible
+    // sentinel and silently drain all pages when the active filter is empty.
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0]?.isIntersecting && canLoadRef.current) loadMoreRef.current();
+    }, { rootMargin: "100px" });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [props.family, props.filter]);
   return (
     <section className="c-master" aria-labelledby="c-list-title">
       <div className="c-master-head">
@@ -39,7 +59,7 @@ export function ResourceInspectorMaster(props: {
         </div>
         <span className="c-list-total">{props.totalOnPage} {t.resources}</span>
       </div>
-      <div className="c-filter-row" role="group" aria-label={t.configured}>
+      <div className="c-filter-row" role="group" aria-label={t.filterLabel}>
         {filters.map((filter) => (
           <button
             aria-pressed={props.filter === filter}
@@ -71,7 +91,7 @@ export function ResourceInspectorMaster(props: {
         ) : null}
         {!props.loading && !props.error ? (
           <ul className="c-resource-list" aria-label={t.resourceList} data-issue304-resource-list>
-            {props.rows.map((item) => {
+            {props.rows.map((item, index) => {
               const state = resourceState(item);
               const vehicle = resourceVehicle(item, t);
               return (
@@ -83,6 +103,10 @@ export function ResourceInspectorMaster(props: {
                     data-c-id={item.id}
                     data-resource-code={item.code}
                     onClick={(event) => props.onSelect(item.id, event.currentTarget)}
+                    onFocus={() => {
+                      if (index === props.rows.length - 1 && props.canNext && !props.loading)
+                        props.onLoadMore();
+                    }}
                     type="button"
                   >
                     <span className="c-row-icon" data-kind={props.family} aria-hidden="true">
@@ -107,6 +131,7 @@ export function ResourceInspectorMaster(props: {
             })}
           </ul>
         ) : null}
+        <div aria-hidden="true" ref={sentinelRef} style={{ height: 1, width: 1, opacity: 0, pointerEvents: "none" }} />
         {!props.loading && !props.error && !props.rows.length ? (
           <p className="c-empty">{t.none}</p>
         ) : null}

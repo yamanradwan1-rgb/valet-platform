@@ -32,12 +32,12 @@ export function ResourceInspectorDetail(props: {
 }) {
   const { item, t } = props;
   return (
-    <section className="c-detail" aria-labelledby="c-detail-heading" tabIndex={-1} data-issue304-resource-detail>
+    <section className="c-detail" aria-labelledby={item ? "c-detail-heading" : "c-detail-overline"} tabIndex={-1} data-issue304-resource-detail>
       <div className="c-detail-topline">
         <button className="c-back" type="button" onClick={props.onBack}>
-          <span aria-hidden="true">‹</span> {t.back}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M15 18 9 12l6-6"/></svg> {t.back}
         </button>
-        <span className="c-overline">{t.selected}</span>
+        <span className="c-overline" id="c-detail-overline">{t.selected}</span>
         <span className="c-position">
           {String(props.position).padStart(2, "0")} / {String(props.total).padStart(2, "0")}
         </span>

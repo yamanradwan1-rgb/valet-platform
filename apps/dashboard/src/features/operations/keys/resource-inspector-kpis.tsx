@@ -17,7 +17,7 @@ export function ResourceInspectorKpis(props: {
     { id: "spots-occupied", family: "spots", label: t.spotsOccupied, value: counts?.parkingSpots.occupied, caption: t.occupied },
   ] as const;
   return (
-    <section className="c-kpis" aria-label={t.resourceList}>
+    <section className="c-kpis" aria-label={t.kpiSummary}>
       {figures.map((figure) => (
         <div className="c-kpi" data-c-kpi={figure.id} data-c-kpi-family={figure.family} key={figure.id}>
           <span className="c-kpi-label">{figure.label}</span>
