@@ -128,6 +128,7 @@ export function ResourceInspectorKeyCreate(props: {
           </div>
           <button className="c-close" aria-label={t.close} disabled={busy || mfaOpen} onClick={props.onClose} type="button">×</button>
         </div>
+        <p className="c-modal-disclaimer">{t.keyCreateIntro}</p>
         <form className="c-add-form" onSubmit={(event) => { void submit(event); }}>
           <label>
             <span>{t.code}</span>
