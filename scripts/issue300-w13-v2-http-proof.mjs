@@ -19,6 +19,8 @@ import {
   assertLateTaskAssociation,
 } from "./issue300-w13-verifier.mjs";
 import { verifyStaffAuthority } from "./issue300-w13-staff-authority.mjs";
+import { assertDistinctStaffSessions } from "./issue300-w13-session-matrix.mjs";
+import { assertW13RoleScope } from "./issue300-w13-role-scope.mjs";
 
 // This runner only executes against Prime-certified disposable W7 V2 resources.
 // Its deliberately held SQL adversarial fixtures never count as domain writers.
@@ -175,31 +177,29 @@ try {
               sessionId: reply.sessionId,
             };
           })();
-  const foreignScope = plan.fixture.lanes[0].negativeScopes.find(
-    (scope) => scope.kind === "FOREIGN_ORG",
-  );
-  assert(foreignScope, "Missing real foreign tenant scope");
+  const roleScope = assertW13RoleScope({ candidate: plan.candidate,
+    lease: plan.lease, proof: plan.proof, fixture: plan.fixture });
   const membershipRoles = {
     ca: {
       role: "ORG_ADMIN",
-      organizationId: scopes[0].organizationId,
-      locationId: scopes[0].locationId,
+      organizationId: roleScope.main.organizationId,
+      locationId: roleScope.main.locationId,
     },
     lm: {
       role: "LOCATION_MANAGER",
-      organizationId: scopes[0].organizationId,
-      locationId: scopes[0].locationId,
+      organizationId: roleScope.main.organizationId,
+      locationId: roleScope.main.locationId,
     },
     supervisor: {
       role: "VALET_SUPERVISOR",
-      organizationId: scopes[0].organizationId,
-      locationId: scopes[0].locationId,
+      organizationId: roleScope.main.organizationId,
+      locationId: roleScope.main.locationId,
       requireMfa: false,
     },
     foreign: {
       role: "ORG_ADMIN",
-      organizationId: foreignScope.organizationId,
-      locationId: foreignScope.locationId,
+      organizationId: roleScope.foreign.organizationId,
+      locationId: roleScope.foreign.locationId,
     },
   };
   for (const role of ["ca", "lm", "supervisor", "foreign"])
@@ -215,15 +215,9 @@ try {
     users.lm.membershipId,
     "Distinct logins cannot prove two roles through the same membership",
   );
-  assert.equal(
-    new Set(
-      Object.values(users)
-        .map((user) => user.sessionId)
-        .filter(Boolean),
-    ).size,
-    3,
-    "Expected distinct CA/LM/foreign MFA sessions",
-  );
+  // Four real authenticated identities, not three: supervisor has a distinct
+  // ordinary Staff session even though MFA is not required for this role.
+  assertDistinctStaffSessions(users);
   const lanes = plan.fixture.lanes;
   for (const kind of [
     "AUDIT",

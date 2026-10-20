@@ -27,6 +27,15 @@
   dependency is required. An old W16 junction pointing to `main` yielded
   false TS2305 errors and must not be reused.
 - Focused ESLint on new issuer, proof and custody modules: PASS.
+- W13 HTTP proof runner previously counted only three sessions although it
+  authenticates CA, LM, Supervisor and foreign Staff. Source fixed to require
+  four present, well-formed and distinct real session IDs; new offline
+  independent test 3/3 PASS. **W13 actual HTTP NOT RUN**.
+- W13 now derives CA/LM/Supervisor and foreign expected scopes from the W10
+  deterministic SHA+lease Org/Location fixture, not the first attested scope
+  entry. The currently shared CA+LM held lanes MUST be Location B (LM's only
+  authorized Location); Location A, foreign-scope drift and missing B fail
+  closed. All W13 scope/session offline regressions 6/6 PASS total.
 - Synthetic Windows ACL policy/bitmask tests and an actual nonsecret ACL
   denial probe: 2/2 PASS after separating model masks from live filesystem
   permissions; the positive full-path ACL check is still **GAP** because
