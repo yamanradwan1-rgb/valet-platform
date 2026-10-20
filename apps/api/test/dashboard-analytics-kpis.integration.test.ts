@@ -145,11 +145,9 @@ describe("MGT-BE-10 KPI source contracts", () => {
     await seedIncidents(work.generic);
     const otherLocation = await context.addLocation(fixture);
     const otherSession = await analyticsSeedSession(context, {
-      completedAtIso: "2026-07-10T15:00:00Z", createdAtIso: outside, state: "COMPLETED",
+      completedAtIso: "2026-07-10T15:00:00Z", createdAtIso: outside,
+      locationId: otherLocation, state: "COMPLETED",
     });
-    await context.adminPool.query(
-      `UPDATE valet_sessions SET location_id=$2 WHERE id=$1`, [otherSession, otherLocation],
-    );
     await context.adminPool.query(
       `INSERT INTO incidents
          (id,organization_id,location_id,valet_session_id,status,severity,type,

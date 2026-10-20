@@ -147,6 +147,12 @@ describe("VAL-007D GPS ingestion authorization", () => {
          FROM tasks WHERE id = $1`,
       [type.movementTaskId, retrievalTaskId],
     );
+    // The original PARKING task may no longer be active. Keep exactly one
+    // in-progress task so the guard reaches the intended type/state check.
+    await context.adminPool.query(
+      "UPDATE tasks SET status = 'COMPLETED' WHERE id = $1",
+      [type.movementTaskId],
+    );
     await context.adminPool.query(
       `UPDATE task_tracking_sessions SET task_id = $2 WHERE id = $1`,
       [type.trackingSessionId, retrievalTaskId],
