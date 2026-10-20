@@ -13,6 +13,7 @@ import { guardedSqlConnection, SQL_STATEMENT_TIMEOUT_MS, SQL_LEASE_MARGIN_MS,
 import { killed95AppName, killed95WaitSql, killed95BackendSql,
   witnessAndKill95, heldLockExitBarrier95 }
   from "./v3-killed95-witness.mjs";
+import { finalizeV3AfterVerifiedStop } from "./v3-overall-stop-gate.mjs";
 
 const evidenceDir=dirname(fileURLToPath(import.meta.url));
 const root=resolve(evidenceDir,"../..");
@@ -864,6 +865,7 @@ if(process.argv[2]==="--check"){
     name:dockerName,volume,port,
     mutatedDocker:false,requiresExplicitPrimeLease:true}));
 }else{
+  let readyForOverall=false,mandatoryGateCount=0;
   try{
     await main();
     const required=["preflight","new_v3_resource","fresh_zero_to96",
@@ -875,9 +877,8 @@ if(process.argv[2]==="--check"){
       "interrupted95_catalog_reconciled"];
     const incomplete=required.filter(n=>!completed.has(n));
     assert(!hasGap&&incomplete.length===0,"Acceptance mandatory gates missing: "+incomplete.join(","));
-    output("v3_overall","PASS",{allMandatoryGates:required.length,
-      actualIntegrationHead:currentSha,resource:dockerName,
-      note:"No shared DB/role/service touched; V3 alone was exercised"});
+    mandatoryGateCount=required.length;
+    readyForOverall=true;
   }catch(e){
     // Guard against leaking Docker CLI -e POSTGRES_PASSWORD=..., DB URLs,
     // or private file content from raw child exception messages.
@@ -890,16 +891,32 @@ if(process.argv[2]==="--check"){
     process.exitCode=1;
   }
   finally{
-    // V3 is migration-only; don't retain running PG after lease release.
+    // V3 overall PASS is gated on the SAME exact owned container being
+    // independently inspected EXITED after stop. A Docker command exit
+    // alone is NOT a shutdown witness. No PASS can precede this finalizer.
     if(ownership){
       try{
-        const c=inspect();
-        assertOwned(c,true);
-        if(c.State.Running)run("docker",["stop","-t","1",dockerName]);
-        output("v3_resource_handoff",unsafePressure?"STOPPED_ON_PRESSURE":"OWNED_PG_STOPPED",
-          {id:dockerId,port,volume,protectedOtherResources:true});
+        await finalizeV3AfterVerifiedStop({
+          inspect,verifyOwned:c=>assertOwned(c,true),
+          expectedId:dockerId,
+          stop:()=>run("docker",["stop","-t","1",dockerName]),
+          recordHandoff:receipt=>output("v3_resource_handoff",
+            unsafePressure?"STOPPED_ON_PRESSURE":"OWNED_PG_STOPPED",
+            {id:receipt.id,port,volume,verifiedExited:true,
+              postStatus:receipt.postStatus,protectedOtherResources:true}),
+          mayPublishOverall:()=>readyForOverall&&!hasGap&&!unsafePressure&&
+            !process.exitCode,
+          recordOverall:receipt=>output("v3_overall","PASS",{
+            allMandatoryGates:mandatoryGateCount,actualIntegrationHead:currentSha,
+            resource:dockerName,postStopVerified:true,stoppedContainerId:receipt.id,
+            note:"V3 owned PG independently verified exited before overall PASS",
+          }),
+        });
       }catch{
-        output("v3_resource_handoff","STOP_UNCONFIRMED",{port,volume});
+        output("v3_finalization_failure","GAP",{
+          state:"STOP_OR_POST_EXIT_UNCONFIRMED",port,volume,
+          overallPassWithheld:true,
+        });
         process.exitCode=1;
       }
     }

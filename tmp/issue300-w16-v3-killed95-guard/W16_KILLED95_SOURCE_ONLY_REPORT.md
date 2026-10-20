@@ -106,6 +106,23 @@ Uncorrelated/undrained/backend-unknown states remain QUARANTINE/GAP.
 Prisma+ledger+catalog proof. Own `--check` does not load live PG driver;
 the actual `--run` still requires a valid installed `pg` package.
 
+## W20 P1 — final Docker STOP before overall PASS
+
+W20 independently observed the earlier runner could journal
+`v3_overall PASS` while the owned PostgreSQL container was still
+running, then report `STOP_UNCONFIRMED` afterward. The W16-only fix
+removes the early PASS call. The new `v3-overall-stop-gate.mjs` requires
+the exact fully verified owned container ID, successful stop if running,
+fresh post-stop Docker inspect with `Running=false`,
+`Status=exited`, `Pid=0`, and a sanitized stop-handoff journal record.
+Immediately before an eligible overall PASS it independently inspects
+the same owned container again, requiring it still be exited. Failed
+STOP, wrong ID/ownership, stale/restarted container, unavailable inspect,
+failed journal or missing earlier acceptance stages **never emit an
+overall PASS**. The failure path records GAP and a nonzero exit.
+This is source-only; none of the Docker assertions were tested against
+a running engine or constitute live V3 acceptance.
+
 ## Lightweight offline verification
 
 Run only the explicitly scoped offline test when machine resources permit:
