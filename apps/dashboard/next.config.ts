@@ -27,6 +27,9 @@ const nextConfig: NextConfig = {
     return config;
   },
   turbopack: {
+    // Multiple Git worktrees share a parent directory; never let Next infer
+    // the primary checkout as the build root for this release candidate.
+    root: path.resolve(process.cwd(), "../.."),
     resolveAlias: {
       "@valet/contracts": "../../packages/contracts/dist/index.js",
     },

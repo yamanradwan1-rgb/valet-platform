@@ -167,8 +167,15 @@ export function checkSourceBoundary(){
   const latest=run("git",["-C",root,"rev-parse","HEAD"]);
   assert(/^[a-f0-9]{40}$/.test(latest),"Git HEAD could not be pinned");
   run("git",["-C",root,"merge-base","--is-ancestor",anchorSha,latest]);
-  run("git",["-C",root,"diff","--exit-code",anchorSha,latest,"--","packages/database"]);
-  run("git",["-C",root,"diff","--exit-code","HEAD","--","packages/database"]);
+  // Keep the *whole* approved database tree pinned except the three narrowly
+  // reviewed Issue300 fail-closed migration-deployment source/test files.
+  // Never exempt schema, SQL, migration history, ACL, or any other DB module.
+  const releaseGateOnly=["packages/database",
+    ":(exclude)packages/database/scripts/run-migrate-deploy.mjs",
+    ":(exclude)packages/database/scripts/issue300-production-migration-gate.mjs",
+    ":(exclude)packages/database/scripts/issue300-production-migration-gate.test.mjs"];
+  run("git",["-C",root,"diff","--exit-code",anchorSha,latest,"--",...releaseGateOnly]);
+  run("git",["-C",root,"diff","--exit-code","HEAD","--",...releaseGateOnly]);
   return latest;
 }
 export function inspect() {

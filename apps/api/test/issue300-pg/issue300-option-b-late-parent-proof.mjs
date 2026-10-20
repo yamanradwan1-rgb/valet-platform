@@ -49,6 +49,8 @@ let open = false;
 let inserted = false;
 let writerOpen = false;
 let writerConnected = false;
+let cleanupError;
+let ended;
 async function expectImmutable(statement, args = []) {
   await db.query("SAVEPOINT option_b_immutable");
   let error;
@@ -266,7 +268,6 @@ try {
 } finally {
   if (open) await db.query("ROLLBACK").catch(() => undefined);
   if (writerOpen) await writer.query("ROLLBACK").catch(() => undefined);
-  let cleanupError;
   if (inserted) for (const [table,id] of [
     ["audit_events",ids.auditConflict],["audit_events",ids.auditNullMeta],
     ["audit_events",ids.auditDifferentValidTask],
@@ -281,9 +282,12 @@ try {
     ["valet_sessions",ids.session],["vehicles",ids.vehicle],
   ]) try { await db.query(`DELETE FROM ${table} WHERE id=$1`,[id]); }
     catch (error) { cleanupError ??= error; }
-  const ended = await Promise.allSettled([
+  ended = await Promise.allSettled([
     db.end(),...(writerConnected ? [writer.end()] : []),
   ]);
-  if (cleanupError) throw cleanupError;
-  assert.ok(ended.every((r) => r.status === "fulfilled"), "Close both G2 clients");
 }
+// Cleanup must not throw *from finally*: that would conceal a genuine first
+// SQL/provenance failure. Preserve the original rejection; enforce cleanup
+// strictly only when the transactional source proof itself has succeeded.
+if (cleanupError) throw cleanupError;
+assert.ok(ended.every((r) => r.status === "fulfilled"), "Close both G2 clients");

@@ -1,6 +1,6 @@
 # VAYLET — #300 + #302 + #303 consolidated review and release handoff
 
-**Prepared:** 2026-10-20. **Purpose:** reviewable local integration documentation, release notes and draft PR description. **Overall disposition:** COMBINED LOCAL MERGE COMMIT IDENTIFIED; COMBINED BUILD / SYSTEM TESTS / RELEASE ACCEPTANCE NOT ESTABLISHED. This record does not close any issue or authorize deployment, push or merge to `main`.
+**Prepared:** 2026-10-20. **Purpose:** reviewable local integration documentation, release notes and draft PR description. The original source-only W23 snapshot appears below. **For subsequently executed combined-branch unit tests, builds and release-guard fixes, read [`RELEASE_CONSOLIDATION_COMBINED_VALIDATION_2026-10-20.md`](RELEASE_CONSOLIDATION_COMBINED_VALIDATION_2026-10-20.md)**; that newer evidence supersedes the old “NOT RUN” entries for those specifically executed tests, but **does not establish #300 live engineering acceptance, CI PASS, deployment or merge permission**. No issue is closed.
 
 ## 1. Source-of-truth and immutable provenance
 
@@ -28,15 +28,15 @@ The two #303 QA photo records are **historical isolated QA observations**, not a
 | Gate / evidence | #300 | #302 | #303 | Combined candidate |
 | --- | --- | --- | --- | --- |
 | Owner-approved design authority | R2/UI-M1 approved, unchanged | DEC-077 Accepted; narrow Crypto repair approved | DEC-104 Accepted scope/UI-X1 pattern | **Review decision compatibility after integration** |
-| Source implementation | Present at #300 package tip | Native fix in #302/#303 package | Native async-copy fix in #302/#303 package | **NOT INDEPENDENTLY REVIEWED** |
-| Focused source/unit tests | Recorded as historical source PASS; not 79-gate PASS | Recorded in source QA report | 8/8 async-copy, 31/31 focused source/copy/recovery | **NOT RUN** |
-| Full product suite/typecheck/lint | No combined full suite evidence | Source QA reports native 1,692 and employee 843 PASS plus typecheck/lint | Same source lane | **NOT RUN** |
+| Source implementation | Present at #300 package tip | Native fix in #302/#303 package | Native async-copy fix in #302/#303 package | **Combined source reviewed with production-off fixes**; see later validation report |
+| Focused source/unit tests | Recorded source PASS, not 79-gate PASS | Recorded in source QA report | 8/8 async-copy, 31/31 focused source/copy/recovery | **Combined execution: Contracts 473; API focused 137; Dashboard 947; Employee Client 843; V3 source mocks 49; Native 1692; details in later validation report** |
+| Full product suite/typecheck/lint | No current-SHA 79-row acceptance | Historical source lane results | Same source lane | **All 5 application/package TypeScripts + DB typecheck and four requested software builds PASS; native full retry 1692/1692 PASS**; final lints/remote CI tracked separately |
 | Actual isolated PostgreSQL / object store | Earlier V2 partial role/ledger evidence; V3 and U005 protected proof BLOCKED | Final exact-once Incident DB readback NOT RUN | **2/2 QA photo DB + private object HEAD independently verified** | **NOT RUN** |
 | Physical Android QA | Not applicable to source-only R2 closure | Owner-observed Incident success | Owner-observed capture and independently verified private persistence | **NOT RUN** |
 | Genuine scoped auth, MFA and cross-tenant HTTP | BLOCKED / NOT RUN on #300 candidate | Scoped invariants preserved in source; final QA not full security matrix | Scoped invariants preserved in source; final QA not production | **NOT RUN** |
 | Browser & frozen UI | 34 defined, **0 real PASS**; UI-M1 frozen approval is design-only | Existing UI pattern retained in Native source | Existing QR-style UI scope; full physical appearance matrix pending | **NOT RUN** |
 | Genuine 100k/1m performance and cold trials | BLOCKED / NOT RUN | Not claimed | Not claimed | **NOT RUN** |
-| #300 production/default OFF gate | `apps/api/src/modules/management/audit-investigation/audit-investigation-u05-gate.ts:32-62` requires `NODE_ENV=test`, `ISSUE300_U05_G2_PROOF_ENABLE=1` and additionally `ISSUE300_R2_INDIRECT_HTTP_PROOF_ENABLE=1` for indirect R2 proof, exact local DB/role and a valid attestation; **current combined runtime OFF state unproven** | Not applicable | Not applicable | **MUST VERIFY BEFORE ANY RELEASE**: default/production flag OFF, no accidental opt-in, fail-closed ordinary unsupported cohort (503 or documented denial), and no unapproved proof activation |
+| #300 production/default OFF gate | The signed U005 verifier remains unchanged and cryptographically mandatory | Not applicable | Not applicable | **New combined source gate** makes Investigation API/Browser dev/test-only and defers production migrate:deploy; 7/7 offline negatives PASS; actual deployed route-map/HTTP still unverified |
 | Independent combined P0/P1 + release approval | Issue-level source reviews only | Narrow QA source review | Narrow QA source review | **PENDING** |
 
 **Issue #300 aggregate is fixed:** T01–T70 (70) + U05-R01–R09 (9) = **79**, with **57 BLOCKED + 22 NOT RUN = 79**. No full criterion has earned PASS or FAIL. The append-only exact-ID disposition is `docs/validation/issue300/closure/ISSUE300_R2_W21_APPEND_ONLY_79_GATE_DISPOSITION_2026-10-20.md`. The companion reviewer decision is `docs/validation/issue300/closure/ISSUE300_R2_MERGE_READINESS_2026-10-20.md`.
@@ -55,7 +55,7 @@ The two #303 QA photo records are **historical isolated QA observations**, not a
 
 ## 5. Proposed GitHub PR title and body (draft, do not publish)
 
-**PR title:** `Consolidate #300 Audit Investigation R2 and #302/#303 Native reliability fixes (review candidate)`
+**PR title:** `Integrate #300 Audit Investigation and #302/#303 Native Incident & Condition Photo Fixes`
 
 **PR body:**
 
@@ -72,7 +72,7 @@ The two #303 QA photo records are **historical isolated QA observations**, not a
 > - Owner signing/build-certification is a separately recorded **OWNER EXCEPTION — NOT CRYPTOGRAPHICALLY VERIFIED**; protected runtime verifier behavior remains unchanged.
 > - #302 Owner observed successful real-phone Incident after Native Crypto repair. Final exactly-once Incident DB audit and full phone stress were not repeated.
 > - #303 awaited-copy QA regression 8/8 and historical 2/2 verified photo DB records with 2/2 private object HEAD checks; Native 1,692/1,692 and employee-client 843/843 were recorded on the isolated branch.
-> - **No combined-branch typecheck, runtime, Playwright, migration, performance or production deployment results are asserted.** The #300 default/production OFF gate also requires real fail-closed review on the combined SHA.
+> - Subsequent **local combined-branch** typechecks, Builds, Contracts 473/473, Employee Client 843/843, Dashboard 947/947, API focused 137/137, Native 1692/1692 and V3 49/49 source tests are recorded in the 2026-10-20 combined-validation addendum. These do **not** constitute real HTTP, Playwright, migration acceptance or performance PASS.
 >
 > ### Review and release controls
 > Review scoped source diffs, additive migration behavior, DEC-077 and DEC-104, Native dependency/lockfile integration, tenant/privacy boundaries, UI freeze and real QA evidence. Preserve the fail-closed #300 proof gates. This PR is for engineering review; it does not establish release readiness or close issues. **Relates to #300, #302, #303.**

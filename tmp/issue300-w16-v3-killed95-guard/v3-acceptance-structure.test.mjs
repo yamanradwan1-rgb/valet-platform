@@ -109,6 +109,21 @@ test("explicit V3 --check verifies migration boundary without starting services"
   assert.equal(evidence.mode, "OFFLINE_ONLY");
   assert.equal(evidence.mutatedDocker, false);
   assert.equal(evidence.migrations, 96);
+  assert.equal(evidence.unchangedPrismaTree, true);
+  assert.equal("unchangedDatabaseTree" in evidence, false);
   assert.deepEqual(evidence.boundedTransactionMigrations, [94, 95, 96]);
   assert.equal(evidence.requiresExplicitPrimeLease, true);
+});
+
+test("V3 pins entire DB tree except precisely three fail-closed release-gate files", () => {
+  const runtime = source("v3-acceptance-runtime.mjs");
+  assert.match(runtime, /anchorSha,latest,"--",\.\.\.releaseGateOnly/);
+  assert.match(runtime, /"HEAD","--",\.\.\.releaseGateOnly/);
+  assert.match(runtime, /const releaseGateOnly=\["packages\/database"/);
+  for (const expected of ["run-migrate-deploy.mjs",
+    "issue300-production-migration-gate.mjs",
+    "issue300-production-migration-gate.test.mjs"]) {
+    assert.match(runtime, new RegExp("\\(exclude\\)packages/database/scripts/"+expected.replace(/\./g,"\\.")));
+  }
+  assert.doesNotMatch(runtime, /\(exclude\)packages\/database\/prisma/);
 });

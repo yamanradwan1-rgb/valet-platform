@@ -78,7 +78,7 @@ if(process.argv[2]==="--check"){
     "False PASS for second crashed Prisma process");
   assert(!racePassed(good,null),"False PASS with no live PG advisory lock witness");
   console.log(JSON.stringify({mode:"OFFLINE_ONLY",result:"PASS",anchoredSha:anchorSha,
-    inspectedCurrentHead:actualHead,unchangedDatabaseTree:true,migrations:96,
+    inspectedCurrentHead:actualHead,unchangedPrismaTree:true,migrations:96,
     boundedTransactionMigrations:[94,95,96],raceNegativeOracleTests:3,
     name:dockerName,volume,port,
     mutatedDocker:false,requiresExplicitPrimeLease:true}));
