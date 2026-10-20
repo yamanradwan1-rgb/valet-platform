@@ -18,6 +18,12 @@ import { ManagementCompanyAnalyticsService } from "./management-company-analytic
 import { ManagementIntegrationsService } from "./management-integrations.service";
 import { ManagementAuditController } from "./management-audit.controller";
 import { ManagementAuditService } from "./management-audit.service";
+import { AuditInvestigationSearchController } from "./audit-investigation/search/audit-investigation-search.controller";
+import { AuditInvestigationSearchService } from "./audit-investigation/search/audit-investigation-search.service";
+import {
+  AuditInvestigationTimelineController,
+  AuditInvestigationTimelineService,
+} from "./audit-investigation/timeline/timeline.controller";
 import { ManagementSettingsController } from "./management-settings.controller";
 import { ManagementSettingsService } from "./management-settings.service";
 import { ManagementBrandingController } from "./management-branding.controller";
@@ -53,6 +59,8 @@ import {
     PresenceCaExceptionController,
     ManagementContextController,
     ManagementAuditController,
+    AuditInvestigationSearchController,
+    AuditInvestigationTimelineController,
     StaffManagementController,
     StaffShiftHistoryController,
     StaffShiftForceEndController,
@@ -77,6 +85,8 @@ import {
     PresenceManagementService,
     ManagementContextService,
     ManagementAuditService,
+    AuditInvestigationSearchService,
+    AuditInvestigationTimelineService,
     StaffDirectoryService,
     StaffShiftHistoryService,
     StaffShiftForceEndService,
@@ -106,6 +116,8 @@ export class ManagementModule implements NestModule {
         PresenceCaExceptionController,
         ManagementContextController,
         ManagementAuditController,
+        AuditInvestigationSearchController,
+        AuditInvestigationTimelineController,
         StaffManagementController,
         StaffShiftHistoryController,
         StaffShiftForceEndController,

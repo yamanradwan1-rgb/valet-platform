@@ -62,6 +62,11 @@ export * from "./management-branding.js";
 export * from "./management-location-lifecycle.js";
 export * from "./management-audit-events.js";
 export * from "./management-audit.js";
+export * from "./audit-investigation-common.js";
+export * from "./audit-investigation-search.js";
+export * from "./audit-investigation-timeline.js";
+export * from "./audit-investigation-detail.js";
+export * from "./audit-investigation-filters.js";
 export * from "./management-visit-contacts.js";
 
 export * from "./staff-onboarding.js";

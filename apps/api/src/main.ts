@@ -53,7 +53,17 @@ async function bootstrap() {
   app.enableShutdownHooks([...applicationShutdownSignals]);
   armEarlyShutdownWithdrawal(app, app.get(ApplicationDrainState), process);
   const port = Number.parseInt(process.env.PORT ?? "3001", 10);
-  await app.listen(port);
+  // Any Owner-approved Issue #300 R2 isolated proof API must remain on
+  // loopback, including a newly attested port distinct from the human API.
+  // All non-R2 boot paths retain their original binding behavior.
+  if (
+    process.env.NODE_ENV === "test" &&
+    process.env.ISSUE300_R2_LOCAL_API_ONLY === "1"
+  ) {
+    await app.listen(port, "127.0.0.1");
+  } else {
+    await app.listen(port);
+  }
 }
 
 void bootstrap();

@@ -1,0 +1,81 @@
+{
+  "kind": "ISSUE300_R2_W16_OWNER_SIGNING_EXCEPTION_LOCAL_ADMISSION_EVIDENCE",
+  "evidenceType": "READ_ONLY_SOURCE_AND_HOST_OBSERVATIONS_NOT_PG_ACCEPTANCE",
+  "observedUtcDate": "2026-10-20",
+  "candidateShaBeforeEvidenceCommit": "b3123b586895e1451dbe0a9fea3cb2ae25919cab",
+  "migrationSourceAnchor": "84e9aafc341fda5848261c4d0c1202a4fe2091b6",
+  "ownerSigningDisposition": "OWNER_ACCEPTED_EXCEPTION_NOT_CRYPTOGRAPHICALLY_VERIFIED",
+  "existingCryptographicVerifierChanged": false,
+  "genuineOwnerV3SignedLeaseLocated": false,
+  "v3OwnerIssuerFolderPresent": false,
+  "v3OwnedResourceFolderPresent": false,
+  "v3OwnerResourceManifestLocated": false,
+  "v3OwnerCredentialsLocated": false,
+  "dockerDesktopService": "Stopped",
+  "existingPostgresOrPgCtlProcessesObserved": 8,
+  "existingPostgresProcessesUsedOrChanged": false,
+  "windowsNativePgBinaries": {
+    "present": true,
+    "directory": "C:/Program Files/PostgreSQL/17/bin",
+    "reportedProductVersion": "17.11",
+    "note": "V3 pinned Docker image claims PostgreSQL 17.10; no native cluster started"
+  },
+  "w16RuntimeDependencies": {
+    "packagesDatabaseNodeModulesPgPresent": false,
+    "packagesDatabaseNodeModulesPrismaPresent": false,
+    "pnpmOnPath": true
+  },
+  "hostAdmission": {
+    "reference": "v3-acceptance.mjs readHostMetrics/metricsSafe/admissionSamples",
+    "requirements": {
+      "samples": 4,
+      "sampleSpacingSeconds": 2,
+      "ramMiBMinimum": 1844,
+      "commitMiBMinimum": 3072,
+      "cpuPercentStrictlyBelow": 70,
+      "cDriveGiBMinimum": 2
+    },
+    "samples": [
+      {"sample": 1, "observedAtUtc": "2026-10-20T01:23:41.6007433Z", "ramMiB": 1652, "commitMiB": 12158, "cpuPercent": 27, "cDriveGiB": 4.978, "admissible": false},
+      {"sample": 2, "observedAtUtc": "2026-10-20T01:23:44.8030594Z", "ramMiB": 1723, "commitMiB": 12215, "cpuPercent": 35, "cDriveGiB": 4.978, "admissible": false},
+      {"sample": 3, "observedAtUtc": "2026-10-20T01:23:47.9515491Z", "ramMiB": 2047, "commitMiB": 12533, "cpuPercent": 49, "cDriveGiB": 4.978, "admissible": true},
+      {"sample": 4, "observedAtUtc": "2026-10-20T01:23:51.0616736Z", "ramMiB": 1998, "commitMiB": 12525, "cpuPercent": 21, "cDriveGiB": 4.981, "admissible": true}
+    ],
+    "allFourAdmissible": false,
+    "reason": "RAM below 1844 MiB on samples 1 and 2; minimum four-for-four admission failed"
+  },
+  "ordinaryTestRouteAssessment": {
+    "databaseMigrateDeploy": "Requires an explicitly attested disposable PostgreSQL target, valid credentials and available Prisma/pg dependencies; no owned target exists",
+    "databaseTestPostgres": "May fall back to postgresql://valet:valet@127.0.0.1:5432/valet; never executed against unknown pre-existing host PostgreSQL",
+    "issue215LocalStandalone": "Creates a different issue215-owned cluster; not authorized as an Issue300 V3 proof target",
+    "nativePg17": "Installed executable version observed, but fresh native cluster refused due 2/4 admission and unavailable Prisma runtime dependencies",
+    "signedV3Acceptance": "Requires exact Owner Ed25519 signature and lease revalidation; cannot run under administrative signing exception without gate bypass"
+  },
+  "execution": {
+    "dockerEngineStartedOrRestarted": false,
+    "postgresClusterStarted": false,
+    "databaseOrSchemaChanged": false,
+    "humanOrV2ResourcesTouched": false,
+    "realMigrationDeployInvoked": false,
+    "realAclProofInvoked": false,
+    "realKilled95Invoked": false,
+    "ownerKeyAccessedOrLeaseIssued": false
+  },
+  "status": {
+    "ownedPgBootstrap": "BLOCKED_GAP",
+    "fresh0to96": "BLOCKED_GAP_NOT_RUN",
+    "populated93to96": "BLOCKED_GAP_NOT_RUN",
+    "sourceRowSurvival": "BLOCKED_GAP_NOT_RUN",
+    "runtimeRoleAcl": "BLOCKED_GAP_NOT_RUN",
+    "killed95": "BLOCKED_GAP_NOT_RUN",
+    "heavyConcurrentCampaign": "NOT_RUN_OWNER_EXCLUDED",
+    "v3Overall": "NOT_CRYPTOGRAPHICALLY_VERIFIED_NOT_ACCEPTED"
+  },
+  "sourceOnlyVerification": {
+    "v3AcceptanceCheck": "PASS_OFFLINE_ONLY",
+    "migrationsPresent": 96,
+    "migrations45_94_95_96Unchanged": true,
+    "offlineNodeTests": "51_PASS_0_FAIL",
+    "realPostgresPassClaims": 0
+  }
+}

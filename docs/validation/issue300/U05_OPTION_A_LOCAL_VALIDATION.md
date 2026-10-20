@@ -1,0 +1,271 @@
+# VAYLET Issue #300 — U05 Option A local PostgreSQL validation
+
+> **2026-10-18 post-review G2 diagnostic addendum (newer than the pinned
+> historical candidates below):** hardened three G2-only scripts to track
+> their exact random fixture UUIDs across ambiguous COMMIT acknowledgment,
+> attempt owned cleanup even when a COMMIT result is uncertain, and
+> independently close PostgreSQL clients after cleanup errors. Re-ran
+> authenticated **four-source signed Search+Timeline** held-writer proof,
+> 106-Session/112-event R06 signed paging and exact cleanup, all **exit 0**.
+> The performance script now selects the oldest seeded task-only
+> Organization (rather than an arbitrary duplicate-name match), proves
+> exactly **900 committed source events have born XIDs visible at S0** and
+> checks that all 101 returned Sessions and custody reasons belong to its
+> own 3,500 synthetic Sessions, before timing. Its subsequent equal-input,
+> `BEGIN READ ONLY; SET LOCAL enable_nestloop=off` diagnostic **timed out
+> at 8 seconds before an equivalence result**. Default G2 EXPLAIN
+> measured ~1.99M inclusive buffer hits, ~901 nested repeated scoped
+> Session scans and execution time ~2187ms; 20 hot single-client
+> samples p50 ~1513ms, p95 ~1933ms on this run. Other runs varied
+> significantly because the previously selected duplicate-name tenant
+> differed and planner/cache behavior changed. **No SQL optimization,
+> plan setting, schema/index, production gate or SLA acceptance was made.**
+> Current candidate remains U05 **PARTIAL/BLOCKED**, particularly the
+> preexisting indirect Audit→Task/Incident P0 guard and full R09 workload.
+
+**Date:** 2026-10-18 (Asia/Amman). **Owner decision:** Option A authorized
+**local implementation and testing only**. **Latest tested code commit:**
+`5c3f8da2eb4ee939210d9d35fb78dbeb58926783` (U05 migration/proof base
+`372e3cf4953a46c9ea5254426173eb456976126a`, earlier clean base
+`c375ff9c572d011510f8f8c69934751b7f86fe6f`),
+branch `codex/issue-300-prime`, worktree
+`D:\kndoom\valet-platform\tmp\issue-300-prime-integration`.
+
+## Result — partial research PASS, complete U05 acceptance BLOCKED
+
+**DO NOT enable U05 unrestricted/production pagination.** The source-cohort
+birth-XID migration and direct-reference signed keyset design have passed
+**important but incomplete** tests on the disposable G2 database. An
+independent adversarial review identified a real **P0 for enabling full U05**:
+an old Audit row with an indirect Task/Incident pointer can become correlated
+to a Session only after an entity is inserted/linked **after** the original
+snapshot. The SQL fixture reproduced this on an actual captured `pg_snapshot`
+and a subsequent COMMIT, even though all four event rows have correct birth
+markers. Only the source-side parent Task relationship is missing its immutable
+historical provenance. Neither Task `created_at`, snapshot timestamp, `xmin`,
+nor simple event cursor signing solves this race.
+
+The candidate now includes `audit-investigation-u05-indirect-guard.ts`:
+**if a snapshot contains any potentially indirect Audit Task, Incident,
+Vehicle or PARKED metadata-task reference in the scoped cohort, Search and
+Timeline pagination fail closed with HTTP 503**, without deleting, silently
+omitting or misrepresenting any of those records. For Search the check uses the
+exact requested event interval; for full-history Timeline it conservatively
+checks the whole Location because an unresolved row cannot be preassigned to a
+Session. A G2 HTTP test inserts an orphan historic Audit→Task reference and
+confirms both overfull endpoints return 503, including when the Task has not
+yet been created. The direct-only G2 proof cohort still demonstrates signed
+pagination, but **does NOT prove the full source/indirect coverage requirement**.
+
+An additional signed filter digest binds CURRENT Location Incident visibility
+to the first page. If Location policy/status changes between requests, the
+old cursor is rejected rather than joining a newly visible/hidden Incident
+cohort. This does not freeze or grant current permissions: staff session,
+membership, MFA, Location, scope and commercial access are independently
+reauthorized on every request.
+
+## Dedicated environment and migration/legacy result
+
+- Isolated, task-owned PostgreSQL **17.10** Docker container
+  `issue300_g2_pg17`, loopback `127.0.0.1:55480`, database `issue300_g2`.
+  Shared `valet` on port 5432 was never used or modified.
+- **94/94** Prisma migrations applied to **G2 only**, including forward-only
+  `20261018009400_issue_300_u05_birth_xid/migration.sql`. Prior 93 migrations
+  remain unchanged. No production/staging migration applied.
+- All three newly protected source tables have nullable `xid8`
+  `pagination_birth_xid`, DB default `pg_current_xact_id()`, an INSERT trigger
+  overriding client NULL/false values, and UPDATE-of-marker immutable
+  preservation triggers. Migration uses ordered three-table
+  `ACCESS EXCLUSIVE` locks, explicit `BEGIN`/`COMMIT` and a 5s local
+  `lock_timeout`; interruption in the disposable copy leaves no partial
+  activation. Legacy NULL rows were preserved (each source retained at least
+  one old NULL after migration). No synthetic XID backfill.
+- Rollback-only low-privilege `NOLOGIN` test writer could SELECT/INSERT but
+  could not ALTER/disable trigger, SET replication bypass, UPDATE/DELETE,
+  TRUNCATE or become table owner. Forged XIDs and explicit NULLs were ignored
+  by the database trigger. This test is **not** a full audit of every live
+  production runtime-role/provisioning path.
+- API for ordinary preview `127.0.0.1:3161` remains **U05 disabled**.
+  Test-only API `127.0.0.1:3162` is gated by all three conditions:
+  `NODE_ENV=test`, `ISSUE300_U05_G2_PROOF_ENABLE=1`, and exact DB URL
+  `127.0.0.1:55480/issue300_g2`. There is no production on-switch in the
+  validated candidate. Dashboard `127.0.0.1:3113/audit-log` unchanged.
+
+## Mandatory proof matrix (§7 original U05-R01–R09)
+
+| Gate | Status | Actual executed subset and missing required proof |
+| --- | --- | --- |
+| R01 | **PARTIAL** | Three PostgreSQL connections; delayed single transaction with Audit/Custody/Dispatch/Incident, old event times; all four excluded by `S0` after COMMIT, admitted by `S1`. Cross-request **signed** page1/page2 test with held late writer and all four independent sources still required. |
+| R02 | **GAP/PARTIAL** | Later `S1` admits rows excluded under `S0`. Distinct pre-capture committed control + earlier-BEGIN/later-COMMIT concurrent writer proof not separately exercised as required. |
+| R03 | **PARTIAL; P0 mitigated fail-closed** | Four-source held transaction proves same XID/cohort. Separate real G2 counterexample showed two old indirect Audit references appearing only after post-`S0` Task/Incident writes; query guard now prevents misleading multi-page Search/Timeline. **Full indirect Audit semantics remain unproven.** |
+| R04 | **PARTIAL** | Rollback-only copied-three-table DDL race: writer lock blocks activation, lock timeout rolls back all columns; prestarted writer inserts after activation and receives proper XID, old NULLs retained. Operational writers at migration boundary and every legacy transaction type still required. |
+| R05 | **PARTIAL** | Explicit aborted DDL transaction, atomic three-table copy, role/trigger abuse denials and fresh marker tests. Fresh 0→94 migrated DB and two concurrent migration runners/upgrade interruption were not independently completed. |
+| R06 | **PARTIAL** | Real authenticated HTTP signed Search traversed 6 distinct Sessions in DESC pages and Timeline traversed all four source families with four exact equal-time records in order Audit→Custody→Dispatch→Incident. **100+ Session/100+ single-Session events** still not tested. |
+| R07 | **PARTIAL** | Current vehicle make filter on overfull query returns 503; current Location Incident visibility change invalidates signed page cursor; Staff session revocation rejects next page. Changing staff/slot/Incident attributes and active permissions during real writers still require matrix coverage. |
+| R08 | **PARTIAL** | Changed HMAC, wrong time window, source purpose, distinct CA/LM staff session denied. JWT-like/opaque signed page bound to original filter, role, viewer and `pg_snapshot`; 512-character snapshot oversize unit check and 15m TTL exist. Actual long active-XID snapshot and deliberately stalled source/timeout HTTP tests remain GAP. |
+| R09 | **GAP/PARTIAL; performance concern** | CA/LM real password and TOTP MFA tests, restricted Supervisor/foreign access, scoped SQL and HTTP, and a new **committed then exact-UUID-cleaned** G2 fixture plan with 3,500 Session +900 Custody, 101-result cap: **warm p50 933.93ms, p95 969.80ms**, 20 samples, 3,121,652 shared buffer hits, no physical reads. Two additional **actual isolated HTTP writer subsets PASS**: Supervisor Incident opening + idempotent retry + CA/MFA safe readback, and Supervisor Dispatch ASSIGNED→REASSIGNED + CA/MFA four-source Timeline readback; neither is a direct SQL substitute. Not a target-scale PASS. **Actual operational check-in/key-custody/handoff/retrieval chain, 100k/1m skew, cold p95 and writer load** not completed. |
+
+**Disposition:** none of the nine full requirements is marked PASS. The
+original T01–T70 ledger's full-acceptance GAP accounting remains binding; the
+successful subsets here do **not** upgrade overall T01/T70 to PASS.
+
+## Reproducible proof commands — from Prime repository root
+
+Use the already-verified task-only G2 credential source in process memory and
+set `ISSUE300_PG_TEST_URL` to the explicit `127.0.0.1:55480/issue300_g2`
+connection. Never log, commit or disclose the password, bearer tokens, or MFA
+seeds. The six tests can be run individually with:
+
+```powershell
+node apps/api/test/issue300-pg/issue300-u05-trigger-proof.mjs
+node apps/api/test/issue300-pg/issue300-u05-rollout-proof.mjs
+node apps/api/test/issue300-pg/issue300-u05-privilege-proof.mjs
+node apps/api/test/issue300-pg/issue300-u05-late-writers.mjs
+node apps/api/test/issue300-pg/issue300-u05-indirect-join-counterexample.mjs
+node apps/api/test/issue300-pg/issue300-u05-http-pagination.mjs
+node apps/api/test/issue300-pg/issue300-query-performance.mjs
+node apps/api/test/issue300-pg/issue300-operational-incident-writer.mjs
+node apps/api/test/issue300-pg/issue300-operational-dispatch-writer.mjs
+```
+
+All six above **PASS** on G2; the counterexample test's PASS means it
+**successfully reproduces the underlying unsafe relationship race and asserts
+the new guard rejects it**, not that full U05 is solved. The tests either
+ROLLBACK, use an explicit disposable probe schema removed after the test, or
+delete precisely generated G2-only UUID fixtures. HTTP tests preserve
+test-only G2 user/domain rows; never interpret these as production writers.
+The separately listed performance test inserts and **commits** 3,500/900
+isolated random-ID fixtures before snapshot capture; after measuring it
+deletes those exact ID sets in a verified G2 transaction. It **PASSed its
+test harness but not an acceptable target SLA**. The earlier in-transaction
+measurement was invalid for U05 since born-XID rows were invisible under S0;
+only the committed-measurement numbers above are meaningful.
+
+**Real operational writer subsets (both PASS; distinct from fixture evidence):**
+`issue300-operational-incident-writer.mjs` authenticates an actual Supervisor
+through staff login (Argon2 password) and calls the production Incident
+command over G2 API HTTP, checks one Incident and one independent Audit twin
+with database-owned birth markers, exact idempotent retry and no Session/Task/
+Custody/Dispatch mutation; an MFA-enrolled Company Admin reads both event
+sources and redacted Incident detail. `issue300-operational-dispatch-writer.mjs`
+uses the production assign and reassign commands over G2 API HTTP, checks
+persisted distinct Dispatch actor/previous/new participant roles with XIDs
+and current Task state; an MFA-authenticated Company Admin sees the historical
+events, not just current assignee. Both tests use explicitly labelled
+**direct SQL fixtures for pre-existing Session, user and active Shift**; those
+fixtures are NOT proof of the upstream operational check-in/shift writers.
+Both use disposable G2 only. Their success narrows R09 and T01 gaps, but
+neither gate nor full §27 acceptance is promoted to PASS.
+
+Targeted additional evidence:
+
+```powershell
+pnpm --dir apps/api exec vitest run test/issue300-search --project=api-non-postgres --reporter=dot
+node --test apps/api/test/issue300-timeline/*.mjs
+node --test apps/api/test/issue300-qa/*.mjs
+pnpm --dir apps/api typecheck
+pnpm --dir apps/api lint
+pnpm architecture:check
+node scripts/validation/issue300/verify-live-ui-exceptions.mjs . tmp/issue300-g0/FROZEN_UI_MANIFEST.json
+```
+
+Verified: focused search **18/18**, timeline **18/18**, static security QA
+**12/12**, TypeScript and ESLint PASS, architecture PASS (only grandfathered
+warnings). Frozen Concept A source manifest **119/124 unchanged with precisely
+five previously approved nonvisual data-wiring exceptions**; no new UI source,
+CSS, behavior, copy, accessibility or Audit Events changes for U05.
+
+## Owner-dependent next decision
+
+**Option A is locally implemented, but insufficient by itself for the complete
+U05 guarantee.** Owner must separately approve either:
+
+1. A database-owned, immutable and historically scoped **Task/indirect
+   provenance** mechanism (including any Task mutations/identity updates),
+   rolled out atomically and tested against the same old Audit phantom; or
+2. A separately specified protected/materialized Session-result membership
+   snapshot design, with its own retention/authorization/cleanup/performance
+   review.
+
+Neither extension is within the approval to add markers to **only the three
+named tables**. Do not silently discard indirect Audit evidence, mark source
+coverage AVAILABLE when partial, fabricate Task XIDs, or enable production
+pagination. All unrelated acceptance work can continue independently.
+
+No push, PR, main merge, deployment, production migration or Issue closure.
+
+## 2026-10-18 continuation — independently reviewed G2-only HTTP and real writers
+
+**Subsequent full writer-chain G2 proof:** the separately opt-in real
+operational test progressed beyond Check-in/key A→B→C through Parking,
+Guest-requested Retrieval, supervisor Task assignment/acceptance, READY,
+Guest-issued pickup-code verification and fully completed Handoff under
+the real anti-abuse/financial/verification guards. Independently sourced
+`CHECKED_OUT` (Parking versus Retrieval separately), `RETURNED_TO_SLOT`,
+`RELEASED`, Dispatch state events and seven final Audit lifecycle types
+were checked by born-XID and exact CA/MFA Timeline event IDs. See
+`T01_ACTUAL_G2_LIFECYCLE.md` for commands, secure temporary local
+API 3163 and proof limitations. **R09 remains PARTIAL** because target
+100k/1m skew, concurrent writer/read p95, source-parent immutability and
+the remaining operational/identity matrix have NOT been accepted.
+
+**Further current-worktree follow-up (after `33fc913c`):** the held-writer
+HTTP proof now validates **Search and Timeline** signed page1→continuation
+under each of the four sources. The Search test holds one direct pre-S0
+transaction inserting an older-timestamp source row, commits one separate
+control row before S0, captures both Search and Timeline page1, then commits
+the held transaction. S0 Search retains the exact precommitted count/reason
+and excludes the later source event; fresh S1 includes it. All four Search
+and Timeline runs **PASS**. This narrows the previously stated Search race
+gap but **does not** fix indirect Audit→Task/Incident parent association,
+mutable owner/maintenance links, high-concurrency or full R01–R09 scope.
+
+**Measured node-level EXPLAIN follow-up, same committed disposable
+3,500/900 tier:** two independent warmed runs varied materially. One
+reported 1,993,522 shared hits, p50 56.77ms/p95 61.98ms; a second reported
+2,015,235 hits, p50 93.16ms/p95 1875.24ms (20 warm samples each). Both
+showed a `valet_sessions_organization_id_id_key` Index Scan invoked
+approximately **901 times**, traversing approximately 1,700–1,800 rows
+per loop and consuming around 1.58–1.61M inclusive buffer hits. The
+`vehicles_organization_id_id_key` Index Scan was also invoked 901
+times with ~400k hits. PostgreSQL CTE buffer counters are **inclusive and
+not additive**; do not sum the reported child/hotspot rows or assert
+exactly which SQL fragment caused them. The diagnostic test now emits
+actual loops, filter and index conditions without secrets. No Search SQL
+optimization or index/schema change has been made: current timing is
+unstable and neither the earlier ~970ms nor new runs prove target p95.
+
+Additional **local test-only commit**:
+`33fc913c9cba26453288ac148f080016cdf1902d`.
+All three executable scripts below returned **exit 0** against the existing
+G2 PostgreSQL 17.10 and gated API 3162, and an independent READ-ONLY reviewer
+inspected their acceptance scope and false-positive hazards. Reviewed
+suggestions strengthened historical event-ID/actor assertions and negative
+current-slot filtering before that test commit.
+
+| Gate | New executed evidence | Honest remaining boundary |
+| --- | --- | --- |
+| U05-R01/R02 | `issue300-u05-http-held-writers.mjs`: four separate **AUDIT, KEY_CUSTODY, DISPATCH, INCIDENT** cases. Each source's writer BEGIN+INSERT predates page 1, an independently committed control is admitted, first Timeline page captures the signed cohort, writer COMMIT occurs, all signed next pages exclude that late fact, and a newly captured cohort admits it. Same source test ID is excluded exactly once until fresh capture. | Verified **Timeline** held-writer HTTP only, not separate Search held-writer page1/page2 or unsafe indirect Task/Incident links. Full R01/R02 remain **PARTIAL**. |
+| U05-R06 | `issue300-u05-http-large-pages.mjs`: authenticated CA MFA Search of **106 distinct Sessions**, including **105 exact timestamp ties** ordered by PostgreSQL UUID DESC; signed Timeline **112 source events**, **108 equal-time ties**, four source ranks and the **same UUID in four source tables** without collapsing source-qualified identity. Generated 105 Session/vehicle fixtures and 105 custody rows are removed by exact UUID cleanup. | Direct-only synthetic cohort. Does not establish 100k/1m target-scale load, indirect provenance, multi-writer concurrency or performance. Gate remains **PARTIAL** in the aggregate U05 decision. |
+| T01/R09 actual writers | `issue300-operational-checkin-key-writer.mjs`: real Supervisor password login, real Check-in Intake, Condition Completion and Complete Check-in, then HTTP Key A→B→C reassignments with optimistic versions. DB shows **5 actual custody events** with actor and non-null source XIDs, **3 audited key changes**; independent CA password+TOTP historical **A-window Search** identifies exact persisted A event, current slot remains C, C-only historic query returns zero, and Timeline source IDs match the five persisted custody IDs exactly. | G2-only **SQL setup** created Shift/three slots, Location intake policy and users; those are not operational writers. Parking, Retrieval, release/handoff remain GAP; overall T01/R09 acceptance is not inferred from this subset. |
+
+The held-transaction tests deliberately insert SQL evidence, **not** actual
+operational writers. All scripts verify their exact G2 URL and database identity.
+The HTTP seed helper intentionally retains its synthetic org/users/source
+fixtures in disposable G2, and the real Check-in/Key script retains its own
+test-only operational history as evidence. R06's generated large cohort and the
+held test's own inserted late/control source rows are removed by exact IDs.
+Repeated runs therefore accumulate small, identifiable G2-only proof history;
+these scripts must never target a shared or production database.
+
+**Additional independent privilege caveat:** Runtime Custody/Dispatch/Incident
+roles are provisioned without UPDATE/DELETE/TRUNCATE, but migration-94's
+`UPDATE OF pagination_birth_xid` trigger alone does not make an Incident's
+Session association or a maintenance owner's source edits historically
+immutable. No ordinary API mutation exploit was reproduced; maintenance-role
+or privilege-drift snapshot association changes still require further proof
+or separately authorized source-link protection. The independently reproduced
+Audit→Task/Incident phantom remains the definite P0; its 503 fail-closed
+guard remains intact. U05 is **NOT unrestricted, production-enabled or
+fully accepted**, and the nine original gate statuses must not be inferred
+as all PASS from these subset experiments.

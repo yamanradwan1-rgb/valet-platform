@@ -26,6 +26,8 @@ export interface MappedApiError {
 }
 
 const statusByCode: Readonly<Record<string, number>> = {
+  AUDIT_INVESTIGATION_SNAPSHOT_UNAVAILABLE: HttpStatus.SERVICE_UNAVAILABLE,
+  AUDIT_INVESTIGATION_TIMELINE_UNAVAILABLE: HttpStatus.SERVICE_UNAVAILABLE,
   CONDITION_PHOTO_NOT_FOUND: HttpStatus.NOT_FOUND,
   CONDITION_PHOTO_TOO_LARGE: HttpStatus.PAYLOAD_TOO_LARGE,
   CONDITION_PHOTO_INVALID_IMAGE: HttpStatus.UNPROCESSABLE_ENTITY,
@@ -144,6 +146,8 @@ const statusByCode: Readonly<Record<string, number>> = {
 };
 
 const safeMessages: Readonly<Record<string, string>> = {
+  AUDIT_INVESTIGATION_SNAPSHOT_UNAVAILABLE: "Investigation history is temporarily unavailable.",
+  AUDIT_INVESTIGATION_TIMELINE_UNAVAILABLE: "Investigation history is temporarily unavailable.",
   CONDITION_PHOTO_NOT_FOUND: "The requested photo operation is not available.",
   CONDITION_PHOTO_TOO_LARGE: "The image exceeds the allowed size.",
   CONDITION_PHOTO_INVALID_IMAGE: "The image could not be verified.",
