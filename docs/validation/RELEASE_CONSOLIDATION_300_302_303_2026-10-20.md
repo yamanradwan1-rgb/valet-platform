@@ -1,5 +1,14 @@
 # VAYLET — #300 + #302 + #303 consolidated review and release handoff
 
+**2026-10-20 Owner supersession:** An earlier assistant-imposed production
+disablement for #300 was REJECTED by the Owner. Issue #300 Investigation is an
+approved normal production feature for authorized Company Admin and Location
+Manager; it must never be globally hidden by `NODE_ENV` or test-only proof
+flags. Read [`OWNER_ISSUE300_PRODUCTION_AVAILABILITY_2026-10-20.md`](OWNER_ISSUE300_PRODUCTION_AVAILABILITY_2026-10-20.md)
+and [`PR_300_302_303_FINAL.md`](PR_300_302_303_FINAL.md) for the latest
+corrected source decision and evidence. Original findings below remain
+historical, not final product restrictions.
+
 **Prepared:** 2026-10-20. **Purpose:** reviewable local integration documentation, release notes and draft PR description. The original source-only W23 snapshot appears below. **For subsequently executed combined-branch unit tests, builds and release-guard fixes, read [`RELEASE_CONSOLIDATION_COMBINED_VALIDATION_2026-10-20.md`](RELEASE_CONSOLIDATION_COMBINED_VALIDATION_2026-10-20.md)**; that newer evidence supersedes the old “NOT RUN” entries for those specifically executed tests, but **does not establish #300 live engineering acceptance, CI PASS, deployment or merge permission**. No issue is closed.
 
 ## 1. Source-of-truth and immutable provenance

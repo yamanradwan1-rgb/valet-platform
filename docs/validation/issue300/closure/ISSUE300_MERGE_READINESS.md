@@ -1,5 +1,14 @@
 # Issue #300 — Merge readiness at consolidated release-candidate review
 
+**2026-10-20 Owner supersession:** The following earlier production-disabled
+disposition was an assistant-imposed restriction, explicitly REJECTED by the
+Owner. The current product decision is **normal production Investigation for
+authorized Company Admin and Location Manager**, while authentication, MFA,
+historical provenance, signed cursor and unsafe-cohort guards remain strict.
+See [`OWNER_ISSUE300_PRODUCTION_AVAILABILITY_2026-10-20.md`](../../OWNER_ISSUE300_PRODUCTION_AVAILABILITY_2026-10-20.md)
+for the corrected source, tests and unresolved *runtime* release evidence.
+The original dated implementation report is retained below for provenance.
+
 **Disposition: SOURCE INTEGRATED — PRODUCTION DISABLED — LIVE ACCEPTANCE PENDING.**
 
 Source provenance: `codex/issue300-r2-local-closure-package` at

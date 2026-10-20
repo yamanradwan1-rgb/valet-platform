@@ -1,5 +1,13 @@
 # VAYLET #300 / #302 / #303 — Verified combined-source validation
 
+**Dated Owner product-decision supersession:** The former `#300 production
+disabled` integration posture below has been overridden. See
+[`OWNER_ISSUE300_PRODUCTION_AVAILABILITY_2026-10-20.md`](OWNER_ISSUE300_PRODUCTION_AVAILABILITY_2026-10-20.md)
+and [`PR_300_302_303_FINAL.md`](PR_300_302_303_FINAL.md). The old results
+remain attributable to their earlier SHA, not silently reclassified as tests
+run on the corrected SHA. The genuine Owner certificate exception remains
+*not cryptographically verified*.
+
 **Status: LOCAL SOURCE INTEGRATION VERIFIED; OWNER MERGE/RELEASE STILL PENDING.**
 
 This addendum records commands **actually executed on the new combined
