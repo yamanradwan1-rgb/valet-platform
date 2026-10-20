@@ -1,0 +1,231 @@
+<section class="inspector" data-concept="c" aria-labelledby="c-page-title" data-mobile-details="false">
+  <div class="c-head">
+    <div class="c-heading">
+      <span class="c-kicker"><span class="c-kicker-mark" aria-hidden="true"></span><span data-c-text="workspace">KEYS &amp; SPOTS / PHYSICAL RESOURCES</span></span>
+      <h1 id="c-page-title" data-c-text="title">Resource inspector</h1>
+      <p data-c-text="intro">One focused workspace for your key custody and parking capacity.</p>
+    </div>
+    <span class="c-demo-note" data-c-text="synthetic">SYNTHETIC DATA · DESIGN PREVIEW</span>
+  </div>
+
+  <section class="c-kpis" aria-label="Resource availability summary" data-c-kpis-label>
+    <div class="c-kpi" data-c-kpi-family="keys" data-c-kpi="keys-active">
+      <span class="c-kpi-label" data-c-text="activeKeySlots">Active key slots</span>
+      <strong class="c-kpi-number" data-c-kpi-value>0</strong>
+      <span class="c-kpi-context" data-c-kpi-caption="keys-configured">0 configured</span>
+    </div>
+    <div class="c-kpi" data-c-kpi-family="keys" data-c-kpi="keys-available">
+      <span class="c-kpi-label" data-c-text="keysAvailable">Keys available</span>
+      <strong class="c-kpi-number" data-c-kpi-value>0</strong>
+      <span class="c-kpi-context" data-c-kpi-caption="keys-available">of 0 Active</span>
+    </div>
+    <div class="c-kpi" data-c-kpi-family="keys" data-c-kpi="keys-in-use">
+      <span class="c-kpi-label" data-c-text="keysInUse">Keys in use</span>
+      <strong class="c-kpi-number" data-c-kpi-value>0</strong>
+      <span class="c-kpi-context" data-c-text="inUse">In use</span>
+    </div>
+    <div class="c-kpi" data-c-kpi-family="spots" data-c-kpi="spots-active">
+      <span class="c-kpi-label" data-c-text="activeParkingSpots">Active parking spots</span>
+      <strong class="c-kpi-number" data-c-kpi-value>0</strong>
+      <span class="c-kpi-context" data-c-kpi-caption="spots-configured">0 configured</span>
+    </div>
+    <div class="c-kpi" data-c-kpi-family="spots" data-c-kpi="spots-available">
+      <span class="c-kpi-label" data-c-text="spotsAvailable">Spots available</span>
+      <strong class="c-kpi-number" data-c-kpi-value>0</strong>
+      <span class="c-kpi-context" data-c-kpi-caption="spots-available">of 0 Active</span>
+    </div>
+    <div class="c-kpi" data-c-kpi-family="spots" data-c-kpi="spots-occupied">
+      <span class="c-kpi-label" data-c-text="spotsOccupied">Spots occupied</span>
+      <strong class="c-kpi-number" data-c-kpi-value>0</strong>
+      <span class="c-kpi-context" data-c-text="occupied">Occupied</span>
+    </div>
+  </section>
+
+  <div class="c-command-row">
+    <div class="c-family-switch" role="group" aria-label="Resource family" data-c-family-label>
+      <button class="c-family-button is-active" data-c-family="keys" aria-pressed="true" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="8" cy="9" r="4"/><path d="M11 12l9 9m-4-4 3-3m-5 1 3-3"/></svg>
+        <span data-c-text="keys">Key Slots</span><span class="c-family-count" data-c-count="keys">07</span>
+      </button>
+      <button class="c-family-button" data-c-family="spots" aria-pressed="false" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M9 17V7h4.25a3.25 3.25 0 0 1 0 6.5H9"/></svg>
+        <span data-c-text="spots">Parking Spots</span><span class="c-family-count" data-c-count="spots">07</span>
+      </button>
+    </div>
+    <div class="c-add-actions">
+      <button type="button" class="c-add-zone" data-c-open-zone hidden><span data-c-text="addZone">Add Parking Zone</span></button>
+      <button type="button" class="c-add" data-c-open-add>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        <span data-c-text="addKey">Add Key Slot</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="c-workspace">
+    <section class="c-master" aria-labelledby="c-list-title">
+      <div class="c-master-head">
+        <div><div class="c-overline" data-c-text="collection">COLLECTION</div><h2 id="c-list-title" data-c-text="resourceList">Resource list</h2></div>
+        <span class="c-list-total" data-c-list-total>7 <span data-c-text="resources">resources</span></span>
+      </div>
+      <div class="c-filter-row" role="group" aria-label="Filter resources" data-c-filter-label>
+        <button class="c-filter is-active" type="button" data-c-filter="all" aria-pressed="true" data-c-text="all">All</button>
+        <button class="c-filter" type="button" data-c-filter="busy" aria-pressed="false" data-c-text="busyFilter">In use</button>
+        <button class="c-filter" type="button" data-c-filter="available" aria-pressed="false" data-c-text="available">Available</button>
+        <button class="c-filter" type="button" data-c-filter="inactive" aria-pressed="false" data-c-text="inactive">Inactive</button>
+      </div>
+      <div class="c-list-caption"><span data-c-text="configured">CONFIGURED RESOURCES</span><span data-c-visible-count>0 / 7</span></div>
+      <div class="c-master-scroll"><ul class="c-resource-list" data-c-list aria-label="Resource list"></ul><p class="c-empty" data-c-empty hidden data-c-text="none">No resources in this view.</p></div>
+      <div class="c-master-foot">
+        <div class="c-foot-scope"><span class="c-foot-dot" aria-hidden="true"></span><span data-c-text="scopeNote">Showing the selected location only</span></div>
+        <label class="c-preview-mode"><span data-c-text="previewState">Preview state</span><select data-c-preview-state aria-label="Preview list state"><option value="normal">Sample data</option><option value="empty">Empty</option><option value="loading">Loading</option><option value="error">Error</option></select></label>
+      </div>
+    </section>
+
+    <section class="c-detail" data-c-detail aria-labelledby="c-detail-heading" tabindex="-1">
+      <div class="c-detail-topline">
+        <button type="button" class="c-back" data-c-back>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M15 18 9 12l6-6"/></svg><span data-c-text="back">All resources</span>
+        </button>
+        <span class="c-overline" data-c-text="selected">SELECTED RESOURCE</span>
+        <span class="c-position" data-c-position>01 / 07</span>
+      </div>
+      <div class="c-preview-wash" data-c-preview-wash hidden role="status"><span class="c-preview-wash-symbol" aria-hidden="true">⌕</span><p data-c-preview-message></p></div>
+      <div class="c-detail-scroll" data-c-detail-scroll>
+        <div class="c-resource-hero">
+          <div class="c-resource-icon" data-c-hero-icon aria-hidden="true">K</div>
+          <div class="c-hero-copy">
+            <div class="c-hero-prefix" data-c-resource-type>KEY SLOT · LOC-A</div>
+            <h2 id="c-detail-heading" tabindex="-1"><bdi dir="ltr" data-c-code>K-02</bdi></h2>
+            <p data-c-label>Front desk B</p>
+          </div>
+          <button type="button" class="c-qr-action" data-c-open-qr>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M15 14h2v3h-3v4h7v-4h-2"/></svg>
+            <span data-c-text="viewQR">View QR label</span>
+          </button>
+        </div>
+        <section class="c-vehicle" aria-labelledby="c-vehicle-title">
+          <div class="c-vehicle-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m5 10 2-4h10l2 4M4 10h16v7H4zM6.5 17v2m11-2v2M7 14h2m6 0h2"/></svg></div>
+          <div class="c-vehicle-copy"><span class="c-stat-label" id="c-vehicle-title" data-c-text="associatedVehicle">Associated vehicle</span><strong><bdi dir="auto" data-c-vehicle>DEMO 4821</bdi></strong><span data-c-vehicle-hint>Current associated vehicle</span></div>
+          <span class="c-vehicle-symbol" aria-hidden="true">↗</span>
+        </section>
+        <div class="c-stat-pair">
+          <div class="c-stat-card"><span class="c-stat-label" data-c-text="configStatus">CONFIGURATION STATUS</span><div class="c-stat-value" data-c-status></div><p data-c-text="statusHint">Whether the resource is enabled for use</p></div>
+          <div class="c-stat-card"><span class="c-stat-label" data-c-text="usageStatus">OPERATIONAL USAGE</span><div class="c-stat-value" data-c-usage></div><p data-c-usage-hint>Current operational state</p></div>
+        </div>
+        <div class="c-lower-grid">
+          <section class="c-detail-section" aria-labelledby="c-profile-title">
+            <div class="c-section-title"><span class="c-section-index">01</span><h3 id="c-profile-title" data-c-text="resourceProfile">Resource profile</h3></div>
+            <dl class="c-spec-list">
+              <div><dt data-c-text="code">Resource code</dt><dd><bdi class="c-mono" dir="ltr" data-c-spec-code>—</bdi></dd></div>
+              <div><dt data-c-text="label">Display label</dt><dd data-c-spec-label>—</dd></div>
+              <div><dt data-c-text="location">Location</dt><dd data-c-spec-location>—</dd></div>
+              <div data-c-zone-row hidden><dt data-c-text="parkingZone">Parking zone</dt><dd data-c-spec-zone>—</dd></div>
+            </dl>
+          </section>
+          <section class="c-detail-section c-timeline-section" aria-labelledby="c-timeline-title">
+            <div class="c-section-title"><span class="c-section-index">02</span><h3 id="c-timeline-title" data-c-timeline-title data-c-text="custody">Key custody</h3></div>
+            <p class="c-section-subtitle" data-c-timeline-intro>Recent sample checkout / return events</p>
+            <ol class="c-timeline" data-c-timeline></ol>
+            <p class="c-empty-events" data-c-no-events hidden data-c-text="noCustody">No recent custody activity for this slot.</p>
+          </section>
+        </div>
+        <div class="c-detail-bottom"><span class="c-foot-dot" aria-hidden="true"></span><span data-c-text="readOnly">Design preview · all actions are local and read-only</span></div>
+      </div>
+    </section>
+  </div>
+  <p class="c-announcement c-sr-only" aria-live="polite" role="status" data-c-announce></p>
+</section>
+
+<div class="c-modal-backdrop" data-c-modal hidden>
+  <section class="c-modal" role="dialog" aria-modal="true" aria-labelledby="c-modal-title" tabindex="-1">
+    <div class="c-modal-heading"><div><span class="c-kicker" data-c-text="demoPreview">DESIGN PREVIEW</span><h2 id="c-modal-title" data-c-modal-title>Resource label</h2></div><button type="button" class="c-close" data-c-close aria-label="Close preview">×</button></div>
+    <div data-c-qr-modal hidden>
+      <div class="c-label-preview"><div class="c-label-brand"><span class="c-brand-symbol" aria-hidden="true">V</span><strong>VAYLET</strong></div><div class="c-label-resource"><span data-c-qr-family>KEY SLOT</span><bdi dir="ltr" data-c-qr-code>K-02</bdi><span data-c-qr-location>LOC-A</span></div><div class="c-qr-art" data-c-qr-art role="img" aria-label="Illustrative QR preview, not scannable"><svg viewBox="0 0 25 25" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><rect width="25" height="25" fill="white"/><g fill="#0f172a"><path d="M0 0h1v1h-1z M1 0h1v1h-1z M3 0h1v1h-1z M6 0h1v1h-1z M9 0h1v1h-1z M11 0h1v1h-1z M12 0h1v1h-1z M14 0h1v1h-1z M17 0h1v1h-1z M20 0h1v1h-1z M22 0h1v1h-1z M23 0h1v1h-1z M1 1h1v1h-1z M2 1h1v1h-1z M3 1h1v1h-1z M4 1h1v1h-1z M5 1h1v1h-1z M6 1h1v1h-1z M7 1h1v1h-1z M9 1h1v1h-1z M10 1h1v1h-1z M12 1h1v1h-1z M15 1h1v1h-1z M17 1h1v1h-1z M18 1h1v1h-1z M19 1h1v1h-1z M20 1h1v1h-1z M21 1h1v1h-1z M22 1h1v1h-1z M23 1h1v1h-1z M0 2h1v1h-1z M1 2h1v1h-1z M7 2h1v1h-1z M10 2h1v1h-1z M11 2h1v1h-1z M12 2h1v1h-1z M13 2h1v1h-1z M14 2h1v1h-1z M17 2h1v1h-1z M23 2h1v1h-1z M24 2h1v1h-1z M1 3h1v1h-1z M3 3h1v1h-1z M4 3h1v1h-1z M5 3h1v1h-1z M7 3h1v1h-1z M8 3h1v1h-1z M12 3h1v1h-1z M13 3h1v1h-1z M17 3h1v1h-1z M19 3h1v1h-1z M20 3h1v1h-1z M21 3h1v1h-1z M23 3h1v1h-1z M24 3h1v1h-1z M1 4h1v1h-1z M3 4h1v1h-1z M4 4h1v1h-1z M5 4h1v1h-1z M7 4h1v1h-1z M8 4h1v1h-1z M10 4h1v1h-1z M12 4h1v1h-1z M15 4h1v1h-1z M17 4h1v1h-1z M19 4h1v1h-1z M20 4h1v1h-1z M21 4h1v1h-1z M23 4h1v1h-1z M0 5h1v1h-1z M1 5h1v1h-1z M3 5h1v1h-1z M4 5h1v1h-1z M5 5h1v1h-1z M7 5h1v1h-1z M8 5h1v1h-1z M11 5h1v1h-1z M14 5h1v1h-1z M15 5h1v1h-1z M17 5h1v1h-1z M19 5h1v1h-1z M20 5h1v1h-1z M21 5h1v1h-1z M23 5h1v1h-1z M1 6h1v1h-1z M7 6h1v1h-1z M17 6h1v1h-1z M23 6h1v1h-1z M1 7h1v1h-1z M2 7h1v1h-1z M3 7h1v1h-1z M4 7h1v1h-1z M5 7h1v1h-1z M6 7h1v1h-1z M7 7h1v1h-1z M10 7h1v1h-1z M13 7h1v1h-1z M14 7h1v1h-1z M17 7h1v1h-1z M18 7h1v1h-1z M19 7h1v1h-1z M20 7h1v1h-1z M21 7h1v1h-1z M22 7h1v1h-1z M23 7h1v1h-1z M24 7h1v1h-1z M0 8h1v1h-1z M2 8h1v1h-1z M4 8h1v1h-1z M6 8h1v1h-1z M9 8h1v1h-1z M11 8h1v1h-1z M13 8h1v1h-1z M15 8h1v1h-1z M17 8h1v1h-1z M20 8h1v1h-1z M22 8h1v1h-1z M24 8h1v1h-1z M2 9h1v1h-1z M3 9h1v1h-1z M4 9h1v1h-1z M8 9h1v1h-1z M9 9h1v1h-1z M13 9h1v1h-1z M14 9h1v1h-1z M15 9h1v1h-1z M19 9h1v1h-1z M20 9h1v1h-1z M24 9h1v1h-1z M0 10h1v1h-1z M7 10h1v1h-1z M8 10h1v1h-1z M9 10h1v1h-1z M10 10h1v1h-1z M11 10h1v1h-1z M18 10h1v1h-1z M19 10h1v1h-1z M20 10h1v1h-1z M21 10h1v1h-1z M22 10h1v1h-1z M0 11h1v1h-1z M1 11h1v1h-1z M3 11h1v1h-1z M6 11h1v1h-1z M9 11h1v1h-1z M11 11h1v1h-1z M12 11h1v1h-1z M14 11h1v1h-1z M17 11h1v1h-1z M20 11h1v1h-1z M22 11h1v1h-1z M23 11h1v1h-1z M1 12h1v1h-1z M4 12h1v1h-1z M7 12h1v1h-1z M9 12h1v1h-1z M10 12h1v1h-1z M12 12h1v1h-1z M15 12h1v1h-1z M18 12h1v1h-1z M20 12h1v1h-1z M21 12h1v1h-1z M23 12h1v1h-1z M0 13h1v1h-1z M1 13h1v1h-1z M2 13h1v1h-1z M3 13h1v1h-1z M10 13h1v1h-1z M11 13h1v1h-1z M12 13h1v1h-1z M13 13h1v1h-1z M14 13h1v1h-1z M21 13h1v1h-1z M22 13h1v1h-1z M23 13h1v1h-1z M24 13h1v1h-1z M1 14h1v1h-1z M2 14h1v1h-1z M6 14h1v1h-1z M7 14h1v1h-1z M8 14h1v1h-1z M12 14h1v1h-1z M13 14h1v1h-1z M17 14h1v1h-1z M18 14h1v1h-1z M19 14h1v1h-1z M23 14h1v1h-1z M24 14h1v1h-1z M1 15h1v1h-1z M4 15h1v1h-1z M6 15h1v1h-1z M8 15h1v1h-1z M10 15h1v1h-1z M12 15h1v1h-1z M15 15h1v1h-1z M17 15h1v1h-1z M19 15h1v1h-1z M21 15h1v1h-1z M23 15h1v1h-1z M0 16h1v1h-1z M3 16h1v1h-1z M4 16h1v1h-1z M7 16h1v1h-1z M8 16h1v1h-1z M11 16h1v1h-1z M14 16h1v1h-1z M15 16h1v1h-1z M18 16h1v1h-1z M19 16h1v1h-1z M22 16h1v1h-1z M1 17h1v1h-1z M2 17h1v1h-1z M3 17h1v1h-1z M4 17h1v1h-1z M5 17h1v1h-1z M6 17h1v1h-1z M7 17h1v1h-1z M1 18h1v1h-1z M7 18h1v1h-1z M10 18h1v1h-1z M13 18h1v1h-1z M14 18h1v1h-1z M17 18h1v1h-1z M18 18h1v1h-1z M21 18h1v1h-1z M24 18h1v1h-1z M0 19h1v1h-1z M1 19h1v1h-1z M3 19h1v1h-1z M4 19h1v1h-1z M5 19h1v1h-1z M7 19h1v1h-1z M9 19h1v1h-1z M11 19h1v1h-1z M13 19h1v1h-1z M15 19h1v1h-1z M17 19h1v1h-1z M20 19h1v1h-1z M22 19h1v1h-1z M24 19h1v1h-1z M1 20h1v1h-1z M3 20h1v1h-1z M4 20h1v1h-1z M5 20h1v1h-1z M7 20h1v1h-1z M8 20h1v1h-1z M9 20h1v1h-1z M13 20h1v1h-1z M14 20h1v1h-1z M15 20h1v1h-1z M19 20h1v1h-1z M20 20h1v1h-1z M24 20h1v1h-1z M0 21h1v1h-1z M1 21h1v1h-1z M3 21h1v1h-1z M4 21h1v1h-1z M5 21h1v1h-1z M7 21h1v1h-1z M8 21h1v1h-1z M9 21h1v1h-1z M10 21h1v1h-1z M11 21h1v1h-1z M18 21h1v1h-1z M19 21h1v1h-1z M20 21h1v1h-1z M21 21h1v1h-1z M22 21h1v1h-1z M0 22h1v1h-1z M1 22h1v1h-1z M7 22h1v1h-1z M9 22h1v1h-1z M11 22h1v1h-1z M12 22h1v1h-1z M14 22h1v1h-1z M17 22h1v1h-1z M20 22h1v1h-1z M22 22h1v1h-1z M23 22h1v1h-1z M1 23h1v1h-1z M2 23h1v1h-1z M3 23h1v1h-1z M4 23h1v1h-1z M5 23h1v1h-1z M6 23h1v1h-1z M7 23h1v1h-1z M9 23h1v1h-1z M10 23h1v1h-1z M12 23h1v1h-1z M15 23h1v1h-1z M18 23h1v1h-1z M20 23h1v1h-1z M21 23h1v1h-1z M23 23h1v1h-1z M0 24h1v1h-1z M1 24h1v1h-1z M2 24h1v1h-1z M3 24h1v1h-1z M10 24h1v1h-1z M11 24h1v1h-1z M12 24h1v1h-1z M13 24h1v1h-1z M14 24h1v1h-1z M21 24h1v1h-1z M22 24h1v1h-1z M23 24h1v1h-1z M24 24h1v1h-1z"/></g></svg></div></div>
+      <p class="c-modal-disclaimer" data-c-text="qrDemo">Illustrative QR artwork. This preview does not contain an operational scanning code.</p>
+      <div class="c-modal-actions"><button class="c-quiet-action" type="button" data-c-close data-c-text="close">Close</button><button class="c-quiet-action" type="button" data-c-download data-c-text="downloadPreview">Download preview</button><button class="c-outline-action" type="button" data-c-print data-c-text="printPreview">Print preview</button></div>
+    </div>
+    <div data-c-add-modal hidden>
+      <p class="c-modal-disclaimer" data-c-text="addDemo">Preview a draft resource. Nothing will be created or saved.</p>
+      <form data-c-add-form class="c-add-form">
+        <label><span data-c-text="code">Resource code</span><input type="text" name="code" maxlength="100" required autocomplete="off" placeholder="K-08"></label>
+        <label><span data-c-text="label">Display label</span><input type="text" name="label" maxlength="160" autocomplete="off" placeholder="Front desk C"></label>
+        <label data-c-add-zone-row hidden><span data-c-text="parkingZone">Parking zone</span><select name="zone"></select></label>
+        <div class="c-draft" data-c-draft hidden role="status"></div>
+        <div class="c-modal-actions"><button class="c-quiet-action" type="button" data-c-close data-c-text="cancel">Cancel</button><button class="c-outline-action" type="submit" data-c-text="previewDraft">Preview draft</button></div>
+      </form>
+    </div>
+  </section>
+</div>
+
+<script type="application/json" data-c-copy>
+{
+    "workspace": ["KEYS & SPOTS / PHYSICAL RESOURCES", "المفاتيح والمواقف / الموارد المادية"],
+    "title": ["Resource inspector", "مستكشف الموارد"],
+    "intro": ["One focused workspace for your key custody and parking capacity.", "مساحة عمل واحدة لمتابعة عهدة المفاتيح وإشغال المواقف."],
+    "synthetic": ["SYNTHETIC DATA · DESIGN PREVIEW", "بيانات افتراضية · معاينة تصميم"],
+    "keys": ["Key Slots", "خانات المفاتيح"], "spots": ["Parking Spots", "مواقف السيارات"],
+    "addKey": ["Add Key Slot", "إضافة خانة مفتاح"], "addSpot": ["Add Parking Spot", "إضافة موقف"],
+    "collection": ["COLLECTION", "المجموعة"], "resourceList": ["Resource list", "قائمة الموارد"],
+    "resources": ["resources", "موارد"],
+    "all": ["All", "الكل"], "busyFilter": ["In use", "قيد الاستخدام"],
+    "available": ["Available", "متاح"], "inactive": ["Inactive", "غير مفعّل"],
+    "configured": ["CONFIGURED RESOURCES", "الموارد المهيأة"], "none": ["No resources in this view.", "لا توجد موارد في هذا العرض."],
+    "scopeNote": ["Showing the selected location only", "تظهر موارد الموقع المحدد فقط"],
+    "selected": ["SELECTED RESOURCE", "المورد المحدد"], "back": ["All resources", "جميع الموارد"],
+    "viewQR": ["View QR label", "عرض ملصق QR"], "configStatus": ["CONFIGURATION STATUS", "حالة التهيئة"],
+    "usageStatus": ["OPERATIONAL USAGE", "حالة الاستخدام"], "statusHint": ["Whether the resource is enabled for use", "هل المورد مفعّل للاستخدام"],
+    "associatedVehicle": ["ASSOCIATED VEHICLE", "المركبة المرتبطة"],
+    "resourceProfile": ["Resource profile", "بيانات المورد"], "code": ["Resource code", "رمز المورد"],
+    "label": ["Display label", "التسمية"], "location": ["Location", "الموقع"], "parkingZone": ["Parking zone", "منطقة الوقوف"],
+    "custody": ["Key custody", "عهدة المفتاح"], "noCustody": ["No recent custody activity for this slot.", "لا توجد أحداث عهدة حديثة لهذه الخانة."],
+    "readOnly": ["Design preview · all actions are local and read-only", "معاينة تصميم · جميع الإجراءات محلية وللعرض فقط"],
+    "demoPreview": ["DESIGN PREVIEW", "معاينة التصميم"], "qrDemo": ["Illustrative QR artwork. This preview does not contain an operational scanning code.", "رسم QR توضيحي فقط، ولا يحتوي هذا النموذج على رمز فعلي للمسح."],
+    "close": ["Close", "إغلاق"], "cancel": ["Cancel", "إلغاء"], "printPreview": ["Print preview", "طباعة المعاينة"],
+    "addDemo": ["Preview a draft resource. Nothing will be created or saved.", "عاين مسودة المورد دون إنشاء أي بيانات أو حفظها."],
+    "previewDraft": ["Preview draft", "معاينة المسودة"], "qrTitle": ["Resource label preview", "معاينة ملصق المورد"],
+    "active": ["Active", "مفعّل"], "unknown": ["Unknown", "غير معروف"], "inUse": ["In use", "قيد الاستخدام"],
+    "occupied": ["Occupied", "مشغول"], "noVehicle": ["No vehicle assigned", "لا توجد مركبة مرتبطة"],
+    "vehicleUnknown": ["Vehicle identity unavailable", "هوية المركبة غير متاحة"],
+    "vehicleAssociationUnknown": ["Vehicle association unknown", "ارتباط المركبة غير معروف"],
+    "vehicleCurrent": ["Current associated vehicle", "المركبة المرتبطة حاليًا"],
+    "vehicleEmpty": ["Currently no associated vehicle", "لا توجد مركبة مرتبطة حاليًا"],
+    "keySlot": ["KEY SLOT", "خانة مفتاح"], "parkingSpot": ["PARKING SPOT", "موقف سيارة"],
+    "noLabel": ["No label", "بدون تسمية"], "unassigned": ["Unassigned", "غير معيّن"],
+    "checkout": ["Checked out", "تسليم المفتاح"], "return": ["Returned", "إرجاع المفتاح"],
+    "custodyIntro": ["Recent sample checkout / return events", "نماذج حديثة من التسليم والإرجاع"],
+    "spotIntro": ["Parking location and current occupancy", "موقع الموقف والإشغال الحالي"],
+    "noHistory": ["Parking space configuration", "تهيئة الموقف"], "demoBy": ["Sample actor", "موظف افتراضي"],
+    "draftNotice": ["Draft preview only — no resource was created.", "معاينة مسودة فقط — لم يتم إنشاء أي مورد."],
+    "draftZone": ["Choose a parking zone", "اختر منطقة وقوف"], "emptyResult": ["Select a resource to inspect", "اختر موردًا لعرض تفاصيله"],
+    "statusActive": ["Ready for operational use", "متاح للتشغيل عند الحاجة"],
+    "statusInactive": ["Unavailable for operational use", "غير متاح للاستخدام التشغيلي"],
+    "usageFree": ["Not currently assigned", "غير مستخدم حاليًا"],
+    "usageBusy": ["Currently associated with a vehicle", "مرتبط بمركبة حاليًا"],
+    "usageUnknown": ["Operational state not confirmed", "حالة الاستخدام غير مؤكدة"],
+    "familyLabel": ["Resource family", "نوع المورد"], "filterLabel": ["Filter resources", "تصفية الموارد"],
+    "codePlaceholder": ["K-08", "K-08"], "labelPlaceholder": ["Front desk C", "الاستقبال ج"],
+    "unavailable": ["Unavailable", "غير متاح"],
+    "addZone": ["Add Parking Zone", "إضافة منطقة وقوف"],
+    "downloadPreview": ["Download preview", "تنزيل المعاينة"],
+    "previewState": ["Preview state", "حالة المعاينة"],
+    "sampleData": ["Sample data", "بيانات تجريبية"],
+    "emptyMode": ["Empty", "فارغة"],
+    "loadingMode": ["Loading", "جارٍ التحميل"],
+    "errorMode": ["Error", "خطأ"],
+    "emptyPreview": ["This location has no configured resources in this demo state.", "لا توجد موارد مهيأة لهذا الموقع في حالة العرض هذه."],
+    "loadingPreview": ["Loading resources for the selected location…", "جارٍ تحميل موارد الموقع المحدد…"],
+    "errorPreview": ["Unable to load resources. This simulated error does not make a network request.", "تعذّر تحميل الموارد. هذا خطأ تمثيلي دون إرسال طلب للشبكة."],
+    "qrUnavailable": ["QR labels cannot be previewed for inactive resources.", "لا يمكن معاينة ملصقات QR للموارد غير المفعّلة."],
+    "qrIllustrative": ["Illustrative QR preview, not scannable", "معاينة QR توضيحية وغير قابلة للمسح"],
+    "kpiSummary": ["Resource availability summary", "ملخص توفر الموارد"],
+    "activeKeySlots": ["Active key slots", "خانات المفاتيح المفعّلة"],
+    "keysAvailable": ["Keys available", "المفاتيح المتاحة"],
+    "keysInUse": ["Keys in use", "المفاتيح قيد الاستخدام"],
+    "activeParkingSpots": ["Active parking spots", "مواقف السيارات المفعّلة"],
+    "spotsAvailable": ["Spots available", "المواقف المتاحة"],
+    "spotsOccupied": ["Spots occupied", "المواقف المشغولة"],
+    "configuredCount": ["configured", "مهيأة"],
+    "ofActiveCount": ["of", "من أصل"],
+    "activeCount": ["Active", "مفعّلة"]
+  }
+</script>

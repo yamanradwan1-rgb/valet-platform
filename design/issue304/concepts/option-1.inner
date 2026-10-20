@@ -1,0 +1,65 @@
+<section id="concept-a" class="a-workspace" aria-labelledby="a-title">
+  <header class="a-heading">
+    <div class="a-heading-copy">
+      <p class="a-eyebrow" data-a-copy="eyebrow">OPERATIONS / RESOURCE CONTROL</p>
+      <h1 id="a-title" data-a-copy="title">Physical resources</h1>
+      <p class="a-subtitle" data-a-copy="intro">One accountable view of the slots and spaces behind every valet handoff.</p>
+    </div>
+    <div class="a-create-actions"><button type="button" class="a-button-outline" id="a-create-zone" hidden><span aria-hidden="true">＋</span> <span data-a-copy="createZone">Add Parking Zone</span></button><button type="button" class="a-primary" id="a-create"><span aria-hidden="true">＋</span> <span id="a-create-label">Add key slot</span></button></div>
+  </header>
+
+  <div class="a-note"><span class="a-note-dot" aria-hidden="true"></span><span data-a-copy="demo">Concept preview · Synthetic records · No changes are saved</span></div>
+
+  <div class="a-metrics" id="a-metrics" aria-label="Resource snapshot"></div>
+
+  <section class="a-desk" aria-labelledby="a-list-title">
+    <div class="a-desk-heading">
+      <div>
+        <p class="a-eyebrow" data-a-copy="inventory">RESOURCE INVENTORY</p>
+        <h2 id="a-list-title" data-a-copy="list">Resource register</h2>
+      </div>
+      <div class="a-family" role="group" aria-label="Resource family" id="a-family">
+        <button type="button" class="a-family-button" data-family="keys" aria-pressed="true"><span class="a-family-icon" aria-hidden="true">◇</span><span data-a-copy="keys">Key Slots</span><span class="a-family-count" id="a-count-keys"></span></button>
+        <button type="button" class="a-family-button" data-family="spots" aria-pressed="false"><span class="a-family-icon" aria-hidden="true">▦</span><span data-a-copy="spots">Parking Spots</span><span class="a-family-count" id="a-count-spots"></span></button>
+      </div>
+    </div>
+
+    <div class="a-toolbar">
+      <label class="a-search-field"><span class="a-search-icon" aria-hidden="true">⌕</span><span class="a-visually-hidden" data-a-copy="searchLabel">Search resource code, name or vehicle</span><input id="a-search" type="search" autocomplete="off" placeholder="Search code, label or vehicle" /></label>
+      <div class="a-select-grid">
+        <label class="a-filter"><span data-a-copy="status">Status</span><select id="a-status"></select></label>
+        <label class="a-filter"><span data-a-copy="usage">Usage</span><select id="a-usage"></select></label>
+        <label class="a-filter" id="a-zone-wrap" hidden><span data-a-copy="zone">Zone</span><select id="a-zone"></select></label>
+        <label class="a-filter"><span data-a-copy="sort">Sort</span><select id="a-sort"></select></label>
+        <label class="a-filter a-demo-filter"><span data-a-copy="state">Demo state</span><select id="a-state"></select></label>
+      </div>
+    </div>
+
+    <div class="a-register-note"><span id="a-filter-message" role="status" aria-live="polite"></span><span data-a-copy="columnNote">Select any row to review details</span></div>
+    <div class="a-table-scroll" id="a-table-scroll" tabindex="0" role="region" aria-label="Scrollable resource register">
+      <table class="a-table"><thead><tr>
+        <th scope="col" data-a-copy="code">Code</th>
+        <th scope="col" data-a-copy="label">Label</th>
+        <th scope="col" data-a-copy="status">Status</th>
+        <th scope="col" data-a-copy="usage">Usage</th>
+        <th scope="col" data-a-copy="vehicle">Vehicle</th>
+        <th scope="col" data-a-copy="zone">Zone</th>
+        <th scope="col" class="a-action-heading" data-a-copy="action">Action</th>
+      </tr></thead><tbody id="a-rows"></tbody></table>
+      <div class="a-read-state" id="a-read-state" role="status" aria-live="polite" hidden></div>
+    </div>
+    <div class="a-pagination"><span id="a-page-report" aria-live="polite"></span><div class="a-page-buttons"><button type="button" id="a-prev" class="a-button-outline">← <span data-a-copy="previous">Previous</span></button><button type="button" id="a-next" class="a-button-outline"><span data-a-copy="next">Next</span> →</button></div></div>
+  </section>
+  <p class="a-under-note" data-a-copy="truth">Proposed unified design. Key Slot labels and custody details are illustrative; real configuration and operational reads currently remain separate.</p>
+
+  <div class="a-overlay" id="a-overlay" hidden>
+    <div class="a-overlay-scrim" data-close-overlay="true"></div>
+    <aside class="a-drawer" id="a-drawer" role="dialog" aria-modal="true" aria-labelledby="a-drawer-title" tabindex="-1" hidden>
+      <div id="a-drawer-content"></div>
+    </aside>
+    <div class="a-modal" id="a-modal" role="dialog" aria-modal="true" aria-labelledby="a-modal-title" tabindex="-1" hidden>
+      <div id="a-modal-content"></div>
+    </div>
+  </div>
+  <div id="a-toast" class="a-toast" role="status" aria-live="polite" hidden></div>
+</section>

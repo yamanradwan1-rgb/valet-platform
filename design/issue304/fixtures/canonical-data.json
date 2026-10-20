@@ -1,0 +1,43 @@
+{
+  "meta":{"synthetic":true,"note":"ISSUE #304: all resources, locations, vehicles and custody events are fictional. No production API and no persistence."},
+  "locations":[
+    {"id":"loc-a","name":{"en":"Meridian Hotel — Main Entrance","ar":"فندق ميريديان — المدخل الرئيسي"},"code":"LOC-A","status":"ACTIVE"},
+    {"id":"loc-b","name":{"en":"Harbor Event Center","ar":"مركز هاربر للفعاليات"},"code":"LOC-B","status":"ACTIVE"}
+  ],
+  "resources":{
+    "loc-a":{
+      "keys":[
+        {"id":"key-01","code":"K-01","label":{"en":"Front desk A","ar":"الاستقبال أ"},"status":"ACTIVE","usage":"AVAILABLE","vehicle":null,"custody":[]},
+        {"id":"key-02","code":"K-02","label":{"en":"Front desk B","ar":"الاستقبال ب"},"status":"ACTIVE","usage":"IN_USE","vehicle":{"plate":"DEMO 4821"},"custody":[{"event":"CHECKOUT","time":"14:26","actor":"Valet 02"},{"event":"RETURN","time":"13:10","actor":"Valet 01"},{"event":"CHECKOUT","time":"12:42","actor":"Valet 01"}]},
+        {"id":"key-03","code":"K-03","label":{"en":"North counter","ar":"الكاونتر الشمالي"},"status":"ACTIVE","usage":"IN_USE","vehicle":{"descriptor":{"en":"Temporary vehicle · Silver sedan","ar":"مركبة مؤقتة · سيدان فضية"}},"custody":[{"event":"CHECKOUT","time":"14:18","actor":"Valet 03"}]},
+        {"id":"key-04","code":"K-04","label":null,"status":"ACTIVE","usage":"AVAILABLE","vehicle":null,"custody":[]},
+        {"id":"key-05","code":"K-05","label":{"en":"Back office","ar":"المكتب الخلفي"},"status":"INACTIVE","usage":"UNKNOWN","vehicle":null,"custody":[]},
+        {"id":"key-06","code":"K-06","label":{"en":"Priority desk","ar":"مكتب الأولوية"},"status":"ACTIVE","usage":"IN_USE","vehicle":{"plate":"DEMO 7634"},"custody":[{"event":"CHECKOUT","time":"15:04","actor":"Valet 04"}]},
+        {"id":"key-07","code":"K-07","label":{"en":"Overflow rack","ar":"الرف الإضافي"},"status":"INACTIVE","usage":"UNKNOWN","vehicle":null,"custody":[]},
+        {"id":"key-08","code":"K-08","label":{"en":"Side counter","ar":"الكاونتر الجانبي"},"status":"ACTIVE","usage":"IN_USE","vehicle":{},"custody":[{"event":"CHECKOUT","time":"15:11","actor":"Valet 06"}]}
+      ],
+      "spots":[
+        {"id":"spot-01","code":"P-01","label":{"en":"Bay 01","ar":"الموقف 01"},"status":"ACTIVE","usage":"AVAILABLE","zone":{"code":"Z-A","label":{"en":"North Zone","ar":"المنطقة الشمالية"}},"vehicle":null},
+        {"id":"spot-02","code":"P-02","label":{"en":"Bay 02","ar":"الموقف 02"},"status":"ACTIVE","usage":"OCCUPIED","zone":{"code":"Z-A","label":{"en":"North Zone","ar":"المنطقة الشمالية"}},"vehicle":{"plate":"DEMO 4821"}},
+        {"id":"spot-03","code":"P-03","label":{"en":"Bay 03","ar":"الموقف 03"},"status":"ACTIVE","usage":"OCCUPIED","zone":{"code":"Z-B","label":{"en":"South Zone","ar":"المنطقة الجنوبية"}},"vehicle":{"descriptor":{"en":"Temporary vehicle · Silver sedan","ar":"مركبة مؤقتة · سيدان فضية"}}},
+        {"id":"spot-04","code":"P-04","label":{"en":"Accessible Bay","ar":"موقف مهيأ"},"status":"INACTIVE","usage":"UNKNOWN","zone":{"code":"Z-A","label":{"en":"North Zone","ar":"المنطقة الشمالية"}},"vehicle":null},
+        {"id":"spot-05","code":"P-05","label":{"en":"Legacy Bay","ar":"موقف قديم"},"status":"ACTIVE","usage":"AVAILABLE","zone":null,"vehicle":null},
+        {"id":"spot-06","code":"P-06","label":{"en":"Bay 06","ar":"الموقف 06"},"status":"ACTIVE","usage":"OCCUPIED","zone":{"code":"Z-B","label":{"en":"South Zone","ar":"المنطقة الجنوبية"}},"vehicle":{"plate":"DEMO 7634"}},
+        {"id":"spot-07","code":"P-07","label":{"en":"Overflow Bay","ar":"الموقف الإضافي"},"status":"ACTIVE","usage":"AVAILABLE","zone":{"code":"Z-B","label":{"en":"South Zone","ar":"المنطقة الجنوبية"}},"vehicle":null},
+        {"id":"spot-08","code":"P-08","label":{"en":"Side Bay","ar":"الموقف الجانبي"},"status":"ACTIVE","usage":"OCCUPIED","zone":{"code":"Z-B","label":{"en":"South Zone","ar":"المنطقة الجنوبية"}},"vehicle":{}}
+      ]
+    },
+    "loc-b":{
+      "keys":[
+        {"id":"b-key-01","code":"K-11","label":{"en":"Event desk A","ar":"مكتب الفعاليات أ"},"status":"ACTIVE","usage":"AVAILABLE","vehicle":null,"custody":[]},
+        {"id":"b-key-02","code":"K-12","label":{"en":"Event desk B","ar":"مكتب الفعاليات ب"},"status":"ACTIVE","usage":"IN_USE","vehicle":{"plate":"DEMO 9076"},"custody":[{"event":"CHECKOUT","time":"16:12","actor":"Valet 05"}]},
+        {"id":"b-key-03","code":"K-13","label":null,"status":"INACTIVE","usage":"UNKNOWN","vehicle":null,"custody":[]}
+      ],
+      "spots":[
+        {"id":"b-spot-01","code":"P-11","label":{"en":"Event Bay 11","ar":"موقف الفعاليات 11"},"status":"ACTIVE","usage":"AVAILABLE","zone":{"code":"Z-E","label":{"en":"Event Zone","ar":"منطقة الفعاليات"}},"vehicle":null},
+        {"id":"b-spot-02","code":"P-12","label":{"en":"Event Bay 12","ar":"موقف الفعاليات 12"},"status":"ACTIVE","usage":"OCCUPIED","zone":{"code":"Z-E","label":{"en":"Event Zone","ar":"منطقة الفعاليات"}},"vehicle":{"plate":"DEMO 9076"}},
+        {"id":"b-spot-03","code":"P-13","label":{"en":"Unassigned Bay","ar":"موقف غير معيّن"},"status":"INACTIVE","usage":"UNKNOWN","zone":null,"vehicle":null}
+      ]
+    }
+  }
+}

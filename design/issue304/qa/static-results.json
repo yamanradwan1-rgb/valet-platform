@@ -1,0 +1,484 @@
+{
+  "runAt": "2026-10-20T18:26:49.767Z",
+  "totals": {
+    "PASS": 52,
+    "FAIL": 0,
+    "NOT_RUN": 0
+  },
+  "checks": [
+    {
+      "name": "standalone-embedded-css",
+      "status": "PASS",
+      "option": "option-1",
+      "detail": ""
+    },
+    {
+      "name": "standalone-shell-script",
+      "status": "PASS",
+      "option": "option-1",
+      "detail": ""
+    },
+    {
+      "name": "offline-external-script",
+      "status": "PASS",
+      "option": "option-1",
+      "detail": ""
+    },
+    {
+      "name": "offline-external-css",
+      "status": "PASS",
+      "option": "option-1",
+      "detail": ""
+    },
+    {
+      "name": "placeholder-free",
+      "status": "PASS",
+      "option": "option-1",
+      "detail": ""
+    },
+    {
+      "name": "shell-source-parity-shellCss",
+      "status": "PASS",
+      "option": "option-1",
+      "detail": "d8a34ea5da99f667f83eb148d50700aa68573bc1a377b7d53f95be26c8b3a204 vs d8a34ea5da99f667f83eb148d50700aa68573bc1a377b7d53f95be26c8b3a204"
+    },
+    {
+      "name": "shell-source-parity-shellJs",
+      "status": "PASS",
+      "option": "option-1",
+      "detail": "e23b7db2f0dab37e0f3d319c115bbeb26238b17bc77ec2990102e7031afc3a72 vs e23b7db2f0dab37e0f3d319c115bbeb26238b17bc77ec2990102e7031afc3a72"
+    },
+    {
+      "name": "shell-source-parity-navigation",
+      "status": "PASS",
+      "option": "option-1",
+      "detail": "3ebfb1923a5c6c17249e289f76f70f6c371f57ad8da2092c278f819bd5c7b062 vs 3ebfb1923a5c6c17249e289f76f70f6c371f57ad8da2092c278f819bd5c7b062"
+    },
+    {
+      "name": "shell-source-parity-topbar",
+      "status": "PASS",
+      "option": "option-1",
+      "detail": "b31269b0a362871290a0c2c61ddd444410abfb8f8cf61264a6f5d193086e76f1 vs b31269b0a362871290a0c2c61ddd444410abfb8f8cf61264a6f5d193086e76f1"
+    },
+    {
+      "name": "fixture-source-loc-a-keys",
+      "status": "PASS",
+      "option": "option-1",
+      "detail": "8/8 raw resource codes embedded"
+    },
+    {
+      "name": "fixture-source-loc-a-spots",
+      "status": "PASS",
+      "option": "option-1",
+      "detail": "8/8 raw resource codes embedded"
+    },
+    {
+      "name": "fixture-source-loc-b-keys",
+      "status": "PASS",
+      "option": "option-1",
+      "detail": "3/3 raw resource codes embedded"
+    },
+    {
+      "name": "fixture-source-loc-b-spots",
+      "status": "PASS",
+      "option": "option-1",
+      "detail": "3/3 raw resource codes embedded"
+    },
+    {
+      "name": "standalone-embedded-css",
+      "status": "PASS",
+      "option": "option-2",
+      "detail": ""
+    },
+    {
+      "name": "standalone-shell-script",
+      "status": "PASS",
+      "option": "option-2",
+      "detail": ""
+    },
+    {
+      "name": "offline-external-script",
+      "status": "PASS",
+      "option": "option-2",
+      "detail": ""
+    },
+    {
+      "name": "offline-external-css",
+      "status": "PASS",
+      "option": "option-2",
+      "detail": ""
+    },
+    {
+      "name": "placeholder-free",
+      "status": "PASS",
+      "option": "option-2",
+      "detail": ""
+    },
+    {
+      "name": "shell-source-parity-shellCss",
+      "status": "PASS",
+      "option": "option-2",
+      "detail": "d8a34ea5da99f667f83eb148d50700aa68573bc1a377b7d53f95be26c8b3a204 vs d8a34ea5da99f667f83eb148d50700aa68573bc1a377b7d53f95be26c8b3a204"
+    },
+    {
+      "name": "shell-source-parity-shellJs",
+      "status": "PASS",
+      "option": "option-2",
+      "detail": "e23b7db2f0dab37e0f3d319c115bbeb26238b17bc77ec2990102e7031afc3a72 vs e23b7db2f0dab37e0f3d319c115bbeb26238b17bc77ec2990102e7031afc3a72"
+    },
+    {
+      "name": "shell-source-parity-navigation",
+      "status": "PASS",
+      "option": "option-2",
+      "detail": "3ebfb1923a5c6c17249e289f76f70f6c371f57ad8da2092c278f819bd5c7b062 vs 3ebfb1923a5c6c17249e289f76f70f6c371f57ad8da2092c278f819bd5c7b062"
+    },
+    {
+      "name": "shell-source-parity-topbar",
+      "status": "PASS",
+      "option": "option-2",
+      "detail": "b31269b0a362871290a0c2c61ddd444410abfb8f8cf61264a6f5d193086e76f1 vs b31269b0a362871290a0c2c61ddd444410abfb8f8cf61264a6f5d193086e76f1"
+    },
+    {
+      "name": "fixture-source-loc-a-keys",
+      "status": "PASS",
+      "option": "option-2",
+      "detail": "8/8 raw resource codes embedded"
+    },
+    {
+      "name": "fixture-source-loc-a-spots",
+      "status": "PASS",
+      "option": "option-2",
+      "detail": "8/8 raw resource codes embedded"
+    },
+    {
+      "name": "fixture-source-loc-b-keys",
+      "status": "PASS",
+      "option": "option-2",
+      "detail": "3/3 raw resource codes embedded"
+    },
+    {
+      "name": "fixture-source-loc-b-spots",
+      "status": "PASS",
+      "option": "option-2",
+      "detail": "3/3 raw resource codes embedded"
+    },
+    {
+      "name": "standalone-embedded-css",
+      "status": "PASS",
+      "option": "option-3",
+      "detail": ""
+    },
+    {
+      "name": "standalone-shell-script",
+      "status": "PASS",
+      "option": "option-3",
+      "detail": ""
+    },
+    {
+      "name": "offline-external-script",
+      "status": "PASS",
+      "option": "option-3",
+      "detail": ""
+    },
+    {
+      "name": "offline-external-css",
+      "status": "PASS",
+      "option": "option-3",
+      "detail": ""
+    },
+    {
+      "name": "placeholder-free",
+      "status": "PASS",
+      "option": "option-3",
+      "detail": ""
+    },
+    {
+      "name": "shell-source-parity-shellCss",
+      "status": "PASS",
+      "option": "option-3",
+      "detail": "d8a34ea5da99f667f83eb148d50700aa68573bc1a377b7d53f95be26c8b3a204 vs d8a34ea5da99f667f83eb148d50700aa68573bc1a377b7d53f95be26c8b3a204"
+    },
+    {
+      "name": "shell-source-parity-shellJs",
+      "status": "PASS",
+      "option": "option-3",
+      "detail": "e23b7db2f0dab37e0f3d319c115bbeb26238b17bc77ec2990102e7031afc3a72 vs e23b7db2f0dab37e0f3d319c115bbeb26238b17bc77ec2990102e7031afc3a72"
+    },
+    {
+      "name": "shell-source-parity-navigation",
+      "status": "PASS",
+      "option": "option-3",
+      "detail": "3ebfb1923a5c6c17249e289f76f70f6c371f57ad8da2092c278f819bd5c7b062 vs 3ebfb1923a5c6c17249e289f76f70f6c371f57ad8da2092c278f819bd5c7b062"
+    },
+    {
+      "name": "shell-source-parity-topbar",
+      "status": "PASS",
+      "option": "option-3",
+      "detail": "b31269b0a362871290a0c2c61ddd444410abfb8f8cf61264a6f5d193086e76f1 vs b31269b0a362871290a0c2c61ddd444410abfb8f8cf61264a6f5d193086e76f1"
+    },
+    {
+      "name": "fixture-source-loc-a-keys",
+      "status": "PASS",
+      "option": "option-3",
+      "detail": "8/8 raw resource codes embedded"
+    },
+    {
+      "name": "fixture-source-loc-a-spots",
+      "status": "PASS",
+      "option": "option-3",
+      "detail": "8/8 raw resource codes embedded"
+    },
+    {
+      "name": "fixture-source-loc-b-keys",
+      "status": "PASS",
+      "option": "option-3",
+      "detail": "3/3 raw resource codes embedded"
+    },
+    {
+      "name": "fixture-source-loc-b-spots",
+      "status": "PASS",
+      "option": "option-3",
+      "detail": "3/3 raw resource codes embedded"
+    },
+    {
+      "name": "standalone-embedded-css",
+      "status": "PASS",
+      "option": "option-4",
+      "detail": ""
+    },
+    {
+      "name": "standalone-shell-script",
+      "status": "PASS",
+      "option": "option-4",
+      "detail": ""
+    },
+    {
+      "name": "offline-external-script",
+      "status": "PASS",
+      "option": "option-4",
+      "detail": ""
+    },
+    {
+      "name": "offline-external-css",
+      "status": "PASS",
+      "option": "option-4",
+      "detail": ""
+    },
+    {
+      "name": "placeholder-free",
+      "status": "PASS",
+      "option": "option-4",
+      "detail": ""
+    },
+    {
+      "name": "shell-source-parity-shellCss",
+      "status": "PASS",
+      "option": "option-4",
+      "detail": "d8a34ea5da99f667f83eb148d50700aa68573bc1a377b7d53f95be26c8b3a204 vs d8a34ea5da99f667f83eb148d50700aa68573bc1a377b7d53f95be26c8b3a204"
+    },
+    {
+      "name": "shell-source-parity-shellJs",
+      "status": "PASS",
+      "option": "option-4",
+      "detail": "e23b7db2f0dab37e0f3d319c115bbeb26238b17bc77ec2990102e7031afc3a72 vs e23b7db2f0dab37e0f3d319c115bbeb26238b17bc77ec2990102e7031afc3a72"
+    },
+    {
+      "name": "shell-source-parity-navigation",
+      "status": "PASS",
+      "option": "option-4",
+      "detail": "3ebfb1923a5c6c17249e289f76f70f6c371f57ad8da2092c278f819bd5c7b062 vs 3ebfb1923a5c6c17249e289f76f70f6c371f57ad8da2092c278f819bd5c7b062"
+    },
+    {
+      "name": "shell-source-parity-topbar",
+      "status": "PASS",
+      "option": "option-4",
+      "detail": "b31269b0a362871290a0c2c61ddd444410abfb8f8cf61264a6f5d193086e76f1 vs b31269b0a362871290a0c2c61ddd444410abfb8f8cf61264a6f5d193086e76f1"
+    },
+    {
+      "name": "fixture-source-loc-a-keys",
+      "status": "PASS",
+      "option": "option-4",
+      "detail": "8/8 raw resource codes embedded"
+    },
+    {
+      "name": "fixture-source-loc-a-spots",
+      "status": "PASS",
+      "option": "option-4",
+      "detail": "8/8 raw resource codes embedded"
+    },
+    {
+      "name": "fixture-source-loc-b-keys",
+      "status": "PASS",
+      "option": "option-4",
+      "detail": "3/3 raw resource codes embedded"
+    },
+    {
+      "name": "fixture-source-loc-b-spots",
+      "status": "PASS",
+      "option": "option-4",
+      "detail": "3/3 raw resource codes embedded"
+    }
+  ],
+  "details": [
+    {
+      "option": "option-1",
+      "path": "D:\\kndoom\\valet-platform\\tmp\\issue304-design-prime\\design\\issue304\\option-1.html",
+      "shellHash": {
+        "shellCss": "d8a34ea5da99f667f83eb148d50700aa68573bc1a377b7d53f95be26c8b3a204",
+        "shellJs": "e23b7db2f0dab37e0f3d319c115bbeb26238b17bc77ec2990102e7031afc3a72",
+        "navigation": "3ebfb1923a5c6c17249e289f76f70f6c371f57ad8da2092c278f819bd5c7b062",
+        "topbar": "b31269b0a362871290a0c2c61ddd444410abfb8f8cf61264a6f5d193086e76f1"
+      },
+      "resources": [
+        {
+          "location": "loc-a",
+          "type": "keys",
+          "expected": 8,
+          "sourcePresent": 8,
+          "missing": []
+        },
+        {
+          "location": "loc-a",
+          "type": "spots",
+          "expected": 8,
+          "sourcePresent": 8,
+          "missing": []
+        },
+        {
+          "location": "loc-b",
+          "type": "keys",
+          "expected": 3,
+          "sourcePresent": 3,
+          "missing": []
+        },
+        {
+          "location": "loc-b",
+          "type": "spots",
+          "expected": 3,
+          "sourcePresent": 3,
+          "missing": []
+        }
+      ]
+    },
+    {
+      "option": "option-2",
+      "path": "D:\\kndoom\\valet-platform\\tmp\\issue304-design-prime\\design\\issue304\\option-2.html",
+      "shellHash": {
+        "shellCss": "d8a34ea5da99f667f83eb148d50700aa68573bc1a377b7d53f95be26c8b3a204",
+        "shellJs": "e23b7db2f0dab37e0f3d319c115bbeb26238b17bc77ec2990102e7031afc3a72",
+        "navigation": "3ebfb1923a5c6c17249e289f76f70f6c371f57ad8da2092c278f819bd5c7b062",
+        "topbar": "b31269b0a362871290a0c2c61ddd444410abfb8f8cf61264a6f5d193086e76f1"
+      },
+      "resources": [
+        {
+          "location": "loc-a",
+          "type": "keys",
+          "expected": 8,
+          "sourcePresent": 8,
+          "missing": []
+        },
+        {
+          "location": "loc-a",
+          "type": "spots",
+          "expected": 8,
+          "sourcePresent": 8,
+          "missing": []
+        },
+        {
+          "location": "loc-b",
+          "type": "keys",
+          "expected": 3,
+          "sourcePresent": 3,
+          "missing": []
+        },
+        {
+          "location": "loc-b",
+          "type": "spots",
+          "expected": 3,
+          "sourcePresent": 3,
+          "missing": []
+        }
+      ]
+    },
+    {
+      "option": "option-3",
+      "path": "D:\\kndoom\\valet-platform\\tmp\\issue304-design-prime\\design\\issue304\\option-3.html",
+      "shellHash": {
+        "shellCss": "d8a34ea5da99f667f83eb148d50700aa68573bc1a377b7d53f95be26c8b3a204",
+        "shellJs": "e23b7db2f0dab37e0f3d319c115bbeb26238b17bc77ec2990102e7031afc3a72",
+        "navigation": "3ebfb1923a5c6c17249e289f76f70f6c371f57ad8da2092c278f819bd5c7b062",
+        "topbar": "b31269b0a362871290a0c2c61ddd444410abfb8f8cf61264a6f5d193086e76f1"
+      },
+      "resources": [
+        {
+          "location": "loc-a",
+          "type": "keys",
+          "expected": 8,
+          "sourcePresent": 8,
+          "missing": []
+        },
+        {
+          "location": "loc-a",
+          "type": "spots",
+          "expected": 8,
+          "sourcePresent": 8,
+          "missing": []
+        },
+        {
+          "location": "loc-b",
+          "type": "keys",
+          "expected": 3,
+          "sourcePresent": 3,
+          "missing": []
+        },
+        {
+          "location": "loc-b",
+          "type": "spots",
+          "expected": 3,
+          "sourcePresent": 3,
+          "missing": []
+        }
+      ]
+    },
+    {
+      "option": "option-4",
+      "path": "D:\\kndoom\\valet-platform\\tmp\\issue304-design-prime\\design\\issue304\\option-4.html",
+      "shellHash": {
+        "shellCss": "d8a34ea5da99f667f83eb148d50700aa68573bc1a377b7d53f95be26c8b3a204",
+        "shellJs": "e23b7db2f0dab37e0f3d319c115bbeb26238b17bc77ec2990102e7031afc3a72",
+        "navigation": "3ebfb1923a5c6c17249e289f76f70f6c371f57ad8da2092c278f819bd5c7b062",
+        "topbar": "b31269b0a362871290a0c2c61ddd444410abfb8f8cf61264a6f5d193086e76f1"
+      },
+      "resources": [
+        {
+          "location": "loc-a",
+          "type": "keys",
+          "expected": 8,
+          "sourcePresent": 8,
+          "missing": []
+        },
+        {
+          "location": "loc-a",
+          "type": "spots",
+          "expected": 8,
+          "sourcePresent": 8,
+          "missing": []
+        },
+        {
+          "location": "loc-b",
+          "type": "keys",
+          "expected": 3,
+          "sourcePresent": 3,
+          "missing": []
+        },
+        {
+          "location": "loc-b",
+          "type": "spots",
+          "expected": 3,
+          "sourcePresent": 3,
+          "missing": []
+        }
+      ]
+    }
+  ]
+}
