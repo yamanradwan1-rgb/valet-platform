@@ -33,6 +33,13 @@ export function assertWriterCohort(roster,oracle,required){
 
 export function verifyWriterCoverage(report,oracle,clients){
   assert([2,8].includes(clients));
+  assert(["baseline","normal","stress"].includes(report.mode),
+    "Writer proof has no valid phase identity");
+  assert(report.mode!=="normal" || clients===2);
+  assert(report.mode!=="stress" || clients===8);
+  assert.match(report.artifactId??"",
+    /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i,
+    "Each writer run needs a distinct generated evidence artifact ID");
   assert(report.elapsedMs>=600_000);
   const expected=oracle.writerCohorts?.[String(clients)];
   assert(expected);
@@ -47,8 +54,11 @@ export function verifyWriterCoverage(report,oracle,clients){
   const finished=Date.parse(report.finishedAt);
   assert(Number.isFinite(started) && Number.isFinite(finished));
   assert(finished-started>=600_000);
+  assert(Math.abs((finished-started)-report.elapsedMs)<=5_000,
+    "Wall clock phase duration disagrees with monotonic elapsed time");
   const byCommand={INCIDENT_REPORT:[],KEY_SLOT_ASSIGN:[]};
   const perClient=Object.fromEntries(expected.clientIds.map((id)=>[id,[]]));
+  const lastClientAt=Object.fromEntries(expected.clientIds.map((id)=>[id,started-1]));
   for(const command of report.raw??[]){
     assert(command.clientId in perClient);
     assert(command.command in byCommand);
@@ -59,6 +69,9 @@ export function verifyWriterCoverage(report,oracle,clients){
       assert.equal(command.idempotencyVerified,true);
     const at=Date.parse(command.at);
     assert(Number.isFinite(at) && at>=started && at<=finished);
+    assert(at>lastClientAt[command.clientId],
+      "Each real writer client's command timestamps must be monotonic");
+    lastClientAt[command.clientId]=at;
     perClient[command.clientId].push({at,command:command.command});
     byCommand[command.command].push(command.elapsedMs);
   }
@@ -89,8 +102,27 @@ export function verifyWriterCoverage(report,oracle,clients){
 }
 
 export function assertComparableWriters(baseline,live,oracle,required){
+  assert.equal(baseline.mode,"baseline",
+    "Writer-only baseline MUST originate in baseline mode");
+  assert(["normal","stress"].includes(live.mode),
+    "Concurrent writer result MUST originate in normal/stress mode");
+  assert.equal(live.mode,required===2?"normal":"stress",
+    "Concurrent writer mode inconsistent with signed cohort size");
+  assert.notEqual(baseline.artifactId,live.artifactId,
+    "Replayed writer phase artifact ID");
   const earlier=verifyWriterCoverage(baseline,oracle,required);
   const later=verifyWriterCoverage(live,oracle,required);
+  assert(Date.parse(baseline.finishedAt)<Date.parse(live.startedAt),
+    "Writer baseline and live intervals must be disjoint and chronological");
+  const sources=new Set();
+  for(const report of [baseline,live])for(const command of report.raw){
+    for(const sourceId of command.sourceIds){
+      const key=sourceId.toLowerCase();
+      assert(!sources.has(key),
+        "Reused persisted writer source ID across baseline/live evidence");
+      sources.add(key);
+    }
+  }
   for(const key of Object.keys(earlier)){
     assert(later[key].length >= earlier[key].length*.8,
       `Writer throughput collapsed for ${key}`);

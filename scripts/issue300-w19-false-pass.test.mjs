@@ -35,19 +35,24 @@ test("writer p95 from raw and both command classes defeats edited global p95",()
   const oracle={writerCohorts:{"2":{
     rosterDigest:rosterDigest(roster),clientIds:ids,
     commandMix:{INCIDENT_REPORT:1,KEY_SLOT_ASSIGN:1}}}};
-  function report(incidentMs=50){
+  function report(incidentMs=50,mode="baseline",offsetMs=0){
     const raw=[];
-    for(let i=0;i<24;i++)for(const c of roster){
+    for(let i=0;i<24;i++)for(const [idx,c] of roster.entries()){
+      const source=91+i*4+idx*2+(offsetMs?1000:0);
+      const sid=(n)=>"00000000-0000-4000-8000-"+
+        String(n).padStart(12,"0");
       raw.push({clientId:c.clientId,command:c.command,
         elapsedMs:c.command==="INCIDENT_REPORT"?incidentMs:100,
-        sourceIds:["00000000-0000-4000-8000-000000000091",
-          "00000000-0000-4000-8000-000000000092"],
+        sourceIds:[sid(source),sid(source+1)],
         idempotencyVerified:c.command==="INCIDENT_REPORT",
-        at:new Date(started+1000+i*25_000).toISOString()});
+        at:new Date(started+offsetMs+1000+i*25_000).toISOString()});
     }
     return {writerKind:"ACTUAL_OPERATIONAL_HTTP_OR_DOMAIN_COMMAND",
-      elapsedMs:600_000,startedAt:new Date(started).toISOString(),
-      finishedAt:new Date(started+600_000).toISOString(),
+      mode,artifactId:offsetMs?
+        "00000000-0000-4000-8000-000000000002":
+        "00000000-0000-4000-8000-000000000001",
+      elapsedMs:600_000,startedAt:new Date(started+offsetMs).toISOString(),
+      finishedAt:new Date(started+offsetMs+600_000).toISOString(),
       writerClients:2,writerClientIds:ids,rosterDigest:rosterDigest(roster),
       failedCommands:0,deadlocks:0,lockTimeouts:0,
       raw,successfulCommands:raw.length,p95Ms:100,
@@ -57,9 +62,26 @@ test("writer p95 from raw and both command classes defeats edited global p95",()
   assert(verifyWriterCoverage(baseline,oracle,2));
   assert.throws(()=>verifyWriterCoverage({...baseline,p95Ms:1},oracle,2),
     /must match actual/);
-  assert.throws(()=>assertComparableWriters(baseline,report(90),oracle,2),
+  assert.throws(()=>assertComparableWriters(baseline,
+    report(90,"normal",700_000),oracle,2),
     /INCIDENT_REPORT writer p95/);
-  assert.equal(assertComparableWriters(baseline,report(55),oracle,2),true);
+  const live=report(55,"normal",700_000);
+  assert.equal(assertComparableWriters(baseline,live,oracle,2),true);
+  assert.throws(()=>assertComparableWriters(baseline,baseline,oracle,2),
+    /normal\/stress|concurrent/i);
+  assert.throws(()=>assertComparableWriters(baseline,
+    {...live,mode:"baseline"},oracle,2),/normal\/stress/);
+  assert.throws(()=>assertComparableWriters(baseline,
+    {...live,artifactId:baseline.artifactId},oracle,2),/artifact ID/);
+  assert.throws(()=>assertComparableWriters(baseline,
+    {...live,startedAt:baseline.startedAt,
+      finishedAt:baseline.finishedAt,
+      raw:baseline.raw,p95Ms:baseline.p95Ms},oracle,2),
+    /disjoint/);
+  const reused={...live,raw:live.raw.map((r,i)=>i===0?
+    {...r,sourceIds:baseline.raw[0].sourceIds}:r)};
+  assert.throws(()=>assertComparableWriters(baseline,reused,oracle,2),
+    /Reused persisted/);
 });
 
 function readerRows(count){
@@ -133,6 +155,8 @@ test("Owner-committed independent signature seals all five raw artifacts",(t)=>{
       plans:"ISSUE300_W7_EXPLAIN_PLANS"})[kind]]=file;
   }
   const now=Date.now();
+  const baselineStart=new Date(now-1_350_000).toISOString();
+  const baselineFinish=new Date(now-750_000).toISOString();
   const start=new Date(now-650_000).toISOString();
   const finish=new Date(now-20_000).toISOString();
   const m={candidateSha:"a".repeat(40),leaseId:"issue300-r2-w8-test-123456",
@@ -141,14 +165,25 @@ test("Owner-committed independent signature seals all five raw artifacts",(t)=>{
       apiBundleSha256:"d".repeat(64)},
     phaseSealIssuerKeySha256:digest(signer.publicKey.export({
       type:"spki",format:"der"}))};
-  const readerReport={mode:"normal",startedAt:start,finishedAt:finish};
-  const writerReport={startedAt:start,finishedAt:finish};
+  const baselineReport={mode:"baseline",startedAt:baselineStart,
+    finishedAt:baselineFinish,
+    artifactId:"00000000-0000-4000-8000-000000000091"};
+  const readerReport={mode:"normal",
+    startedAt:new Date(now-640_000).toISOString(),
+    finishedAt:new Date(now-30_000).toISOString()};
+  const writerReport={mode:"normal",startedAt:start,finishedAt:finish,
+    artifactId:"00000000-0000-4000-8000-000000000092"};
   const seal={provenance:"INDEPENDENT_OWNER_SIGNED_W8_PHASE_V1",
     candidateSha:m.candidateSha,leaseId:m.leaseId,targetTier:m.targetTier,
     sourceFixtureHash:m.sourceFixtureHash,
     containerId:m.resource.containerId,
     apiBundleSha256:m.resource.apiBundleSha256,
-    stage:"normal",readerStartedAt:start,readerFinishedAt:finish,
+    stage:"normal",baselineMode:"baseline",liveMode:"normal",
+    baselineArtifactId:baselineReport.artifactId,
+    liveArtifactId:writerReport.artifactId,
+    baselineStartedAt:baselineStart,baselineFinishedAt:baselineFinish,
+    readerStartedAt:readerReport.startedAt,
+    readerFinishedAt:readerReport.finishedAt,
     writerStartedAt:start,writerFinishedAt:finish,
     signedAt:new Date(now-1000).toISOString(),artifactSha256:hashes};
   const file=join(dir,"seal.json");
@@ -161,17 +196,33 @@ test("Owner-committed independent signature seals all five raw artifacts",(t)=>{
     writeFileSync(signature,sign(null,bytes,key));
   };
   save(seal);
-  assert.equal(verifyPhaseSeal(m,readerReport,writerReport,env).signedAt,
+  const verify=()=>verifyPhaseSeal(m,readerReport,baselineReport,writerReport,env);
+  assert.equal(verify().signedAt,
     seal.signedAt);
   writeFileSync(env.ISSUE300_W7_WRITER_LIVE,"tampered");
-  assert.throws(()=>verifyPhaseSeal(m,readerReport,writerReport,env),
+  assert.throws(verify,
     /Unsigned\/mutated/);
   writeFileSync(env.ISSUE300_W7_WRITER_LIVE,
     JSON.stringify({kind:"live",notMeasured:true}));
   save(seal,other.privateKey);
-  assert.throws(()=>verifyPhaseSeal(m,readerReport,writerReport,env),
+  assert.throws(verify,
     /signature failed/);
   save({...seal,signedAt:new Date(now-700_000).toISOString()});
-  assert.throws(()=>verifyPhaseSeal(m,readerReport,writerReport,env),
+  assert.throws(verify,
     /predates/);
+  save({...seal,baselineMode:"normal"});
+  assert.throws(verify,/Expected values to be strictly equal/);
+  save({...seal,liveArtifactId:baselineReport.artifactId});
+  assert.throws(verify,/Expected values to be strictly equal/);
+  save({...seal,baselineFinishedAt:writerReport.finishedAt});
+  assert.throws(verify,/Expected values to be strictly equal/);
+  save({...seal,artifactSha256:{...hashes,baseline:hashes.live}});
+  assert.throws(verify,/identical raw baseline\/live/);
+  save(seal);
+  assert.throws(()=>verifyPhaseSeal(m,readerReport,
+    {...baselineReport,finishedAt:writerReport.startedAt},writerReport,env),
+    /chronological and disjoint/);
+  assert.throws(()=>verifyPhaseSeal(m,readerReport,
+    {...baselineReport,artifactId:writerReport.artifactId},writerReport,env),
+    /not be strictly equal|Expected "actual" to be strictly unequal/);
 });

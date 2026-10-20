@@ -13,6 +13,7 @@ ledger, shared safe-integration worktree and human services were not changed.
 | Path | Previously admitted | Current proof requirement |
 | --- | --- | --- |
 | Writer summary | Arbitrary `p95Ms` in mutable JSON, with aggregate p95 hiding a slow Incident or Key Slot command class | Recompute exact p95 from all raw commands. Enforce both ≤20% and ≤100 ms writer impact separately per command family and overall. Keep ≥80% actual command throughput per family. |
+| Writer baseline replay (W22 P1) | A copied 630-second `live` result could also stand in for a `baseline`, making the writer-only impact ratio falsely equal to 1 | Require `baseline.mode=baseline`, `live.mode=normal/stress` consistent with 2/8 writers; strict nonoverlapping baseline end before live start; per-client monotonic real command timestamps; independent run artifact UUIDs and unique persisted source event IDs; distinct raw baseline/live SHA256. The Owner-signed phase seal binds both modes, phase IDs, both intervals and complete raw hashes. |
 | Reader cohort | 1,000 successful total samples per endpoint could come from fewer than 5 or 25 actual readers | All declared readers must independently serve all four workloads, stay active throughout ≥600s, show no >45s disappearance and satisfy overall ≥1,000 samples per endpoint. |
 | Raw result integrity | JSON report values for baseline/live writers, Search/Timeline/Detail readers, cold trials and SQL plans remained unsigned and could be modified after measurement | Require detached Ed25519 phase seal with all five exact raw SHA256 digests, fixed tier/SHA/lease/PG container/API bundle, independent Owner-pinned producer public-key digest, stage, measured phase boundaries and signed timestamp after completion. No seal = no `PASS`. |
 | Exclusive lease | W8 checked lease expiry on startup, then might exceed it during a 600s load or 80 cold resets | Check signed W8 lease before writer commands, each HTTP read, each guest reset, after measurements, and require adequate time at orchestration entry. Expiry = abort/GAP; no automatic renewal or lease bypass. |
@@ -43,6 +44,13 @@ evidence and sign only valid exact-SHA outcomes; merely possessing a key or
 signing a selected sample is not independent validation. Its key does not
 exist yet. No source-only fixture creates a production trust root, an Owner
 private key, or any real trusted performance signature.
+
+The W22 replay correction additionally mandates the signed fields
+`baselineMode`, `liveMode`, `baselineArtifactId`, `liveArtifactId`,
+`baselineStartedAt`, `baselineFinishedAt`. The existing `writerStartedAt`
+and `writerFinishedAt` describe the distinct concurrent writer phase.
+An identical hash, artifact UUID, reused persisted source event or overlapping
+interval is a hard failure even if a valid signature was supplied.
 
 No acceptance may depend on detached signatures generated from the same
 unsigned mutable claim by an unapproved producer. The verifier additionally

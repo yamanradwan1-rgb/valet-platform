@@ -60,6 +60,7 @@ async function main() {
   assertLeaseActive(m,mode==="baseline"?610_000:700_000);
   if(mode!=="baseline") {
     const baseline=checkArtifact(process.env.ISSUE300_W7_WRITER_BASELINE,m,"baseline");
+    assert.equal(baseline.mode,"baseline");
     assert.equal(baseline.writerClients,expectedWriters);
     verifyWriterCoverage(baseline,oracle,expectedWriters);
     checkArtifact(process.env.ISSUE300_W7_COLD_TRIALS,m,"cold");
@@ -78,6 +79,8 @@ async function main() {
     verifyWriterCoverage(
       checkArtifact(writerEnv.ISSUE300_W8_WRITER_RESULT_PATH,m,"baseline"),
       oracle,expectedWriters);
+    assert.equal(checkArtifact(writerEnv.ISSUE300_W8_WRITER_RESULT_PATH,
+      m,"baseline").mode,"baseline");
     assertLeaseActive(m);
     console.log("W8 writer-only baseline completed; NO reader-phase claimed");
     return;
@@ -93,7 +96,8 @@ async function main() {
   ]);
   assert.equal(writerResult.code,0,"Real operational writers failed");
   assert.equal(readResult.code,0,"Search/Timeline/detail reader proof failed");
-  checkArtifact(process.env.ISSUE300_W7_WRITER_LIVE,m,"real-writer");
+  assert.equal(checkArtifact(process.env.ISSUE300_W7_WRITER_LIVE,
+    m,"real-writer").mode,mode);
   checkArtifact(process.env.ISSUE300_W7_RESULTS_PATH,m,"HTTP-readers");
   assertLeaseActive(m);
   console.log(JSON.stringify({verdict:"NORMAL_OR_STRESS_ATTESTED",

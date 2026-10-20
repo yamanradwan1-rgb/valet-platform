@@ -193,6 +193,7 @@ async function main() {
   const times = raw.map((r)=>r.elapsedMs);
   const report = {
     candidateSha:target.candidateSha,leaseId:target.leaseId,
+    artifactId:randomUUID(),
     database:target.resource.database,hardwareId:target.resource.hardwareId,
     containerId:target.resource.containerId,
     apiBundleSha256:target.resource.apiBundleSha256,

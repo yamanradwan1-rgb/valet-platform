@@ -212,6 +212,8 @@ function securedArtifact(envName) {
 
 const baseline = securedArtifact("ISSUE300_W7_WRITER_BASELINE");
 const live = securedArtifact("ISSUE300_W7_WRITER_LIVE");
+assert.equal(baseline.mode,"baseline");
+assert.equal(live.mode,mode);
 const cold = securedArtifact("ISSUE300_W7_COLD_TRIALS");
 const explain = securedArtifact("ISSUE300_W7_EXPLAIN_PLANS");
 verifyColdArtifact(cold,owned,signed);
@@ -268,7 +270,7 @@ while ((!existsSync(process.env.ISSUE300_W8_PHASE_SEAL_JSON) ||
   assertLeaseActive(owned);
   await new Promise((ok)=>setTimeout(ok,500));
 }
-verifyPhaseSeal(owned,report,live);
+verifyPhaseSeal(owned,report,baseline,live);
 assertLeaseActive(owned);
 console.log(
   JSON.stringify({

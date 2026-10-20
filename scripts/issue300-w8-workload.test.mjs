@@ -24,16 +24,18 @@ const oracle={writerCohorts:{"2":{
     busySlotSearch:{sessionId:session(2),source:"KEY_CUSTODY",eventId:id}},
 };
 
-function writerReport(rosterInput=roster){
-  const start=Date.parse("2026-10-18T18:00:00Z");
+function writerReport(rosterInput=roster,mode="baseline",offset=0){
+  const start=Date.parse("2026-10-18T18:00:00Z")+offset;
   const raw=[];
-  for(let i=0;i<24;i++)for(const c of rosterInput){
+  for(let i=0;i<24;i++)for(const [j,c] of rosterInput.entries()){
+    const first=100+i*4+j*2+(offset?1000:0);
     raw.push({clientId:c.clientId,command:c.command,
-      elapsedMs:50,sourceIds:[session(91),session(92)],
+      elapsedMs:50,sourceIds:[session(first),session(first+1)],
       idempotencyVerified:c.command==="INCIDENT_REPORT",
       at:new Date(start+1000+i*25_000).toISOString()});
   }
   return {writerKind:"ACTUAL_OPERATIONAL_HTTP_OR_DOMAIN_COMMAND",
+    mode,artifactId:session(offset?2000:1000),
     writerClients:rosterInput.length,writerClientIds:rosterInput.map((c)=>c.clientId),
     rosterDigest:rosterDigest(rosterInput),
     elapsedMs:600_000,startedAt:new Date(start).toISOString(),
@@ -49,7 +51,7 @@ function writerReport(rosterInput=roster){
 test("two real canonical cohorts require signed identical writer roster",()=>{
   assert.equal(assertWriterCohort(roster,oracle,2).rosterDigest,rosterDigest(roster));
   const baseline=writerReport();
-  const live=writerReport();
+  const live=writerReport(roster,"normal",700_000);
   assert.equal(verifyWriterCoverage(baseline,oracle,2).KEY_SLOT_ASSIGN.length,24);
   assert.equal(assertComparableWriters(baseline,live,oracle,2),true);
   assert.throws(()=>assertWriterCohort(roster.map((c)=>({
@@ -58,7 +60,7 @@ test("two real canonical cohorts require signed identical writer roster",()=>{
     writerCohorts:{"2":{...oracle.writerCohorts["2"],
       rosterDigest:"0".repeat(64)}}},2));
   const swapped=writerReport(roster.map((c,i)=>({
-    ...c,sessionId:session(i+30)})));
+    ...c,sessionId:session(i+30)})),"normal",700_000);
   assert.throws(()=>assertComparableWriters(baseline,swapped,oracle,2));
   const cheap=writerReport();
   cheap.raw=cheap.raw.filter((r)=>r.command==="INCIDENT_REPORT");
@@ -72,7 +74,7 @@ test("two real canonical cohorts require signed identical writer roster",()=>{
   stopped.commandCounts.KEY_SLOT_ASSIGN=stopped.raw.filter((r)=>
     r.command==="KEY_SLOT_ASSIGN").length;
   assert.throws(()=>verifyWriterCoverage(stopped,oracle,2));
-  const slower=writerReport();
+  const slower=writerReport(roster,"normal",700_000);
   slower.p95Ms=180;
   assert.throws(()=>assertComparableWriters(baseline,slower,oracle,2));
 });
