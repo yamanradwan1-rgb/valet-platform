@@ -17,7 +17,6 @@ import { normalizePlateNumber } from "../../../vehicles/vehicle-identity-command
 import { captureManagementPaginationSnapshot } from "../../management-pagination-snapshot";
 import { bindInvestigationCursor, decodeInvestigationCursor,
   encodeInvestigationCursor, type InvestigationCursorBinding } from "../audit-investigation-cursor";
-import { isU05LocalProofEnabled } from "../audit-investigation-u05-gate";
 import { requireU05StableIndirectCohort } from "../audit-investigation-u05-indirect-guard";
 import { readU05IncidentPolicy } from "../audit-investigation-u05-policy";
 import { authorizeAuditInvestigationLocation } from "../security/audit-investigation-authorization";
@@ -78,11 +77,14 @@ export async function searchAuditInvestigationSessions(
   // Until a verified identity revision/restart oracle exists, a continuation
   // with vehicle filters could omit/duplicate Sessions. Keep THAT lane closed.
   const mutableVehicleFilter = Boolean(query.make || query.model || query.plate || query.plateCountry);
-  if (hasMore && (!isU05LocalProofEnabled() || !binding || mutableVehicleFilter))
+  if (hasMore && (!binding || mutableVehicleFilter))
     throw new InvestigationSnapshotPaginationUnavailable();
   if (hasMore && snapshot.database.length > 512)
     throw new InvestigationSnapshotPaginationUnavailable();
-  if (binding && isU05LocalProofEnabled() && (hasMore || after)) {
+  // Ordinary production pagination is allowed only for cohorts that pass the
+  // independently enforced historical indirect-association veto. Signed-only
+  // Owner proof remains an optional test certificate, not an access flag.
+  if (binding && (hasMore || after)) {
     try {
       await requireU05StableIndirectCohort(tx, scope, snapshot,
         { from: query.from, to: query.to });
@@ -144,14 +146,14 @@ export class AuditInvestigationSearchService {
     raw: AuditInvestigationSearchQuery) {
     const parsed = auditInvestigationSearchQuerySchema.safeParse(raw);
     if (!parsed.success) throw new ApiTransportValidationError();
-    if (parsed.data.cursor !== undefined && !isU05LocalProofEnabled())
-      throw new InvestigationSnapshotPaginationUnavailable();
     return inPostgresTransaction(this.pool, async (tx) => {
       const scope = await authorizeAuditInvestigationLocation(tx, context, organizationId, locationId);
       await requireCanonicalInvestigationSelectors(tx, scope, parsed.data);
       const normalized = normalizedInvestigationSearch(parsed.data);
-      const incidentPolicy = isU05LocalProofEnabled()
-        ? await readU05IncidentPolicy(tx, scope) : null;
+      // Current Location policy is security-relevant for Incident visibility.
+      // Bind it into every production cursor to invalidate continuation after
+      // a Location activation/revocation change; never rely on a test lease.
+      const incidentPolicy = await readU05IncidentPolicy(tx, scope);
       const binding = bindInvestigationCursor({
         context, scope, purpose: "SEARCH_SESSIONS",
         normalizedFilters: {

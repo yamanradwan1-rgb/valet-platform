@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { Client, Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { expectedMigrationDirectories } from "./migration-manifest.js";
+import { issue300AppendedMigrationDirectories } from "./issue300-migration-source-appendix.js";
 
 const adminUrl =
   process.env.TEST_DATABASE_URL ??
@@ -82,7 +83,7 @@ describe("VAL-009F runtime privileges for G8 surfaces", () => {
       `SELECT migration_name FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
     );
-    expect(result.rows).toHaveLength(expectedMigrationDirectories.length);
+    expect(result.rows).toHaveLength(expectedMigrationDirectories.length + issue300AppendedMigrationDirectories.length);
   });
 
   it("grants SELECT only on organization_subscriptions", async () => {

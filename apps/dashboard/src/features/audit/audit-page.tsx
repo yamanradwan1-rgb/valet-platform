@@ -74,16 +74,10 @@ function AuditContent() {
     : dashboard.selectedScope.authority === "LOCATION_MANAGER"
       ? dashboard.selectedScope.location.name : "";
   const locationTimezone = auditTimeContext(dashboard.selectedScope).timezone;
-  // The selected Concept A remains review-only. In local development,
-  // authorized admins/managers can discover the tab from the existing Audit
-  // sidebar route without manually typing the review query; ordinary Audit
-  // Events remains the default. Production still requires explicit opt-in.
-  // A query string is NOT Owner approval to enable the unaccepted #300
-  // feature in production. The original Audit Events UI remains available.
-  const investigationLocalOnly =
-    process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
-  const showSwitch = investigationLocalOnly && canReview &&
-    (reviewOptIn === true || process.env.NODE_ENV === "development");
+  // Owner-approved Investigation is an ordinary CA/LM feature in every
+  // environment. Keep the existing Audit Events tab as the default and never
+  // promote Supervisor or subscription-only authority into Investigation.
+  const showSwitch = queryReady && canReview;
   const showInvestigation = showSwitch && view === "investigation";
   const scopeLabel =
     scope?.kind === "ORGANIZATION"

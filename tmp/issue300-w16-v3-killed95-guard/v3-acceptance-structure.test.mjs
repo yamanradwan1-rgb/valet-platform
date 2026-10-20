@@ -115,7 +115,7 @@ test("explicit V3 --check verifies migration boundary without starting services"
   assert.equal(evidence.requiresExplicitPrimeLease, true);
 });
 
-test("V3 pins entire DB tree except precisely three fail-closed release-gate files", () => {
+test("V3 pins whole DB runtime/Prisma tree except named rollout and test-only manifest files", () => {
   const runtime = source("v3-acceptance-runtime.mjs");
   assert.match(runtime, /anchorSha,latest,"--",\.\.\.releaseGateOnly/);
   assert.match(runtime, /"HEAD","--",\.\.\.releaseGateOnly/);
@@ -124,6 +124,21 @@ test("V3 pins entire DB tree except precisely three fail-closed release-gate fil
     "issue300-production-migration-gate.mjs",
     "issue300-production-migration-gate.test.mjs"]) {
     assert.match(runtime, new RegExp("\\(exclude\\)packages/database/scripts/"+expected.replace(/\./g,"\\.")));
+  }
+  for (const expected of ["issue300-migration-source-appendix.ts",
+    "financial-policy-migration.integration.test.ts",
+    "basic-branding-migration.integration.test.ts",
+    "cash-reconciliation-migration.integration.test.ts",
+    "location-configuration-migration.integration.test.ts",
+    "task-dispatch-persistence.integration.test.ts",
+    "schema.integration.test.ts",
+    "runtime-role.integration.test.ts",
+    "location-configuration-runtime-role.integration.test.ts",
+    "seed.integration.test.ts",
+    "payment-collection-migration.integration.test.ts",
+    "basic-branding-runtime-privilege.integration.test.ts",
+    "phase4-runtime-role.integration.test.ts"]) {
+    assert.match(runtime, new RegExp("\\(exclude\\)packages/database/src/"+expected.replace(/\./g,"\\.")));
   }
   assert.doesNotMatch(runtime, /\(exclude\)packages\/database\/prisma/);
 });

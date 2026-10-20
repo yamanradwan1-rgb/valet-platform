@@ -13,7 +13,6 @@ import { recordAdminActivityInTransaction } from "../../../auth/mfa/mfa-assuranc
 import { captureManagementPaginationSnapshot } from "../../management-pagination-snapshot";
 import { bindInvestigationCursor, decodeInvestigationCursor,
   encodeInvestigationCursor, type InvestigationCursorBinding } from "../audit-investigation-cursor";
-import { isU05LocalProofEnabled } from "../audit-investigation-u05-gate";
 import { requireU05StableIndirectCohort } from "../audit-investigation-u05-indirect-guard";
 import { readU05IncidentPolicy } from "../audit-investigation-u05-policy";
 import type { StaffSessionContext } from "../../../auth/staff-session-context";
@@ -89,8 +88,6 @@ export async function readAuditInvestigationTimeline(
   binding?: InvestigationCursorBinding,
 ): Promise<AuditInvestigationTimelineResponse> {
   const query = auditInvestigationTimelineQuerySchema.parse(input);
-  if (query.cursor && !isU05LocalProofEnabled())
-    throw new TimelinePaginationNotProvenError();
   if (query.cursor && !binding) throw new TimelinePaginationNotProvenError();
   const decoded = binding ? decodeInvestigationCursor(query.cursor, binding) : null;
   const captured = decoded === null
@@ -111,11 +108,14 @@ export async function readAuditInvestigationTimeline(
       ...(decoded?.purpose === "SESSION_TIMELINE" ? { last: decoded.last } : {}) });
   assertOrderedDistinct(rows);
   const hasMore = rows.length > query.limit;
-  if (hasMore && (!isU05LocalProofEnabled() || !binding))
+  if (hasMore && !binding)
     throw new TimelinePaginationNotProvenError();
   if (hasMore && captured.snapshot.length > 512)
     throw new TimelinePaginationNotProvenError();
-  if (binding && isU05LocalProofEnabled() && (hasMore || query.cursor)) {
+  // Always apply the conservative database-owned indirect cohort check for
+  // production pagination; never require a synthetic Owner proof lease for
+  // otherwise safely bounded, independently authorized ordinary reads.
+  if (binding && (hasMore || query.cursor)) {
     try {
       await requireU05StableIndirectCohort(tx, scope,
         { cutoff: captured.cutoff, database: captured.snapshot });
@@ -181,8 +181,7 @@ export async function readAuthorizedAuditInvestigationTimeline(
   const binding = bindInvestigationCursor({
     context, scope, purpose: "SESSION_TIMELINE", sessionId,
     normalizedFilters: {
-      incidentPolicy: isU05LocalProofEnabled()
-        ? await readU05IncidentPolicy(tx, scope) : null,
+      incidentPolicy: await readU05IncidentPolicy(tx, scope),
     },
   });
   const response = await readAuditInvestigationTimeline(

@@ -75,6 +75,14 @@ function page(
 }
 
 describe("Issue 300 purpose/session/scope-bound investigation cursors", () => {
+  it("rejects normal pagination when the Location's CURRENT Incident policy changes", () => {
+    const active = binding({}, { ...windowFilters, incidentPolicy: "ACTIVE" });
+    const inactive = binding({}, { ...windowFilters, incidentPolicy: "INACTIVE" });
+    const activePayload = { ...page(), filterDigest: active.filterDigest };
+    const signed = encodeInvestigationCursor(active, activePayload, now);
+    expect(decodeInvestigationCursor(signed, active, now)).toEqual(activePayload);
+    expect(() => decodeInvestigationCursor(signed, inactive, now)).toThrow();
+  });
   it("signs and restores a search cursor without raw filter text", () => {
     const token = encodeInvestigationCursor(binding(), page(), now);
     expect(decodeInvestigationCursor(token, binding(), now)).toEqual(page());

@@ -190,6 +190,7 @@ export async function requireU05StableIndirectCohort(
     `SELECT EXISTS (
        SELECT 1 FROM audit_events AS a
        WHERE a.organization_id = $1::uuid AND a.location_id = $2::uuid
+         AND a.valet_session_id IS NULL
          AND a.created_at <= $3::timestamptz
          AND (a.pagination_birth_xid IS NULL OR
            pg_visible_in_snapshot(a.pagination_birth_xid, $4::pg_snapshot))

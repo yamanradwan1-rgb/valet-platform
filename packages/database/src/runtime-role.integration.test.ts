@@ -7,6 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { verifyMigrationConnectionTls } from "../scripts/database-connection-policy.mjs";
 import { expectedMigrationDirectories } from "./migration-manifest.js";
+import { issue300AppendedMigrationDirectories } from "./issue300-migration-source-appendix.js";
 
 interface CommandResult {
   code: number | null;
@@ -282,7 +283,7 @@ describe("runtime PostgreSQL role boundary", () => {
       `SELECT migration_name FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL ORDER BY migration_name`,
     );
-    expect(result.rows.map((row) => row.migration_name)).toEqual([...expectedMigrationDirectories]);
+    expect(result.rows.map((row) => row.migration_name)).toEqual([...expectedMigrationDirectories, ...issue300AppendedMigrationDirectories]);
   });
   it("rejects a real plaintext migration preflight without applying a migration", async () => {
     const before = await adminPool.query<{ count: string }>(

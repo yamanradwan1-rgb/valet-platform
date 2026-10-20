@@ -8,6 +8,7 @@ import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { expectedMigrationDirectories } from "./migration-manifest.js";
+import { issue300AppendedMigrationDirectories } from "./issue300-migration-source-appendix.js";
 import { expectAuditRequiredFieldWriteGuards, requiredAuditColumns } from "./audit-required-field-write-guards.js";
 import {
   createScopedParkingSpot,
@@ -3231,7 +3232,7 @@ describe("retrieval request database foundation", () => {
 
 describe("handoff verification database foundation", () => {
   it("applies the exact ordered forward-only migration manifest", () => {
-    expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
+    expect(appliedMigrationDirectories).toEqual([...expectedMigrationDirectories, ...issue300AppendedMigrationDirectories]);
   });
 
   it("accepts a valid PICKUP_CODE verification", async () => {
@@ -7123,10 +7124,10 @@ describe("check-in intake persistence", () => {
 });
 
 describe("intake session creation persistence", () => {
-  it("applies all 93 forward-only migrations in order", () => {
-    expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
+  it("preserves all 93 baseline migrations and appends 94–96 in order", () => {
+    expect(appliedMigrationDirectories).toEqual([...expectedMigrationDirectories, ...issue300AppendedMigrationDirectories]);
     expect(appliedMigrationDirectories.at(-1)).toBe(
-      "20261015009300_outbound_post_result_phone_fence",
+      issue300AppendedMigrationDirectories.at(-1),
     );
   });
 

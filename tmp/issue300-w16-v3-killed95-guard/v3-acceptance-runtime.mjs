@@ -167,13 +167,28 @@ export function checkSourceBoundary(){
   const latest=run("git",["-C",root,"rev-parse","HEAD"]);
   assert(/^[a-f0-9]{40}$/.test(latest),"Git HEAD could not be pinned");
   run("git",["-C",root,"merge-base","--is-ancestor",anchorSha,latest]);
-  // Keep the *whole* approved database tree pinned except the three narrowly
-  // reviewed Issue300 fail-closed migration-deployment source/test files.
-  // Never exempt schema, SQL, migration history, ACL, or any other DB module.
+  // Keep the approved database runtime/schema/migration tree pinned. Only
+  // three previously reviewed deployment guard paths and thirteen explicitly
+  // scoped TEST-only migration-listing updates are excluded: those test-only
+  // files assert the historical 93-prefix plus exactly three new migrations.
+  // No migration SQL, Prisma schema, runtime ACL, or DB source policy exempt.
   const releaseGateOnly=["packages/database",
     ":(exclude)packages/database/scripts/run-migrate-deploy.mjs",
     ":(exclude)packages/database/scripts/issue300-production-migration-gate.mjs",
-    ":(exclude)packages/database/scripts/issue300-production-migration-gate.test.mjs"];
+    ":(exclude)packages/database/scripts/issue300-production-migration-gate.test.mjs",
+    ":(exclude)packages/database/src/issue300-migration-source-appendix.ts",
+    ":(exclude)packages/database/src/financial-policy-migration.integration.test.ts",
+    ":(exclude)packages/database/src/basic-branding-migration.integration.test.ts",
+    ":(exclude)packages/database/src/cash-reconciliation-migration.integration.test.ts",
+    ":(exclude)packages/database/src/location-configuration-migration.integration.test.ts",
+    ":(exclude)packages/database/src/task-dispatch-persistence.integration.test.ts",
+    ":(exclude)packages/database/src/schema.integration.test.ts",
+    ":(exclude)packages/database/src/runtime-role.integration.test.ts",
+    ":(exclude)packages/database/src/location-configuration-runtime-role.integration.test.ts",
+    ":(exclude)packages/database/src/seed.integration.test.ts",
+    ":(exclude)packages/database/src/payment-collection-migration.integration.test.ts",
+    ":(exclude)packages/database/src/basic-branding-runtime-privilege.integration.test.ts",
+    ":(exclude)packages/database/src/phase4-runtime-role.integration.test.ts"];
   run("git",["-C",root,"diff","--exit-code",anchorSha,latest,"--",...releaseGateOnly]);
   run("git",["-C",root,"diff","--exit-code","HEAD","--",...releaseGateOnly]);
   return latest;

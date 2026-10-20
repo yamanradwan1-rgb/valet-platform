@@ -7,6 +7,7 @@ import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { expectedMigrationDirectories } from "./migration-manifest.js";
+import { issue300AppendedMigrationDirectories } from "./issue300-migration-source-appendix.js";
 
 const baseDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
@@ -107,13 +108,13 @@ describe("migration 29 location configuration authority", () => {
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
       .sort();
-    expect(directories).toEqual([...expectedMigrationDirectories]);
-    expect(directories).toHaveLength(expectedMigrationDirectories.length);
+    expect(directories).toEqual([...expectedMigrationDirectories, ...issue300AppendedMigrationDirectories]);
+    expect(directories).toHaveLength(expectedMigrationDirectories.length + 3);
     expect(directories.at(29)).toBe(
       "20260822003000_phase7_basic_branding_subscription_entitlements",
     );
     expect(directories.at(-1)).toBe(
-      "20261015009300_outbound_post_result_phone_fence",
+      issue300AppendedMigrationDirectories.at(-1),
     );
   });
 
