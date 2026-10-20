@@ -1162,6 +1162,7 @@ model KeyCustodyEvent {
   eventType         KeyCustodyEventType @map("event_type")
   occurredAt        DateTime            @default(now()) @map("occurred_at") @db.Timestamptz(3)
   createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  paginationBirthXid Unsupported("xid8")? @map("pagination_birth_xid")
 
   organization    Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "key_custody_events_organization_id_fkey")
   location        Location               @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "key_custody_events_org_location_id_fkey")
@@ -1184,6 +1185,7 @@ model Task {
   version                     Int        @default(1)
   createdAt                   DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt                   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  paginationBirthXid          Unsupported("xid8")? @map("pagination_birth_xid")
 
   organization     Organization            @relation(fields: [organizationId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_organization_id_fkey")
   location         Location                @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_org_location_id_fkey")
@@ -1215,6 +1217,7 @@ model DispatchEvent {
   reason                       String?
   occurredAt                   DateTime          @default(now()) @map("occurred_at") @db.Timestamptz(3)
   createdAt                    DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  paginationBirthXid           Unsupported("xid8")? @map("pagination_birth_xid")
 
   task             Task                    @relation(fields: [organizationId, locationId, valetSessionId, taskId], references: [organizationId, locationId, valetSessionId, id], onDelete: Restrict, onUpdate: Restrict, map: "dispatch_events_task_scope_id_fkey")
   actorMembership  OrganizationMembership? @relation("DispatchEventActor", fields: [organizationId, actorMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "dispatch_events_org_actor_membership_id_fkey")
@@ -1770,6 +1773,7 @@ model Incident {
   description            String
   reportedByMembershipId String           @map("reported_by_membership_id") @db.Uuid
   createdAt              DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  paginationBirthXid     Unsupported("xid8")? @map("pagination_birth_xid")
   resolvedAt             DateTime?        @map("resolved_at") @db.Timestamptz(3)
   resolvedByMembershipId String?          @map("resolved_by_membership_id") @db.Uuid
   resolutionNotes        String?          @map("resolution_notes")

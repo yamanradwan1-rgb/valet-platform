@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { Client, Pool } from "pg";
 import { beforeAll, afterAll, describe, expect, it } from "vitest";
 import { expectedMigrationDirectories } from "./migration-manifest.js";
+import { issue300AppendedMigrationDirectories } from "./issue300-migration-source-appendix.js";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const cli = join(root, "node_modules/prisma/build/index.js");
@@ -171,8 +172,8 @@ describe("T05-A actual Prisma 048 → 049 additive upgrade", () => {
           )
         ).rows[0],
       ).toEqual({
-        n: expectedMigrationDirectories.length,
-        latest: expectedMigrationDirectories.at(-1),
+        n: expectedMigrationDirectories.length + issue300AppendedMigrationDirectories.length,
+        latest: issue300AppendedMigrationDirectories.at(-1),
       });
       expect(
         (

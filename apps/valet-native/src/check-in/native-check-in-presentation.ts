@@ -75,6 +75,8 @@ export function checkInFailureMessage(
       return copy.phoneAmbiguous;
     case "RETURNING_CUSTOMER_INTENT_INVALID":
       return copy.savedCustomerStale;
+    case "INTAKE_SECURE_ID_UNAVAILABLE":
+      return copy.intakeUnknown;
     case "NETWORK_ERROR":
     case "REQUEST_TIMEOUT":
     case "BAD_GATEWAY":

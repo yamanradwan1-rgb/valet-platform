@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { Client, Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { expectedMigrationDirectories } from "./migration-manifest.js";
+import { issue300AppendedMigrationDirectories } from "./issue300-migration-source-appendix.js";
 
 const adminUrl =
   process.env.TEST_DATABASE_URL ??
@@ -103,9 +104,9 @@ describe("VAL-009B location configuration runtime privileges", () => {
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL
        ORDER BY migration_name`,
     );
-    expect(result.rows.map((row) => row.migration_name)).toEqual([...expectedMigrationDirectories]);
+    expect(result.rows.map((row) => row.migration_name)).toEqual([...expectedMigrationDirectories, ...issue300AppendedMigrationDirectories]);
     expect(result.rows.at(-1)?.migration_name).toBe(
-      "20261015009300_outbound_post_result_phone_fence",
+      issue300AppendedMigrationDirectories.at(-1),
     );
   });
 

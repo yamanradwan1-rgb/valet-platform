@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { AppState } from "react-native";
 import { useFocusEffect } from "expo-router";
 import {
+  conditionPhotoScopeKey,
   EmployeeConditionPhotoSession,
   type EmployeeCheckInSnapshot,
   type EmployeeOperationalScope,
@@ -12,12 +13,8 @@ import { nativeIdentityState } from "../auth/identity-state-boundary";
 import { nativeCheckInWorkflowOwner } from "./native-check-in-ownership";
 import { NativeConditionPhotoFiles } from "./native-condition-photo-files";
 import { createNativeConditionPhotoTransport } from "./native-condition-photo-transport";
-
-function newOperationId() {
-  if (typeof globalThis.crypto?.randomUUID === "function")
-    return globalThis.crypto.randomUUID();
-  throw new Error("CONDITION_PHOTO_RANDOM_UNAVAILABLE");
-}
+import { instrumentConditionPhotoUpload } from "./native-photo-upload-diagnostics";
+import { getNativeTelemetry } from "../telemetry/native-telemetry-owner";
 
 export function useNativeConditionPhotoOwner(
   auth: NativeAuthSession,
@@ -25,14 +22,24 @@ export function useNativeConditionPhotoOwner(
   checkIn: EmployeeCheckInSnapshot,
 ) {
   const [files] = useState(() => new NativeConditionPhotoFiles());
-  const [photo] = useState(() => new EmployeeConditionPhotoSession({
-    createOperationId: newOperationId,
-    captureReady: (handle) => {
-      try { files.file(handle); return true; } catch { return false; }
-    },
-    discard: (handle) => files.discard(handle),
-    transport: createNativeConditionPhotoTransport(resolveNativeApiOrigin(), auth, files),
-  }));
+  const [owner] = useState(() => {
+    const diagnostics = instrumentConditionPhotoUpload(
+      (onDispatch, onResponse) => createNativeConditionPhotoTransport(
+        resolveNativeApiOrigin(), auth, files, onDispatch, onResponse,
+      ),
+      getNativeTelemetry().pinned,
+    );
+    const photo = new EmployeeConditionPhotoSession({
+      createOperationId: diagnostics.createOperationId,
+      captureReady: (handle) => {
+        try { files.file(handle); return true; } catch { return false; }
+      },
+      discard: (handle) => files.discard(handle),
+      transport: diagnostics.transport,
+    });
+    return { photo, cancelDiagnostics: diagnostics.cancel };
+  });
+  const { photo, cancelDiagnostics } = owner;
   const snapshot = useSyncExternalStore(photo.subscribe, photo.current);
   const authGeneration = auth.current().authGeneration;
   const sessionId = checkIn.active?.sessionId;
@@ -45,6 +52,7 @@ export function useNativeConditionPhotoOwner(
     }).catch(() => {
       if (mounted) {
         setCacheReady(false);
+        cancelDiagnostics();
         photo.clear();
       }
     });
@@ -59,25 +67,32 @@ export function useNativeConditionPhotoOwner(
     return () => {
       mounted = false;
       unregister();
+      cancelDiagnostics();
       photo.clear();
       void files.discardAll().catch(() => undefined);
     };
-  }, [files, photo]);
+  }, [files, photo, cancelDiagnostics]);
 
   useEffect(() => {
     if (!cacheReady || checkIn.phase !== "created" || sessionId === undefined ||
       checkIn.identityGeneration === null || checkIn.locationId !== scope.locationId) {
+      cancelDiagnostics();
       photo.clear();
       return;
     }
-    void photo.activate({
+    const nextScope = {
       authGeneration, identityGeneration: checkIn.identityGeneration,
       membershipId: scope.membershipId, organizationId: scope.organizationId,
       locationId: scope.locationId, sessionId,
       workflowOwner: nativeCheckInWorkflowOwner(scope),
-    });
+    };
+    const previousScope = photo.current().scope;
+    if (previousScope !== null &&
+      conditionPhotoScopeKey(previousScope) !== conditionPhotoScopeKey(nextScope))
+      cancelDiagnostics();
+    void photo.activate(nextScope);
   }, [authGeneration, cacheReady, checkIn.identityGeneration, checkIn.locationId,
-    checkIn.phase, photo, scope.locationId, scope.membershipId,
+    checkIn.phase, photo, cancelDiagnostics, scope.locationId, scope.membershipId,
     scope.organizationId, sessionId, scope]);
 
   useFocusEffect(useCallback(() => {
@@ -88,9 +103,10 @@ export function useNativeConditionPhotoOwner(
     });
     return () => {
       subscription.remove();
+      cancelDiagnostics();
       photo.suspend();
     };
-  }, [photo]));
+  }, [photo, cancelDiagnostics]));
 
   return { files, photo, photoSnapshot: snapshot };
 }

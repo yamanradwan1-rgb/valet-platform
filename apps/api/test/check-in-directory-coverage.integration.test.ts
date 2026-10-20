@@ -8,11 +8,7 @@ describe("Incomplete Check-In bounded directory coverage", () => {
   afterAll(() => harness.close(), 60_000);
   it("includes an old self-owned draft ahead of 101 unrelated newer candidates", async () => {
     const { fixture } = await harness.fixtureWithToken();
-    const own = await harness.createSession(fixture);
-    await harness.context.adminPool.query(
-      "UPDATE valet_sessions SET created_at = '2026-01-01' WHERE id = $1",
-      [own.sessionId],
-    );
+    const own = await harness.createSession(fixture, { createdAt: new Date("2026-01-01") });
     const other = await harness.addMember(fixture);
     for (let index = 0; index < 101; index += 1) {
       const session = await harness.createSession({ ...fixture, ...other });

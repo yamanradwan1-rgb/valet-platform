@@ -1378,6 +1378,47 @@ Exact Task/Dispatch persistence is deferred to the focused Operations/Dispatch s
 
 ## key_custody_events
 
+Issue #300 U05 Option A (Owner approved **local validation only**, 2026-10-18):
+new migration 94 introduces nullable, database-owned `pagination_birth_xid xid8`
+to **key_custody_events**, **dispatch_events**, and **incidents** atomically.
+Existing NULL values are historical legacy data and are NEVER retroactively
+backfilled. Each post-activation insert is overwritten by an INSERT trigger to
+the real top-level `pg_current_xact_id()`, and later updates preserve the
+original marker. Runtime writers cannot disable the trigger or change this
+protected column; normal event/Incident writers are otherwise unchanged.
+Investigation multi-request snapshot pagination remains fail-closed unless
+the local atomic activation, legacy cohort, privilege and late-commit proof
+gates U05-R01–R09 all pass. This note authorizes no production migration.
+
+Issue #300 **Option B** (separate Owner-approved **local-only** continuation):
+forward-only migration 95 adds nullable database-owned
+`tasks.pagination_birth_xid xid8`, keeping all pre-activation Task rows NULL
+without backfilling historical transaction identities. A single migration
+transaction first locks Audit, Task, Incident and ValetSession writers, then
+activates Task birth triggers and relationship-immutability triggers. The
+following identity/association columns cannot be reparented by an UPDATE:
+Task `(id, organization_id, location_id, valet_session_id, task_type)`;
+Incident `(id, organization_id, location_id, valet_session_id, created_at,
+reported_by_membership_id, type, severity)`;
+ValetSession `(id, organization_id, location_id, vehicle_id)`;
+Audit historical actor, source entity, direct Session, timestamps and JSON
+metadata. Task state/assignee/version, Incident current status, Session
+operational state and current Vehicle labels remain mutable as before.
+Follow-up forward-only migration 96 extends the same immutable attribution
+barrier to Audit `controlled_operator_ref`/`idempotency_key` and Session
+`checked_in_by_membership_id`/`created_at`, without changing any operational
+state transitions.
+
+The Issue300 read code must check visibility of a Task or Incident source
+parent in the captured `pg_snapshot` **before** using that parent's Session
+association; this includes `VALET_SESSION_PARKED` Task metadata links.
+Legacy NULL markers prove only membership in the cutover-era database cohort
+under the atomic writer lock, **not** that a particular association existed
+at an earlier Audit occurredAt or that an invented creation transaction took
+place. Do not claim event-time Task/Incident association certification for
+legacy records. If a relationship cannot be established, keep the investigation
+pagination fail-closed. No production schema change is authorized here.
+
 ```text
 id
 organization_id

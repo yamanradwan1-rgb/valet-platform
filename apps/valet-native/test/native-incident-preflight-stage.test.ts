@@ -1,6 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { IncidentRecoveryMarker, IncidentRecoveryStore } from "@valet/employee-client";
 
+const nativeEntropy = vi.hoisted(() => ({ mode: "available" as "available" | "missing" | "throwing" }));
+vi.mock("../src/crypto/native-secure-crypto", () => ({
+  nativeSecureRandomValues: (bytes: Uint8Array) => {
+    if (nativeEntropy.mode === "missing") throw Error("NATIVE_CSPRNG_UNAVAILABLE");
+    if (nativeEntropy.mode === "throwing") throw Error("sensitive seed");
+    bytes.set(Uint8Array.from({ length: bytes.length }, (_, index) => index));
+    return bytes;
+  },
+}));
+
 import { NativeIncidentSession } from "../src/incident/native-incident-session";
 import { createNativeIncidentRecoveryState } from "../src/incident/native-incident-recovery-runtime";
 import {
@@ -95,15 +105,11 @@ beforeEach(() => {
   installNativeTelemetry(new NativeTelemetryOwner(ring, {
     appBuild: "test", appVersion: "test", platform: "android",
   }));
-  const source = Uint8Array.from({ length: 16 }, (_, index) => index);
-  vi.stubGlobal("crypto", {
-    getRandomValues: (bytes: Uint8Array) => {
-      bytes.set(source);
-      return bytes;
-    },
-  });
+  nativeEntropy.mode = "available";
+  vi.stubGlobal("crypto", undefined);
 });
 afterEach(() => {
+  nativeEntropy.mode = "available";
   vi.unstubAllGlobals();
   resetNativeTelemetryRegistryForTests();
 });
@@ -142,9 +148,7 @@ describe("Issue 275 Native runtime composition / preflight", () => {
   it.each(["missing", "throwing"] as const)(
     "fails closed when release-like CSPRNG is %s, with no mutation",
     async (caseName) => {
-      vi.stubGlobal("crypto", caseName === "missing" ? {} : {
-        getRandomValues: () => { throw new Error("sensitive seed"); },
-      });
+      nativeEntropy.mode = caseName;
       const { request, session } = setup();
       await open(session);
       expect(await session.submit(input)).toBe(false);

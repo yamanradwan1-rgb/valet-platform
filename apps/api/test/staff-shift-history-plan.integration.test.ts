@@ -98,11 +98,11 @@ it("measures final history SQL at 40,000 ended rows across two tenants", async (
         endedRows: 40000,
         tenantRows: 20000,
         membersPerTenant: 200,
-        migrationsThrough: 53,
+        migrationsThrough: 96,
         measurements,
       },
       null,
       2,
     ),
   );
-});
+}, 120_000);

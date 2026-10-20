@@ -213,12 +213,19 @@ export class EmployeeCheckInSession extends EmployeeCheckInContinuationSession {
   }
 
   private async submit(customer: IntakeRequest["customer"]): Promise<void> {
+    let operationId: string;
+    try {
+      operationId = checkInOperationId(this.pendingRequest, this.options.createOperationId);
+    } catch {
+      // A missing Native CSPRNG is an entirely local pre-dispatch failure.
+      // Keep the screen usable without creating or retrying any mutation.
+      this.fail({ code: "INTAKE_SECURE_ID_UNAVAILABLE",
+        message: "Secure intake identity is temporarily unavailable." });
+      return;
+    }
     const input: IntakeRequest = {
       ...(customer === undefined ? {} : { customer }),
-      intakeOperationId: checkInOperationId(
-        this.pendingRequest,
-        this.options.createOperationId,
-      ),
+      intakeOperationId: operationId,
       targetLocationId: this.requiredLocation(),
       ...(this.snapshot.recognizedVehicle === null
         ? {

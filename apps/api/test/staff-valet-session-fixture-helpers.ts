@@ -3,6 +3,8 @@ import type { ShiftFixture } from "./shift-test-context";
 import type { ShiftTestContext } from "./shift-test-context";
 
 export interface SessionFixtureOptions {
+  checkedInByMembershipId?: string;
+  createdAt?: Date;
   checkInConditionCompletedAt?: Date | null;
   keySlotId?: string | null;
   parkedAt?: Date | null;
@@ -37,10 +39,10 @@ export async function createSessionHelper(
         checked_in_by_membership_id, check_in_condition_completed_at,
         check_in_condition_completed_by_membership_id,
         key_slot_id, parking_spot_id, parking_zone_id,
-        parking_started_at, parked_at, version, updated_at)
+        parking_started_at, parked_at, version, updated_at, created_at)
      VALUES ($1, $2, transaction_timestamp() + interval '1 hour',
              $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-             transaction_timestamp())`,
+             transaction_timestamp(), COALESCE($16::timestamptz, transaction_timestamp()))`,
     [
       sessionId,
       `hash:${sessionId}`,
@@ -48,7 +50,7 @@ export async function createSessionHelper(
       fixture.locationId,
       vehicleId,
       state,
-      fixture.membershipId,
+      options.checkedInByMembershipId ?? fixture.membershipId,
       conditionCompletedAt,
       conditionCompletedBy,
       options.keySlotId ?? null,
@@ -57,6 +59,7 @@ export async function createSessionHelper(
       options.parkingStartedAt ?? null,
       options.parkedAt ?? null,
       options.version ?? 1,
+      options.createdAt ?? null,
     ],
   );
   return sessionId;

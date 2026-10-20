@@ -57,6 +57,10 @@ export class DashboardOverviewTestContext extends DashboardTestContext {
 
   async seedSession(input: {
     keySlotId?: string;
+    parkingZoneId?: string;
+    parkingSpotId?: string;
+    currentAssigneeMembershipId?: string;
+    createdAtIso?: string;
     state: string;
   }): Promise<string> {
     const base = await this.baseFixture();
@@ -79,32 +83,18 @@ export class DashboardOverviewTestContext extends DashboardTestContext {
          (id, customer_access_token_hash, customer_access_expires_at,
           organization_id, location_id, vehicle_id, state,
           checked_in_by_membership_id,
-          ${input.keySlotId === undefined ? "" : "key_slot_id,"}
+          key_slot_id, parking_zone_id, parking_spot_id,
+          current_assignee_membership_id, created_at,
           ${completedColumn} updated_at)
        VALUES ($1, $2, transaction_timestamp() + interval '1 day', $3, $4,
                $5, $6, $7,
-               ${input.keySlotId === undefined ? "" : "$8,"}
+               $8, $9, $10, $11,
+               COALESCE($12::timestamptz, transaction_timestamp()),
                ${completedPlaceholder} transaction_timestamp())`,
-      input.keySlotId === undefined
-        ? [
-            sessionId,
-            randomUUID(),
-            base.organizationId,
-            base.locationId,
-            vehicleId,
-            input.state,
-            base.membershipId,
-          ]
-        : [
-            sessionId,
-            randomUUID(),
-            base.organizationId,
-            base.locationId,
-            vehicleId,
-            input.state,
-            base.membershipId,
-            input.keySlotId,
-          ],
+      [sessionId, randomUUID(), base.organizationId, base.locationId,
+        vehicleId, input.state, base.membershipId, input.keySlotId ?? null,
+        input.parkingZoneId ?? null, input.parkingSpotId ?? null,
+        input.currentAssigneeMembershipId ?? null, input.createdAtIso ?? null],
     );
     return sessionId;
   }

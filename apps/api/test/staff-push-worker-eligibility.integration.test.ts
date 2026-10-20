@@ -188,11 +188,36 @@ describe("Staff Push send-time eligibility", () => {
       ],
       [
         "non-RETRIEVAL Task",
-        async (f) =>
-          void (await context.adminPool.query(
-            "UPDATE tasks SET task_type = 'PARKING' WHERE id = $1",
-            [f.task_id],
-          )),
+        async (f) => {
+          const parkingTaskId = randomUUID();
+          await context.adminPool.query(
+            `INSERT INTO tasks (id, organization_id, location_id, valet_session_id,
+              task_type, status, current_assignee_membership_id, version, updated_at)
+             SELECT $2, organization_id, location_id, valet_session_id,
+               'PARKING', status, current_assignee_membership_id, version, updated_at
+             FROM tasks WHERE id = $1`,
+            [f.task_id, parkingTaskId],
+          );
+          // A valid producer never rewrites immutable intents. For this
+          // negative reader test only, construct a deliberately corrupted
+          // historical intent inside the disposable test DB as the admin
+          // fixture role; normal runtime trigger enforcement remains intact.
+          const client = await context.adminPool.connect();
+          try {
+            await client.query("BEGIN");
+            await client.query("SET LOCAL session_replication_role = replica");
+            await client.query(
+              "UPDATE staff_push_intents SET task_id = $2 WHERE id = $1",
+              [f.intent_id, parkingTaskId],
+            );
+            await client.query("COMMIT");
+          } catch (error) {
+            await client.query("ROLLBACK");
+            throw error;
+          } finally {
+            client.release();
+          }
+        },
       ],
       ...(["DISABLED", "SUPERSEDED", "PROVIDER_INVALID"] as const).map(
         (

@@ -6,6 +6,7 @@ import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { expectedMigrationDirectories } from "./migration-manifest.js";
+import { issue300AppendedMigrationDirectories } from "./issue300-migration-source-appendix.js";
 import {
   createDispatchEvent,
   createTask,
@@ -71,10 +72,10 @@ describe("DEC-034 Task and DispatchEvent persistence", () => {
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
       .sort();
-    expect(directories).toEqual(expectedMigrationDirectories);
-    expect(directories).toHaveLength(expectedMigrationDirectories.length);
+    expect(directories).toEqual([...expectedMigrationDirectories, ...issue300AppendedMigrationDirectories]);
+    expect(directories).toHaveLength(expectedMigrationDirectories.length + 3);
     expect(directories.at(-1)).toBe(
-      "20261015009300_outbound_post_result_phone_fence",
+      issue300AppendedMigrationDirectories.at(-1),
     );
     for (const [type, expected] of [
       ["task_type", ["PARKING", "RETRIEVAL"]],

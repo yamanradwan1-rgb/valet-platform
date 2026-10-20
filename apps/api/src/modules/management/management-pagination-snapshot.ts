@@ -13,6 +13,7 @@ const snapshotPattern = /^\d+:\d+:(?:\d+(?:,\d+)*)?$/;
 interface SnapshotRow extends Record<string, unknown> {
   readonly now: Date;
   readonly snapshot: string;
+  readonly cutoff: string;
 }
 
 function secret(): Buffer {
@@ -52,15 +53,35 @@ export function requireManagementSnapshot(value: unknown): string {
 
 export async function captureManagementPaginationSnapshot(
   transaction: PostgresTransaction,
-): Promise<{ readonly now: Date; readonly snapshot: string }> {
+): Promise<{
+  readonly now: Date;
+  readonly snapshot: string;
+  readonly cutoff: string;
+}> {
   const result = await transaction.query<SnapshotRow>(
-    `SELECT clock_timestamp() AS now, pg_current_snapshot()::text AS snapshot`,
+    `WITH captured AS MATERIALIZED (
+       SELECT clock_timestamp() AS now, pg_current_snapshot()::text AS snapshot
+     )
+     SELECT now, snapshot,
+       to_char(now AT TIME ZONE 'UTC',
+         'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cutoff
+     FROM captured`,
   );
   const row = result.rows[0];
   if (row === undefined || !(row.now instanceof Date)) {
     throw new Error("Management pagination snapshot is unavailable.");
   }
-  return { now: row.now, snapshot: requireManagementSnapshot(row.snapshot) };
+  if (
+    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/.test(row.cutoff) ||
+    row.cutoff.slice(0, 23) !== row.now.toISOString().slice(0, 23)
+  ) {
+    throw new Error("Management snapshot microsecond cutoff is unavailable.");
+  }
+  return {
+    now: row.now,
+    snapshot: requireManagementSnapshot(row.snapshot),
+    cutoff: row.cutoff,
+  };
 }
 
 export function encodeSignedManagementCursor(value: unknown): string {

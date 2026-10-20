@@ -7,7 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { verifyMigrationConnectionTls } from "../scripts/database-connection-policy.mjs";
 import { expectedMigrationDirectories } from "./migration-manifest.js";
-
+import { issue300AppendedMigrationDirectories } from "./issue300-migration-source-appendix.js";
 interface CommandResult {
   code: number | null;
   stderr: string;
@@ -136,17 +136,16 @@ async function expectPostgresDenial(
   }
 }
 
-async function expectForeignKeyRestriction(
+async function expectSessionIdentityImmutability(
   operation: Promise<unknown>,
-  constraint: string,
 ): Promise<void> {
   try {
     await operation;
-    throw new Error("Expected PostgreSQL foreign-key restriction.");
+    throw new Error("Expected Issue #300 Session identity immutability.");
   } catch (error) {
     const postgresError = error as PostgresError;
-    expect(postgresError.code).toBe("23503");
-    expect(postgresError.constraint).toBe(constraint);
+    expect(postgresError.code).toBe("23514");
+    expect(postgresError.message).toContain("ISSUE300_SESSION_IDENTITY_IMMUTABLE");
   }
 }
 
@@ -282,7 +281,7 @@ describe("runtime PostgreSQL role boundary", () => {
       `SELECT migration_name FROM _prisma_migrations
        WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL ORDER BY migration_name`,
     );
-    expect(result.rows.map((row) => row.migration_name)).toEqual([...expectedMigrationDirectories]);
+    expect(result.rows.map((row) => row.migration_name)).toEqual([...expectedMigrationDirectories, ...issue300AppendedMigrationDirectories]);
   });
   it("rejects a real plaintext migration preflight without applying a migration", async () => {
     const before = await adminPool.query<{ count: string }>(
@@ -715,12 +714,11 @@ describe("runtime PostgreSQL role boundary", () => {
       ),
     ).resolves.toMatchObject({ rowCount: 1 });
     const replacementConditionSessionId = randomUUID();
-    await expectForeignKeyRestriction(
+    await expectSessionIdentityImmutability(
       runtimePool.query(`UPDATE valet_sessions SET id = $1 WHERE id = $2`, [
         replacementConditionSessionId,
         conditionFixture.sessionId,
       ]),
-      "condition_notes_org_location_session_id_fkey",
     );
     const unchangedCondition = await runtimePool.query<{
       valet_session_id: string;
@@ -760,12 +758,11 @@ describe("runtime PostgreSQL role boundary", () => {
       ),
     ).resolves.toMatchObject({ rowCount: 1 });
     const replacementPhotoSessionId = randomUUID();
-    await expectForeignKeyRestriction(
+    await expectSessionIdentityImmutability(
       runtimePool.query(`UPDATE valet_sessions SET id = $1 WHERE id = $2`, [
         replacementPhotoSessionId,
         photoFixture.sessionId,
       ]),
-      "vehicle_photos_org_location_session_id_fkey",
     );
     const unchangedPhoto = await runtimePool.query<{
       valet_session_id: string;

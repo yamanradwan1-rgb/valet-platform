@@ -45,11 +45,10 @@ async function slaSample(input: {
 async function seedWorkEvidence() {
   const fixture = await context.managerFixture();
   const members = await Promise.all(Array.from({ length: 9 }, () => actor()));
-  const checked = await analyticsSeedSession(context, { createdAtIso: inPeriod, state: "PARKED" });
-  await context.adminPool.query(
-    `UPDATE valet_sessions SET checked_in_by_membership_id=$2 WHERE id=$1`,
-    [checked, members[0]!.membershipId],
-  );
+  await analyticsSeedSession(context, {
+    createdAtIso: inPeriod, state: "PARKED",
+    checkedInByMembershipId: members[0]!.membershipId,
+  });
   const condition = await analyticsSeedSession(context, { createdAtIso: outside, state: "PARKED" });
   await context.adminPool.query(
     `UPDATE valet_sessions
@@ -146,11 +145,9 @@ describe("MGT-BE-10 KPI source contracts", () => {
     await seedIncidents(work.generic);
     const otherLocation = await context.addLocation(fixture);
     const otherSession = await analyticsSeedSession(context, {
-      completedAtIso: "2026-07-10T15:00:00Z", createdAtIso: outside, state: "COMPLETED",
+      completedAtIso: "2026-07-10T15:00:00Z", createdAtIso: outside,
+      locationId: otherLocation, state: "COMPLETED",
     });
-    await context.adminPool.query(
-      `UPDATE valet_sessions SET location_id=$2 WHERE id=$1`, [otherSession, otherLocation],
-    );
     await context.adminPool.query(
       `INSERT INTO incidents
          (id,organization_id,location_id,valet_session_id,status,severity,type,

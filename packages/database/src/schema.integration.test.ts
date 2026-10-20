@@ -8,6 +8,7 @@ import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { expectedMigrationDirectories } from "./migration-manifest.js";
+import { issue300AppendedMigrationDirectories } from "./issue300-migration-source-appendix.js";
 import { expectAuditRequiredFieldWriteGuards, requiredAuditColumns } from "./audit-required-field-write-guards.js";
 import {
   createScopedParkingSpot,
@@ -3231,7 +3232,7 @@ describe("retrieval request database foundation", () => {
 
 describe("handoff verification database foundation", () => {
   it("applies the exact ordered forward-only migration manifest", () => {
-    expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
+    expect(appliedMigrationDirectories).toEqual([...expectedMigrationDirectories, ...issue300AppendedMigrationDirectories]);
   });
 
   it("accepts a valid PICKUP_CODE verification", async () => {
@@ -5930,6 +5931,7 @@ describe("incident database foundation", () => {
       "resolved_at",
       "resolved_by_membership_id",
       "resolution_notes",
+      "pagination_birth_xid",
     ]);
   });
 
@@ -6024,6 +6026,12 @@ describe("incident database foundation", () => {
         is_nullable: "YES",
         udt_name: "text",
       },
+      {
+        column_default: "pg_current_xact_id()",
+        column_name: "pagination_birth_xid",
+        is_nullable: "YES",
+        udt_name: "xid8",
+      },
     ]);
   });
 
@@ -6062,14 +6070,18 @@ describe("incident database foundation", () => {
     expect(tables.rows).toEqual([]);
   });
 
-  it("does not create Incident database triggers", async () => {
+  it("creates only the approved #300 Incident history-provenance triggers", async () => {
     const result = await databaseClient.query<{ trigger_name: string }>(
       `SELECT trigger_name
        FROM information_schema.triggers
        WHERE event_object_schema = 'public'
          AND event_object_table = 'incidents'`,
     );
-    expect(result.rows).toEqual([]);
+    expect(result.rows.map((row) => row.trigger_name).sort()).toEqual([
+      "incidents_issue300_relation_immutable",
+      "incidents_pagination_birth_insert",
+      "incidents_pagination_birth_update",
+    ]);
   });
 
   it("creates only the Incident primary key and required query index", async () => {
@@ -7123,10 +7135,10 @@ describe("check-in intake persistence", () => {
 });
 
 describe("intake session creation persistence", () => {
-  it("applies all 93 forward-only migrations in order", () => {
-    expect(appliedMigrationDirectories).toEqual(expectedMigrationDirectories);
+  it("preserves all 93 baseline migrations and appends 94–96 in order", () => {
+    expect(appliedMigrationDirectories).toEqual([...expectedMigrationDirectories, ...issue300AppendedMigrationDirectories]);
     expect(appliedMigrationDirectories.at(-1)).toBe(
-      "20261015009300_outbound_post_result_phone_fence",
+      issue300AppendedMigrationDirectories.at(-1),
     );
   });
 

@@ -200,17 +200,11 @@ describe("MGT-FIX-02 migration 45 pagination snapshot membership", () => {
        ORDER BY table_name`,
     );
     expect(columns.rows).toEqual([
-      {
-        column_default: "pg_current_xact_id()",
-        table_name: "audit_events",
-        udt_name: "xid8",
-      },
-      {
-        column_default: "pg_current_xact_id()",
-        table_name: "valet_sessions",
-        udt_name: "xid8",
-      },
-    ]);
+      "audit_events", "dispatch_events", "incidents", "key_custody_events",
+      "tasks", "valet_sessions",
+    ].map((table_name) => ({
+      column_default: "pg_current_xact_id()", table_name, udt_name: "xid8",
+    })));
     expect(
       (
         await fresh.query(

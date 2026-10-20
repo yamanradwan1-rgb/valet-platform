@@ -32,6 +32,8 @@ export async function analyticsSeedSession(
     readyAtIso?: string | null;
     retrievalRequestedAtIso?: string | null;
     retrievalStartedAtIso?: string | null;
+    locationId?: string;
+    checkedInByMembershipId?: string;
   },
 ): Promise<string> {
   const ids = await base(context);
@@ -65,10 +67,10 @@ export async function analyticsSeedSession(
       sessionId,
       randomUUID(),
       ids.organizationId,
-      ids.locationId,
+      input.locationId ?? ids.locationId,
       vehicleId,
       input.state ?? "PARKED",
-      ids.membershipId,
+      input.checkedInByMembershipId ?? ids.membershipId,
       ...(isCompleted ? [input.completedAtIso ?? null] : []),
       input.createdAtIso ?? null,
     ],

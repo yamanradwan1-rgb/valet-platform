@@ -1,6 +1,7 @@
 import "dotenv/config";
 
 import { spawn } from "node:child_process";
+import process from "node:process";
 
 import pg from "pg";
 

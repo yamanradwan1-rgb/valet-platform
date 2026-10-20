@@ -7,6 +7,7 @@ import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { expectedMigrationDirectories } from "./migration-manifest.js";
+import { issue300AppendedMigrationDirectories } from "./issue300-migration-source-appendix.js";
 
 const baseDatabaseUrl =
   process.env.TEST_DATABASE_URL ??
@@ -114,8 +115,8 @@ describe("migration 27 cash reconciliation", () => {
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
       .sort();
-    expect(directories).toEqual([...expectedMigrationDirectories]);
-    expect(directories).toHaveLength(expectedMigrationDirectories.length);
+    expect(directories).toEqual([...expectedMigrationDirectories, ...issue300AppendedMigrationDirectories]);
+    expect(directories).toHaveLength(expectedMigrationDirectories.length + 3);
     expect(directories[26]).toBe("20260816002700_phase6_cash_reconciliation");
     const columns = await client.query(
       `SELECT column_name, data_type, numeric_precision, numeric_scale,

@@ -1,4 +1,5 @@
 import { File, Paths } from "expo-file-system";
+import { nativeSecureRandomUUID } from "../crypto/native-secure-crypto";
 
 import type { NativePushInstallationId } from "./native-push-types";
 
@@ -52,13 +53,7 @@ function readInstallationId(value: unknown): string | undefined {
 }
 
 export function createNativeInstallationUuid(): string {
-  if (typeof globalThis.crypto?.randomUUID === "function") {
-    return globalThis.crypto.randomUUID();
-  }
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (value) => {
-    const random = Math.floor(Math.random() * 16);
-    return (value === "x" ? random : (random & 0x3) | 0x8).toString(16);
-  });
+  return nativeSecureRandomUUID();
 }
 
 export class NativePushInstallationIdOwner implements NativePushInstallationId {
