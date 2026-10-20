@@ -13,6 +13,16 @@ export const browserCases = Object.freeze([
           `UI-M1 authentic ${locale}/${theme}/${width}px/${zoom}%`)))),
 ]);
 
+// Playwright CLI grep sees the full title path: project/file, describe(title),
+// test(title). safeOneTimeCase deliberately uses the title twice. A single
+// ^title$ regex silently selects zero tests, which must never look like PASS.
+const escapeRegex = value => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+export function playwrightFullTitleGrep(title) {
+  assert(browserCases.includes(title), "W18_UNKNOWN_PLAYWRIGHT_CASE");
+  const escaped = escapeRegex(title);
+  return `(?:^|\\s)${escaped}\\s+${escaped}$`;
+}
+
 export function validateBrowserScenario(scenario, candidate, lease, scope) {
   assert.match(candidate ?? "", gitSha);
   assert.match(lease ?? "", /^issue300-r2-[a-z0-9-]{8,}$/);
@@ -52,7 +62,7 @@ export function caseRunPlan(scenario, candidate, lease, scope) {
       "issue300-closure.spec.ts",
       "--project", "chromium",
       "--workers", "1",
-      "--grep", `^${title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+      "--grep", playwrightFullTitleGrep(title),
     ],
   }));
 }
