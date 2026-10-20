@@ -8,7 +8,6 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { verifyMigrationConnectionTls } from "../scripts/database-connection-policy.mjs";
 import { expectedMigrationDirectories } from "./migration-manifest.js";
 import { issue300AppendedMigrationDirectories } from "./issue300-migration-source-appendix.js";
-
 interface CommandResult {
   code: number | null;
   stderr: string;
