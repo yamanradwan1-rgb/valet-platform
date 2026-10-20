@@ -147,7 +147,7 @@ export function ResourceLabelDialog(props: {
                 <span aria-hidden="true">V</span><strong>VAYLET</strong>
               </div>
               <div className="issue304-modal-label-resource">
-                <span>{label.resourceType === "KEY_SLOT" ? t.keySlot : t.parkingSpot}</span>
+                <span>{label.resourceType === "KEY_SLOT" ? (locale === "ar" ? "خانة مفتاح" : t.keySlot) : (locale === "ar" ? "موقف سيارة" : t.parkingSpot)}</span>
                 <bdi dir="ltr">{label.code}</bdi>
                 <span>{label.location.name} · <bdi dir="ltr">{label.location.code}</bdi></span>
               </div>

@@ -91,6 +91,15 @@
   overflow-wrap: anywhere;
 }
 
+@media screen and (max-width: 359px) {
+  /* The frozen 320px English Create previews use a two-line introduction.
+   * Arabic operational copy remains one line at the same breakpoint. */
+  [data-issue304-action-surface="create"] .issue304-modal-disclaimer[lang="en"],
+  [data-issue304-action-surface="create-zone"] .issue304-modal-disclaimer[lang="en"] {
+    max-inline-size: 200px;
+  }
+}
+
 [data-issue304-action-surface] .issue304-modal-form {
   display: grid;
   gap: .85rem;
@@ -211,6 +220,12 @@
    * production labels are shorter. Keep flex wrapping and real button content. */
   [data-issue304-action-surface="label"] [data-issue304-label-locale="en"] .issue304-modal-disclaimer {
     max-width: 280px;
+  }
+
+  /* Match the native printable label's one-pixel baseline to the frozen
+   * illustrative QR card without imposing an artificial modal height. */
+  [data-issue304-action-surface="label"] .issue304-modal-disclaimer {
+    margin-block-start: calc(.85rem - 1px);
   }
 
   [data-issue304-action-surface="label"] [data-issue304-label-locale="en"] .issue304-modal-actions > button:nth-child(2) {

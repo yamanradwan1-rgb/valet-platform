@@ -33,9 +33,9 @@ export function Issue304Option3CreateForm(props: {
   };
   return (
     <>
-      <p className="issue304-modal-disclaimer">
+      <p className="issue304-modal-disclaimer" lang={props.locale}>
         {props.locale === "ar"
-          ? "سيُحفظ المورد في الموقع المحدد بعد التحقق من الصلاحيات."
+          ? "سيُحفظ المورد في هذا الموقع."
           : isSpot ? "Create this resource in the selected Location." : "This creates a persisted resource in the selected Location after authorization."}
       </p>
       <form className="issue304-modal-form" onSubmit={onSubmit}>

@@ -135,8 +135,8 @@ export function ParkingZoneCreateDialog(props: {
           </div>
         )}
         {props.issue304Variant ? (
-          <p className="issue304-modal-disclaimer">
-            {locale === "ar" ? "سيتم حفظ منطقة الوقوف في الموقع المحدد بعد التحقق من الصلاحيات." : "Create a parking zone in this Location."}
+          <p className="issue304-modal-disclaimer" lang={locale}>
+            {locale === "ar" ? "ستُحفظ المنطقة في هذا الموقع." : "Create a parking zone in this Location."}
           </p>
         ) : null}
         <form
