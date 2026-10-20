@@ -3,7 +3,10 @@
 // separately required before any staff:provision or browser invocation.
 import assert from "node:assert/strict";
 import { resolve, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import process from "node:process";
+import { URL, fileURLToPath } from "node:url";
+
+/* global console */
 import { readCanonicalManifest } from "./issue300-r2-v2-org-fixture-recovery.mjs";
 import {
   fourStaffPlan, validateOrgReceipt, validateProductProvisionResults,
