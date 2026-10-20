@@ -12,13 +12,10 @@
  * There are deliberately NO timestamps in an event; none are invented.
  * Nothing here can reach a remote sink or mutate business state.
  */
-import type {
-  EmployeeTelemetryEvent,
-  IncidentPreflightStage,
-} from "@valet/employee-client";
+import type { EmployeeTelemetryEvent } from "@valet/employee-client";
 
-import { isNativeIncidentFailureStage } from "./native-incident-failure-stage";
 import type { NativeTelemetrySnapshot } from "./native-telemetry-types";
+import { nativeSupportPinnedView, type NativeSupportPinnedSection } from "./native-support-pinned-view";
 
 /** Bounded label/value display row. */
 export interface NativeSupportDiagnosticsRow {
@@ -31,6 +28,7 @@ export interface NativeSupportDiagnosticsView {
   readonly buildRows: readonly NativeSupportDiagnosticsRow[];
   readonly eventCount: number;
   readonly eventRows: readonly string[];
+  readonly pinnedSections: readonly NativeSupportPinnedSection[];
 }
 
 /** Max events rendered per view — the diagnostics aid stays small. */
@@ -50,19 +48,6 @@ export function nativeSupportDiagnosticsEventLine(
   if (event.errorCode !== undefined) parts.push(event.errorCode);
   if (event.durationMs !== undefined) parts.push(`${event.durationMs}ms`);
   return parts.join(" ");
-}
-
-/** Derived from the first failed stage; no network result is assumed. */
-function incidentFailureAttempt(stage: IncidentPreflightStage): string {
-  if (stage === "report-transport")
-    return "incident-post-attempted-outcome-unknown";
-  if (stage === "report-response")
-    return "incident-post-attempted-result-unverified";
-  if (stage === "reserve-transport")
-    return "reservation-attempted-outcome-unknown";
-  if (stage === "reserve-response" || stage === "reserve-binding")
-    return "reservation-attempted-report-not-attempted";
-  return "incident-mutation-not-attempted";
 }
 
 /**
@@ -86,23 +71,6 @@ export function nativeSupportDiagnosticsView(
       ? []
       : events.slice(Math.max(0, events.length - boundedLimit));
   const eventRows = recent.map(nativeSupportDiagnosticsEventLine);
-  const failure = isNativeIncidentFailureStage(snapshot.latestIncidentFailureStage)
-    ? snapshot.latestIncidentFailureStage
-    : undefined;
-  if (failure !== undefined && boundedLimit > 0) {
-    const failureEventLine =
-      `recovery preflight incident-recovery error ${failure}.error`;
-    // Reserve a slot in the existing 10/20-line display so the exact
-    // failure remains visible even after 200 unrelated task-queue events.
-    if (!eventRows.includes(failureEventLine)) {
-      const kept = eventRows.slice(
-        Math.max(0, eventRows.length - (boundedLimit - 1)),
-      );
-      eventRows.splice(0, eventRows.length, failureEventLine, ...kept);
-    }
-    const index = eventRows.indexOf(failureEventLine);
-    eventRows[index] += ` ${incidentFailureAttempt(failure)}`;
-  }
   return {
     buildRows: [
       { label: "appVersion", value: provenance.appVersion },
@@ -112,5 +80,6 @@ export function nativeSupportDiagnosticsView(
     ],
     eventCount: events.length,
     eventRows,
+    pinnedSections: nativeSupportPinnedView(snapshot.pinned),
   };
 }

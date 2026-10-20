@@ -162,4 +162,40 @@ describe("shift diagnostics card", () => {
     expect(text).toContain("عدد الأحداث");
     expect(text).not.toContain("Support diagnostics");
   });
+
+  it("pins three independent last-completed summaries above build and all 200 event rows", () => {
+    const ring = wiredRing();
+    const owner = getNativeTelemetry();
+    const incident = owner.pinned.begin("incident");
+    owner.pinned.stage("incident", incident, "secure-uuid", "error");
+    owner.pinned.complete("incident", incident, "failed", "not-attempted");
+    const photo = owner.pinned.begin("photo");
+    owner.pinned.stage("photo", photo, "photo-handle-uuid", "error");
+    owner.pinned.complete("photo", photo, "failed", "not-attempted");
+    const crypto = owner.pinned.begin("crypto");
+    owner.pinned.stage("crypto", crypto, "get-random-values", "missing");
+    owner.pinned.complete("crypto", crypto, "failed", "not-attempted");
+    for (let n = 0; n < 260; n += 1)
+      owner.record({ source: "http", operation: "task-queue",
+        classification: "response", outcome: "success" });
+    expect(ring.size).toBe(200);
+
+    const en = visibleText(elements(NativeShiftDiagnosticsCard({
+      locale: "en", textAlign: "left",
+    }))[0]);
+    for (const title of ["Last incident diagnostic", "Last condition photo diagnostic",
+      "Native crypto capability"])
+      expect(en).toContain(title);
+    expect(en.indexOf("Last incident diagnostic")).toBeLessThan(en.indexOf("App version"));
+    expect(en.indexOf("Last condition photo diagnostic")).toBeLessThan(en.indexOf("Event count"));
+    expect(en.indexOf("Native crypto capability")).toBeLessThan(en.indexOf("Event count"));
+    expect(en).toContain("secure-uuid");
+    expect(en).toContain("photo-handle-uuid");
+    const ar = visibleText(elements(NativeShiftDiagnosticsCard({
+      locale: "ar", textAlign: "right",
+    }))[0]);
+    expect(ar).toContain("آخر تشخيص للحوادث");
+    expect(ar).toContain("آخر تشخيص لصورة الحالة");
+    expect(ar).toContain("قدرات التشفير الأصلية");
+  });
 });

@@ -17,6 +17,7 @@ import {
   type EmployeeTelemetrySource,
   type IncidentPreflightStage,
 } from "@valet/employee-client";
+import type { NativePinnedSnapshot } from "./native-pinned-diagnostics";
 
 /** Per-source literal unions, derived — never re-enumerated locally. */
 export type NativeTelemetryClassifications<S extends EmployeeTelemetrySource> =
@@ -41,6 +42,8 @@ export interface NativeTelemetrySnapshot {
   readonly events: readonly EmployeeTelemetryEvent[];
   /** Latest allowlisted Incident failure, retained after generic-ring eviction. */
   readonly latestIncidentFailureStage?: IncidentPreflightStage;
+  /** Independent last-completed diagnostics, never an event-ring entry. */
+  readonly pinned?: NativePinnedSnapshot;
   readonly provenance: EmployeeTelemetryProvenance;
 }
 

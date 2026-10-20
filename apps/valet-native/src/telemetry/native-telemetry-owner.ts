@@ -30,6 +30,7 @@ import {
 } from "@valet/employee-client";
 
 import { isNativeIncidentFailureStage } from "./native-incident-failure-stage";
+import { NativePinnedDiagnostics } from "./native-pinned-diagnostics";
 import type {
   NativeTelemetryRecorder,
   NativeTelemetrySnapshot,
@@ -77,6 +78,8 @@ export function createBoundedMemoryCollector(
 }
 
 export class NativeTelemetryOwner implements NativeTelemetryRecorder {
+  readonly pinned = new NativePinnedDiagnostics();
+  private incidentToken: number | null = null;
   private readonly collector: EmployeeTelemetryCollector;
   private latestIncidentFailureStage: IncidentPreflightStage | undefined;
   /**
@@ -108,6 +111,7 @@ export class NativeTelemetryOwner implements NativeTelemetryRecorder {
         event.classification === "preflight" &&
         event.operation === "incident-recovery"
       ) {
+        this.observePinnedIncident(event);
         if (
           event.outcome === "success" &&
           (event.errorCode === "context.success" ||
@@ -138,10 +142,42 @@ export class NativeTelemetryOwner implements NativeTelemetryRecorder {
     }
   }
 
+  private observePinnedIncident(event: EmployeeTelemetryEvent): void {
+    const code = event.errorCode;
+    if (typeof code !== "string") return;
+    const split = code.lastIndexOf(".");
+    if (split < 1) return;
+    const stage = code.slice(0, split);
+    const outcome = code.slice(split + 1);
+    if (!isNativeIncidentFailureStage(stage) ||
+      !["start", "success", "error"].includes(outcome)) return;
+    if (stage === "context" && outcome === "success")
+      this.incidentToken = this.pinned.begin("incident");
+    if (this.incidentToken === null && outcome === "error")
+      this.incidentToken = this.pinned.begin("incident");
+    if (this.incidentToken === null && stage === "report-response" &&
+      outcome === "success")
+      this.incidentToken = this.pinned.begin("incident");
+    const token = this.incidentToken;
+    if (token === null) return;
+    this.pinned.stage("incident", token, stage, outcome as "start" | "success" | "error");
+    if (outcome === "error" || (stage === "report-response" && outcome === "success")) {
+      const attempted = ["reserve-transport", "reserve-response", "reserve-binding",
+        "report-transport", "report-response"].includes(stage);
+      this.pinned.complete(
+        "incident", token, outcome === "error" ? "failed" : "success",
+        outcome === "success" ? "verified" :
+          attempted ? "attempted-unknown" : "not-attempted",
+      );
+      this.incidentToken = null;
+    }
+  }
+
   /** Sanitized snapshot for support diagnostics. */
   snapshot(): NativeTelemetrySnapshot {
     return {
       events: this.currentEventsSafely(),
+      pinned: this.pinned.snapshot(),
       ...(this.latestIncidentFailureStage === undefined
         ? {}
         : { latestIncidentFailureStage: this.latestIncidentFailureStage }),

@@ -43,6 +43,20 @@ const DIAGNOSTICS_COPY = {
     eventCount: "عدد الأحداث",
     platform: "المنصة",
     title: "تشخيصات الدعم",
+    incident: "آخر تشخيص للحوادث",
+    photo: "آخر تشخيص لصورة الحالة",
+    crypto: "قدرات التشفير الأصلية",
+    status: "آخر نتيجة معروفة",
+    running: "محاولة جارية",
+    firstFailure: "أول مرحلة فاشلة",
+    lastSucceeded: "آخر مرحلة ناجحة",
+    transport: "نتيجة الإرسال",
+    classification: "تصنيف محاولة الحادث",
+    localCapture: "التقاط محلي",
+    probeContext: "سياق الفحص",
+    yes: "نعم",
+    no: "لا",
+    notRun: "لم يُفحص",
   },
   en: {
     accessibilityLabel: "Support diagnostics",
@@ -51,6 +65,20 @@ const DIAGNOSTICS_COPY = {
     eventCount: "Event count",
     platform: "Platform",
     title: "Support diagnostics",
+    incident: "Last incident diagnostic",
+    photo: "Last condition photo diagnostic",
+    crypto: "Native crypto capability",
+    status: "Last known result",
+    running: "Currently running",
+    firstFailure: "First failed stage",
+    lastSucceeded: "Last completed stage",
+    transport: "Transport outcome",
+    classification: "Incident attempt",
+    localCapture: "Local capture",
+    probeContext: "Probe context",
+    yes: "Yes",
+    no: "No",
+    notRun: "Not run",
   },
 } as const;
 
@@ -81,6 +109,46 @@ export function NativeShiftDiagnosticsCard({
       >
         {copy.title}
       </Text>
+      {view.pinnedSections.map((section) => (
+        <View key={section.category}
+          testID={`native-shift-pinned-${section.category}`}
+          style={styles.pinned}>
+          <Text accessibilityRole="header"
+            style={[styles.sectionTitle, employeeTextStyle("human", textAlign)]}>
+            {copy[section.category]}
+          </Text>
+          <NativeShiftInfoRow label={copy.status} textAlign={textAlign}
+            value={section.status === "not-run" ? copy.notRun : section.status}
+            valueKind="identifier" />
+          <NativeShiftInfoRow label={copy.running} textAlign={textAlign}
+            value={section.running ? copy.yes : copy.no} valueKind="identifier" />
+          <NativeShiftInfoRow label={copy.firstFailure} textAlign={textAlign}
+            value={section.firstFailedStage} valueKind="identifier" />
+          <NativeShiftInfoRow label={copy.lastSucceeded} textAlign={textAlign}
+            value={section.lastSucceededStage} valueKind="identifier" />
+          {section.category !== "crypto" ? (
+            <NativeShiftInfoRow label={copy.transport} textAlign={textAlign}
+              value={section.transport} valueKind="identifier" />
+          ) : null}
+          {section.category === "incident" ? (
+            <NativeShiftInfoRow label={copy.classification} textAlign={textAlign}
+              value={section.classification} valueKind="identifier" />
+          ) : null}
+          {section.category === "photo" ? (
+            <NativeShiftInfoRow label={copy.localCapture} textAlign={textAlign}
+              value={section.localCapture} valueKind="identifier" />
+          ) : null}
+          {section.category === "crypto" ? (
+            <NativeShiftInfoRow label={copy.probeContext} textAlign={textAlign}
+              value="native-process-startup" valueKind="identifier" />
+          ) : null}
+          {section.stages.map((stage) => (
+            <NativeShiftInfoRow key={stage.stage} label={stage.stage}
+              textAlign={textAlign} value={stage.outcome}
+              valueKind="identifier" />
+          ))}
+        </View>
+      ))}
       {view.buildRows.map((row) => (
         <NativeShiftInfoRow
           key={row.label}
@@ -116,6 +184,17 @@ const stylesTheme = createEmployeeStyles((p) => ({
     fontFamily: employeeFontFamilies.display,
   },
   events: { gap: 2, paddingTop: space.md },
+  pinned: {
+    gap: 2,
+    paddingBottom: space.sm,
+    paddingTop: space.md,
+  },
+  sectionTitle: {
+    ...type.small,
+    color: p.textSecondary,
+    fontWeight: "600",
+    paddingBottom: space.sm,
+  },
   title: {
     ...type.small,
     color: p.textMuted,

@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { EmployeeApiError } from "@valet/employee-client";
 
+const nativeUuid = vi.hoisted(() => vi.fn<() => string>());
+vi.mock("../src/crypto/native-secure-crypto", () => ({
+  nativeSecureRandomUUID: () => nativeUuid(),
+}));
+
 import { presentNativeIncidentFailure } from "../src/incident/native-incident-copy";
 import { NativeIncidentSession } from "../src/incident/native-incident-session";
 import { NATIVE_INCIDENT_OPERATION_FAILED } from "../src/incident/native-incident-error";
@@ -27,6 +32,7 @@ function report(incidentId: string) {
 }
 
 afterEach(() => {
+  nativeUuid.mockReset();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -38,6 +44,7 @@ describe("Incident secure identity and safe failure repair", () => {
       .mockReturnValueOnce(firstId)
       .mockReturnValueOnce(secondId);
     vi.stubGlobal("crypto", { randomUUID });
+    nativeUuid.mockImplementation(() => randomUUID());
     let postCount = 0;
     const request = vi.fn(
       ({ body, method }: { body?: { incidentId: string }; method: string }) => {
@@ -86,6 +93,7 @@ describe("Incident secure identity and safe failure repair", () => {
 
   it("fails closed before POST when secure UUID generation is unavailable", async () => {
     vi.stubGlobal("crypto", {});
+    nativeUuid.mockImplementation(() => { throw Error("NATIVE_CSPRNG_UNAVAILABLE"); });
     const weakRandom = vi.spyOn(Math, "random");
     const request = vi.fn().mockResolvedValue(detail());
     const session = new NativeIncidentSession(() => ({ request }) as never);

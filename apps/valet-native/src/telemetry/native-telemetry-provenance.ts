@@ -21,6 +21,7 @@ import {
   NativeTelemetryOwner,
   installNativeTelemetry,
 } from "./native-telemetry-owner";
+import { probeNativeCryptoCapability } from "./native-crypto-capability";
 
 const UNKNOWN = "unknown";
 
@@ -84,5 +85,6 @@ export function createNativeTelemetry(): NativeTelemetryWiring {
   const collector = new BoundedTelemetryBuffer();
   const owner = new NativeTelemetryOwner(collector, provenance);
   installNativeTelemetry(owner);
+  probeNativeCryptoCapability(owner.pinned);
   return { collector, owner };
 }

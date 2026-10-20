@@ -30,6 +30,7 @@ describe("Native package contract", () => {
 
   it("owns only the accepted SDK-compatible native modules", () => {
     expect(manifest.dependencies["expo-camera"]).toBe("~57.0.4");
+    expect(manifest.dependencies["expo-crypto"]).toBe("~57.0.4");
     expect(manifest.dependencies["expo-image-manipulator"]).toBe("~57.0.20");
     expect(manifest.expo.autolinking.android.buildFromSource).toEqual([
       "expo-camera",
@@ -56,6 +57,7 @@ describe("Native package contract", () => {
         "expo-camera",
         "expo-clipboard",
         "expo-constants",
+        "expo-crypto",
         "expo-dev-client",
         "expo-file-system",
         "expo-font",

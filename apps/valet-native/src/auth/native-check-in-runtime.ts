@@ -10,6 +10,7 @@ import {
 } from "@valet/employee-client";
 import { createNativeEmployeeClient } from "../tasks/native-operational-http";
 import { NativeCheckInActions } from "../check-in/native-check-in-actions";
+import { nativeSecureRandomUUID } from "../crypto/native-secure-crypto";
 
 export function createNativeCheckInRuntime(
   apiOrigin: string,
@@ -53,10 +54,5 @@ export function createNativeCheckInRuntime(
 }
 
 function createNativeOperationId(): string {
-  if (typeof globalThis.crypto?.randomUUID === "function")
-    return globalThis.crypto.randomUUID();
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (value) => {
-    const random = Math.floor(Math.random() * 16);
-    return (value === "x" ? random : (random & 0x3) | 0x8).toString(16);
-  });
+  return nativeSecureRandomUUID();
 }
