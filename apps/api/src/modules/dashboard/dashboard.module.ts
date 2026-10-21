@@ -20,6 +20,10 @@ import { PhysicalResourceReadService } from "./physical-resource-read.service";
 import { PhysicalResourceWriteController } from "./physical-resource-write.controller";
 import { PhysicalResourceWriteService } from "./physical-resource-write.service";
 import { PresenceManagementService } from "../management/presence-management.service";
+import { AntiAbuseModule } from "../anti-abuse/anti-abuse.module";
+import { DashboardSessionPhotoAdmission } from "./session-photo-admission";
+import { DashboardSessionPhotoController } from "./session-photo-controller";
+import { DashboardSessionPhotoService } from "./session-photo-service";
 import {
   PresenceLmPolicyController,
   PresenceLmZoneController,
@@ -42,8 +46,9 @@ import {
     DashboardFeatureAuthorityController,
     PhysicalResourceController,
     PhysicalResourceWriteController,
+    DashboardSessionPhotoController,
   ],
-  imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule],
+  imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule, AntiAbuseModule],
   providers: [
     PresenceManagementService,
     DashboardConfigurationService,
@@ -51,6 +56,8 @@ import {
     DashboardScopeDiscoveryService,
     PhysicalResourceReadService,
     PhysicalResourceWriteService,
+    DashboardSessionPhotoService,
+    DashboardSessionPhotoAdmission,
   ],
 })
 export class DashboardModule implements NestModule {
@@ -72,6 +79,7 @@ export class DashboardModule implements NestModule {
         DashboardFeatureAuthorityController,
         PhysicalResourceController,
         PhysicalResourceWriteController,
+        DashboardSessionPhotoController,
       );
   }
 }

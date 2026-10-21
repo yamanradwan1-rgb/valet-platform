@@ -3,6 +3,7 @@ import { createHmac } from "node:crypto";
 import { Injectable } from "@nestjs/common";
 
 export type AntiAbuseScope =
+  | "v1:dashboard-session-photo-view-user"
   | "v1:condition-photo-upload-user"
   | "v1:condition-photo-upload-session"
   | "v1:condition-photo-status-user"
