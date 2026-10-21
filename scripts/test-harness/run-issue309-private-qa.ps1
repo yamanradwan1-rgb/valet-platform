@@ -84,14 +84,19 @@ try {
 
   $runner = @('--filter', '@valet/api', 'exec', 'node',
     '../../scripts/test-harness/run-owned-tests.mjs', 'api', 'vitest.config.mjs')
-  Write-Host 'Running #309 5 viewer + 2 live grant-race cases.'
-  try {
-    Invoke-Checked 'pnpm' ($runner + @(
-      'test/issue309-photo-viewer.integration.test.ts',
-      'test/issue309-photo-grant-race.integration.test.ts'))
-  } catch {
-    $failed = $true
-    Write-Warning "#309 acceptance failed: $_"
+  # Prisma on Windows can extract the same schema engine binary during each
+  # worker's concurrent migrate deploy. Keep the two real-PG suites sequential
+  # so a shared engine rename cannot cause unrelated tests to skip setup.
+  foreach ($suite in @(
+    'test/issue309-photo-viewer.integration.test.ts',
+    'test/issue309-photo-grant-race.integration.test.ts')) {
+    Write-Host "Running #309 live suite: $suite"
+    try {
+      Invoke-Checked 'pnpm' ($runner + @($suite))
+    } catch {
+      $failed = $true
+      Write-Warning "#309 $suite failed: $_"
+    }
   }
 
   Write-Host 'Running original #215 6 real upload HTTP regression cases.'
