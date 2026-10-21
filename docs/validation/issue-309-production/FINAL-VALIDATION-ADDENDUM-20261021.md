@@ -1,0 +1,64 @@
+# VAYLET #309 — Final implementation validation addendum, 2026-10-21
+
+**Decision: NO-GO for production image VIEW, deployment, merge, push, or Issue closure.** The Owner approved the immutable HTML and authorized the narrowly scoped implementation, **not** Management photo visibility policy, privileged database changes, or release. This addendum supersedes the dated test counts and visual-pending statements in `FINAL-IMPLEMENTATION-REPORT.md`, without altering the earlier reports or disguising actual failing tests.
+
+## Source and change control
+
+- Working branch `feat/issue-309-management-photo-view`, worktree `/valet-platform/tmp/issue-309-production`. **Last verified implementation commit before this report** `754c84efba96a1e22f775267b6f5e8b659244206`; read `git rev-parse HEAD` for the final addendum commit. Working tree was clean at the last scoped source audit.
+- `origin/main` unchanged at `459e9c42dfff5b2aeb11ee9165a7d1a4338a7783`; **no push, merge, deploy, permission activation, applied migration, IAM or bucket modification**.
+- Immutable approved design source: `docs/validation/issue-309-prototype/issue-309-photo-viewer.html` in its existing approved design worktree; **SHA256 `0b1900896b46af9d1f11dd88f01643978629001cb1c956de5f1e7f5987cdbd74`**, rechecked by browser suite; source byte file **unchanged**.
+- Production files changed exclusively by #309: new `apps/dashboard/src/features/operations/session-photos/{photo-client,session-photos,session-photos.module.css}` and focused tests; additive narrowly wired shared SessionDrawer, Vehicles/Live pages, and authenticated Dashboard binary transport; new `apps/api/src/modules/dashboard/session-photo-{admission,authorization,controller,query,service}.ts` plus narrow `dashboard.module.ts`, anti-abuse key and API coded-error registry, tests; two additive entries in #215 test harness classification and **docs/validation** evidence. **No Native capture/upload/verify pipeline, existing DB schema/migration/grant, existing frozen shell/global CSS, original FactList, original drawer header, or unrelated app surface was modified.** Full machine diff: `git diff --name-status origin/main HEAD`.
+
+## Final validation counts (actual, not inferred from mocks)
+
+| Check | Result | Qualification |
+| --- | --- | --- |
+| Full API non-Postgres command `pnpm --filter @valet/api test:non-postgres` | **PASS, 1,117 tests passed, 6 skipped (163 passing files, 2 skipped), exit 0** | Harness Node tests and Vitest; includes focused #309 code |
+| Reintegrated #309 API service/auth/controller | **44/44 PASS** | Includes coded HTTP status 404/503/429 and safe failures; W4 after-`res.end` COMMIT fault injection tests 4/4 |
+| Dashboard new adapter/JPEG/photo tests | **8/8 PASS** | Synthetic fixture / unit tests |
+| Full Dashboard Vitest broad | **967 passed, 13 skipped, 2 suite hooks timed out** | Two unrelated #278 Help browser-bundle setups timed out in parallel at their unchanged 40s/45s; **each independently rerun 13/13 PASS without changing timeouts**. Do not call the first broad run PASS |
+| API and Dashboard full ESLint and TypeScript typechecks | **PASS** | API lint/type after three scoped HTTP/backend integrations; Dashboard lint/type; architecture check PASS, only grandfathered old-file warnings |
+| Contracts/API/Next.js Dashboard production builds | **PASS** | Actual Next 16.2.11 production build, local verification origin; no API deployment |
+| Real existing #215 Native/check-in upload and evidence verification, PG17 + private versioned MinIO | **6/6 PASS (fresh independent W5)** | Real persisted original evidence, not an image VIEW proof |
+| #309 new restricted PG17 + private versioned MinIO authenticated Management image delivery and grant races | **7/7 FAIL (fresh independent W5)** | Five HTTP cases return 503 before auth; two reader-versus-revoker test cases never reach advisory wait; zero positive Management image bytes proved |
+| New exact restricted runtime SQL blocker proof | **2/2 PASS** | `SQLSTATE 23514` CHECK rejects new view budget scope with actual column-level INSERT; all four photo evidence table `FOR SHARE` operations return `SQLSTATE 42501` with SELECT-only runtime. This proves blockers, **not delivery success** |
+| Actual React photo 10-state browser matrix | **320/320 PASS** | Synthetic JPEG intercepted endpoints; Vehicles/Live × 10 states × locales/themes/4 widths, not production permission |
+| React keyboard photo-focus geometry | **32/32 PASS** | Original W6; focused 3/3 viewer focus/native200 suites rerun after last scoped photo CSS change |
+| Genuine Chrome browser native 200% zoom | **16/16 PASS** | Original W6 recorded `chrome.tabs.setZoom(2)` and `getZoom(2)` for all required route/modes; focused 4 distinct 200% cases rerun afterward |
+| Private Blob URL revocation / unmount-late-response | **2/2 PASS** | New actual Chrome test; generated `blob:` URLs all revoked after closing/reopening; late response after drawer unmount cannot attach stale image |
+| Original React production Next build vs candidate: pixel-exact protected regions | **93/96 PASS** | 32/32 original FactList and 32/32 headers zero-difference; 3 closed Vehicles sidebar/navigation crops total 125 changed pixels, **strict STOP** |
+| Original React production build vs itself, independently recaptured | **94/96 PASS** | 2 closed Vehicles regions 99 different pixels: real self-paint nondeterminism; not a waiver for literal zero-pixel rule |
+| Immutable HTML source vs actual React production new photo UI | **20/20 Playwright / 320/320 mode cases PASS for measurements** | 0/320 sampled computed-style differences and **zero internal geometry deltas** after normalizing *in-browser only* matching JPEG and captions; actual HTML bytes unchanged. **0/20 representative pixel crops exact**, e.g. empty 142/66,495, 3 photos 1,230/187,891, viewer 141/148,960 different painted pixels. Therefore **NOT 100% painted parity** |
+| `git diff --check origin/main HEAD`, tracked-file ownership audit | **PASS** | Original Dashboard frozen CSS, Native photo flow, DB migrations/grants unchanged; clean isolated feature branch |
+
+## Independently reviewed security findings
+
+1. **Default-deny remains active.** `session-photo-authorization.ts` rejects production Management VIEW unconditionally, until explicitly approved Q309 principal/MFA/Location and commercial/retention policy. W3 and W1 independent read-only reviews confirmed final scope binds exact Staff session generation/token/MFA and Organization, membership, grant, Location, ValetSession and eligible evidence. Positive role decisions exist only behind test seams. No existing Dashboard read or Native upload permission becomes photo VIEW.
+2. **Exact private-object delivery checks exist but cannot complete on real restricted DB.** Positive code path selects only CHECK_IN_CONDITION / verified / selected / AVAILABLE immutable photo, performs versioned private S3 `readExact` with max bytes, SHA256/content type checks **outside any DB transaction**, then reauthorizes and rechecks under final SQL locks before synchronous response enqueue; cache-control no-store and no direct storage URLs. Runtime PG constraints block the path earlier. W5 independent real role/bucket validation found *no* compliant unprivileged substitute.
+3. **P1 `23514`:** anti-abuse event scope `v1:dashboard-session-photo-view-user` absent from the deployed SQL CHECK list, although TypeScript permits it. Needs **new forward-only narrow CHECK migration** with independent DB-owner approval; repurposing the employee upload quota or disabling durable counts is unacceptable.
+4. **P1 `42501`:** last-read `FOR SHARE` locks all four evidence relations; restricted runtime SELECT works but UPDATE privilege required by PG row locks is intentionally absent. Needs DB/Security-approved narrowly scoped `SECURITY DEFINER` read-lock helper, carefully reviewed signature, exact role/session/version binding and EXECUTE-only runtime grant, not broad UPDATE. W7 prepared **unapplied** specification `w7-photo-db-authorization-proposal.md`.
+5. **Post-response COMMIT:** safe W4 controller-only catch was independently reviewed by W1. It prevents duplicate HTTP JSON after JPEG `res.end`, destroys socket if headers sent without finished body, and records sanitized audit/Logger event; pre-headers errors still propagate. **It does NOT solve the semantic question that HTTP 200 JPEG bytes may have been enqueued before SQL COMMIT fails.** Owner/Security/API must accept enqueue-time linearization or choose a reviewed redesign. Real post-commit PG+socket injection is still required before VIEW activation.
+6. **HTTP error mapping:** W2 narrow coded errors now produce sanitized mapped 404/503/429 and preserve known Staff-auth 401/MFA 403 semantics in the `ApiOperationRunner` boundary; retries bounded. SQL23514 still correctly fails closed to existing sanitized 503. Independent W1 identified original unexpected 500 and reviewed the correction.
+7. **Browser lifecycle:** Blob URLs are bound to identity/scope selection and discarded on unmount, logout/selection/remount; two new browser proof cases pass. Client cannot erase a photograph that has **already reached** a browser in response to a server-only grant revocation unless an approved client revocation notification/refresh occurs. Ten 8MiB full JPEG reads and per-replica concurrency (2/user, 4/global) remain capacity/privacy considerations, not owner-approved fleet limits.
+
+## Owner-facing decision matrix
+
+| Required explicit statement | Verdict |
+| --- | --- |
+| **HTML DESIGN APPROVED** | **YES** — immutable SHA verified, not modified |
+| **FULL FEATURE CODE IMPLEMENTED** | **YES as a default-denied reviewable application candidate**, including manifest, private-store read, gallery, viewer, HTTP and UI lifecycle; **NOT production-functional under actual restricted DB grants** |
+| **APPROVED PHOTO UI MATCH** | **CSS and photo-internal geometry match in all 320 observed scenarios; painted-pixel 100% NO**, 20 representative crops have nonzero differences; Owner visual acceptance not inferred |
+| **EXISTING DASHBOARD UI-FROZEN** | **STRICT STOP**, 93/96 zero-difference protected pixels in actual production Next A/B; 94/96 source A/A proves paint nondeterminism but does not satisfy literal 96/96 rule |
+| **REAL PRIVATE IMAGE DELIVERY** | **NO — 7/7 real PG17/MinIO Management VIEW delivery/race tests fail**, not mocked success; #215 upload 6/6 PASS |
+| **SECURITY ACCEPTANCE** | **NO** — role/retention/MFA/access matrix, DB CHECK migration, exact definer helper, HTTP enqueue/commit linearization, provider/IAM, fleet limits require independent decision |
+| **PRODUCTION ROLLOUT READY** | **NO-GO** — no VIEW activation, privileged DB change, push, merge, deploy or Issue closure |
+
+## Reproduction and release conditions
+
+- Frozen actual Next A/B and self-run JSON: `qa/results/production-build-source-vs-candidate.json`, `qa/results/production-build-original-vs-original.json`, corresponding original/repeat/candidate full screenshots. Compare with **unmasked zero-RGBA pixel tolerance** via `qa/compare-frozen-pixels.py`.
+- Owner-approved HTML actual-file two-page production comparison: `qa/approved-photo-parity.spec.ts`, `qa/summarize-approved-photo-parity.py`, `qa/results/approved-photo-parity/SUMMARY.json`; 20 representative PNG pairs and full 320 mode JSON. Browser private-blob proof: `qa/photo-resource-lifecycle.spec.ts`. Visual auditor's full method: `qa/PRODUCTION-VISUAL-20261021.md`.
+- Real restricted DB and private MinIO facts: `../issue-309/w5-20261021-db-followup.md` and `apps/api/test/issue309-photo-db-blocker-proof.test.ts`; worker W7's unapplied forward-only decision specification.
+- Source and review findings W1/W3/W4/W5/W7 and security decisions are documented in this folder's preceding reports and `docs/validation/issue-309-auth/`.
+- Release requires independent Owner decisions on role/MFA/scope/retention and exact revoke/HTTP protocol; explicit DB owner approval and narrow migration/helper, *real* versioned object read under restricted runtime 7/7 green plus additional IAM/fault/revocation/capacity tests; 100% Dashboard frozen and photo visual acceptance per Owner; production security reviewer GO, and **separate** release approval. None is silently assumed.
+
+**Final posture:** Completed every verified authorized code/test/doc correction identified in this continuation. Outstanding items are explicitly privileged/Owner security acceptance, demonstrated environmental constraints, literal strict visual acceptance, and release gates — not reasons to change existing Dashboard or Native flows.
