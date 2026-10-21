@@ -1,0 +1,964 @@
+{
+  "item": {
+    "id": "ar390-native200-light",
+    "locale": "ar",
+    "theme": "light",
+    "width": 390,
+    "zoom": "native"
+  },
+  "source": "after",
+  "baseURL": "http://localhost:3385",
+  "browserNativeReportedZoom": 2,
+  "unzoomed": {
+    "innerWidth": 390,
+    "outerWidth": 516,
+    "devicePixelRatio": 1,
+    "visualScale": 1,
+    "htmlDir": "rtl",
+    "lang": "ar",
+    "theme": "light",
+    "cssZoom": "1",
+    "documentClientWidth": 390,
+    "documentScrollWidth": 390,
+    "fontsReady": "loaded",
+    "bodyFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+    "drawer": null,
+    "drawerHeader": null,
+    "drawerBody": null,
+    "factList": null,
+    "bodyScrollWidth": null,
+    "bodyClientWidth": null,
+    "bodyScrollHeight": null,
+    "bodyClientHeight": null,
+    "bodyScrollTop": null,
+    "buttons": [],
+    "facts": [],
+    "horizontal": {
+      "buttonsInside": true,
+      "valuesInside": true,
+      "listInside": false,
+      "bodyInside": false,
+      "bodyNoInternalXScroll": false
+    }
+  },
+  "top": {
+    "innerWidth": 195,
+    "outerWidth": 516,
+    "devicePixelRatio": 2,
+    "visualScale": 1,
+    "htmlDir": "rtl",
+    "lang": "ar",
+    "theme": "light",
+    "cssZoom": "1",
+    "documentClientWidth": 195,
+    "documentScrollWidth": 195,
+    "fontsReady": "loaded",
+    "bodyFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+    "drawer": {
+      "left": 0,
+      "right": 195,
+      "top": 0,
+      "bottom": 450,
+      "width": 195,
+      "height": 450
+    },
+    "drawerHeader": {
+      "left": 0,
+      "right": 194,
+      "top": 0,
+      "bottom": 76.5,
+      "width": 194,
+      "height": 76.5
+    },
+    "drawerBody": {
+      "left": 0,
+      "right": 194,
+      "top": 76.5,
+      "bottom": 450,
+      "width": 194,
+      "height": 373.5
+    },
+    "factList": {
+      "left": 8,
+      "right": 186,
+      "top": 84.5,
+      "bottom": 1019.28,
+      "width": 178,
+      "height": 934.78
+    },
+    "bodyScrollWidth": 194,
+    "bodyClientWidth": 194,
+    "bodyScrollHeight": 951,
+    "bodyClientHeight": 374,
+    "bodyScrollTop": 0,
+    "buttons": [
+      {
+        "name": "مساعدة: تفاصيل البلاغ",
+        "rect": {
+          "left": 154,
+          "right": 186,
+          "top": 35.5,
+          "bottom": 67.5,
+          "width": 32,
+          "height": 32
+        }
+      },
+      {
+        "name": "إغلاق",
+        "rect": {
+          "left": 8,
+          "right": 38,
+          "top": 36.5,
+          "bottom": 66.5,
+          "width": 30,
+          "height": 30
+        }
+      }
+    ],
+    "facts": [
+      {
+        "label": "النوع",
+        "value": "ضرر بالمركبة",
+        "row": {
+          "left": 25,
+          "right": 169,
+          "top": 101.5,
+          "bottom": 137.5,
+          "width": 144,
+          "height": 36
+        },
+        "labelRect": {
+          "left": 25,
+          "right": 169,
+          "top": 101.5,
+          "bottom": 117.5,
+          "width": 144,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 25,
+          "right": 169,
+          "top": 121.5,
+          "bottom": 137.5,
+          "width": 144,
+          "height": 16
+        },
+        "valueText": {
+          "left": 107.57,
+          "right": 169
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "0px"
+        }
+      },
+      {
+        "label": "الوصف",
+        "value": "Minor mirror inspection required with follow-up notes. Minor mirror inspection required with follow-up notes. Minor mirror inspection required with follow-up notes. Minor mirror inspection required with follow-up notes. Minor mirror inspection required with follow-up notes. Minor mirror inspection required with follow-up notes.  وصف تفصيلي وصف تفصيلي وصف تفصيلي وصف تفصيلي وصف تفصيلي وصف تفصيلي وصف تفصيلي وصف تفصيلي ",
+        "row": {
+          "left": 25,
+          "right": 169,
+          "top": 149.5,
+          "bottom": 489.5,
+          "width": 144,
+          "height": 340
+        },
+        "labelRect": {
+          "left": 25,
+          "right": 169,
+          "top": 149.5,
+          "bottom": 165.5,
+          "width": 144,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 25,
+          "right": 169,
+          "top": 169.5,
+          "bottom": 489.5,
+          "width": 144,
+          "height": 320
+        },
+        "valueText": {
+          "left": 31.21,
+          "right": 169
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "0px"
+        }
+      },
+      {
+        "label": "الحالة",
+        "value": "قيد التحقيق",
+        "row": {
+          "left": 25,
+          "right": 169,
+          "top": 501.5,
+          "bottom": 545.89,
+          "width": 144,
+          "height": 44.39
+        },
+        "labelRect": {
+          "left": 25,
+          "right": 169,
+          "top": 501.5,
+          "bottom": 517.5,
+          "width": 144,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 25,
+          "right": 169,
+          "top": 521.5,
+          "bottom": 545.89,
+          "width": 144,
+          "height": 24.39
+        },
+        "valueText": {
+          "left": 90.59,
+          "right": 169
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "0px"
+        }
+      },
+      {
+        "label": "الخطورة",
+        "value": "متوسطة",
+        "row": {
+          "left": 25,
+          "right": 169,
+          "top": 557.89,
+          "bottom": 602.28,
+          "width": 144,
+          "height": 44.39
+        },
+        "labelRect": {
+          "left": 25,
+          "right": 169,
+          "top": 557.89,
+          "bottom": 573.89,
+          "width": 144,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 25,
+          "right": 169,
+          "top": 577.89,
+          "bottom": 602.28,
+          "width": 144,
+          "height": 24.39
+        },
+        "valueText": {
+          "left": 103.91,
+          "right": 169
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "0px"
+        }
+      },
+      {
+        "label": "الموقع",
+        "value": "Main Garage",
+        "row": {
+          "left": 25,
+          "right": 169,
+          "top": 614.28,
+          "bottom": 650.28,
+          "width": 144,
+          "height": 36
+        },
+        "labelRect": {
+          "left": 25,
+          "right": 169,
+          "top": 614.28,
+          "bottom": 630.28,
+          "width": 144,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 25,
+          "right": 169,
+          "top": 634.28,
+          "bottom": 650.28,
+          "width": 144,
+          "height": 16
+        },
+        "valueText": {
+          "left": 96.93,
+          "right": 169
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "0px"
+        }
+      },
+      {
+        "label": "أبلغ عنه",
+        "value": "عبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمن الخطيبالخطيبالخطيبالخطيبالخطيبالخطيبالخطيبالخطيب",
+        "row": {
+          "left": 25,
+          "right": 169,
+          "top": 662.28,
+          "bottom": 762.28,
+          "width": 144,
+          "height": 100
+        },
+        "labelRect": {
+          "left": 25,
+          "right": 169,
+          "top": 662.28,
+          "bottom": 678.28,
+          "width": 144,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 25,
+          "right": 169,
+          "top": 682.28,
+          "bottom": 762.28,
+          "width": 144,
+          "height": 80
+        },
+        "valueText": {
+          "left": 26.72,
+          "right": 169
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "0px"
+        }
+      },
+      {
+        "label": "الإنشاء",
+        "value": "٢١ أيلول، ٢:٠٠ م (Asia/Amman)",
+        "row": {
+          "left": 25,
+          "right": 169,
+          "top": 774.28,
+          "bottom": 826.28,
+          "width": 144,
+          "height": 52
+        },
+        "labelRect": {
+          "left": 25,
+          "right": 169,
+          "top": 774.28,
+          "bottom": 790.28,
+          "width": 144,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 25,
+          "right": 169,
+          "top": 794.28,
+          "bottom": 826.28,
+          "width": 144,
+          "height": 32
+        },
+        "valueText": {
+          "left": 87.09,
+          "right": 169
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "0px"
+        }
+      },
+      {
+        "label": "معرّف الحادث",
+        "value": "77777777-7777-4777-8777-777777777706",
+        "row": {
+          "left": 25,
+          "right": 169,
+          "top": 838.28,
+          "bottom": 890.28,
+          "width": 144,
+          "height": 52
+        },
+        "labelRect": {
+          "left": 25,
+          "right": 169,
+          "top": 838.28,
+          "bottom": 854.28,
+          "width": 144,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 25,
+          "right": 169,
+          "top": 858.28,
+          "bottom": 890.28,
+          "width": 144,
+          "height": 32
+        },
+        "valueText": {
+          "left": 44.01,
+          "right": 169
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "0px"
+        }
+      },
+      {
+        "label": "الجلسة",
+        "value": "77777777-7777-4777-8777-777777777701",
+        "row": {
+          "left": 25,
+          "right": 169,
+          "top": 902.28,
+          "bottom": 954.28,
+          "width": 144,
+          "height": 52
+        },
+        "labelRect": {
+          "left": 25,
+          "right": 169,
+          "top": 902.28,
+          "bottom": 918.28,
+          "width": 144,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 25,
+          "right": 169,
+          "top": 922.28,
+          "bottom": 954.28,
+          "width": 144,
+          "height": 32
+        },
+        "valueText": {
+          "left": 44.01,
+          "right": 169
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "0px"
+        }
+      },
+      {
+        "label": "رمز النوع",
+        "value": "VEHICLE_DAMAGE",
+        "row": {
+          "left": 25,
+          "right": 169,
+          "top": 966.28,
+          "bottom": 1002.28,
+          "width": 144,
+          "height": 36
+        },
+        "labelRect": {
+          "left": 25,
+          "right": 169,
+          "top": 966.28,
+          "bottom": 982.28,
+          "width": 144,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 25,
+          "right": 169,
+          "top": 986.28,
+          "bottom": 1002.28,
+          "width": 144,
+          "height": 16
+        },
+        "valueText": {
+          "left": 64.8,
+          "right": 169
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "0px"
+        }
+      }
+    ],
+    "horizontal": {
+      "buttonsInside": true,
+      "valuesInside": true,
+      "listInside": true,
+      "bodyInside": true,
+      "bodyNoInternalXScroll": true
+    }
+  },
+  "bottom": {
+    "innerWidth": 195,
+    "outerWidth": 516,
+    "devicePixelRatio": 2,
+    "visualScale": 1,
+    "htmlDir": "rtl",
+    "lang": "ar",
+    "theme": "light",
+    "cssZoom": "1",
+    "documentClientWidth": 195,
+    "documentScrollWidth": 195,
+    "fontsReady": "loaded",
+    "bodyFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+    "drawer": {
+      "left": 0,
+      "right": 195,
+      "top": 0,
+      "bottom": 450,
+      "width": 195,
+      "height": 450
+    },
+    "drawerHeader": {
+      "left": 0,
+      "right": 194,
+      "top": 0,
+      "bottom": 76.5,
+      "width": 194,
+      "height": 76.5
+    },
+    "drawerBody": {
+      "left": 0,
+      "right": 194,
+      "top": 76.5,
+      "bottom": 450,
+      "width": 194,
+      "height": 373.5
+    },
+    "factList": {
+      "left": 8,
+      "right": 186,
+      "top": -493,
+      "bottom": 441.78,
+      "width": 178,
+      "height": 934.78
+    },
+    "bodyScrollWidth": 194,
+    "bodyClientWidth": 194,
+    "bodyScrollHeight": 951,
+    "bodyClientHeight": 374,
+    "bodyScrollTop": 577.5,
+    "buttons": [
+      {
+        "name": "مساعدة: تفاصيل البلاغ",
+        "rect": {
+          "left": 154,
+          "right": 186,
+          "top": 35.5,
+          "bottom": 67.5,
+          "width": 32,
+          "height": 32
+        }
+      },
+      {
+        "name": "إغلاق",
+        "rect": {
+          "left": 8,
+          "right": 38,
+          "top": 36.5,
+          "bottom": 66.5,
+          "width": 30,
+          "height": 30
+        }
+      }
+    ],
+    "facts": [
+      {
+        "label": "النوع",
+        "value": "ضرر بالمركبة",
+        "row": {
+          "left": 25,
+          "right": 169,
+          "top": -476,
+          "bottom": -440,
+          "width": 144,
+          "height": 36
+        },
+        "labelRect": {
+          "left": 25,
+          "right": 169,
+          "top": -476,
+          "bottom": -460,
+          "width": 144,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 25,
+          "right": 169,
+          "top": -456,
+          "bottom": -440,
+          "width": 144,
+          "height": 16
+        },
+        "valueText": {
+          "left": 107.57,
+          "right": 169
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "0px"
+        }
+      },
+      {
+        "label": "الوصف",
+        "value": "Minor mirror inspection required with follow-up notes. Minor mirror inspection required with follow-up notes. Minor mirror inspection required with follow-up notes. Minor mirror inspection required with follow-up notes. Minor mirror inspection required with follow-up notes. Minor mirror inspection required with follow-up notes.  وصف تفصيلي وصف تفصيلي وصف تفصيلي وصف تفصيلي وصف تفصيلي وصف تفصيلي وصف تفصيلي وصف تفصيلي ",
+        "row": {
+          "left": 25,
+          "right": 169,
+          "top": -428,
+          "bottom": -88,
+          "width": 144,
+          "height": 340
+        },
+        "labelRect": {
+          "left": 25,
+          "right": 169,
+          "top": -428,
+          "bottom": -412,
+          "width": 144,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 25,
+          "right": 169,
+          "top": -408,
+          "bottom": -88,
+          "width": 144,
+          "height": 320
+        },
+        "valueText": {
+          "left": 31.21,
+          "right": 169
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "0px"
+        }
+      },
+      {
+        "label": "الحالة",
+        "value": "قيد التحقيق",
+        "row": {
+          "left": 25,
+          "right": 169,
+          "top": -76,
+          "bottom": -31.61,
+          "width": 144,
+          "height": 44.39
+        },
+        "labelRect": {
+          "left": 25,
+          "right": 169,
+          "top": -76,
+          "bottom": -60,
+          "width": 144,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 25,
+          "right": 169,
+          "top": -56,
+          "bottom": -31.61,
+          "width": 144,
+          "height": 24.39
+        },
+        "valueText": {
+          "left": 90.59,
+          "right": 169
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "0px"
+        }
+      },
+      {
+        "label": "الخطورة",
+        "value": "متوسطة",
+        "row": {
+          "left": 25,
+          "right": 169,
+          "top": -19.61,
+          "bottom": 24.78,
+          "width": 144,
+          "height": 44.39
+        },
+        "labelRect": {
+          "left": 25,
+          "right": 169,
+          "top": -19.61,
+          "bottom": -3.61,
+          "width": 144,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 25,
+          "right": 169,
+          "top": 0.39,
+          "bottom": 24.78,
+          "width": 144,
+          "height": 24.39
+        },
+        "valueText": {
+          "left": 103.91,
+          "right": 169
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "0px"
+        }
+      },
+      {
+        "label": "الموقع",
+        "value": "Main Garage",
+        "row": {
+          "left": 25,
+          "right": 169,
+          "top": 36.78,
+          "bottom": 72.78,
+          "width": 144,
+          "height": 36
+        },
+        "labelRect": {
+          "left": 25,
+          "right": 169,
+          "top": 36.78,
+          "bottom": 52.78,
+          "width": 144,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 25,
+          "right": 169,
+          "top": 56.78,
+          "bottom": 72.78,
+          "width": 144,
+          "height": 16
+        },
+        "valueText": {
+          "left": 96.93,
+          "right": 169
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "0px"
+        }
+      },
+      {
+        "label": "أبلغ عنه",
+        "value": "عبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمن الخطيبالخطيبالخطيبالخطيبالخطيبالخطيبالخطيبالخطيب",
+        "row": {
+          "left": 25,
+          "right": 169,
+          "top": 84.78,
+          "bottom": 184.78,
+          "width": 144,
+          "height": 100
+        },
+        "labelRect": {
+          "left": 25,
+          "right": 169,
+          "top": 84.78,
+          "bottom": 100.78,
+          "width": 144,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 25,
+          "right": 169,
+          "top": 104.78,
+          "bottom": 184.78,
+          "width": 144,
+          "height": 80
+        },
+        "valueText": {
+          "left": 26.72,
+          "right": 169
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "0px"
+        }
+      },
+      {
+        "label": "الإنشاء",
+        "value": "٢١ أيلول، ٢:٠٠ م (Asia/Amman)",
+        "row": {
+          "left": 25,
+          "right": 169,
+          "top": 196.78,
+          "bottom": 248.78,
+          "width": 144,
+          "height": 52
+        },
+        "labelRect": {
+          "left": 25,
+          "right": 169,
+          "top": 196.78,
+          "bottom": 212.78,
+          "width": 144,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 25,
+          "right": 169,
+          "top": 216.78,
+          "bottom": 248.78,
+          "width": 144,
+          "height": 32
+        },
+        "valueText": {
+          "left": 87.09,
+          "right": 169
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "0px"
+        }
+      },
+      {
+        "label": "معرّف الحادث",
+        "value": "77777777-7777-4777-8777-777777777706",
+        "row": {
+          "left": 25,
+          "right": 169,
+          "top": 260.78,
+          "bottom": 312.78,
+          "width": 144,
+          "height": 52
+        },
+        "labelRect": {
+          "left": 25,
+          "right": 169,
+          "top": 260.78,
+          "bottom": 276.78,
+          "width": 144,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 25,
+          "right": 169,
+          "top": 280.78,
+          "bottom": 312.78,
+          "width": 144,
+          "height": 32
+        },
+        "valueText": {
+          "left": 44.01,
+          "right": 169
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "0px"
+        }
+      },
+      {
+        "label": "الجلسة",
+        "value": "77777777-7777-4777-8777-777777777701",
+        "row": {
+          "left": 25,
+          "right": 169,
+          "top": 324.78,
+          "bottom": 376.78,
+          "width": 144,
+          "height": 52
+        },
+        "labelRect": {
+          "left": 25,
+          "right": 169,
+          "top": 324.78,
+          "bottom": 340.78,
+          "width": 144,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 25,
+          "right": 169,
+          "top": 344.78,
+          "bottom": 376.78,
+          "width": 144,
+          "height": 32
+        },
+        "valueText": {
+          "left": 44.01,
+          "right": 169
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "0px"
+        }
+      },
+      {
+        "label": "رمز النوع",
+        "value": "VEHICLE_DAMAGE",
+        "row": {
+          "left": 25,
+          "right": 169,
+          "top": 388.78,
+          "bottom": 424.78,
+          "width": 144,
+          "height": 36
+        },
+        "labelRect": {
+          "left": 25,
+          "right": 169,
+          "top": 388.78,
+          "bottom": 404.78,
+          "width": 144,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 25,
+          "right": 169,
+          "top": 408.78,
+          "bottom": 424.78,
+          "width": 144,
+          "height": 16
+        },
+        "valueText": {
+          "left": 64.8,
+          "right": 169
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "0px"
+        }
+      }
+    ],
+    "horizontal": {
+      "buttonsInside": true,
+      "valuesInside": true,
+      "listInside": true,
+      "bodyInside": true,
+      "bodyNoInternalXScroll": true
+    }
+  },
+  "interactions": {
+    "tabToHelp": true,
+    "shiftTabToClose": true,
+    "helpOpened": true,
+    "helpRestoresTriggerFocus": true,
+    "helpPointerOpened": true,
+    "escapeClosed": true,
+    "focusReturned": true,
+    "closeClick": true,
+    "fallbackVisible": false
+  },
+  "jsErrors": []
+}
