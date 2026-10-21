@@ -36,6 +36,7 @@ test("reviewed #215 and #309 exact API tests alone enter the protected Issue215 
     "issue215-recovery-real-s3.integration.test.ts",
     "issue215-recovery.integration.test.ts",
     "issue215-staff-credential-races.test.ts",
+    "issue309-photo-cross-commit-pg17.integration.test.ts",
     "issue309-photo-db-blocker-proof.test.ts",
     "issue309-photo-grant-race.integration.test.ts",
     "issue309-photo-viewer.integration.test.ts",
