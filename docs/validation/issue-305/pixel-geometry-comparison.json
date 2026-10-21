@@ -1,0 +1,318 @@
+{
+  "phase": "Independent baseline DOM geometry + controlled same-render visual parity",
+  "zoom": "CSS zoom (Chromium), 100% and 200% (native browser zoom NOT RUN)",
+  "pages": {
+    "live-operations": {
+      "captures_before": 32,
+      "captures_after": 32,
+      "mismatches": [],
+      "before_max_header_offset": 156.266,
+      "after_max_header_offset": 0.138
+    },
+    "vehicles": {
+      "captures_before": 32,
+      "captures_after": 32,
+      "mismatches": [],
+      "before_max_header_offset": 211.891,
+      "after_max_header_offset": 0.175
+    },
+    "tasks": {
+      "captures_before": 32,
+      "captures_after": 32,
+      "mismatches": [],
+      "before_max_header_offset": 162.313,
+      "after_max_header_offset": 0.174
+    },
+    "incidents": {
+      "captures_before": 32,
+      "captures_after": 32,
+      "mismatches": [],
+      "before_max_header_offset": 275.328,
+      "after_max_header_offset": 0.133
+    }
+  },
+  "screenshots": [
+    {
+      "name": "live-operations-en-dark-1440-100",
+      "status": "PASS",
+      "image_size": [
+        1440,
+        900
+      ],
+      "total_changed_pixels": 2296,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    },
+    {
+      "name": "live-operations-ar-dark-390-100",
+      "status": "PASS",
+      "image_size": [
+        390,
+        900
+      ],
+      "total_changed_pixels": 1064,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    },
+    {
+      "name": "live-operations-ar-light-320-200",
+      "status": "PASS",
+      "image_size": [
+        640,
+        1800
+      ],
+      "total_changed_pixels": 2437,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    },
+    {
+      "name": "vehicles-en-dark-1440-100",
+      "status": "PASS",
+      "image_size": [
+        1440,
+        900
+      ],
+      "total_changed_pixels": 1929,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    },
+    {
+      "name": "vehicles-ar-dark-390-100",
+      "status": "PASS",
+      "image_size": [
+        390,
+        900
+      ],
+      "total_changed_pixels": 867,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    },
+    {
+      "name": "vehicles-ar-light-320-200",
+      "status": "PASS",
+      "image_size": [
+        640,
+        1800
+      ],
+      "total_changed_pixels": 2192,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    },
+    {
+      "name": "tasks-en-dark-1440-100",
+      "status": "PASS",
+      "image_size": [
+        1440,
+        900
+      ],
+      "total_changed_pixels": 2335,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    },
+    {
+      "name": "tasks-ar-dark-390-100",
+      "status": "PASS",
+      "image_size": [
+        390,
+        900
+      ],
+      "total_changed_pixels": 1096,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    },
+    {
+      "name": "tasks-ar-light-320-200",
+      "status": "PASS",
+      "image_size": [
+        640,
+        1800
+      ],
+      "total_changed_pixels": 2624,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    },
+    {
+      "name": "incidents-en-dark-1440-100",
+      "status": "PASS",
+      "image_size": [
+        1440,
+        900
+      ],
+      "total_changed_pixels": 2353,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    },
+    {
+      "name": "incidents-ar-dark-390-100",
+      "status": "PASS",
+      "image_size": [
+        390,
+        900
+      ],
+      "total_changed_pixels": 909,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    },
+    {
+      "name": "incidents-ar-light-320-200",
+      "status": "PASS",
+      "image_size": [
+        640,
+        1800
+      ],
+      "total_changed_pixels": 2273,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    }
+  ],
+  "independent_screenshot_diagnostics": [
+    {
+      "name": "live-operations-en-dark-1440-100",
+      "status": "PASS",
+      "image_size": [
+        1440,
+        900
+      ],
+      "total_changed_pixels": 2287,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    },
+    {
+      "name": "live-operations-ar-dark-390-100",
+      "status": "PASS",
+      "image_size": [
+        390,
+        900
+      ],
+      "total_changed_pixels": 1045,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    },
+    {
+      "name": "live-operations-ar-light-320-200",
+      "status": "PASS",
+      "image_size": [
+        640,
+        1800
+      ],
+      "total_changed_pixels": 2437,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    },
+    {
+      "name": "vehicles-en-dark-1440-100",
+      "status": "OUTSIDE_HEADER_CHANGED",
+      "image_size": [
+        1440,
+        900
+      ],
+      "total_changed_pixels": 9117,
+      "outside_allowed_header_pixels": 7195,
+      "outside_change_bounds": [
+        1,
+        836,
+        153,
+        900
+      ]
+    },
+    {
+      "name": "vehicles-ar-dark-390-100",
+      "status": "OUTSIDE_HEADER_CHANGED",
+      "image_size": [
+        390,
+        900
+      ],
+      "total_changed_pixels": 7171,
+      "outside_allowed_header_pixels": 6304,
+      "outside_change_bounds": [
+        1,
+        836,
+        153,
+        900
+      ]
+    },
+    {
+      "name": "vehicles-ar-light-320-200",
+      "status": "OUTSIDE_HEADER_CHANGED",
+      "image_size": [
+        640,
+        1800
+      ],
+      "total_changed_pixels": 39942,
+      "outside_allowed_header_pixels": 35110,
+      "outside_change_bounds": [
+        323,
+        772,
+        624,
+        925
+      ]
+    },
+    {
+      "name": "tasks-en-dark-1440-100",
+      "status": "PASS",
+      "image_size": [
+        1440,
+        900
+      ],
+      "total_changed_pixels": 2328,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    },
+    {
+      "name": "tasks-ar-dark-390-100",
+      "status": "PASS",
+      "image_size": [
+        390,
+        900
+      ],
+      "total_changed_pixels": 1082,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    },
+    {
+      "name": "tasks-ar-light-320-200",
+      "status": "PASS",
+      "image_size": [
+        640,
+        1800
+      ],
+      "total_changed_pixels": 2624,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    },
+    {
+      "name": "incidents-en-dark-1440-100",
+      "status": "PASS",
+      "image_size": [
+        1440,
+        900
+      ],
+      "total_changed_pixels": 2344,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    },
+    {
+      "name": "incidents-ar-dark-390-100",
+      "status": "PASS",
+      "image_size": [
+        390,
+        900
+      ],
+      "total_changed_pixels": 898,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    },
+    {
+      "name": "incidents-ar-light-320-200",
+      "status": "PASS",
+      "image_size": [
+        640,
+        1800
+      ],
+      "total_changed_pixels": 2273,
+      "outside_allowed_header_pixels": 0,
+      "outside_change_bounds": null
+    }
+  ],
+  "ui_freeze_pass": true
+}

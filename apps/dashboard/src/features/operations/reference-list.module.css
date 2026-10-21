@@ -121,6 +121,10 @@
   white-space: nowrap;
 }
 
+.table th:not(:last-child) {
+  text-align: start;
+}
+
 .table td {
   height: 4.0625rem;
   padding: 0.875rem 1.5rem;
