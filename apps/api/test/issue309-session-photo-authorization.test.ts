@@ -64,26 +64,33 @@ function fakeTransaction(options: {
   return { query, transaction: { query } as unknown as PostgresTransaction };
 }
 
-describe("#309 Management photo-view authorization owner gate", () => {
+describe("#309 Management photo-view authorization", () => {
   beforeEach(() => {
     vi.mocked(authorizeLiveHistoryLocation).mockReset();
     vi.mocked(authorizeLiveHistoryLocation).mockResolvedValue(scope);
   });
 
-  it("production entry always denies without even reading Dashboard authority", async () => {
-    const { query, transaction } = fakeTransaction();
-    expect(await authorizeManagementSessionPhotoView(transaction, input)).toBeNull();
-    expect(query).not.toHaveBeenCalled();
-    expect(authorizeLiveHistoryLocation).not.toHaveBeenCalled();
-  });
+  it.each(["ORG_ADMIN", "LOCATION_MANAGER"])(
+    "runtime entry authorizes current %s after fenced exact-session checks",
+    async (role) => {
+      const { query, transaction } = fakeTransaction({ role });
+      expect(await authorizeManagementSessionPhotoView(transaction, input)).toEqual(scope);
+      expect(query).toHaveBeenCalledTimes(3);
+      expect(authorizeLiveHistoryLocation).toHaveBeenCalledWith(transaction, {
+        authenticatedUserId: input.authenticatedUserId,
+        staffSessionContext: input.staffSessionContext,
+        targetLocationId: input.targetLocationId,
+      });
+    },
+  );
 
-  it("keeps accepted roles test-only and immutable without enabling production", async () => {
+  it("keeps runtime roles immutable and restricts the injectable policy", async () => {
     expect(approved.proposedRoles).toEqual(["ORG_ADMIN", "LOCATION_MANAGER"]);
     expect(Object.isFrozen(approved)).toBe(true);
     expect(Object.isFrozen(approved.proposedRoles)).toBe(true);
-    const { query, transaction } = fakeTransaction({ role: "LOCATION_MANAGER" });
+    const { query, transaction } = fakeTransaction({ role: "VALET_SUPERVISOR" });
     expect(await authorizeManagementSessionPhotoView(transaction, input)).toBeNull();
-    expect(query).not.toHaveBeenCalled();
+    expect(query).toHaveBeenCalledTimes(2);
   });
 
   it("test seam also denies without querying under an empty proposal", async () => {

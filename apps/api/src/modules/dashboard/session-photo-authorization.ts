@@ -1,6 +1,5 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
 import type { StaffSessionContext } from "../auth/staff-session-context";
-import { localMfaBypassEnabled } from "../auth/mfa/local-mfa-bypass";
 import type { DashboardLocationScope } from "./dashboard-location-authorization";
 import { authorizeLiveHistoryLocation } from "./live-history-read-authorization";
 
@@ -14,115 +13,31 @@ export interface DashboardSessionPhotoViewInput {
 }
 
 /**
- * The owner accepted the Company Admin/Location Manager role matrix for
- * #309, subject to independent security, IAM and rollout acceptance.
- * This policy injection exists solely for isolated tests of that decision.
- *
- * NEVER import the injected-policy helper from an HTTP handler or worker.
- * The public production entry below has no injection argument and always
- * denies until the independent IAM/rollout gate is explicitly accepted.
+ * Injectable policy retained for focused authorization tests. Runtime callers
+ * use the fixed owner-approved Company Admin/Location Manager role matrix.
  */
 export interface SessionPhotoViewTestPolicy {
   readonly proposedRoles: readonly AcceptedPhotoViewerRole[];
 }
 
 /**
- * Test-only role matrix accepted by the owner in Issue #309 comment
- * 6324638519. It does not activate VIEW through the production entry point.
- * Company Admin still requires current MFA; Location Manager still requires
- * the active, explicit Location grant checked by Live History authorization.
+ * Owner-approved #309 VIEW roles. CA MFA and LM's explicit current Location
+ * grant remain mandatory through the Live History authorization fence.
  */
 export const ACCEPTED_SESSION_PHOTO_VIEW_TEST_POLICY: SessionPhotoViewTestPolicy =
   Object.freeze({
     proposedRoles: Object.freeze(["ORG_ADMIN", "LOCATION_MANAGER"] as const),
   });
 
-const exactUuid = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/;
-const disposableDatabaseName = /^vlt_t_db_215_[0-9a-f]{32}$/;
-const disposableRuntimeRole = /^vlt_t_role_215_[0-9a-f]{32}$/;
-const localDatabaseHosts = new Set(["localhost", "127.0.0.1", "[::1]"]);
-
-interface LocalPhotoDatabaseIdentity {
-  readonly databaseName: string;
-  readonly runtimeRole: string;
-}
-
 /**
- * Temporary local DEVELOPMENT activation for up to two explicitly identified
- * CA/LM test Staff sessions and their single exact ValetSession each.
- * The database must be the restricted disposable #215 PG fixture.
- * The credential, MFA, entitlement, role and Location checks still run below.
- */
-function localDevelopmentPhotoDatabase(
-  input: DashboardSessionPhotoViewInput,
-  env: NodeJS.ProcessEnv = process.env,
-): LocalPhotoDatabaseIdentity | null {
-  if (
-    env.NODE_ENV !== "development" ||
-    env.ISSUE309_DEV_PHOTO_VIEW_ENABLED !== "true" ||
-    env.VAYLET_LOCAL_DISABLE_MFA === "true" ||
-    localMfaBypassEnabled() ||
-    !input.authenticatedUserId ||
-    input.authenticatedUserId !== input.staffSessionContext.userId
-  ) return null;
-
-  let database: URL;
-  try {
-    database = new URL(env.DATABASE_URL ?? "");
-  } catch {
-    return null;
-  }
-  const databaseName = database.pathname.slice(1);
-  const runtimeRole = database.username;
-  if (
-    !["postgres:", "postgresql:"].includes(database.protocol) ||
-    !localDatabaseHosts.has(database.hostname.toLowerCase()) ||
-    database.search !== "" || database.hash !== "" ||
-    database.password.length === 0 ||
-    !disposableDatabaseName.test(databaseName) ||
-    !disposableRuntimeRole.test(runtimeRole)
-  ) return null;
-
-  const allowed = env.ISSUE309_DEV_PHOTO_VIEW_SCOPES?.split(";");
-  if (!allowed || allowed.length < 1 || allowed.length > 2) return null;
-  const actual = [
-    input.authenticatedUserId,
-    input.staffSessionContext.staffAuthSessionId,
-    input.targetLocationId,
-    input.targetSessionId,
-  ];
-  let matching = false;
-  for (const entry of allowed) {
-    const ids = entry.split(":");
-    if (ids.length !== 4 || !ids.every((id) => exactUuid.test(id))) {
-      return null;
-    }
-    if (ids.every((id, index) => id === actual[index])) matching = true;
-  }
-  return matching ? { databaseName, runtimeRole } : null;
-}
-
-/**
- * #309 development gate: default DENY, except a specific opted-in local
- * disposable DB + exact test identities. All other environments stay DENY.
- * Live History/Audit/Check-In rights never imply photo VIEW by themselves.
+ * Normal #309 VIEW entry. Existing Dashboard/Live History/Check-In navigation
+ * alone grants no photo authority; the policy below rechecks the exact active
+ * Staff session, entitlement, MFA, membership, Location and ValetSession.
  */
 export async function authorizeManagementSessionPhotoView(
   transaction: PostgresTransaction,
   input: DashboardSessionPhotoViewInput,
 ): Promise<DashboardLocationScope | null> {
-  const local = localDevelopmentPhotoDatabase(input);
-  if (local === null) return null;
-  // Check the *connected* PostgreSQL identity, not merely an env URL that
-  // could be routed to an unrelated database by a tunnel or proxy.
-  const connected = await transaction.query<LocalPhotoDatabaseIdentity>(
-    'SELECT current_database() AS "databaseName", current_user AS "runtimeRole"',
-  );
-  if (
-    connected.rowCount !== 1 ||
-    connected.rows[0]?.databaseName !== local.databaseName ||
-    connected.rows[0]?.runtimeRole !== local.runtimeRole
-  ) return null;
   return authorizeSessionPhotoViewWithTestPolicy(
     transaction,
     input,
@@ -131,12 +46,10 @@ export async function authorizeManagementSessionPhotoView(
 }
 
 /**
- * @internal TESTS ONLY. No default export, environment override or public
- * feature flag grants this capability in production.
- *
- * This exercises an owner-approved role in isolated tests while retaining
- * current Staff session, MFA, subscription, Organization/Location/membership
- * and grant revocation fences provided by the Live History read boundary.
+ * @internal Injectable authorization seam retained for focused tests. The
+ * runtime entry above selects only the fixed approved role matrix. The
+ * Staff session, MFA, subscription, Organization/Location/membership/grant
+ * revocation fences are enforced within the caller's transaction.
  */
 export async function authorizeSessionPhotoViewWithTestPolicy(
   transaction: PostgresTransaction,
