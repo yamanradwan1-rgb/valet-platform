@@ -24,8 +24,8 @@ async function openIncident(page: Page, locale: "ar" | "en", width: number) {
   return { dialog, opener };
 }
 
-test("#314 Incident Details reflows at 160 effective CSS px in RTL and LTR without clipping controls or Facts", async ({ page }) => {
-  for (const locale of ["ar", "en"] as const) {
+for (const locale of ["ar", "en"] as const) {
+  test(`#314 Incident Details reflows at 160 effective CSS px in ${locale} without clipping`, async ({ page }) => {
     const { dialog, opener } = await openIncident(page, locale, 160);
     const close = dialog.getByRole("button", { name: locale === "ar" ? "إغلاق" : "Close" });
     await expect(close).toBeFocused();
@@ -61,8 +61,8 @@ test("#314 Incident Details reflows at 160 effective CSS px in RTL and LTR witho
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
     await expect(opener).toBeFocused();
-  }
-});
+  });
+}
 
 test("#314 ordinary 320px Incident Details keeps the approved drawer layout", async ({ page }) => {
   const { dialog } = await openIncident(page, "ar", 320);
