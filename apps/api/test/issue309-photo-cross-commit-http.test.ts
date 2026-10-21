@@ -69,6 +69,47 @@ async function httpCase(commitFails: boolean) {
 }
 
 describe("Issue #309 committed photo delivery fence over Node HTTP", () => {
+  it("four concurrent readers acquire both leases without saturating a four-slot pool", async () => {
+    let active = 0;
+    let highest = 0;
+    const waiting: Array<() => void> = [];
+    const pool = {
+      connect: vi.fn(async () => {
+        if (active >= 4) {
+          await new Promise<void>((resolve) => { waiting.push(resolve); });
+        }
+        active++;
+        highest = Math.max(highest, active);
+        return {
+          query: async (sql: string) => sql === "SELECT 1 AS alive"
+            ? { rows: [{ alive: 1 }], rowCount: 1 }
+            : { rows: [], rowCount: 0 },
+          release: () => {
+            active--;
+            const next = waiting.shift();
+            next?.();
+          },
+        };
+      }),
+    } as unknown as PostgresPool;
+    let sent = 0;
+    await Promise.race([
+      Promise.all(Array.from({ length: 4 }, () =>
+        withCommittedPhotoDeliveryFence(pool,
+          async () => { await Promise.resolve(); },
+          () => { sent++; },
+        ),
+      )),
+      new Promise<never>((_, reject) => setTimeout(
+        () => reject(new Error("photo lease pair deadlock")), 1500,
+      )),
+    ]);
+    expect(sent).toBe(4);
+    expect(highest).toBeLessThanOrEqual(4);
+    expect(active).toBe(0);
+    expect(waiting).toHaveLength(0);
+  });
+
   it("requires an acknowledged COMMIT after locked authorization before JPEG", async () => {
     const h = await httpCase(false);
     try {

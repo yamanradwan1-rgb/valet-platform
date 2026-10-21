@@ -4,6 +4,32 @@ import {
   finishTransactionOutcomes,
 } from "../../common/database/postgres-transaction-outcome";
 
+const checkoutQueues = new WeakMap<PostgresPool, Promise<void>>();
+
+/** Keep four simultaneous photo readers from each retaining one of four leases. */
+async function checkoutPair(pool: PostgresPool): Promise<{
+  readonly witness: PostgresTransaction;
+  readonly ack: PostgresTransaction;
+}> {
+  const previous = checkoutQueues.get(pool) ?? Promise.resolve();
+  let finish!: () => void;
+  const mine = new Promise<void>((resolve) => { finish = resolve; });
+  checkoutQueues.set(pool,previous.then(() => mine));
+  await previous;
+  try {
+    const witness = await pool.connect();
+    try {
+      const ack = await pool.connect();
+      return { witness, ack };
+    } catch (error) {
+      witness.release();
+      throw error;
+    }
+  } finally {
+    finish();
+  }
+}
+
 /**
  * Two independently authenticated READ COMMITTED transactions check every
  * canonical scope/evidence row. The witness holds SHARE locks across the
@@ -21,8 +47,7 @@ export async function withCommittedPhotoDeliveryFence(
   revalidate: (witness: PostgresTransaction) => Promise<void>,
   enqueueSync: () => void,
 ): Promise<void> {
-  const witness = await pool.connect();
-  let ack: PostgresTransaction | undefined;
+  const { witness, ack } = await checkoutPair(pool);
   let witnessStarted = false;
   let witnessBeginAttempted = false;
   let ackStarted = false;
@@ -31,8 +56,8 @@ export async function withCommittedPhotoDeliveryFence(
   let witnessUnusable = false;
   let ackUnusable = false;
   try {
-    // No transactional locks exist while awaiting the second checkout.
-    ack = await pool.connect();
+    // Both leases are already pinned; no transaction holds one while waiting
+    // to acquire its partner from a saturated runtime pool.
     witnessBeginAttempted = true;
     await witness.query("BEGIN ISOLATION LEVEL READ COMMITTED");
     witnessStarted = true;
@@ -74,7 +99,7 @@ export async function withCommittedPhotoDeliveryFence(
         finishTransactionOutcomes(witness, "UNAVAILABLE");
       }
     }
-    if (ack && ackStarted && !committing) {
+    if (ackStarted && !committing) {
       try {
         await ack.query("ROLLBACK");
         ackStarted = false;
@@ -86,9 +111,9 @@ export async function withCommittedPhotoDeliveryFence(
     }
     if (ackStarted) {
       ackUnusable = true;
-      finishTransactionOutcomes(ack!, "UNAVAILABLE");
+      finishTransactionOutcomes(ack, "UNAVAILABLE");
     }
-    ack?.release(ackUnusable);
+    ack.release(ackUnusable);
     witness.release(witnessUnusable || witnessStarted);
   }
 }
