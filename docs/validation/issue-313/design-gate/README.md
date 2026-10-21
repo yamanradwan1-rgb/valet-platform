@@ -12,6 +12,13 @@ documents and switches the language, theme and simulated device width. Open each
 prototype directly to exercise the rating demonstration's local controls and
 empty, loading, error and denied states.
 
+The original Analytics period selector is frozen to the identical operational
+reference fixture in each design. The **new section's separately labelled
+simulation period control** lets the Owner explore September, October and
+zero-visit date cohorts without modifying the pre-existing period selector or
+operational KPI values. A production implementation would use the single
+currently authorized Analytics period through a new typed backend read.
+
 | Option | File | Hierarchy |
 | --- | --- | --- |
 | 1 — Summary First | `option-1-summary-first.html` | Average and participation first |
@@ -44,6 +51,19 @@ The Company summary must equal its authorized Location summaries.
 See `reports/` and `evidence/` for tested configurations, screenshot captures
 and independent QA decisions. Verification limitations are documented rather
 than silently changing an inherited Analytics element.
+
+## Read-only local verification
+
+```powershell
+node tools/verify-ui-freeze.mjs
+node qa/rating-contract-check.mjs
+node qa/shared-fixture-check.mjs assets/feedback-fixture.js
+```
+
+The independent browser suite uses `qa/preview-audit.mjs` as documented in
+`qa/README.md`. It requires a local Chromium/Playwright installation and
+records actual viewport widths and browser native 200% zoom independently
+from the screenshots.
 
 ## Approval checkpoint
 
