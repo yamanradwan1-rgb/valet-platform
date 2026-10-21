@@ -59,12 +59,17 @@ export async function authorizeDashboardReadLocation(
       if ((await lockAndRecheckStaffSessionContext(transaction, context)) === undefined)
         return null;
     }
-    await transaction.query(
+    const fence = await transaction.query<{ readonly readCommitted: boolean }>(
       `SELECT pg_advisory_xact_lock_shared(
          hashtextextended('staff-management-org:' || $1::text, 0)
-       )`,
+       ), current_setting('transaction_isolation') = 'read committed'
+         AS "readCommitted"`,
       [managerHint.organizationId],
     );
+    // The second authorization statement must observe the writer's committed
+    // DELETE. REPEATABLE READ/SERIALIZABLE can reuse an older MVCC snapshot
+    // even after the advisory lock becomes available; fail closed instead.
+    if (fence.rows[0]?.readCommitted !== true) return null;
     const manager = await authorizeDashboardLocation(
       transaction,
       input.authenticatedUserId,
