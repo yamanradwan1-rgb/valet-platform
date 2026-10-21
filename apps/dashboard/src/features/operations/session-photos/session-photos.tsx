@@ -82,7 +82,7 @@ export function SessionPhotos({ api, locationId, sessionId, locale, timezone, sc
       queueMicrotask(() => {
         if (!disposed) setState({ phase: "denied", images: [] });
       });
-      return () => { alive.current = false; controller.abort(); };
+      return () => { alive.current = false; disposed = true; controller.abort(); };
     }
     const run = async () => {
       try {
