@@ -1,0 +1,1567 @@
+{
+  "summary": {
+    "baseline": "D:\\kndoom\\valet-platform\\tmp\\issue-309-w6-react-browser-qa\\docs\\validation\\issue-309-production\\qa\\results\\fresh-original",
+    "candidate": "D:\\kndoom\\valet-platform\\tmp\\issue-309-w6-react-browser-qa\\docs\\validation\\issue-309-production\\qa\\results",
+    "baselineSourceSha": "459e9c42dfff5b2aeb11ee9165a7d1a4338a7783",
+    "comparison": "exact per-pixel RGBA, 0 allowed changed pixels",
+    "testedRegions": 96,
+    "expectedRegions": 96,
+    "differentRegions": 3,
+    "totalChangedPixels": 150,
+    "missingFiles": [],
+    "verdict": "STOP"
+  },
+  "regions": [
+    {
+      "key": "vehicles-en-light-320",
+      "region": "whole-shell",
+      "sourceSize": [
+        320,
+        900
+      ],
+      "candidateSize": [
+        320,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 288000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-light-320",
+      "region": "header",
+      "sourceSize": [
+        319,
+        74
+      ],
+      "candidateSize": [
+        319,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 23606,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-light-320",
+      "region": "factList",
+      "sourceSize": [
+        271,
+        367
+      ],
+      "candidateSize": [
+        271,
+        367
+      ],
+      "differentPixels": 0,
+      "totalPixels": 99457,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-light-390",
+      "region": "whole-shell",
+      "sourceSize": [
+        390,
+        900
+      ],
+      "candidateSize": [
+        390,
+        900
+      ],
+      "differentPixels": 38,
+      "totalPixels": 351000,
+      "diffBounds": [
+        21,
+        272,
+        125,
+        411
+      ],
+      "failure": "pixel mismatch"
+    },
+    {
+      "key": "vehicles-en-light-390",
+      "region": "header",
+      "sourceSize": [
+        389,
+        74
+      ],
+      "candidateSize": [
+        389,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 28786,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-light-390",
+      "region": "factList",
+      "sourceSize": [
+        341,
+        367
+      ],
+      "candidateSize": [
+        341,
+        367
+      ],
+      "differentPixels": 0,
+      "totalPixels": 125147,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-light-768",
+      "region": "whole-shell",
+      "sourceSize": [
+        768,
+        900
+      ],
+      "candidateSize": [
+        768,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 691200,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-light-768",
+      "region": "header",
+      "sourceSize": [
+        447,
+        74
+      ],
+      "candidateSize": [
+        447,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 33078,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-light-768",
+      "region": "factList",
+      "sourceSize": [
+        399,
+        367
+      ],
+      "candidateSize": [
+        399,
+        367
+      ],
+      "differentPixels": 0,
+      "totalPixels": 146433,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-light-1440",
+      "region": "whole-shell",
+      "sourceSize": [
+        1440,
+        900
+      ],
+      "candidateSize": [
+        1440,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 1296000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-light-1440",
+      "region": "header",
+      "sourceSize": [
+        447,
+        74
+      ],
+      "candidateSize": [
+        447,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 33078,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-light-1440",
+      "region": "factList",
+      "sourceSize": [
+        399,
+        367
+      ],
+      "candidateSize": [
+        399,
+        367
+      ],
+      "differentPixels": 0,
+      "totalPixels": 146433,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-dark-320",
+      "region": "whole-shell",
+      "sourceSize": [
+        320,
+        900
+      ],
+      "candidateSize": [
+        320,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 288000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-dark-320",
+      "region": "header",
+      "sourceSize": [
+        319,
+        74
+      ],
+      "candidateSize": [
+        319,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 23606,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-dark-320",
+      "region": "factList",
+      "sourceSize": [
+        271,
+        367
+      ],
+      "candidateSize": [
+        271,
+        367
+      ],
+      "differentPixels": 0,
+      "totalPixels": 99457,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-dark-390",
+      "region": "whole-shell",
+      "sourceSize": [
+        390,
+        900
+      ],
+      "candidateSize": [
+        390,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 351000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-dark-390",
+      "region": "header",
+      "sourceSize": [
+        389,
+        74
+      ],
+      "candidateSize": [
+        389,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 28786,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-dark-390",
+      "region": "factList",
+      "sourceSize": [
+        341,
+        367
+      ],
+      "candidateSize": [
+        341,
+        367
+      ],
+      "differentPixels": 0,
+      "totalPixels": 125147,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-dark-768",
+      "region": "whole-shell",
+      "sourceSize": [
+        768,
+        900
+      ],
+      "candidateSize": [
+        768,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 691200,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-dark-768",
+      "region": "header",
+      "sourceSize": [
+        447,
+        74
+      ],
+      "candidateSize": [
+        447,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 33078,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-dark-768",
+      "region": "factList",
+      "sourceSize": [
+        399,
+        367
+      ],
+      "candidateSize": [
+        399,
+        367
+      ],
+      "differentPixels": 0,
+      "totalPixels": 146433,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-dark-1440",
+      "region": "whole-shell",
+      "sourceSize": [
+        1440,
+        900
+      ],
+      "candidateSize": [
+        1440,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 1296000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-dark-1440",
+      "region": "header",
+      "sourceSize": [
+        447,
+        74
+      ],
+      "candidateSize": [
+        447,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 33078,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-en-dark-1440",
+      "region": "factList",
+      "sourceSize": [
+        399,
+        367
+      ],
+      "candidateSize": [
+        399,
+        367
+      ],
+      "differentPixels": 0,
+      "totalPixels": 146433,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-dark-320",
+      "region": "whole-shell",
+      "sourceSize": [
+        320,
+        900
+      ],
+      "candidateSize": [
+        320,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 288000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-dark-320",
+      "region": "header",
+      "sourceSize": [
+        319,
+        74
+      ],
+      "candidateSize": [
+        319,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 23606,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-dark-320",
+      "region": "factList",
+      "sourceSize": [
+        271,
+        367
+      ],
+      "candidateSize": [
+        271,
+        367
+      ],
+      "differentPixels": 0,
+      "totalPixels": 99457,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-dark-390",
+      "region": "whole-shell",
+      "sourceSize": [
+        390,
+        900
+      ],
+      "candidateSize": [
+        390,
+        900
+      ],
+      "differentPixels": 54,
+      "totalPixels": 351000,
+      "diffBounds": [
+        21,
+        272,
+        369,
+        411
+      ],
+      "failure": "pixel mismatch"
+    },
+    {
+      "key": "vehicles-ar-dark-390",
+      "region": "header",
+      "sourceSize": [
+        389,
+        74
+      ],
+      "candidateSize": [
+        389,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 28786,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-dark-390",
+      "region": "factList",
+      "sourceSize": [
+        341,
+        367
+      ],
+      "candidateSize": [
+        341,
+        367
+      ],
+      "differentPixels": 0,
+      "totalPixels": 125147,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-dark-768",
+      "region": "whole-shell",
+      "sourceSize": [
+        768,
+        900
+      ],
+      "candidateSize": [
+        768,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 691200,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-dark-768",
+      "region": "header",
+      "sourceSize": [
+        447,
+        74
+      ],
+      "candidateSize": [
+        447,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 33078,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-dark-768",
+      "region": "factList",
+      "sourceSize": [
+        399,
+        367
+      ],
+      "candidateSize": [
+        399,
+        367
+      ],
+      "differentPixels": 0,
+      "totalPixels": 146433,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-dark-1440",
+      "region": "whole-shell",
+      "sourceSize": [
+        1440,
+        900
+      ],
+      "candidateSize": [
+        1440,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 1296000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-dark-1440",
+      "region": "header",
+      "sourceSize": [
+        447,
+        74
+      ],
+      "candidateSize": [
+        447,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 33078,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-dark-1440",
+      "region": "factList",
+      "sourceSize": [
+        399,
+        367
+      ],
+      "candidateSize": [
+        399,
+        367
+      ],
+      "differentPixels": 0,
+      "totalPixels": 146433,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-light-320",
+      "region": "whole-shell",
+      "sourceSize": [
+        320,
+        900
+      ],
+      "candidateSize": [
+        320,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 288000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-light-320",
+      "region": "header",
+      "sourceSize": [
+        319,
+        74
+      ],
+      "candidateSize": [
+        319,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 23606,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-light-320",
+      "region": "factList",
+      "sourceSize": [
+        271,
+        367
+      ],
+      "candidateSize": [
+        271,
+        367
+      ],
+      "differentPixels": 0,
+      "totalPixels": 99457,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-light-390",
+      "region": "whole-shell",
+      "sourceSize": [
+        390,
+        900
+      ],
+      "candidateSize": [
+        390,
+        900
+      ],
+      "differentPixels": 58,
+      "totalPixels": 351000,
+      "diffBounds": [
+        21,
+        272,
+        369,
+        411
+      ],
+      "failure": "pixel mismatch"
+    },
+    {
+      "key": "vehicles-ar-light-390",
+      "region": "header",
+      "sourceSize": [
+        389,
+        74
+      ],
+      "candidateSize": [
+        389,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 28786,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-light-390",
+      "region": "factList",
+      "sourceSize": [
+        341,
+        367
+      ],
+      "candidateSize": [
+        341,
+        367
+      ],
+      "differentPixels": 0,
+      "totalPixels": 125147,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-light-768",
+      "region": "whole-shell",
+      "sourceSize": [
+        768,
+        900
+      ],
+      "candidateSize": [
+        768,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 691200,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-light-768",
+      "region": "header",
+      "sourceSize": [
+        447,
+        74
+      ],
+      "candidateSize": [
+        447,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 33078,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-light-768",
+      "region": "factList",
+      "sourceSize": [
+        399,
+        367
+      ],
+      "candidateSize": [
+        399,
+        367
+      ],
+      "differentPixels": 0,
+      "totalPixels": 146433,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-light-1440",
+      "region": "whole-shell",
+      "sourceSize": [
+        1440,
+        900
+      ],
+      "candidateSize": [
+        1440,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 1296000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-light-1440",
+      "region": "header",
+      "sourceSize": [
+        447,
+        74
+      ],
+      "candidateSize": [
+        447,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 33078,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "vehicles-ar-light-1440",
+      "region": "factList",
+      "sourceSize": [
+        399,
+        367
+      ],
+      "candidateSize": [
+        399,
+        367
+      ],
+      "differentPixels": 0,
+      "totalPixels": 146433,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-light-320",
+      "region": "whole-shell",
+      "sourceSize": [
+        320,
+        900
+      ],
+      "candidateSize": [
+        320,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 288000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-light-320",
+      "region": "header",
+      "sourceSize": [
+        319,
+        74
+      ],
+      "candidateSize": [
+        319,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 23606,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-light-320",
+      "region": "factList",
+      "sourceSize": [
+        271,
+        423
+      ],
+      "candidateSize": [
+        271,
+        423
+      ],
+      "differentPixels": 0,
+      "totalPixels": 114633,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-light-390",
+      "region": "whole-shell",
+      "sourceSize": [
+        390,
+        900
+      ],
+      "candidateSize": [
+        390,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 351000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-light-390",
+      "region": "header",
+      "sourceSize": [
+        389,
+        74
+      ],
+      "candidateSize": [
+        389,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 28786,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-light-390",
+      "region": "factList",
+      "sourceSize": [
+        341,
+        423
+      ],
+      "candidateSize": [
+        341,
+        423
+      ],
+      "differentPixels": 0,
+      "totalPixels": 144243,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-light-768",
+      "region": "whole-shell",
+      "sourceSize": [
+        768,
+        900
+      ],
+      "candidateSize": [
+        768,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 691200,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-light-768",
+      "region": "header",
+      "sourceSize": [
+        447,
+        74
+      ],
+      "candidateSize": [
+        447,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 33078,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-light-768",
+      "region": "factList",
+      "sourceSize": [
+        399,
+        423
+      ],
+      "candidateSize": [
+        399,
+        423
+      ],
+      "differentPixels": 0,
+      "totalPixels": 168777,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-light-1440",
+      "region": "whole-shell",
+      "sourceSize": [
+        1440,
+        900
+      ],
+      "candidateSize": [
+        1440,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 1296000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-light-1440",
+      "region": "header",
+      "sourceSize": [
+        447,
+        74
+      ],
+      "candidateSize": [
+        447,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 33078,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-light-1440",
+      "region": "factList",
+      "sourceSize": [
+        399,
+        423
+      ],
+      "candidateSize": [
+        399,
+        423
+      ],
+      "differentPixels": 0,
+      "totalPixels": 168777,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-dark-320",
+      "region": "whole-shell",
+      "sourceSize": [
+        320,
+        900
+      ],
+      "candidateSize": [
+        320,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 288000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-dark-320",
+      "region": "header",
+      "sourceSize": [
+        319,
+        74
+      ],
+      "candidateSize": [
+        319,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 23606,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-dark-320",
+      "region": "factList",
+      "sourceSize": [
+        271,
+        423
+      ],
+      "candidateSize": [
+        271,
+        423
+      ],
+      "differentPixels": 0,
+      "totalPixels": 114633,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-dark-390",
+      "region": "whole-shell",
+      "sourceSize": [
+        390,
+        900
+      ],
+      "candidateSize": [
+        390,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 351000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-dark-390",
+      "region": "header",
+      "sourceSize": [
+        389,
+        74
+      ],
+      "candidateSize": [
+        389,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 28786,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-dark-390",
+      "region": "factList",
+      "sourceSize": [
+        341,
+        423
+      ],
+      "candidateSize": [
+        341,
+        423
+      ],
+      "differentPixels": 0,
+      "totalPixels": 144243,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-dark-768",
+      "region": "whole-shell",
+      "sourceSize": [
+        768,
+        900
+      ],
+      "candidateSize": [
+        768,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 691200,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-dark-768",
+      "region": "header",
+      "sourceSize": [
+        447,
+        74
+      ],
+      "candidateSize": [
+        447,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 33078,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-dark-768",
+      "region": "factList",
+      "sourceSize": [
+        399,
+        423
+      ],
+      "candidateSize": [
+        399,
+        423
+      ],
+      "differentPixels": 0,
+      "totalPixels": 168777,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-dark-1440",
+      "region": "whole-shell",
+      "sourceSize": [
+        1440,
+        900
+      ],
+      "candidateSize": [
+        1440,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 1296000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-dark-1440",
+      "region": "header",
+      "sourceSize": [
+        447,
+        74
+      ],
+      "candidateSize": [
+        447,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 33078,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-en-dark-1440",
+      "region": "factList",
+      "sourceSize": [
+        399,
+        423
+      ],
+      "candidateSize": [
+        399,
+        423
+      ],
+      "differentPixels": 0,
+      "totalPixels": 168777,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-dark-320",
+      "region": "whole-shell",
+      "sourceSize": [
+        320,
+        900
+      ],
+      "candidateSize": [
+        320,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 288000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-dark-320",
+      "region": "header",
+      "sourceSize": [
+        319,
+        74
+      ],
+      "candidateSize": [
+        319,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 23606,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-dark-320",
+      "region": "factList",
+      "sourceSize": [
+        271,
+        423
+      ],
+      "candidateSize": [
+        271,
+        423
+      ],
+      "differentPixels": 0,
+      "totalPixels": 114633,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-dark-390",
+      "region": "whole-shell",
+      "sourceSize": [
+        390,
+        900
+      ],
+      "candidateSize": [
+        390,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 351000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-dark-390",
+      "region": "header",
+      "sourceSize": [
+        389,
+        74
+      ],
+      "candidateSize": [
+        389,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 28786,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-dark-390",
+      "region": "factList",
+      "sourceSize": [
+        341,
+        423
+      ],
+      "candidateSize": [
+        341,
+        423
+      ],
+      "differentPixels": 0,
+      "totalPixels": 144243,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-dark-768",
+      "region": "whole-shell",
+      "sourceSize": [
+        768,
+        900
+      ],
+      "candidateSize": [
+        768,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 691200,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-dark-768",
+      "region": "header",
+      "sourceSize": [
+        447,
+        74
+      ],
+      "candidateSize": [
+        447,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 33078,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-dark-768",
+      "region": "factList",
+      "sourceSize": [
+        399,
+        423
+      ],
+      "candidateSize": [
+        399,
+        423
+      ],
+      "differentPixels": 0,
+      "totalPixels": 168777,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-dark-1440",
+      "region": "whole-shell",
+      "sourceSize": [
+        1440,
+        900
+      ],
+      "candidateSize": [
+        1440,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 1296000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-dark-1440",
+      "region": "header",
+      "sourceSize": [
+        447,
+        74
+      ],
+      "candidateSize": [
+        447,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 33078,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-dark-1440",
+      "region": "factList",
+      "sourceSize": [
+        399,
+        423
+      ],
+      "candidateSize": [
+        399,
+        423
+      ],
+      "differentPixels": 0,
+      "totalPixels": 168777,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-light-320",
+      "region": "whole-shell",
+      "sourceSize": [
+        320,
+        900
+      ],
+      "candidateSize": [
+        320,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 288000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-light-320",
+      "region": "header",
+      "sourceSize": [
+        319,
+        74
+      ],
+      "candidateSize": [
+        319,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 23606,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-light-320",
+      "region": "factList",
+      "sourceSize": [
+        271,
+        423
+      ],
+      "candidateSize": [
+        271,
+        423
+      ],
+      "differentPixels": 0,
+      "totalPixels": 114633,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-light-390",
+      "region": "whole-shell",
+      "sourceSize": [
+        390,
+        900
+      ],
+      "candidateSize": [
+        390,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 351000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-light-390",
+      "region": "header",
+      "sourceSize": [
+        389,
+        74
+      ],
+      "candidateSize": [
+        389,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 28786,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-light-390",
+      "region": "factList",
+      "sourceSize": [
+        341,
+        423
+      ],
+      "candidateSize": [
+        341,
+        423
+      ],
+      "differentPixels": 0,
+      "totalPixels": 144243,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-light-768",
+      "region": "whole-shell",
+      "sourceSize": [
+        768,
+        900
+      ],
+      "candidateSize": [
+        768,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 691200,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-light-768",
+      "region": "header",
+      "sourceSize": [
+        447,
+        74
+      ],
+      "candidateSize": [
+        447,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 33078,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-light-768",
+      "region": "factList",
+      "sourceSize": [
+        399,
+        423
+      ],
+      "candidateSize": [
+        399,
+        423
+      ],
+      "differentPixels": 0,
+      "totalPixels": 168777,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-light-1440",
+      "region": "whole-shell",
+      "sourceSize": [
+        1440,
+        900
+      ],
+      "candidateSize": [
+        1440,
+        900
+      ],
+      "differentPixels": 0,
+      "totalPixels": 1296000,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-light-1440",
+      "region": "header",
+      "sourceSize": [
+        447,
+        74
+      ],
+      "candidateSize": [
+        447,
+        74
+      ],
+      "differentPixels": 0,
+      "totalPixels": 33078,
+      "diffBounds": null,
+      "failure": null
+    },
+    {
+      "key": "live-operations-ar-light-1440",
+      "region": "factList",
+      "sourceSize": [
+        399,
+        423
+      ],
+      "candidateSize": [
+        399,
+        423
+      ],
+      "differentPixels": 0,
+      "totalPixels": 168777,
+      "diffBounds": null,
+      "failure": null
+    }
+  ]
+}

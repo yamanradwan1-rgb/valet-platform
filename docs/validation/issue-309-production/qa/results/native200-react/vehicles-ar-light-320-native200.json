@@ -1,0 +1,1659 @@
+{
+  "case": {
+    "name": "vehicles-ar-light-320-native200",
+    "surface": "vehicles",
+    "locale": "ar",
+    "theme": "light",
+    "width": 320
+  },
+  "candidateCommit": "3ecde78e",
+  "zoomMethod": "MV3 chrome.tabs.setZoom(tabId,2) and getZoom===2",
+  "zoomReported": 2,
+  "unzoomed": {
+    "viewport": {
+      "innerWidth": 320,
+      "innerHeight": 900,
+      "outerWidth": 516,
+      "outerHeight": 900,
+      "dpr": 1,
+      "visualScale": 1
+    },
+    "root": {
+      "dir": "rtl",
+      "lang": "ar",
+      "theme": "light",
+      "cssZoom": "1",
+      "inlineZoom": "",
+      "clientWidth": 320,
+      "scrollWidth": 320,
+      "clientHeight": 900,
+      "scrollHeight": 900
+    },
+    "body": {
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 900,
+        "left": 0,
+        "right": 320,
+        "top": 0,
+        "bottom": 900
+      },
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "fontSize": "16px"
+    },
+    "fontFaces": [
+      {
+        "family": "__nextjs-Geist",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist Mono",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist Mono",
+        "status": "unloaded"
+      }
+    ],
+    "shell": {
+      "x": 0,
+      "y": 0,
+      "width": 320,
+      "height": 900,
+      "left": 0,
+      "right": 320,
+      "top": 0,
+      "bottom": 900
+    },
+    "content": {
+      "x": 0,
+      "y": 134.19,
+      "width": 320,
+      "height": 765.81,
+      "left": 0,
+      "right": 320,
+      "top": 134.19,
+      "bottom": 900
+    },
+    "table": {
+      "x": -437,
+      "y": 464.38,
+      "width": 736,
+      "height": 105.5,
+      "left": -437,
+      "right": 299,
+      "top": 464.38,
+      "bottom": 569.88
+    },
+    "drawer": null,
+    "header": null,
+    "bodyPanel": null,
+    "factList": null,
+    "bodyScroll": null,
+    "help": null,
+    "close": null,
+    "facts": [],
+    "factCount": 0,
+    "horizontallyInside": {
+      "help": false,
+      "close": false,
+      "list": false,
+      "values": true,
+      "valueText": true
+    },
+    "photoSectionCount": 0,
+    "focused": "BODY"
+  },
+  "closed": {
+    "viewport": {
+      "innerWidth": 160,
+      "innerHeight": 450,
+      "outerWidth": 516,
+      "outerHeight": 900,
+      "dpr": 2,
+      "visualScale": 1
+    },
+    "root": {
+      "dir": "rtl",
+      "lang": "ar",
+      "theme": "light",
+      "cssZoom": "1",
+      "inlineZoom": "",
+      "clientWidth": 160,
+      "scrollWidth": 160,
+      "clientHeight": 450,
+      "scrollHeight": 450
+    },
+    "body": {
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 160,
+        "height": 450,
+        "left": 0,
+        "right": 160,
+        "top": 0,
+        "bottom": 450
+      },
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "fontSize": "16px"
+    },
+    "fontFaces": [
+      {
+        "family": "__nextjs-Geist",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist Mono",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist Mono",
+        "status": "unloaded"
+      }
+    ],
+    "shell": {
+      "x": 0,
+      "y": 0,
+      "width": 160,
+      "height": 450,
+      "left": 0,
+      "right": 160,
+      "top": 0,
+      "bottom": 450
+    },
+    "content": {
+      "x": 0,
+      "y": 139.59,
+      "width": 160,
+      "height": 310.41,
+      "left": 0,
+      "right": 160,
+      "top": 139.59,
+      "bottom": 450
+    },
+    "table": {
+      "x": -597,
+      "y": 569.29,
+      "width": 736,
+      "height": 105.5,
+      "left": -597,
+      "right": 139,
+      "top": 569.29,
+      "bottom": 674.79
+    },
+    "drawer": null,
+    "header": null,
+    "bodyPanel": null,
+    "factList": null,
+    "bodyScroll": null,
+    "help": null,
+    "close": null,
+    "facts": [],
+    "factCount": 0,
+    "horizontallyInside": {
+      "help": false,
+      "close": false,
+      "list": false,
+      "values": true,
+      "valueText": true
+    },
+    "photoSectionCount": 0,
+    "focused": "BODY"
+  },
+  "top": {
+    "viewport": {
+      "innerWidth": 160,
+      "innerHeight": 450,
+      "outerWidth": 516,
+      "outerHeight": 900,
+      "dpr": 2,
+      "visualScale": 1
+    },
+    "root": {
+      "dir": "rtl",
+      "lang": "ar",
+      "theme": "light",
+      "cssZoom": "1",
+      "inlineZoom": "",
+      "clientWidth": 160,
+      "scrollWidth": 160,
+      "clientHeight": 450,
+      "scrollHeight": 450
+    },
+    "body": {
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 160,
+        "height": 450,
+        "left": 0,
+        "right": 160,
+        "top": 0,
+        "bottom": 450
+      },
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "fontSize": "16px"
+    },
+    "fontFaces": [
+      {
+        "family": "__nextjs-Geist",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist Mono",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist Mono",
+        "status": "unloaded"
+      }
+    ],
+    "shell": {
+      "x": 0,
+      "y": 0,
+      "width": 160,
+      "height": 450,
+      "left": 0,
+      "right": 160,
+      "top": 0,
+      "bottom": 450
+    },
+    "content": {
+      "x": 0,
+      "y": 139.59,
+      "width": 160,
+      "height": 310.41,
+      "left": 0,
+      "right": 160,
+      "top": 139.59,
+      "bottom": 450
+    },
+    "table": {
+      "x": 13,
+      "y": 246.79,
+      "width": 736,
+      "height": 105.5,
+      "left": 13,
+      "right": 749,
+      "top": 246.79,
+      "bottom": 352.29
+    },
+    "drawer": {
+      "x": 0,
+      "y": 0,
+      "width": 160,
+      "height": 450,
+      "left": 0,
+      "right": 160,
+      "top": 0,
+      "bottom": 450
+    },
+    "header": {
+      "x": 0,
+      "y": 0,
+      "width": 159,
+      "height": 89.7,
+      "left": 0,
+      "right": 159,
+      "top": 0,
+      "bottom": 89.7
+    },
+    "bodyPanel": {
+      "x": 0,
+      "y": 89.7,
+      "width": 159,
+      "height": 360.3,
+      "left": 0,
+      "right": 159,
+      "top": 89.7,
+      "bottom": 450
+    },
+    "factList": {
+      "x": 24,
+      "y": 113.7,
+      "width": 111,
+      "height": 542.39,
+      "left": 24,
+      "right": 135,
+      "top": 113.7,
+      "bottom": 656.09
+    },
+    "bodyScroll": {
+      "width": 159,
+      "scrollWidth": 159,
+      "height": 360,
+      "scrollHeight": 1315,
+      "scrollTop": 0
+    },
+    "help": {
+      "rect": {
+        "x": 28.22,
+        "y": 28.34,
+        "width": 32,
+        "height": 32,
+        "left": 28.22,
+        "right": 60.22,
+        "top": 28.34,
+        "bottom": 60.34
+      },
+      "ariaLabel": "مساعدة: تفاصيل المركبة",
+      "className": "context-help-module__LzBu0q__trigger",
+      "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "color": "rgb(16, 24, 40)",
+      "background": "rgb(255, 255, 255)",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-question-mark lucide-help-circle lucide-circle-help\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"></path><path d=\"M12 17h.01\"></path></svg>",
+      "focused": false,
+      "visibleWithinViewport": true
+    },
+    "close": {
+      "rect": {
+        "x": -17.78,
+        "y": 29.34,
+        "width": 30,
+        "height": 30,
+        "left": -17.78,
+        "right": 12.22,
+        "top": 29.34,
+        "bottom": 59.34
+      },
+      "ariaLabel": "إغلاق",
+      "className": "operations-module__AOnyZG__quiet",
+      "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "color": "rgb(30, 96, 240)",
+      "background": "rgba(0, 0, 0, 0)",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-x\" aria-hidden=\"true\"><path d=\"M18 6 6 18\"></path><path d=\"m6 6 12 12\"></path></svg>",
+      "focused": true,
+      "visibleWithinViewport": false
+    },
+    "facts": [
+      {
+        "label": "المركبة",
+        "value": "Toyota Camry",
+        "row": {
+          "x": 11.86,
+          "y": 130.7,
+          "width": 106.14,
+          "height": 32,
+          "left": 11.86,
+          "right": 118,
+          "top": 130.7,
+          "bottom": 162.7
+        },
+        "labelRect": {
+          "x": 83.93,
+          "y": 130.7,
+          "width": 34.07,
+          "height": 16,
+          "left": 83.93,
+          "right": 118,
+          "top": 130.7,
+          "bottom": 146.7
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": 130.7,
+          "width": 56.07,
+          "height": 32,
+          "left": 11.86,
+          "right": 67.93,
+          "top": 130.7,
+          "bottom": 162.7
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": 130.7,
+          "width": 38.09,
+          "height": 32,
+          "left": 11.86,
+          "right": 49.95,
+          "top": 130.7,
+          "bottom": 162.7
+        }
+      },
+      {
+        "label": "اللوحة",
+        "value": "JO · 12-34567",
+        "row": {
+          "x": 11.86,
+          "y": 174.7,
+          "width": 106.14,
+          "height": 32,
+          "left": 11.86,
+          "right": 118,
+          "top": 174.7,
+          "bottom": 206.7
+        },
+        "labelRect": {
+          "x": 87.94,
+          "y": 174.7,
+          "width": 30.06,
+          "height": 16,
+          "left": 87.94,
+          "right": 118,
+          "top": 174.7,
+          "bottom": 190.7
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": 174.7,
+          "width": 60.08,
+          "height": 32,
+          "left": 11.86,
+          "right": 71.94,
+          "top": 174.7,
+          "bottom": 206.7
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": 174.7,
+          "width": 42.98,
+          "height": 32,
+          "left": 11.86,
+          "right": 54.84,
+          "top": 174.7,
+          "bottom": 206.7
+        }
+      },
+      {
+        "label": "اللون",
+        "value": "Black",
+        "row": {
+          "x": 11.86,
+          "y": 218.7,
+          "width": 106.14,
+          "height": 16,
+          "left": 11.86,
+          "right": 118,
+          "top": 218.7,
+          "bottom": 234.7
+        },
+        "labelRect": {
+          "x": 92.95,
+          "y": 218.7,
+          "width": 25.05,
+          "height": 16,
+          "left": 92.95,
+          "right": 118,
+          "top": 218.7,
+          "bottom": 234.7
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": 218.7,
+          "width": 30.03,
+          "height": 16,
+          "left": 11.86,
+          "right": 41.89,
+          "top": 218.7,
+          "bottom": 234.7
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": 218.7,
+          "width": 30.03,
+          "height": 16,
+          "left": 11.86,
+          "right": 41.89,
+          "top": 218.7,
+          "bottom": 234.7
+        }
+      },
+      {
+        "label": "المسند إليه",
+        "value": "Lina Haddad",
+        "row": {
+          "x": 11.86,
+          "y": 246.7,
+          "width": 106.14,
+          "height": 32,
+          "left": 11.86,
+          "right": 118,
+          "top": 246.7,
+          "bottom": 278.7
+        },
+        "labelRect": {
+          "x": 78.89,
+          "y": 246.7,
+          "width": 39.11,
+          "height": 32,
+          "left": 78.89,
+          "right": 118,
+          "top": 246.7,
+          "bottom": 278.7
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": 246.7,
+          "width": 51.03,
+          "height": 32,
+          "left": 11.86,
+          "right": 62.89,
+          "top": 246.7,
+          "bottom": 278.7
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": 246.7,
+          "width": 44.4,
+          "height": 32,
+          "left": 11.86,
+          "right": 56.26,
+          "top": 246.7,
+          "bottom": 278.7
+        }
+      },
+      {
+        "label": "البريد الإلكتروني",
+        "value": "lina@example.com",
+        "row": {
+          "x": 11.86,
+          "y": 290.7,
+          "width": 106.14,
+          "height": 48,
+          "left": 11.86,
+          "right": 118,
+          "top": 290.7,
+          "bottom": 338.7
+        },
+        "labelRect": {
+          "x": 69.91,
+          "y": 290.7,
+          "width": 48.09,
+          "height": 32,
+          "left": 69.91,
+          "right": 118,
+          "top": 290.7,
+          "bottom": 322.7
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": 290.7,
+          "width": 42.05,
+          "height": 48,
+          "left": 11.86,
+          "right": 53.91,
+          "top": 290.7,
+          "bottom": 338.7
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": 290.7,
+          "width": 41.42,
+          "height": 48,
+          "left": 11.86,
+          "right": 53.28,
+          "top": 290.7,
+          "bottom": 338.7
+        }
+      },
+      {
+        "label": "الحالة",
+        "value": "مصطفّة",
+        "row": {
+          "x": 11.86,
+          "y": 350.7,
+          "width": 106.14,
+          "height": 24.39,
+          "left": 11.86,
+          "right": 118,
+          "top": 350.7,
+          "bottom": 375.09
+        },
+        "labelRect": {
+          "x": 90.95,
+          "y": 350.7,
+          "width": 27.05,
+          "height": 16,
+          "left": 90.95,
+          "right": 118,
+          "top": 350.7,
+          "bottom": 366.7
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": 350.7,
+          "width": 63.09,
+          "height": 24.39,
+          "left": 11.86,
+          "right": 74.95,
+          "top": 350.7,
+          "bottom": 375.09
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": 350.7,
+          "width": 63.09,
+          "height": 24.39,
+          "left": 11.86,
+          "right": 74.95,
+          "top": 350.7,
+          "bottom": 375.09
+        }
+      },
+      {
+        "label": "الموقع",
+        "value": "Main Garage",
+        "row": {
+          "x": 11.86,
+          "y": 387.09,
+          "width": 106.14,
+          "height": 32,
+          "left": 11.86,
+          "right": 118,
+          "top": 387.09,
+          "bottom": 419.09
+        },
+        "labelRect": {
+          "x": 84.93,
+          "y": 387.09,
+          "width": 33.07,
+          "height": 16,
+          "left": 84.93,
+          "right": 118,
+          "top": 387.09,
+          "bottom": 403.09
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": 387.09,
+          "width": 57.07,
+          "height": 32,
+          "left": 11.86,
+          "right": 68.93,
+          "top": 387.09,
+          "bottom": 419.09
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": 387.09,
+          "width": 40.15,
+          "height": 32,
+          "left": 11.86,
+          "right": 52.01,
+          "top": 387.09,
+          "bottom": 419.09
+        }
+      },
+      {
+        "label": "خانة المفتاح",
+        "value": "K-12",
+        "row": {
+          "x": 11.86,
+          "y": 431.09,
+          "width": 106.14,
+          "height": 16,
+          "left": 11.86,
+          "right": 118,
+          "top": 431.09,
+          "bottom": 447.09
+        },
+        "labelRect": {
+          "x": 60.6,
+          "y": 431.09,
+          "width": 57.4,
+          "height": 16,
+          "left": 60.6,
+          "right": 118,
+          "top": 431.09,
+          "bottom": 447.09
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": 431.09,
+          "width": 26.45,
+          "height": 16,
+          "left": 11.86,
+          "right": 38.3,
+          "top": 431.09,
+          "bottom": 447.09
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": 431.09,
+          "width": 26.45,
+          "height": 16,
+          "left": 11.86,
+          "right": 38.3,
+          "top": 431.09,
+          "bottom": 447.09
+        }
+      },
+      {
+        "label": "منطقة الاصطفاف",
+        "value": "Z-1 · Garage",
+        "row": {
+          "x": 11.86,
+          "y": 459.09,
+          "width": 106.14,
+          "height": 48,
+          "left": 11.86,
+          "right": 118,
+          "top": 459.09,
+          "bottom": 507.09
+        },
+        "labelRect": {
+          "x": 64.89,
+          "y": 459.09,
+          "width": 53.11,
+          "height": 32,
+          "left": 64.89,
+          "right": 118,
+          "top": 459.09,
+          "bottom": 491.09
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": 459.09,
+          "width": 37.03,
+          "height": 48,
+          "left": 11.86,
+          "right": 48.89,
+          "top": 459.09,
+          "bottom": 507.09
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": 459.09,
+          "width": 33.66,
+          "height": 48,
+          "left": 11.86,
+          "right": 45.52,
+          "top": 459.09,
+          "bottom": 507.09
+        }
+      },
+      {
+        "label": "مكان الاصطفاف",
+        "value": "P-4 · North",
+        "row": {
+          "x": 11.86,
+          "y": 519.09,
+          "width": 106.14,
+          "height": 32,
+          "left": 11.86,
+          "right": 118,
+          "top": 519.09,
+          "bottom": 551.09
+        },
+        "labelRect": {
+          "x": 64.89,
+          "y": 519.09,
+          "width": 53.11,
+          "height": 32,
+          "left": 64.89,
+          "right": 118,
+          "top": 519.09,
+          "bottom": 551.09
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": 519.09,
+          "width": 37.03,
+          "height": 32,
+          "left": 11.86,
+          "right": 48.89,
+          "top": 519.09,
+          "bottom": 551.09
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": 519.09,
+          "width": 33.84,
+          "height": 32,
+          "left": 11.86,
+          "right": 45.7,
+          "top": 519.09,
+          "bottom": 551.09
+        }
+      },
+      {
+        "label": "الإنشاء",
+        "value": "٢١ أيلول، ١:٠٠ م",
+        "row": {
+          "x": 11.86,
+          "y": 563.09,
+          "width": 106.14,
+          "height": 32,
+          "left": 11.86,
+          "right": 118,
+          "top": 563.09,
+          "bottom": 595.09
+        },
+        "labelRect": {
+          "x": 85.94,
+          "y": 563.09,
+          "width": 32.06,
+          "height": 16,
+          "left": 85.94,
+          "right": 118,
+          "top": 563.09,
+          "bottom": 579.09
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": 563.09,
+          "width": 58.08,
+          "height": 32,
+          "left": 11.86,
+          "right": 69.94,
+          "top": 563.09,
+          "bottom": 595.09
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": 563.09,
+          "width": 40.39,
+          "height": 32,
+          "left": 11.86,
+          "right": 52.25,
+          "top": 563.09,
+          "bottom": 595.09
+        }
+      },
+      {
+        "label": "آخر تحديث",
+        "value": "٢١ أيلول، ٣:٠٠ م",
+        "row": {
+          "x": 11.86,
+          "y": 607.09,
+          "width": 106.14,
+          "height": 32,
+          "left": 11.86,
+          "right": 118,
+          "top": 607.09,
+          "bottom": 639.09
+        },
+        "labelRect": {
+          "x": 81.58,
+          "y": 607.09,
+          "width": 36.42,
+          "height": 32,
+          "left": 81.58,
+          "right": 118,
+          "top": 607.09,
+          "bottom": 639.09
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": 607.09,
+          "width": 53.72,
+          "height": 32,
+          "left": 11.86,
+          "right": 65.58,
+          "top": 607.09,
+          "bottom": 639.09
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": 607.09,
+          "width": 40.39,
+          "height": 32,
+          "left": 11.86,
+          "right": 52.25,
+          "top": 607.09,
+          "bottom": 639.09
+        }
+      }
+    ],
+    "factCount": 12,
+    "horizontallyInside": {
+      "help": true,
+      "close": false,
+      "list": true,
+      "values": true,
+      "valueText": true
+    },
+    "photoSectionCount": 3,
+    "focused": "إغلاق"
+  },
+  "bottom": {
+    "viewport": {
+      "innerWidth": 160,
+      "innerHeight": 450,
+      "outerWidth": 516,
+      "outerHeight": 900,
+      "dpr": 2,
+      "visualScale": 1
+    },
+    "root": {
+      "dir": "rtl",
+      "lang": "ar",
+      "theme": "light",
+      "cssZoom": "1",
+      "inlineZoom": "",
+      "clientWidth": 160,
+      "scrollWidth": 160,
+      "clientHeight": 450,
+      "scrollHeight": 450
+    },
+    "body": {
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 160,
+        "height": 450,
+        "left": 0,
+        "right": 160,
+        "top": 0,
+        "bottom": 450
+      },
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "fontSize": "16px"
+    },
+    "fontFaces": [
+      {
+        "family": "__nextjs-Geist",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist Mono",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist Mono",
+        "status": "unloaded"
+      }
+    ],
+    "shell": {
+      "x": 0,
+      "y": 0,
+      "width": 160,
+      "height": 450,
+      "left": 0,
+      "right": 160,
+      "top": 0,
+      "bottom": 450
+    },
+    "content": {
+      "x": 0,
+      "y": 139.59,
+      "width": 160,
+      "height": 310.41,
+      "left": 0,
+      "right": 160,
+      "top": 139.59,
+      "bottom": 450
+    },
+    "table": {
+      "x": 13,
+      "y": 246.79,
+      "width": 736,
+      "height": 105.5,
+      "left": 13,
+      "right": 749,
+      "top": 246.79,
+      "bottom": 352.29
+    },
+    "drawer": {
+      "x": 0,
+      "y": 0,
+      "width": 160,
+      "height": 450,
+      "left": 0,
+      "right": 160,
+      "top": 0,
+      "bottom": 450
+    },
+    "header": {
+      "x": 0,
+      "y": 0,
+      "width": 159,
+      "height": 89.7,
+      "left": 0,
+      "right": 159,
+      "top": 0,
+      "bottom": 89.7
+    },
+    "bodyPanel": {
+      "x": 0,
+      "y": 89.7,
+      "width": 159,
+      "height": 360.3,
+      "left": 0,
+      "right": 159,
+      "top": 89.7,
+      "bottom": 450
+    },
+    "factList": {
+      "x": 24,
+      "y": -840.8,
+      "width": 111,
+      "height": 542.39,
+      "left": 24,
+      "right": 135,
+      "top": -840.8,
+      "bottom": -298.41
+    },
+    "bodyScroll": {
+      "width": 159,
+      "scrollWidth": 159,
+      "height": 360,
+      "scrollHeight": 1315,
+      "scrollTop": 954.5
+    },
+    "help": {
+      "rect": {
+        "x": 28.22,
+        "y": 28.34,
+        "width": 32,
+        "height": 32,
+        "left": 28.22,
+        "right": 60.22,
+        "top": 28.34,
+        "bottom": 60.34
+      },
+      "ariaLabel": "مساعدة: تفاصيل المركبة",
+      "className": "context-help-module__LzBu0q__trigger",
+      "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "color": "rgb(16, 24, 40)",
+      "background": "rgb(255, 255, 255)",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-question-mark lucide-help-circle lucide-circle-help\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"></path><path d=\"M12 17h.01\"></path></svg>",
+      "focused": false,
+      "visibleWithinViewport": true
+    },
+    "close": {
+      "rect": {
+        "x": -17.78,
+        "y": 29.34,
+        "width": 30,
+        "height": 30,
+        "left": -17.78,
+        "right": 12.22,
+        "top": 29.34,
+        "bottom": 59.34
+      },
+      "ariaLabel": "إغلاق",
+      "className": "operations-module__AOnyZG__quiet",
+      "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "color": "rgb(30, 96, 240)",
+      "background": "rgba(0, 0, 0, 0)",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-x\" aria-hidden=\"true\"><path d=\"M18 6 6 18\"></path><path d=\"m6 6 12 12\"></path></svg>",
+      "focused": true,
+      "visibleWithinViewport": false
+    },
+    "facts": [
+      {
+        "label": "المركبة",
+        "value": "Toyota Camry",
+        "row": {
+          "x": 11.86,
+          "y": -823.8,
+          "width": 106.14,
+          "height": 32,
+          "left": 11.86,
+          "right": 118,
+          "top": -823.8,
+          "bottom": -791.8
+        },
+        "labelRect": {
+          "x": 83.93,
+          "y": -823.8,
+          "width": 34.07,
+          "height": 16,
+          "left": 83.93,
+          "right": 118,
+          "top": -823.8,
+          "bottom": -807.8
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": -823.8,
+          "width": 56.07,
+          "height": 32,
+          "left": 11.86,
+          "right": 67.93,
+          "top": -823.8,
+          "bottom": -791.8
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": -823.8,
+          "width": 38.09,
+          "height": 32,
+          "left": 11.86,
+          "right": 49.95,
+          "top": -823.8,
+          "bottom": -791.8
+        }
+      },
+      {
+        "label": "اللوحة",
+        "value": "JO · 12-34567",
+        "row": {
+          "x": 11.86,
+          "y": -779.8,
+          "width": 106.14,
+          "height": 32,
+          "left": 11.86,
+          "right": 118,
+          "top": -779.8,
+          "bottom": -747.8
+        },
+        "labelRect": {
+          "x": 87.94,
+          "y": -779.8,
+          "width": 30.06,
+          "height": 16,
+          "left": 87.94,
+          "right": 118,
+          "top": -779.8,
+          "bottom": -763.8
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": -779.8,
+          "width": 60.08,
+          "height": 32,
+          "left": 11.86,
+          "right": 71.94,
+          "top": -779.8,
+          "bottom": -747.8
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": -779.8,
+          "width": 42.98,
+          "height": 32,
+          "left": 11.86,
+          "right": 54.84,
+          "top": -779.8,
+          "bottom": -747.8
+        }
+      },
+      {
+        "label": "اللون",
+        "value": "Black",
+        "row": {
+          "x": 11.86,
+          "y": -735.8,
+          "width": 106.14,
+          "height": 16,
+          "left": 11.86,
+          "right": 118,
+          "top": -735.8,
+          "bottom": -719.8
+        },
+        "labelRect": {
+          "x": 92.95,
+          "y": -735.8,
+          "width": 25.05,
+          "height": 16,
+          "left": 92.95,
+          "right": 118,
+          "top": -735.8,
+          "bottom": -719.8
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": -735.8,
+          "width": 30.03,
+          "height": 16,
+          "left": 11.86,
+          "right": 41.89,
+          "top": -735.8,
+          "bottom": -719.8
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": -735.8,
+          "width": 30.03,
+          "height": 16,
+          "left": 11.86,
+          "right": 41.89,
+          "top": -735.8,
+          "bottom": -719.8
+        }
+      },
+      {
+        "label": "المسند إليه",
+        "value": "Lina Haddad",
+        "row": {
+          "x": 11.86,
+          "y": -707.8,
+          "width": 106.14,
+          "height": 32,
+          "left": 11.86,
+          "right": 118,
+          "top": -707.8,
+          "bottom": -675.8
+        },
+        "labelRect": {
+          "x": 78.89,
+          "y": -707.8,
+          "width": 39.11,
+          "height": 32,
+          "left": 78.89,
+          "right": 118,
+          "top": -707.8,
+          "bottom": -675.8
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": -707.8,
+          "width": 51.03,
+          "height": 32,
+          "left": 11.86,
+          "right": 62.89,
+          "top": -707.8,
+          "bottom": -675.8
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": -707.8,
+          "width": 44.4,
+          "height": 32,
+          "left": 11.86,
+          "right": 56.26,
+          "top": -707.8,
+          "bottom": -675.8
+        }
+      },
+      {
+        "label": "البريد الإلكتروني",
+        "value": "lina@example.com",
+        "row": {
+          "x": 11.86,
+          "y": -663.8,
+          "width": 106.14,
+          "height": 48,
+          "left": 11.86,
+          "right": 118,
+          "top": -663.8,
+          "bottom": -615.8
+        },
+        "labelRect": {
+          "x": 69.91,
+          "y": -663.8,
+          "width": 48.09,
+          "height": 32,
+          "left": 69.91,
+          "right": 118,
+          "top": -663.8,
+          "bottom": -631.8
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": -663.8,
+          "width": 42.05,
+          "height": 48,
+          "left": 11.86,
+          "right": 53.91,
+          "top": -663.8,
+          "bottom": -615.8
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": -663.8,
+          "width": 41.42,
+          "height": 48,
+          "left": 11.86,
+          "right": 53.28,
+          "top": -663.8,
+          "bottom": -615.8
+        }
+      },
+      {
+        "label": "الحالة",
+        "value": "مصطفّة",
+        "row": {
+          "x": 11.86,
+          "y": -603.8,
+          "width": 106.14,
+          "height": 24.39,
+          "left": 11.86,
+          "right": 118,
+          "top": -603.8,
+          "bottom": -579.41
+        },
+        "labelRect": {
+          "x": 90.95,
+          "y": -603.8,
+          "width": 27.05,
+          "height": 16,
+          "left": 90.95,
+          "right": 118,
+          "top": -603.8,
+          "bottom": -587.8
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": -603.8,
+          "width": 63.09,
+          "height": 24.39,
+          "left": 11.86,
+          "right": 74.95,
+          "top": -603.8,
+          "bottom": -579.41
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": -603.8,
+          "width": 63.09,
+          "height": 24.39,
+          "left": 11.86,
+          "right": 74.95,
+          "top": -603.8,
+          "bottom": -579.41
+        }
+      },
+      {
+        "label": "الموقع",
+        "value": "Main Garage",
+        "row": {
+          "x": 11.86,
+          "y": -567.41,
+          "width": 106.14,
+          "height": 32,
+          "left": 11.86,
+          "right": 118,
+          "top": -567.41,
+          "bottom": -535.41
+        },
+        "labelRect": {
+          "x": 84.93,
+          "y": -567.41,
+          "width": 33.07,
+          "height": 16,
+          "left": 84.93,
+          "right": 118,
+          "top": -567.41,
+          "bottom": -551.41
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": -567.41,
+          "width": 57.07,
+          "height": 32,
+          "left": 11.86,
+          "right": 68.93,
+          "top": -567.41,
+          "bottom": -535.41
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": -567.41,
+          "width": 40.15,
+          "height": 32,
+          "left": 11.86,
+          "right": 52.01,
+          "top": -567.41,
+          "bottom": -535.41
+        }
+      },
+      {
+        "label": "خانة المفتاح",
+        "value": "K-12",
+        "row": {
+          "x": 11.86,
+          "y": -523.41,
+          "width": 106.14,
+          "height": 16,
+          "left": 11.86,
+          "right": 118,
+          "top": -523.41,
+          "bottom": -507.41
+        },
+        "labelRect": {
+          "x": 60.6,
+          "y": -523.41,
+          "width": 57.4,
+          "height": 16,
+          "left": 60.6,
+          "right": 118,
+          "top": -523.41,
+          "bottom": -507.41
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": -523.41,
+          "width": 26.45,
+          "height": 16,
+          "left": 11.86,
+          "right": 38.3,
+          "top": -523.41,
+          "bottom": -507.41
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": -523.41,
+          "width": 26.45,
+          "height": 16,
+          "left": 11.86,
+          "right": 38.3,
+          "top": -523.41,
+          "bottom": -507.41
+        }
+      },
+      {
+        "label": "منطقة الاصطفاف",
+        "value": "Z-1 · Garage",
+        "row": {
+          "x": 11.86,
+          "y": -495.41,
+          "width": 106.14,
+          "height": 48,
+          "left": 11.86,
+          "right": 118,
+          "top": -495.41,
+          "bottom": -447.41
+        },
+        "labelRect": {
+          "x": 64.89,
+          "y": -495.41,
+          "width": 53.11,
+          "height": 32,
+          "left": 64.89,
+          "right": 118,
+          "top": -495.41,
+          "bottom": -463.41
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": -495.41,
+          "width": 37.03,
+          "height": 48,
+          "left": 11.86,
+          "right": 48.89,
+          "top": -495.41,
+          "bottom": -447.41
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": -495.41,
+          "width": 33.66,
+          "height": 48,
+          "left": 11.86,
+          "right": 45.52,
+          "top": -495.41,
+          "bottom": -447.41
+        }
+      },
+      {
+        "label": "مكان الاصطفاف",
+        "value": "P-4 · North",
+        "row": {
+          "x": 11.86,
+          "y": -435.41,
+          "width": 106.14,
+          "height": 32,
+          "left": 11.86,
+          "right": 118,
+          "top": -435.41,
+          "bottom": -403.41
+        },
+        "labelRect": {
+          "x": 64.89,
+          "y": -435.41,
+          "width": 53.11,
+          "height": 32,
+          "left": 64.89,
+          "right": 118,
+          "top": -435.41,
+          "bottom": -403.41
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": -435.41,
+          "width": 37.03,
+          "height": 32,
+          "left": 11.86,
+          "right": 48.89,
+          "top": -435.41,
+          "bottom": -403.41
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": -435.41,
+          "width": 33.84,
+          "height": 32,
+          "left": 11.86,
+          "right": 45.7,
+          "top": -435.41,
+          "bottom": -403.41
+        }
+      },
+      {
+        "label": "الإنشاء",
+        "value": "٢١ أيلول، ١:٠٠ م",
+        "row": {
+          "x": 11.86,
+          "y": -391.41,
+          "width": 106.14,
+          "height": 32,
+          "left": 11.86,
+          "right": 118,
+          "top": -391.41,
+          "bottom": -359.41
+        },
+        "labelRect": {
+          "x": 85.94,
+          "y": -391.41,
+          "width": 32.06,
+          "height": 16,
+          "left": 85.94,
+          "right": 118,
+          "top": -391.41,
+          "bottom": -375.41
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": -391.41,
+          "width": 58.08,
+          "height": 32,
+          "left": 11.86,
+          "right": 69.94,
+          "top": -391.41,
+          "bottom": -359.41
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": -391.41,
+          "width": 40.39,
+          "height": 32,
+          "left": 11.86,
+          "right": 52.25,
+          "top": -391.41,
+          "bottom": -359.41
+        }
+      },
+      {
+        "label": "آخر تحديث",
+        "value": "٢١ أيلول، ٣:٠٠ م",
+        "row": {
+          "x": 11.86,
+          "y": -347.41,
+          "width": 106.14,
+          "height": 32,
+          "left": 11.86,
+          "right": 118,
+          "top": -347.41,
+          "bottom": -315.41
+        },
+        "labelRect": {
+          "x": 81.58,
+          "y": -347.41,
+          "width": 36.42,
+          "height": 32,
+          "left": 81.58,
+          "right": 118,
+          "top": -347.41,
+          "bottom": -315.41
+        },
+        "valueRect": {
+          "x": 11.86,
+          "y": -347.41,
+          "width": 53.72,
+          "height": 32,
+          "left": 11.86,
+          "right": 65.58,
+          "top": -347.41,
+          "bottom": -315.41
+        },
+        "valueTextRect": {
+          "x": 11.86,
+          "y": -347.41,
+          "width": 40.39,
+          "height": 32,
+          "left": 11.86,
+          "right": 52.25,
+          "top": -347.41,
+          "bottom": -315.41
+        }
+      }
+    ],
+    "factCount": 12,
+    "horizontallyInside": {
+      "help": true,
+      "close": false,
+      "list": true,
+      "values": true,
+      "valueText": true
+    },
+    "photoSectionCount": 3,
+    "focused": "إغلاق"
+  },
+  "viewerBounds": {
+    "x": 5,
+    "y": 48.234375,
+    "width": 150,
+    "height": 353.53125
+  },
+  "accessibility": {
+    "initialCloseFocus": true,
+    "helpAriaLabel": "مساعدة: تفاصيل المركبة",
+    "closeAriaLabel": "إغلاق",
+    "tabToHelp": false,
+    "shiftTabToClose": true,
+    "escapeClosed": true,
+    "focusReturned": true,
+    "thumbnailFocusReturned": true
+  },
+  "errorsAtCapture": []
+}

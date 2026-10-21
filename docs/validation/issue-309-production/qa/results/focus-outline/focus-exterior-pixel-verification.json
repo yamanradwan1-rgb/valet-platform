@@ -1,0 +1,455 @@
+{
+  "method": "actual Chromium before/after RGBA outside photo section; 6px paint margin",
+  "focusCases": 32,
+  "positiveExteriorRings": 32,
+  "observations": [
+    {
+      "case": "vehicles-en-light-320",
+      "tile": "first",
+      "exteriorSide": "left",
+      "pixelsChangedOutsideSection": 598,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        19,
+        561,
+        25,
+        756
+      ]
+    },
+    {
+      "case": "vehicles-en-light-320",
+      "tile": "last",
+      "exteriorSide": "left",
+      "pixelsChangedOutsideSection": 643,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        19,
+        706,
+        25,
+        900
+      ]
+    },
+    {
+      "case": "vehicles-en-light-390",
+      "tile": "first",
+      "exteriorSide": "left",
+      "pixelsChangedOutsideSection": 703,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        19,
+        500,
+        25,
+        730
+      ]
+    },
+    {
+      "case": "vehicles-en-light-390",
+      "tile": "last",
+      "exteriorSide": "left",
+      "pixelsChangedOutsideSection": 748,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        19,
+        671,
+        25,
+        900
+      ]
+    },
+    {
+      "case": "vehicles-en-dark-320",
+      "tile": "first",
+      "exteriorSide": "left",
+      "pixelsChangedOutsideSection": 598,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        19,
+        561,
+        25,
+        756
+      ]
+    },
+    {
+      "case": "vehicles-en-dark-320",
+      "tile": "last",
+      "exteriorSide": "left",
+      "pixelsChangedOutsideSection": 645,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        19,
+        706,
+        25,
+        900
+      ]
+    },
+    {
+      "case": "vehicles-en-dark-390",
+      "tile": "first",
+      "exteriorSide": "left",
+      "pixelsChangedOutsideSection": 703,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        19,
+        500,
+        25,
+        730
+      ]
+    },
+    {
+      "case": "vehicles-en-dark-390",
+      "tile": "last",
+      "exteriorSide": "left",
+      "pixelsChangedOutsideSection": 750,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        19,
+        671,
+        25,
+        900
+      ]
+    },
+    {
+      "case": "vehicles-ar-dark-320",
+      "tile": "first",
+      "exteriorSide": "right",
+      "pixelsChangedOutsideSection": 599,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        295,
+        561,
+        301,
+        756
+      ]
+    },
+    {
+      "case": "vehicles-ar-dark-320",
+      "tile": "last",
+      "exteriorSide": "right",
+      "pixelsChangedOutsideSection": 598,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        295,
+        706,
+        301,
+        900
+      ]
+    },
+    {
+      "case": "vehicles-ar-dark-390",
+      "tile": "first",
+      "exteriorSide": "right",
+      "pixelsChangedOutsideSection": 663,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        365,
+        500,
+        371,
+        716
+      ]
+    },
+    {
+      "case": "vehicles-ar-dark-390",
+      "tile": "last",
+      "exteriorSide": "right",
+      "pixelsChangedOutsideSection": 662,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        365,
+        685,
+        371,
+        900
+      ]
+    },
+    {
+      "case": "vehicles-ar-light-320",
+      "tile": "first",
+      "exteriorSide": "right",
+      "pixelsChangedOutsideSection": 599,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        295,
+        561,
+        301,
+        756
+      ]
+    },
+    {
+      "case": "vehicles-ar-light-320",
+      "tile": "last",
+      "exteriorSide": "right",
+      "pixelsChangedOutsideSection": 598,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        295,
+        706,
+        301,
+        900
+      ]
+    },
+    {
+      "case": "vehicles-ar-light-390",
+      "tile": "first",
+      "exteriorSide": "right",
+      "pixelsChangedOutsideSection": 663,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        365,
+        500,
+        371,
+        716
+      ]
+    },
+    {
+      "case": "vehicles-ar-light-390",
+      "tile": "last",
+      "exteriorSide": "right",
+      "pixelsChangedOutsideSection": 662,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        365,
+        685,
+        371,
+        900
+      ]
+    },
+    {
+      "case": "live-operations-en-light-320",
+      "tile": "first",
+      "exteriorSide": "left",
+      "pixelsChangedOutsideSection": 598,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        19,
+        617,
+        25,
+        812
+      ]
+    },
+    {
+      "case": "live-operations-en-light-320",
+      "tile": "last",
+      "exteriorSide": "left",
+      "pixelsChangedOutsideSection": 643,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        19,
+        706,
+        25,
+        900
+      ]
+    },
+    {
+      "case": "live-operations-en-light-390",
+      "tile": "first",
+      "exteriorSide": "left",
+      "pixelsChangedOutsideSection": 703,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        19,
+        500,
+        25,
+        730
+      ]
+    },
+    {
+      "case": "live-operations-en-light-390",
+      "tile": "last",
+      "exteriorSide": "left",
+      "pixelsChangedOutsideSection": 748,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        19,
+        671,
+        25,
+        900
+      ]
+    },
+    {
+      "case": "live-operations-en-dark-320",
+      "tile": "first",
+      "exteriorSide": "left",
+      "pixelsChangedOutsideSection": 598,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        19,
+        617,
+        25,
+        812
+      ]
+    },
+    {
+      "case": "live-operations-en-dark-320",
+      "tile": "last",
+      "exteriorSide": "left",
+      "pixelsChangedOutsideSection": 645,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        19,
+        706,
+        25,
+        900
+      ]
+    },
+    {
+      "case": "live-operations-en-dark-390",
+      "tile": "first",
+      "exteriorSide": "left",
+      "pixelsChangedOutsideSection": 703,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        19,
+        500,
+        25,
+        730
+      ]
+    },
+    {
+      "case": "live-operations-en-dark-390",
+      "tile": "last",
+      "exteriorSide": "left",
+      "pixelsChangedOutsideSection": 750,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        19,
+        671,
+        25,
+        900
+      ]
+    },
+    {
+      "case": "live-operations-ar-dark-320",
+      "tile": "first",
+      "exteriorSide": "right",
+      "pixelsChangedOutsideSection": 599,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        295,
+        617,
+        301,
+        812
+      ]
+    },
+    {
+      "case": "live-operations-ar-dark-320",
+      "tile": "last",
+      "exteriorSide": "right",
+      "pixelsChangedOutsideSection": 598,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        295,
+        706,
+        301,
+        900
+      ]
+    },
+    {
+      "case": "live-operations-ar-dark-390",
+      "tile": "first",
+      "exteriorSide": "right",
+      "pixelsChangedOutsideSection": 663,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        365,
+        500,
+        371,
+        716
+      ]
+    },
+    {
+      "case": "live-operations-ar-dark-390",
+      "tile": "last",
+      "exteriorSide": "right",
+      "pixelsChangedOutsideSection": 662,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        365,
+        685,
+        371,
+        900
+      ]
+    },
+    {
+      "case": "live-operations-ar-light-320",
+      "tile": "first",
+      "exteriorSide": "right",
+      "pixelsChangedOutsideSection": 599,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        295,
+        617,
+        301,
+        812
+      ]
+    },
+    {
+      "case": "live-operations-ar-light-320",
+      "tile": "last",
+      "exteriorSide": "right",
+      "pixelsChangedOutsideSection": 598,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        295,
+        706,
+        301,
+        900
+      ]
+    },
+    {
+      "case": "live-operations-ar-light-390",
+      "tile": "first",
+      "exteriorSide": "right",
+      "pixelsChangedOutsideSection": 663,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        365,
+        500,
+        371,
+        716
+      ]
+    },
+    {
+      "case": "live-operations-ar-light-390",
+      "tile": "last",
+      "exteriorSide": "right",
+      "pixelsChangedOutsideSection": 662,
+      "focusVisible": true,
+      "clipMargin": "6px",
+      "crop": [
+        365,
+        685,
+        371,
+        900
+      ]
+    }
+  ]
+}

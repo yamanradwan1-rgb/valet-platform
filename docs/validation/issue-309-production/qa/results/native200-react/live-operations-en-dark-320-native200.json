@@ -1,0 +1,1835 @@
+{
+  "case": {
+    "name": "live-operations-en-dark-320-native200",
+    "surface": "live-operations",
+    "locale": "en",
+    "theme": "dark",
+    "width": 320
+  },
+  "candidateCommit": "3ecde78e",
+  "zoomMethod": "MV3 chrome.tabs.setZoom(tabId,2) and getZoom===2",
+  "zoomReported": 2,
+  "unzoomed": {
+    "viewport": {
+      "innerWidth": 320,
+      "innerHeight": 900,
+      "outerWidth": 516,
+      "outerHeight": 900,
+      "dpr": 1,
+      "visualScale": 1
+    },
+    "root": {
+      "dir": "ltr",
+      "lang": "en",
+      "theme": "dark",
+      "cssZoom": "1",
+      "inlineZoom": "",
+      "clientWidth": 320,
+      "scrollWidth": 320,
+      "clientHeight": 900,
+      "scrollHeight": 900
+    },
+    "body": {
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 900,
+        "left": 0,
+        "right": 320,
+        "top": 0,
+        "bottom": 900
+      },
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "fontSize": "16px"
+    },
+    "fontFaces": [
+      {
+        "family": "__nextjs-Geist",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist Mono",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist Mono",
+        "status": "unloaded"
+      }
+    ],
+    "shell": {
+      "x": 0,
+      "y": 0,
+      "width": 320,
+      "height": 900,
+      "left": 0,
+      "right": 320,
+      "top": 0,
+      "bottom": 900
+    },
+    "content": {
+      "x": 0,
+      "y": 134.19,
+      "width": 320,
+      "height": 765.81,
+      "left": 0,
+      "right": 320,
+      "top": 134.19,
+      "bottom": 900
+    },
+    "table": {
+      "x": 21,
+      "y": 722.19,
+      "width": 832,
+      "height": 113,
+      "left": 21,
+      "right": 853,
+      "top": 722.19,
+      "bottom": 835.19
+    },
+    "drawer": null,
+    "header": null,
+    "bodyPanel": null,
+    "factList": null,
+    "bodyScroll": null,
+    "help": null,
+    "close": null,
+    "facts": [],
+    "factCount": 0,
+    "horizontallyInside": {
+      "help": false,
+      "close": false,
+      "list": false,
+      "values": true,
+      "valueText": true
+    },
+    "photoSectionCount": 0,
+    "focused": "BODY"
+  },
+  "closed": {
+    "viewport": {
+      "innerWidth": 160,
+      "innerHeight": 450,
+      "outerWidth": 516,
+      "outerHeight": 900,
+      "dpr": 2,
+      "visualScale": 1
+    },
+    "root": {
+      "dir": "ltr",
+      "lang": "en",
+      "theme": "dark",
+      "cssZoom": "1",
+      "inlineZoom": "",
+      "clientWidth": 160,
+      "scrollWidth": 160,
+      "clientHeight": 450,
+      "scrollHeight": 450
+    },
+    "body": {
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 160,
+        "height": 450,
+        "left": 0,
+        "right": 160,
+        "top": 0,
+        "bottom": 450
+      },
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "fontSize": "16px"
+    },
+    "fontFaces": [
+      {
+        "family": "__nextjs-Geist",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist Mono",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist Mono",
+        "status": "unloaded"
+      }
+    ],
+    "shell": {
+      "x": 0,
+      "y": 0,
+      "width": 160,
+      "height": 450,
+      "left": 0,
+      "right": 160,
+      "top": 0,
+      "bottom": 450
+    },
+    "content": {
+      "x": 0,
+      "y": 139.59,
+      "width": 160,
+      "height": 310.41,
+      "left": 0,
+      "right": 160,
+      "top": 139.59,
+      "bottom": 450
+    },
+    "table": {
+      "x": 21,
+      "y": 907.59,
+      "width": 832,
+      "height": 113,
+      "left": 21,
+      "right": 853,
+      "top": 907.59,
+      "bottom": 1020.59
+    },
+    "drawer": null,
+    "header": null,
+    "bodyPanel": null,
+    "factList": null,
+    "bodyScroll": null,
+    "help": null,
+    "close": null,
+    "facts": [],
+    "factCount": 0,
+    "horizontallyInside": {
+      "help": false,
+      "close": false,
+      "list": false,
+      "values": true,
+      "valueText": true
+    },
+    "photoSectionCount": 0,
+    "focused": "BODY"
+  },
+  "top": {
+    "viewport": {
+      "innerWidth": 160,
+      "innerHeight": 450,
+      "outerWidth": 516,
+      "outerHeight": 900,
+      "dpr": 2,
+      "visualScale": 1
+    },
+    "root": {
+      "dir": "ltr",
+      "lang": "en",
+      "theme": "dark",
+      "cssZoom": "1",
+      "inlineZoom": "",
+      "clientWidth": 160,
+      "scrollWidth": 160,
+      "clientHeight": 450,
+      "scrollHeight": 450
+    },
+    "body": {
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 160,
+        "height": 450,
+        "left": 0,
+        "right": 160,
+        "top": 0,
+        "bottom": 450
+      },
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "fontSize": "16px"
+    },
+    "fontFaces": [
+      {
+        "family": "__nextjs-Geist",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist Mono",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist Mono",
+        "status": "unloaded"
+      }
+    ],
+    "shell": {
+      "x": 0,
+      "y": 0,
+      "width": 160,
+      "height": 450,
+      "left": 0,
+      "right": 160,
+      "top": 0,
+      "bottom": 450
+    },
+    "content": {
+      "x": 0,
+      "y": 139.59,
+      "width": 160,
+      "height": 310.41,
+      "left": 0,
+      "right": 160,
+      "top": 139.59,
+      "bottom": 450
+    },
+    "table": {
+      "x": -693,
+      "y": 235.09,
+      "width": 832,
+      "height": 113,
+      "left": -693,
+      "right": 139,
+      "top": 235.09,
+      "bottom": 348.09
+    },
+    "drawer": {
+      "x": 0,
+      "y": 0,
+      "width": 160,
+      "height": 450,
+      "left": 0,
+      "right": 160,
+      "top": 0,
+      "bottom": 450
+    },
+    "header": {
+      "x": 1,
+      "y": 0,
+      "width": 159,
+      "height": 89.7,
+      "left": 1,
+      "right": 160,
+      "top": 0,
+      "bottom": 89.7
+    },
+    "bodyPanel": {
+      "x": 1,
+      "y": 89.7,
+      "width": 159,
+      "height": 360.3,
+      "left": 1,
+      "right": 160,
+      "top": 89.7,
+      "bottom": 450
+    },
+    "factList": {
+      "x": 25,
+      "y": 113.7,
+      "width": 111,
+      "height": 694.39,
+      "left": 25,
+      "right": 136,
+      "top": 113.7,
+      "bottom": 808.09
+    },
+    "bodyScroll": {
+      "width": 159,
+      "scrollWidth": 159,
+      "height": 360,
+      "scrollHeight": 1589,
+      "scrollTop": 0
+    },
+    "help": {
+      "rect": {
+        "x": 92.42,
+        "y": 28.34,
+        "width": 32,
+        "height": 32,
+        "left": 92.42,
+        "right": 124.42,
+        "top": 28.34,
+        "bottom": 60.34
+      },
+      "ariaLabel": "Help: Session details",
+      "className": "context-help-module__LzBu0q__trigger",
+      "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "color": "rgb(248, 250, 252)",
+      "background": "rgb(13, 21, 47)",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-question-mark lucide-help-circle lucide-circle-help\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"></path><path d=\"M12 17h.01\"></path></svg>",
+      "focused": false,
+      "visibleWithinViewport": true
+    },
+    "close": {
+      "rect": {
+        "x": 140.42,
+        "y": 29.34,
+        "width": 30,
+        "height": 30,
+        "left": 140.42,
+        "right": 170.42,
+        "top": 29.34,
+        "bottom": 59.34
+      },
+      "ariaLabel": "Close",
+      "className": "operations-module__AOnyZG__quiet",
+      "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "color": "rgb(30, 96, 240)",
+      "background": "rgba(0, 0, 0, 0)",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-x\" aria-hidden=\"true\"><path d=\"M18 6 6 18\"></path><path d=\"m6 6 12 12\"></path></svg>",
+      "focused": true,
+      "visibleWithinViewport": false
+    },
+    "facts": [
+      {
+        "label": "Vehicle",
+        "value": "Toyota Camry",
+        "row": {
+          "x": 42,
+          "y": 130.7,
+          "width": 101.58,
+          "height": 32,
+          "left": 42,
+          "right": 143.58,
+          "top": 130.7,
+          "bottom": 162.7
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 130.7,
+          "width": 37.39,
+          "height": 16,
+          "left": 42,
+          "right": 79.39,
+          "top": 130.7,
+          "bottom": 146.7
+        },
+        "valueRect": {
+          "x": 95.39,
+          "y": 130.7,
+          "width": 48.19,
+          "height": 32,
+          "left": 95.39,
+          "right": 143.58,
+          "top": 130.7,
+          "bottom": 162.7
+        },
+        "valueTextRect": {
+          "x": 105.48,
+          "y": 130.7,
+          "width": 38.09,
+          "height": 32,
+          "left": 105.48,
+          "right": 143.58,
+          "top": 130.7,
+          "bottom": 162.7
+        }
+      },
+      {
+        "label": "Plate",
+        "value": "JO · 12-34567",
+        "row": {
+          "x": 42,
+          "y": 174.7,
+          "width": 101.58,
+          "height": 32,
+          "left": 42,
+          "right": 143.58,
+          "top": 174.7,
+          "bottom": 206.7
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 174.7,
+          "width": 26.08,
+          "height": 16,
+          "left": 42,
+          "right": 68.08,
+          "top": 174.7,
+          "bottom": 190.7
+        },
+        "valueRect": {
+          "x": 84.08,
+          "y": 174.7,
+          "width": 59.5,
+          "height": 32,
+          "left": 84.08,
+          "right": 143.58,
+          "top": 174.7,
+          "bottom": 206.7
+        },
+        "valueTextRect": {
+          "x": 100.6,
+          "y": 174.7,
+          "width": 42.98,
+          "height": 32,
+          "left": 100.6,
+          "right": 143.58,
+          "top": 174.7,
+          "bottom": 206.7
+        }
+      },
+      {
+        "label": "Color",
+        "value": "Black",
+        "row": {
+          "x": 42,
+          "y": 218.7,
+          "width": 101.58,
+          "height": 16,
+          "left": 42,
+          "right": 143.58,
+          "top": 218.7,
+          "bottom": 234.7
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 218.7,
+          "width": 28.57,
+          "height": 16,
+          "left": 42,
+          "right": 70.57,
+          "top": 218.7,
+          "bottom": 234.7
+        },
+        "valueRect": {
+          "x": 113.55,
+          "y": 218.7,
+          "width": 30.03,
+          "height": 16,
+          "left": 113.55,
+          "right": 143.58,
+          "top": 218.7,
+          "bottom": 234.7
+        },
+        "valueTextRect": {
+          "x": 113.55,
+          "y": 218.7,
+          "width": 30.03,
+          "height": 16,
+          "left": 113.55,
+          "right": 143.58,
+          "top": 218.7,
+          "bottom": 234.7
+        }
+      },
+      {
+        "label": "Current assigned employee",
+        "value": "Lina Haddad",
+        "row": {
+          "x": 42,
+          "y": 246.7,
+          "width": 101.58,
+          "height": 48,
+          "left": 42,
+          "right": 143.58,
+          "top": 246.7,
+          "bottom": 294.7
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 246.7,
+          "width": 57.41,
+          "height": 48,
+          "left": 42,
+          "right": 99.41,
+          "top": 246.7,
+          "bottom": 294.7
+        },
+        "valueRect": {
+          "x": 115.41,
+          "y": 246.7,
+          "width": 28.17,
+          "height": 48,
+          "left": 115.41,
+          "right": 143.58,
+          "top": 246.7,
+          "bottom": 294.7
+        },
+        "valueTextRect": {
+          "x": 120.31,
+          "y": 246.7,
+          "width": 23.27,
+          "height": 48,
+          "left": 120.31,
+          "right": 143.58,
+          "top": 246.7,
+          "bottom": 294.7
+        }
+      },
+      {
+        "label": "Email",
+        "value": "lina@example.com",
+        "row": {
+          "x": 42,
+          "y": 306.7,
+          "width": 101.58,
+          "height": 32,
+          "left": 42,
+          "right": 143.58,
+          "top": 306.7,
+          "bottom": 338.7
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 306.7,
+          "width": 28.33,
+          "height": 16,
+          "left": 42,
+          "right": 70.33,
+          "top": 306.7,
+          "bottom": 322.7
+        },
+        "valueRect": {
+          "x": 86.33,
+          "y": 306.7,
+          "width": 57.25,
+          "height": 32,
+          "left": 86.33,
+          "right": 143.58,
+          "top": 306.7,
+          "bottom": 338.7
+        },
+        "valueTextRect": {
+          "x": 87.9,
+          "y": 306.7,
+          "width": 55.68,
+          "height": 32,
+          "left": 87.9,
+          "right": 143.58,
+          "top": 306.7,
+          "bottom": 338.7
+        }
+      },
+      {
+        "label": "Original check-in staff",
+        "value": "Carmen Original",
+        "row": {
+          "x": 42,
+          "y": 350.7,
+          "width": 101.58,
+          "height": 64,
+          "left": 42,
+          "right": 143.58,
+          "top": 350.7,
+          "bottom": 414.7
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 350.7,
+          "width": 47.68,
+          "height": 48,
+          "left": 42,
+          "right": 89.68,
+          "top": 350.7,
+          "bottom": 398.7
+        },
+        "valueRect": {
+          "x": 105.68,
+          "y": 350.7,
+          "width": 37.9,
+          "height": 64,
+          "left": 105.68,
+          "right": 143.58,
+          "top": 350.7,
+          "bottom": 414.7
+        },
+        "valueTextRect": {
+          "x": 107.34,
+          "y": 350.7,
+          "width": 36.24,
+          "height": 64,
+          "left": 107.34,
+          "right": 143.58,
+          "top": 350.7,
+          "bottom": 414.7
+        }
+      },
+      {
+        "label": "Parked by",
+        "value": "Nora Parker",
+        "row": {
+          "x": 42,
+          "y": 426.7,
+          "width": 101.58,
+          "height": 32,
+          "left": 42,
+          "right": 143.58,
+          "top": 426.7,
+          "bottom": 458.7
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 426.7,
+          "width": 37.27,
+          "height": 32,
+          "left": 42,
+          "right": 79.27,
+          "top": 426.7,
+          "bottom": 458.7
+        },
+        "valueRect": {
+          "x": 95.27,
+          "y": 426.7,
+          "width": 48.31,
+          "height": 32,
+          "left": 95.27,
+          "right": 143.58,
+          "top": 426.7,
+          "bottom": 458.7
+        },
+        "valueTextRect": {
+          "x": 107.46,
+          "y": 426.7,
+          "width": 36.12,
+          "height": 32,
+          "left": 107.46,
+          "right": 143.58,
+          "top": 426.7,
+          "bottom": 458.7
+        }
+      },
+      {
+        "label": "State",
+        "value": "Parked",
+        "row": {
+          "x": 42,
+          "y": 470.7,
+          "width": 101.58,
+          "height": 24.39,
+          "left": 42,
+          "right": 143.58,
+          "top": 470.7,
+          "bottom": 495.09
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 470.7,
+          "width": 26.51,
+          "height": 16,
+          "left": 42,
+          "right": 68.51,
+          "top": 470.7,
+          "bottom": 486.7
+        },
+        "valueRect": {
+          "x": 84.51,
+          "y": 470.7,
+          "width": 59.07,
+          "height": 24.39,
+          "left": 84.51,
+          "right": 143.58,
+          "top": 470.7,
+          "bottom": 495.09
+        },
+        "valueTextRect": {
+          "x": 84.51,
+          "y": 470.7,
+          "width": 59.07,
+          "height": 24.39,
+          "left": 84.51,
+          "right": 143.58,
+          "top": 470.7,
+          "bottom": 495.09
+        }
+      },
+      {
+        "label": "Location",
+        "value": "Main Garage",
+        "row": {
+          "x": 42,
+          "y": 507.09,
+          "width": 101.58,
+          "height": 32,
+          "left": 42,
+          "right": 143.58,
+          "top": 507.09,
+          "bottom": 539.09
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 507.09,
+          "width": 45.13,
+          "height": 16,
+          "left": 42,
+          "right": 87.13,
+          "top": 507.09,
+          "bottom": 523.09
+        },
+        "valueRect": {
+          "x": 103.13,
+          "y": 507.09,
+          "width": 40.45,
+          "height": 32,
+          "left": 103.13,
+          "right": 143.58,
+          "top": 507.09,
+          "bottom": 539.09
+        },
+        "valueTextRect": {
+          "x": 103.43,
+          "y": 507.09,
+          "width": 40.15,
+          "height": 32,
+          "left": 103.43,
+          "right": 143.58,
+          "top": 507.09,
+          "bottom": 539.09
+        }
+      },
+      {
+        "label": "Key Slot",
+        "value": "K-12",
+        "row": {
+          "x": 42,
+          "y": 551.09,
+          "width": 101.58,
+          "height": 16,
+          "left": 42,
+          "right": 143.58,
+          "top": 551.09,
+          "bottom": 567.09
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 551.09,
+          "width": 42.55,
+          "height": 16,
+          "left": 42,
+          "right": 84.55,
+          "top": 551.09,
+          "bottom": 567.09
+        },
+        "valueRect": {
+          "x": 117.13,
+          "y": 551.09,
+          "width": 26.45,
+          "height": 16,
+          "left": 117.13,
+          "right": 143.58,
+          "top": 551.09,
+          "bottom": 567.09
+        },
+        "valueTextRect": {
+          "x": 117.13,
+          "y": 551.09,
+          "width": 26.45,
+          "height": 16,
+          "left": 117.13,
+          "right": 143.58,
+          "top": 551.09,
+          "bottom": 567.09
+        }
+      },
+      {
+        "label": "Parking Zone",
+        "value": "Z-1 · Garage",
+        "row": {
+          "x": 42,
+          "y": 579.09,
+          "width": 101.58,
+          "height": 32,
+          "left": 42,
+          "right": 143.58,
+          "top": 579.09,
+          "bottom": 611.09
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 579.09,
+          "width": 42.94,
+          "height": 32,
+          "left": 42,
+          "right": 84.94,
+          "top": 579.09,
+          "bottom": 611.09
+        },
+        "valueRect": {
+          "x": 100.94,
+          "y": 579.09,
+          "width": 42.64,
+          "height": 32,
+          "left": 100.94,
+          "right": 143.58,
+          "top": 579.09,
+          "bottom": 611.09
+        },
+        "valueTextRect": {
+          "x": 103.43,
+          "y": 579.09,
+          "width": 40.15,
+          "height": 32,
+          "left": 103.43,
+          "right": 143.58,
+          "top": 579.09,
+          "bottom": 611.09
+        }
+      },
+      {
+        "label": "Parking Spot",
+        "value": "P-4 · North",
+        "row": {
+          "x": 42,
+          "y": 623.09,
+          "width": 101.58,
+          "height": 32,
+          "left": 42,
+          "right": 143.58,
+          "top": 623.09,
+          "bottom": 655.09
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 623.09,
+          "width": 44.2,
+          "height": 32,
+          "left": 42,
+          "right": 86.2,
+          "top": 623.09,
+          "bottom": 655.09
+        },
+        "valueRect": {
+          "x": 102.2,
+          "y": 623.09,
+          "width": 41.38,
+          "height": 32,
+          "left": 102.2,
+          "right": 143.58,
+          "top": 623.09,
+          "bottom": 655.09
+        },
+        "valueTextRect": {
+          "x": 109.74,
+          "y": 623.09,
+          "width": 33.84,
+          "height": 32,
+          "left": 109.74,
+          "right": 143.58,
+          "top": 623.09,
+          "bottom": 655.09
+        }
+      },
+      {
+        "label": "Created",
+        "value": "Sep 21, 1:00 PM",
+        "row": {
+          "x": 42,
+          "y": 667.09,
+          "width": 101.58,
+          "height": 48,
+          "left": 42,
+          "right": 143.58,
+          "top": 667.09,
+          "bottom": 715.09
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 667.09,
+          "width": 41.39,
+          "height": 16,
+          "left": 42,
+          "right": 83.39,
+          "top": 667.09,
+          "bottom": 683.09
+        },
+        "valueRect": {
+          "x": 99.39,
+          "y": 667.09,
+          "width": 44.19,
+          "height": 48,
+          "left": 99.39,
+          "right": 143.58,
+          "top": 667.09,
+          "bottom": 715.09
+        },
+        "valueTextRect": {
+          "x": 102.55,
+          "y": 667.09,
+          "width": 41.03,
+          "height": 48,
+          "left": 102.55,
+          "right": 143.58,
+          "top": 667.09,
+          "bottom": 715.09
+        }
+      },
+      {
+        "label": "Updated",
+        "value": "Sep 21, 3:00 PM",
+        "row": {
+          "x": 42,
+          "y": 727.09,
+          "width": 101.58,
+          "height": 64,
+          "left": 42,
+          "right": 143.58,
+          "top": 727.09,
+          "bottom": 791.09
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 727.09,
+          "width": 45.88,
+          "height": 16,
+          "left": 42,
+          "right": 87.88,
+          "top": 727.09,
+          "bottom": 743.09
+        },
+        "valueRect": {
+          "x": 103.88,
+          "y": 727.09,
+          "width": 39.7,
+          "height": 64,
+          "left": 103.88,
+          "right": 143.58,
+          "top": 727.09,
+          "bottom": 791.09
+        },
+        "valueTextRect": {
+          "x": 119.62,
+          "y": 727.09,
+          "width": 23.96,
+          "height": 64,
+          "left": 119.62,
+          "right": 143.58,
+          "top": 727.09,
+          "bottom": 791.09
+        }
+      }
+    ],
+    "factCount": 14,
+    "horizontallyInside": {
+      "help": true,
+      "close": false,
+      "list": true,
+      "values": true,
+      "valueText": true
+    },
+    "photoSectionCount": 3,
+    "focused": "Close"
+  },
+  "bottom": {
+    "viewport": {
+      "innerWidth": 160,
+      "innerHeight": 450,
+      "outerWidth": 516,
+      "outerHeight": 900,
+      "dpr": 2,
+      "visualScale": 1
+    },
+    "root": {
+      "dir": "ltr",
+      "lang": "en",
+      "theme": "dark",
+      "cssZoom": "1",
+      "inlineZoom": "",
+      "clientWidth": 160,
+      "scrollWidth": 160,
+      "clientHeight": 450,
+      "scrollHeight": 450
+    },
+    "body": {
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 160,
+        "height": 450,
+        "left": 0,
+        "right": 160,
+        "top": 0,
+        "bottom": 450
+      },
+      "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "fontSize": "16px"
+    },
+    "fontFaces": [
+      {
+        "family": "__nextjs-Geist",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist Mono",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist",
+        "status": "unloaded"
+      },
+      {
+        "family": "__nextjs-Geist Mono",
+        "status": "unloaded"
+      }
+    ],
+    "shell": {
+      "x": 0,
+      "y": 0,
+      "width": 160,
+      "height": 450,
+      "left": 0,
+      "right": 160,
+      "top": 0,
+      "bottom": 450
+    },
+    "content": {
+      "x": 0,
+      "y": 139.59,
+      "width": 160,
+      "height": 310.41,
+      "left": 0,
+      "right": 160,
+      "top": 139.59,
+      "bottom": 450
+    },
+    "table": {
+      "x": -693,
+      "y": 235.09,
+      "width": 832,
+      "height": 113,
+      "left": -693,
+      "right": 139,
+      "top": 235.09,
+      "bottom": 348.09
+    },
+    "drawer": {
+      "x": 0,
+      "y": 0,
+      "width": 160,
+      "height": 450,
+      "left": 0,
+      "right": 160,
+      "top": 0,
+      "bottom": 450
+    },
+    "header": {
+      "x": 1,
+      "y": 0,
+      "width": 159,
+      "height": 89.7,
+      "left": 1,
+      "right": 160,
+      "top": 0,
+      "bottom": 89.7
+    },
+    "bodyPanel": {
+      "x": 1,
+      "y": 89.7,
+      "width": 159,
+      "height": 360.3,
+      "left": 1,
+      "right": 160,
+      "top": 89.7,
+      "bottom": 450
+    },
+    "factList": {
+      "x": 25,
+      "y": -1114.8,
+      "width": 111,
+      "height": 694.39,
+      "left": 25,
+      "right": 136,
+      "top": -1114.8,
+      "bottom": -420.41
+    },
+    "bodyScroll": {
+      "width": 159,
+      "scrollWidth": 159,
+      "height": 360,
+      "scrollHeight": 1589,
+      "scrollTop": 1228.5
+    },
+    "help": {
+      "rect": {
+        "x": 92.42,
+        "y": 28.34,
+        "width": 32,
+        "height": 32,
+        "left": 92.42,
+        "right": 124.42,
+        "top": 28.34,
+        "bottom": 60.34
+      },
+      "ariaLabel": "Help: Session details",
+      "className": "context-help-module__LzBu0q__trigger",
+      "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "color": "rgb(248, 250, 252)",
+      "background": "rgb(13, 21, 47)",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-question-mark lucide-help-circle lucide-circle-help\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"></path><path d=\"M12 17h.01\"></path></svg>",
+      "focused": false,
+      "visibleWithinViewport": true
+    },
+    "close": {
+      "rect": {
+        "x": 140.42,
+        "y": 29.34,
+        "width": 30,
+        "height": 30,
+        "left": 140.42,
+        "right": 170.42,
+        "top": 29.34,
+        "bottom": 59.34
+      },
+      "ariaLabel": "Close",
+      "className": "operations-module__AOnyZG__quiet",
+      "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "color": "rgb(30, 96, 240)",
+      "background": "rgba(0, 0, 0, 0)",
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-x\" aria-hidden=\"true\"><path d=\"M18 6 6 18\"></path><path d=\"m6 6 12 12\"></path></svg>",
+      "focused": true,
+      "visibleWithinViewport": false
+    },
+    "facts": [
+      {
+        "label": "Vehicle",
+        "value": "Toyota Camry",
+        "row": {
+          "x": 42,
+          "y": -1097.8,
+          "width": 101.58,
+          "height": 32,
+          "left": 42,
+          "right": 143.58,
+          "top": -1097.8,
+          "bottom": -1065.8
+        },
+        "labelRect": {
+          "x": 42,
+          "y": -1097.8,
+          "width": 37.39,
+          "height": 16,
+          "left": 42,
+          "right": 79.39,
+          "top": -1097.8,
+          "bottom": -1081.8
+        },
+        "valueRect": {
+          "x": 95.39,
+          "y": -1097.8,
+          "width": 48.19,
+          "height": 32,
+          "left": 95.39,
+          "right": 143.58,
+          "top": -1097.8,
+          "bottom": -1065.8
+        },
+        "valueTextRect": {
+          "x": 105.48,
+          "y": -1097.8,
+          "width": 38.09,
+          "height": 32,
+          "left": 105.48,
+          "right": 143.58,
+          "top": -1097.8,
+          "bottom": -1065.8
+        }
+      },
+      {
+        "label": "Plate",
+        "value": "JO · 12-34567",
+        "row": {
+          "x": 42,
+          "y": -1053.8,
+          "width": 101.58,
+          "height": 32,
+          "left": 42,
+          "right": 143.58,
+          "top": -1053.8,
+          "bottom": -1021.8
+        },
+        "labelRect": {
+          "x": 42,
+          "y": -1053.8,
+          "width": 26.08,
+          "height": 16,
+          "left": 42,
+          "right": 68.08,
+          "top": -1053.8,
+          "bottom": -1037.8
+        },
+        "valueRect": {
+          "x": 84.08,
+          "y": -1053.8,
+          "width": 59.5,
+          "height": 32,
+          "left": 84.08,
+          "right": 143.58,
+          "top": -1053.8,
+          "bottom": -1021.8
+        },
+        "valueTextRect": {
+          "x": 100.6,
+          "y": -1053.8,
+          "width": 42.98,
+          "height": 32,
+          "left": 100.6,
+          "right": 143.58,
+          "top": -1053.8,
+          "bottom": -1021.8
+        }
+      },
+      {
+        "label": "Color",
+        "value": "Black",
+        "row": {
+          "x": 42,
+          "y": -1009.8,
+          "width": 101.58,
+          "height": 16,
+          "left": 42,
+          "right": 143.58,
+          "top": -1009.8,
+          "bottom": -993.8
+        },
+        "labelRect": {
+          "x": 42,
+          "y": -1009.8,
+          "width": 28.57,
+          "height": 16,
+          "left": 42,
+          "right": 70.57,
+          "top": -1009.8,
+          "bottom": -993.8
+        },
+        "valueRect": {
+          "x": 113.55,
+          "y": -1009.8,
+          "width": 30.03,
+          "height": 16,
+          "left": 113.55,
+          "right": 143.58,
+          "top": -1009.8,
+          "bottom": -993.8
+        },
+        "valueTextRect": {
+          "x": 113.55,
+          "y": -1009.8,
+          "width": 30.03,
+          "height": 16,
+          "left": 113.55,
+          "right": 143.58,
+          "top": -1009.8,
+          "bottom": -993.8
+        }
+      },
+      {
+        "label": "Current assigned employee",
+        "value": "Lina Haddad",
+        "row": {
+          "x": 42,
+          "y": -981.8,
+          "width": 101.58,
+          "height": 48,
+          "left": 42,
+          "right": 143.58,
+          "top": -981.8,
+          "bottom": -933.8
+        },
+        "labelRect": {
+          "x": 42,
+          "y": -981.8,
+          "width": 57.41,
+          "height": 48,
+          "left": 42,
+          "right": 99.41,
+          "top": -981.8,
+          "bottom": -933.8
+        },
+        "valueRect": {
+          "x": 115.41,
+          "y": -981.8,
+          "width": 28.17,
+          "height": 48,
+          "left": 115.41,
+          "right": 143.58,
+          "top": -981.8,
+          "bottom": -933.8
+        },
+        "valueTextRect": {
+          "x": 120.31,
+          "y": -981.8,
+          "width": 23.27,
+          "height": 48,
+          "left": 120.31,
+          "right": 143.58,
+          "top": -981.8,
+          "bottom": -933.8
+        }
+      },
+      {
+        "label": "Email",
+        "value": "lina@example.com",
+        "row": {
+          "x": 42,
+          "y": -921.8,
+          "width": 101.58,
+          "height": 32,
+          "left": 42,
+          "right": 143.58,
+          "top": -921.8,
+          "bottom": -889.8
+        },
+        "labelRect": {
+          "x": 42,
+          "y": -921.8,
+          "width": 28.33,
+          "height": 16,
+          "left": 42,
+          "right": 70.33,
+          "top": -921.8,
+          "bottom": -905.8
+        },
+        "valueRect": {
+          "x": 86.33,
+          "y": -921.8,
+          "width": 57.25,
+          "height": 32,
+          "left": 86.33,
+          "right": 143.58,
+          "top": -921.8,
+          "bottom": -889.8
+        },
+        "valueTextRect": {
+          "x": 87.9,
+          "y": -921.8,
+          "width": 55.68,
+          "height": 32,
+          "left": 87.9,
+          "right": 143.58,
+          "top": -921.8,
+          "bottom": -889.8
+        }
+      },
+      {
+        "label": "Original check-in staff",
+        "value": "Carmen Original",
+        "row": {
+          "x": 42,
+          "y": -877.8,
+          "width": 101.58,
+          "height": 64,
+          "left": 42,
+          "right": 143.58,
+          "top": -877.8,
+          "bottom": -813.8
+        },
+        "labelRect": {
+          "x": 42,
+          "y": -877.8,
+          "width": 47.68,
+          "height": 48,
+          "left": 42,
+          "right": 89.68,
+          "top": -877.8,
+          "bottom": -829.8
+        },
+        "valueRect": {
+          "x": 105.68,
+          "y": -877.8,
+          "width": 37.9,
+          "height": 64,
+          "left": 105.68,
+          "right": 143.58,
+          "top": -877.8,
+          "bottom": -813.8
+        },
+        "valueTextRect": {
+          "x": 107.34,
+          "y": -877.8,
+          "width": 36.24,
+          "height": 64,
+          "left": 107.34,
+          "right": 143.58,
+          "top": -877.8,
+          "bottom": -813.8
+        }
+      },
+      {
+        "label": "Parked by",
+        "value": "Nora Parker",
+        "row": {
+          "x": 42,
+          "y": -801.8,
+          "width": 101.58,
+          "height": 32,
+          "left": 42,
+          "right": 143.58,
+          "top": -801.8,
+          "bottom": -769.8
+        },
+        "labelRect": {
+          "x": 42,
+          "y": -801.8,
+          "width": 37.27,
+          "height": 32,
+          "left": 42,
+          "right": 79.27,
+          "top": -801.8,
+          "bottom": -769.8
+        },
+        "valueRect": {
+          "x": 95.27,
+          "y": -801.8,
+          "width": 48.31,
+          "height": 32,
+          "left": 95.27,
+          "right": 143.58,
+          "top": -801.8,
+          "bottom": -769.8
+        },
+        "valueTextRect": {
+          "x": 107.46,
+          "y": -801.8,
+          "width": 36.12,
+          "height": 32,
+          "left": 107.46,
+          "right": 143.58,
+          "top": -801.8,
+          "bottom": -769.8
+        }
+      },
+      {
+        "label": "State",
+        "value": "Parked",
+        "row": {
+          "x": 42,
+          "y": -757.8,
+          "width": 101.58,
+          "height": 24.39,
+          "left": 42,
+          "right": 143.58,
+          "top": -757.8,
+          "bottom": -733.41
+        },
+        "labelRect": {
+          "x": 42,
+          "y": -757.8,
+          "width": 26.51,
+          "height": 16,
+          "left": 42,
+          "right": 68.51,
+          "top": -757.8,
+          "bottom": -741.8
+        },
+        "valueRect": {
+          "x": 84.51,
+          "y": -757.8,
+          "width": 59.07,
+          "height": 24.39,
+          "left": 84.51,
+          "right": 143.58,
+          "top": -757.8,
+          "bottom": -733.41
+        },
+        "valueTextRect": {
+          "x": 84.51,
+          "y": -757.8,
+          "width": 59.07,
+          "height": 24.39,
+          "left": 84.51,
+          "right": 143.58,
+          "top": -757.8,
+          "bottom": -733.41
+        }
+      },
+      {
+        "label": "Location",
+        "value": "Main Garage",
+        "row": {
+          "x": 42,
+          "y": -721.41,
+          "width": 101.58,
+          "height": 32,
+          "left": 42,
+          "right": 143.58,
+          "top": -721.41,
+          "bottom": -689.41
+        },
+        "labelRect": {
+          "x": 42,
+          "y": -721.41,
+          "width": 45.13,
+          "height": 16,
+          "left": 42,
+          "right": 87.13,
+          "top": -721.41,
+          "bottom": -705.41
+        },
+        "valueRect": {
+          "x": 103.13,
+          "y": -721.41,
+          "width": 40.45,
+          "height": 32,
+          "left": 103.13,
+          "right": 143.58,
+          "top": -721.41,
+          "bottom": -689.41
+        },
+        "valueTextRect": {
+          "x": 103.43,
+          "y": -721.41,
+          "width": 40.15,
+          "height": 32,
+          "left": 103.43,
+          "right": 143.58,
+          "top": -721.41,
+          "bottom": -689.41
+        }
+      },
+      {
+        "label": "Key Slot",
+        "value": "K-12",
+        "row": {
+          "x": 42,
+          "y": -677.41,
+          "width": 101.58,
+          "height": 16,
+          "left": 42,
+          "right": 143.58,
+          "top": -677.41,
+          "bottom": -661.41
+        },
+        "labelRect": {
+          "x": 42,
+          "y": -677.41,
+          "width": 42.55,
+          "height": 16,
+          "left": 42,
+          "right": 84.55,
+          "top": -677.41,
+          "bottom": -661.41
+        },
+        "valueRect": {
+          "x": 117.13,
+          "y": -677.41,
+          "width": 26.45,
+          "height": 16,
+          "left": 117.13,
+          "right": 143.58,
+          "top": -677.41,
+          "bottom": -661.41
+        },
+        "valueTextRect": {
+          "x": 117.13,
+          "y": -677.41,
+          "width": 26.45,
+          "height": 16,
+          "left": 117.13,
+          "right": 143.58,
+          "top": -677.41,
+          "bottom": -661.41
+        }
+      },
+      {
+        "label": "Parking Zone",
+        "value": "Z-1 · Garage",
+        "row": {
+          "x": 42,
+          "y": -649.41,
+          "width": 101.58,
+          "height": 32,
+          "left": 42,
+          "right": 143.58,
+          "top": -649.41,
+          "bottom": -617.41
+        },
+        "labelRect": {
+          "x": 42,
+          "y": -649.41,
+          "width": 42.94,
+          "height": 32,
+          "left": 42,
+          "right": 84.94,
+          "top": -649.41,
+          "bottom": -617.41
+        },
+        "valueRect": {
+          "x": 100.94,
+          "y": -649.41,
+          "width": 42.64,
+          "height": 32,
+          "left": 100.94,
+          "right": 143.58,
+          "top": -649.41,
+          "bottom": -617.41
+        },
+        "valueTextRect": {
+          "x": 103.43,
+          "y": -649.41,
+          "width": 40.15,
+          "height": 32,
+          "left": 103.43,
+          "right": 143.58,
+          "top": -649.41,
+          "bottom": -617.41
+        }
+      },
+      {
+        "label": "Parking Spot",
+        "value": "P-4 · North",
+        "row": {
+          "x": 42,
+          "y": -605.41,
+          "width": 101.58,
+          "height": 32,
+          "left": 42,
+          "right": 143.58,
+          "top": -605.41,
+          "bottom": -573.41
+        },
+        "labelRect": {
+          "x": 42,
+          "y": -605.41,
+          "width": 44.2,
+          "height": 32,
+          "left": 42,
+          "right": 86.2,
+          "top": -605.41,
+          "bottom": -573.41
+        },
+        "valueRect": {
+          "x": 102.2,
+          "y": -605.41,
+          "width": 41.38,
+          "height": 32,
+          "left": 102.2,
+          "right": 143.58,
+          "top": -605.41,
+          "bottom": -573.41
+        },
+        "valueTextRect": {
+          "x": 109.74,
+          "y": -605.41,
+          "width": 33.84,
+          "height": 32,
+          "left": 109.74,
+          "right": 143.58,
+          "top": -605.41,
+          "bottom": -573.41
+        }
+      },
+      {
+        "label": "Created",
+        "value": "Sep 21, 1:00 PM",
+        "row": {
+          "x": 42,
+          "y": -561.41,
+          "width": 101.58,
+          "height": 48,
+          "left": 42,
+          "right": 143.58,
+          "top": -561.41,
+          "bottom": -513.41
+        },
+        "labelRect": {
+          "x": 42,
+          "y": -561.41,
+          "width": 41.39,
+          "height": 16,
+          "left": 42,
+          "right": 83.39,
+          "top": -561.41,
+          "bottom": -545.41
+        },
+        "valueRect": {
+          "x": 99.39,
+          "y": -561.41,
+          "width": 44.19,
+          "height": 48,
+          "left": 99.39,
+          "right": 143.58,
+          "top": -561.41,
+          "bottom": -513.41
+        },
+        "valueTextRect": {
+          "x": 102.55,
+          "y": -561.41,
+          "width": 41.03,
+          "height": 48,
+          "left": 102.55,
+          "right": 143.58,
+          "top": -561.41,
+          "bottom": -513.41
+        }
+      },
+      {
+        "label": "Updated",
+        "value": "Sep 21, 3:00 PM",
+        "row": {
+          "x": 42,
+          "y": -501.41,
+          "width": 101.58,
+          "height": 64,
+          "left": 42,
+          "right": 143.58,
+          "top": -501.41,
+          "bottom": -437.41
+        },
+        "labelRect": {
+          "x": 42,
+          "y": -501.41,
+          "width": 45.88,
+          "height": 16,
+          "left": 42,
+          "right": 87.88,
+          "top": -501.41,
+          "bottom": -485.41
+        },
+        "valueRect": {
+          "x": 103.88,
+          "y": -501.41,
+          "width": 39.7,
+          "height": 64,
+          "left": 103.88,
+          "right": 143.58,
+          "top": -501.41,
+          "bottom": -437.41
+        },
+        "valueTextRect": {
+          "x": 119.62,
+          "y": -501.41,
+          "width": 23.96,
+          "height": 64,
+          "left": 119.62,
+          "right": 143.58,
+          "top": -501.41,
+          "bottom": -437.41
+        }
+      }
+    ],
+    "factCount": 14,
+    "horizontallyInside": {
+      "help": true,
+      "close": false,
+      "list": true,
+      "values": true,
+      "valueText": true
+    },
+    "photoSectionCount": 3,
+    "focused": "Close"
+  },
+  "viewerBounds": {
+    "x": 5,
+    "y": 48.234375,
+    "width": 150,
+    "height": 353.53125
+  },
+  "accessibility": {
+    "initialCloseFocus": true,
+    "helpAriaLabel": "Help: Session details",
+    "closeAriaLabel": "Close",
+    "tabToHelp": false,
+    "shiftTabToClose": true,
+    "escapeClosed": true,
+    "focusReturned": true,
+    "thumbnailFocusReturned": true
+  },
+  "errorsAtCapture": []
+}

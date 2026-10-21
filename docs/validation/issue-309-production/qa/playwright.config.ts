@@ -2,7 +2,7 @@ import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   testDir: ".",
-  testMatch: ["react-frozen-parity.spec.ts", "react-photo-matrix.spec.ts", "diagnose-paint.spec.ts"],
+  testMatch: ["react-frozen-parity.spec.ts", "react-photo-matrix.spec.ts", "diagnose-paint.spec.ts", "native200-react.spec.ts", "photo-focus-outline.spec.ts"],
   workers: 1,
   timeout: 240_000,
   reporter: "line",

@@ -1,0 +1,42 @@
+{
+  "candidate": "3ecde78e",
+  "cases": [
+    "vehicles-en-light-320-native200",
+    "vehicles-en-dark-320-native200",
+    "vehicles-ar-light-320-native200",
+    "vehicles-ar-dark-320-native200",
+    "vehicles-en-light-390-native200",
+    "vehicles-en-dark-390-native200",
+    "vehicles-ar-light-390-native200",
+    "vehicles-ar-dark-390-native200",
+    "live-operations-en-light-320-native200",
+    "live-operations-en-dark-320-native200",
+    "live-operations-ar-light-320-native200",
+    "live-operations-ar-dark-320-native200",
+    "live-operations-en-light-390-native200",
+    "live-operations-en-dark-390-native200",
+    "live-operations-ar-light-390-native200",
+    "live-operations-ar-dark-390-native200"
+  ],
+  "zoomMethod": "Chromium MV3 chrome.tabs.setZoom(2), verified getZoom 2; no CSS zoom or pinch",
+  "fixture": "synthetic signed-in Company and Location, no private vehicle photos",
+  "browserErrors": [],
+  "allCases": [
+    "vehicles-en-light-320-native200",
+    "vehicles-en-dark-320-native200",
+    "vehicles-ar-light-320-native200",
+    "vehicles-ar-dark-320-native200",
+    "vehicles-en-light-390-native200",
+    "vehicles-en-dark-390-native200",
+    "vehicles-ar-light-390-native200",
+    "vehicles-ar-dark-390-native200",
+    "live-operations-en-light-320-native200",
+    "live-operations-en-dark-320-native200",
+    "live-operations-ar-light-320-native200",
+    "live-operations-ar-dark-320-native200",
+    "live-operations-en-light-390-native200",
+    "live-operations-en-dark-390-native200",
+    "live-operations-ar-light-390-native200",
+    "live-operations-ar-dark-390-native200"
+  ]
+}

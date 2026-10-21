@@ -91,16 +91,27 @@ dimensions while restoring exact Facts pixels both in this experiment and in
 the independent **32-case** production React rerun. Evidence pairs and
 computed styles are in `results/paint-diagnosis/`. W6 modified no product code.
 
-**P1 focus indicator regression under containment:** The first tile starts
+**P1 focus indicator regression discovered before the follow-up fix:** The first tile starts
 at the section's left x25. Its focus-visible outline is 3px, offset2, but
 the new `contain:paint` clips it outside the section: 0 changed focus pixels
 in left-edge exterior band x19–24/y560–795. A transient photo-only
 `overflow-clip-margin:6px` restores **924 visible pixels** outside that edge,
 while retaining containment. Alternate `isolation:isolate` without `contain`
 also produced zero changed FactList pixels in this one case, but needs 32-case
-validation before replacing the scoped CSS. This is a release blocker until W2
-adds a focus-safe scoped remedy and W6 verifies it; evidence is in
+validation before replacing the scoped CSS. W2 subsequently fixed and W6
+verified the focus indicator, as documented in the post-fix result below; evidence is in
 `results/paint-diagnosis/candidate-focus-geometry.json` and paired PNGs.
+
+**Post-fix resolution:** W2 added `overflow-clip-margin:6px` solely on the new
+photo section, integrated at `3ecde78e`, with viewer aria labels/description
+and approved empty/denied glyph updates by `4bf3c725`. W6 reran **2/2**
+actual React focus tests on `4bf3c725` across 2 routes × 4 locale/theme states
+× widths320/390 × first/last thumbnails = **32/32 visible focus outlines**.
+Independent Pillow before/focused screenshot comparison found 598–750 changed
+pixels in the 6px exterior band beyond section **left for EN and right for AR**;
+no tile ring clipped. All 16 viewer checks have live visible
+`aria-labelledby` and `aria-describedby` references; Escape restores thumbnail
+focus. Evidence `results/focus-outline/*.png` and route JSONs.
 
 ## Photo gallery status and release constraints
 
@@ -117,14 +128,35 @@ not exercised and remains fail closed until the owner accepts a role policy.
 Photo-region exact painted HTML parity is **not fully verified with identical
 image fixtures**, so it remains a separate gate.
 
-The original Chrome-native 200% source clipping at 320 physical pixels is
-already proven and inherited: Close EN 10.42/AR 17.78 CSS pixels clipped. This
-W6 comparison currently uses 100% browser zoom and is **not** candidate native
-200% proof; no screen-reader/TalkBack or WCAG-compliance certification is made.
+**True Chrome native 200% PASS 16/16.** W6 ran all 16 combinations of Vehicles
+and Live × EN/AR × light/dark × physical widths320/390 using isolated Chrome
+MV3 `chrome.tabs.setZoom(tabId,2)` and verified `getZoom===2`, DPR2, CSS zoom1,
+and effective widths160/195. Every case kept root/drawer-body horizontal
+scrollWidth equal to clientWidth, 12/14 original Facts, three synthetic photo
+thumbnails, and functioning modal keyboard Enter/Escape with focus return;
+JavaScript page errors zero. Screenshots (80) and per-case JSON in
+`results/native200-react/manifest-all.json` and sibling files. The original
+Close clipping at 320 physical pixels remains inherited: EN10.42/AR17.78 CSS
+pixels, while at physical390 both Help and Close fit. This test does not
+certify WCAG or hardware mobile devices.
 
-**Decision:** **NO-GO/STOP** for zero-pixel owner approval despite 32/32
-functional frozen checks and 320/320 synthetic photo UI combinations passing.
-Outstanding gates: three closed-shell sidebar AA changes (137 pixels), P1
-clipped first-thumbnail focus outline after containment, candidate true
-Chrome-native200, identical-input approved HTML new-region pixel comparison,
-and explicit management photo-read access policy acceptance.
+**Latest actual candidate SHA `4bf3c725`, frozen pixel comparator:**
+`results/final-head-4bf3c725-frozen-pixels.json` reports **93/96 regions
+exact**, 32/32 original Facts and 32/32 original drawer headers have zero
+changed pixels. Three original CLOSED Vehicles sidebar edges still differ by
+**150 one-RGB-unit AA pixels** (EN/light390 38, AR/dark390 54,
+AR/light390 58); these are unmasked and owner strict zero-pixel acceptance
+therefore remains STOP. Reference source screenshots are fresh actual Next
+React at `459e9c42`.
+
+**Decision:** **NO-GO/STOP** for literal zero-pixel owner approval. Final
+candidate `4bf3c725`: original DOM/geometry/keyboard 32/32 PASS, original
+Facts and header 64/64 pixel-identical; complete frozen regions 93/96, with
+150 changed one-RGB-unit pixels across three closed navigation edges. Synthetic
+React photo state matrix 320/320 PASS; real Chrome-native zoom 200% 16/16 PASS;
+new photo first/last tile focus outline 32/32 PASS with verified external
+pixels (`results/focus-outline/focus-exterior-pixel-verification.json`); viewer
+modal aria title/description 16/16 PASS. Still pending: strict 3 closed-shell
+pixel regions, approved HTML photo-region exact matching with identical image
+fixtures, and explicit management photo-read access policy and real backend
+integration approval. The Prime's PostgreSQL/MinIO findings are separate.

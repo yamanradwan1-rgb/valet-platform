@@ -1,0 +1,375 @@
+{
+  "source": "actual Next/React candidate",
+  "candidate": "4bf3c725",
+  "screenshots": [
+    {
+      "key": "vehicles-en-light-320",
+      "side": "first",
+      "files": {
+        "before": "vehicles-en-light-320-first-before.png",
+        "focused": "vehicles-en-light-320-first-focused.png"
+      },
+      "focusVisible": true,
+      "tile": {
+        "x": 25,
+        "y": 561.96875,
+        "right": 155.296875,
+        "bottom": 756.703125
+      },
+      "section": {
+        "x": 25,
+        "y": 481.953125,
+        "right": 296,
+        "bottom": 961.8125
+      },
+      "outline": "rgb(105, 161, 255) solid 3px",
+      "clipMargin": "6px"
+    },
+    {
+      "key": "vehicles-en-light-320",
+      "side": "last",
+      "files": {
+        "before": "vehicles-en-light-320-last-before.png",
+        "focused": "vehicles-en-light-320-last-focused.png"
+      },
+      "focusVisible": true,
+      "tile": {
+        "x": 25,
+        "y": 706.09375,
+        "right": 155.296875,
+        "bottom": 900.8125
+      },
+      "section": {
+        "x": 25,
+        "y": 420.953125,
+        "right": 296,
+        "bottom": 900.8125
+      },
+      "outline": "rgb(105, 161, 255) solid 3px",
+      "clipMargin": "6px"
+    },
+    {
+      "key": "vehicles-en-light-390",
+      "side": "first",
+      "files": {
+        "before": "vehicles-en-light-390-first-before.png",
+        "focused": "vehicles-en-light-390-first-focused.png"
+      },
+      "focusVisible": true,
+      "tile": {
+        "x": 25,
+        "y": 500.96875,
+        "right": 190.296875,
+        "bottom": 730.703125
+      },
+      "section": {
+        "x": 25,
+        "y": 420.953125,
+        "right": 366,
+        "bottom": 970.8125
+      },
+      "outline": "rgb(105, 161, 255) solid 3px",
+      "clipMargin": "6px"
+    },
+    {
+      "key": "vehicles-en-light-390",
+      "side": "last",
+      "files": {
+        "before": "vehicles-en-light-390-last-before.png",
+        "focused": "vehicles-en-light-390-last-focused.png"
+      },
+      "focusVisible": true,
+      "tile": {
+        "x": 25,
+        "y": 671.09375,
+        "right": 190.296875,
+        "bottom": 900.8125
+      },
+      "section": {
+        "x": 25,
+        "y": 350.953125,
+        "right": 366,
+        "bottom": 900.8125
+      },
+      "outline": "rgb(105, 161, 255) solid 3px",
+      "clipMargin": "6px"
+    },
+    {
+      "key": "vehicles-en-dark-320",
+      "side": "first",
+      "files": {
+        "before": "vehicles-en-dark-320-first-before.png",
+        "focused": "vehicles-en-dark-320-first-focused.png"
+      },
+      "focusVisible": true,
+      "tile": {
+        "x": 25,
+        "y": 561.96875,
+        "right": 155.296875,
+        "bottom": 756.703125
+      },
+      "section": {
+        "x": 25,
+        "y": 481.953125,
+        "right": 296,
+        "bottom": 961.8125
+      },
+      "outline": "rgb(105, 161, 255) solid 3px",
+      "clipMargin": "6px"
+    },
+    {
+      "key": "vehicles-en-dark-320",
+      "side": "last",
+      "files": {
+        "before": "vehicles-en-dark-320-last-before.png",
+        "focused": "vehicles-en-dark-320-last-focused.png"
+      },
+      "focusVisible": true,
+      "tile": {
+        "x": 25,
+        "y": 706.09375,
+        "right": 155.296875,
+        "bottom": 900.8125
+      },
+      "section": {
+        "x": 25,
+        "y": 420.953125,
+        "right": 296,
+        "bottom": 900.8125
+      },
+      "outline": "rgb(105, 161, 255) solid 3px",
+      "clipMargin": "6px"
+    },
+    {
+      "key": "vehicles-en-dark-390",
+      "side": "first",
+      "files": {
+        "before": "vehicles-en-dark-390-first-before.png",
+        "focused": "vehicles-en-dark-390-first-focused.png"
+      },
+      "focusVisible": true,
+      "tile": {
+        "x": 25,
+        "y": 500.96875,
+        "right": 190.296875,
+        "bottom": 730.703125
+      },
+      "section": {
+        "x": 25,
+        "y": 420.953125,
+        "right": 366,
+        "bottom": 970.8125
+      },
+      "outline": "rgb(105, 161, 255) solid 3px",
+      "clipMargin": "6px"
+    },
+    {
+      "key": "vehicles-en-dark-390",
+      "side": "last",
+      "files": {
+        "before": "vehicles-en-dark-390-last-before.png",
+        "focused": "vehicles-en-dark-390-last-focused.png"
+      },
+      "focusVisible": true,
+      "tile": {
+        "x": 25,
+        "y": 671.09375,
+        "right": 190.296875,
+        "bottom": 900.8125
+      },
+      "section": {
+        "x": 25,
+        "y": 350.953125,
+        "right": 366,
+        "bottom": 900.8125
+      },
+      "outline": "rgb(105, 161, 255) solid 3px",
+      "clipMargin": "6px"
+    },
+    {
+      "key": "vehicles-ar-dark-320",
+      "side": "first",
+      "files": {
+        "before": "vehicles-ar-dark-320-first-before.png",
+        "focused": "vehicles-ar-dark-320-first-focused.png"
+      },
+      "focusVisible": true,
+      "tile": {
+        "x": 164.703125,
+        "y": 561.96875,
+        "right": 295,
+        "bottom": 756.703125
+      },
+      "section": {
+        "x": 24,
+        "y": 481.953125,
+        "right": 295,
+        "bottom": 961.8125
+      },
+      "outline": "rgb(105, 161, 255) solid 3px",
+      "clipMargin": "6px"
+    },
+    {
+      "key": "vehicles-ar-dark-320",
+      "side": "last",
+      "files": {
+        "before": "vehicles-ar-dark-320-last-before.png",
+        "focused": "vehicles-ar-dark-320-last-focused.png"
+      },
+      "focusVisible": true,
+      "tile": {
+        "x": 164.703125,
+        "y": 706.09375,
+        "right": 295,
+        "bottom": 900.8125
+      },
+      "section": {
+        "x": 24,
+        "y": 420.953125,
+        "right": 295,
+        "bottom": 900.8125
+      },
+      "outline": "rgb(105, 161, 255) solid 3px",
+      "clipMargin": "6px"
+    },
+    {
+      "key": "vehicles-ar-dark-390",
+      "side": "first",
+      "files": {
+        "before": "vehicles-ar-dark-390-first-before.png",
+        "focused": "vehicles-ar-dark-390-first-focused.png"
+      },
+      "focusVisible": true,
+      "tile": {
+        "x": 199.703125,
+        "y": 500.96875,
+        "right": 365,
+        "bottom": 716.890625
+      },
+      "section": {
+        "x": 24,
+        "y": 420.953125,
+        "right": 365,
+        "bottom": 943.1875
+      },
+      "outline": "rgb(105, 161, 255) solid 3px",
+      "clipMargin": "6px"
+    },
+    {
+      "key": "vehicles-ar-dark-390",
+      "side": "last",
+      "files": {
+        "before": "vehicles-ar-dark-390-last-before.png",
+        "focused": "vehicles-ar-dark-390-last-focused.png"
+      },
+      "focusVisible": true,
+      "tile": {
+        "x": 199.703125,
+        "y": 685.28125,
+        "right": 365,
+        "bottom": 901.1875
+      },
+      "section": {
+        "x": 24,
+        "y": 378.953125,
+        "right": 365,
+        "bottom": 901.1875
+      },
+      "outline": "rgb(105, 161, 255) solid 3px",
+      "clipMargin": "6px"
+    },
+    {
+      "key": "vehicles-ar-light-320",
+      "side": "first",
+      "files": {
+        "before": "vehicles-ar-light-320-first-before.png",
+        "focused": "vehicles-ar-light-320-first-focused.png"
+      },
+      "focusVisible": true,
+      "tile": {
+        "x": 164.703125,
+        "y": 561.96875,
+        "right": 295,
+        "bottom": 756.703125
+      },
+      "section": {
+        "x": 24,
+        "y": 481.953125,
+        "right": 295,
+        "bottom": 961.8125
+      },
+      "outline": "rgb(105, 161, 255) solid 3px",
+      "clipMargin": "6px"
+    },
+    {
+      "key": "vehicles-ar-light-320",
+      "side": "last",
+      "files": {
+        "before": "vehicles-ar-light-320-last-before.png",
+        "focused": "vehicles-ar-light-320-last-focused.png"
+      },
+      "focusVisible": true,
+      "tile": {
+        "x": 164.703125,
+        "y": 706.09375,
+        "right": 295,
+        "bottom": 900.8125
+      },
+      "section": {
+        "x": 24,
+        "y": 420.953125,
+        "right": 295,
+        "bottom": 900.8125
+      },
+      "outline": "rgb(105, 161, 255) solid 3px",
+      "clipMargin": "6px"
+    },
+    {
+      "key": "vehicles-ar-light-390",
+      "side": "first",
+      "files": {
+        "before": "vehicles-ar-light-390-first-before.png",
+        "focused": "vehicles-ar-light-390-first-focused.png"
+      },
+      "focusVisible": true,
+      "tile": {
+        "x": 199.703125,
+        "y": 500.96875,
+        "right": 365,
+        "bottom": 716.890625
+      },
+      "section": {
+        "x": 24,
+        "y": 420.953125,
+        "right": 365,
+        "bottom": 943.1875
+      },
+      "outline": "rgb(105, 161, 255) solid 3px",
+      "clipMargin": "6px"
+    },
+    {
+      "key": "vehicles-ar-light-390",
+      "side": "last",
+      "files": {
+        "before": "vehicles-ar-light-390-last-before.png",
+        "focused": "vehicles-ar-light-390-last-focused.png"
+      },
+      "focusVisible": true,
+      "tile": {
+        "x": 199.703125,
+        "y": 685.28125,
+        "right": 365,
+        "bottom": 901.1875
+      },
+      "section": {
+        "x": 24,
+        "y": 378.953125,
+        "right": 365,
+        "bottom": 901.1875
+      },
+      "outline": "rgb(105, 161, 255) solid 3px",
+      "clipMargin": "6px"
+    }
+  ],
+  "cases": 16
+}
