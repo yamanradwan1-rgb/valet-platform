@@ -1,0 +1,964 @@
+{
+  "item": {
+    "id": "en1440-native200-light",
+    "locale": "en",
+    "theme": "light",
+    "width": 1440,
+    "zoom": "native"
+  },
+  "source": "before",
+  "baseURL": "http://localhost:3384",
+  "browserNativeReportedZoom": 2,
+  "unzoomed": {
+    "innerWidth": 1440,
+    "outerWidth": 1440,
+    "devicePixelRatio": 1,
+    "visualScale": 1,
+    "htmlDir": "ltr",
+    "lang": "en",
+    "theme": "light",
+    "cssZoom": "1",
+    "documentClientWidth": 1440,
+    "documentScrollWidth": 1440,
+    "fontsReady": "loaded",
+    "bodyFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+    "drawer": null,
+    "drawerHeader": null,
+    "drawerBody": null,
+    "factList": null,
+    "bodyScrollWidth": null,
+    "bodyClientWidth": null,
+    "bodyScrollHeight": null,
+    "bodyClientHeight": null,
+    "bodyScrollTop": null,
+    "buttons": [],
+    "facts": [],
+    "horizontal": {
+      "buttonsInside": true,
+      "valuesInside": true,
+      "listInside": false,
+      "bodyInside": false,
+      "bodyNoInternalXScroll": false
+    }
+  },
+  "top": {
+    "innerWidth": 720,
+    "outerWidth": 1440,
+    "devicePixelRatio": 2,
+    "visualScale": 1,
+    "htmlDir": "ltr",
+    "lang": "en",
+    "theme": "light",
+    "cssZoom": "1",
+    "documentClientWidth": 720,
+    "documentScrollWidth": 720,
+    "fontsReady": "loaded",
+    "bodyFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+    "drawer": {
+      "left": 272,
+      "right": 720,
+      "top": 0,
+      "bottom": 450,
+      "width": 448,
+      "height": 450
+    },
+    "drawerHeader": {
+      "left": 273,
+      "right": 720,
+      "top": 0,
+      "bottom": 65,
+      "width": 447,
+      "height": 65
+    },
+    "drawerBody": {
+      "left": 273,
+      "right": 720,
+      "top": 65,
+      "bottom": 450,
+      "width": 447,
+      "height": 385
+    },
+    "factList": {
+      "left": 297,
+      "right": 696,
+      "top": 89,
+      "bottom": 583.78,
+      "width": 399,
+      "height": 494.78
+    },
+    "bodyScrollWidth": 447,
+    "bodyClientWidth": 447,
+    "bodyScrollHeight": 543,
+    "bodyClientHeight": 385,
+    "bodyScrollTop": 0,
+    "buttons": [
+      {
+        "name": "Help: Incident drawer",
+        "rect": {
+          "left": 554.64,
+          "right": 586.64,
+          "top": 16,
+          "bottom": 48,
+          "width": 32,
+          "height": 32
+        }
+      },
+      {
+        "name": "Close",
+        "rect": {
+          "left": 666,
+          "right": 696,
+          "top": 17,
+          "bottom": 47,
+          "width": 30,
+          "height": 30
+        }
+      }
+    ],
+    "facts": [
+      {
+        "label": "Type",
+        "value": "Vehicle damage",
+        "row": {
+          "left": 314,
+          "right": 679,
+          "top": 106,
+          "bottom": 122,
+          "width": 365,
+          "height": 16
+        },
+        "labelRect": {
+          "left": 314,
+          "right": 338.77,
+          "top": 106,
+          "bottom": 122,
+          "width": 24.77,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 590.41,
+          "right": 679,
+          "top": 106,
+          "bottom": 122,
+          "width": 88.59,
+          "height": 16
+        },
+        "valueText": {
+          "left": 590.41,
+          "right": 679
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "auto"
+        }
+      },
+      {
+        "label": "Description",
+        "value": "Minor mirror inspection required with follow-up notes. Minor mirror inspection required with follow-up notes. Minor mirror inspection required with follow-up notes. Minor mirror inspection required with follow-up notes. Minor mirror inspection required with follow-up notes. Minor mirror inspection required with follow-up notes.  وصف تفصيلي وصف تفصيلي وصف تفصيلي وصف تفصيلي وصف تفصيلي وصف تفصيلي وصف تفصيلي وصف تفصيلي ",
+        "row": {
+          "left": 314,
+          "right": 679,
+          "top": 134,
+          "bottom": 294,
+          "width": 365,
+          "height": 160
+        },
+        "labelRect": {
+          "left": 314,
+          "right": 374.26,
+          "top": 134,
+          "bottom": 150,
+          "width": 60.26,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 390.26,
+          "right": 679,
+          "top": 134,
+          "bottom": 294,
+          "width": 288.74,
+          "height": 160
+        },
+        "valueText": {
+          "left": 396.41,
+          "right": 679
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "auto"
+        }
+      },
+      {
+        "label": "State",
+        "value": "Investigating",
+        "row": {
+          "left": 314,
+          "right": 679,
+          "top": 306,
+          "bottom": 330.39,
+          "width": 365,
+          "height": 24.39
+        },
+        "labelRect": {
+          "left": 314,
+          "right": 340.51,
+          "top": 306,
+          "bottom": 322,
+          "width": 26.51,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 586.29,
+          "right": 679,
+          "top": 306,
+          "bottom": 330.39,
+          "width": 92.71,
+          "height": 24.39
+        },
+        "valueText": {
+          "left": 586.29,
+          "right": 679
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "auto"
+        }
+      },
+      {
+        "label": "Severity",
+        "value": "Medium",
+        "row": {
+          "left": 314,
+          "right": 679,
+          "top": 342.39,
+          "bottom": 366.78,
+          "width": 365,
+          "height": 24.39
+        },
+        "labelRect": {
+          "left": 314,
+          "right": 355.63,
+          "top": 342.39,
+          "bottom": 358.39,
+          "width": 41.63,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 611.53,
+          "right": 679,
+          "top": 342.39,
+          "bottom": 366.78,
+          "width": 67.47,
+          "height": 24.39
+        },
+        "valueText": {
+          "left": 611.53,
+          "right": 679
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "auto"
+        }
+      },
+      {
+        "label": "Location",
+        "value": "Main Garage",
+        "row": {
+          "left": 314,
+          "right": 679,
+          "top": 378.78,
+          "bottom": 394.78,
+          "width": 365,
+          "height": 16
+        },
+        "labelRect": {
+          "left": 314,
+          "right": 359.13,
+          "top": 378.78,
+          "bottom": 394.78,
+          "width": 45.13,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 606.93,
+          "right": 679,
+          "top": 378.78,
+          "bottom": 394.78,
+          "width": 72.07,
+          "height": 16
+        },
+        "valueText": {
+          "left": 606.93,
+          "right": 679
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "auto"
+        }
+      },
+      {
+        "label": "Reported by",
+        "value": "عبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمن الخطيبالخطيبالخطيبالخطيبالخطيبالخطيبالخطيبالخطيب",
+        "row": {
+          "left": 314,
+          "right": 679,
+          "top": 406.78,
+          "bottom": 454.78,
+          "width": 365,
+          "height": 48
+        },
+        "labelRect": {
+          "left": 314,
+          "right": 362.77,
+          "top": 406.78,
+          "bottom": 438.78,
+          "width": 48.77,
+          "height": 32
+        },
+        "valueRect": {
+          "left": 378.77,
+          "right": 679,
+          "top": 406.78,
+          "bottom": 454.78,
+          "width": 300.23,
+          "height": 48
+        },
+        "valueText": {
+          "left": 379.41,
+          "right": 679
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "auto"
+        }
+      },
+      {
+        "label": "Created",
+        "value": "Sep 21, 2:00 PM (Asia/Amman)",
+        "row": {
+          "left": 314,
+          "right": 679,
+          "top": 466.78,
+          "bottom": 482.78,
+          "width": 365,
+          "height": 16
+        },
+        "labelRect": {
+          "left": 314,
+          "right": 355.39,
+          "top": 466.78,
+          "bottom": 482.78,
+          "width": 41.39,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 503.32,
+          "right": 679,
+          "top": 466.78,
+          "bottom": 482.78,
+          "width": 175.68,
+          "height": 16
+        },
+        "valueText": {
+          "left": 503.32,
+          "right": 679
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "auto"
+        }
+      },
+      {
+        "label": "Incident ID",
+        "value": "77777777-7777-4777-8777-777777777706",
+        "row": {
+          "left": 314,
+          "right": 679,
+          "top": 494.78,
+          "bottom": 510.78,
+          "width": 365,
+          "height": 16
+        },
+        "labelRect": {
+          "left": 314,
+          "right": 371.53,
+          "top": 494.78,
+          "bottom": 510.78,
+          "width": 57.53,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 438.72,
+          "right": 679,
+          "top": 494.78,
+          "bottom": 510.78,
+          "width": 240.28,
+          "height": 16
+        },
+        "valueText": {
+          "left": 438.72,
+          "right": 679
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "auto"
+        }
+      },
+      {
+        "label": "Session",
+        "value": "77777777-7777-4777-8777-777777777701",
+        "row": {
+          "left": 314,
+          "right": 679,
+          "top": 522.78,
+          "bottom": 538.78,
+          "width": 365,
+          "height": 16
+        },
+        "labelRect": {
+          "left": 314,
+          "right": 353.56,
+          "top": 522.78,
+          "bottom": 538.78,
+          "width": 39.56,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 438.72,
+          "right": 679,
+          "top": 522.78,
+          "bottom": 538.78,
+          "width": 240.28,
+          "height": 16
+        },
+        "valueText": {
+          "left": 438.72,
+          "right": 679
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "auto"
+        }
+      },
+      {
+        "label": "Type code",
+        "value": "VEHICLE_DAMAGE",
+        "row": {
+          "left": 314,
+          "right": 679,
+          "top": 550.78,
+          "bottom": 566.78,
+          "width": 365,
+          "height": 16
+        },
+        "labelRect": {
+          "left": 314,
+          "right": 367.97,
+          "top": 550.78,
+          "bottom": 566.78,
+          "width": 53.97,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 574.8,
+          "right": 679,
+          "top": 550.78,
+          "bottom": 566.78,
+          "width": 104.2,
+          "height": 16
+        },
+        "valueText": {
+          "left": 574.8,
+          "right": 679
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "auto"
+        }
+      }
+    ],
+    "horizontal": {
+      "buttonsInside": true,
+      "valuesInside": true,
+      "listInside": true,
+      "bodyInside": true,
+      "bodyNoInternalXScroll": true
+    }
+  },
+  "bottom": {
+    "innerWidth": 720,
+    "outerWidth": 1440,
+    "devicePixelRatio": 2,
+    "visualScale": 1,
+    "htmlDir": "ltr",
+    "lang": "en",
+    "theme": "light",
+    "cssZoom": "1",
+    "documentClientWidth": 720,
+    "documentScrollWidth": 720,
+    "fontsReady": "loaded",
+    "bodyFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+    "drawer": {
+      "left": 272,
+      "right": 720,
+      "top": 0,
+      "bottom": 450,
+      "width": 448,
+      "height": 450
+    },
+    "drawerHeader": {
+      "left": 273,
+      "right": 720,
+      "top": 0,
+      "bottom": 65,
+      "width": 447,
+      "height": 65
+    },
+    "drawerBody": {
+      "left": 273,
+      "right": 720,
+      "top": 65,
+      "bottom": 450,
+      "width": 447,
+      "height": 385
+    },
+    "factList": {
+      "left": 297,
+      "right": 696,
+      "top": -69,
+      "bottom": 425.78,
+      "width": 399,
+      "height": 494.78
+    },
+    "bodyScrollWidth": 447,
+    "bodyClientWidth": 447,
+    "bodyScrollHeight": 543,
+    "bodyClientHeight": 385,
+    "bodyScrollTop": 158,
+    "buttons": [
+      {
+        "name": "Help: Incident drawer",
+        "rect": {
+          "left": 554.64,
+          "right": 586.64,
+          "top": 16,
+          "bottom": 48,
+          "width": 32,
+          "height": 32
+        }
+      },
+      {
+        "name": "Close",
+        "rect": {
+          "left": 666,
+          "right": 696,
+          "top": 17,
+          "bottom": 47,
+          "width": 30,
+          "height": 30
+        }
+      }
+    ],
+    "facts": [
+      {
+        "label": "Type",
+        "value": "Vehicle damage",
+        "row": {
+          "left": 314,
+          "right": 679,
+          "top": -52,
+          "bottom": -36,
+          "width": 365,
+          "height": 16
+        },
+        "labelRect": {
+          "left": 314,
+          "right": 338.77,
+          "top": -52,
+          "bottom": -36,
+          "width": 24.77,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 590.41,
+          "right": 679,
+          "top": -52,
+          "bottom": -36,
+          "width": 88.59,
+          "height": 16
+        },
+        "valueText": {
+          "left": 590.41,
+          "right": 679
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "auto"
+        }
+      },
+      {
+        "label": "Description",
+        "value": "Minor mirror inspection required with follow-up notes. Minor mirror inspection required with follow-up notes. Minor mirror inspection required with follow-up notes. Minor mirror inspection required with follow-up notes. Minor mirror inspection required with follow-up notes. Minor mirror inspection required with follow-up notes.  وصف تفصيلي وصف تفصيلي وصف تفصيلي وصف تفصيلي وصف تفصيلي وصف تفصيلي وصف تفصيلي وصف تفصيلي ",
+        "row": {
+          "left": 314,
+          "right": 679,
+          "top": -24,
+          "bottom": 136,
+          "width": 365,
+          "height": 160
+        },
+        "labelRect": {
+          "left": 314,
+          "right": 374.26,
+          "top": -24,
+          "bottom": -8,
+          "width": 60.26,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 390.26,
+          "right": 679,
+          "top": -24,
+          "bottom": 136,
+          "width": 288.74,
+          "height": 160
+        },
+        "valueText": {
+          "left": 396.41,
+          "right": 679
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "auto"
+        }
+      },
+      {
+        "label": "State",
+        "value": "Investigating",
+        "row": {
+          "left": 314,
+          "right": 679,
+          "top": 148,
+          "bottom": 172.39,
+          "width": 365,
+          "height": 24.39
+        },
+        "labelRect": {
+          "left": 314,
+          "right": 340.51,
+          "top": 148,
+          "bottom": 164,
+          "width": 26.51,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 586.29,
+          "right": 679,
+          "top": 148,
+          "bottom": 172.39,
+          "width": 92.71,
+          "height": 24.39
+        },
+        "valueText": {
+          "left": 586.29,
+          "right": 679
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "auto"
+        }
+      },
+      {
+        "label": "Severity",
+        "value": "Medium",
+        "row": {
+          "left": 314,
+          "right": 679,
+          "top": 184.39,
+          "bottom": 208.78,
+          "width": 365,
+          "height": 24.39
+        },
+        "labelRect": {
+          "left": 314,
+          "right": 355.63,
+          "top": 184.39,
+          "bottom": 200.39,
+          "width": 41.63,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 611.53,
+          "right": 679,
+          "top": 184.39,
+          "bottom": 208.78,
+          "width": 67.47,
+          "height": 24.39
+        },
+        "valueText": {
+          "left": 611.53,
+          "right": 679
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "auto"
+        }
+      },
+      {
+        "label": "Location",
+        "value": "Main Garage",
+        "row": {
+          "left": 314,
+          "right": 679,
+          "top": 220.78,
+          "bottom": 236.78,
+          "width": 365,
+          "height": 16
+        },
+        "labelRect": {
+          "left": 314,
+          "right": 359.13,
+          "top": 220.78,
+          "bottom": 236.78,
+          "width": 45.13,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 606.93,
+          "right": 679,
+          "top": 220.78,
+          "bottom": 236.78,
+          "width": 72.07,
+          "height": 16
+        },
+        "valueText": {
+          "left": 606.93,
+          "right": 679
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "auto"
+        }
+      },
+      {
+        "label": "Reported by",
+        "value": "عبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمن الخطيبالخطيبالخطيبالخطيبالخطيبالخطيبالخطيبالخطيب",
+        "row": {
+          "left": 314,
+          "right": 679,
+          "top": 248.78,
+          "bottom": 296.78,
+          "width": 365,
+          "height": 48
+        },
+        "labelRect": {
+          "left": 314,
+          "right": 362.77,
+          "top": 248.78,
+          "bottom": 280.78,
+          "width": 48.77,
+          "height": 32
+        },
+        "valueRect": {
+          "left": 378.77,
+          "right": 679,
+          "top": 248.78,
+          "bottom": 296.78,
+          "width": 300.23,
+          "height": 48
+        },
+        "valueText": {
+          "left": 379.41,
+          "right": 679
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "auto"
+        }
+      },
+      {
+        "label": "Created",
+        "value": "Sep 21, 2:00 PM (Asia/Amman)",
+        "row": {
+          "left": 314,
+          "right": 679,
+          "top": 308.78,
+          "bottom": 324.78,
+          "width": 365,
+          "height": 16
+        },
+        "labelRect": {
+          "left": 314,
+          "right": 355.39,
+          "top": 308.78,
+          "bottom": 324.78,
+          "width": 41.39,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 503.32,
+          "right": 679,
+          "top": 308.78,
+          "bottom": 324.78,
+          "width": 175.68,
+          "height": 16
+        },
+        "valueText": {
+          "left": 503.32,
+          "right": 679
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "auto"
+        }
+      },
+      {
+        "label": "Incident ID",
+        "value": "77777777-7777-4777-8777-777777777706",
+        "row": {
+          "left": 314,
+          "right": 679,
+          "top": 336.78,
+          "bottom": 352.78,
+          "width": 365,
+          "height": 16
+        },
+        "labelRect": {
+          "left": 314,
+          "right": 371.53,
+          "top": 336.78,
+          "bottom": 352.78,
+          "width": 57.53,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 438.72,
+          "right": 679,
+          "top": 336.78,
+          "bottom": 352.78,
+          "width": 240.28,
+          "height": 16
+        },
+        "valueText": {
+          "left": 438.72,
+          "right": 679
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "auto"
+        }
+      },
+      {
+        "label": "Session",
+        "value": "77777777-7777-4777-8777-777777777701",
+        "row": {
+          "left": 314,
+          "right": 679,
+          "top": 364.78,
+          "bottom": 380.78,
+          "width": 365,
+          "height": 16
+        },
+        "labelRect": {
+          "left": 314,
+          "right": 353.56,
+          "top": 364.78,
+          "bottom": 380.78,
+          "width": 39.56,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 438.72,
+          "right": 679,
+          "top": 364.78,
+          "bottom": 380.78,
+          "width": 240.28,
+          "height": 16
+        },
+        "valueText": {
+          "left": 438.72,
+          "right": 679
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "auto"
+        }
+      },
+      {
+        "label": "Type code",
+        "value": "VEHICLE_DAMAGE",
+        "row": {
+          "left": 314,
+          "right": 679,
+          "top": 392.78,
+          "bottom": 408.78,
+          "width": 365,
+          "height": 16
+        },
+        "labelRect": {
+          "left": 314,
+          "right": 367.97,
+          "top": 392.78,
+          "bottom": 408.78,
+          "width": 53.97,
+          "height": 16
+        },
+        "valueRect": {
+          "left": 574.8,
+          "right": 679,
+          "top": 392.78,
+          "bottom": 408.78,
+          "width": 104.2,
+          "height": 16
+        },
+        "valueText": {
+          "left": 574.8,
+          "right": 679
+        },
+        "css": {
+          "overflowWrap": "anywhere",
+          "wordBreak": "normal",
+          "minWidth": "auto"
+        }
+      }
+    ],
+    "horizontal": {
+      "buttonsInside": true,
+      "valuesInside": true,
+      "listInside": true,
+      "bodyInside": true,
+      "bodyNoInternalXScroll": true
+    }
+  },
+  "interactions": {
+    "tabToHelp": true,
+    "shiftTabToClose": true,
+    "helpOpened": true,
+    "helpRestoresTriggerFocus": true,
+    "helpPointerOpened": true,
+    "escapeClosed": true,
+    "focusReturned": true,
+    "closeClick": true,
+    "fallbackVisible": false
+  },
+  "jsErrors": []
+}

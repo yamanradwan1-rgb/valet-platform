@@ -1,0 +1,19 @@
+{
+  "variant": "after",
+  "sourceSHA": "e34d9a1ca88a47d150da64b1d8beb6e07b81b7b7",
+  "origin": "http://localhost:3385",
+  "caseIds": [
+    "ar320-native200-dark",
+    "en320-native200-light",
+    "ar390-native200-light",
+    "ar320-css200-dark",
+    "ar320-normal-light",
+    "en390-normal-dark",
+    "ar768-normal-dark",
+    "en1440-normal-light",
+    "en1440-native200-light"
+  ],
+  "methodology": "Same W5 independent Playwright harness with one isolated Chromium MV3 context per individual case invocation",
+  "nativeZoom": "Official Chrome MV3 chrome.tabs.setZoom(2) / getZoom()=2; no CDP pinch",
+  "allCasesPresent": true
+}

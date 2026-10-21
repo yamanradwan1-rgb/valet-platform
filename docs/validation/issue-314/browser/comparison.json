@@ -1,0 +1,1082 @@
+{
+  "baseline": "9abbbd2cf6ea062beabdcd06d8323ede474384dc",
+  "candidateProduction": "e34d9a1ca88a47d150da64b1d8beb6e07b81b7b7",
+  "note": "One unchanged synthetic fixture and W5 independent test source; CSS zoom is diagnostic only",
+  "nativeZoom": "Official Chrome MV3 chrome.tabs.setZoom(2) / getZoom()=2; no CDP pinch",
+  "counts": {
+    "PASS": 8,
+    "FAIL": 0,
+    "NOT_RUN": 0,
+    "DIAGNOSTIC_NO_GO": 1
+  },
+  "cases": [
+    {
+      "id": "ar320-native200-dark",
+      "verdict": "PASS",
+      "kind": "native",
+      "physicalWidth": 320,
+      "computedInnerWidth": [
+        160,
+        160
+      ],
+      "nativeReported": [
+        2,
+        2
+      ],
+      "stableFields": true,
+      "unchangedGeometry": true,
+      "visualFreezeVerified": true,
+      "pixel": null,
+      "nativeVerified": true,
+      "correctedGeometry": true,
+      "interactions": true,
+      "pointerAfter": true,
+      "fallback": true,
+      "expectedImprovement": true,
+      "screenshots": {
+        "top": {
+          "beforeSha256": "b6c37d17ce3bc229aae40811e45968609c43c4d4581c624c35acb88fd5be7186",
+          "afterSha256": "1014f7f26fa833f363213ebfaa12c909d12fead547b33c537415bd76deea4b35"
+        },
+        "bottom": {
+          "beforeSha256": "8e3cfe8ea893121ffdf1610d769253c02f9d76c5db9a1ec5bb731be674057201",
+          "afterSha256": "1e3cfade428ba02edb18097303571a5acd14e0af7db25ebd2c407ca183f66368"
+        },
+        "list": {
+          "beforeSha256": "ba8d1e1f2f726e8be48cbcec3017ab8833fefb2ab639520d5e82b061f1a1de9e",
+          "afterSha256": "ba8d1e1f2f726e8be48cbcec3017ab8833fefb2ab639520d5e82b061f1a1de9e"
+        },
+        "null": {
+          "beforeSha256": null,
+          "afterSha256": null
+        }
+      },
+      "horizontalBefore": {
+        "buttonsInside": false,
+        "valuesInside": false,
+        "listInside": true,
+        "bodyInside": true,
+        "bodyNoInternalXScroll": false
+      },
+      "horizontalAfter": {
+        "buttonsInside": true,
+        "valuesInside": true,
+        "listInside": true,
+        "bodyInside": true,
+        "bodyNoInternalXScroll": true
+      },
+      "helpCloseBefore": [
+        {
+          "name": "مساعدة: تفاصيل البلاغ",
+          "rect": {
+            "left": 23.88,
+            "right": 55.88,
+            "top": 32.25,
+            "bottom": 64.25,
+            "width": 32,
+            "height": 32
+          }
+        },
+        {
+          "name": "إغلاق",
+          "rect": {
+            "left": -22.12,
+            "right": 7.88,
+            "top": 33.25,
+            "bottom": 63.25,
+            "width": 30,
+            "height": 30
+          }
+        }
+      ],
+      "helpCloseAfter": [
+        {
+          "name": "مساعدة: تفاصيل البلاغ",
+          "rect": {
+            "left": 119,
+            "right": 151,
+            "top": 57,
+            "bottom": 89,
+            "width": 32,
+            "height": 32
+          }
+        },
+        {
+          "name": "إغلاق",
+          "rect": {
+            "left": 8,
+            "right": 38,
+            "top": 58,
+            "bottom": 88,
+            "width": 30,
+            "height": 30
+          }
+        }
+      ],
+      "scrollBefore": 1214.5,
+      "scrollAfter": 855,
+      "jsErrorsAfter": []
+    },
+    {
+      "id": "en320-native200-light",
+      "verdict": "PASS",
+      "kind": "native",
+      "physicalWidth": 320,
+      "computedInnerWidth": [
+        160,
+        160
+      ],
+      "nativeReported": [
+        2,
+        2
+      ],
+      "stableFields": true,
+      "unchangedGeometry": true,
+      "visualFreezeVerified": true,
+      "pixel": null,
+      "nativeVerified": true,
+      "correctedGeometry": true,
+      "interactions": true,
+      "pointerAfter": true,
+      "fallback": true,
+      "expectedImprovement": true,
+      "screenshots": {
+        "top": {
+          "beforeSha256": "6d578f28104819355d421947dc8d0276f5817e180cd0c3b4e51300ece57104a4",
+          "afterSha256": "0f84ba239273494e9b1e0c81a3d015e8c8ce5166ce2f5859543624d507d8cc2c"
+        },
+        "bottom": {
+          "beforeSha256": "3925b2e05db88140ee179dd0536b2bbfb509acb60dfad9a80ed2c55b7a782dde",
+          "afterSha256": "4594566f48702b24e86ed5d8f2fc2ca93219d32ae9cd820fb06bedc6ee8a7f7e"
+        },
+        "list": {
+          "beforeSha256": "6693ad4ed21f5c0735d277b8a4a9eb232b82f71f9ef3de1fb351f3a8f009d0d1",
+          "afterSha256": "6693ad4ed21f5c0735d277b8a4a9eb232b82f71f9ef3de1fb351f3a8f009d0d1"
+        },
+        "null": {
+          "beforeSha256": null,
+          "afterSha256": null
+        }
+      },
+      "horizontalBefore": {
+        "buttonsInside": false,
+        "valuesInside": false,
+        "listInside": true,
+        "bodyInside": true,
+        "bodyNoInternalXScroll": false
+      },
+      "horizontalAfter": {
+        "buttonsInside": true,
+        "valuesInside": true,
+        "listInside": true,
+        "bodyInside": true,
+        "bodyNoInternalXScroll": true
+      },
+      "helpCloseBefore": [
+        {
+          "name": "Help: Incident drawer",
+          "rect": {
+            "left": 101.34,
+            "right": 133.34,
+            "top": 32.25,
+            "bottom": 64.25,
+            "width": 32,
+            "height": 32
+          }
+        },
+        {
+          "name": "Close",
+          "rect": {
+            "left": 149.34,
+            "right": 179.34,
+            "top": 33.25,
+            "bottom": 63.25,
+            "width": 30,
+            "height": 30
+          }
+        }
+      ],
+      "helpCloseAfter": [
+        {
+          "name": "Help: Incident drawer",
+          "rect": {
+            "left": 9,
+            "right": 41,
+            "top": 57,
+            "bottom": 89,
+            "width": 32,
+            "height": 32
+          }
+        },
+        {
+          "name": "Close",
+          "rect": {
+            "left": 122,
+            "right": 152,
+            "top": 58,
+            "bottom": 88,
+            "width": 30,
+            "height": 30
+          }
+        }
+      ],
+      "scrollBefore": 1262.5,
+      "scrollAfter": 855,
+      "jsErrorsAfter": []
+    },
+    {
+      "id": "ar390-native200-light",
+      "verdict": "PASS",
+      "kind": "native",
+      "physicalWidth": 390,
+      "computedInnerWidth": [
+        195,
+        195
+      ],
+      "nativeReported": [
+        2,
+        2
+      ],
+      "stableFields": true,
+      "unchangedGeometry": true,
+      "visualFreezeVerified": true,
+      "pixel": null,
+      "nativeVerified": true,
+      "correctedGeometry": true,
+      "interactions": true,
+      "pointerAfter": true,
+      "fallback": true,
+      "expectedImprovement": true,
+      "screenshots": {
+        "top": {
+          "beforeSha256": "3317926aaa9504a2ffee987447439d07c178693f9808b079b0eb53fbcd2ba65a",
+          "afterSha256": "7555acaf5c54509215a4217be447ce88b3bf77e995a54bd1cabb95184cedb514"
+        },
+        "bottom": {
+          "beforeSha256": "302e1aa033bd3a8bcbd9abe53bda71676e6ad5a1e9c2e51fa66c7939cbf761de",
+          "afterSha256": "17c08241d75ed7853d90740e12fec52946b03ca272ba2841e6645b54d09362c1"
+        },
+        "list": {
+          "beforeSha256": null,
+          "afterSha256": null
+        },
+        "null": {
+          "beforeSha256": null,
+          "afterSha256": null
+        }
+      },
+      "horizontalBefore": {
+        "buttonsInside": true,
+        "valuesInside": true,
+        "listInside": true,
+        "bodyInside": true,
+        "bodyNoInternalXScroll": true
+      },
+      "horizontalAfter": {
+        "buttonsInside": true,
+        "valuesInside": true,
+        "listInside": true,
+        "bodyInside": true,
+        "bodyNoInternalXScroll": true
+      },
+      "helpCloseBefore": [
+        {
+          "name": "مساعدة: تفاصيل البلاغ",
+          "rect": {
+            "left": 58.88,
+            "right": 90.88,
+            "top": 32.25,
+            "bottom": 64.25,
+            "width": 32,
+            "height": 32
+          }
+        },
+        {
+          "name": "إغلاق",
+          "rect": {
+            "left": 12.88,
+            "right": 42.88,
+            "top": 33.25,
+            "bottom": 63.25,
+            "width": 30,
+            "height": 30
+          }
+        }
+      ],
+      "helpCloseAfter": [
+        {
+          "name": "مساعدة: تفاصيل البلاغ",
+          "rect": {
+            "left": 154,
+            "right": 186,
+            "top": 35.5,
+            "bottom": 67.5,
+            "width": 32,
+            "height": 32
+          }
+        },
+        {
+          "name": "إغلاق",
+          "rect": {
+            "left": 8,
+            "right": 38,
+            "top": 36.5,
+            "bottom": 66.5,
+            "width": 30,
+            "height": 30
+          }
+        }
+      ],
+      "scrollBefore": 1214.5,
+      "scrollAfter": 577.5,
+      "jsErrorsAfter": []
+    },
+    {
+      "id": "ar320-css200-dark",
+      "verdict": "DIAGNOSTIC_NO_GO",
+      "kind": "css",
+      "physicalWidth": 320,
+      "computedInnerWidth": [
+        320,
+        320
+      ],
+      "nativeReported": [
+        null,
+        null
+      ],
+      "stableFields": true,
+      "unchangedGeometry": true,
+      "visualFreezeVerified": true,
+      "pixel": null,
+      "nativeVerified": true,
+      "correctedGeometry": false,
+      "interactions": true,
+      "pointerAfter": false,
+      "fallback": true,
+      "expectedImprovement": true,
+      "screenshots": {
+        "top": {
+          "beforeSha256": "b6c37d17ce3bc229aae40811e45968609c43c4d4581c624c35acb88fd5be7186",
+          "afterSha256": "b6c37d17ce3bc229aae40811e45968609c43c4d4581c624c35acb88fd5be7186"
+        },
+        "bottom": {
+          "beforeSha256": "8e3cfe8ea893121ffdf1610d769253c02f9d76c5db9a1ec5bb731be674057201",
+          "afterSha256": "8e3cfe8ea893121ffdf1610d769253c02f9d76c5db9a1ec5bb731be674057201"
+        },
+        "list": {
+          "beforeSha256": "782d538d11b2b374e986c8702320de1ecda44d69fb505be22bc117f2dc5eda9b",
+          "afterSha256": "782d538d11b2b374e986c8702320de1ecda44d69fb505be22bc117f2dc5eda9b"
+        },
+        "null": {
+          "beforeSha256": null,
+          "afterSha256": null
+        }
+      },
+      "horizontalBefore": {
+        "buttonsInside": false,
+        "valuesInside": false,
+        "listInside": true,
+        "bodyInside": true,
+        "bodyNoInternalXScroll": false
+      },
+      "horizontalAfter": {
+        "buttonsInside": false,
+        "valuesInside": false,
+        "listInside": true,
+        "bodyInside": true,
+        "bodyNoInternalXScroll": false
+      },
+      "helpCloseBefore": [
+        {
+          "name": "مساعدة: تفاصيل البلاغ",
+          "rect": {
+            "left": 47.77,
+            "right": 111.77,
+            "top": 64.5,
+            "bottom": 128.5,
+            "width": 64,
+            "height": 64
+          }
+        },
+        {
+          "name": "إغلاق",
+          "rect": {
+            "left": -44.23,
+            "right": 15.77,
+            "top": 66.5,
+            "bottom": 126.5,
+            "width": 60,
+            "height": 60
+          }
+        }
+      ],
+      "helpCloseAfter": [
+        {
+          "name": "مساعدة: تفاصيل البلاغ",
+          "rect": {
+            "left": 47.77,
+            "right": 111.77,
+            "top": 64.5,
+            "bottom": 128.5,
+            "width": 64,
+            "height": 64
+          }
+        },
+        {
+          "name": "إغلاق",
+          "rect": {
+            "left": -44.23,
+            "right": 15.77,
+            "top": 66.5,
+            "bottom": 126.5,
+            "width": 60,
+            "height": 60
+          }
+        }
+      ],
+      "scrollBefore": 1214.5,
+      "scrollAfter": 1214.5,
+      "jsErrorsAfter": []
+    },
+    {
+      "id": "ar320-normal-light",
+      "verdict": "PASS",
+      "kind": "none",
+      "physicalWidth": 320,
+      "computedInnerWidth": [
+        320,
+        320
+      ],
+      "nativeReported": [
+        null,
+        null
+      ],
+      "stableFields": true,
+      "unchangedGeometry": true,
+      "visualFreezeVerified": true,
+      "pixel": {
+        "top": {
+          "dimensionsMatch": true,
+          "changedPixels": 0,
+          "fraction": 0,
+          "imageSize": [
+            320,
+            900
+          ],
+          "tolerancePerChannel": 8
+        },
+        "bottom": {
+          "dimensionsMatch": true,
+          "changedPixels": 0,
+          "fraction": 0,
+          "imageSize": [
+            320,
+            900
+          ],
+          "tolerancePerChannel": 8
+        }
+      },
+      "nativeVerified": true,
+      "correctedGeometry": true,
+      "interactions": true,
+      "pointerAfter": true,
+      "fallback": true,
+      "expectedImprovement": true,
+      "screenshots": {
+        "top": {
+          "beforeSha256": "17dd7affed39c4ab6e2137eab7c7c298ce9715064459e95a8ae6873e2c62f603",
+          "afterSha256": "17dd7affed39c4ab6e2137eab7c7c298ce9715064459e95a8ae6873e2c62f603"
+        },
+        "bottom": {
+          "beforeSha256": "36eab91c24c7239a22fe3c1286cd9f0458ec9f814af70f21c27750b141fa8bcd",
+          "afterSha256": "36eab91c24c7239a22fe3c1286cd9f0458ec9f814af70f21c27750b141fa8bcd"
+        },
+        "list": {
+          "beforeSha256": "75e7aa78547bc2617286cc7261b57655d0e673565aea34601e8723a82a7ac1d0",
+          "afterSha256": "75e7aa78547bc2617286cc7261b57655d0e673565aea34601e8723a82a7ac1d0"
+        },
+        "null": {
+          "beforeSha256": "3046a41e4bf909692f947d7d51a416833beb7e8ad85052da7d17aaadebcd2483",
+          "afterSha256": "3046a41e4bf909692f947d7d51a416833beb7e8ad85052da7d17aaadebcd2483"
+        }
+      },
+      "horizontalBefore": {
+        "buttonsInside": true,
+        "valuesInside": true,
+        "listInside": true,
+        "bodyInside": true,
+        "bodyNoInternalXScroll": true
+      },
+      "horizontalAfter": {
+        "buttonsInside": true,
+        "valuesInside": true,
+        "listInside": true,
+        "bodyInside": true,
+        "bodyNoInternalXScroll": true
+      },
+      "helpCloseBefore": [
+        {
+          "name": "مساعدة: تفاصيل البلاغ",
+          "rect": {
+            "left": 83.78,
+            "right": 115.78,
+            "top": 16,
+            "bottom": 48,
+            "width": 32,
+            "height": 32
+          }
+        },
+        {
+          "name": "إغلاق",
+          "rect": {
+            "left": 24,
+            "right": 54,
+            "top": 17,
+            "bottom": 47,
+            "width": 30,
+            "height": 30
+          }
+        }
+      ],
+      "helpCloseAfter": [
+        {
+          "name": "مساعدة: تفاصيل البلاغ",
+          "rect": {
+            "left": 83.78,
+            "right": 115.78,
+            "top": 16,
+            "bottom": 48,
+            "width": 32,
+            "height": 32
+          }
+        },
+        {
+          "name": "إغلاق",
+          "rect": {
+            "left": 24,
+            "right": 54,
+            "top": 17,
+            "bottom": 47,
+            "width": 30,
+            "height": 30
+          }
+        }
+      ],
+      "scrollBefore": 0,
+      "scrollAfter": 0,
+      "jsErrorsAfter": []
+    },
+    {
+      "id": "en390-normal-dark",
+      "verdict": "PASS",
+      "kind": "none",
+      "physicalWidth": 390,
+      "computedInnerWidth": [
+        390,
+        390
+      ],
+      "nativeReported": [
+        null,
+        null
+      ],
+      "stableFields": true,
+      "unchangedGeometry": true,
+      "visualFreezeVerified": true,
+      "pixel": {
+        "top": {
+          "dimensionsMatch": true,
+          "changedPixels": 0,
+          "fraction": 0,
+          "imageSize": [
+            390,
+            900
+          ],
+          "tolerancePerChannel": 8
+        },
+        "bottom": {
+          "dimensionsMatch": true,
+          "changedPixels": 0,
+          "fraction": 0,
+          "imageSize": [
+            390,
+            900
+          ],
+          "tolerancePerChannel": 8
+        }
+      },
+      "nativeVerified": true,
+      "correctedGeometry": true,
+      "interactions": true,
+      "pointerAfter": true,
+      "fallback": true,
+      "expectedImprovement": true,
+      "screenshots": {
+        "top": {
+          "beforeSha256": "e9eaf817d4447cc638c22b79afbc18cb3450adaa7a494c1bfabbd83ac2be4950",
+          "afterSha256": "e9eaf817d4447cc638c22b79afbc18cb3450adaa7a494c1bfabbd83ac2be4950"
+        },
+        "bottom": {
+          "beforeSha256": "ed50f0138b84291ab1b6738d70a8f7e98b86671d367fa96c7222e8f4ebe2db65",
+          "afterSha256": "ed50f0138b84291ab1b6738d70a8f7e98b86671d367fa96c7222e8f4ebe2db65"
+        },
+        "list": {
+          "beforeSha256": null,
+          "afterSha256": null
+        },
+        "null": {
+          "beforeSha256": "43cf44b5f6694ef0b423ea044074ad0349f1982aadac2d151df360d1f937a3ba",
+          "afterSha256": "43cf44b5f6694ef0b423ea044074ad0349f1982aadac2d151df360d1f937a3ba"
+        }
+      },
+      "horizontalBefore": {
+        "buttonsInside": true,
+        "valuesInside": true,
+        "listInside": true,
+        "bodyInside": true,
+        "bodyNoInternalXScroll": true
+      },
+      "horizontalAfter": {
+        "buttonsInside": true,
+        "valuesInside": true,
+        "listInside": true,
+        "bodyInside": true,
+        "bodyNoInternalXScroll": true
+      },
+      "helpCloseBefore": [
+        {
+          "name": "Help: Incident drawer",
+          "rect": {
+            "left": 253.64,
+            "right": 285.64,
+            "top": 16,
+            "bottom": 48,
+            "width": 32,
+            "height": 32
+          }
+        },
+        {
+          "name": "Close",
+          "rect": {
+            "left": 336,
+            "right": 366,
+            "top": 17,
+            "bottom": 47,
+            "width": 30,
+            "height": 30
+          }
+        }
+      ],
+      "helpCloseAfter": [
+        {
+          "name": "Help: Incident drawer",
+          "rect": {
+            "left": 253.64,
+            "right": 285.64,
+            "top": 16,
+            "bottom": 48,
+            "width": 32,
+            "height": 32
+          }
+        },
+        {
+          "name": "Close",
+          "rect": {
+            "left": 336,
+            "right": 366,
+            "top": 17,
+            "bottom": 47,
+            "width": 30,
+            "height": 30
+          }
+        }
+      ],
+      "scrollBefore": 0,
+      "scrollAfter": 0,
+      "jsErrorsAfter": []
+    },
+    {
+      "id": "ar768-normal-dark",
+      "verdict": "PASS",
+      "kind": "none",
+      "physicalWidth": 768,
+      "computedInnerWidth": [
+        768,
+        768
+      ],
+      "nativeReported": [
+        null,
+        null
+      ],
+      "stableFields": true,
+      "unchangedGeometry": true,
+      "visualFreezeVerified": true,
+      "pixel": {
+        "top": {
+          "dimensionsMatch": true,
+          "changedPixels": 0,
+          "fraction": 0,
+          "imageSize": [
+            768,
+            900
+          ],
+          "tolerancePerChannel": 8
+        },
+        "bottom": {
+          "dimensionsMatch": true,
+          "changedPixels": 0,
+          "fraction": 0,
+          "imageSize": [
+            768,
+            900
+          ],
+          "tolerancePerChannel": 8
+        }
+      },
+      "nativeVerified": true,
+      "correctedGeometry": true,
+      "interactions": true,
+      "pointerAfter": true,
+      "fallback": true,
+      "expectedImprovement": true,
+      "screenshots": {
+        "top": {
+          "beforeSha256": "a19cb2a8ac7004c8551eaa0877405078360b461bbd8329e49c09387a56ce6f6b",
+          "afterSha256": "a19cb2a8ac7004c8551eaa0877405078360b461bbd8329e49c09387a56ce6f6b"
+        },
+        "bottom": {
+          "beforeSha256": "1b038a42a4875804058e62677a57ec9561d6b0098a8d6adca867ff700fa07f72",
+          "afterSha256": "1b038a42a4875804058e62677a57ec9561d6b0098a8d6adca867ff700fa07f72"
+        },
+        "list": {
+          "beforeSha256": null,
+          "afterSha256": null
+        },
+        "null": {
+          "beforeSha256": null,
+          "afterSha256": null
+        }
+      },
+      "horizontalBefore": {
+        "buttonsInside": true,
+        "valuesInside": true,
+        "listInside": true,
+        "bodyInside": true,
+        "bodyNoInternalXScroll": true
+      },
+      "horizontalAfter": {
+        "buttonsInside": true,
+        "valuesInside": true,
+        "listInside": true,
+        "bodyInside": true,
+        "bodyNoInternalXScroll": true
+      },
+      "helpCloseBefore": [
+        {
+          "name": "مساعدة: تفاصيل البلاغ",
+          "rect": {
+            "left": 147.78,
+            "right": 179.78,
+            "top": 16,
+            "bottom": 48,
+            "width": 32,
+            "height": 32
+          }
+        },
+        {
+          "name": "إغلاق",
+          "rect": {
+            "left": 24,
+            "right": 54,
+            "top": 17,
+            "bottom": 47,
+            "width": 30,
+            "height": 30
+          }
+        }
+      ],
+      "helpCloseAfter": [
+        {
+          "name": "مساعدة: تفاصيل البلاغ",
+          "rect": {
+            "left": 147.78,
+            "right": 179.78,
+            "top": 16,
+            "bottom": 48,
+            "width": 32,
+            "height": 32
+          }
+        },
+        {
+          "name": "إغلاق",
+          "rect": {
+            "left": 24,
+            "right": 54,
+            "top": 17,
+            "bottom": 47,
+            "width": 30,
+            "height": 30
+          }
+        }
+      ],
+      "scrollBefore": 0,
+      "scrollAfter": 0,
+      "jsErrorsAfter": []
+    },
+    {
+      "id": "en1440-normal-light",
+      "verdict": "PASS",
+      "kind": "none",
+      "physicalWidth": 1440,
+      "computedInnerWidth": [
+        1440,
+        1440
+      ],
+      "nativeReported": [
+        null,
+        null
+      ],
+      "stableFields": true,
+      "unchangedGeometry": true,
+      "visualFreezeVerified": true,
+      "pixel": {
+        "top": {
+          "dimensionsMatch": true,
+          "changedPixels": 0,
+          "fraction": 0,
+          "imageSize": [
+            1440,
+            900
+          ],
+          "tolerancePerChannel": 8
+        },
+        "bottom": {
+          "dimensionsMatch": true,
+          "changedPixels": 0,
+          "fraction": 0,
+          "imageSize": [
+            1440,
+            900
+          ],
+          "tolerancePerChannel": 8
+        }
+      },
+      "nativeVerified": true,
+      "correctedGeometry": true,
+      "interactions": true,
+      "pointerAfter": true,
+      "fallback": true,
+      "expectedImprovement": true,
+      "screenshots": {
+        "top": {
+          "beforeSha256": "5eb700fc9d92a0f607ea8a90bf7e103bd9dd9fce67fcc0ace55c99c7de257d05",
+          "afterSha256": "5eb700fc9d92a0f607ea8a90bf7e103bd9dd9fce67fcc0ace55c99c7de257d05"
+        },
+        "bottom": {
+          "beforeSha256": "1942850e1d8f1970372925c39bc1992ff5e7a4e839df084a06386f64d07323b5",
+          "afterSha256": "1942850e1d8f1970372925c39bc1992ff5e7a4e839df084a06386f64d07323b5"
+        },
+        "list": {
+          "beforeSha256": "af0c2b50cf9ed40028e440ee290e6b6327542be996b0b066e68030f26e6eb774",
+          "afterSha256": "af0c2b50cf9ed40028e440ee290e6b6327542be996b0b066e68030f26e6eb774"
+        },
+        "null": {
+          "beforeSha256": null,
+          "afterSha256": null
+        }
+      },
+      "horizontalBefore": {
+        "buttonsInside": true,
+        "valuesInside": true,
+        "listInside": true,
+        "bodyInside": true,
+        "bodyNoInternalXScroll": true
+      },
+      "horizontalAfter": {
+        "buttonsInside": true,
+        "valuesInside": true,
+        "listInside": true,
+        "bodyInside": true,
+        "bodyNoInternalXScroll": true
+      },
+      "helpCloseBefore": [
+        {
+          "name": "Help: Incident drawer",
+          "rect": {
+            "left": 1274.64,
+            "right": 1306.64,
+            "top": 16,
+            "bottom": 48,
+            "width": 32,
+            "height": 32
+          }
+        },
+        {
+          "name": "Close",
+          "rect": {
+            "left": 1386,
+            "right": 1416,
+            "top": 17,
+            "bottom": 47,
+            "width": 30,
+            "height": 30
+          }
+        }
+      ],
+      "helpCloseAfter": [
+        {
+          "name": "Help: Incident drawer",
+          "rect": {
+            "left": 1274.64,
+            "right": 1306.64,
+            "top": 16,
+            "bottom": 48,
+            "width": 32,
+            "height": 32
+          }
+        },
+        {
+          "name": "Close",
+          "rect": {
+            "left": 1386,
+            "right": 1416,
+            "top": 17,
+            "bottom": 47,
+            "width": 30,
+            "height": 30
+          }
+        }
+      ],
+      "scrollBefore": 0,
+      "scrollAfter": 0,
+      "jsErrorsAfter": []
+    },
+    {
+      "id": "en1440-native200-light",
+      "verdict": "PASS",
+      "kind": "native",
+      "physicalWidth": 1440,
+      "computedInnerWidth": [
+        720,
+        720
+      ],
+      "nativeReported": [
+        2,
+        2
+      ],
+      "stableFields": true,
+      "unchangedGeometry": true,
+      "visualFreezeVerified": true,
+      "pixel": {
+        "top": {
+          "dimensionsMatch": true,
+          "changedPixels": 0,
+          "fraction": 0,
+          "imageSize": [
+            1440,
+            900
+          ],
+          "tolerancePerChannel": 8
+        },
+        "bottom": {
+          "dimensionsMatch": true,
+          "changedPixels": 0,
+          "fraction": 0,
+          "imageSize": [
+            1440,
+            900
+          ],
+          "tolerancePerChannel": 8
+        }
+      },
+      "nativeVerified": true,
+      "correctedGeometry": true,
+      "interactions": true,
+      "pointerAfter": true,
+      "fallback": true,
+      "expectedImprovement": true,
+      "screenshots": {
+        "top": {
+          "beforeSha256": "8d1b8a4f148edefdade9c336c28b9272a14fdf5f947b55268383b712fdeb428f",
+          "afterSha256": "8d1b8a4f148edefdade9c336c28b9272a14fdf5f947b55268383b712fdeb428f"
+        },
+        "bottom": {
+          "beforeSha256": "2b07e0bc2ded3fc68b393256951996c09d0577fc75b4e75bcdc65313c2b644a4",
+          "afterSha256": "2b07e0bc2ded3fc68b393256951996c09d0577fc75b4e75bcdc65313c2b644a4"
+        },
+        "list": {
+          "beforeSha256": "ef0c3fa9a38b62c3ac55e430623b7744e854893e92c3a8978711115cab5d63af",
+          "afterSha256": "ef0c3fa9a38b62c3ac55e430623b7744e854893e92c3a8978711115cab5d63af"
+        },
+        "null": {
+          "beforeSha256": null,
+          "afterSha256": null
+        }
+      },
+      "horizontalBefore": {
+        "buttonsInside": true,
+        "valuesInside": true,
+        "listInside": true,
+        "bodyInside": true,
+        "bodyNoInternalXScroll": true
+      },
+      "horizontalAfter": {
+        "buttonsInside": true,
+        "valuesInside": true,
+        "listInside": true,
+        "bodyInside": true,
+        "bodyNoInternalXScroll": true
+      },
+      "helpCloseBefore": [
+        {
+          "name": "Help: Incident drawer",
+          "rect": {
+            "left": 554.64,
+            "right": 586.64,
+            "top": 16,
+            "bottom": 48,
+            "width": 32,
+            "height": 32
+          }
+        },
+        {
+          "name": "Close",
+          "rect": {
+            "left": 666,
+            "right": 696,
+            "top": 17,
+            "bottom": 47,
+            "width": 30,
+            "height": 30
+          }
+        }
+      ],
+      "helpCloseAfter": [
+        {
+          "name": "Help: Incident drawer",
+          "rect": {
+            "left": 554.64,
+            "right": 586.64,
+            "top": 16,
+            "bottom": 48,
+            "width": 32,
+            "height": 32
+          }
+        },
+        {
+          "name": "Close",
+          "rect": {
+            "left": 666,
+            "right": 696,
+            "top": 17,
+            "bottom": 47,
+            "width": 30,
+            "height": 30
+          }
+        }
+      ],
+      "scrollBefore": 158,
+      "scrollAfter": 158,
+      "jsErrorsAfter": []
+    }
+  ]
+}

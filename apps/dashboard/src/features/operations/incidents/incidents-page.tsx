@@ -14,6 +14,7 @@ import {
   incidentStatusLabel,
   incidentSeverityLabel,
 } from "./incident-presentation";
+import incidentDrawerStyles from "./incident-drawer.module.css";
 import localStyles from "../accountability.module.css";
 import { operationsCopy } from "../operations-copy";
 import { incidentTone, severityTone } from "../operations-labels";
@@ -199,11 +200,12 @@ function IncidentDrawer({
   const copy = incidentCopy(locale);
   return (
     <OperationsDrawer
+      className={incidentDrawerStyles.drawer}
       help={<ScopedContextHelp helpKey="incidents.detail" />}
       label={`${t.details}: ${incidentTypeLabel(item.type, locale)}`}
       onClose={onClose}
     >
-      <FactList>
+      <FactList className={incidentDrawerStyles.facts}>
         <Fact label={t.type} value={incidentTypeLabel(item.type, locale)} />
         <Fact label={t.description} value={<bdi>{item.description}</bdi>} />
         <Fact

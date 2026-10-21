@@ -113,6 +113,7 @@ export function DetailAction(props: { readonly label: string; readonly onClick: 
 
 export function OperationsDrawer(props: {
   readonly children: ReactNode;
+  readonly className?: string | undefined;
   readonly help?: ReactNode;
   readonly label: string;
   readonly onClose: () => void;
@@ -153,7 +154,7 @@ export function OperationsDrawer(props: {
       }}
       role="presentation"
     >
-      <div aria-label={props.label} aria-modal="true" className={styles.drawer} onMouseDown={(event) => event.stopPropagation()} ref={ref} role="dialog">
+      <div aria-label={props.label} aria-modal="true" className={`${styles.drawer} ${props.className ?? ""}`} onMouseDown={(event) => event.stopPropagation()} ref={ref} role="dialog">
         <div className={styles.drawerHeader}>
           <div><h2>{props.label}</h2>{props.subtitle ? <div className={styles.drawerSubtitle}>{props.subtitle}</div> : null}</div>
           {props.help}
@@ -165,8 +166,8 @@ export function OperationsDrawer(props: {
   );
 }
 
-export function FactList({ children }: { readonly children: ReactNode }) {
-  return <div className={styles.factList}>{children}</div>;
+export function FactList({ children, className }: { readonly children: ReactNode; readonly className?: string | undefined }) {
+  return <div className={`${styles.factList} ${className ?? ""}`}>{children}</div>;
 }
 
 export function Fact({ label, value }: { readonly label: string; readonly value: ReactNode }) {

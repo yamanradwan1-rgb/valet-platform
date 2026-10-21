@@ -1,0 +1,47 @@
+/* The Incident drawer keeps its approved desktop/mobile geometry. At effective
+   widths below the 320 CSS px reflow boundary, release flex min-content widths. */
+@media (max-width: 18rem) {
+  .drawer > :first-child {
+    padding: .5rem;
+    gap: .375rem;
+    flex-wrap: wrap;
+  }
+
+  .drawer > :first-child > :first-child {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .drawer > :first-child h2 {
+    overflow-wrap: anywhere;
+  }
+
+  .drawer > :first-child > button:last-child {
+    margin-inline-start: auto;
+    flex: 0 0 auto;
+  }
+
+  .drawer > :last-child {
+    min-width: 0;
+    padding: .5rem;
+  }
+
+  .facts {
+    min-width: 0;
+    padding: .5rem;
+  }
+
+  .facts > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: .25rem;
+  }
+
+  .facts > div > span,
+  .facts > div > strong {
+    min-width: 0;
+    max-width: 100%;
+    text-align: start;
+    overflow-wrap: anywhere;
+  }
+}
