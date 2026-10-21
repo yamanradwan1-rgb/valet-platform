@@ -186,6 +186,8 @@ function VehiclesContent() {
           locale={locale}
           location={location}
           onClose={() => setSelected(null)}
+          photoApi={dashboard.api}
+          photoScopeKey={scopeKey}
         />
       ) : null}
     </OperationsPage>

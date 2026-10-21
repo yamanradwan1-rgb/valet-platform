@@ -6,6 +6,10 @@ export function parseDashboardBinaryHeaders(
 ): { readonly contentType: string; readonly filename: string } {
   const contentType = headers.get("content-type");
   if (contentType !== expectedContentType) throw dashboardMalformedError();
+  // Protected photo bytes are rendered in memory, never downloaded as an attachment.
+  if (expectedContentType === "image/jpeg") {
+    return { contentType, filename: "" };
+  }
   const disposition = headers.get("content-disposition");
   if (disposition === null) throw dashboardMalformedError();
   const match = /^attachment; filename="([A-Za-z0-9][A-Za-z0-9._-]*)"$/.exec(

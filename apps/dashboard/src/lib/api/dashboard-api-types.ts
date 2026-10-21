@@ -17,7 +17,8 @@ export interface DashboardApiRequestOptions {
 }
 
 export interface DashboardBinaryRequestOptions {
-  readonly body: unknown;
+  readonly body?: unknown;
+  readonly method?: "GET" | "POST";
   readonly expectedContentType: string;
   readonly signal?: AbortSignal | undefined;
 }

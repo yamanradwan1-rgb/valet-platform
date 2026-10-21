@@ -175,6 +175,8 @@ function LiveOperationsContent() {
         ) : (
           <LiveOperationsTable
             help={<ScopedContextHelp helpKey="live.sessionDetail" />}
+            photoApi={dashboard.api}
+            photoScopeKey={scopeKey}
             key={`sessions:${listRevision}:${filter}:${page.cursor}`}
             canNext={Boolean(sessions.data?.nextCursor)}
             canPrevious={page.canPrevious}

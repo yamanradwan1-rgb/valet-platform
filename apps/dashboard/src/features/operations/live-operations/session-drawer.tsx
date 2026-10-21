@@ -5,6 +5,8 @@ import type {
 } from "@valet/contracts";
 import type { ReactNode } from "react";
 import type { DashboardLocale } from "../../../lib/i18n/locale";
+import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
+import { SessionPhotos } from "../session-photos/session-photos";
 import { operationsCopy } from "../operations-copy";
 import { sessionTone } from "../operations-labels";
 import { operationalStaffName } from "../operational-staff";
@@ -34,6 +36,8 @@ export function SessionDrawer({
   locale,
   location,
   onClose,
+  photoApi,
+  photoScopeKey,
 }: {
   readonly help?: ReactNode;
   // Only Live explicitly supplies protected history. Vehicles never passes it.
@@ -45,6 +49,8 @@ export function SessionDrawer({
   readonly locale: DashboardLocale;
   readonly location: ManagementLocation;
   readonly onClose: () => void;
+  readonly photoApi?: DashboardApiClient | undefined;
+  readonly photoScopeKey?: string | undefined;
 }) {
   const t = operationsCopy(locale);
   const vehicle = liveVehicleLabel(item) ?? t.plateUnavailable;
@@ -131,6 +137,15 @@ export function SessionDrawer({
         <Fact label={t.created} value={time(item.createdAt)} />
         <Fact label={t.updated} value={time(item.updatedAt)} />
       </FactList>
+      <SessionPhotos
+        api={photoApi}
+        key={[photoScopeKey, location.locationId, item.sessionId].join(":")}
+        locale={locale}
+        locationId={location.locationId}
+        scopeKey={photoScopeKey}
+        sessionId={item.sessionId}
+        timezone={location.timezone}
+      />
     </OperationsDrawer>
   );
 }

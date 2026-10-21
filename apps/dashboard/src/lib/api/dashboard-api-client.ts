@@ -9,6 +9,7 @@ import {
   dashboardNetworkError,
 } from "./dashboard-api-error";
 import { parseDashboardBinaryHeaders } from "./dashboard-binary-response";
+import { readProtectedJpegBody } from "./dashboard-protected-jpeg-body";
 import type {
   DashboardApiRequestOptions,
   DashboardBinaryRequestOptions,
@@ -127,7 +128,7 @@ export class DashboardApiClient {
     const sessionFence = this.auth.getSessionGeneration();
     const headers: Record<string, string> = {
       Accept: options.expectedContentType,
-      "Content-Type": "application/json",
+      ...(options.method === "GET" ? {} : { "Content-Type": "application/json" }),
     };
     const token = this.auth.getAccessToken();
     if (token !== null) headers.Authorization = `Bearer ${token}`;
@@ -135,9 +136,9 @@ export class DashboardApiClient {
     let response: Response;
     try {
       response = await this.fetcher(this.buildUrl(path), {
-        method: "POST",
+        method: options.method ?? "POST",
         headers,
-        body: JSON.stringify(options.body),
+        ...(options.method === "GET" ? {} : { body: JSON.stringify(options.body) }),
         cache: "no-store",
         credentials: "include",
         ...(options.signal === undefined ? {} : { signal: options.signal }),
@@ -179,7 +180,9 @@ export class DashboardApiClient {
     );
     let bytes: Uint8Array;
     try {
-      bytes = new Uint8Array(await response.arrayBuffer());
+      bytes = options.expectedContentType === "image/jpeg"
+        ? await readProtectedJpegBody(response, options.signal)
+        : new Uint8Array(await response.arrayBuffer());
     } catch (error: unknown) {
       throw new DashboardApiError({
         kind: "network",

@@ -16,6 +16,7 @@ import {
 } from "./session-staff-attribution";
 
 import type { DashboardLocale } from "../../../lib/i18n/locale";
+import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
 import { operationsCopy } from "../operations-copy";
 import { sessionTone } from "../operations-labels";
 import { DetailAction, StatusBadge, styles } from "../operations-ui";
@@ -26,6 +27,8 @@ import {
 } from "./live-operations-presentation";
 
 interface LiveOperationsTableProps {
+  readonly photoApi?: DashboardApiClient | undefined;
+  readonly photoScopeKey?: string | undefined;
   readonly help?: ReactNode;
   readonly canNext: boolean;
   readonly canPrevious: boolean;
@@ -84,6 +87,8 @@ export function LiveOperationsTable(props: LiveOperationsTableProps) {
                   key={item.sessionId}
                   locale={props.locale}
                   location={props.location}
+                  photoApi={props.photoApi}
+                  photoScopeKey={props.photoScopeKey}
                 />
               ))
             )}
@@ -110,11 +115,15 @@ function LiveOperationsRow({
   item,
   locale,
   location,
+  photoApi,
+  photoScopeKey,
 }: {
   readonly help?: ReactNode;
   readonly item: LiveSessionOverviewEntry | SessionOverviewEntry;
   readonly locale: DashboardLocale;
   readonly location: ManagementLocation;
+  readonly photoApi?: DashboardApiClient | undefined;
+  readonly photoScopeKey?: string | undefined;
 }) {
   const t = operationsCopy(locale);
   const [open, setOpen] = useState(false);
@@ -192,6 +201,8 @@ function LiveOperationsRow({
               locale={locale}
               location={location}
               onClose={() => setOpen(false)}
+              photoApi={photoApi}
+              photoScopeKey={photoScopeKey}
             />,
             document.body,
           )
