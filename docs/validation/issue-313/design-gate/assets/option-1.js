@@ -8,6 +8,8 @@
   const heading = root.querySelector("[data-feedback-heading]");
   const context = root.querySelector("[data-feedback-context]");
   const content = root.querySelector("[data-feedback-content]");
+  const demo = root.querySelector("[data-feedback-demo]");
+  const announcement = root.querySelector("[data-feedback-announcement]");
   const escape = (value) => String(value).replace(/[&<>"']/g, (match) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
   })[match]);
@@ -25,6 +27,7 @@
 
   function headline(data, tr) {
     heading.textContent = tr.heading;
+    demo.textContent = tr.demo;
     const chosen = data.location === "all" ? tr.all : tr[data.location];
     const periodKey = { "2026-08": "aug", "2026-09": "sep", "2026-10": "oct" }[data.period];
     context.textContent = chosen + " · " + (tr[periodKey] || data.period);
@@ -34,7 +37,7 @@
     const label = data.status === "loading" ? tr.loading
       : data.status === "error" ? tr.error : tr.denied;
     content.setAttribute("aria-busy", String(data.status === "loading"));
-    content.innerHTML = '<div class="f1-surface f1-status" data-testid="feedback-state" role="status">' +
+    content.innerHTML = '<div class="f1-surface f1-status" data-testid="feedback-state">' +
       "<p>" + escape(label) + "</p>" +
       (data.status === "error" ? '<button type="button" class="f1-retry">' + escape(tr.retry) + "</button>" : "") +
       "</div>";
@@ -69,7 +72,7 @@
         '<p class="f1-recent-meta">' + escape(location) + " · " + escape(tr.completed) +
         " " + date(record.completedAt, language) + "<br>" +
         escape(tr.submitted) + " " + date(record.ratedAt, language) + "</p></div>" +
-        '<span class="f1-rating-chip" aria-label="' + record.rating + " " +
+        '<span class="f1-rating-chip" role="img" aria-label="' + record.rating + " " +
         escape(record.rating === 1 ? tr.star : tr.stars) +
         '">' + record.rating + ' <span aria-hidden="true">★</span></span></div>';
     });
@@ -125,6 +128,21 @@
     }
   }
 
+  let lastAnnouncedState = "live";
+  function announceStatus(data, tr) {
+    if (data.status === lastAnnouncedState) return;
+    lastAnnouncedState = data.status;
+    const message = {
+      live: tr.live,
+      empty: tr.noRatings,
+      none: tr.noEligible,
+      loading: tr.loading,
+      error: tr.error,
+      denied: tr.denied,
+    };
+    announcement.textContent = message[data.status] || "";
+  }
+
   let controller;
   controller = window.VAYLET313_RUNTIME.mount(root, (data, tr, language) => {
     headline(data, tr);
@@ -133,5 +151,6 @@
     } else {
       summary(data, tr, language);
     }
+    announceStatus(data, tr);
   });
 })();

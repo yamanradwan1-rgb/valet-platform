@@ -265,6 +265,15 @@
   font-weight: 700;
   border: 1px solid var(--f1-blue);
 }
+[data-testid="customer-feedback-section"] .f1-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
 :root[data-theme="dark"] [data-testid="customer-feedback-section"] {
   --f1-track: #253656;
   --f1-quiet: #172345;
