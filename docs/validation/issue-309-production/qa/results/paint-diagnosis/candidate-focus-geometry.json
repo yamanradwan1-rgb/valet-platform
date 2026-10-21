@@ -1,0 +1,17 @@
+{
+  "focusVisible": true,
+  "tile": {
+    "x": 25,
+    "y": 561.96875,
+    "width": 165.296875,
+    "height": 229.734375
+  },
+  "section": {
+    "x": 25,
+    "y": 481.953125,
+    "width": 341,
+    "height": 549.859375
+  },
+  "outline": "rgb(105, 161, 255) solid 3px",
+  "outlineOffset": "2px"
+}

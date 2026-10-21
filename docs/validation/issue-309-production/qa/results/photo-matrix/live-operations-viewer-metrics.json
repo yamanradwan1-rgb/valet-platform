@@ -1,0 +1,1545 @@
+{
+  "surface": "live-operations",
+  "scenario": "viewer",
+  "fixture": "synthetic local JPEG; protected mock staff endpoints",
+  "candidate": "8dc1c421",
+  "cases": [
+    {
+      "key": "live-operations-viewer-en-light-320",
+      "state": {
+        "viewport": {
+          "width": 320,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "en",
+        "direction": "ltr",
+        "theme": "light",
+        "section": {
+          "x": 25,
+          "y": 419.95,
+          "width": 271,
+          "height": 479.86,
+          "right": 296,
+          "bottom": 899.81
+        },
+        "heading": {
+          "x": 25,
+          "y": 419.95,
+          "width": 166.58,
+          "height": 19.27,
+          "right": 191.58,
+          "bottom": 439.22
+        },
+        "hint": {
+          "x": 25,
+          "y": 454.55,
+          "width": 271,
+          "height": 32.63,
+          "right": 296,
+          "bottom": 487.17
+        },
+        "grid": {
+          "x": 25,
+          "y": 499.97,
+          "width": 271,
+          "height": 399.84,
+          "right": 296,
+          "bottom": 899.81
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 25,
+            "y": 499.97,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 155.3,
+            "bottom": 694.7
+          },
+          {
+            "x": 165.69,
+            "y": 499.97,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 296,
+            "bottom": 694.7
+          },
+          {
+            "x": 25,
+            "y": 705.09,
+            "width": 130.3,
+            "height": 194.72,
+            "right": 155.3,
+            "bottom": 899.81
+          }
+        ],
+        "factList": {
+          "x": 25,
+          "y": -20.81,
+          "width": 271,
+          "height": 422.38,
+          "right": 296,
+          "bottom": 401.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 900,
+          "right": 320,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 969,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 118,
+        "photoTitle": "Check-in condition photos",
+        "photoCount": "3 photos",
+        "renderedBlobImages": 3,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "live-operations-viewer-en-light-390",
+      "state": {
+        "viewport": {
+          "width": 390,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "en",
+        "direction": "ltr",
+        "theme": "light",
+        "section": {
+          "x": 25,
+          "y": 349.95,
+          "width": 341,
+          "height": 549.86,
+          "right": 366,
+          "bottom": 899.81
+        },
+        "heading": {
+          "x": 25,
+          "y": 349.95,
+          "width": 166.58,
+          "height": 19.27,
+          "right": 191.58,
+          "bottom": 369.22
+        },
+        "hint": {
+          "x": 25,
+          "y": 384.55,
+          "width": 341,
+          "height": 32.63,
+          "right": 366,
+          "bottom": 417.17
+        },
+        "grid": {
+          "x": 25,
+          "y": 429.97,
+          "width": 341,
+          "height": 469.84,
+          "right": 366,
+          "bottom": 899.81
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 25,
+            "y": 429.97,
+            "width": 165.3,
+            "height": 229.73,
+            "right": 190.3,
+            "bottom": 659.7
+          },
+          {
+            "x": 200.69,
+            "y": 429.97,
+            "width": 165.31,
+            "height": 229.73,
+            "right": 366,
+            "bottom": 659.7
+          },
+          {
+            "x": 25,
+            "y": 670.09,
+            "width": 165.3,
+            "height": 229.72,
+            "right": 190.3,
+            "bottom": 899.81
+          }
+        ],
+        "factList": {
+          "x": 25,
+          "y": -90.81,
+          "width": 341,
+          "height": 422.38,
+          "right": 366,
+          "bottom": 331.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 900,
+          "right": 390,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1039,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 188,
+        "photoTitle": "Check-in condition photos",
+        "photoCount": "3 photos",
+        "renderedBlobImages": 3,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "live-operations-viewer-en-light-768",
+      "state": {
+        "viewport": {
+          "width": 768,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "en",
+        "direction": "ltr",
+        "theme": "light",
+        "section": {
+          "x": 345,
+          "y": 364.95,
+          "width": 399,
+          "height": 511.7,
+          "right": 744,
+          "bottom": 876.66
+        },
+        "heading": {
+          "x": 345,
+          "y": 367.81,
+          "width": 166.58,
+          "height": 19.27,
+          "right": 511.58,
+          "bottom": 387.08
+        },
+        "hint": {
+          "x": 345,
+          "y": 399.55,
+          "width": 399,
+          "height": 32.63,
+          "right": 744,
+          "bottom": 432.17
+        },
+        "grid": {
+          "x": 345,
+          "y": 444.97,
+          "width": 399,
+          "height": 431.69,
+          "right": 744,
+          "bottom": 876.66
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 345,
+            "y": 444.97,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 539.3,
+            "bottom": 655.63
+          },
+          {
+            "x": 549.69,
+            "y": 444.97,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 744,
+            "bottom": 655.63
+          },
+          {
+            "x": 345,
+            "y": 666.02,
+            "width": 194.3,
+            "height": 210.64,
+            "right": 539.3,
+            "bottom": 876.66
+          }
+        ],
+        "factList": {
+          "x": 345,
+          "y": -75.81,
+          "width": 399,
+          "height": 422.38,
+          "right": 744,
+          "bottom": 346.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 320,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 768,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1000,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 173,
+        "photoTitle": "Check-in condition photos",
+        "photoCount": "3 photos",
+        "renderedBlobImages": 3,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "live-operations-viewer-en-light-1440",
+      "state": {
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "en",
+        "direction": "ltr",
+        "theme": "light",
+        "section": {
+          "x": 1017,
+          "y": 364.95,
+          "width": 399,
+          "height": 511.7,
+          "right": 1416,
+          "bottom": 876.66
+        },
+        "heading": {
+          "x": 1017,
+          "y": 367.81,
+          "width": 166.58,
+          "height": 19.27,
+          "right": 1183.58,
+          "bottom": 387.08
+        },
+        "hint": {
+          "x": 1017,
+          "y": 399.55,
+          "width": 399,
+          "height": 32.63,
+          "right": 1416,
+          "bottom": 432.17
+        },
+        "grid": {
+          "x": 1017,
+          "y": 444.97,
+          "width": 399,
+          "height": 431.69,
+          "right": 1416,
+          "bottom": 876.66
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 1017,
+            "y": 444.97,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 1211.3,
+            "bottom": 655.63
+          },
+          {
+            "x": 1221.69,
+            "y": 444.97,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 1416,
+            "bottom": 655.63
+          },
+          {
+            "x": 1017,
+            "y": 666.02,
+            "width": 194.3,
+            "height": 210.64,
+            "right": 1211.3,
+            "bottom": 876.66
+          }
+        ],
+        "factList": {
+          "x": 1017,
+          "y": -75.81,
+          "width": 399,
+          "height": 422.38,
+          "right": 1416,
+          "bottom": 346.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 992,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 1440,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1000,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 173,
+        "photoTitle": "Check-in condition photos",
+        "photoCount": "3 photos",
+        "renderedBlobImages": 3,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "live-operations-viewer-en-dark-320",
+      "state": {
+        "viewport": {
+          "width": 320,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "en",
+        "direction": "ltr",
+        "theme": "dark",
+        "section": {
+          "x": 25,
+          "y": 419.95,
+          "width": 271,
+          "height": 479.86,
+          "right": 296,
+          "bottom": 899.81
+        },
+        "heading": {
+          "x": 25,
+          "y": 419.95,
+          "width": 166.58,
+          "height": 19.27,
+          "right": 191.58,
+          "bottom": 439.22
+        },
+        "hint": {
+          "x": 25,
+          "y": 454.55,
+          "width": 271,
+          "height": 32.63,
+          "right": 296,
+          "bottom": 487.17
+        },
+        "grid": {
+          "x": 25,
+          "y": 499.97,
+          "width": 271,
+          "height": 399.84,
+          "right": 296,
+          "bottom": 899.81
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 25,
+            "y": 499.97,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 155.3,
+            "bottom": 694.7
+          },
+          {
+            "x": 165.69,
+            "y": 499.97,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 296,
+            "bottom": 694.7
+          },
+          {
+            "x": 25,
+            "y": 705.09,
+            "width": 130.3,
+            "height": 194.72,
+            "right": 155.3,
+            "bottom": 899.81
+          }
+        ],
+        "factList": {
+          "x": 25,
+          "y": -20.81,
+          "width": 271,
+          "height": 422.38,
+          "right": 296,
+          "bottom": 401.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 900,
+          "right": 320,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 969,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 118,
+        "photoTitle": "Check-in condition photos",
+        "photoCount": "3 photos",
+        "renderedBlobImages": 3,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "live-operations-viewer-en-dark-390",
+      "state": {
+        "viewport": {
+          "width": 390,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "en",
+        "direction": "ltr",
+        "theme": "dark",
+        "section": {
+          "x": 25,
+          "y": 349.95,
+          "width": 341,
+          "height": 549.86,
+          "right": 366,
+          "bottom": 899.81
+        },
+        "heading": {
+          "x": 25,
+          "y": 349.95,
+          "width": 166.58,
+          "height": 19.27,
+          "right": 191.58,
+          "bottom": 369.22
+        },
+        "hint": {
+          "x": 25,
+          "y": 384.55,
+          "width": 341,
+          "height": 32.63,
+          "right": 366,
+          "bottom": 417.17
+        },
+        "grid": {
+          "x": 25,
+          "y": 429.97,
+          "width": 341,
+          "height": 469.84,
+          "right": 366,
+          "bottom": 899.81
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 25,
+            "y": 429.97,
+            "width": 165.3,
+            "height": 229.73,
+            "right": 190.3,
+            "bottom": 659.7
+          },
+          {
+            "x": 200.69,
+            "y": 429.97,
+            "width": 165.31,
+            "height": 229.73,
+            "right": 366,
+            "bottom": 659.7
+          },
+          {
+            "x": 25,
+            "y": 670.09,
+            "width": 165.3,
+            "height": 229.72,
+            "right": 190.3,
+            "bottom": 899.81
+          }
+        ],
+        "factList": {
+          "x": 25,
+          "y": -90.81,
+          "width": 341,
+          "height": 422.38,
+          "right": 366,
+          "bottom": 331.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 900,
+          "right": 390,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1039,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 188,
+        "photoTitle": "Check-in condition photos",
+        "photoCount": "3 photos",
+        "renderedBlobImages": 3,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "live-operations-viewer-en-dark-768",
+      "state": {
+        "viewport": {
+          "width": 768,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "en",
+        "direction": "ltr",
+        "theme": "dark",
+        "section": {
+          "x": 345,
+          "y": 364.95,
+          "width": 399,
+          "height": 511.7,
+          "right": 744,
+          "bottom": 876.66
+        },
+        "heading": {
+          "x": 345,
+          "y": 367.81,
+          "width": 166.58,
+          "height": 19.27,
+          "right": 511.58,
+          "bottom": 387.08
+        },
+        "hint": {
+          "x": 345,
+          "y": 399.55,
+          "width": 399,
+          "height": 32.63,
+          "right": 744,
+          "bottom": 432.17
+        },
+        "grid": {
+          "x": 345,
+          "y": 444.97,
+          "width": 399,
+          "height": 431.69,
+          "right": 744,
+          "bottom": 876.66
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 345,
+            "y": 444.97,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 539.3,
+            "bottom": 655.63
+          },
+          {
+            "x": 549.69,
+            "y": 444.97,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 744,
+            "bottom": 655.63
+          },
+          {
+            "x": 345,
+            "y": 666.02,
+            "width": 194.3,
+            "height": 210.64,
+            "right": 539.3,
+            "bottom": 876.66
+          }
+        ],
+        "factList": {
+          "x": 345,
+          "y": -75.81,
+          "width": 399,
+          "height": 422.38,
+          "right": 744,
+          "bottom": 346.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 320,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 768,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1000,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 173,
+        "photoTitle": "Check-in condition photos",
+        "photoCount": "3 photos",
+        "renderedBlobImages": 3,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "live-operations-viewer-en-dark-1440",
+      "state": {
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "en",
+        "direction": "ltr",
+        "theme": "dark",
+        "section": {
+          "x": 1017,
+          "y": 364.95,
+          "width": 399,
+          "height": 511.7,
+          "right": 1416,
+          "bottom": 876.66
+        },
+        "heading": {
+          "x": 1017,
+          "y": 367.81,
+          "width": 166.58,
+          "height": 19.27,
+          "right": 1183.58,
+          "bottom": 387.08
+        },
+        "hint": {
+          "x": 1017,
+          "y": 399.55,
+          "width": 399,
+          "height": 32.63,
+          "right": 1416,
+          "bottom": 432.17
+        },
+        "grid": {
+          "x": 1017,
+          "y": 444.97,
+          "width": 399,
+          "height": 431.69,
+          "right": 1416,
+          "bottom": 876.66
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 1017,
+            "y": 444.97,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 1211.3,
+            "bottom": 655.63
+          },
+          {
+            "x": 1221.69,
+            "y": 444.97,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 1416,
+            "bottom": 655.63
+          },
+          {
+            "x": 1017,
+            "y": 666.02,
+            "width": 194.3,
+            "height": 210.64,
+            "right": 1211.3,
+            "bottom": 876.66
+          }
+        ],
+        "factList": {
+          "x": 1017,
+          "y": -75.81,
+          "width": 399,
+          "height": 422.38,
+          "right": 1416,
+          "bottom": 346.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 992,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 1440,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1000,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 173,
+        "photoTitle": "Check-in condition photos",
+        "photoCount": "3 photos",
+        "renderedBlobImages": 3,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "live-operations-viewer-ar-dark-320",
+      "state": {
+        "viewport": {
+          "width": 320,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "ar",
+        "direction": "rtl",
+        "theme": "dark",
+        "section": {
+          "x": 24,
+          "y": 419.95,
+          "width": 271,
+          "height": 479.86,
+          "right": 295,
+          "bottom": 899.81
+        },
+        "heading": {
+          "x": 128.7,
+          "y": 419.95,
+          "width": 166.3,
+          "height": 19.27,
+          "right": 295,
+          "bottom": 439.22
+        },
+        "hint": {
+          "x": 24,
+          "y": 454.55,
+          "width": 271,
+          "height": 32.63,
+          "right": 295,
+          "bottom": 487.17
+        },
+        "grid": {
+          "x": 24,
+          "y": 499.97,
+          "width": 271,
+          "height": 399.84,
+          "right": 295,
+          "bottom": 899.81
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 164.7,
+            "y": 499.97,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 295,
+            "bottom": 694.7
+          },
+          {
+            "x": 24,
+            "y": 499.97,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 154.31,
+            "bottom": 694.7
+          },
+          {
+            "x": 164.7,
+            "y": 705.09,
+            "width": 130.3,
+            "height": 194.72,
+            "right": 295,
+            "bottom": 899.81
+          }
+        ],
+        "factList": {
+          "x": 24,
+          "y": -20.81,
+          "width": 271,
+          "height": 422.38,
+          "right": 295,
+          "bottom": 401.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 900,
+          "right": 320,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 969,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 118,
+        "photoTitle": "صور حالة السيارة عند الاستلام",
+        "photoCount": "3 صور",
+        "renderedBlobImages": 3,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "live-operations-viewer-ar-dark-390",
+      "state": {
+        "viewport": {
+          "width": 390,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "ar",
+        "direction": "rtl",
+        "theme": "dark",
+        "section": {
+          "x": 24,
+          "y": 377.95,
+          "width": 341,
+          "height": 522.23,
+          "right": 365,
+          "bottom": 900.19
+        },
+        "heading": {
+          "x": 198.7,
+          "y": 377.95,
+          "width": 166.3,
+          "height": 19.27,
+          "right": 365,
+          "bottom": 397.22
+        },
+        "hint": {
+          "x": 24,
+          "y": 412.55,
+          "width": 341,
+          "height": 32.63,
+          "right": 365,
+          "bottom": 445.17
+        },
+        "grid": {
+          "x": 24,
+          "y": 457.97,
+          "width": 341,
+          "height": 442.22,
+          "right": 365,
+          "bottom": 900.19
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 199.7,
+            "y": 457.97,
+            "width": 165.3,
+            "height": 215.92,
+            "right": 365,
+            "bottom": 673.89
+          },
+          {
+            "x": 24,
+            "y": 457.97,
+            "width": 165.31,
+            "height": 215.92,
+            "right": 189.31,
+            "bottom": 673.89
+          },
+          {
+            "x": 199.7,
+            "y": 684.28,
+            "width": 165.3,
+            "height": 215.91,
+            "right": 365,
+            "bottom": 900.19
+          }
+        ],
+        "factList": {
+          "x": 24,
+          "y": -62.81,
+          "width": 341,
+          "height": 422.38,
+          "right": 365,
+          "bottom": 359.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 900,
+          "right": 390,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1011,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 160,
+        "photoTitle": "صور حالة السيارة عند الاستلام",
+        "photoCount": "3 صور",
+        "renderedBlobImages": 3,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "live-operations-viewer-ar-dark-768",
+      "state": {
+        "viewport": {
+          "width": 768,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "ar",
+        "direction": "rtl",
+        "theme": "dark",
+        "section": {
+          "x": 24,
+          "y": 407.95,
+          "width": 399,
+          "height": 467.77,
+          "right": 423,
+          "bottom": 875.72
+        },
+        "heading": {
+          "x": 256.7,
+          "y": 410.81,
+          "width": 166.3,
+          "height": 19.27,
+          "right": 423,
+          "bottom": 430.08
+        },
+        "hint": {
+          "x": 24,
+          "y": 442.55,
+          "width": 399,
+          "height": 16.31,
+          "right": 423,
+          "bottom": 458.86
+        },
+        "grid": {
+          "x": 24,
+          "y": 471.66,
+          "width": 399,
+          "height": 404.06,
+          "right": 423,
+          "bottom": 875.72
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 228.7,
+            "y": 471.66,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 668.5
+          },
+          {
+            "x": 24,
+            "y": 471.66,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 668.5
+          },
+          {
+            "x": 228.7,
+            "y": 678.89,
+            "width": 194.3,
+            "height": 196.83,
+            "right": 423,
+            "bottom": 875.72
+          }
+        ],
+        "factList": {
+          "x": 24,
+          "y": -32.81,
+          "width": 399,
+          "height": 422.38,
+          "right": 423,
+          "bottom": 389.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 448,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 957,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 130,
+        "photoTitle": "صور حالة السيارة عند الاستلام",
+        "photoCount": "3 صور",
+        "renderedBlobImages": 3,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "live-operations-viewer-ar-dark-1440",
+      "state": {
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "ar",
+        "direction": "rtl",
+        "theme": "dark",
+        "section": {
+          "x": 24,
+          "y": 407.95,
+          "width": 399,
+          "height": 467.77,
+          "right": 423,
+          "bottom": 875.72
+        },
+        "heading": {
+          "x": 256.7,
+          "y": 410.81,
+          "width": 166.3,
+          "height": 19.27,
+          "right": 423,
+          "bottom": 430.08
+        },
+        "hint": {
+          "x": 24,
+          "y": 442.55,
+          "width": 399,
+          "height": 16.31,
+          "right": 423,
+          "bottom": 458.86
+        },
+        "grid": {
+          "x": 24,
+          "y": 471.66,
+          "width": 399,
+          "height": 404.06,
+          "right": 423,
+          "bottom": 875.72
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 228.7,
+            "y": 471.66,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 668.5
+          },
+          {
+            "x": 24,
+            "y": 471.66,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 668.5
+          },
+          {
+            "x": 228.7,
+            "y": 678.89,
+            "width": 194.3,
+            "height": 196.83,
+            "right": 423,
+            "bottom": 875.72
+          }
+        ],
+        "factList": {
+          "x": 24,
+          "y": -32.81,
+          "width": 399,
+          "height": 422.38,
+          "right": 423,
+          "bottom": 389.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 448,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 957,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 130,
+        "photoTitle": "صور حالة السيارة عند الاستلام",
+        "photoCount": "3 صور",
+        "renderedBlobImages": 3,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "live-operations-viewer-ar-light-320",
+      "state": {
+        "viewport": {
+          "width": 320,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "ar",
+        "direction": "rtl",
+        "theme": "light",
+        "section": {
+          "x": 24,
+          "y": 419.95,
+          "width": 271,
+          "height": 479.86,
+          "right": 295,
+          "bottom": 899.81
+        },
+        "heading": {
+          "x": 128.7,
+          "y": 419.95,
+          "width": 166.3,
+          "height": 19.27,
+          "right": 295,
+          "bottom": 439.22
+        },
+        "hint": {
+          "x": 24,
+          "y": 454.55,
+          "width": 271,
+          "height": 32.63,
+          "right": 295,
+          "bottom": 487.17
+        },
+        "grid": {
+          "x": 24,
+          "y": 499.97,
+          "width": 271,
+          "height": 399.84,
+          "right": 295,
+          "bottom": 899.81
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 164.7,
+            "y": 499.97,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 295,
+            "bottom": 694.7
+          },
+          {
+            "x": 24,
+            "y": 499.97,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 154.31,
+            "bottom": 694.7
+          },
+          {
+            "x": 164.7,
+            "y": 705.09,
+            "width": 130.3,
+            "height": 194.72,
+            "right": 295,
+            "bottom": 899.81
+          }
+        ],
+        "factList": {
+          "x": 24,
+          "y": -20.81,
+          "width": 271,
+          "height": 422.38,
+          "right": 295,
+          "bottom": 401.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 900,
+          "right": 320,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 969,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 118,
+        "photoTitle": "صور حالة السيارة عند الاستلام",
+        "photoCount": "3 صور",
+        "renderedBlobImages": 3,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "live-operations-viewer-ar-light-390",
+      "state": {
+        "viewport": {
+          "width": 390,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "ar",
+        "direction": "rtl",
+        "theme": "light",
+        "section": {
+          "x": 24,
+          "y": 377.95,
+          "width": 341,
+          "height": 522.23,
+          "right": 365,
+          "bottom": 900.19
+        },
+        "heading": {
+          "x": 198.7,
+          "y": 377.95,
+          "width": 166.3,
+          "height": 19.27,
+          "right": 365,
+          "bottom": 397.22
+        },
+        "hint": {
+          "x": 24,
+          "y": 412.55,
+          "width": 341,
+          "height": 32.63,
+          "right": 365,
+          "bottom": 445.17
+        },
+        "grid": {
+          "x": 24,
+          "y": 457.97,
+          "width": 341,
+          "height": 442.22,
+          "right": 365,
+          "bottom": 900.19
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 199.7,
+            "y": 457.97,
+            "width": 165.3,
+            "height": 215.92,
+            "right": 365,
+            "bottom": 673.89
+          },
+          {
+            "x": 24,
+            "y": 457.97,
+            "width": 165.31,
+            "height": 215.92,
+            "right": 189.31,
+            "bottom": 673.89
+          },
+          {
+            "x": 199.7,
+            "y": 684.28,
+            "width": 165.3,
+            "height": 215.91,
+            "right": 365,
+            "bottom": 900.19
+          }
+        ],
+        "factList": {
+          "x": 24,
+          "y": -62.81,
+          "width": 341,
+          "height": 422.38,
+          "right": 365,
+          "bottom": 359.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 900,
+          "right": 390,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1011,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 160,
+        "photoTitle": "صور حالة السيارة عند الاستلام",
+        "photoCount": "3 صور",
+        "renderedBlobImages": 3,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "live-operations-viewer-ar-light-768",
+      "state": {
+        "viewport": {
+          "width": 768,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "ar",
+        "direction": "rtl",
+        "theme": "light",
+        "section": {
+          "x": 24,
+          "y": 407.95,
+          "width": 399,
+          "height": 467.77,
+          "right": 423,
+          "bottom": 875.72
+        },
+        "heading": {
+          "x": 256.7,
+          "y": 410.81,
+          "width": 166.3,
+          "height": 19.27,
+          "right": 423,
+          "bottom": 430.08
+        },
+        "hint": {
+          "x": 24,
+          "y": 442.55,
+          "width": 399,
+          "height": 16.31,
+          "right": 423,
+          "bottom": 458.86
+        },
+        "grid": {
+          "x": 24,
+          "y": 471.66,
+          "width": 399,
+          "height": 404.06,
+          "right": 423,
+          "bottom": 875.72
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 228.7,
+            "y": 471.66,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 668.5
+          },
+          {
+            "x": 24,
+            "y": 471.66,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 668.5
+          },
+          {
+            "x": 228.7,
+            "y": 678.89,
+            "width": 194.3,
+            "height": 196.83,
+            "right": 423,
+            "bottom": 875.72
+          }
+        ],
+        "factList": {
+          "x": 24,
+          "y": -32.81,
+          "width": 399,
+          "height": 422.38,
+          "right": 423,
+          "bottom": 389.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 448,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 957,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 130,
+        "photoTitle": "صور حالة السيارة عند الاستلام",
+        "photoCount": "3 صور",
+        "renderedBlobImages": 3,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "live-operations-viewer-ar-light-1440",
+      "state": {
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "ar",
+        "direction": "rtl",
+        "theme": "light",
+        "section": {
+          "x": 24,
+          "y": 407.95,
+          "width": 399,
+          "height": 467.77,
+          "right": 423,
+          "bottom": 875.72
+        },
+        "heading": {
+          "x": 256.7,
+          "y": 410.81,
+          "width": 166.3,
+          "height": 19.27,
+          "right": 423,
+          "bottom": 430.08
+        },
+        "hint": {
+          "x": 24,
+          "y": 442.55,
+          "width": 399,
+          "height": 16.31,
+          "right": 423,
+          "bottom": 458.86
+        },
+        "grid": {
+          "x": 24,
+          "y": 471.66,
+          "width": 399,
+          "height": 404.06,
+          "right": 423,
+          "bottom": 875.72
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 228.7,
+            "y": 471.66,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 668.5
+          },
+          {
+            "x": 24,
+            "y": 471.66,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 668.5
+          },
+          {
+            "x": 228.7,
+            "y": 678.89,
+            "width": 194.3,
+            "height": 196.83,
+            "right": 423,
+            "bottom": 875.72
+          }
+        ],
+        "factList": {
+          "x": 24,
+          "y": -32.81,
+          "width": 399,
+          "height": 422.38,
+          "right": 423,
+          "bottom": 389.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 448,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 957,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 130,
+        "photoTitle": "صور حالة السيارة عند الاستلام",
+        "photoCount": "3 صور",
+        "renderedBlobImages": 3,
+        "linkedStorageKeys": false
+      }
+    }
+  ],
+  "browserErrors": []
+}

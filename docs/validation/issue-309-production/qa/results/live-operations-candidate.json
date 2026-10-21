@@ -1,0 +1,3735 @@
+{
+  "baselineSha": "459e9c42dfff5b2aeb11ee9165a7d1a4338a7783",
+  "source": "actual integrated Next.js React with synthetic authorized E2E fixtures",
+  "cases": [
+    {
+      "key": "live-operations-en-light-320",
+      "top": {
+        "viewport": {
+          "width": 320,
+          "height": 900,
+          "devicePixelRatio": 1,
+          "zoom": "none"
+        },
+        "dir": "ltr",
+        "locale": "en",
+        "theme": "light",
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 900,
+          "right": 320,
+          "bottom": 900
+        },
+        "header": {
+          "x": 1,
+          "y": 0,
+          "width": 319,
+          "height": 73.19,
+          "right": 320,
+          "bottom": 73.19
+        },
+        "close": {
+          "x": 165.66,
+          "y": 20.09,
+          "width": 32,
+          "height": 32,
+          "right": 197.66,
+          "bottom": 52.09
+        },
+        "body": {
+          "x": 1,
+          "y": 73.19,
+          "width": 319,
+          "height": 826.81,
+          "right": 320,
+          "bottom": 900
+        },
+        "factList": {
+          "x": 25,
+          "y": 97.19,
+          "width": 271,
+          "height": 422.38,
+          "right": 296,
+          "bottom": 519.56
+        },
+        "rows": [
+          {
+            "label": "Vehicle",
+            "value": "Toyota Camry",
+            "rect": {
+              "x": 42,
+              "y": 114.19,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 130.19
+            }
+          },
+          {
+            "label": "Plate",
+            "value": "JO · 12-34567",
+            "rect": {
+              "x": 42,
+              "y": 142.19,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 158.19
+            }
+          },
+          {
+            "label": "Color",
+            "value": "Black",
+            "rect": {
+              "x": 42,
+              "y": 170.19,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 186.19
+            }
+          },
+          {
+            "label": "Current assigned employee",
+            "value": "Lina Haddad",
+            "rect": {
+              "x": 42,
+              "y": 198.19,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 214.19
+            }
+          },
+          {
+            "label": "Email",
+            "value": "lina@example.com",
+            "rect": {
+              "x": 42,
+              "y": 226.19,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 242.19
+            }
+          },
+          {
+            "label": "Original check-in staff",
+            "value": "Carmen Original",
+            "rect": {
+              "x": 42,
+              "y": 254.19,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 270.19
+            }
+          },
+          {
+            "label": "Parked by",
+            "value": "Nora Parker",
+            "rect": {
+              "x": 42,
+              "y": 282.19,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 298.19
+            }
+          },
+          {
+            "label": "State",
+            "value": "Parked",
+            "rect": {
+              "x": 42,
+              "y": 310.19,
+              "width": 237,
+              "height": 24.38,
+              "right": 279,
+              "bottom": 334.56
+            }
+          },
+          {
+            "label": "Location",
+            "value": "Main Garage",
+            "rect": {
+              "x": 42,
+              "y": 346.56,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 362.56
+            }
+          },
+          {
+            "label": "Key Slot",
+            "value": "K-12",
+            "rect": {
+              "x": 42,
+              "y": 374.56,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 390.56
+            }
+          },
+          {
+            "label": "Parking Zone",
+            "value": "Z-1 · Garage",
+            "rect": {
+              "x": 42,
+              "y": 402.56,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 418.56
+            }
+          },
+          {
+            "label": "Parking Spot",
+            "value": "P-4 · North",
+            "rect": {
+              "x": 42,
+              "y": 430.56,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 446.56
+            }
+          },
+          {
+            "label": "Created",
+            "value": "Sep 21, 1:00 PM",
+            "rect": {
+              "x": 42,
+              "y": 458.56,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 474.56
+            }
+          },
+          {
+            "label": "Updated",
+            "value": "Sep 21, 3:00 PM",
+            "rect": {
+              "x": 42,
+              "y": 486.56,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 502.56
+            }
+          }
+        ],
+        "bodyPaddingCss": "24px",
+        "bodyScroll": {
+          "scrollHeight": 827,
+          "clientHeight": 827,
+          "scrollTop": 0,
+          "maxScrollTop": 0
+        },
+        "childrenAfterFacts": 1,
+        "activeElement": "Close"
+      }
+    },
+    {
+      "key": "live-operations-en-light-390",
+      "top": {
+        "viewport": {
+          "width": 390,
+          "height": 900,
+          "devicePixelRatio": 1,
+          "zoom": "none"
+        },
+        "dir": "ltr",
+        "locale": "en",
+        "theme": "light",
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 900,
+          "right": 390,
+          "bottom": 900
+        },
+        "header": {
+          "x": 1,
+          "y": 0,
+          "width": 389,
+          "height": 73.19,
+          "right": 390,
+          "bottom": 73.19
+        },
+        "close": {
+          "x": 200.66,
+          "y": 20.09,
+          "width": 32,
+          "height": 32,
+          "right": 232.66,
+          "bottom": 52.09
+        },
+        "body": {
+          "x": 1,
+          "y": 73.19,
+          "width": 389,
+          "height": 826.81,
+          "right": 390,
+          "bottom": 900
+        },
+        "factList": {
+          "x": 25,
+          "y": 97.19,
+          "width": 341,
+          "height": 422.38,
+          "right": 366,
+          "bottom": 519.56
+        },
+        "rows": [
+          {
+            "label": "Vehicle",
+            "value": "Toyota Camry",
+            "rect": {
+              "x": 42,
+              "y": 114.19,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 130.19
+            }
+          },
+          {
+            "label": "Plate",
+            "value": "JO · 12-34567",
+            "rect": {
+              "x": 42,
+              "y": 142.19,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 158.19
+            }
+          },
+          {
+            "label": "Color",
+            "value": "Black",
+            "rect": {
+              "x": 42,
+              "y": 170.19,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 186.19
+            }
+          },
+          {
+            "label": "Current assigned employee",
+            "value": "Lina Haddad",
+            "rect": {
+              "x": 42,
+              "y": 198.19,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 214.19
+            }
+          },
+          {
+            "label": "Email",
+            "value": "lina@example.com",
+            "rect": {
+              "x": 42,
+              "y": 226.19,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 242.19
+            }
+          },
+          {
+            "label": "Original check-in staff",
+            "value": "Carmen Original",
+            "rect": {
+              "x": 42,
+              "y": 254.19,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 270.19
+            }
+          },
+          {
+            "label": "Parked by",
+            "value": "Nora Parker",
+            "rect": {
+              "x": 42,
+              "y": 282.19,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 298.19
+            }
+          },
+          {
+            "label": "State",
+            "value": "Parked",
+            "rect": {
+              "x": 42,
+              "y": 310.19,
+              "width": 307,
+              "height": 24.38,
+              "right": 349,
+              "bottom": 334.56
+            }
+          },
+          {
+            "label": "Location",
+            "value": "Main Garage",
+            "rect": {
+              "x": 42,
+              "y": 346.56,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 362.56
+            }
+          },
+          {
+            "label": "Key Slot",
+            "value": "K-12",
+            "rect": {
+              "x": 42,
+              "y": 374.56,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 390.56
+            }
+          },
+          {
+            "label": "Parking Zone",
+            "value": "Z-1 · Garage",
+            "rect": {
+              "x": 42,
+              "y": 402.56,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 418.56
+            }
+          },
+          {
+            "label": "Parking Spot",
+            "value": "P-4 · North",
+            "rect": {
+              "x": 42,
+              "y": 430.56,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 446.56
+            }
+          },
+          {
+            "label": "Created",
+            "value": "Sep 21, 1:00 PM",
+            "rect": {
+              "x": 42,
+              "y": 458.56,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 474.56
+            }
+          },
+          {
+            "label": "Updated",
+            "value": "Sep 21, 3:00 PM",
+            "rect": {
+              "x": 42,
+              "y": 486.56,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 502.56
+            }
+          }
+        ],
+        "bodyPaddingCss": "24px",
+        "bodyScroll": {
+          "scrollHeight": 827,
+          "clientHeight": 827,
+          "scrollTop": 0,
+          "maxScrollTop": 0
+        },
+        "childrenAfterFacts": 1,
+        "activeElement": "Close"
+      }
+    },
+    {
+      "key": "live-operations-en-light-768",
+      "top": {
+        "viewport": {
+          "width": 768,
+          "height": 900,
+          "devicePixelRatio": 1,
+          "zoom": "none"
+        },
+        "dir": "ltr",
+        "locale": "en",
+        "theme": "light",
+        "drawer": {
+          "x": 320,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 768,
+          "bottom": 900
+        },
+        "header": {
+          "x": 321,
+          "y": 0,
+          "width": 447,
+          "height": 73.19,
+          "right": 768,
+          "bottom": 73.19
+        },
+        "close": {
+          "x": 549.66,
+          "y": 20.09,
+          "width": 32,
+          "height": 32,
+          "right": 581.66,
+          "bottom": 52.09
+        },
+        "body": {
+          "x": 321,
+          "y": 73.19,
+          "width": 447,
+          "height": 826.81,
+          "right": 768,
+          "bottom": 900
+        },
+        "factList": {
+          "x": 345,
+          "y": 97.19,
+          "width": 399,
+          "height": 422.38,
+          "right": 744,
+          "bottom": 519.56
+        },
+        "rows": [
+          {
+            "label": "Vehicle",
+            "value": "Toyota Camry",
+            "rect": {
+              "x": 362,
+              "y": 114.19,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 130.19
+            }
+          },
+          {
+            "label": "Plate",
+            "value": "JO · 12-34567",
+            "rect": {
+              "x": 362,
+              "y": 142.19,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 158.19
+            }
+          },
+          {
+            "label": "Color",
+            "value": "Black",
+            "rect": {
+              "x": 362,
+              "y": 170.19,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 186.19
+            }
+          },
+          {
+            "label": "Current assigned employee",
+            "value": "Lina Haddad",
+            "rect": {
+              "x": 362,
+              "y": 198.19,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 214.19
+            }
+          },
+          {
+            "label": "Email",
+            "value": "lina@example.com",
+            "rect": {
+              "x": 362,
+              "y": 226.19,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 242.19
+            }
+          },
+          {
+            "label": "Original check-in staff",
+            "value": "Carmen Original",
+            "rect": {
+              "x": 362,
+              "y": 254.19,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 270.19
+            }
+          },
+          {
+            "label": "Parked by",
+            "value": "Nora Parker",
+            "rect": {
+              "x": 362,
+              "y": 282.19,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 298.19
+            }
+          },
+          {
+            "label": "State",
+            "value": "Parked",
+            "rect": {
+              "x": 362,
+              "y": 310.19,
+              "width": 365,
+              "height": 24.38,
+              "right": 727,
+              "bottom": 334.56
+            }
+          },
+          {
+            "label": "Location",
+            "value": "Main Garage",
+            "rect": {
+              "x": 362,
+              "y": 346.56,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 362.56
+            }
+          },
+          {
+            "label": "Key Slot",
+            "value": "K-12",
+            "rect": {
+              "x": 362,
+              "y": 374.56,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 390.56
+            }
+          },
+          {
+            "label": "Parking Zone",
+            "value": "Z-1 · Garage",
+            "rect": {
+              "x": 362,
+              "y": 402.56,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 418.56
+            }
+          },
+          {
+            "label": "Parking Spot",
+            "value": "P-4 · North",
+            "rect": {
+              "x": 362,
+              "y": 430.56,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 446.56
+            }
+          },
+          {
+            "label": "Created",
+            "value": "Sep 21, 1:00 PM",
+            "rect": {
+              "x": 362,
+              "y": 458.56,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 474.56
+            }
+          },
+          {
+            "label": "Updated",
+            "value": "Sep 21, 3:00 PM",
+            "rect": {
+              "x": 362,
+              "y": 486.56,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 502.56
+            }
+          }
+        ],
+        "bodyPaddingCss": "24px",
+        "bodyScroll": {
+          "scrollHeight": 827,
+          "clientHeight": 827,
+          "scrollTop": 0,
+          "maxScrollTop": 0
+        },
+        "childrenAfterFacts": 1,
+        "activeElement": "Close"
+      }
+    },
+    {
+      "key": "live-operations-en-light-1440",
+      "top": {
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "devicePixelRatio": 1,
+          "zoom": "none"
+        },
+        "dir": "ltr",
+        "locale": "en",
+        "theme": "light",
+        "drawer": {
+          "x": 992,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 1440,
+          "bottom": 900
+        },
+        "header": {
+          "x": 993,
+          "y": 0,
+          "width": 447,
+          "height": 73.19,
+          "right": 1440,
+          "bottom": 73.19
+        },
+        "close": {
+          "x": 1221.66,
+          "y": 20.09,
+          "width": 32,
+          "height": 32,
+          "right": 1253.66,
+          "bottom": 52.09
+        },
+        "body": {
+          "x": 993,
+          "y": 73.19,
+          "width": 447,
+          "height": 826.81,
+          "right": 1440,
+          "bottom": 900
+        },
+        "factList": {
+          "x": 1017,
+          "y": 97.19,
+          "width": 399,
+          "height": 422.38,
+          "right": 1416,
+          "bottom": 519.56
+        },
+        "rows": [
+          {
+            "label": "Vehicle",
+            "value": "Toyota Camry",
+            "rect": {
+              "x": 1034,
+              "y": 114.19,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 130.19
+            }
+          },
+          {
+            "label": "Plate",
+            "value": "JO · 12-34567",
+            "rect": {
+              "x": 1034,
+              "y": 142.19,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 158.19
+            }
+          },
+          {
+            "label": "Color",
+            "value": "Black",
+            "rect": {
+              "x": 1034,
+              "y": 170.19,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 186.19
+            }
+          },
+          {
+            "label": "Current assigned employee",
+            "value": "Lina Haddad",
+            "rect": {
+              "x": 1034,
+              "y": 198.19,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 214.19
+            }
+          },
+          {
+            "label": "Email",
+            "value": "lina@example.com",
+            "rect": {
+              "x": 1034,
+              "y": 226.19,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 242.19
+            }
+          },
+          {
+            "label": "Original check-in staff",
+            "value": "Carmen Original",
+            "rect": {
+              "x": 1034,
+              "y": 254.19,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 270.19
+            }
+          },
+          {
+            "label": "Parked by",
+            "value": "Nora Parker",
+            "rect": {
+              "x": 1034,
+              "y": 282.19,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 298.19
+            }
+          },
+          {
+            "label": "State",
+            "value": "Parked",
+            "rect": {
+              "x": 1034,
+              "y": 310.19,
+              "width": 365,
+              "height": 24.38,
+              "right": 1399,
+              "bottom": 334.56
+            }
+          },
+          {
+            "label": "Location",
+            "value": "Main Garage",
+            "rect": {
+              "x": 1034,
+              "y": 346.56,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 362.56
+            }
+          },
+          {
+            "label": "Key Slot",
+            "value": "K-12",
+            "rect": {
+              "x": 1034,
+              "y": 374.56,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 390.56
+            }
+          },
+          {
+            "label": "Parking Zone",
+            "value": "Z-1 · Garage",
+            "rect": {
+              "x": 1034,
+              "y": 402.56,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 418.56
+            }
+          },
+          {
+            "label": "Parking Spot",
+            "value": "P-4 · North",
+            "rect": {
+              "x": 1034,
+              "y": 430.56,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 446.56
+            }
+          },
+          {
+            "label": "Created",
+            "value": "Sep 21, 1:00 PM",
+            "rect": {
+              "x": 1034,
+              "y": 458.56,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 474.56
+            }
+          },
+          {
+            "label": "Updated",
+            "value": "Sep 21, 3:00 PM",
+            "rect": {
+              "x": 1034,
+              "y": 486.56,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 502.56
+            }
+          }
+        ],
+        "bodyPaddingCss": "24px",
+        "bodyScroll": {
+          "scrollHeight": 827,
+          "clientHeight": 827,
+          "scrollTop": 0,
+          "maxScrollTop": 0
+        },
+        "childrenAfterFacts": 1,
+        "activeElement": "Close"
+      }
+    },
+    {
+      "key": "live-operations-en-dark-320",
+      "top": {
+        "viewport": {
+          "width": 320,
+          "height": 900,
+          "devicePixelRatio": 1,
+          "zoom": "none"
+        },
+        "dir": "ltr",
+        "locale": "en",
+        "theme": "dark",
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 900,
+          "right": 320,
+          "bottom": 900
+        },
+        "header": {
+          "x": 1,
+          "y": 0,
+          "width": 319,
+          "height": 73.19,
+          "right": 320,
+          "bottom": 73.19
+        },
+        "close": {
+          "x": 165.66,
+          "y": 20.09,
+          "width": 32,
+          "height": 32,
+          "right": 197.66,
+          "bottom": 52.09
+        },
+        "body": {
+          "x": 1,
+          "y": 73.19,
+          "width": 319,
+          "height": 826.81,
+          "right": 320,
+          "bottom": 900
+        },
+        "factList": {
+          "x": 25,
+          "y": 97.19,
+          "width": 271,
+          "height": 422.38,
+          "right": 296,
+          "bottom": 519.56
+        },
+        "rows": [
+          {
+            "label": "Vehicle",
+            "value": "Toyota Camry",
+            "rect": {
+              "x": 42,
+              "y": 114.19,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 130.19
+            }
+          },
+          {
+            "label": "Plate",
+            "value": "JO · 12-34567",
+            "rect": {
+              "x": 42,
+              "y": 142.19,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 158.19
+            }
+          },
+          {
+            "label": "Color",
+            "value": "Black",
+            "rect": {
+              "x": 42,
+              "y": 170.19,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 186.19
+            }
+          },
+          {
+            "label": "Current assigned employee",
+            "value": "Lina Haddad",
+            "rect": {
+              "x": 42,
+              "y": 198.19,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 214.19
+            }
+          },
+          {
+            "label": "Email",
+            "value": "lina@example.com",
+            "rect": {
+              "x": 42,
+              "y": 226.19,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 242.19
+            }
+          },
+          {
+            "label": "Original check-in staff",
+            "value": "Carmen Original",
+            "rect": {
+              "x": 42,
+              "y": 254.19,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 270.19
+            }
+          },
+          {
+            "label": "Parked by",
+            "value": "Nora Parker",
+            "rect": {
+              "x": 42,
+              "y": 282.19,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 298.19
+            }
+          },
+          {
+            "label": "State",
+            "value": "Parked",
+            "rect": {
+              "x": 42,
+              "y": 310.19,
+              "width": 237,
+              "height": 24.38,
+              "right": 279,
+              "bottom": 334.56
+            }
+          },
+          {
+            "label": "Location",
+            "value": "Main Garage",
+            "rect": {
+              "x": 42,
+              "y": 346.56,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 362.56
+            }
+          },
+          {
+            "label": "Key Slot",
+            "value": "K-12",
+            "rect": {
+              "x": 42,
+              "y": 374.56,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 390.56
+            }
+          },
+          {
+            "label": "Parking Zone",
+            "value": "Z-1 · Garage",
+            "rect": {
+              "x": 42,
+              "y": 402.56,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 418.56
+            }
+          },
+          {
+            "label": "Parking Spot",
+            "value": "P-4 · North",
+            "rect": {
+              "x": 42,
+              "y": 430.56,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 446.56
+            }
+          },
+          {
+            "label": "Created",
+            "value": "Sep 21, 1:00 PM",
+            "rect": {
+              "x": 42,
+              "y": 458.56,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 474.56
+            }
+          },
+          {
+            "label": "Updated",
+            "value": "Sep 21, 3:00 PM",
+            "rect": {
+              "x": 42,
+              "y": 486.56,
+              "width": 237,
+              "height": 16,
+              "right": 279,
+              "bottom": 502.56
+            }
+          }
+        ],
+        "bodyPaddingCss": "24px",
+        "bodyScroll": {
+          "scrollHeight": 827,
+          "clientHeight": 827,
+          "scrollTop": 0,
+          "maxScrollTop": 0
+        },
+        "childrenAfterFacts": 1,
+        "activeElement": "Close"
+      }
+    },
+    {
+      "key": "live-operations-en-dark-390",
+      "top": {
+        "viewport": {
+          "width": 390,
+          "height": 900,
+          "devicePixelRatio": 1,
+          "zoom": "none"
+        },
+        "dir": "ltr",
+        "locale": "en",
+        "theme": "dark",
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 900,
+          "right": 390,
+          "bottom": 900
+        },
+        "header": {
+          "x": 1,
+          "y": 0,
+          "width": 389,
+          "height": 73.19,
+          "right": 390,
+          "bottom": 73.19
+        },
+        "close": {
+          "x": 200.66,
+          "y": 20.09,
+          "width": 32,
+          "height": 32,
+          "right": 232.66,
+          "bottom": 52.09
+        },
+        "body": {
+          "x": 1,
+          "y": 73.19,
+          "width": 389,
+          "height": 826.81,
+          "right": 390,
+          "bottom": 900
+        },
+        "factList": {
+          "x": 25,
+          "y": 97.19,
+          "width": 341,
+          "height": 422.38,
+          "right": 366,
+          "bottom": 519.56
+        },
+        "rows": [
+          {
+            "label": "Vehicle",
+            "value": "Toyota Camry",
+            "rect": {
+              "x": 42,
+              "y": 114.19,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 130.19
+            }
+          },
+          {
+            "label": "Plate",
+            "value": "JO · 12-34567",
+            "rect": {
+              "x": 42,
+              "y": 142.19,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 158.19
+            }
+          },
+          {
+            "label": "Color",
+            "value": "Black",
+            "rect": {
+              "x": 42,
+              "y": 170.19,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 186.19
+            }
+          },
+          {
+            "label": "Current assigned employee",
+            "value": "Lina Haddad",
+            "rect": {
+              "x": 42,
+              "y": 198.19,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 214.19
+            }
+          },
+          {
+            "label": "Email",
+            "value": "lina@example.com",
+            "rect": {
+              "x": 42,
+              "y": 226.19,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 242.19
+            }
+          },
+          {
+            "label": "Original check-in staff",
+            "value": "Carmen Original",
+            "rect": {
+              "x": 42,
+              "y": 254.19,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 270.19
+            }
+          },
+          {
+            "label": "Parked by",
+            "value": "Nora Parker",
+            "rect": {
+              "x": 42,
+              "y": 282.19,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 298.19
+            }
+          },
+          {
+            "label": "State",
+            "value": "Parked",
+            "rect": {
+              "x": 42,
+              "y": 310.19,
+              "width": 307,
+              "height": 24.38,
+              "right": 349,
+              "bottom": 334.56
+            }
+          },
+          {
+            "label": "Location",
+            "value": "Main Garage",
+            "rect": {
+              "x": 42,
+              "y": 346.56,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 362.56
+            }
+          },
+          {
+            "label": "Key Slot",
+            "value": "K-12",
+            "rect": {
+              "x": 42,
+              "y": 374.56,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 390.56
+            }
+          },
+          {
+            "label": "Parking Zone",
+            "value": "Z-1 · Garage",
+            "rect": {
+              "x": 42,
+              "y": 402.56,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 418.56
+            }
+          },
+          {
+            "label": "Parking Spot",
+            "value": "P-4 · North",
+            "rect": {
+              "x": 42,
+              "y": 430.56,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 446.56
+            }
+          },
+          {
+            "label": "Created",
+            "value": "Sep 21, 1:00 PM",
+            "rect": {
+              "x": 42,
+              "y": 458.56,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 474.56
+            }
+          },
+          {
+            "label": "Updated",
+            "value": "Sep 21, 3:00 PM",
+            "rect": {
+              "x": 42,
+              "y": 486.56,
+              "width": 307,
+              "height": 16,
+              "right": 349,
+              "bottom": 502.56
+            }
+          }
+        ],
+        "bodyPaddingCss": "24px",
+        "bodyScroll": {
+          "scrollHeight": 827,
+          "clientHeight": 827,
+          "scrollTop": 0,
+          "maxScrollTop": 0
+        },
+        "childrenAfterFacts": 1,
+        "activeElement": "Close"
+      }
+    },
+    {
+      "key": "live-operations-en-dark-768",
+      "top": {
+        "viewport": {
+          "width": 768,
+          "height": 900,
+          "devicePixelRatio": 1,
+          "zoom": "none"
+        },
+        "dir": "ltr",
+        "locale": "en",
+        "theme": "dark",
+        "drawer": {
+          "x": 320,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 768,
+          "bottom": 900
+        },
+        "header": {
+          "x": 321,
+          "y": 0,
+          "width": 447,
+          "height": 73.19,
+          "right": 768,
+          "bottom": 73.19
+        },
+        "close": {
+          "x": 549.66,
+          "y": 20.09,
+          "width": 32,
+          "height": 32,
+          "right": 581.66,
+          "bottom": 52.09
+        },
+        "body": {
+          "x": 321,
+          "y": 73.19,
+          "width": 447,
+          "height": 826.81,
+          "right": 768,
+          "bottom": 900
+        },
+        "factList": {
+          "x": 345,
+          "y": 97.19,
+          "width": 399,
+          "height": 422.38,
+          "right": 744,
+          "bottom": 519.56
+        },
+        "rows": [
+          {
+            "label": "Vehicle",
+            "value": "Toyota Camry",
+            "rect": {
+              "x": 362,
+              "y": 114.19,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 130.19
+            }
+          },
+          {
+            "label": "Plate",
+            "value": "JO · 12-34567",
+            "rect": {
+              "x": 362,
+              "y": 142.19,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 158.19
+            }
+          },
+          {
+            "label": "Color",
+            "value": "Black",
+            "rect": {
+              "x": 362,
+              "y": 170.19,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 186.19
+            }
+          },
+          {
+            "label": "Current assigned employee",
+            "value": "Lina Haddad",
+            "rect": {
+              "x": 362,
+              "y": 198.19,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 214.19
+            }
+          },
+          {
+            "label": "Email",
+            "value": "lina@example.com",
+            "rect": {
+              "x": 362,
+              "y": 226.19,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 242.19
+            }
+          },
+          {
+            "label": "Original check-in staff",
+            "value": "Carmen Original",
+            "rect": {
+              "x": 362,
+              "y": 254.19,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 270.19
+            }
+          },
+          {
+            "label": "Parked by",
+            "value": "Nora Parker",
+            "rect": {
+              "x": 362,
+              "y": 282.19,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 298.19
+            }
+          },
+          {
+            "label": "State",
+            "value": "Parked",
+            "rect": {
+              "x": 362,
+              "y": 310.19,
+              "width": 365,
+              "height": 24.38,
+              "right": 727,
+              "bottom": 334.56
+            }
+          },
+          {
+            "label": "Location",
+            "value": "Main Garage",
+            "rect": {
+              "x": 362,
+              "y": 346.56,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 362.56
+            }
+          },
+          {
+            "label": "Key Slot",
+            "value": "K-12",
+            "rect": {
+              "x": 362,
+              "y": 374.56,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 390.56
+            }
+          },
+          {
+            "label": "Parking Zone",
+            "value": "Z-1 · Garage",
+            "rect": {
+              "x": 362,
+              "y": 402.56,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 418.56
+            }
+          },
+          {
+            "label": "Parking Spot",
+            "value": "P-4 · North",
+            "rect": {
+              "x": 362,
+              "y": 430.56,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 446.56
+            }
+          },
+          {
+            "label": "Created",
+            "value": "Sep 21, 1:00 PM",
+            "rect": {
+              "x": 362,
+              "y": 458.56,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 474.56
+            }
+          },
+          {
+            "label": "Updated",
+            "value": "Sep 21, 3:00 PM",
+            "rect": {
+              "x": 362,
+              "y": 486.56,
+              "width": 365,
+              "height": 16,
+              "right": 727,
+              "bottom": 502.56
+            }
+          }
+        ],
+        "bodyPaddingCss": "24px",
+        "bodyScroll": {
+          "scrollHeight": 827,
+          "clientHeight": 827,
+          "scrollTop": 0,
+          "maxScrollTop": 0
+        },
+        "childrenAfterFacts": 1,
+        "activeElement": "Close"
+      }
+    },
+    {
+      "key": "live-operations-en-dark-1440",
+      "top": {
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "devicePixelRatio": 1,
+          "zoom": "none"
+        },
+        "dir": "ltr",
+        "locale": "en",
+        "theme": "dark",
+        "drawer": {
+          "x": 992,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 1440,
+          "bottom": 900
+        },
+        "header": {
+          "x": 993,
+          "y": 0,
+          "width": 447,
+          "height": 73.19,
+          "right": 1440,
+          "bottom": 73.19
+        },
+        "close": {
+          "x": 1221.66,
+          "y": 20.09,
+          "width": 32,
+          "height": 32,
+          "right": 1253.66,
+          "bottom": 52.09
+        },
+        "body": {
+          "x": 993,
+          "y": 73.19,
+          "width": 447,
+          "height": 826.81,
+          "right": 1440,
+          "bottom": 900
+        },
+        "factList": {
+          "x": 1017,
+          "y": 97.19,
+          "width": 399,
+          "height": 422.38,
+          "right": 1416,
+          "bottom": 519.56
+        },
+        "rows": [
+          {
+            "label": "Vehicle",
+            "value": "Toyota Camry",
+            "rect": {
+              "x": 1034,
+              "y": 114.19,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 130.19
+            }
+          },
+          {
+            "label": "Plate",
+            "value": "JO · 12-34567",
+            "rect": {
+              "x": 1034,
+              "y": 142.19,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 158.19
+            }
+          },
+          {
+            "label": "Color",
+            "value": "Black",
+            "rect": {
+              "x": 1034,
+              "y": 170.19,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 186.19
+            }
+          },
+          {
+            "label": "Current assigned employee",
+            "value": "Lina Haddad",
+            "rect": {
+              "x": 1034,
+              "y": 198.19,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 214.19
+            }
+          },
+          {
+            "label": "Email",
+            "value": "lina@example.com",
+            "rect": {
+              "x": 1034,
+              "y": 226.19,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 242.19
+            }
+          },
+          {
+            "label": "Original check-in staff",
+            "value": "Carmen Original",
+            "rect": {
+              "x": 1034,
+              "y": 254.19,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 270.19
+            }
+          },
+          {
+            "label": "Parked by",
+            "value": "Nora Parker",
+            "rect": {
+              "x": 1034,
+              "y": 282.19,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 298.19
+            }
+          },
+          {
+            "label": "State",
+            "value": "Parked",
+            "rect": {
+              "x": 1034,
+              "y": 310.19,
+              "width": 365,
+              "height": 24.38,
+              "right": 1399,
+              "bottom": 334.56
+            }
+          },
+          {
+            "label": "Location",
+            "value": "Main Garage",
+            "rect": {
+              "x": 1034,
+              "y": 346.56,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 362.56
+            }
+          },
+          {
+            "label": "Key Slot",
+            "value": "K-12",
+            "rect": {
+              "x": 1034,
+              "y": 374.56,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 390.56
+            }
+          },
+          {
+            "label": "Parking Zone",
+            "value": "Z-1 · Garage",
+            "rect": {
+              "x": 1034,
+              "y": 402.56,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 418.56
+            }
+          },
+          {
+            "label": "Parking Spot",
+            "value": "P-4 · North",
+            "rect": {
+              "x": 1034,
+              "y": 430.56,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 446.56
+            }
+          },
+          {
+            "label": "Created",
+            "value": "Sep 21, 1:00 PM",
+            "rect": {
+              "x": 1034,
+              "y": 458.56,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 474.56
+            }
+          },
+          {
+            "label": "Updated",
+            "value": "Sep 21, 3:00 PM",
+            "rect": {
+              "x": 1034,
+              "y": 486.56,
+              "width": 365,
+              "height": 16,
+              "right": 1399,
+              "bottom": 502.56
+            }
+          }
+        ],
+        "bodyPaddingCss": "24px",
+        "bodyScroll": {
+          "scrollHeight": 827,
+          "clientHeight": 827,
+          "scrollTop": 0,
+          "maxScrollTop": 0
+        },
+        "childrenAfterFacts": 1,
+        "activeElement": "Close"
+      }
+    },
+    {
+      "key": "live-operations-ar-dark-320",
+      "top": {
+        "viewport": {
+          "width": 320,
+          "height": 900,
+          "devicePixelRatio": 1,
+          "zoom": "none"
+        },
+        "dir": "rtl",
+        "locale": "ar",
+        "theme": "dark",
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 900,
+          "right": 320,
+          "bottom": 900
+        },
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 319,
+          "height": 73.19,
+          "right": 319,
+          "bottom": 73.19
+        },
+        "close": {
+          "x": 122.34,
+          "y": 20.09,
+          "width": 32,
+          "height": 32,
+          "right": 154.34,
+          "bottom": 52.09
+        },
+        "body": {
+          "x": 0,
+          "y": 73.19,
+          "width": 319,
+          "height": 826.81,
+          "right": 319,
+          "bottom": 900
+        },
+        "factList": {
+          "x": 24,
+          "y": 97.19,
+          "width": 271,
+          "height": 422.38,
+          "right": 295,
+          "bottom": 519.56
+        },
+        "rows": [
+          {
+            "label": "المركبة",
+            "value": "Toyota Camry",
+            "rect": {
+              "x": 41,
+              "y": 114.19,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 130.19
+            }
+          },
+          {
+            "label": "اللوحة",
+            "value": "JO · 12-34567",
+            "rect": {
+              "x": 41,
+              "y": 142.19,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 158.19
+            }
+          },
+          {
+            "label": "اللون",
+            "value": "Black",
+            "rect": {
+              "x": 41,
+              "y": 170.19,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 186.19
+            }
+          },
+          {
+            "label": "الموظف المكلّف حالياً",
+            "value": "Lina Haddad",
+            "rect": {
+              "x": 41,
+              "y": 198.19,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 214.19
+            }
+          },
+          {
+            "label": "البريد الإلكتروني",
+            "value": "lina@example.com",
+            "rect": {
+              "x": 41,
+              "y": 226.19,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 242.19
+            }
+          },
+          {
+            "label": "موظف الاستلام الأصلي",
+            "value": "Carmen Original",
+            "rect": {
+              "x": 41,
+              "y": 254.19,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 270.19
+            }
+          },
+          {
+            "label": "ركنها",
+            "value": "Nora Parker",
+            "rect": {
+              "x": 41,
+              "y": 282.19,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 298.19
+            }
+          },
+          {
+            "label": "الحالة",
+            "value": "مصطفّة",
+            "rect": {
+              "x": 41,
+              "y": 310.19,
+              "width": 237,
+              "height": 24.38,
+              "right": 278,
+              "bottom": 334.56
+            }
+          },
+          {
+            "label": "الموقع",
+            "value": "Main Garage",
+            "rect": {
+              "x": 41,
+              "y": 346.56,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 362.56
+            }
+          },
+          {
+            "label": "خانة المفتاح",
+            "value": "K-12",
+            "rect": {
+              "x": 41,
+              "y": 374.56,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 390.56
+            }
+          },
+          {
+            "label": "منطقة الاصطفاف",
+            "value": "Z-1 · Garage",
+            "rect": {
+              "x": 41,
+              "y": 402.56,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 418.56
+            }
+          },
+          {
+            "label": "مكان الاصطفاف",
+            "value": "P-4 · North",
+            "rect": {
+              "x": 41,
+              "y": 430.56,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 446.56
+            }
+          },
+          {
+            "label": "الإنشاء",
+            "value": "٢١ أيلول، ١:٠٠ م",
+            "rect": {
+              "x": 41,
+              "y": 458.56,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 474.56
+            }
+          },
+          {
+            "label": "آخر تحديث",
+            "value": "٢١ أيلول، ٣:٠٠ م",
+            "rect": {
+              "x": 41,
+              "y": 486.56,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 502.56
+            }
+          }
+        ],
+        "bodyPaddingCss": "24px",
+        "bodyScroll": {
+          "scrollHeight": 827,
+          "clientHeight": 827,
+          "scrollTop": 0,
+          "maxScrollTop": 0
+        },
+        "childrenAfterFacts": 1,
+        "activeElement": "إغلاق"
+      }
+    },
+    {
+      "key": "live-operations-ar-dark-390",
+      "top": {
+        "viewport": {
+          "width": 390,
+          "height": 900,
+          "devicePixelRatio": 1,
+          "zoom": "none"
+        },
+        "dir": "rtl",
+        "locale": "ar",
+        "theme": "dark",
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 900,
+          "right": 390,
+          "bottom": 900
+        },
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 389,
+          "height": 73.19,
+          "right": 389,
+          "bottom": 73.19
+        },
+        "close": {
+          "x": 157.34,
+          "y": 20.09,
+          "width": 32,
+          "height": 32,
+          "right": 189.34,
+          "bottom": 52.09
+        },
+        "body": {
+          "x": 0,
+          "y": 73.19,
+          "width": 389,
+          "height": 826.81,
+          "right": 389,
+          "bottom": 900
+        },
+        "factList": {
+          "x": 24,
+          "y": 97.19,
+          "width": 341,
+          "height": 422.38,
+          "right": 365,
+          "bottom": 519.56
+        },
+        "rows": [
+          {
+            "label": "المركبة",
+            "value": "Toyota Camry",
+            "rect": {
+              "x": 41,
+              "y": 114.19,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 130.19
+            }
+          },
+          {
+            "label": "اللوحة",
+            "value": "JO · 12-34567",
+            "rect": {
+              "x": 41,
+              "y": 142.19,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 158.19
+            }
+          },
+          {
+            "label": "اللون",
+            "value": "Black",
+            "rect": {
+              "x": 41,
+              "y": 170.19,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 186.19
+            }
+          },
+          {
+            "label": "الموظف المكلّف حالياً",
+            "value": "Lina Haddad",
+            "rect": {
+              "x": 41,
+              "y": 198.19,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 214.19
+            }
+          },
+          {
+            "label": "البريد الإلكتروني",
+            "value": "lina@example.com",
+            "rect": {
+              "x": 41,
+              "y": 226.19,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 242.19
+            }
+          },
+          {
+            "label": "موظف الاستلام الأصلي",
+            "value": "Carmen Original",
+            "rect": {
+              "x": 41,
+              "y": 254.19,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 270.19
+            }
+          },
+          {
+            "label": "ركنها",
+            "value": "Nora Parker",
+            "rect": {
+              "x": 41,
+              "y": 282.19,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 298.19
+            }
+          },
+          {
+            "label": "الحالة",
+            "value": "مصطفّة",
+            "rect": {
+              "x": 41,
+              "y": 310.19,
+              "width": 307,
+              "height": 24.38,
+              "right": 348,
+              "bottom": 334.56
+            }
+          },
+          {
+            "label": "الموقع",
+            "value": "Main Garage",
+            "rect": {
+              "x": 41,
+              "y": 346.56,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 362.56
+            }
+          },
+          {
+            "label": "خانة المفتاح",
+            "value": "K-12",
+            "rect": {
+              "x": 41,
+              "y": 374.56,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 390.56
+            }
+          },
+          {
+            "label": "منطقة الاصطفاف",
+            "value": "Z-1 · Garage",
+            "rect": {
+              "x": 41,
+              "y": 402.56,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 418.56
+            }
+          },
+          {
+            "label": "مكان الاصطفاف",
+            "value": "P-4 · North",
+            "rect": {
+              "x": 41,
+              "y": 430.56,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 446.56
+            }
+          },
+          {
+            "label": "الإنشاء",
+            "value": "٢١ أيلول، ١:٠٠ م",
+            "rect": {
+              "x": 41,
+              "y": 458.56,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 474.56
+            }
+          },
+          {
+            "label": "آخر تحديث",
+            "value": "٢١ أيلول، ٣:٠٠ م",
+            "rect": {
+              "x": 41,
+              "y": 486.56,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 502.56
+            }
+          }
+        ],
+        "bodyPaddingCss": "24px",
+        "bodyScroll": {
+          "scrollHeight": 827,
+          "clientHeight": 827,
+          "scrollTop": 0,
+          "maxScrollTop": 0
+        },
+        "childrenAfterFacts": 1,
+        "activeElement": "إغلاق"
+      }
+    },
+    {
+      "key": "live-operations-ar-dark-768",
+      "top": {
+        "viewport": {
+          "width": 768,
+          "height": 900,
+          "devicePixelRatio": 1,
+          "zoom": "none"
+        },
+        "dir": "rtl",
+        "locale": "ar",
+        "theme": "dark",
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 448,
+          "bottom": 900
+        },
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 447,
+          "height": 73.19,
+          "right": 447,
+          "bottom": 73.19
+        },
+        "close": {
+          "x": 186.34,
+          "y": 20.09,
+          "width": 32,
+          "height": 32,
+          "right": 218.34,
+          "bottom": 52.09
+        },
+        "body": {
+          "x": 0,
+          "y": 73.19,
+          "width": 447,
+          "height": 826.81,
+          "right": 447,
+          "bottom": 900
+        },
+        "factList": {
+          "x": 24,
+          "y": 97.19,
+          "width": 399,
+          "height": 422.38,
+          "right": 423,
+          "bottom": 519.56
+        },
+        "rows": [
+          {
+            "label": "المركبة",
+            "value": "Toyota Camry",
+            "rect": {
+              "x": 41,
+              "y": 114.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 130.19
+            }
+          },
+          {
+            "label": "اللوحة",
+            "value": "JO · 12-34567",
+            "rect": {
+              "x": 41,
+              "y": 142.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 158.19
+            }
+          },
+          {
+            "label": "اللون",
+            "value": "Black",
+            "rect": {
+              "x": 41,
+              "y": 170.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 186.19
+            }
+          },
+          {
+            "label": "الموظف المكلّف حالياً",
+            "value": "Lina Haddad",
+            "rect": {
+              "x": 41,
+              "y": 198.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 214.19
+            }
+          },
+          {
+            "label": "البريد الإلكتروني",
+            "value": "lina@example.com",
+            "rect": {
+              "x": 41,
+              "y": 226.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 242.19
+            }
+          },
+          {
+            "label": "موظف الاستلام الأصلي",
+            "value": "Carmen Original",
+            "rect": {
+              "x": 41,
+              "y": 254.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 270.19
+            }
+          },
+          {
+            "label": "ركنها",
+            "value": "Nora Parker",
+            "rect": {
+              "x": 41,
+              "y": 282.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 298.19
+            }
+          },
+          {
+            "label": "الحالة",
+            "value": "مصطفّة",
+            "rect": {
+              "x": 41,
+              "y": 310.19,
+              "width": 365,
+              "height": 24.38,
+              "right": 406,
+              "bottom": 334.56
+            }
+          },
+          {
+            "label": "الموقع",
+            "value": "Main Garage",
+            "rect": {
+              "x": 41,
+              "y": 346.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 362.56
+            }
+          },
+          {
+            "label": "خانة المفتاح",
+            "value": "K-12",
+            "rect": {
+              "x": 41,
+              "y": 374.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 390.56
+            }
+          },
+          {
+            "label": "منطقة الاصطفاف",
+            "value": "Z-1 · Garage",
+            "rect": {
+              "x": 41,
+              "y": 402.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 418.56
+            }
+          },
+          {
+            "label": "مكان الاصطفاف",
+            "value": "P-4 · North",
+            "rect": {
+              "x": 41,
+              "y": 430.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 446.56
+            }
+          },
+          {
+            "label": "الإنشاء",
+            "value": "٢١ أيلول، ١:٠٠ م",
+            "rect": {
+              "x": 41,
+              "y": 458.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 474.56
+            }
+          },
+          {
+            "label": "آخر تحديث",
+            "value": "٢١ أيلول، ٣:٠٠ م",
+            "rect": {
+              "x": 41,
+              "y": 486.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 502.56
+            }
+          }
+        ],
+        "bodyPaddingCss": "24px",
+        "bodyScroll": {
+          "scrollHeight": 827,
+          "clientHeight": 827,
+          "scrollTop": 0,
+          "maxScrollTop": 0
+        },
+        "childrenAfterFacts": 1,
+        "activeElement": "إغلاق"
+      }
+    },
+    {
+      "key": "live-operations-ar-dark-1440",
+      "top": {
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "devicePixelRatio": 1,
+          "zoom": "none"
+        },
+        "dir": "rtl",
+        "locale": "ar",
+        "theme": "dark",
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 448,
+          "bottom": 900
+        },
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 447,
+          "height": 73.19,
+          "right": 447,
+          "bottom": 73.19
+        },
+        "close": {
+          "x": 186.34,
+          "y": 20.09,
+          "width": 32,
+          "height": 32,
+          "right": 218.34,
+          "bottom": 52.09
+        },
+        "body": {
+          "x": 0,
+          "y": 73.19,
+          "width": 447,
+          "height": 826.81,
+          "right": 447,
+          "bottom": 900
+        },
+        "factList": {
+          "x": 24,
+          "y": 97.19,
+          "width": 399,
+          "height": 422.38,
+          "right": 423,
+          "bottom": 519.56
+        },
+        "rows": [
+          {
+            "label": "المركبة",
+            "value": "Toyota Camry",
+            "rect": {
+              "x": 41,
+              "y": 114.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 130.19
+            }
+          },
+          {
+            "label": "اللوحة",
+            "value": "JO · 12-34567",
+            "rect": {
+              "x": 41,
+              "y": 142.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 158.19
+            }
+          },
+          {
+            "label": "اللون",
+            "value": "Black",
+            "rect": {
+              "x": 41,
+              "y": 170.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 186.19
+            }
+          },
+          {
+            "label": "الموظف المكلّف حالياً",
+            "value": "Lina Haddad",
+            "rect": {
+              "x": 41,
+              "y": 198.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 214.19
+            }
+          },
+          {
+            "label": "البريد الإلكتروني",
+            "value": "lina@example.com",
+            "rect": {
+              "x": 41,
+              "y": 226.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 242.19
+            }
+          },
+          {
+            "label": "موظف الاستلام الأصلي",
+            "value": "Carmen Original",
+            "rect": {
+              "x": 41,
+              "y": 254.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 270.19
+            }
+          },
+          {
+            "label": "ركنها",
+            "value": "Nora Parker",
+            "rect": {
+              "x": 41,
+              "y": 282.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 298.19
+            }
+          },
+          {
+            "label": "الحالة",
+            "value": "مصطفّة",
+            "rect": {
+              "x": 41,
+              "y": 310.19,
+              "width": 365,
+              "height": 24.38,
+              "right": 406,
+              "bottom": 334.56
+            }
+          },
+          {
+            "label": "الموقع",
+            "value": "Main Garage",
+            "rect": {
+              "x": 41,
+              "y": 346.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 362.56
+            }
+          },
+          {
+            "label": "خانة المفتاح",
+            "value": "K-12",
+            "rect": {
+              "x": 41,
+              "y": 374.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 390.56
+            }
+          },
+          {
+            "label": "منطقة الاصطفاف",
+            "value": "Z-1 · Garage",
+            "rect": {
+              "x": 41,
+              "y": 402.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 418.56
+            }
+          },
+          {
+            "label": "مكان الاصطفاف",
+            "value": "P-4 · North",
+            "rect": {
+              "x": 41,
+              "y": 430.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 446.56
+            }
+          },
+          {
+            "label": "الإنشاء",
+            "value": "٢١ أيلول، ١:٠٠ م",
+            "rect": {
+              "x": 41,
+              "y": 458.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 474.56
+            }
+          },
+          {
+            "label": "آخر تحديث",
+            "value": "٢١ أيلول، ٣:٠٠ م",
+            "rect": {
+              "x": 41,
+              "y": 486.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 502.56
+            }
+          }
+        ],
+        "bodyPaddingCss": "24px",
+        "bodyScroll": {
+          "scrollHeight": 827,
+          "clientHeight": 827,
+          "scrollTop": 0,
+          "maxScrollTop": 0
+        },
+        "childrenAfterFacts": 1,
+        "activeElement": "إغلاق"
+      }
+    },
+    {
+      "key": "live-operations-ar-light-320",
+      "top": {
+        "viewport": {
+          "width": 320,
+          "height": 900,
+          "devicePixelRatio": 1,
+          "zoom": "none"
+        },
+        "dir": "rtl",
+        "locale": "ar",
+        "theme": "light",
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 900,
+          "right": 320,
+          "bottom": 900
+        },
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 319,
+          "height": 73.19,
+          "right": 319,
+          "bottom": 73.19
+        },
+        "close": {
+          "x": 122.34,
+          "y": 20.09,
+          "width": 32,
+          "height": 32,
+          "right": 154.34,
+          "bottom": 52.09
+        },
+        "body": {
+          "x": 0,
+          "y": 73.19,
+          "width": 319,
+          "height": 826.81,
+          "right": 319,
+          "bottom": 900
+        },
+        "factList": {
+          "x": 24,
+          "y": 97.19,
+          "width": 271,
+          "height": 422.38,
+          "right": 295,
+          "bottom": 519.56
+        },
+        "rows": [
+          {
+            "label": "المركبة",
+            "value": "Toyota Camry",
+            "rect": {
+              "x": 41,
+              "y": 114.19,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 130.19
+            }
+          },
+          {
+            "label": "اللوحة",
+            "value": "JO · 12-34567",
+            "rect": {
+              "x": 41,
+              "y": 142.19,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 158.19
+            }
+          },
+          {
+            "label": "اللون",
+            "value": "Black",
+            "rect": {
+              "x": 41,
+              "y": 170.19,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 186.19
+            }
+          },
+          {
+            "label": "الموظف المكلّف حالياً",
+            "value": "Lina Haddad",
+            "rect": {
+              "x": 41,
+              "y": 198.19,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 214.19
+            }
+          },
+          {
+            "label": "البريد الإلكتروني",
+            "value": "lina@example.com",
+            "rect": {
+              "x": 41,
+              "y": 226.19,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 242.19
+            }
+          },
+          {
+            "label": "موظف الاستلام الأصلي",
+            "value": "Carmen Original",
+            "rect": {
+              "x": 41,
+              "y": 254.19,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 270.19
+            }
+          },
+          {
+            "label": "ركنها",
+            "value": "Nora Parker",
+            "rect": {
+              "x": 41,
+              "y": 282.19,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 298.19
+            }
+          },
+          {
+            "label": "الحالة",
+            "value": "مصطفّة",
+            "rect": {
+              "x": 41,
+              "y": 310.19,
+              "width": 237,
+              "height": 24.38,
+              "right": 278,
+              "bottom": 334.56
+            }
+          },
+          {
+            "label": "الموقع",
+            "value": "Main Garage",
+            "rect": {
+              "x": 41,
+              "y": 346.56,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 362.56
+            }
+          },
+          {
+            "label": "خانة المفتاح",
+            "value": "K-12",
+            "rect": {
+              "x": 41,
+              "y": 374.56,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 390.56
+            }
+          },
+          {
+            "label": "منطقة الاصطفاف",
+            "value": "Z-1 · Garage",
+            "rect": {
+              "x": 41,
+              "y": 402.56,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 418.56
+            }
+          },
+          {
+            "label": "مكان الاصطفاف",
+            "value": "P-4 · North",
+            "rect": {
+              "x": 41,
+              "y": 430.56,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 446.56
+            }
+          },
+          {
+            "label": "الإنشاء",
+            "value": "٢١ أيلول، ١:٠٠ م",
+            "rect": {
+              "x": 41,
+              "y": 458.56,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 474.56
+            }
+          },
+          {
+            "label": "آخر تحديث",
+            "value": "٢١ أيلول، ٣:٠٠ م",
+            "rect": {
+              "x": 41,
+              "y": 486.56,
+              "width": 237,
+              "height": 16,
+              "right": 278,
+              "bottom": 502.56
+            }
+          }
+        ],
+        "bodyPaddingCss": "24px",
+        "bodyScroll": {
+          "scrollHeight": 827,
+          "clientHeight": 827,
+          "scrollTop": 0,
+          "maxScrollTop": 0
+        },
+        "childrenAfterFacts": 1,
+        "activeElement": "إغلاق"
+      }
+    },
+    {
+      "key": "live-operations-ar-light-390",
+      "top": {
+        "viewport": {
+          "width": 390,
+          "height": 900,
+          "devicePixelRatio": 1,
+          "zoom": "none"
+        },
+        "dir": "rtl",
+        "locale": "ar",
+        "theme": "light",
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 900,
+          "right": 390,
+          "bottom": 900
+        },
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 389,
+          "height": 73.19,
+          "right": 389,
+          "bottom": 73.19
+        },
+        "close": {
+          "x": 157.34,
+          "y": 20.09,
+          "width": 32,
+          "height": 32,
+          "right": 189.34,
+          "bottom": 52.09
+        },
+        "body": {
+          "x": 0,
+          "y": 73.19,
+          "width": 389,
+          "height": 826.81,
+          "right": 389,
+          "bottom": 900
+        },
+        "factList": {
+          "x": 24,
+          "y": 97.19,
+          "width": 341,
+          "height": 422.38,
+          "right": 365,
+          "bottom": 519.56
+        },
+        "rows": [
+          {
+            "label": "المركبة",
+            "value": "Toyota Camry",
+            "rect": {
+              "x": 41,
+              "y": 114.19,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 130.19
+            }
+          },
+          {
+            "label": "اللوحة",
+            "value": "JO · 12-34567",
+            "rect": {
+              "x": 41,
+              "y": 142.19,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 158.19
+            }
+          },
+          {
+            "label": "اللون",
+            "value": "Black",
+            "rect": {
+              "x": 41,
+              "y": 170.19,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 186.19
+            }
+          },
+          {
+            "label": "الموظف المكلّف حالياً",
+            "value": "Lina Haddad",
+            "rect": {
+              "x": 41,
+              "y": 198.19,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 214.19
+            }
+          },
+          {
+            "label": "البريد الإلكتروني",
+            "value": "lina@example.com",
+            "rect": {
+              "x": 41,
+              "y": 226.19,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 242.19
+            }
+          },
+          {
+            "label": "موظف الاستلام الأصلي",
+            "value": "Carmen Original",
+            "rect": {
+              "x": 41,
+              "y": 254.19,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 270.19
+            }
+          },
+          {
+            "label": "ركنها",
+            "value": "Nora Parker",
+            "rect": {
+              "x": 41,
+              "y": 282.19,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 298.19
+            }
+          },
+          {
+            "label": "الحالة",
+            "value": "مصطفّة",
+            "rect": {
+              "x": 41,
+              "y": 310.19,
+              "width": 307,
+              "height": 24.38,
+              "right": 348,
+              "bottom": 334.56
+            }
+          },
+          {
+            "label": "الموقع",
+            "value": "Main Garage",
+            "rect": {
+              "x": 41,
+              "y": 346.56,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 362.56
+            }
+          },
+          {
+            "label": "خانة المفتاح",
+            "value": "K-12",
+            "rect": {
+              "x": 41,
+              "y": 374.56,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 390.56
+            }
+          },
+          {
+            "label": "منطقة الاصطفاف",
+            "value": "Z-1 · Garage",
+            "rect": {
+              "x": 41,
+              "y": 402.56,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 418.56
+            }
+          },
+          {
+            "label": "مكان الاصطفاف",
+            "value": "P-4 · North",
+            "rect": {
+              "x": 41,
+              "y": 430.56,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 446.56
+            }
+          },
+          {
+            "label": "الإنشاء",
+            "value": "٢١ أيلول، ١:٠٠ م",
+            "rect": {
+              "x": 41,
+              "y": 458.56,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 474.56
+            }
+          },
+          {
+            "label": "آخر تحديث",
+            "value": "٢١ أيلول، ٣:٠٠ م",
+            "rect": {
+              "x": 41,
+              "y": 486.56,
+              "width": 307,
+              "height": 16,
+              "right": 348,
+              "bottom": 502.56
+            }
+          }
+        ],
+        "bodyPaddingCss": "24px",
+        "bodyScroll": {
+          "scrollHeight": 827,
+          "clientHeight": 827,
+          "scrollTop": 0,
+          "maxScrollTop": 0
+        },
+        "childrenAfterFacts": 1,
+        "activeElement": "إغلاق"
+      }
+    },
+    {
+      "key": "live-operations-ar-light-768",
+      "top": {
+        "viewport": {
+          "width": 768,
+          "height": 900,
+          "devicePixelRatio": 1,
+          "zoom": "none"
+        },
+        "dir": "rtl",
+        "locale": "ar",
+        "theme": "light",
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 448,
+          "bottom": 900
+        },
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 447,
+          "height": 73.19,
+          "right": 447,
+          "bottom": 73.19
+        },
+        "close": {
+          "x": 186.34,
+          "y": 20.09,
+          "width": 32,
+          "height": 32,
+          "right": 218.34,
+          "bottom": 52.09
+        },
+        "body": {
+          "x": 0,
+          "y": 73.19,
+          "width": 447,
+          "height": 826.81,
+          "right": 447,
+          "bottom": 900
+        },
+        "factList": {
+          "x": 24,
+          "y": 97.19,
+          "width": 399,
+          "height": 422.38,
+          "right": 423,
+          "bottom": 519.56
+        },
+        "rows": [
+          {
+            "label": "المركبة",
+            "value": "Toyota Camry",
+            "rect": {
+              "x": 41,
+              "y": 114.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 130.19
+            }
+          },
+          {
+            "label": "اللوحة",
+            "value": "JO · 12-34567",
+            "rect": {
+              "x": 41,
+              "y": 142.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 158.19
+            }
+          },
+          {
+            "label": "اللون",
+            "value": "Black",
+            "rect": {
+              "x": 41,
+              "y": 170.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 186.19
+            }
+          },
+          {
+            "label": "الموظف المكلّف حالياً",
+            "value": "Lina Haddad",
+            "rect": {
+              "x": 41,
+              "y": 198.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 214.19
+            }
+          },
+          {
+            "label": "البريد الإلكتروني",
+            "value": "lina@example.com",
+            "rect": {
+              "x": 41,
+              "y": 226.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 242.19
+            }
+          },
+          {
+            "label": "موظف الاستلام الأصلي",
+            "value": "Carmen Original",
+            "rect": {
+              "x": 41,
+              "y": 254.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 270.19
+            }
+          },
+          {
+            "label": "ركنها",
+            "value": "Nora Parker",
+            "rect": {
+              "x": 41,
+              "y": 282.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 298.19
+            }
+          },
+          {
+            "label": "الحالة",
+            "value": "مصطفّة",
+            "rect": {
+              "x": 41,
+              "y": 310.19,
+              "width": 365,
+              "height": 24.38,
+              "right": 406,
+              "bottom": 334.56
+            }
+          },
+          {
+            "label": "الموقع",
+            "value": "Main Garage",
+            "rect": {
+              "x": 41,
+              "y": 346.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 362.56
+            }
+          },
+          {
+            "label": "خانة المفتاح",
+            "value": "K-12",
+            "rect": {
+              "x": 41,
+              "y": 374.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 390.56
+            }
+          },
+          {
+            "label": "منطقة الاصطفاف",
+            "value": "Z-1 · Garage",
+            "rect": {
+              "x": 41,
+              "y": 402.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 418.56
+            }
+          },
+          {
+            "label": "مكان الاصطفاف",
+            "value": "P-4 · North",
+            "rect": {
+              "x": 41,
+              "y": 430.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 446.56
+            }
+          },
+          {
+            "label": "الإنشاء",
+            "value": "٢١ أيلول، ١:٠٠ م",
+            "rect": {
+              "x": 41,
+              "y": 458.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 474.56
+            }
+          },
+          {
+            "label": "آخر تحديث",
+            "value": "٢١ أيلول، ٣:٠٠ م",
+            "rect": {
+              "x": 41,
+              "y": 486.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 502.56
+            }
+          }
+        ],
+        "bodyPaddingCss": "24px",
+        "bodyScroll": {
+          "scrollHeight": 827,
+          "clientHeight": 827,
+          "scrollTop": 0,
+          "maxScrollTop": 0
+        },
+        "childrenAfterFacts": 1,
+        "activeElement": "إغلاق"
+      }
+    },
+    {
+      "key": "live-operations-ar-light-1440",
+      "top": {
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "devicePixelRatio": 1,
+          "zoom": "none"
+        },
+        "dir": "rtl",
+        "locale": "ar",
+        "theme": "light",
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 448,
+          "bottom": 900
+        },
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 447,
+          "height": 73.19,
+          "right": 447,
+          "bottom": 73.19
+        },
+        "close": {
+          "x": 186.34,
+          "y": 20.09,
+          "width": 32,
+          "height": 32,
+          "right": 218.34,
+          "bottom": 52.09
+        },
+        "body": {
+          "x": 0,
+          "y": 73.19,
+          "width": 447,
+          "height": 826.81,
+          "right": 447,
+          "bottom": 900
+        },
+        "factList": {
+          "x": 24,
+          "y": 97.19,
+          "width": 399,
+          "height": 422.38,
+          "right": 423,
+          "bottom": 519.56
+        },
+        "rows": [
+          {
+            "label": "المركبة",
+            "value": "Toyota Camry",
+            "rect": {
+              "x": 41,
+              "y": 114.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 130.19
+            }
+          },
+          {
+            "label": "اللوحة",
+            "value": "JO · 12-34567",
+            "rect": {
+              "x": 41,
+              "y": 142.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 158.19
+            }
+          },
+          {
+            "label": "اللون",
+            "value": "Black",
+            "rect": {
+              "x": 41,
+              "y": 170.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 186.19
+            }
+          },
+          {
+            "label": "الموظف المكلّف حالياً",
+            "value": "Lina Haddad",
+            "rect": {
+              "x": 41,
+              "y": 198.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 214.19
+            }
+          },
+          {
+            "label": "البريد الإلكتروني",
+            "value": "lina@example.com",
+            "rect": {
+              "x": 41,
+              "y": 226.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 242.19
+            }
+          },
+          {
+            "label": "موظف الاستلام الأصلي",
+            "value": "Carmen Original",
+            "rect": {
+              "x": 41,
+              "y": 254.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 270.19
+            }
+          },
+          {
+            "label": "ركنها",
+            "value": "Nora Parker",
+            "rect": {
+              "x": 41,
+              "y": 282.19,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 298.19
+            }
+          },
+          {
+            "label": "الحالة",
+            "value": "مصطفّة",
+            "rect": {
+              "x": 41,
+              "y": 310.19,
+              "width": 365,
+              "height": 24.38,
+              "right": 406,
+              "bottom": 334.56
+            }
+          },
+          {
+            "label": "الموقع",
+            "value": "Main Garage",
+            "rect": {
+              "x": 41,
+              "y": 346.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 362.56
+            }
+          },
+          {
+            "label": "خانة المفتاح",
+            "value": "K-12",
+            "rect": {
+              "x": 41,
+              "y": 374.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 390.56
+            }
+          },
+          {
+            "label": "منطقة الاصطفاف",
+            "value": "Z-1 · Garage",
+            "rect": {
+              "x": 41,
+              "y": 402.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 418.56
+            }
+          },
+          {
+            "label": "مكان الاصطفاف",
+            "value": "P-4 · North",
+            "rect": {
+              "x": 41,
+              "y": 430.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 446.56
+            }
+          },
+          {
+            "label": "الإنشاء",
+            "value": "٢١ أيلول، ١:٠٠ م",
+            "rect": {
+              "x": 41,
+              "y": 458.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 474.56
+            }
+          },
+          {
+            "label": "آخر تحديث",
+            "value": "٢١ أيلول، ٣:٠٠ م",
+            "rect": {
+              "x": 41,
+              "y": 486.56,
+              "width": 365,
+              "height": 16,
+              "right": 406,
+              "bottom": 502.56
+            }
+          }
+        ],
+        "bodyPaddingCss": "24px",
+        "bodyScroll": {
+          "scrollHeight": 827,
+          "clientHeight": 827,
+          "scrollTop": 0,
+          "maxScrollTop": 0
+        },
+        "childrenAfterFacts": 1,
+        "activeElement": "إغلاق"
+      }
+    }
+  ],
+  "browserErrors": []
+}

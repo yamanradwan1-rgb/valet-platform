@@ -1,0 +1,2441 @@
+{
+  "surface": "vehicles",
+  "scenario": "ten",
+  "fixture": "synthetic local JPEG; protected mock staff endpoints",
+  "candidate": "e6df7b73",
+  "cases": [
+    {
+      "key": "vehicles-ten-en-light-320",
+      "state": {
+        "viewport": {
+          "width": 320,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "en",
+        "direction": "ltr",
+        "theme": "light",
+        "section": {
+          "x": 25,
+          "y": 72.95,
+          "width": 271,
+          "height": 1095.25,
+          "right": 296,
+          "bottom": 1168.2
+        },
+        "heading": {
+          "x": 25,
+          "y": 72.95,
+          "width": 166.58,
+          "height": 19.27,
+          "right": 191.58,
+          "bottom": 92.22
+        },
+        "hint": {
+          "x": 25,
+          "y": 107.55,
+          "width": 271,
+          "height": 32.63,
+          "right": 296,
+          "bottom": 140.17
+        },
+        "grid": {
+          "x": 25,
+          "y": 152.97,
+          "width": 271,
+          "height": 1015.23,
+          "right": 296,
+          "bottom": 1168.2
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 25,
+            "y": 152.97,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 155.3,
+            "bottom": 347.7
+          },
+          {
+            "x": 165.69,
+            "y": 152.97,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 296,
+            "bottom": 347.7
+          },
+          {
+            "x": 25,
+            "y": 358.09,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 155.3,
+            "bottom": 552.83
+          },
+          {
+            "x": 165.69,
+            "y": 358.09,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 296,
+            "bottom": 552.83
+          },
+          {
+            "x": 25,
+            "y": 563.22,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 155.3,
+            "bottom": 757.95
+          },
+          {
+            "x": 165.69,
+            "y": 563.22,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 296,
+            "bottom": 757.95
+          },
+          {
+            "x": 25,
+            "y": 768.34,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 155.3,
+            "bottom": 963.08
+          },
+          {
+            "x": 165.69,
+            "y": 768.34,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 296,
+            "bottom": 963.08
+          },
+          {
+            "x": 25,
+            "y": 973.47,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 155.3,
+            "bottom": 1168.2
+          },
+          {
+            "x": 165.69,
+            "y": 973.47,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 296,
+            "bottom": 1168.2
+          }
+        ],
+        "factList": {
+          "x": 25,
+          "y": -311.81,
+          "width": 271,
+          "height": 366.38,
+          "right": 296,
+          "bottom": 54.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 900,
+          "right": 320,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1528,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 409,
+        "photoTitle": "Check-in condition photos",
+        "photoCount": "10 photos",
+        "renderedBlobImages": 10,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "vehicles-ten-en-light-390",
+      "state": {
+        "viewport": {
+          "width": 390,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "en",
+        "direction": "ltr",
+        "theme": "light",
+        "section": {
+          "x": 25,
+          "y": 72.95,
+          "width": 341,
+          "height": 1270.25,
+          "right": 366,
+          "bottom": 1343.2
+        },
+        "heading": {
+          "x": 25,
+          "y": 72.95,
+          "width": 166.58,
+          "height": 19.27,
+          "right": 191.58,
+          "bottom": 92.22
+        },
+        "hint": {
+          "x": 25,
+          "y": 107.55,
+          "width": 341,
+          "height": 32.63,
+          "right": 366,
+          "bottom": 140.17
+        },
+        "grid": {
+          "x": 25,
+          "y": 152.97,
+          "width": 341,
+          "height": 1190.23,
+          "right": 366,
+          "bottom": 1343.2
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 25,
+            "y": 152.97,
+            "width": 165.3,
+            "height": 229.73,
+            "right": 190.3,
+            "bottom": 382.7
+          },
+          {
+            "x": 200.69,
+            "y": 152.97,
+            "width": 165.31,
+            "height": 229.73,
+            "right": 366,
+            "bottom": 382.7
+          },
+          {
+            "x": 25,
+            "y": 393.09,
+            "width": 165.3,
+            "height": 229.73,
+            "right": 190.3,
+            "bottom": 622.83
+          },
+          {
+            "x": 200.69,
+            "y": 393.09,
+            "width": 165.31,
+            "height": 229.73,
+            "right": 366,
+            "bottom": 622.83
+          },
+          {
+            "x": 25,
+            "y": 633.22,
+            "width": 165.3,
+            "height": 229.73,
+            "right": 190.3,
+            "bottom": 862.95
+          },
+          {
+            "x": 200.69,
+            "y": 633.22,
+            "width": 165.31,
+            "height": 229.73,
+            "right": 366,
+            "bottom": 862.95
+          },
+          {
+            "x": 25,
+            "y": 873.34,
+            "width": 165.3,
+            "height": 229.73,
+            "right": 190.3,
+            "bottom": 1103.08
+          },
+          {
+            "x": 200.69,
+            "y": 873.34,
+            "width": 165.31,
+            "height": 229.73,
+            "right": 366,
+            "bottom": 1103.08
+          },
+          {
+            "x": 25,
+            "y": 1113.47,
+            "width": 165.3,
+            "height": 229.73,
+            "right": 190.3,
+            "bottom": 1343.2
+          },
+          {
+            "x": 200.69,
+            "y": 1113.47,
+            "width": 165.31,
+            "height": 229.73,
+            "right": 366,
+            "bottom": 1343.2
+          }
+        ],
+        "factList": {
+          "x": 25,
+          "y": -311.81,
+          "width": 341,
+          "height": 366.38,
+          "right": 366,
+          "bottom": 54.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 900,
+          "right": 390,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1703,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 409,
+        "photoTitle": "Check-in condition photos",
+        "photoCount": "10 photos",
+        "renderedBlobImages": 10,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "vehicles-ten-en-light-768",
+      "state": {
+        "viewport": {
+          "width": 768,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "en",
+        "direction": "ltr",
+        "theme": "light",
+        "section": {
+          "x": 345,
+          "y": 69.95,
+          "width": 399,
+          "height": 1174.86,
+          "right": 744,
+          "bottom": 1244.81
+        },
+        "heading": {
+          "x": 345,
+          "y": 72.81,
+          "width": 166.58,
+          "height": 19.27,
+          "right": 511.58,
+          "bottom": 92.08
+        },
+        "hint": {
+          "x": 345,
+          "y": 104.55,
+          "width": 399,
+          "height": 32.63,
+          "right": 744,
+          "bottom": 137.17
+        },
+        "grid": {
+          "x": 345,
+          "y": 149.97,
+          "width": 399,
+          "height": 1094.84,
+          "right": 744,
+          "bottom": 1244.81
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 345,
+            "y": 149.97,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 539.3,
+            "bottom": 360.63
+          },
+          {
+            "x": 549.69,
+            "y": 149.97,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 744,
+            "bottom": 360.63
+          },
+          {
+            "x": 345,
+            "y": 371.02,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 539.3,
+            "bottom": 581.67
+          },
+          {
+            "x": 549.69,
+            "y": 371.02,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 744,
+            "bottom": 581.67
+          },
+          {
+            "x": 345,
+            "y": 592.06,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 539.3,
+            "bottom": 802.72
+          },
+          {
+            "x": 549.69,
+            "y": 592.06,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 744,
+            "bottom": 802.72
+          },
+          {
+            "x": 345,
+            "y": 813.11,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 539.3,
+            "bottom": 1023.77
+          },
+          {
+            "x": 549.69,
+            "y": 813.11,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 744,
+            "bottom": 1023.77
+          },
+          {
+            "x": 345,
+            "y": 1034.16,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 539.3,
+            "bottom": 1244.81
+          },
+          {
+            "x": 549.69,
+            "y": 1034.16,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 744,
+            "bottom": 1244.81
+          }
+        ],
+        "factList": {
+          "x": 345,
+          "y": -314.81,
+          "width": 399,
+          "height": 366.38,
+          "right": 744,
+          "bottom": 51.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 320,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 768,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1608,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 412,
+        "photoTitle": "Check-in condition photos",
+        "photoCount": "10 photos",
+        "renderedBlobImages": 10,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "vehicles-ten-en-light-1440",
+      "state": {
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "en",
+        "direction": "ltr",
+        "theme": "light",
+        "section": {
+          "x": 1017,
+          "y": 69.95,
+          "width": 399,
+          "height": 1174.86,
+          "right": 1416,
+          "bottom": 1244.81
+        },
+        "heading": {
+          "x": 1017,
+          "y": 72.81,
+          "width": 166.58,
+          "height": 19.27,
+          "right": 1183.58,
+          "bottom": 92.08
+        },
+        "hint": {
+          "x": 1017,
+          "y": 104.55,
+          "width": 399,
+          "height": 32.63,
+          "right": 1416,
+          "bottom": 137.17
+        },
+        "grid": {
+          "x": 1017,
+          "y": 149.97,
+          "width": 399,
+          "height": 1094.84,
+          "right": 1416,
+          "bottom": 1244.81
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 1017,
+            "y": 149.97,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 1211.3,
+            "bottom": 360.63
+          },
+          {
+            "x": 1221.69,
+            "y": 149.97,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 1416,
+            "bottom": 360.63
+          },
+          {
+            "x": 1017,
+            "y": 371.02,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 1211.3,
+            "bottom": 581.67
+          },
+          {
+            "x": 1221.69,
+            "y": 371.02,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 1416,
+            "bottom": 581.67
+          },
+          {
+            "x": 1017,
+            "y": 592.06,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 1211.3,
+            "bottom": 802.72
+          },
+          {
+            "x": 1221.69,
+            "y": 592.06,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 1416,
+            "bottom": 802.72
+          },
+          {
+            "x": 1017,
+            "y": 813.11,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 1211.3,
+            "bottom": 1023.77
+          },
+          {
+            "x": 1221.69,
+            "y": 813.11,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 1416,
+            "bottom": 1023.77
+          },
+          {
+            "x": 1017,
+            "y": 1034.16,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 1211.3,
+            "bottom": 1244.81
+          },
+          {
+            "x": 1221.69,
+            "y": 1034.16,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 1416,
+            "bottom": 1244.81
+          }
+        ],
+        "factList": {
+          "x": 1017,
+          "y": -314.81,
+          "width": 399,
+          "height": 366.38,
+          "right": 1416,
+          "bottom": 51.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 992,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 1440,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1608,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 412,
+        "photoTitle": "Check-in condition photos",
+        "photoCount": "10 photos",
+        "renderedBlobImages": 10,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "vehicles-ten-en-dark-320",
+      "state": {
+        "viewport": {
+          "width": 320,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "en",
+        "direction": "ltr",
+        "theme": "dark",
+        "section": {
+          "x": 25,
+          "y": 72.95,
+          "width": 271,
+          "height": 1095.25,
+          "right": 296,
+          "bottom": 1168.2
+        },
+        "heading": {
+          "x": 25,
+          "y": 72.95,
+          "width": 166.58,
+          "height": 19.27,
+          "right": 191.58,
+          "bottom": 92.22
+        },
+        "hint": {
+          "x": 25,
+          "y": 107.55,
+          "width": 271,
+          "height": 32.63,
+          "right": 296,
+          "bottom": 140.17
+        },
+        "grid": {
+          "x": 25,
+          "y": 152.97,
+          "width": 271,
+          "height": 1015.23,
+          "right": 296,
+          "bottom": 1168.2
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 25,
+            "y": 152.97,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 155.3,
+            "bottom": 347.7
+          },
+          {
+            "x": 165.69,
+            "y": 152.97,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 296,
+            "bottom": 347.7
+          },
+          {
+            "x": 25,
+            "y": 358.09,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 155.3,
+            "bottom": 552.83
+          },
+          {
+            "x": 165.69,
+            "y": 358.09,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 296,
+            "bottom": 552.83
+          },
+          {
+            "x": 25,
+            "y": 563.22,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 155.3,
+            "bottom": 757.95
+          },
+          {
+            "x": 165.69,
+            "y": 563.22,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 296,
+            "bottom": 757.95
+          },
+          {
+            "x": 25,
+            "y": 768.34,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 155.3,
+            "bottom": 963.08
+          },
+          {
+            "x": 165.69,
+            "y": 768.34,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 296,
+            "bottom": 963.08
+          },
+          {
+            "x": 25,
+            "y": 973.47,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 155.3,
+            "bottom": 1168.2
+          },
+          {
+            "x": 165.69,
+            "y": 973.47,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 296,
+            "bottom": 1168.2
+          }
+        ],
+        "factList": {
+          "x": 25,
+          "y": -311.81,
+          "width": 271,
+          "height": 366.38,
+          "right": 296,
+          "bottom": 54.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 900,
+          "right": 320,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1528,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 409,
+        "photoTitle": "Check-in condition photos",
+        "photoCount": "10 photos",
+        "renderedBlobImages": 10,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "vehicles-ten-en-dark-390",
+      "state": {
+        "viewport": {
+          "width": 390,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "en",
+        "direction": "ltr",
+        "theme": "dark",
+        "section": {
+          "x": 25,
+          "y": 72.95,
+          "width": 341,
+          "height": 1270.25,
+          "right": 366,
+          "bottom": 1343.2
+        },
+        "heading": {
+          "x": 25,
+          "y": 72.95,
+          "width": 166.58,
+          "height": 19.27,
+          "right": 191.58,
+          "bottom": 92.22
+        },
+        "hint": {
+          "x": 25,
+          "y": 107.55,
+          "width": 341,
+          "height": 32.63,
+          "right": 366,
+          "bottom": 140.17
+        },
+        "grid": {
+          "x": 25,
+          "y": 152.97,
+          "width": 341,
+          "height": 1190.23,
+          "right": 366,
+          "bottom": 1343.2
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 25,
+            "y": 152.97,
+            "width": 165.3,
+            "height": 229.73,
+            "right": 190.3,
+            "bottom": 382.7
+          },
+          {
+            "x": 200.69,
+            "y": 152.97,
+            "width": 165.31,
+            "height": 229.73,
+            "right": 366,
+            "bottom": 382.7
+          },
+          {
+            "x": 25,
+            "y": 393.09,
+            "width": 165.3,
+            "height": 229.73,
+            "right": 190.3,
+            "bottom": 622.83
+          },
+          {
+            "x": 200.69,
+            "y": 393.09,
+            "width": 165.31,
+            "height": 229.73,
+            "right": 366,
+            "bottom": 622.83
+          },
+          {
+            "x": 25,
+            "y": 633.22,
+            "width": 165.3,
+            "height": 229.73,
+            "right": 190.3,
+            "bottom": 862.95
+          },
+          {
+            "x": 200.69,
+            "y": 633.22,
+            "width": 165.31,
+            "height": 229.73,
+            "right": 366,
+            "bottom": 862.95
+          },
+          {
+            "x": 25,
+            "y": 873.34,
+            "width": 165.3,
+            "height": 229.73,
+            "right": 190.3,
+            "bottom": 1103.08
+          },
+          {
+            "x": 200.69,
+            "y": 873.34,
+            "width": 165.31,
+            "height": 229.73,
+            "right": 366,
+            "bottom": 1103.08
+          },
+          {
+            "x": 25,
+            "y": 1113.47,
+            "width": 165.3,
+            "height": 229.73,
+            "right": 190.3,
+            "bottom": 1343.2
+          },
+          {
+            "x": 200.69,
+            "y": 1113.47,
+            "width": 165.31,
+            "height": 229.73,
+            "right": 366,
+            "bottom": 1343.2
+          }
+        ],
+        "factList": {
+          "x": 25,
+          "y": -311.81,
+          "width": 341,
+          "height": 366.38,
+          "right": 366,
+          "bottom": 54.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 900,
+          "right": 390,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1703,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 409,
+        "photoTitle": "Check-in condition photos",
+        "photoCount": "10 photos",
+        "renderedBlobImages": 10,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "vehicles-ten-en-dark-768",
+      "state": {
+        "viewport": {
+          "width": 768,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "en",
+        "direction": "ltr",
+        "theme": "dark",
+        "section": {
+          "x": 345,
+          "y": 69.95,
+          "width": 399,
+          "height": 1174.86,
+          "right": 744,
+          "bottom": 1244.81
+        },
+        "heading": {
+          "x": 345,
+          "y": 72.81,
+          "width": 166.58,
+          "height": 19.27,
+          "right": 511.58,
+          "bottom": 92.08
+        },
+        "hint": {
+          "x": 345,
+          "y": 104.55,
+          "width": 399,
+          "height": 32.63,
+          "right": 744,
+          "bottom": 137.17
+        },
+        "grid": {
+          "x": 345,
+          "y": 149.97,
+          "width": 399,
+          "height": 1094.84,
+          "right": 744,
+          "bottom": 1244.81
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 345,
+            "y": 149.97,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 539.3,
+            "bottom": 360.63
+          },
+          {
+            "x": 549.69,
+            "y": 149.97,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 744,
+            "bottom": 360.63
+          },
+          {
+            "x": 345,
+            "y": 371.02,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 539.3,
+            "bottom": 581.67
+          },
+          {
+            "x": 549.69,
+            "y": 371.02,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 744,
+            "bottom": 581.67
+          },
+          {
+            "x": 345,
+            "y": 592.06,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 539.3,
+            "bottom": 802.72
+          },
+          {
+            "x": 549.69,
+            "y": 592.06,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 744,
+            "bottom": 802.72
+          },
+          {
+            "x": 345,
+            "y": 813.11,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 539.3,
+            "bottom": 1023.77
+          },
+          {
+            "x": 549.69,
+            "y": 813.11,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 744,
+            "bottom": 1023.77
+          },
+          {
+            "x": 345,
+            "y": 1034.16,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 539.3,
+            "bottom": 1244.81
+          },
+          {
+            "x": 549.69,
+            "y": 1034.16,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 744,
+            "bottom": 1244.81
+          }
+        ],
+        "factList": {
+          "x": 345,
+          "y": -314.81,
+          "width": 399,
+          "height": 366.38,
+          "right": 744,
+          "bottom": 51.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 320,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 768,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1608,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 412,
+        "photoTitle": "Check-in condition photos",
+        "photoCount": "10 photos",
+        "renderedBlobImages": 10,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "vehicles-ten-en-dark-1440",
+      "state": {
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "en",
+        "direction": "ltr",
+        "theme": "dark",
+        "section": {
+          "x": 1017,
+          "y": 69.95,
+          "width": 399,
+          "height": 1174.86,
+          "right": 1416,
+          "bottom": 1244.81
+        },
+        "heading": {
+          "x": 1017,
+          "y": 72.81,
+          "width": 166.58,
+          "height": 19.27,
+          "right": 1183.58,
+          "bottom": 92.08
+        },
+        "hint": {
+          "x": 1017,
+          "y": 104.55,
+          "width": 399,
+          "height": 32.63,
+          "right": 1416,
+          "bottom": 137.17
+        },
+        "grid": {
+          "x": 1017,
+          "y": 149.97,
+          "width": 399,
+          "height": 1094.84,
+          "right": 1416,
+          "bottom": 1244.81
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 1017,
+            "y": 149.97,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 1211.3,
+            "bottom": 360.63
+          },
+          {
+            "x": 1221.69,
+            "y": 149.97,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 1416,
+            "bottom": 360.63
+          },
+          {
+            "x": 1017,
+            "y": 371.02,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 1211.3,
+            "bottom": 581.67
+          },
+          {
+            "x": 1221.69,
+            "y": 371.02,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 1416,
+            "bottom": 581.67
+          },
+          {
+            "x": 1017,
+            "y": 592.06,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 1211.3,
+            "bottom": 802.72
+          },
+          {
+            "x": 1221.69,
+            "y": 592.06,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 1416,
+            "bottom": 802.72
+          },
+          {
+            "x": 1017,
+            "y": 813.11,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 1211.3,
+            "bottom": 1023.77
+          },
+          {
+            "x": 1221.69,
+            "y": 813.11,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 1416,
+            "bottom": 1023.77
+          },
+          {
+            "x": 1017,
+            "y": 1034.16,
+            "width": 194.3,
+            "height": 210.66,
+            "right": 1211.3,
+            "bottom": 1244.81
+          },
+          {
+            "x": 1221.69,
+            "y": 1034.16,
+            "width": 194.31,
+            "height": 210.66,
+            "right": 1416,
+            "bottom": 1244.81
+          }
+        ],
+        "factList": {
+          "x": 1017,
+          "y": -314.81,
+          "width": 399,
+          "height": 366.38,
+          "right": 1416,
+          "bottom": 51.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 992,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 1440,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1608,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 412,
+        "photoTitle": "Check-in condition photos",
+        "photoCount": "10 photos",
+        "renderedBlobImages": 10,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "vehicles-ten-ar-dark-320",
+      "state": {
+        "viewport": {
+          "width": 320,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "ar",
+        "direction": "rtl",
+        "theme": "dark",
+        "section": {
+          "x": 24,
+          "y": 72.95,
+          "width": 271,
+          "height": 1095.25,
+          "right": 295,
+          "bottom": 1168.2
+        },
+        "heading": {
+          "x": 128.7,
+          "y": 72.95,
+          "width": 166.3,
+          "height": 19.27,
+          "right": 295,
+          "bottom": 92.22
+        },
+        "hint": {
+          "x": 24,
+          "y": 107.55,
+          "width": 271,
+          "height": 32.63,
+          "right": 295,
+          "bottom": 140.17
+        },
+        "grid": {
+          "x": 24,
+          "y": 152.97,
+          "width": 271,
+          "height": 1015.23,
+          "right": 295,
+          "bottom": 1168.2
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 164.7,
+            "y": 152.97,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 295,
+            "bottom": 347.7
+          },
+          {
+            "x": 24,
+            "y": 152.97,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 154.31,
+            "bottom": 347.7
+          },
+          {
+            "x": 164.7,
+            "y": 358.09,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 295,
+            "bottom": 552.83
+          },
+          {
+            "x": 24,
+            "y": 358.09,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 154.31,
+            "bottom": 552.83
+          },
+          {
+            "x": 164.7,
+            "y": 563.22,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 295,
+            "bottom": 757.95
+          },
+          {
+            "x": 24,
+            "y": 563.22,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 154.31,
+            "bottom": 757.95
+          },
+          {
+            "x": 164.7,
+            "y": 768.34,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 295,
+            "bottom": 963.08
+          },
+          {
+            "x": 24,
+            "y": 768.34,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 154.31,
+            "bottom": 963.08
+          },
+          {
+            "x": 164.7,
+            "y": 973.47,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 295,
+            "bottom": 1168.2
+          },
+          {
+            "x": 24,
+            "y": 973.47,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 154.31,
+            "bottom": 1168.2
+          }
+        ],
+        "factList": {
+          "x": 24,
+          "y": -311.81,
+          "width": 271,
+          "height": 366.38,
+          "right": 295,
+          "bottom": 54.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 900,
+          "right": 320,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1528,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 409,
+        "photoTitle": "صور حالة السيارة عند الاستلام",
+        "photoCount": "10 صور",
+        "renderedBlobImages": 10,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "vehicles-ten-ar-dark-390",
+      "state": {
+        "viewport": {
+          "width": 390,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "ar",
+        "direction": "rtl",
+        "theme": "dark",
+        "section": {
+          "x": 24,
+          "y": 72.95,
+          "width": 341,
+          "height": 1201.19,
+          "right": 365,
+          "bottom": 1274.14
+        },
+        "heading": {
+          "x": 198.7,
+          "y": 72.95,
+          "width": 166.3,
+          "height": 19.27,
+          "right": 365,
+          "bottom": 92.22
+        },
+        "hint": {
+          "x": 24,
+          "y": 107.55,
+          "width": 341,
+          "height": 32.63,
+          "right": 365,
+          "bottom": 140.17
+        },
+        "grid": {
+          "x": 24,
+          "y": 152.97,
+          "width": 341,
+          "height": 1121.17,
+          "right": 365,
+          "bottom": 1274.14
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 199.7,
+            "y": 152.97,
+            "width": 165.3,
+            "height": 215.92,
+            "right": 365,
+            "bottom": 368.89
+          },
+          {
+            "x": 24,
+            "y": 152.97,
+            "width": 165.31,
+            "height": 215.92,
+            "right": 189.31,
+            "bottom": 368.89
+          },
+          {
+            "x": 199.7,
+            "y": 379.28,
+            "width": 165.3,
+            "height": 215.92,
+            "right": 365,
+            "bottom": 595.2
+          },
+          {
+            "x": 24,
+            "y": 379.28,
+            "width": 165.31,
+            "height": 215.92,
+            "right": 189.31,
+            "bottom": 595.2
+          },
+          {
+            "x": 199.7,
+            "y": 605.59,
+            "width": 165.3,
+            "height": 215.92,
+            "right": 365,
+            "bottom": 821.52
+          },
+          {
+            "x": 24,
+            "y": 605.59,
+            "width": 165.31,
+            "height": 215.92,
+            "right": 189.31,
+            "bottom": 821.52
+          },
+          {
+            "x": 199.7,
+            "y": 831.91,
+            "width": 165.3,
+            "height": 215.92,
+            "right": 365,
+            "bottom": 1047.83
+          },
+          {
+            "x": 24,
+            "y": 831.91,
+            "width": 165.31,
+            "height": 215.92,
+            "right": 189.31,
+            "bottom": 1047.83
+          },
+          {
+            "x": 199.7,
+            "y": 1058.22,
+            "width": 165.3,
+            "height": 215.92,
+            "right": 365,
+            "bottom": 1274.14
+          },
+          {
+            "x": 24,
+            "y": 1058.22,
+            "width": 165.31,
+            "height": 215.92,
+            "right": 189.31,
+            "bottom": 1274.14
+          }
+        ],
+        "factList": {
+          "x": 24,
+          "y": -311.81,
+          "width": 341,
+          "height": 366.38,
+          "right": 365,
+          "bottom": 54.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 900,
+          "right": 390,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1634,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 409,
+        "photoTitle": "صور حالة السيارة عند الاستلام",
+        "photoCount": "10 صور",
+        "renderedBlobImages": 10,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "vehicles-ten-ar-dark-768",
+      "state": {
+        "viewport": {
+          "width": 768,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "ar",
+        "direction": "rtl",
+        "theme": "dark",
+        "section": {
+          "x": 24,
+          "y": 69.95,
+          "width": 399,
+          "height": 1089.48,
+          "right": 423,
+          "bottom": 1159.44
+        },
+        "heading": {
+          "x": 256.7,
+          "y": 72.81,
+          "width": 166.3,
+          "height": 19.27,
+          "right": 423,
+          "bottom": 92.08
+        },
+        "hint": {
+          "x": 24,
+          "y": 104.55,
+          "width": 399,
+          "height": 16.31,
+          "right": 423,
+          "bottom": 120.86
+        },
+        "grid": {
+          "x": 24,
+          "y": 133.66,
+          "width": 399,
+          "height": 1025.78,
+          "right": 423,
+          "bottom": 1159.44
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 228.7,
+            "y": 133.66,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 330.5
+          },
+          {
+            "x": 24,
+            "y": 133.66,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 330.5
+          },
+          {
+            "x": 228.7,
+            "y": 340.89,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 537.73
+          },
+          {
+            "x": 24,
+            "y": 340.89,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 537.73
+          },
+          {
+            "x": 228.7,
+            "y": 548.13,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 744.97
+          },
+          {
+            "x": 24,
+            "y": 548.13,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 744.97
+          },
+          {
+            "x": 228.7,
+            "y": 755.36,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 952.2
+          },
+          {
+            "x": 24,
+            "y": 755.36,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 952.2
+          },
+          {
+            "x": 228.7,
+            "y": 962.59,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 1159.44
+          },
+          {
+            "x": 24,
+            "y": 962.59,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 1159.44
+          }
+        ],
+        "factList": {
+          "x": 24,
+          "y": -314.81,
+          "width": 399,
+          "height": 366.38,
+          "right": 423,
+          "bottom": 51.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 448,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1522,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 412,
+        "photoTitle": "صور حالة السيارة عند الاستلام",
+        "photoCount": "10 صور",
+        "renderedBlobImages": 10,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "vehicles-ten-ar-dark-1440",
+      "state": {
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "ar",
+        "direction": "rtl",
+        "theme": "dark",
+        "section": {
+          "x": 24,
+          "y": 69.95,
+          "width": 399,
+          "height": 1089.48,
+          "right": 423,
+          "bottom": 1159.44
+        },
+        "heading": {
+          "x": 256.7,
+          "y": 72.81,
+          "width": 166.3,
+          "height": 19.27,
+          "right": 423,
+          "bottom": 92.08
+        },
+        "hint": {
+          "x": 24,
+          "y": 104.55,
+          "width": 399,
+          "height": 16.31,
+          "right": 423,
+          "bottom": 120.86
+        },
+        "grid": {
+          "x": 24,
+          "y": 133.66,
+          "width": 399,
+          "height": 1025.78,
+          "right": 423,
+          "bottom": 1159.44
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 228.7,
+            "y": 133.66,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 330.5
+          },
+          {
+            "x": 24,
+            "y": 133.66,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 330.5
+          },
+          {
+            "x": 228.7,
+            "y": 340.89,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 537.73
+          },
+          {
+            "x": 24,
+            "y": 340.89,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 537.73
+          },
+          {
+            "x": 228.7,
+            "y": 548.13,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 744.97
+          },
+          {
+            "x": 24,
+            "y": 548.13,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 744.97
+          },
+          {
+            "x": 228.7,
+            "y": 755.36,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 952.2
+          },
+          {
+            "x": 24,
+            "y": 755.36,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 952.2
+          },
+          {
+            "x": 228.7,
+            "y": 962.59,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 1159.44
+          },
+          {
+            "x": 24,
+            "y": 962.59,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 1159.44
+          }
+        ],
+        "factList": {
+          "x": 24,
+          "y": -314.81,
+          "width": 399,
+          "height": 366.38,
+          "right": 423,
+          "bottom": 51.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 448,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1522,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 412,
+        "photoTitle": "صور حالة السيارة عند الاستلام",
+        "photoCount": "10 صور",
+        "renderedBlobImages": 10,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "vehicles-ten-ar-light-320",
+      "state": {
+        "viewport": {
+          "width": 320,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "ar",
+        "direction": "rtl",
+        "theme": "light",
+        "section": {
+          "x": 24,
+          "y": 72.95,
+          "width": 271,
+          "height": 1095.25,
+          "right": 295,
+          "bottom": 1168.2
+        },
+        "heading": {
+          "x": 128.7,
+          "y": 72.95,
+          "width": 166.3,
+          "height": 19.27,
+          "right": 295,
+          "bottom": 92.22
+        },
+        "hint": {
+          "x": 24,
+          "y": 107.55,
+          "width": 271,
+          "height": 32.63,
+          "right": 295,
+          "bottom": 140.17
+        },
+        "grid": {
+          "x": 24,
+          "y": 152.97,
+          "width": 271,
+          "height": 1015.23,
+          "right": 295,
+          "bottom": 1168.2
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 164.7,
+            "y": 152.97,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 295,
+            "bottom": 347.7
+          },
+          {
+            "x": 24,
+            "y": 152.97,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 154.31,
+            "bottom": 347.7
+          },
+          {
+            "x": 164.7,
+            "y": 358.09,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 295,
+            "bottom": 552.83
+          },
+          {
+            "x": 24,
+            "y": 358.09,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 154.31,
+            "bottom": 552.83
+          },
+          {
+            "x": 164.7,
+            "y": 563.22,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 295,
+            "bottom": 757.95
+          },
+          {
+            "x": 24,
+            "y": 563.22,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 154.31,
+            "bottom": 757.95
+          },
+          {
+            "x": 164.7,
+            "y": 768.34,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 295,
+            "bottom": 963.08
+          },
+          {
+            "x": 24,
+            "y": 768.34,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 154.31,
+            "bottom": 963.08
+          },
+          {
+            "x": 164.7,
+            "y": 973.47,
+            "width": 130.3,
+            "height": 194.73,
+            "right": 295,
+            "bottom": 1168.2
+          },
+          {
+            "x": 24,
+            "y": 973.47,
+            "width": 130.31,
+            "height": 194.73,
+            "right": 154.31,
+            "bottom": 1168.2
+          }
+        ],
+        "factList": {
+          "x": 24,
+          "y": -311.81,
+          "width": 271,
+          "height": 366.38,
+          "right": 295,
+          "bottom": 54.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 320,
+          "height": 900,
+          "right": 320,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1528,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 409,
+        "photoTitle": "صور حالة السيارة عند الاستلام",
+        "photoCount": "10 صور",
+        "renderedBlobImages": 10,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "vehicles-ten-ar-light-390",
+      "state": {
+        "viewport": {
+          "width": 390,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "ar",
+        "direction": "rtl",
+        "theme": "light",
+        "section": {
+          "x": 24,
+          "y": 72.95,
+          "width": 341,
+          "height": 1201.19,
+          "right": 365,
+          "bottom": 1274.14
+        },
+        "heading": {
+          "x": 198.7,
+          "y": 72.95,
+          "width": 166.3,
+          "height": 19.27,
+          "right": 365,
+          "bottom": 92.22
+        },
+        "hint": {
+          "x": 24,
+          "y": 107.55,
+          "width": 341,
+          "height": 32.63,
+          "right": 365,
+          "bottom": 140.17
+        },
+        "grid": {
+          "x": 24,
+          "y": 152.97,
+          "width": 341,
+          "height": 1121.17,
+          "right": 365,
+          "bottom": 1274.14
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 199.7,
+            "y": 152.97,
+            "width": 165.3,
+            "height": 215.92,
+            "right": 365,
+            "bottom": 368.89
+          },
+          {
+            "x": 24,
+            "y": 152.97,
+            "width": 165.31,
+            "height": 215.92,
+            "right": 189.31,
+            "bottom": 368.89
+          },
+          {
+            "x": 199.7,
+            "y": 379.28,
+            "width": 165.3,
+            "height": 215.92,
+            "right": 365,
+            "bottom": 595.2
+          },
+          {
+            "x": 24,
+            "y": 379.28,
+            "width": 165.31,
+            "height": 215.92,
+            "right": 189.31,
+            "bottom": 595.2
+          },
+          {
+            "x": 199.7,
+            "y": 605.59,
+            "width": 165.3,
+            "height": 215.92,
+            "right": 365,
+            "bottom": 821.52
+          },
+          {
+            "x": 24,
+            "y": 605.59,
+            "width": 165.31,
+            "height": 215.92,
+            "right": 189.31,
+            "bottom": 821.52
+          },
+          {
+            "x": 199.7,
+            "y": 831.91,
+            "width": 165.3,
+            "height": 215.92,
+            "right": 365,
+            "bottom": 1047.83
+          },
+          {
+            "x": 24,
+            "y": 831.91,
+            "width": 165.31,
+            "height": 215.92,
+            "right": 189.31,
+            "bottom": 1047.83
+          },
+          {
+            "x": 199.7,
+            "y": 1058.22,
+            "width": 165.3,
+            "height": 215.92,
+            "right": 365,
+            "bottom": 1274.14
+          },
+          {
+            "x": 24,
+            "y": 1058.22,
+            "width": 165.31,
+            "height": 215.92,
+            "right": 189.31,
+            "bottom": 1274.14
+          }
+        ],
+        "factList": {
+          "x": 24,
+          "y": -311.81,
+          "width": 341,
+          "height": 366.38,
+          "right": 365,
+          "bottom": 54.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 900,
+          "right": 390,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1634,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 409,
+        "photoTitle": "صور حالة السيارة عند الاستلام",
+        "photoCount": "10 صور",
+        "renderedBlobImages": 10,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "vehicles-ten-ar-light-768",
+      "state": {
+        "viewport": {
+          "width": 768,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "ar",
+        "direction": "rtl",
+        "theme": "light",
+        "section": {
+          "x": 24,
+          "y": 69.95,
+          "width": 399,
+          "height": 1089.48,
+          "right": 423,
+          "bottom": 1159.44
+        },
+        "heading": {
+          "x": 256.7,
+          "y": 72.81,
+          "width": 166.3,
+          "height": 19.27,
+          "right": 423,
+          "bottom": 92.08
+        },
+        "hint": {
+          "x": 24,
+          "y": 104.55,
+          "width": 399,
+          "height": 16.31,
+          "right": 423,
+          "bottom": 120.86
+        },
+        "grid": {
+          "x": 24,
+          "y": 133.66,
+          "width": 399,
+          "height": 1025.78,
+          "right": 423,
+          "bottom": 1159.44
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 228.7,
+            "y": 133.66,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 330.5
+          },
+          {
+            "x": 24,
+            "y": 133.66,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 330.5
+          },
+          {
+            "x": 228.7,
+            "y": 340.89,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 537.73
+          },
+          {
+            "x": 24,
+            "y": 340.89,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 537.73
+          },
+          {
+            "x": 228.7,
+            "y": 548.13,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 744.97
+          },
+          {
+            "x": 24,
+            "y": 548.13,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 744.97
+          },
+          {
+            "x": 228.7,
+            "y": 755.36,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 952.2
+          },
+          {
+            "x": 24,
+            "y": 755.36,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 952.2
+          },
+          {
+            "x": 228.7,
+            "y": 962.59,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 1159.44
+          },
+          {
+            "x": 24,
+            "y": 962.59,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 1159.44
+          }
+        ],
+        "factList": {
+          "x": 24,
+          "y": -314.81,
+          "width": 399,
+          "height": 366.38,
+          "right": 423,
+          "bottom": 51.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 448,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1522,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 412,
+        "photoTitle": "صور حالة السيارة عند الاستلام",
+        "photoCount": "10 صور",
+        "renderedBlobImages": 10,
+        "linkedStorageKeys": false
+      }
+    },
+    {
+      "key": "vehicles-ten-ar-light-1440",
+      "state": {
+        "viewport": {
+          "width": 1440,
+          "height": 900,
+          "dpr": 1
+        },
+        "locale": "ar",
+        "direction": "rtl",
+        "theme": "light",
+        "section": {
+          "x": 24,
+          "y": 69.95,
+          "width": 399,
+          "height": 1089.48,
+          "right": 423,
+          "bottom": 1159.44
+        },
+        "heading": {
+          "x": 256.7,
+          "y": 72.81,
+          "width": 166.3,
+          "height": 19.27,
+          "right": 423,
+          "bottom": 92.08
+        },
+        "hint": {
+          "x": 24,
+          "y": 104.55,
+          "width": 399,
+          "height": 16.31,
+          "right": 423,
+          "bottom": 120.86
+        },
+        "grid": {
+          "x": 24,
+          "y": 133.66,
+          "width": 399,
+          "height": 1025.78,
+          "right": 423,
+          "bottom": 1159.44
+        },
+        "message": null,
+        "thumbnails": [
+          {
+            "x": 228.7,
+            "y": 133.66,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 330.5
+          },
+          {
+            "x": 24,
+            "y": 133.66,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 330.5
+          },
+          {
+            "x": 228.7,
+            "y": 340.89,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 537.73
+          },
+          {
+            "x": 24,
+            "y": 340.89,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 537.73
+          },
+          {
+            "x": 228.7,
+            "y": 548.13,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 744.97
+          },
+          {
+            "x": 24,
+            "y": 548.13,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 744.97
+          },
+          {
+            "x": 228.7,
+            "y": 755.36,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 952.2
+          },
+          {
+            "x": 24,
+            "y": 755.36,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 952.2
+          },
+          {
+            "x": 228.7,
+            "y": 962.59,
+            "width": 194.3,
+            "height": 196.84,
+            "right": 423,
+            "bottom": 1159.44
+          },
+          {
+            "x": 24,
+            "y": 962.59,
+            "width": 194.31,
+            "height": 196.84,
+            "right": 218.31,
+            "bottom": 1159.44
+          }
+        ],
+        "factList": {
+          "x": 24,
+          "y": -314.81,
+          "width": 399,
+          "height": 366.38,
+          "right": 423,
+          "bottom": 51.56
+        },
+        "factListEndBeforeSection": true,
+        "drawer": {
+          "x": 0,
+          "y": 0,
+          "width": 448,
+          "height": 900,
+          "right": 448,
+          "bottom": 900
+        },
+        "bodyScrollHeight": 1522,
+        "bodyClientHeight": 827,
+        "bodyScrollTop": 412,
+        "photoTitle": "صور حالة السيارة عند الاستلام",
+        "photoCount": "10 صور",
+        "renderedBlobImages": 10,
+        "linkedStorageKeys": false
+      }
+    }
+  ],
+  "browserErrors": []
+}
