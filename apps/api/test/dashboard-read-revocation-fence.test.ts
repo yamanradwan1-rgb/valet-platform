@@ -44,8 +44,9 @@ function transaction(events: string[]) {
       events.push("lock");
       expect(sql).toContain("pg_advisory_xact_lock_shared");
       expect(sql).toContain("staff-management-org:");
+      expect(sql).toContain("current_setting('transaction_isolation')");
       expect(values).toEqual(["org-a"]);
-      return { rows: [], rowCount: 1 };
+      return { rows: [{ readCommitted: true }], rowCount: 1 };
     }),
   } as unknown as PostgresTransaction;
 }
@@ -85,6 +86,23 @@ describe("#315 Dashboard Location Manager read fence", () => {
     expect(events).toEqual(["lock"]);
     expect(eligibleAdmin).not.toHaveBeenCalled();
     expect(admin).not.toHaveBeenCalled();
+  });
+
+  it("fails closed without re-reading an obsolete repeatable-read snapshot", async () => {
+    manager.mockResolvedValue(scope);
+    const tx = {
+      query: vi.fn(async () => ({
+        rows: [{ readCommitted: false }],
+        rowCount: 1,
+      })),
+    } as unknown as PostgresTransaction;
+    expect(await authorizeDashboardReadLocation(tx, {
+      authenticatedUserId: "actor-a",
+      capability: "LOCATION_DASHBOARD_READ",
+      targetLocationId: "location-a",
+    })).toBeNull();
+    expect(manager).toHaveBeenCalledTimes(1);
+    expect(eligibleAdmin).not.toHaveBeenCalled();
   });
 
   it("fails closed if membership or organization changes across the fence", async () => {
