@@ -10,7 +10,7 @@ import {
 import { expectedMigrationDirectories } from "./migration-manifest.js";
 
 describe("Issue #304 additive forward-only migration history", () => {
-  it("keeps the original 1..93 and Issue #300 94..96 frozen, appending 97 exactly once", () => {
+  it("keeps migrations 1..97 frozen and appends only the approved #309 photo-view migrations", () => {
     expect(expectedMigrationDirectories).toHaveLength(93);
     expect(issue300AppendedMigrationDirectories).toHaveLength(3);
     expect(issue304AppendedMigrationDirectories).toEqual([
@@ -20,6 +20,10 @@ describe("Issue #304 additive forward-only migration history", () => {
     const migrationRoot = fileURLToPath(new URL("../prisma/migrations/", import.meta.url));
     const actual = readdirSync(migrationRoot, { withFileTypes: true })
       .filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort();
-    expect(actual).toEqual(expectedCurrentMigrationDirectories);
+    expect(actual.slice(0, 97)).toEqual(expectedCurrentMigrationDirectories);
+    expect(actual.slice(97)).toEqual([
+      "20261021009800_issue309_photo_view_anti_abuse_scope",
+      "20261021009900_issue_309_management_photo_evidence_lock",
+    ]);
   });
 });
