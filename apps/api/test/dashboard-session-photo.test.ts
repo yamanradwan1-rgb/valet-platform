@@ -1,6 +1,11 @@
 import { createHash } from "node:crypto";
 
 import { describe, expect, it, vi } from "vitest";
+import { NotFoundException, ServiceUnavailableException, HttpException, UnauthorizedException } from "@nestjs/common";
+import { mapApiError } from "../src/common/http/api-errors";
+import { ApiOperationRunner } from "../src/common/http/api-operation-runner";
+import { AntiAbuseService, AntiAbuseUnavailableError } from "../src/modules/anti-abuse/anti-abuse.service";
+import { MfaStepUpRequiredError } from "../src/modules/auth/mfa/mfa-errors";
 import type { PostgresPool } from "../src/common/database/postgres";
 import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
 import type { SelectedConditionPhotoCandidate } from "../src/modules/valet-sessions/condition-photo-qualified-receipt";
@@ -137,13 +142,13 @@ describe("Issue309 management session condition photos (isolated read pipeline)"
 
   it("checks exact ValetSession binding even for zero photos and denies foreign scope",async()=>{
     const h=harness({exists:false,candidates:[]});
-    await expect(listManagementSessionPhotos(h.deps,request)).rejects.toHaveProperty("status",404);
+    await expect(listManagementSessionPhotos(h.deps,request)).rejects.toHaveProperty("code","DASHBOARD_SESSION_PHOTO_NOT_VISIBLE");
     expect(h.storeRead).not.toHaveBeenCalled();
   });
 
   it("never lists when the dedicated W3 authorization denies",async()=>{
     const h=harness({authorized:false});
-    await expect(listManagementSessionPhotos(h.deps,request)).rejects.toHaveProperty("status",404);
+    await expect(listManagementSessionPhotos(h.deps,request)).rejects.toHaveProperty("code","DASHBOARD_SESSION_PHOTO_NOT_VISIBLE");
     expect(h.state.queryLog.every(sql=>!sql.includes("ORDER BY v.verified_at"))).toBe(true);
   });
 
@@ -161,14 +166,14 @@ describe("Issue309 management session condition photos (isolated read pipeline)"
   it("denies once W3 authority disappears during external storage I/O",async()=>{
     const h=harness();
     h.state.onRead=()=>{h.state.authorized=false;};
-    await expect(deliver(h)).rejects.toHaveProperty("status",404);
+    await expect(deliver(h)).rejects.toHaveProperty("code","DASHBOARD_SESSION_PHOTO_NOT_VISIBLE");
     expect(h.authorize).toHaveBeenCalledTimes(2);
   });
 
   it("denies photo revocation/change to verified availability between before/after S3",async()=>{
     const h=harness();
     h.state.onRead=()=>{h.state.candidates=[];};
-    await expect(deliver(h)).rejects.toHaveProperty("status",404);
+    await expect(deliver(h)).rejects.toHaveProperty("code","DASHBOARD_SESSION_PHOTO_NOT_VISIBLE");
   });
 
   it("denies different immutable source object version or hash in final recheck",async()=>{
@@ -176,7 +181,7 @@ describe("Issue309 management session condition photos (isolated read pipeline)"
       {contentSha256:Buffer.alloc(32,3)},{byteSize:bytes.length+1}]){
       const h=harness();
       h.state.onRead=()=>{h.state.candidates=[candidate(change)];};
-      await expect(deliver(h)).rejects.toHaveProperty("status",404);
+      await expect(deliver(h)).rejects.toHaveProperty("code","DASHBOARD_SESSION_PHOTO_NOT_VISIBLE");
     }
   });
 
@@ -186,7 +191,7 @@ describe("Issue309 management session condition photos (isolated read pipeline)"
       const h=harness({candidates:rows});
       const photoId=rows[0]?.objectVersion==="version-1" && rows[0].bucketAlias==="private" &&
         rows[0].byteSize<=8*1024*1024 ? id.operation:id.photo;
-      await expect(deliver(h,photoId)).rejects.toHaveProperty("status",404);
+      await expect(deliver(h,photoId)).rejects.toHaveProperty("code","DASHBOARD_SESSION_PHOTO_NOT_VISIBLE");
       expect(h.storeRead).not.toHaveBeenCalled();
     }
   });
@@ -198,19 +203,20 @@ describe("Issue309 management session condition photos (isolated read pipeline)"
     ]){
       const h=harness();
       h.storeRead.mockImplementation(async()=>storeResponse);
-      await expect(deliver(h)).rejects.toHaveProperty("status",503);
+      await expect(deliver(h)).rejects.toHaveProperty("code","DASHBOARD_SESSION_PHOTO_UNAVAILABLE");
     }
     const h=harness();
     h.storeRead.mockRejectedValueOnce(new Error("secret private key / bucket-id"));
     await expect(deliver(h)).rejects.toMatchObject({
-      status:503,message:"Service Unavailable",
+      code:"DASHBOARD_SESSION_PHOTO_UNAVAILABLE",
+      message:"Photo evidence is temporarily unavailable.",
     });
   });
 
   it("enforces persisted rate budget before any scoped DB/object access",async()=>{
     const h=harness();
-    h.admission.mockRejectedValueOnce(Object.assign(new Error("rate"),{status:429}));
-    await expect(deliver(h)).rejects.toHaveProperty("status",429);
+    h.admission.mockRejectedValueOnce(Object.assign(new Error("rate"),{code:"DASHBOARD_SESSION_PHOTO_RATE_LIMITED"}));
+    await expect(deliver(h)).rejects.toHaveProperty("code","DASHBOARD_SESSION_PHOTO_RATE_LIMITED");
     expect(h.pool.connect).not.toHaveBeenCalled();
   });
 
@@ -235,7 +241,7 @@ describe("Issue309 management session condition photos (isolated read pipeline)"
   it("releases reserved S3 slot immediately on post-I/O authorization failure",async()=>{
     const h=harness();
     h.state.onRead=()=>{h.state.authorized=false;};
-    await expect(deliver(h)).rejects.toHaveProperty("status",404);
+    await expect(deliver(h)).rejects.toHaveProperty("code","DASHBOARD_SESSION_PHOTO_NOT_VISIBLE");
     expect(h.release).toHaveBeenCalledOnce();
   });
 
@@ -265,5 +271,147 @@ describe("Issue309 management session condition photos (isolated read pipeline)"
     releaseB();releaseC();releaseD();releaseE();
     const releaseF=admission.reserve("user-a");
     releaseF();
+  });
+
+  it.each([
+    ["DASHBOARD_SESSION_PHOTO_NOT_VISIBLE",404,"The requested resource is not available."],
+    ["DASHBOARD_SESSION_PHOTO_UNAVAILABLE",503,"Photo evidence is temporarily unavailable."],
+    ["DASHBOARD_SESSION_PHOTO_RATE_LIMITED",429,"Too many photo requests. Try again later."],
+  ] as const)("runner returns safe photo-view %s HTTP response",async(code,status,message)=>{
+    const observer=vi.fn(async(_measurement:unknown)=>{void _measurement;});
+    const runner=new ApiOperationRunner({now:()=>5} as never,{observe:observer} as never);
+    const request={requestId:"safe-request-309"} as never;
+    const failure=Object.assign(new Error(
+      "SQL 23514 secret bucket=private/sensitive_object_key",
+    ),{code});
+    await expect(runner.run("DASHBOARD_SESSION_PHOTO_MANIFEST",request,async()=>{
+      throw failure;
+    })).rejects.toMatchObject({
+      status,
+      response:{code,message,requestId:"safe-request-309"},
+    });
+    const mapped=mapApiError(failure);
+    expect(mapped).toMatchObject({code,message,status});
+    expect(JSON.stringify(mapped)).not.toMatch(/23514|secret|bucket|object_key/i);
+    expect(observer).toHaveBeenCalledOnce();
+    expect(observer.mock.calls[0]?.[0]).toMatchObject({errorCode:code,outcome:"ERROR"});
+  });
+
+  it("does not accidentally reinterpret Nest HttpException statuses outside coded photo errors",()=>{
+    for(const exception of [
+      new NotFoundException("sensitive"),
+      new ServiceUnavailableException("sensitive"),
+      new HttpException("sensitive",429),
+    ]){
+      expect(mapApiError(exception)).toEqual({
+        code:"INTERNAL_ERROR",status:500,message:"The operation could not be completed.",
+      });
+    }
+  });
+
+  it("returns private 404/503 codes without exposing session, SQL or provider details",async()=>{
+    const hidden=harness({authorized:false});
+    await expect(listManagementSessionPhotos(hidden.deps,request)).rejects.toMatchObject({
+      code:"DASHBOARD_SESSION_PHOTO_NOT_VISIBLE",
+    });
+    const noStorage=harness();
+    const missingStorage={
+      pool:noStorage.deps.pool,authorize:noStorage.deps.authorize,
+      admission:noStorage.deps.admission,
+    };
+    await expect(listManagementSessionPhotos(missingStorage,request)).rejects.toMatchObject({
+      code:"DASHBOARD_SESSION_PHOTO_UNAVAILABLE",
+    });
+    const broken=harness();
+    broken.pool.connect.mockRejectedValueOnce(Object.assign(
+      new Error("SQLSTATE42501 secret photo table"),{code:"42501"},
+    ));
+    await expect(listManagementSessionPhotos(broken.deps,request)).rejects.toMatchObject({
+      code:"DASHBOARD_SESSION_PHOTO_UNAVAILABLE",
+    });
+    const brokenBytes=harness();
+    brokenBytes.pool.connect.mockRejectedValueOnce(Object.assign(
+      new Error("SQLSTATE42501 private FOR SHARE"),{code:"42501"},
+    ));
+    await expect(deliver(brokenBytes)).rejects.toMatchObject({
+      code:"DASHBOARD_SESSION_PHOTO_UNAVAILABLE",
+    });
+  });
+
+  it("maps persistent 120-view budget and in-memory concurrency to coded 429",async()=>{
+    const count=vi.fn(async()=>({allowed:false as const,retryAfter:37}));
+    const admission=new DashboardSessionPhotoAdmission({
+      key:vi.fn(()=>({keyHash:"private",lockHigh:1,lockLow:1})),count,
+    } as never);
+    await expect(admission.admit(id.user)).rejects.toMatchObject({
+      code:"DASHBOARD_SESSION_PHOTO_RATE_LIMITED",retryAfter:37,
+    });
+    try {await admission.admit(id.user);} catch(error){
+      expect(mapApiError(error)).toEqual({
+        code:"DASHBOARD_SESSION_PHOTO_RATE_LIMITED",
+        message:"Too many photo requests. Try again later.",
+        status:429,retryAfter:37,
+      });
+    }
+    const bufferAdmission=new DashboardSessionPhotoAdmission({} as never);
+    const releaseA=bufferAdmission.reserve(id.user);
+    const releaseB=bufferAdmission.reserve(id.user);
+    try {bufferAdmission.reserve(id.user);} catch(error){
+      expect(mapApiError(error)).toMatchObject({
+        code:"DASHBOARD_SESSION_PHOTO_RATE_LIMITED",status:429,
+      });
+    } finally {releaseA();releaseB();}
+  });
+
+  it("maps SQLSTATE23514 view-budget CHECK failure to sanitized anti-abuse 503, not 429",async()=>{
+    const pool={
+      connect:vi.fn(async()=>({
+        query:vi.fn(async(sql:string)=>{
+          if(sql==="BEGIN"||sql==="ROLLBACK") return {rows:[],rowCount:0};
+          throw Object.assign(new Error("private constraint name"),{
+            code:"23514",constraint:"anti_abuse_events_scope_check",
+          });
+        }),
+        release:vi.fn(),
+      })),
+    };
+    const abuse=new AntiAbuseService(pool as never,{
+      derive:()=>({scope:"v1:dashboard-session-photo-view-user",keyHash:"dummy",lockHigh:1,lockLow:1}),
+    } as never);
+    const admission=new DashboardSessionPhotoAdmission(abuse);
+    let thrown:unknown;
+    try {await admission.admit(id.user);} catch(error){thrown=error;}
+    expect(thrown).toBeInstanceOf(AntiAbuseUnavailableError);
+    expect(mapApiError(thrown)).toEqual({
+      code:"ANTI_ABUSE_UNAVAILABLE",
+      status:503,
+      message:"Service temporarily unavailable.",
+    });
+    expect(JSON.stringify(mapApiError(thrown))).not.toMatch(/23514|constraint|scope_check/i);
+    expect(pool.connect).toHaveBeenCalledOnce();
+  });
+
+  it("preserves 401 expired session and 403 MFA-step-up across private photo DB boundaries",async()=>{
+    for(const failure of [new UnauthorizedException("private auth context"),new MfaStepUpRequiredError()]){
+      const code=failure instanceof UnauthorizedException
+        ? "STAFF_AUTHENTICATION_REQUIRED":"MFA_STEP_UP_REQUIRED";
+      const status=failure instanceof UnauthorizedException ? 401:403;
+      for(const action of ["manifest","pre-byte","post-byte"] as const){
+        const h=harness();
+        if(action==="post-byte"){
+          h.state.onRead=()=>h.authorize.mockRejectedValueOnce(failure);
+        }else{
+          h.authorize.mockRejectedValueOnce(failure);
+        }
+        const requestPromise=action==="manifest"
+          ? listManagementSessionPhotos(h.deps,request)
+          : deliver(h);
+        let caught:unknown;
+        try{await requestPromise;}catch(error){caught=error;}
+        expect(caught).toBe(failure);
+        expect(mapApiError(caught)).toMatchObject({code,status});
+        expect(JSON.stringify(mapApiError(caught))).not.toMatch(/private auth context/i);
+      }
+    }
   });
 });

@@ -1,6 +1,14 @@
-import { HttpException, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 
 import { AntiAbuseService } from "../anti-abuse/anti-abuse.service";
+
+function rateLimited(retryAfter?: number): never {
+  throw Object.assign(new Error("Too many photo requests. Try again later."), {
+    code: "DASHBOARD_SESSION_PHOTO_RATE_LIMITED",
+    ...(typeof retryAfter === "number" && Number.isFinite(retryAfter) &&
+      retryAfter >= 1 && retryAfter <= 900 ? { retryAfter } : {}),
+  });
+}
 
 /**
  * Independent Management-view budget; it MUST NOT consume the employee
@@ -17,14 +25,14 @@ export class DashboardSessionPhotoAdmission {
   async admit(userId: string): Promise<void> {
     const key = this.abuse.key("v1:dashboard-session-photo-view-user",userId);
     const decision = await this.abuse.count(key, 120);
-    if (!decision.allowed) throw new HttpException("Too many requests.",429);
+    if (!decision.allowed) return rateLimited(decision.retryAfter);
   }
 
   /** Bounds large S3 provider buffers and HTTP copies in each API replica. */
   reserve(userId: string): () => void {
     const current = this.concurrentByUser.get(userId) ?? 0;
     if (current >= 2 || this.globalConcurrent >= 4)
-      throw new HttpException("Too many requests.",429);
+      return rateLimited();
     this.concurrentByUser.set(userId,current+1);
     this.globalConcurrent++;
     let released = false;

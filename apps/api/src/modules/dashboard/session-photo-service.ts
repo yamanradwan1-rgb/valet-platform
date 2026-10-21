@@ -1,16 +1,12 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 
-import {
-  Inject,
-  Injectable,
-  NotFoundException,
-  ServiceUnavailableException,
-} from "@nestjs/common";
+import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 
 import type { PostgresPool } from "../../common/database/postgres";
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import type { StaffSessionContext } from "../auth/staff-session-context";
+import { MfaStepUpRequiredError } from "../auth/mfa/mfa-errors";
 import {
   resolveConditionPhotoStorageConfig,
   type ConditionPhotoStorageConfig,
@@ -57,9 +53,40 @@ export interface SessionPhotoReadDependencies {
   };
 }
 
+class DashboardSessionPhotoError extends Error {
+  constructor(readonly code:
+    | "DASHBOARD_SESSION_PHOTO_NOT_VISIBLE"
+    | "DASHBOARD_SESSION_PHOTO_UNAVAILABLE") {
+    super(code === "DASHBOARD_SESSION_PHOTO_NOT_VISIBLE"
+      ? "The requested resource is not available."
+      : "Photo evidence is temporarily unavailable.");
+    this.name = "DashboardSessionPhotoError";
+  }
+}
+
 /** Never differentiate hidden sessions, tenants or photo IDs. */
 function notVisible(): never {
-  throw new NotFoundException("The requested resource is not available.");
+  throw new DashboardSessionPhotoError("DASHBOARD_SESSION_PHOTO_NOT_VISIBLE");
+}
+
+function unavailable(): never {
+  throw new DashboardSessionPhotoError("DASHBOARD_SESSION_PHOTO_UNAVAILABLE");
+}
+
+function isExpectedPhotoError(error: unknown): boolean {
+  return error instanceof DashboardSessionPhotoError ||
+    error instanceof UnauthorizedException ||
+    error instanceof MfaStepUpRequiredError;
+}
+
+/** A failing private DB read must not publish SQL details or look like a missing resource. */
+async function protectedRead<T>(action: () => Promise<T>): Promise<T> {
+  try {
+    return await action();
+  } catch (error) {
+    if (isExpectedPhotoError(error)) throw error;
+    return unavailable();
+  }
 }
 
 function assertSameScope(
@@ -122,17 +149,17 @@ export async function listManagementSessionPhotos(
   request: PhotoReadRequest,
 ): Promise<ManagementSessionPhotoManifest> {
   await admitRequest(dependencies, request.authenticatedUserId);
-  return await inPostgresTransaction(dependencies.pool, async (tx) => {
+  return await protectedRead(() => inPostgresTransaction(dependencies.pool, async (tx) => {
     const location = await authorizedScope(tx, request, dependencies.authorize);
-    if (!dependencies.storage) throw new ServiceUnavailableException();
+    if (!dependencies.storage) return unavailable();
     const scope = { location, sessionId: request.sessionId };
     const candidates = await verifiedDashboardPhotoCandidates(tx, scope);
     // Fail closed if the candidate selector is ever refactored past its 10 cap.
-    if (candidates.length > 10) throw new ServiceUnavailableException();
+    if (candidates.length > 10) return unavailable();
     const usable = candidates.filter((c) =>
       exactAndUsable(c, dependencies.storage!.config.bucketAlias));
     const times = await verifiedPhotoDisplayTimes(tx, scope, usable);
-    if (times === null) throw new ServiceUnavailableException();
+    if (times === null) return unavailable();
     return {
       items: usable.map((candidate) => ({
         photoId: candidate.photoId,
@@ -140,7 +167,7 @@ export async function listManagementSessionPhotos(
         contentType: "image/jpeg" as const,
       })),
     };
-  });
+  }));
 }
 
 /** No object store/network I/O may occur inside a DB transaction. */
@@ -152,18 +179,18 @@ export async function deliverManagementSessionPhotoBytes(
   deliverSync: (verifiedBytes: Buffer, releaseOnResponseEnd: () => void) => void,
 ): Promise<void> {
   await admitRequest(dependencies, request.authenticatedUserId);
-  const selected = await inPostgresTransaction(dependencies.pool, async (tx) => {
+  const selected = await protectedRead(() => inPostgresTransaction(dependencies.pool, async (tx) => {
     const location = await authorizedScope(tx, request, dependencies.authorize);
     const storage = dependencies.storage;
-    if (!storage) throw new ServiceUnavailableException();
+    if (!storage) return unavailable();
     const candidates = await verifiedDashboardPhotoCandidates(tx, {
       location, sessionId: request.sessionId,
     });
-    if (candidates.length > 10) throw new ServiceUnavailableException();
+    if (candidates.length > 10) return unavailable();
     const candidate = candidates.find((item) => item.photoId === photoId);
     if (!candidate || !exactAndUsable(candidate, storage.config.bucketAlias)) return notVisible();
     return { location, candidate };
-  });
+  }));
 
   const storage = dependencies.storage!;
   const release = dependencies.admission.reserve(request.authenticatedUserId);
@@ -180,12 +207,12 @@ export async function deliverManagementSessionPhotoBytes(
     if (!Buffer.isBuffer(raw) ||
         stored.version !== selected.candidate.objectVersion ||
         raw.length !== selected.candidate.byteSize) {
-      throw new ServiceUnavailableException();
+      return unavailable();
     }
     const hash = createHash("sha256").update(raw).digest();
     const validDigest = timingSafeEqual(hash, selected.candidate.contentSha256);
     hash.fill(0);
-    if (!validDigest) throw new ServiceUnavailableException();
+    if (!validDigest) return unavailable();
 
     // Re-authorize scope, membership, exact session and verified AVAILABLE
     // photo identity after potentially slow S3 I/O. Deny changed evidence.
@@ -206,14 +233,13 @@ export async function deliverManagementSessionPhotoBytes(
       // authorization/evidence check and response.enqueue are ordered against
       // canonical revokers. Never await a network flush in this transaction.
       const outcome = deliverSync(Buffer.from(raw!), release);
-      if (outcome !== undefined) throw new ServiceUnavailableException();
+      if (outcome !== undefined) return unavailable();
       queued = true;
     });
   } catch (error) {
-    if (error instanceof NotFoundException || error instanceof ServiceUnavailableException)
-      throw error;
+    if (isExpectedPhotoError(error)) throw error;
     // Provider error details and internal object keys must never reach clients.
-    throw new ServiceUnavailableException();
+    return unavailable();
   } finally {
     raw?.fill(0);
     // On successful enqueue the HTTP response owns the reservation until
