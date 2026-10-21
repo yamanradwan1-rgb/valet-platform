@@ -38,22 +38,47 @@ export async function authorizeDashboardReadLocation(
     input.capability === "REPORT_EXPORT"
       ? "REPORT_EXPORTS"
       : "DASHBOARD_ACCESS";
-  const manager = await authorizeDashboardLocation(
+  // This first read is only a hint. The canonical Staff Management grant
+  // writer holds an EXCLUSIVE staff-management-org advisory lock before it
+  // changes membership_location_access. A successful Dashboard read must
+  // acquire the matching SHARED transaction lock and recheck its authority
+  // after any earlier writer commits, keeping the lock through projection.
+  const managerHint = await authorizeDashboardLocation(
     transaction,
     input.authenticatedUserId,
     input.targetLocationId,
     commercialRequirement,
   );
-  if (manager !== null) {
-    if (input.capability !== "REPORT_EXPORT") return manager;
-    const context = input.staffSessionContext;
-    if (context === undefined || context.userId !== input.authenticatedUserId) {
-      return null;
+  if (managerHint !== null) {
+    if (input.capability === "REPORT_EXPORT") {
+      const context = input.staffSessionContext;
+      if (context === undefined || context.userId !== input.authenticatedUserId)
+        return null;
+      // Revalidate the export session BEFORE the management advisory lock:
+      // staff security writers take their session lock before the org lock.
+      if ((await lockAndRecheckStaffSessionContext(transaction, context)) === undefined)
+        return null;
     }
-    return (await lockAndRecheckStaffSessionContext(transaction, context)) ===
-      undefined
-      ? null
-      : manager;
+    await transaction.query(
+      `SELECT pg_advisory_xact_lock_shared(
+         hashtextextended('staff-management-org:' || $1::text, 0)
+       )`,
+      [managerHint.organizationId],
+    );
+    const manager = await authorizeDashboardLocation(
+      transaction,
+      input.authenticatedUserId,
+      input.targetLocationId,
+      commercialRequirement,
+    );
+    // A concurrent role/grant change is denied, not retried as a CA read:
+    // promoting an already-held SHARED org lock to EXCLUSIVE on the same
+    // connection can deadlock two simultaneous readers. A fresh CA request
+    // takes the existing independently authorized MFA path below.
+    return manager?.organizationId === managerHint.organizationId &&
+      manager.membershipId === managerHint.membershipId
+      ? manager
+      : null;
   }
   const context = input.staffSessionContext;
   if (context === undefined || context.userId !== input.authenticatedUserId)
