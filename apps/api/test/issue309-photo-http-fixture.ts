@@ -10,6 +10,7 @@ import type { PostgresPool } from "../src/common/database/postgres";
 import { RUNTIME_POSTGRES_POOL } from "../src/common/database/runtime-database.module";
 import { CheckInModule } from "../src/modules/check-in-api/check-in.module";
 import { DashboardModule } from "../src/modules/dashboard/dashboard.module";
+import { ManagementModule } from "../src/modules/management/management.module";
 import { DashboardSessionPhotoAdmission } from "../src/modules/dashboard/session-photo-admission";
 import { authorizeSessionPhotoViewWithTestPolicy } from "../src/modules/dashboard/session-photo-authorization";
 import {
@@ -97,7 +98,7 @@ export async function openIssue309PhotoHttpFixture(
         VAYLET_LOCAL_DISABLE_MFA: "false",
       } : {}),
     });
-    @Module({ imports: [CheckInModule, DashboardModule] })
+    @Module({ imports: [CheckInModule, DashboardModule, ManagementModule] })
     class Issue309PhotoTestModule {}
     // Surface fixture errors as ordinary test failures; Nest's default
     // abortOnError hard-terminates the Vitest worker before teardown/reporting.

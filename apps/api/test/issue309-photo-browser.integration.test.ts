@@ -25,6 +25,7 @@ describe("#309 actual Next Dashboard -> protected HTTP -> persisted Check-In JPE
   let seededScope: Issue215HttpScope;
   let sessionId: string;
   let secondVisitId: string;
+  let otherActiveVisitId: string;
   let locationId: string;
   let expectedSha256: string;
   let admin: Awaited<ReturnType<typeof browserActor>>;
@@ -76,6 +77,26 @@ describe("#309 actual Next Dashboard -> protected HTTP -> persisted Check-In JPE
       [secondVisitId, `issue309:${randomUUID()}`, seeded.scope.orgId,
         locationId, seeded.scope.vehicleId, seeded.scope.memberId],
     );
+    // Vehicles intentionally lists only active visits. Keep the historical
+    // second visit of the original car for exact-session API isolation and
+    // also make another active car available to exercise browser scope swaps.
+    const otherVehicleId = randomUUID();
+    otherActiveVisitId = randomUUID();
+    await h.db.admin.query(
+      `INSERT INTO vehicles
+       (id,organization_id,temporary_descriptor,make,model,color,updated_at)
+       VALUES ($1,$2,'W11 alternate car','Test','alternate','Blue',clock_timestamp())`,
+      [otherVehicleId, seeded.scope.orgId],
+    );
+    await h.db.admin.query(
+      `INSERT INTO valet_sessions
+       (id,customer_access_token_hash,customer_access_expires_at,
+        organization_id,location_id,vehicle_id,state,checked_in_by_membership_id,updated_at)
+       VALUES($1,$2,clock_timestamp()+interval '1 hour',$3,$4,$5,
+         'CHECKING_IN',$6,clock_timestamp())`,
+      [otherActiveVisitId, `issue309:${randomUUID()}`, seeded.scope.orgId,
+        locationId, otherVehicleId, seeded.scope.memberId],
+    );
     manager = await browserActor(h, seeded.scope, "LOCATION_MANAGER");
     admin = await browserActor(h, seeded.scope, "ORG_ADMIN");
     supervisor = await browserActor(h, seeded.scope, "VALET_SUPERVISOR");
@@ -123,16 +144,23 @@ describe("#309 actual Next Dashboard -> protected HTTP -> persisted Check-In JPE
     scopedViewers.set(role, [actor.userId, matched.rows[0]!.id, locationId, sessionId].join(":"));
     process.env.ISSUE309_DEV_PHOTO_VIEW_SCOPES = [...scopedViewers.values()].join(";");
     if (role === "admin") {
-      // Genuine TOTP step-up over the live authenticated Next -> Nest rewrite.
-      // Company Admin photo VIEW retains the server's MFA validity check.
       const step = await page.evaluate(async ({ bearer, code }: { bearer: string; code: string }) => {
         const response = await fetch("/v1/staff/auth/mfa/step-up", {
           method: "POST", headers: { authorization: bearer, "content-type": "application/json" },
           body: JSON.stringify({ code }),
         });
-        return { status: response.status, body: await response.text() };
+        return { status: response.status };
       }, { bearer: `Bearer ${tokenPayload.accessToken}`, code: currentTotp() });
-      expect(step.status, step.body).toBe(200);
+      expect(step.status).toBe(200);
+      const discovery = await page.evaluate(async (bearer: string) => {
+        const response = await fetch("/v1/staff/management/organizations", {
+          headers: { authorization: bearer },
+        });
+        return response.status;
+      }, `Bearer ${tokenPayload.accessToken}`);
+      expect(discovery).toBe(200);
+      const retry = page.getByRole("button", { name: "Retry", exact: true });
+      if (await retry.isVisible()) await retry.click();
     }
     await page.getByRole("button", { name: "P1 isolated test" }).click();
     await page.getByRole("button", { name: "P1 location" }).click();
@@ -140,9 +168,15 @@ describe("#309 actual Next Dashboard -> protected HTTP -> persisted Check-In JPE
   }
 
   it("LM sees the same exact saved visit in Vehicles and Live Ops; different visit has zero photos", async () => {
-    const { context, page, authorization } = await signIn(manager, "manager");
+    const { context, page } = await signIn(manager, "manager");
     try {
       const received: string[] = [];
+      let currentPhotoAuthorization: string | undefined;
+      page.on("request", (request: { url(): string; headers(): Record<string, string> }) => {
+        if (request.url().includes("/condition-photos")) {
+          currentPhotoAuthorization = request.headers().authorization;
+        }
+      });
       page.on("response", (response: { url(): string; status(): number }) => {
         if (response.url().includes("/condition-photos/" + photoId + "/bytes")) {
           expect(response.status()).toBe(200);
@@ -174,15 +208,23 @@ describe("#309 actual Next Dashboard -> protected HTTP -> persisted Check-In JPE
       );
       expect(stored.rows).toHaveLength(2);
       expect(new Set(stored.rows.map((row) => row.vehicle_id)).size).toBe(1);
+      // The Dashboard may renew its bearer during navigation. Use the exact
+      // current authenticated HTTP photo credential observed in the browser.
+      expect(currentPhotoAuthorization).toMatch(/^Bearer vsa1\./);
       const second = await h.get(
         `/v1/staff/dashboard/locations/${locationId}/sessions/${secondVisitId}/condition-photos`,
-        authorization,
+        currentPhotoAuthorization,
       );
       // The explicit development allowlist also fences one exact *visit*.
       expect([403, 404]).toContain(second.status);
-      await page.locator("tbody tr").filter({ hasText: "Test vehicle" }).last()
-        .getByRole("button", { name: /Details/ }).click();
-      await page.getByText(/not available|not authorized|Access denied|unavailable/u).first().waitFor();
+      await page.goto(`${next.origin}/vehicles`);
+      const visitRows = page.locator("tbody tr").filter({ hasText: "Test alternate" });
+      await visitRows.first().waitFor();
+      const differentVisitResponse = page.waitForResponse((response: { url(): string }) =>
+        response.url().includes(`/sessions/${otherActiveVisitId}/condition-photos`));
+      await visitRows.first().getByRole("button", { name: /Details/ }).click();
+      expect([401, 403, 404]).toContain((await differentVisitResponse).status());
+      expect(await page.locator('[class*="photoSection"] img[src^="blob:"]').count()).toBe(0);
       await page.keyboard.press("Escape");
       await page.goto(`${next.origin}/vehicles`);
       await page.locator("tbody tr").filter({ hasText: "Test vehicle" }).first()
@@ -201,9 +243,10 @@ describe("#309 actual Next Dashboard -> protected HTTP -> persisted Check-In JPE
       );
       const revoked = await h.get(
         `/v1/staff/dashboard/locations/${locationId}/sessions/${sessionId}/condition-photos`,
-        authorization,
+        currentPhotoAuthorization,
       );
       expect([403, 404]).toContain(revoked.status);
+      await page.keyboard.press("Escape");
       await page.getByRole("link", { name: /Live Operations/ }).click();
       await page.waitForFunction(() => {
         const state = (globalThis as unknown as { __issue309PrivateBlobs: {

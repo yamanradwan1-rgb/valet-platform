@@ -211,3 +211,54 @@ The HTTP fixture uses test-scoped proposed Location Manager authorization.
 These results verify the database and HTTP read path under that role but
 are not approval for production role activation or Company Admin MFA policy;
 those have separate authorization tests and release gates.
+
+## Development Dashboard real-browser qualification — 2026-10-22
+
+The scoped **development** browser E2E was executed after integration of the
+W9 cross-COMMIT fence (`e1d1416c`, `0195ad9f`, `85b3c31d`) and the isolated
+development CA/LM photo VIEW gate. The test-only branch at `eb45bd25` plus
+the focused fixture assertions described below launched **actual Next React
+Dashboard**, **Nest staff authentication and photo endpoints**, disposable
+**restricted PostgreSQL 17**, **private versioned MinIO** and Chromium.
+
+Command from `tmp/issue-309-w11-pg17-qa`:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass `
+  -File scripts/test-harness/run-issue309-private-qa.ps1 `
+  -ScopeMigration 20261021009800_issue309_photo_view_anti_abuse_scope `
+  -DefinerMigration 20261021009900_issue_309_management_photo_evidence_lock `
+  -BrowserOnly
+```
+
+Actual result: **3/3 tests PASS, zero skips, exit 0**. The protected
+`api-postgres-issue309-browser` project ran one browser worker within its
+own bounded PG resource profile:
+
+- Location Manager used real Staff credentials and exact development allowlist
+  derived from the persisted login session. The same Check-In JPEG appeared
+  from real authenticated HTTP binary responses in **Vehicles** and **Live
+  Operations**; its browser Blob SHA-256 matched the persisted verification
+  SHA-256 after server JPEG normalization. A past `COMPLETED` visit of the
+  **same vehicle** had no photo access; another active visit shown in Vehicles
+  was also denied, and all previously created Blob URLs were revoked after
+  navigation/grant loss.
+- Company Admin used the real Staff login and real TOTP step-up (MFA bypass
+  disabled) and successfully opened the same actual JPEG in Dashboard.
+- Supervisor, Employee and unauthenticated Guest all failed to retrieve photo
+  evidence through the actual HTTP API. No private JPEG bytes were intercepted
+  or fulfilled by Playwright; no production/native/UI code was modified.
+
+**Infrastructure evidence:** each browser run owned its isolated containers,
+and the final harness reported `db=0 roles=1 children=0` (`roles=1` counts a
+dropped/verified-absent temporary role). Both identity-checked MinIO/PG17 stop
+handlers reported removed containers; post-run Docker label queries were empty
+and temporary runtime manifests absent. Full locally retained ignored log:
+`tmp/issue-309-w11-browser-proof/browser-post-fence-fifth.log`, **2,832
+bytes**, SHA256
+`3b766e4aa116738608d085418d56c3b336963c78edc31b6df68d58039f88ec5c`.
+
+This proof is scoped to #309 **development** completion. The previous W5
+7/7 #309 and 6/6 #215 HTTP suites were already independently proven; this
+focused browser run adds genuine React/Next/MFA/Blob interoperability without
+unnecessarily rerunning those larger suites.
