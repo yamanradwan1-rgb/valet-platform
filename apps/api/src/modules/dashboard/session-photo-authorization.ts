@@ -1,5 +1,6 @@
 import type { PostgresTransaction } from "../../common/database/postgres";
 import type { StaffSessionContext } from "../auth/staff-session-context";
+import { localMfaBypassEnabled } from "../auth/mfa/local-mfa-bypass";
 import type { DashboardLocationScope } from "./dashboard-location-authorization";
 import { authorizeLiveHistoryLocation } from "./live-history-read-authorization";
 
@@ -36,25 +37,96 @@ export const ACCEPTED_SESSION_PHOTO_VIEW_TEST_POLICY: SessionPhotoViewTestPolicy
     proposedRoles: Object.freeze(["ORG_ADMIN", "LOCATION_MANAGER"] as const),
   });
 
-const DENY_UNAPPROVED_PHOTO_VIEW: SessionPhotoViewTestPolicy = Object.freeze({
-  proposedRoles: Object.freeze([]),
-});
+const exactUuid = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/;
+const disposableDatabaseName = /^vlt_t_db_215_[0-9a-f]{32}$/;
+const disposableRuntimeRole = /^vlt_t_role_215_[0-9a-f]{32}$/;
+const localDatabaseHosts = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
+interface LocalPhotoDatabaseIdentity {
+  readonly databaseName: string;
+  readonly runtimeRole: string;
+}
 
 /**
- * #309 owner decision gate: existing Dashboard, Live History, Management
- * Audit and employee Check-In permissions NEVER imply photo byte VIEW.
- *
- * The accepted role matrix has NOT passed the independent IAM/release gate;
- * a future approved rollout must independently change this production gate.
+ * Temporary local DEVELOPMENT activation for up to two explicitly identified
+ * CA/LM test Staff sessions and their single exact ValetSession each.
+ * The database must be the restricted disposable #215 PG fixture.
+ * The credential, MFA, entitlement, role and Location checks still run below.
+ */
+function localDevelopmentPhotoDatabase(
+  input: DashboardSessionPhotoViewInput,
+  env: NodeJS.ProcessEnv = process.env,
+): LocalPhotoDatabaseIdentity | null {
+  if (
+    env.NODE_ENV !== "development" ||
+    env.ISSUE309_DEV_PHOTO_VIEW_ENABLED !== "true" ||
+    env.VAYLET_LOCAL_DISABLE_MFA === "true" ||
+    localMfaBypassEnabled() ||
+    !input.authenticatedUserId ||
+    input.authenticatedUserId !== input.staffSessionContext.userId
+  ) return null;
+
+  let database: URL;
+  try {
+    database = new URL(env.DATABASE_URL ?? "");
+  } catch {
+    return null;
+  }
+  const databaseName = database.pathname.slice(1);
+  const runtimeRole = database.username;
+  if (
+    !["postgres:", "postgresql:"].includes(database.protocol) ||
+    !localDatabaseHosts.has(database.hostname.toLowerCase()) ||
+    database.search !== "" || database.hash !== "" ||
+    database.password.length === 0 ||
+    !disposableDatabaseName.test(databaseName) ||
+    !disposableRuntimeRole.test(runtimeRole)
+  ) return null;
+
+  const allowed = env.ISSUE309_DEV_PHOTO_VIEW_SCOPES?.split(";");
+  if (!allowed || allowed.length < 1 || allowed.length > 2) return null;
+  const actual = [
+    input.authenticatedUserId,
+    input.staffSessionContext.staffAuthSessionId,
+    input.targetLocationId,
+    input.targetSessionId,
+  ];
+  let matching = false;
+  for (const entry of allowed) {
+    const ids = entry.split(":");
+    if (ids.length !== 4 || !ids.every((id) => exactUuid.test(id))) {
+      return null;
+    }
+    if (ids.every((id, index) => id === actual[index])) matching = true;
+  }
+  return matching ? { databaseName, runtimeRole } : null;
+}
+
+/**
+ * #309 development gate: default DENY, except a specific opted-in local
+ * disposable DB + exact test identities. All other environments stay DENY.
+ * Live History/Audit/Check-In rights never imply photo VIEW by themselves.
  */
 export async function authorizeManagementSessionPhotoView(
   transaction: PostgresTransaction,
   input: DashboardSessionPhotoViewInput,
 ): Promise<DashboardLocationScope | null> {
+  const local = localDevelopmentPhotoDatabase(input);
+  if (local === null) return null;
+  // Check the *connected* PostgreSQL identity, not merely an env URL that
+  // could be routed to an unrelated database by a tunnel or proxy.
+  const connected = await transaction.query<LocalPhotoDatabaseIdentity>(
+    'SELECT current_database() AS "databaseName", current_user AS "runtimeRole"',
+  );
+  if (
+    connected.rowCount !== 1 ||
+    connected.rows[0]?.databaseName !== local.databaseName ||
+    connected.rows[0]?.runtimeRole !== local.runtimeRole
+  ) return null;
   return authorizeSessionPhotoViewWithTestPolicy(
     transaction,
     input,
-    DENY_UNAPPROVED_PHOTO_VIEW,
+    ACCEPTED_SESSION_PHOTO_VIEW_TEST_POLICY,
   );
 }
 
