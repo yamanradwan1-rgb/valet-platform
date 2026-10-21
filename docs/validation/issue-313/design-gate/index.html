@@ -26,8 +26,8 @@
     .option p{font-size:13px;line-height:1.6;color:#65718a;margin:5px 0}
     .open{white-space:nowrap;align-self:flex-start;background:#1e60f0;color:white;text-decoration:none;font-size:12px;padding:10px 13px;border-radius:8px;font-weight:750}
     .open:hover{background:#124fcf}.preview-wrap{margin:0 16px 15px;overflow:hidden;border:1px solid #dbe3ef;border-radius:10px;background:#e8edf5;height:420px;position:relative}
-    .frame{width:100%;height:100%;border:0;display:block;background:white}
-    .frame.mobile{width:390px;max-width:100%;height:100%;margin:auto;border-inline:1px solid #bcc7d7}
+    .frame{width:1440px;height:1100px;border:0;display:block;background:white;transform-origin:top left}
+    .frame.mobile{border-inline:1px solid #bcc7d7}
     .analysis{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 20px 20px}
     .analysis>div{font-size:12px;color:#58677f;line-height:1.55}.analysis strong{display:block;font-size:12px;color:#223453;margin-bottom:3px}
     .qa{border-top:1px solid #edf0f5;padding:12px 20px;font-size:12px;color:#6b778d}
@@ -101,6 +101,17 @@
   <script>
     const controls={lang:document.getElementById('lang'),theme:document.getElementById('theme'),viewport:document.getElementById('viewport')};
     const previewOptions=[...document.querySelectorAll('.option')];
+    function layoutPreview(){
+      for(const option of previewOptions){
+        const host=option.querySelector('.preview-wrap'),frame=option.querySelector('iframe');
+        const logical=controls.viewport.value==='mobile'?390:1440;
+        const scale=Math.min(1,host.clientWidth/logical);
+        frame.style.width=logical+'px';
+        frame.style.height=Math.ceil(host.clientHeight/scale)+'px';
+        frame.style.transform='scale('+scale+')';
+        frame.style.marginLeft=Math.max(0,(host.clientWidth-logical*scale)/2)+'px';
+      }
+    }
     function refresh(){
       const q=new URLSearchParams({lang:controls.lang.value,theme:controls.theme.value});
       for(const option of previewOptions){
@@ -110,8 +121,10 @@
         frame.classList.toggle('mobile',controls.viewport.value==='mobile');
         option.querySelector('a.open').href=src;
       }
+      layoutPreview();
     }
     Object.values(controls).forEach(control=>control.addEventListener('change',refresh));
+    window.addEventListener('resize',layoutPreview);
     refresh();
   </script>
 </body>
