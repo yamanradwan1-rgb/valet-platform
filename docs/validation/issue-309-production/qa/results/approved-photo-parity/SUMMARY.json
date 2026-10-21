@@ -1,0 +1,316 @@
+{
+  "immutableApprovedHtmlSHA256": "0b1900896b46af9d1f11dd88f01643978629001cb1c956de5f1e7f5987cdbd74",
+  "verifiedCases": 320,
+  "expectedCases": 320,
+  "styleMismatchCases": 0,
+  "styleMismatches": [],
+  "nonzeroMeasuredGeometryFields": 152,
+  "nonzeroPhotoInternalGeometryFields": 0,
+  "geometryDeltasBySelector": {},
+  "geometryDeltasExamples": [],
+  "approvedDemoExternalSectionPositionDifferences": 16,
+  "screenshots": [
+    {
+      "name": "live-operations-denied-en-light-390-html",
+      "size": [
+        341,
+        195
+      ],
+      "changedPixels": 155,
+      "totalPixels": 66495,
+      "diffBounds": [
+        0,
+        1,
+        341,
+        194
+      ]
+    },
+    {
+      "name": "live-operations-empty-en-light-390-html",
+      "size": [
+        341,
+        195
+      ],
+      "changedPixels": 130,
+      "totalPixels": 66495,
+      "diffBounds": [
+        0,
+        1,
+        341,
+        194
+      ]
+    },
+    {
+      "name": "live-operations-legacy-en-light-390-html",
+      "size": [
+        341,
+        195
+      ],
+      "changedPixels": 130,
+      "totalPixels": 66495,
+      "diffBounds": [
+        0,
+        1,
+        341,
+        194
+      ]
+    },
+    {
+      "name": "live-operations-loading-en-light-390-html",
+      "size": [
+        341,
+        195
+      ],
+      "changedPixels": 29,
+      "totalPixels": 66495,
+      "diffBounds": [
+        0,
+        1,
+        341,
+        195
+      ]
+    },
+    {
+      "name": "live-operations-network-en-light-390-html",
+      "size": [
+        341,
+        243
+      ],
+      "changedPixels": 1258,
+      "totalPixels": 82863,
+      "diffBounds": [
+        0,
+        1,
+        341,
+        242
+      ]
+    },
+    {
+      "name": "live-operations-one-en-light-390-html",
+      "size": [
+        341,
+        311
+      ],
+      "changedPixels": 628,
+      "totalPixels": 106051,
+      "diffBounds": [
+        10,
+        1,
+        332,
+        285
+      ]
+    },
+    {
+      "name": "live-operations-ten-en-light-390-html",
+      "size": [
+        341,
+        1272
+      ],
+      "changedPixels": 1280,
+      "totalPixels": 433752,
+      "diffBounds": [
+        0,
+        1,
+        341,
+        811
+      ]
+    },
+    {
+      "name": "live-operations-three-en-light-390-html",
+      "size": [
+        341,
+        551
+      ],
+      "changedPixels": 1230,
+      "totalPixels": 187891,
+      "diffBounds": [
+        10,
+        1,
+        332,
+        285
+      ]
+    },
+    {
+      "name": "live-operations-unavailable-en-light-390-html",
+      "size": [
+        341,
+        195
+      ],
+      "changedPixels": 136,
+      "totalPixels": 66495,
+      "diffBounds": [
+        0,
+        1,
+        341,
+        194
+      ]
+    },
+    {
+      "name": "live-operations-viewer-en-light-390-html",
+      "size": [
+        380,
+        392
+      ],
+      "changedPixels": 141,
+      "totalPixels": 148960,
+      "diffBounds": [
+        28,
+        0,
+        351,
+        51
+      ]
+    },
+    {
+      "name": "vehicles-denied-en-light-390-html",
+      "size": [
+        341,
+        195
+      ],
+      "changedPixels": 167,
+      "totalPixels": 66495,
+      "diffBounds": [
+        0,
+        1,
+        341,
+        194
+      ]
+    },
+    {
+      "name": "vehicles-empty-en-light-390-html",
+      "size": [
+        341,
+        195
+      ],
+      "changedPixels": 142,
+      "totalPixels": 66495,
+      "diffBounds": [
+        0,
+        1,
+        341,
+        194
+      ]
+    },
+    {
+      "name": "vehicles-legacy-en-light-390-html",
+      "size": [
+        341,
+        195
+      ],
+      "changedPixels": 142,
+      "totalPixels": 66495,
+      "diffBounds": [
+        0,
+        1,
+        341,
+        194
+      ]
+    },
+    {
+      "name": "vehicles-loading-en-light-390-html",
+      "size": [
+        341,
+        195
+      ],
+      "changedPixels": 47,
+      "totalPixels": 66495,
+      "diffBounds": [
+        0,
+        1,
+        341,
+        195
+      ]
+    },
+    {
+      "name": "vehicles-network-en-light-390-html",
+      "size": [
+        341,
+        243
+      ],
+      "changedPixels": 1270,
+      "totalPixels": 82863,
+      "diffBounds": [
+        0,
+        1,
+        341,
+        242
+      ]
+    },
+    {
+      "name": "vehicles-one-en-light-390-html",
+      "size": [
+        341,
+        311
+      ],
+      "changedPixels": 628,
+      "totalPixels": 106051,
+      "diffBounds": [
+        10,
+        1,
+        332,
+        285
+      ]
+    },
+    {
+      "name": "vehicles-ten-en-light-390-html",
+      "size": [
+        341,
+        1272
+      ],
+      "changedPixels": 1230,
+      "totalPixels": 433752,
+      "diffBounds": [
+        10,
+        1,
+        332,
+        285
+      ]
+    },
+    {
+      "name": "vehicles-three-en-light-390-html",
+      "size": [
+        341,
+        551
+      ],
+      "changedPixels": 1230,
+      "totalPixels": 187891,
+      "diffBounds": [
+        10,
+        1,
+        332,
+        285
+      ]
+    },
+    {
+      "name": "vehicles-unavailable-en-light-390-html",
+      "size": [
+        341,
+        195
+      ],
+      "changedPixels": 148,
+      "totalPixels": 66495,
+      "diffBounds": [
+        0,
+        1,
+        341,
+        194
+      ]
+    },
+    {
+      "name": "vehicles-viewer-en-light-390-html",
+      "size": [
+        380,
+        392
+      ],
+      "changedPixels": 141,
+      "totalPixels": 148960,
+      "diffBounds": [
+        28,
+        0,
+        351,
+        51
+      ]
+    }
+  ],
+  "paintPixelExactRepresentatives": 0,
+  "limitation": "The immutable standalone HTML's original FactList is not the frozen production React reference. The new photo section is compared with matching JPEGs and truthful React captions injected into the test browser's *in-memory demo DOM only*; no approved HTML source changed. A nonzero screenshot difference is reported, never waived. The new photo-specific contain:paint and overflow-clip-margin are purposefully not part of the approved standalone photo CSS because the real React scroll/compositor and keyboard focus need them to preserve the frozen facts."
+}
