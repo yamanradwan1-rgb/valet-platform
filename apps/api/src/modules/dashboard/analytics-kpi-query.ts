@@ -1,7 +1,6 @@
 import type { LocationKpiAnalyticsResponse } from "@valet/contracts";
 
 import type { PostgresPool } from "../../common/database/postgres";
-import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import type { StaffSessionContext } from "../auth/staff-session-context";
 import { queryKeyExceptions } from "./analytics-kpi-key-exceptions-query";
 import { querySlaCompliance } from "./analytics-kpi-sla-query";
@@ -12,8 +11,7 @@ import {
 } from "./analytics-kpi-workforce-query";
 import type { AnalyticsPeriod } from "./analytics-period";
 import { resolveAnalyticsTimezone } from "./analytics-period";
-import { authorizeDashboardReadLocation } from "./dashboard-read-authorization";
-import { assertAuthorized } from "./dashboard-overview-error";
+import { inAuthorizedKpiSnapshot } from "./analytics-kpi-snapshot-transaction";
 
 const maximumSerializationAttempts = 5;
 
@@ -33,18 +31,7 @@ export async function locationKpiAnalytics(
 ): Promise<LocationKpiAnalyticsResponse> {
   for (let attempt = 1; attempt <= maximumSerializationAttempts; attempt += 1) {
     try {
-      return await inPostgresTransaction(pool, async (transaction) => {
-        await transaction.query("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ");
-        const scope = await authorizeDashboardReadLocation(transaction, {
-          authenticatedUserId: input.authenticatedUserId,
-          capability: "ANALYTICS_READ",
-          recordActivity: input.recordManagementActivity !== false,
-          ...(input.staffSessionContext === undefined
-            ? {}
-            : { staffSessionContext: input.staffSessionContext }),
-          targetLocationId: input.locationId,
-        });
-        assertAuthorized(scope);
+      return await inAuthorizedKpiSnapshot(pool, input, async (transaction, scope) => {
         const timezone = await resolveAnalyticsTimezone(transaction, scope);
         const parameters = [
           scope.organizationId,
