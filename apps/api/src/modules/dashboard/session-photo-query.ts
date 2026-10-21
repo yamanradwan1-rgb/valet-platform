@@ -106,42 +106,11 @@ export async function lockExactVerifiedPhotoForDelivery(
   scope: DashboardSessionPhotoScope,
   candidate: SelectedConditionPhotoCandidate,
 ): Promise<boolean> {
-  const result = await tx.query<{ photo_id: string }>(
-    `SELECT v.vehicle_photo_id::text AS photo_id
-     FROM vehicle_photo_verifications AS v
-     JOIN condition_photo_upload_operations AS o
-       ON o.id = v.operation_id AND o.status = 'VERIFIED'
-       AND o.verified_photo_id = v.vehicle_photo_id
-       AND o.purpose = v.purpose
-       AND o.organization_id = v.organization_id
-       AND o.location_id = v.location_id
-       AND o.valet_session_id = v.valet_session_id
-       AND o.actor_membership_id = v.captured_by_membership_id
-     JOIN condition_photo_upload_attempts AS a
-       ON a.id = v.attempt_id AND a.operation_id = v.operation_id
-       AND a.status = 'SELECTED' AND a.object_key = v.object_key
-       AND a.organization_id = v.organization_id
-       AND a.location_id = v.location_id
-       AND a.valet_session_id = v.valet_session_id
-       AND a.actor_membership_id = v.captured_by_membership_id
-       AND a.canonical_sha256 = v.content_sha256
-       AND a.canonical_byte_size = v.byte_size
-       AND a.bucket_alias = $11 AND a.object_version = $12
-     JOIN vehicle_photo_availability AS availability
-       ON availability.vehicle_photo_id = v.vehicle_photo_id
-       AND availability.organization_id = v.organization_id
-       AND availability.location_id = v.location_id
-       AND availability.valet_session_id = v.valet_session_id
-       AND availability.state = 'AVAILABLE'
-     WHERE v.vehicle_photo_id = $1::uuid
-       AND v.organization_id = $2::uuid AND v.location_id = $3::uuid
-       AND v.valet_session_id = $4::uuid
-       AND v.operation_id = $5::uuid AND v.attempt_id = $6::uuid
-       AND v.captured_by_membership_id = $7::uuid
-       AND v.purpose = 'CHECK_IN_CONDITION'
-       AND v.object_key = $8 AND v.content_sha256 = $9
-       AND v.byte_size = $10
-     FOR SHARE OF v,o,a,availability`,
+  const result = await tx.query<{ qualifies: boolean }>(
+    `SELECT public.condition_photo_lock_management_evidence(
+      $1::uuid,$2::uuid,$3::uuid,$4::uuid,$5::uuid,$6::uuid,
+      $7::uuid,$8::text,$9::bytea,$10::integer,$11::text,$12::text
+    ) AS qualifies`,
     [
       candidate.photoId,scope.location.organizationId,scope.location.locationId,
       scope.sessionId,candidate.operationId,candidate.attemptId,
@@ -149,5 +118,5 @@ export async function lockExactVerifiedPhotoForDelivery(
       candidate.byteSize,candidate.bucketAlias,candidate.objectVersion,
     ],
   );
-  return result.rowCount === 1 && result.rows[0]?.photo_id === candidate.photoId;
+  return result.rowCount === 1 && result.rows[0]?.qualifies === true;
 }
