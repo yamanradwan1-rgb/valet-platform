@@ -1,0 +1,111 @@
+{
+  "case": {
+    "width": 320,
+    "height": 800,
+    "lang": "en",
+    "theme": "light"
+  },
+  "screenshot": "static-320-en-light.png",
+  "screenshotDimensions": {
+    "width": 320,
+    "height": 800,
+    "bytes": 38687
+  },
+  "layout": {
+    "innerWidth": 320,
+    "innerHeight": 800,
+    "clientWidth": 320,
+    "documentScrollWidth": 320,
+    "bodyScrollWidth": 320,
+    "lang": "en",
+    "dir": "ltr",
+    "theme": "light",
+    "numberKpiCards": 4,
+    "numberChartPanels": 2,
+    "metricLabels": [
+      "Cars Handled",
+      "Avg. Retrieval Wait",
+      "SLA Compliance",
+      "Incidents"
+    ],
+    "rects": {
+      ".shell": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 800,
+        "scrollWidth": 320
+      },
+      ".sidebar": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "scrollWidth": 0
+      },
+      ".topbar": {
+        "x": 0,
+        "y": 0,
+        "width": 320,
+        "height": 117.7,
+        "scrollWidth": 320
+      },
+      ".content": {
+        "x": 0,
+        "y": 117.7,
+        "width": 320,
+        "height": 682.3,
+        "scrollWidth": 305
+      },
+      ".content-inner": {
+        "x": 20,
+        "y": 137.7,
+        "width": 265,
+        "height": 1782,
+        "scrollWidth": 265
+      },
+      ".page": {
+        "x": 20,
+        "y": 137.7,
+        "width": 265,
+        "height": 1782,
+        "scrollWidth": 265
+      },
+      ".header": {
+        "x": 20,
+        "y": 137.7,
+        "width": 265,
+        "height": 214,
+        "scrollWidth": 265
+      },
+      ".headerActions": {
+        "x": 20,
+        "y": 209.7,
+        "width": 265,
+        "height": 142,
+        "scrollWidth": 265
+      },
+      "#frozen-kpi-grid": {
+        "x": 20,
+        "y": 375.7,
+        "width": 265,
+        "height": 592,
+        "scrollWidth": 265
+      },
+      "#frozen-chart-grid": {
+        "x": 20,
+        "y": 991.7,
+        "width": 265,
+        "height": 928,
+        "scrollWidth": 265
+      },
+      ".chartPanel": {
+        "x": 20,
+        "y": 991.7,
+        "width": 265,
+        "height": 409,
+        "scrollWidth": 263
+      }
+    }
+  }
+}

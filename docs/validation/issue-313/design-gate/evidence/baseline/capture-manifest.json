@@ -1,0 +1,94 @@
+{
+  "source": "synthetic standalone HTML, NOT live authenticated Dashboard",
+  "sourceSha": "459e9c42dfff5b2aeb11ee9165a7d1a4338a7783",
+  "method": "Chromium CDP Emulation.setDeviceMetricsOverride deviceScaleFactor=1, Page.captureScreenshot",
+  "results": [
+    {
+      "case": {
+        "width": 1440,
+        "height": 900,
+        "lang": "en",
+        "theme": "light"
+      },
+      "screenshot": "static-1440-en-light.png",
+      "cssViewport": 1440,
+      "screenshotDimensions": {
+        "width": 1440,
+        "height": 900,
+        "bytes": 109651
+      }
+    },
+    {
+      "case": {
+        "width": 1440,
+        "height": 900,
+        "lang": "ar",
+        "theme": "dark"
+      },
+      "screenshot": "static-1440-ar-dark.png",
+      "cssViewport": 1440,
+      "screenshotDimensions": {
+        "width": 1440,
+        "height": 900,
+        "bytes": 99167
+      }
+    },
+    {
+      "case": {
+        "width": 768,
+        "height": 900,
+        "lang": "ar",
+        "theme": "light"
+      },
+      "screenshot": "static-768-ar-light.png",
+      "cssViewport": 768,
+      "screenshotDimensions": {
+        "width": 768,
+        "height": 900,
+        "bytes": 50402
+      }
+    },
+    {
+      "case": {
+        "width": 390,
+        "height": 844,
+        "lang": "ar",
+        "theme": "dark"
+      },
+      "screenshot": "static-390-ar-dark.png",
+      "cssViewport": 390,
+      "screenshotDimensions": {
+        "width": 390,
+        "height": 844,
+        "bytes": 39628
+      },
+      "fullPageScreenshot": {
+        "name": "full-390-ar-dark.png",
+        "width": 390,
+        "height": 1841,
+        "bytes": 74665
+      }
+    },
+    {
+      "case": {
+        "width": 320,
+        "height": 800,
+        "lang": "en",
+        "theme": "light"
+      },
+      "screenshot": "static-320-en-light.png",
+      "cssViewport": 320,
+      "screenshotDimensions": {
+        "width": 320,
+        "height": 800,
+        "bytes": 38687
+      },
+      "fullPageScreenshot": {
+        "name": "full-320-en-light.png",
+        "width": 320,
+        "height": 1960,
+        "bytes": 73303
+      }
+    }
+  ]
+}
