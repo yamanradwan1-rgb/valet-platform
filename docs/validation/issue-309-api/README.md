@@ -45,7 +45,9 @@ byte buffer and the in-flight reservation until `finish`/`close`.
    `condition_photo_upload_attempts`,
    `vehicle_photo_verifications`, and `vehicle_photo_availability`.
    PostgreSQL `FOR SHARE` also requires the relevant UPDATE privilege.
-   This is expected to fail under the currently least-privileged app role.
+   **W5 confirmed SQLSTATE 42501** under a real isolated PostgreSQL 17
+   restricted runtime role for all four photo tables. This is a proven
+   runtime blocker, not a theoretical or mocked permission gap.
    Do **not** broaden runtime UPDATE grants; a separately reviewed, tightly
    scoped `SECURITY DEFINER` read-lock helper or equivalent synchronization
    design is necessary, along with W5 restricted-role PG proof and race tests.
