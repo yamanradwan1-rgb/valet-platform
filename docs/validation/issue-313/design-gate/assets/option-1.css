@@ -1,0 +1,290 @@
+/* #313 Option 1: score-led panel. All styles are scoped to the inserted section. */
+[data-testid="customer-feedback-section"] {
+  --f1-border: var(--analytics-control-border, #e2e8f0);
+  --f1-muted: var(--analytics-card-label, #64748b);
+  --f1-text: var(--analytics-card-value, #0f172a);
+  --f1-surface: var(--analytics-control-bg, #fff);
+  --f1-blue: #1e60f0;
+  --f1-track: #e9eef6;
+  --f1-star: #e9a23b;
+  --f1-quiet: #f7f9fc;
+  display: grid;
+  gap: 0;
+  min-width: 0;
+}
+[data-testid="customer-feedback-section"] .f1-section-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 14px;
+}
+[data-testid="customer-feedback-section"] .f1-section-header h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 740;
+  line-height: 1.4;
+  color: var(--f1-text);
+  letter-spacing: -.025em;
+}
+[data-testid="customer-feedback-section"] .f1-section-header p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--f1-muted);
+}
+[data-testid="customer-feedback-section"] .f1-surface {
+  padding: clamp(16px, 2.25vw, 28px);
+  border: 1px solid var(--f1-border);
+  background: var(--f1-surface);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px #0d1c3808;
+  min-width: 0;
+}
+[data-testid="customer-feedback-section"] .f1-summary-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, .85fr) minmax(0, 1.15fr);
+  min-width: 0;
+}
+[data-testid="customer-feedback-section"] .f1-score {
+  border-inline-end: 1px solid var(--f1-border);
+  padding-inline-end: clamp(15px, 2.5vw, 36px);
+  min-width: 0;
+}
+[data-testid="customer-feedback-section"] .f1-eyebrow {
+  margin: 0 0 11px;
+  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .075em;
+  color: var(--f1-muted);
+}
+[data-testid="customer-feedback-section"] .f1-average-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  direction: ltr;
+  justify-content: flex-start;
+}
+[data-testid="customer-feedback-section"] .f1-average {
+  font-size: clamp(58px, 6vw, 82px);
+  letter-spacing: -.075em;
+  font-weight: 760;
+  line-height: 1.08;
+  color: var(--f1-text);
+  font-variant-numeric: tabular-nums;
+}
+[data-testid="customer-feedback-section"] .f1-outof {
+  font-size: 16px;
+  font-weight: 550;
+  color: var(--f1-muted);
+}
+[data-testid="customer-feedback-section"] .f1-stars {
+  color: var(--f1-star);
+  display: flex;
+  gap: 3px;
+  font-size: 19px;
+  letter-spacing: .04em;
+  margin-top: 9px;
+  direction: ltr;
+}
+[data-testid="customer-feedback-section"] .f1-score-caption {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--f1-muted);
+  margin: 8px 0 0;
+}
+[data-testid="customer-feedback-section"] .f1-coverage {
+  padding-inline-start: clamp(15px, 2.5vw, 36px);
+  display: grid;
+  align-content: center;
+  gap: 14px;
+  min-width: 0;
+}
+[data-testid="customer-feedback-section"] .f1-coverage-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+[data-testid="customer-feedback-section"] .f1-coverage-fraction {
+  font-size: clamp(26px, 3vw, 35px);
+  font-weight: 740;
+  letter-spacing: -.045em;
+  color: var(--f1-text);
+  font-variant-numeric: tabular-nums;
+}
+[data-testid="customer-feedback-section"] .f1-cover-percent {
+  font-size: 19px;
+  font-weight: 740;
+  color: #1765ba;
+  font-variant-numeric: tabular-nums;
+}
+[data-testid="customer-feedback-section"] .f1-coverage-copy {
+  color: var(--f1-muted);
+  margin: 5px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+[data-testid="customer-feedback-section"] .f1-track {
+  width: 100%;
+  height: 9px;
+  border-radius: 8px;
+  background: var(--f1-track);
+  overflow: hidden;
+}
+[data-testid="customer-feedback-section"] .f1-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--f1-blue);
+}
+[data-testid="customer-feedback-section"] .f1-insights {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  margin-top: 16px;
+  gap: 16px;
+  min-width: 0;
+}
+[data-testid="customer-feedback-section"] .f1-insight-card {
+  border: 1px solid var(--f1-border);
+  border-radius: 12px;
+  min-width: 0;
+  background: var(--f1-surface);
+  padding: clamp(14px, 1.8vw, 22px);
+}
+[data-testid="customer-feedback-section"] .f1-insight-title {
+  color: var(--f1-text);
+  font-size: 13px;
+  font-weight: 740;
+  margin: 0 0 18px;
+}
+[data-testid="customer-feedback-section"] .f1-distribution {
+  display: grid;
+  gap: 11px;
+}
+[data-testid="customer-feedback-section"] .f1-dist-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+[data-testid="customer-feedback-section"] .f1-dist-star {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--f1-text);
+  text-align: start;
+  direction: ltr;
+}
+[data-testid="customer-feedback-section"] .f1-dist-star span {
+  color: var(--f1-star);
+}
+[data-testid="customer-feedback-section"] .f1-dist-count {
+  text-align: end;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--f1-muted);
+}
+[data-testid="customer-feedback-section"] .f1-dist-track {
+  height: 8px;
+  border-radius: 5px;
+  overflow: hidden;
+  background: var(--f1-track);
+}
+[data-testid="customer-feedback-section"] .f1-dist-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #4d87ef;
+}
+[data-testid="customer-feedback-section"] .f1-note {
+  margin: 14px 0 0;
+  color: var(--f1-muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+[data-testid="customer-feedback-section"] .f1-recent-list {
+  display: grid;
+}
+[data-testid="customer-feedback-section"] .f1-recent-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--f1-border);
+}
+[data-testid="customer-feedback-section"] .f1-recent-item:first-child {padding-top: 0}
+[data-testid="customer-feedback-section"] .f1-recent-item:last-child {border-bottom: 0;padding-bottom: 0}
+[data-testid="customer-feedback-section"] .f1-recent-id {
+  color: var(--f1-text);
+  font-size: 12px;
+  font-weight: 740;
+  overflow-wrap: anywhere;
+}
+[data-testid="customer-feedback-section"] .f1-recent-meta {
+  margin: 4px 0 0;
+  color: var(--f1-muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+[data-testid="customer-feedback-section"] .f1-rating-chip {
+  white-space: nowrap;
+  color: #8b5b07;
+  background: #fff4d9;
+  border-radius: 7px;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 780;
+  direction: ltr;
+}
+[data-testid="customer-feedback-section"] .f1-status {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 12px;
+  min-height: 155px;
+  place-content: center;
+}
+[data-testid="customer-feedback-section"] .f1-status p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--f1-muted);
+}
+[data-testid="customer-feedback-section"] .f1-retry {
+  padding: 9px 16px;
+  cursor: pointer;
+  border-radius: 8px;
+  background: var(--f1-blue);
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid var(--f1-blue);
+}
+:root[data-theme="dark"] [data-testid="customer-feedback-section"] {
+  --f1-track: #253656;
+  --f1-quiet: #172345;
+}
+:root[data-theme="dark"] [data-testid="customer-feedback-section"] .f1-cover-percent { color: #83b6ff; }
+:root[data-theme="dark"] [data-testid="customer-feedback-section"] .f1-rating-chip {
+  color: #ffd583;
+  background: #3b2d20;
+}
+@media (max-width: 760px) {
+  [data-testid="customer-feedback-section"] .f1-insights {grid-template-columns: minmax(0, 1fr)}
+}
+@media (max-width: 540px) {
+  [data-testid="customer-feedback-section"] .f1-summary-layout {grid-template-columns: minmax(0, 1fr)}
+  [data-testid="customer-feedback-section"] .f1-score {
+    border-inline-end: 0;
+    border-bottom: 1px solid var(--f1-border);
+    padding: 0 0 19px;
+  }
+  [data-testid="customer-feedback-section"] .f1-coverage {padding: 19px 0 0}
+  [data-testid="customer-feedback-section"] .f1-average {font-size: 62px}
+  [data-testid="customer-feedback-section"] .f1-dist-row {gap: 7px}
+}
