@@ -1,0 +1,184 @@
+/* #313 Option 4: balanced executive, scoped to the inserted section. */
+[data-testid="customer-feedback-section"] {
+  --f4-surface: #fff;
+  --f4-muted: #64748b;
+  --f4-border: #e2e8f0;
+  --f4-soft: #f8fafc;
+  --f4-ink: #0f172a;
+  --f4-blue: #1e60f0;
+  --f4-track: #e8eef8;
+  min-width: 0;
+  display: grid;
+  gap: 16px;
+}
+[data-testid="customer-feedback-section"] .f4-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+}
+[data-testid="customer-feedback-section"] .f4-eyebrow {
+  color: var(--f4-blue);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin: 0 0 7px;
+}
+[data-testid="customer-feedback-section"] .f4-heading h2 {
+  margin: 0;
+  color: var(--f4-ink);
+  font-size: 18px;
+  font-weight: 750;
+  line-height: 1.35;
+  letter-spacing: -.025em;
+}
+[data-testid="customer-feedback-section"] .f4-context {
+  color: var(--f4-muted);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 5px 0 0;
+  overflow-wrap: anywhere;
+}
+[data-testid="customer-feedback-section"] .feedback-demo-label {margin-top: 3px}
+[data-testid="customer-feedback-section"] .feedback-demo-tools {margin: 0}
+[data-testid="customer-feedback-section"] .f4-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr);
+  align-items: stretch;
+}
+[data-testid="customer-feedback-section"] .f4-panel {
+  min-width: 0;
+  border: 1px solid var(--f4-border);
+  background: var(--f4-surface);
+  border-radius: 12px;
+  padding: clamp(15px, 2vw, 21px);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .035);
+}
+[data-testid="customer-feedback-section"] .f4-panel-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+  margin-bottom: 17px;
+}
+[data-testid="customer-feedback-section"] .f4-panel h3 {
+  color: var(--f4-ink);
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 750;
+  margin: 0;
+}
+[data-testid="customer-feedback-section"] .f4-overline {
+  color: var(--f4-muted);
+  font-size: 10px;
+  letter-spacing: .025em;
+  font-weight: 650;
+}
+[data-testid="customer-feedback-section"] .f4-score-line {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+[data-testid="customer-feedback-section"] .f4-score-line strong {
+  color: var(--f4-ink);
+  font-size: clamp(43px, 6vw, 57px);
+  line-height: 1.1;
+  font-weight: 750;
+  letter-spacing: -.065em;
+}
+[data-testid="customer-feedback-section"] .f4-scale {color: var(--f4-muted);font-size: 18px;font-weight: 600}
+[data-testid="customer-feedback-section"] .f4-starline {
+  color: #d58b19;
+  letter-spacing: 3px;
+  font-size: 19px;
+  margin-block: 9px 17px;
+  direction: ltr;
+  text-align: start;
+}
+[data-testid="customer-feedback-section"] .f4-summary-bottom {
+  border-top: 1px solid var(--f4-border);
+  padding-top: 13px;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+[data-testid="customer-feedback-section"] .f4-summary-bottom strong {
+  font-size: 21px;
+  color: var(--f4-blue);
+  font-variant-numeric: tabular-nums;
+}
+[data-testid="customer-feedback-section"] .f4-summary-bottom span,
+[data-testid="customer-feedback-section"] .f4-note {font-size: 12px;line-height: 1.55;color: var(--f4-muted)}
+[data-testid="customer-feedback-section"] .f4-bars {display: grid;gap: 9px}
+[data-testid="customer-feedback-section"] .f4-bar-row {
+  display: grid;
+  grid-template-columns: 31px minmax(0, 1fr) 53px 45px;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+[data-testid="customer-feedback-section"] .f4-star-key {white-space: nowrap;color: var(--f4-ink);font-weight: 750}
+[data-testid="customer-feedback-section"] .f4-star-key span {color: #d58b19;font-size: 11px}
+[data-testid="customer-feedback-section"] .f4-bar-track {height: 9px;border-radius: 5px;background: var(--f4-track);overflow: hidden}
+[data-testid="customer-feedback-section"] .f4-bar-fill {height: 100%;border-radius: 5px;background: var(--f4-blue)}
+[data-testid="customer-feedback-section"] .f4-bar-count {font-weight: 750;text-align: end;color: var(--f4-ink)}
+[data-testid="customer-feedback-section"] .f4-bar-percent {color: var(--f4-muted);text-align: end}
+[data-testid="customer-feedback-section"] .f4-note {margin: 13px 0 0}
+[data-testid="customer-feedback-section"] .f4-history {grid-column: 1}
+[data-testid="customer-feedback-section"] .f4-history-list {padding: 0;margin: 0;list-style: none;display: grid;max-height: 315px;overflow-y: auto}
+[data-testid="customer-feedback-section"] .f4-visit {
+  padding: 10px 0;
+  border-top: 1px solid var(--f4-border);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 5px 12px;
+}
+[data-testid="customer-feedback-section"] .f4-visit:first-child {border-top: 0;padding-top: 0}
+[data-testid="customer-feedback-section"] .f4-visit-ref {color: var(--f4-ink);font-weight: 700;font-size: 11px;overflow-wrap: anywhere}
+[data-testid="customer-feedback-section"] .f4-visit-location {color: var(--f4-muted);font-size: 10px;margin-top: 4px}
+[data-testid="customer-feedback-section"] .f4-visit-meta {color: var(--f4-muted);font-size: 10px;line-height: 1.55;margin-top: 3px}
+[data-testid="customer-feedback-section"] .f4-visit-stars {color: #d58b19;direction: ltr;white-space: nowrap;font-size: 14px;letter-spacing: 1px;text-align: end}
+[data-testid="customer-feedback-section"] .f4-visit-score {display: block;font-size: 10px;font-weight: 700;color: var(--f4-ink);text-align: end;margin-top: 3px}
+[data-testid="customer-feedback-section"] .f4-participation {grid-column: 2}
+[data-testid="customer-feedback-section"] .f4-participation-value {font-size: 35px;line-height: 1.2;font-weight: 750;letter-spacing: -.045em;color: var(--f4-ink);font-variant-numeric: tabular-nums}
+[data-testid="customer-feedback-section"] .f4-meter {height: 9px;background: var(--f4-track);border-radius: 6px;overflow: hidden;margin: 16px 0 19px}
+[data-testid="customer-feedback-section"] .f4-meter-fill {background: var(--f4-blue);height: 100%;width: 0;border-radius: 6px}
+[data-testid="customer-feedback-section"] .f4-denominators {display: grid;gap: 11px;margin: 0;padding: 14px 0;border-top: 1px solid var(--f4-border);border-bottom: 1px solid var(--f4-border)}
+[data-testid="customer-feedback-section"] .f4-denominators div {display: flex;align-items: baseline;justify-content: space-between;gap: 10px}
+[data-testid="customer-feedback-section"] .f4-denominators dt {color: var(--f4-muted);font-size: 11px;line-height: 1.4}
+[data-testid="customer-feedback-section"] .f4-denominators dd {margin: 0;font-size: 15px;font-weight: 750;color: var(--f4-ink);font-variant-numeric: tabular-nums}
+[data-testid="customer-feedback-section"] .f4-state {border: 1px solid var(--f4-border);background: var(--f4-surface);border-radius: 12px;padding: 25px;min-height: 195px;display: grid;place-content: center;justify-items: center;gap: 12px;text-align: center;color: var(--f4-muted);font-size: 13px}
+[data-testid="customer-feedback-section"] [hidden] {display: none!important}
+[data-testid="customer-feedback-section"] .f4-state button {background: var(--f4-blue);border: 0;color: #fff;cursor: pointer;min-height: 38px;padding: 9px 15px;border-radius: 8px;font-size: 12px;font-weight: 700}
+:root[data-theme="dark"] [data-testid="customer-feedback-section"] {
+  --f4-surface: #0d152f;
+  --f4-muted: #94a3b8;
+  --f4-border: #263459;
+  --f4-soft: #131e3d;
+  --f4-ink: #f8fafc;
+  --f4-track: #1a2a4b;
+}
+:root[data-theme="dark"] [data-testid="customer-feedback-section"] .feedback-demo-tools {border-color: #334666;background: #101d39}
+:root[data-theme="dark"] [data-testid="customer-feedback-section"] .feedback-demo-label {color: #a2bcff;background: #162f60}
+@media (max-width: 1000px) {
+  [data-testid="customer-feedback-section"] .f4-grid {grid-template-columns: minmax(0,1fr)}
+  [data-testid="customer-feedback-section"] .f4-history,
+  [data-testid="customer-feedback-section"] .f4-participation {grid-column: 1}
+}
+@media (max-width: 390px) {
+  [data-testid="customer-feedback-section"] .f4-panel {padding: 15px}
+  [data-testid="customer-feedback-section"] .f4-bar-row {grid-template-columns: 28px minmax(0,1fr) 34px 37px;gap: 6px}
+  [data-testid="customer-feedback-section"] .f4-panel-top {margin-bottom: 12px}
+  [data-testid="customer-feedback-section"] .f4-heading h2 {font-size: 17px}
+  [data-testid="customer-feedback-section"] .f4-visit {gap: 5px 7px}
+}
