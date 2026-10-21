@@ -73,22 +73,39 @@ function simulatedPostgres() {
   const pool = {
     connect: vi.fn(async () => {
       const state = { isolation: "read committed" };
+      let inTransaction = false;
+      let sharedAdvisoryHeld = false;
       transactions.push(state);
       const connection = {
         query: vi.fn(async (sql: string, values?: unknown[]) => {
           if (sql.startsWith("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")) {
+            expect(inTransaction).toBe(true);
             state.isolation = "repeatable read";
             isolationAtQuery.set(connection, state.isolation);
             events.push("repeatable-read");
-          } else if (sql.includes("pg_advisory_xact_lock_shared")) {
+          } else if (sql.includes("pg_advisory_lock_shared(")) {
+            expect(inTransaction).toBe(false);
+            expect(values).toEqual([lmScope.organizationId]);
+            sharedAdvisoryHeld = true;
             events.push("shared-org-lock");
+          } else if (sql.includes("pg_advisory_unlock_shared(")) {
+            expect(inTransaction).toBe(false);
+            expect(sharedAdvisoryHeld).toBe(true);
+            expect(values).toEqual([lmScope.organizationId]);
+            sharedAdvisoryHeld = false;
+            events.push("shared-org-unlock");
+            return { rowCount: 1, rows: [{ released: true }] };
+          } else if (sql.includes("pg_advisory_xact_lock_shared")) {
+            events.push("transaction-shared-lock");
             expect(values).toEqual([lmScope.organizationId]);
             return { rowCount: 1, rows: [{ readCommitted: state.isolation === "read committed" }] };
           } else if (sql === "BEGIN") {
+            inTransaction = true;
             state.isolation = "read committed";
             isolationAtQuery.set(connection, state.isolation);
             events.push("begin");
           } else if (sql === "COMMIT" || sql === "ROLLBACK") {
+            inTransaction = false;
             events.push(sql.toLowerCase());
           }
           return { rowCount: 0, rows: [] };
@@ -120,6 +137,26 @@ describe("#315 KPI REPEATABLE READ LM regression contract", () => {
         transaction, input.authenticatedUserId, input.targetLocationId, "DASHBOARD_ACCESS",
       ),
     }));
+    vi.doMock("../src/modules/dashboard/analytics-kpi-snapshot-transaction", () => ({
+      inAuthorizedKpiSnapshot: async (
+        pool: PostgresPool,
+        input: typeof params,
+        project: (transaction: PostgresTransaction, scope: typeof lmScope) => Promise<unknown>,
+      ) => {
+        const conn = await pool.connect();
+        try {
+          await conn.query("BEGIN");
+          await conn.query("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ");
+          const scope = await authorizeDashboardLocation(
+            conn, input.authenticatedUserId, input.locationId, "DASHBOARD_ACCESS",
+          );
+          if (scope === null) throw new Error("Baseline LM not authorized");
+          const value = await project(conn, scope);
+          await conn.query("COMMIT");
+          return value;
+        } finally { conn.release(); }
+      },
+    }));
     vi.resetModules();
     try {
       const { locationKpiAnalytics: historicalKpi } = await import(
@@ -132,6 +169,7 @@ describe("#315 KPI REPEATABLE READ LM regression contract", () => {
       expect(db.events).not.toContain("shared-org-lock");
     } finally {
       vi.doUnmock("../src/modules/dashboard/dashboard-read-authorization");
+      vi.doUnmock("../src/modules/dashboard/analytics-kpi-snapshot-transaction");
       vi.resetModules();
     }
   });
@@ -143,6 +181,8 @@ describe("#315 KPI REPEATABLE READ LM regression contract", () => {
     expect(db.events).toContain("repeatable-read");
     expect(db.events).toContain("shared-org-lock");
     expect(db.events).toContain("commit");
+    expect(db.events.slice(0, 3)).toEqual(["shared-org-lock", "begin", "repeatable-read"]);
+    expect(db.events.slice(-2)).toEqual(["commit", "shared-org-unlock"]);
     expect(db.transactions.some((state) => state.isolation === "repeatable read")).toBe(true);
     expect(lm).toHaveBeenCalledWith(
       expect.anything(), "user-315", "loc-315", "DASHBOARD_ACCESS",
@@ -156,6 +196,7 @@ describe("#315 KPI REPEATABLE READ LM regression contract", () => {
       code: "AUTHORIZATION_DENIED",
     });
     expect(db.events).toContain("shared-org-lock");
+    expect(db.events.slice(-2)).toEqual(["rollback", "shared-org-unlock"]);
   });
 
   it("Company Admin retains the distinct MFA-gated KPI authorization route", async () => {
@@ -176,6 +217,7 @@ describe("#315 KPI REPEATABLE READ LM regression contract", () => {
     expect(mfa).toHaveBeenCalledTimes(1);
     expect(ca).toHaveBeenCalledTimes(1);
     expect(db.events).not.toContain("shared-org-lock");
+    expect(db.events).not.toContain("shared-org-unlock");
     expect(db.events).toContain("repeatable-read");
   });
 });
