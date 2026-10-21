@@ -143,7 +143,14 @@ describe("Issue309 binary controller response after final transaction", () => {
     const logger = vi.spyOn(Logger.prototype, "error").mockImplementation(() => {});
     const release = vi.fn();
     const fixture = setup(async (_input, _id, deliver) => {
-      deliver(jpeg, release);
+      try {
+        deliver(jpeg, release);
+      } catch {
+        // The production service invokes release in its !queued finally path
+        // if synchronous response.end() throws before successful enqueue.
+        release();
+        throw new Error("photo enqueue failed");
+      }
     });
     // Simulate Node streaming headers, then a write failure before end()
     // completes. The controller must destroy the partial HTTP response.
@@ -181,8 +188,29 @@ describe("Issue309 binary controller response after final transaction", () => {
     expect(fixture.fake.headers["content-length"]).toBe(String(jpeg.length));
     expect(fixture.observations[0]?.outcome).toBe("SUCCESS");
     expect(logger).not.toHaveBeenCalled();
-    // Existing admission callback is registered on both lifecycle signals;
-    // the admission layer itself owns its idempotent release semantics.
-    expect(release).toHaveBeenCalledTimes(2);
+    // Early registered finish/close handlers are idempotent themselves,
+    // independent of the admission layer's own idempotent release function.
+    expect(release).toHaveBeenCalledOnce();
+  });
+
+  it("accepts synchronous finish then close within end() without false ERROR", async () => {
+    const release = vi.fn();
+    const logger = vi.spyOn(Logger.prototype, "error").mockImplementation(() => {});
+    const fixture = setup(async (_input, _id, deliver) => {
+      deliver(jpeg, release);
+    });
+    fixture.fake.response.end = (body) => {
+      fixture.fake.bodies.push(Buffer.from(body));
+      fixture.fake.response.headersSent = true;
+      fixture.fake.response.writableEnded = true;
+      fixture.fake.response.emit("finish");
+      fixture.fake.response.emit("close");
+    };
+
+    await expect(fixture.call()).resolves.toBeUndefined();
+    expect(fixture.fake.bodies).toEqual([jpeg]);
+    expect(release).toHaveBeenCalledOnce();
+    expect(fixture.observations[0]?.outcome).toBe("SUCCESS");
+    expect(logger).not.toHaveBeenCalled();
   });
 });
