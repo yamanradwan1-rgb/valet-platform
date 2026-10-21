@@ -1,0 +1,269 @@
+import { chromium, expect, test, type Page } from "@playwright/test";
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { DashboardApiFixture, LOCATION_A, ORG_A } from "./support/dashboard-api-fixture";
+import { signInOnCurrentPage } from "./support/foundation-ui";
+import { operationsReadReply, sessionItem } from "./support/operations-fixtures";
+
+const evidence = resolve(process.cwd(), "../../docs/validation/issue-305/final-native-zoom");
+const root = `http://127.0.0.1:3351`;
+const surfaces = ["live-operations", "retrieval-queue", "vehicles", "tasks", "incidents", "keys"] as const;
+const modes = [
+  { lang: "en", theme: "light" },
+  { lang: "en", theme: "dark" },
+  { lang: "ar", theme: "dark" },
+  { lang: "ar", theme: "light" },
+] as const;
+
+type Measurement = Awaited<ReturnType<typeof captureGeometry>>;
+
+async function captureGeometry(page: Page) {
+  return page.evaluate(() => {
+    const doc = document.documentElement;
+    const table = document.querySelector<HTMLTableElement>("table");
+    const region = table?.parentElement ?? null;
+    const measured = table ? (() => {
+      const headings = [...table.querySelectorAll<HTMLTableCellElement>("thead th")];
+      const row = [...table.querySelectorAll<HTMLTableRowElement>("tbody tr")]
+        .find(element => element.querySelectorAll("td").length === headings.length);
+      const cells = row ? [...row.querySelectorAll<HTMLTableCellElement>("td")] : [];
+      const dir = getComputedStyle(table).direction;
+      const columns = headings.map((th, index) => {
+        const td = cells[index];
+        const rect = th.getBoundingClientRect();
+        const css = getComputedStyle(th);
+        const range = document.createRange();
+        range.selectNodeContents(th);
+        const text = range.getBoundingClientRect();
+        const pad = parseFloat(dir === "rtl" ? css.paddingRight : css.paddingLeft);
+        const headingStart = dir === "rtl" ? rect.right - pad : rect.left + pad;
+        const labelStart = dir === "rtl" ? text.right : text.left;
+        const tdRect = td?.getBoundingClientRect();
+        const tdCss = td ? getComputedStyle(td) : null;
+        const tdPad = tdCss ? parseFloat(dir === "rtl" ? tdCss.paddingRight : tdCss.paddingLeft) : 0;
+        const cellStart = tdRect ? dir === "rtl" ? tdRect.right - tdPad : tdRect.left + tdPad : null;
+        return {
+          header: th.textContent?.trim() ?? "", index,
+          headingAlign: css.textAlign,
+          cellAlign: tdCss?.textAlign ?? null,
+          labelOffset: +(labelStart - headingStart).toFixed(3),
+          cellStartDelta: cellStart === null ? null : +(cellStart - headingStart).toFixed(3),
+          headingBox: rect.toJSON(), bodyBox: tdRect?.toJSON() ?? null,
+        };
+      });
+      return {
+        direction: dir, columns, bodyRows: table.querySelectorAll("tbody tr").length,
+        hasFullDataRow: Boolean(row),
+        regionScroll: region?.scrollWidth ?? null,
+        regionClient: region?.clientWidth ?? null,
+        actionButtons: table.querySelectorAll("tbody td:last-child button").length,
+      };
+    })() : null;
+    return {
+      browser: {
+        devicePixelRatio, innerWidth, outerWidth,
+        visualViewportScale: visualViewport?.scale ?? null,
+        cssZoom: doc.style.zoom,
+      },
+      root: { scrollWidth: doc.scrollWidth, clientWidth: doc.clientWidth },
+      table: measured,
+    };
+  });
+}
+
+function fakeApi() {
+  return new DashboardApiFixture({
+    companyOrganizations: [ORG_A],
+    companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
+    override: (path) => {
+      if (path.endsWith("/overview/live-sessions")) {
+        return { body: { items: [{ ...sessionItem(),
+          checkedInBy: { firstName: "Carmen", lastName: "Original" },
+          parkedBy: { firstName: "Nora", lastName: "Parker" },
+          parkingCompletionProof: "PROVEN",
+        }], nextCursor: null } };
+      }
+      return operationsReadReply(path);
+    },
+  });
+}
+
+test("#305 true Chromium tab zoom 200% acceptance with synthetic rows", async () => {
+  test.setTimeout(100_000);
+  const scratch = mkdtempSync(join(tmpdir(), "issue305-native-acceptance-"));
+  const extension = join(scratch, "extension");
+  mkdirSync(extension);
+  writeFileSync(join(extension, "manifest.json"), JSON.stringify({
+    manifest_version: 3, name: "Issue 305 native tab zoom acceptance",
+    version: "1.0", permissions: ["tabs"],
+    background: { service_worker: "service.js" },
+  }));
+  writeFileSync(join(extension, "service.js"), "chrome.runtime.onInstalled.addListener(() => {});");
+  mkdirSync(evidence, { recursive: true });
+  const records: Array<Record<string, unknown>> = [];
+  const failures: string[] = [];
+  let browser: Awaited<ReturnType<typeof chromium.launchPersistentContext>> | null = null;
+  try {
+    browser = await chromium.launchPersistentContext(join(scratch, "profile"), {
+      channel: "chromium", headless: true, baseURL: root,
+      viewport: { width: 1440, height: 900 },
+      args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`],
+    });
+    const worker = browser.serviceWorkers()[0] ??
+      await browser.waitForEvent("serviceworker", { timeout: 15_000 });
+    const page = await browser.newPage();
+    page.setDefaultTimeout(7_000);
+    await fakeApi().install(page);
+    await page.goto("/live-operations");
+    await signInOnCurrentPage(page);
+    await page.getByRole("button", { name: ORG_A.name }).click();
+    await page.getByRole("button", { name: LOCATION_A.name }).click();
+    const tabId = await worker.evaluate(async () => {
+      const tabs = await chrome.tabs.query({});
+      return tabs.find(tab => tab.url?.includes("3351"))?.id ?? null;
+    });
+    expect(tabId).not.toBeNull();
+    const initial = await captureGeometry(page);
+    const zoom = await worker.evaluate(async id => {
+      await chrome.tabs.setZoom(id, 2);
+      return chrome.tabs.getZoom(id);
+    }, tabId!);
+    expect(zoom).toBe(2);
+    expect(initial.browser.devicePixelRatio).toBe(1);
+    console.log(`NATIVE_PROOF zoom=${zoom}, before=${initial.browser.innerWidth}, effective720=expected`);
+
+    for (const surface of surfaces) {
+      console.log(`SURFACE_BEGIN ${surface}`);
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await page.evaluate(() => {
+        localStorage.setItem("vaylet_dashboard_locale", "en");
+        document.documentElement.lang = "en";
+        document.documentElement.dir = "ltr";
+        dispatchEvent(new Event("vaylet-dashboard-locale-change"));
+      });
+      await page.goto(`/${surface === "retrieval-queue" ? "live-operations" : surface}`);
+      const routeZoom = await worker.evaluate(async id => chrome.tabs.getZoom(id), tabId!);
+      expect(routeZoom, `native zoom survived ${surface} navigation`).toBe(2);
+      if (surface === "retrieval-queue") {
+        await page.getByRole("button", { name: /^(Retrieval Queue|قائمة الاسترجاع)$/u }).click();
+      }
+      const isActiveTable = surface !== "keys";
+      if (isActiveTable) {
+        await expect.poll(async () => page.locator("table tbody tr").evaluateAll(
+          rows => rows.filter(row => row.querySelectorAll("td").length > 1).length,
+        )).toBeGreaterThan(0);
+      }
+      for (const mode of modes) {
+        await page.setViewportSize({ width: 1440, height: 900 });
+        await page.evaluate(({lang, theme}) => {
+          localStorage.setItem("vaylet_dashboard_locale", lang);
+          localStorage.setItem("vaylet_dashboard_theme", theme);
+          document.documentElement.lang = lang;
+          document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+          document.documentElement.dataset.theme = theme;
+          dispatchEvent(new Event("vaylet-dashboard-locale-change"));
+          dispatchEvent(new Event("vaylet-dashboard-theme-change"));
+        }, mode);
+        console.log(`MODE ${surface} ${mode.lang}/${mode.theme}`);
+        for (const width of [1440, 768, 640, 390, 320]) {
+          await page.setViewportSize({ width, height: 900 });
+          const state = await captureGeometry(page);
+          const id = `${surface}-${mode.lang}-${mode.theme}-physical${width}`;
+          const supportedEffectiveWidth = width / 2 >= 320;
+          const problems: string[] = [];
+          if (state.browser.devicePixelRatio !== 2 || state.browser.innerWidth !== width / 2 ||
+              state.browser.visualViewportScale !== 1 || state.browser.cssZoom !== "") {
+            problems.push("native browser zoom metrics incorrect");
+          }
+          if (supportedEffectiveWidth && state.root.scrollWidth > state.root.clientWidth + 1) {
+            problems.push(`root overflow ${state.root.scrollWidth}/${state.root.clientWidth}`);
+          }
+          if (isActiveTable && state.table) {
+            if (!state.table.hasFullDataRow) problems.push("no full body row");
+            const expectedFirst = surface === "retrieval-queue"
+              ? (mode.lang === "ar" ? "وقت الطلب" : "Requested")
+              : surface === "tasks" || surface === "incidents"
+                ? (mode.lang === "ar" ? (surface === "tasks" ? "النوع" : "الإنشاء") : (surface === "tasks" ? "Type" : "Created"))
+                : (mode.lang === "ar" ? "المركبة" : "Vehicle");
+            if (state.table.columns[0]?.header !== expectedFirst) problems.push(`rendered locale mismatch ${state.table.columns[0]?.header}`);
+            state.table.columns.forEach((column, index) => {
+              const last = index === state.table!.columns.length - 1;
+              if (column.headingAlign !== (last ? "end" : "start")) problems.push(`th alignment col${index}`);
+              if (!last && Math.abs(column.labelOffset) > 1.5) problems.push(`th text offset col${index} ${column.labelOffset}`);
+              if (!last && (column.cellStartDelta === null || Math.abs(column.cellStartDelta) > 1.5)) problems.push(`td start mismatch col${index} ${column.cellStartDelta}`);
+              if (last && column.cellAlign !== "end") problems.push("action td alignment");
+              if (column.bodyBox && (Math.abs(column.headingBox.x - column.bodyBox.x) > 0.75 ||
+                Math.abs(column.headingBox.width - column.bodyBox.width) > 0.75)) problems.push(`column geometry mismatch col${index}`);
+            });
+          } else if (isActiveTable) {
+            problems.push("table missing");
+          }
+          if (width === 640 && isActiveTable) {
+            const button = page.locator("table tbody td:last-child button").first();
+            if (await button.count()) {
+              await button.focus();
+              if (!(await button.evaluate(el => document.activeElement === el))) problems.push("action not keyboard-focusable");
+              await page.keyboard.press("Shift+Tab");
+            } else problems.push("action button missing");
+          }
+          let keyboardFocus: Record<string, unknown> | null = null;
+          if (width === 768 && mode.lang === "ar" && mode.theme === "dark" && isActiveTable) {
+            const button = page.locator("table tbody td:last-child button").first();
+            await button.focus();
+            await page.keyboard.press("Shift+Tab");
+            await page.keyboard.press("Tab");
+            keyboardFocus = await button.evaluate(node => {
+              const rect = node.getBoundingClientRect();
+              const region = node.closest("table")?.parentElement?.getBoundingClientRect();
+              const css = getComputedStyle(node);
+              return {
+                keyboardFocused: document.activeElement === node,
+                focusVisible: node.matches(":focus-visible"),
+                outlineStyle: css.outlineStyle,
+                outlineWidth: css.outlineWidth,
+                boxShadow: css.boxShadow,
+                visibleInViewport: rect.left < innerWidth && rect.right > 0 &&
+                  rect.top < innerHeight && rect.bottom > 0,
+                visibleInTableScrollRegion: Boolean(region && rect.left < region.right &&
+                  rect.right > region.left && rect.top < region.bottom && rect.bottom > region.top),
+                buttonBox: rect.toJSON(), tableScrollRegion: region?.toJSON() ?? null,
+              };
+            });
+            if (!keyboardFocus.keyboardFocused || !keyboardFocus.visibleInViewport ||
+                !keyboardFocus.visibleInTableScrollRegion) problems.push("keyboard action focus not visible");
+            await page.screenshot({path: join(evidence, `${id}-keyboard-focus.png`),
+              animations: "disabled", fullPage: false});
+          }
+          records.push({ id, surface, lang: mode.lang, theme: mode.theme, physicalWidth: width,
+            supportedEffectiveWidth, effectiveCssWidth: width / 2,
+            reportedZoom: routeZoom, ...state, keyboardFocus, problems });
+          if (problems.length) failures.push(`${id}: ${problems.join(", ")}`);
+          if (width === 768 && (mode.lang === "ar" || mode.theme === "dark") && isActiveTable) {
+            await page.screenshot({
+              path: join(evidence, `${id}.png`), animations: "disabled", fullPage: false,
+            });
+          }
+          if (isActiveTable && (
+            (width === 320 && mode.lang === "ar" && mode.theme === "dark") ||
+            (width === 390 && mode.lang === "en" && mode.theme === "light")
+          )) {
+            await page.screenshot({
+              path: join(evidence, `${id}.png`), animations: "disabled", fullPage: false,
+            });
+          }
+        }
+      }
+      console.log(`SURFACE_END ${surface} samples=${records.length} findings=${failures.length}`);
+    }
+    await worker.evaluate(async id => chrome.tabs.setZoom(id, 1), tabId!);
+  } finally {
+    writeFileSync(join(evidence, "native-zoom-results.json"), JSON.stringify({
+      method: "chrome.tabs.setZoom(tabId, 2)", baseSHA: "a450815801397d0cc5f37489e6f32175da853b69",
+      port: 3351, samples: records.length, failures, results: records,
+    }, null, 2));
+    if (browser) await browser.close();
+    rmSync(scratch, { recursive: true, force: true });
+  }
+  expect(failures).toEqual([]);
+});
