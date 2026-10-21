@@ -1,3 +1,5 @@
+import { writeFileSync } from "node:fs";
+
 export function similarCss(a, b, path = "") {
   if (a == null || b == null) return ["baseline comparison missing " + path];
   if (Array.isArray(a)) {
@@ -19,7 +21,7 @@ export function similarCss(a, b, path = "") {
    screenshots alone capture the viewport and may show blank offscreen pixels.
    Stitch actual viewport pixels from this bounded scroll region to preserve
    the complete KPI -> Feedback -> Charts flow in one honest browser image. */
-async function screenshotScrollableMain(page, file) {
+export async function screenshotScrollableMain(page, file) {
   const region = await page.evaluate(() => {
     const scroller = document.querySelector("main.content");
     if (!scroller) return null;

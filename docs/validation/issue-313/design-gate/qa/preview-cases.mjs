@@ -1,6 +1,6 @@
 import { join, basename } from "node:path";
 import { pathToFileURL } from "node:url";
-import { snapshot, checkSnap } from "./preview-snapshot.mjs";
+import { snapshot, checkSnap, screenshotScrollableMain } from "./preview-snapshot.mjs";
 export function createPreviewCases({ failures, pending, evidence, interactions, screenshots }) {
 async function recordPage(page, option, mode, native, reference, zoomWorker, source) {
   await page.setViewportSize({ width: mode.width, height: 900 });
