@@ -4,6 +4,7 @@ import {
   Header,
   Headers,
   Inject,
+  Logger,
   Param,
   Query,
   Req,
@@ -28,6 +29,9 @@ import {
 import { DashboardSessionPhotoService } from "./session-photo-service";
 
 interface PhotoBytesResponse extends HeaderResponse {
+  readonly headersSent: boolean;
+  readonly writableEnded: boolean;
+  destroy(): void;
   status(value: number): PhotoBytesResponse;
   end(body: Buffer): void;
   once(event: "finish" | "close", listener: () => void): void;
@@ -41,6 +45,8 @@ function requireNoQueries(query: unknown): void {
 
 @Controller("v1/staff/dashboard/locations/:locationId/sessions/:sessionId/condition-photos")
 export class DashboardSessionPhotoController {
+  private readonly logger = new Logger(DashboardSessionPhotoController.name);
+
   constructor(
     private readonly service: DashboardSessionPhotoService,
     private readonly runner: ApiOperationRunner,
@@ -87,27 +93,47 @@ export class DashboardSessionPhotoController {
     setNoStoreResponseHeaders(response);
     response.setHeader("Cache-Control", "private, no-store");
     response.setHeader("X-Content-Type-Options", "nosniff");
-    await this.runner.run("DASHBOARD_SESSION_PHOTO_BYTES", request, async () => {
-      requireSingleManagementAuthorization(request);
-      requireNoQueries(query);
-      const credential = await this.sessions.resolve(authorization);
-      await this.service.deliver({
-        credential,
-        authenticatedUserId: credential.userId,
-        locationId: requireManagementUuid(locationId),
-        sessionId: requireManagementUuid(sessionId),
-      }, requireManagementUuid(photoId), (bytes,release) => {
-        // Callback is invoked synchronously with the final W3 auth and exact
-        // AVAILABLE photo rows locked. No await before HTTP bytes are enqueued.
-        // Memory budget remains reserved until slow-client write completion or
-        // connection abort. Never wait for 'finish' while DB locks are held.
-        response.once("finish",release);
-        response.once("close",release);
-        response.setHeader("Content-Type", "image/jpeg");
-        response.setHeader("Content-Length", String(bytes.length));
-        response.setHeader("Content-Disposition", "inline");
-        response.status(200).end(bytes);
+    try {
+      await this.runner.run("DASHBOARD_SESSION_PHOTO_BYTES", request, async () => {
+        requireSingleManagementAuthorization(request);
+        requireNoQueries(query);
+        const credential = await this.sessions.resolve(authorization);
+        await this.service.deliver({
+          credential,
+          authenticatedUserId: credential.userId,
+          locationId: requireManagementUuid(locationId),
+          sessionId: requireManagementUuid(sessionId),
+        }, requireManagementUuid(photoId), (bytes, release) => {
+          // Called synchronously with final W3 auth and AVAILABLE evidence
+          // locked; never await network flush in the database transaction.
+          response.once("finish", release);
+          response.once("close", release);
+          response.setHeader("Content-Type", "image/jpeg");
+          response.setHeader("Content-Length", String(bytes.length));
+          response.setHeader("Content-Disposition", "inline");
+          response.status(200).end(bytes);
+        });
       });
-    });
+    } catch (error) {
+      // The runner has already recorded ERROR. After a synchronous end() the
+      // HTTP status is immutable, so Nest cannot send a second JSON error.
+      if (response.writableEnded) {
+        this.logger.error(
+          `PHOTO_BYTES_ERROR_AFTER_RESPONSE requestId=${request.requestId ?? "unavailable"}`,
+        );
+        return;
+      }
+      // If only headers reached the socket, a second JSON write is equally
+      // unsafe. Abort the incomplete response so a slow client cannot hang.
+      if (response.headersSent) {
+        this.logger.error(
+          `PHOTO_BYTES_ERROR_AFTER_HEADERS requestId=${request.requestId ?? "unavailable"}`,
+        );
+        response.destroy();
+        return;
+      }
+      // Until a response starts, preserve normal runner/error-filter behavior.
+      throw error;
+    }
   }
 }
