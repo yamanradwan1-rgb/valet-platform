@@ -1,0 +1,17 @@
+{
+  "variant": "after",
+  "sourceSHA": "57975551d6a6896f8e3071742f6c4ccaf5f45310",
+  "cases": [
+    "ar320-css200-dark",
+    "en320-100-light",
+    "ar390-100-dark",
+    "ar768-css200-dark",
+    "en1440-css200-light",
+    "ar320-native200-dark",
+    "en320-native200-light"
+  ],
+  "topAndBottomScreenshotsPerCase": 2,
+  "measurementsPerCase": 1,
+  "nativeZoomMethod": "Chromium MV3 extension chrome.tabs.setZoom/getZoom; CSS zoom cases separately labeled",
+  "note": "Seven separate fresh Chromium contexts, identical test source and synthetic original fields; reporter field appears only in after variant"
+}

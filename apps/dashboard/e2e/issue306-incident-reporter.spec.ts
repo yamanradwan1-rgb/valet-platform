@@ -36,11 +36,13 @@ test("#306 displays only the authorized Location reporter when manager switches 
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: LOCATION_A.name, exact: true }).click();
   await expect(page.getByRole("table")).toBeVisible();
-  await page.locator("tbody tr").first().getByRole("button").click();
+  const opener = page.locator("tbody tr").first().getByRole("button");
+  await opener.click();
   await expect(page.getByRole("dialog")).toContainText("Reporter Location Alpha");
   await page.screenshot({ path: testInfo.outputPath("location-a-reporter.png") });
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(opener).toBeFocused();
 
   await page.getByRole("button", { name: "Change scope", exact: true }).click();
   await page.getByRole("option", { name: LOCATION_B.name }).click();
