@@ -1,0 +1,154 @@
+{
+  "state": "network",
+  "actual": {
+    "items": {
+      "section": {
+        "absolute": [
+          25,
+          481.9531,
+          341,
+          242.0313
+        ],
+        "text": "Check-in condition photos—Verified upload evidence for this visit only. Does not establish vehicle damage or authenticity.!Photos could not be loadedThe request failed. Try again when the connection is available.Retry",
+        "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "outline": "rgb(16, 24, 40) none 3px"
+      },
+      "glyph": {
+        "absolute": [
+          40,
+          578.9688,
+          30,
+          30
+        ],
+        "text": "!",
+        "font": "15.2px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "outline": "rgb(30, 96, 240) none 3px"
+      },
+      "heading": {
+        "absolute": [
+          25,
+          481.9531,
+          166.5781,
+          19.2656
+        ],
+        "text": "Check-in condition photos",
+        "font": "700 13.76px / 19.264px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "fontWeight": "700",
+        "lineHeight": "19.264px",
+        "outline": "rgb(16, 24, 40) none 3px"
+      }
+    },
+    "dpr": 1,
+    "zoom": 1,
+    "lang": "en",
+    "dir": "ltr",
+    "theme": "light",
+    "fontReady": "loaded",
+    "interLoaded": true,
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36"
+  },
+  "expected": {
+    "items": {
+      "section": {
+        "absolute": [
+          25,
+          481.9531,
+          341,
+          242.0313
+        ],
+        "text": "\n          Check-in condition photos—\n          Verified upload evidence for this visit only. Does not establish vehicle damage or authenticity.\n          !Photos could not be loadedThe request failed. Try again when the connection is available.Retry\n        ",
+        "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "outline": "rgb(16, 24, 40) none 3px"
+      },
+      "glyph": {
+        "absolute": [
+          40,
+          578.9688,
+          30,
+          30
+        ],
+        "text": "!",
+        "font": "15.2px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "outline": "rgb(30, 96, 240) none 3px"
+      },
+      "heading": {
+        "absolute": [
+          25,
+          481.9531,
+          166.5781,
+          19.2656
+        ],
+        "text": "Check-in condition photos",
+        "font": "700 13.76px / 19.264px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "fontWeight": "700",
+        "lineHeight": "19.264px",
+        "outline": "rgb(16, 24, 40) none 3px"
+      },
+      "viewer": {
+        "absolute": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "text": "\n      \n        \n        \n      \n      \n        ‹\n        \n        ›\n      \n      \n        \n        \n        \n      \n    ",
+        "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "outline": "rgb(16, 24, 40) none 3px"
+      },
+      "viewerTitle": {
+        "absolute": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "text": "",
+        "font": "700 15.2px / 21.28px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "fontWeight": "700",
+        "lineHeight": "21.28px",
+        "outline": "rgb(16, 24, 40) none 3px"
+      },
+      "viewerClose": {
+        "absolute": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "text": "",
+        "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "fontWeight": "400",
+        "lineHeight": "normal",
+        "outline": "rgb(30, 96, 240) none 3px"
+      }
+    },
+    "dpr": 1,
+    "zoom": 1,
+    "lang": "en",
+    "dir": "ltr",
+    "theme": "light",
+    "fontReady": "loaded",
+    "interLoaded": true,
+    "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36"
+  },
+  "designHash": "0b1900896b46af9d1f11dd88f01643978629001cb1c956de5f1e7f5987cdbd74"
+}

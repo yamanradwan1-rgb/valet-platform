@@ -1,0 +1,964 @@
+{
+  "scope": "diagnostic snapshots only; no mutation to HTML or production code",
+  "photoStates": [
+    {
+      "state": "empty",
+      "sourceSHA256": "0b1900896b46af9d1f11dd88f01643978629001cb1c956de5f1e7f5987cdbd74",
+      "actual": {
+        "items": {
+          "section": {
+            "absolute": [
+              25,
+              481.9531,
+              341,
+              194.0313
+            ],
+            "text": "Check-in condition photos0 photosVerified upload evidence for this visit only. Does not establish vehicle damage or authenticity.▧No verified check-in photosThere are no eligible photos for this visit.",
+            "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "glyph": {
+            "absolute": [
+              40,
+              578.9688,
+              30,
+              30
+            ],
+            "text": "▧",
+            "font": "15.2px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(30, 96, 240) none 3px"
+          },
+          "heading": {
+            "absolute": [
+              25,
+              481.9531,
+              166.5781,
+              19.2656
+            ],
+            "text": "Check-in condition photos",
+            "font": "700 13.76px / 19.264px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "700",
+            "lineHeight": "19.264px",
+            "outline": "rgb(16, 24, 40) none 3px"
+          }
+        },
+        "dpr": 1,
+        "zoom": 1,
+        "lang": "en",
+        "dir": "ltr",
+        "theme": "light",
+        "fontReady": "loaded",
+        "interLoaded": true,
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36"
+      },
+      "expected": {
+        "items": {
+          "section": {
+            "absolute": [
+              25,
+              481.9531,
+              341,
+              194.0313
+            ],
+            "text": "\n          Check-in condition photos0 photos\n          Verified upload evidence for this visit only. Does not establish vehicle damage or authenticity.\n          ▧No verified check-in photosThere are no eligible photos for this visit.\n        ",
+            "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "glyph": {
+            "absolute": [
+              40,
+              578.9688,
+              30,
+              30
+            ],
+            "text": "▧",
+            "font": "15.2px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(30, 96, 240) none 3px"
+          },
+          "heading": {
+            "absolute": [
+              25,
+              481.9531,
+              166.5781,
+              19.2656
+            ],
+            "text": "Check-in condition photos",
+            "font": "700 13.76px / 19.264px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "700",
+            "lineHeight": "19.264px",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "viewer": {
+            "absolute": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "text": "\n      \n        \n        \n      \n      \n        ‹\n        \n        ›\n      \n      \n        \n        \n        \n      \n    ",
+            "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "viewerTitle": {
+            "absolute": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "text": "",
+            "font": "700 15.2px / 21.28px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "700",
+            "lineHeight": "21.28px",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "viewerClose": {
+            "absolute": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "text": "",
+            "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(30, 96, 240) none 3px"
+          }
+        },
+        "dpr": 1,
+        "zoom": 1,
+        "lang": "en",
+        "dir": "ltr",
+        "theme": "light",
+        "fontReady": "loaded",
+        "interLoaded": true,
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36"
+      },
+      "pixelEvidence": {
+        "sourceToReact": {
+          "changedPixels": 142,
+          "totalPixels": 66495,
+          "maxChannelDifference": 225,
+          "onlyChangesAtMost2RGB": false,
+          "changedPixelsAtMost2": 34,
+          "diffBounds": [
+            0,
+            1,
+            341,
+            194
+          ]
+        },
+        "htmlSelf": {
+          "changedPixels": 0,
+          "totalPixels": 66495,
+          "maxChannelDifference": 0,
+          "onlyChangesAtMost2RGB": true,
+          "changedPixelsAtMost2": 0,
+          "diffBounds": null
+        },
+        "reactSelf": {
+          "changedPixels": 0,
+          "totalPixels": 66495,
+          "maxChannelDifference": 0,
+          "onlyChangesAtMost2RGB": true,
+          "changedPixelsAtMost2": 0,
+          "diffBounds": null
+        },
+        "testOnlyDomHypothesis": {
+          "changedPixels": 142,
+          "totalPixels": 66495,
+          "maxChannelDifference": 225,
+          "onlyChangesAtMost2RGB": false,
+          "changedPixelsAtMost2": 34,
+          "diffBounds": [
+            0,
+            1,
+            341,
+            194
+          ]
+        }
+      }
+    },
+    {
+      "state": "three",
+      "sourceSHA256": "0b1900896b46af9d1f11dd88f01643978629001cb1c956de5f1e7f5987cdbd74",
+      "actual": {
+        "items": {
+          "section": {
+            "absolute": [
+              25,
+              349.9531,
+              341,
+              549.8594
+            ],
+            "text": "Check-in condition photos3 photosVerified upload evidence for this visit only. Does not establish vehicle damage or authenticity.Check-in photo 1Verified upload · Sep 21, 2026, 3:00 PMCheck-in photo 2Verified upload · Sep 21, 2026, 3:00 PMCheck-in photo 3Verified upload · Sep 21, 2026, 3:00 PM",
+            "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "meta": {
+            "absolute": [
+              35.5938,
+              621.4688,
+              144.1094,
+              27.625
+            ],
+            "text": "Verified upload · Sep 21, 2026, 3:00 PM",
+            "font": "10.24px / 13.824px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "13.824px",
+            "outline": "rgb(102, 112, 133) none 3px"
+          },
+          "heading": {
+            "absolute": [
+              25,
+              349.9531,
+              166.5781,
+              19.2656
+            ],
+            "text": "Check-in condition photos",
+            "font": "700 13.76px / 19.264px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "700",
+            "lineHeight": "19.264px",
+            "outline": "rgb(16, 24, 40) none 3px"
+          }
+        },
+        "dpr": 1,
+        "zoom": 1,
+        "lang": "en",
+        "dir": "ltr",
+        "theme": "light",
+        "fontReady": "loaded",
+        "interLoaded": true,
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36"
+      },
+      "expected": {
+        "items": {
+          "section": {
+            "absolute": [
+              25,
+              349.9531,
+              341,
+              549.8594
+            ],
+            "text": "\n          Check-in condition photos3 photos\n          Verified upload evidence for this visit only. Does not establish vehicle damage or authenticity.\n          Check-in photo 1Verified upload · Sep 21, 2026, 3:00 PMCheck-in photo 2Verified upload · Sep 21, 2026, 3:00 PMCheck-in photo 3Verified upload · Sep 21, 2026, 3:00 PM\n        ",
+            "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "meta": {
+            "absolute": [
+              35.5938,
+              621.4688,
+              144.1094,
+              27.625
+            ],
+            "text": "Verified upload · Sep 21, 2026, 3:00 PM",
+            "font": "10.24px / 13.824px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "13.824px",
+            "outline": "rgb(102, 112, 133) none 3px"
+          },
+          "heading": {
+            "absolute": [
+              25,
+              349.9531,
+              166.5781,
+              19.2656
+            ],
+            "text": "Check-in condition photos",
+            "font": "700 13.76px / 19.264px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "700",
+            "lineHeight": "19.264px",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "viewer": {
+            "absolute": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "text": "\n      \n        \n        \n      \n      \n        ‹\n        \n        ›\n      \n      \n        \n        \n        \n      \n    ",
+            "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "viewerTitle": {
+            "absolute": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "text": "",
+            "font": "700 15.2px / 21.28px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "700",
+            "lineHeight": "21.28px",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "viewerClose": {
+            "absolute": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "text": "",
+            "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(30, 96, 240) none 3px"
+          }
+        },
+        "dpr": 1,
+        "zoom": 1,
+        "lang": "en",
+        "dir": "ltr",
+        "theme": "light",
+        "fontReady": "loaded",
+        "interLoaded": true,
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36"
+      },
+      "pixelEvidence": {
+        "sourceToReact": {
+          "changedPixels": 1292,
+          "totalPixels": 187891,
+          "maxChannelDifference": 153,
+          "onlyChangesAtMost2RGB": false,
+          "changedPixelsAtMost2": 76,
+          "diffBounds": [
+            1,
+            1,
+            340,
+            330
+          ]
+        },
+        "htmlSelf": {
+          "changedPixels": 0,
+          "totalPixels": 187891,
+          "maxChannelDifference": 0,
+          "onlyChangesAtMost2RGB": true,
+          "changedPixelsAtMost2": 0,
+          "diffBounds": null
+        },
+        "reactSelf": {
+          "changedPixels": 0,
+          "totalPixels": 187891,
+          "maxChannelDifference": 0,
+          "onlyChangesAtMost2RGB": true,
+          "changedPixelsAtMost2": 0,
+          "diffBounds": null
+        },
+        "testOnlyDomHypothesis": {
+          "changedPixels": 1292,
+          "totalPixels": 187891,
+          "maxChannelDifference": 153,
+          "onlyChangesAtMost2RGB": false,
+          "changedPixelsAtMost2": 76,
+          "diffBounds": [
+            1,
+            1,
+            340,
+            330
+          ]
+        }
+      }
+    },
+    {
+      "state": "network",
+      "sourceSHA256": "0b1900896b46af9d1f11dd88f01643978629001cb1c956de5f1e7f5987cdbd74",
+      "actual": {
+        "items": {
+          "section": {
+            "absolute": [
+              25,
+              481.9531,
+              341,
+              242.0313
+            ],
+            "text": "Check-in condition photos—Verified upload evidence for this visit only. Does not establish vehicle damage or authenticity.!Photos could not be loadedThe request failed. Try again when the connection is available.Retry",
+            "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "glyph": {
+            "absolute": [
+              40,
+              578.9688,
+              30,
+              30
+            ],
+            "text": "!",
+            "font": "15.2px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(30, 96, 240) none 3px"
+          },
+          "heading": {
+            "absolute": [
+              25,
+              481.9531,
+              166.5781,
+              19.2656
+            ],
+            "text": "Check-in condition photos",
+            "font": "700 13.76px / 19.264px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "700",
+            "lineHeight": "19.264px",
+            "outline": "rgb(16, 24, 40) none 3px"
+          }
+        },
+        "dpr": 1,
+        "zoom": 1,
+        "lang": "en",
+        "dir": "ltr",
+        "theme": "light",
+        "fontReady": "loaded",
+        "interLoaded": true,
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36"
+      },
+      "expected": {
+        "items": {
+          "section": {
+            "absolute": [
+              25,
+              481.9531,
+              341,
+              242.0313
+            ],
+            "text": "\n          Check-in condition photos—\n          Verified upload evidence for this visit only. Does not establish vehicle damage or authenticity.\n          !Photos could not be loadedThe request failed. Try again when the connection is available.Retry\n        ",
+            "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "glyph": {
+            "absolute": [
+              40,
+              578.9688,
+              30,
+              30
+            ],
+            "text": "!",
+            "font": "15.2px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(30, 96, 240) none 3px"
+          },
+          "heading": {
+            "absolute": [
+              25,
+              481.9531,
+              166.5781,
+              19.2656
+            ],
+            "text": "Check-in condition photos",
+            "font": "700 13.76px / 19.264px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "700",
+            "lineHeight": "19.264px",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "viewer": {
+            "absolute": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "text": "\n      \n        \n        \n      \n      \n        ‹\n        \n        ›\n      \n      \n        \n        \n        \n      \n    ",
+            "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "viewerTitle": {
+            "absolute": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "text": "",
+            "font": "700 15.2px / 21.28px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "700",
+            "lineHeight": "21.28px",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "viewerClose": {
+            "absolute": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "text": "",
+            "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(30, 96, 240) none 3px"
+          }
+        },
+        "dpr": 1,
+        "zoom": 1,
+        "lang": "en",
+        "dir": "ltr",
+        "theme": "light",
+        "fontReady": "loaded",
+        "interLoaded": true,
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36"
+      },
+      "pixelEvidence": {
+        "sourceToReact": {
+          "changedPixels": 48,
+          "totalPixels": 82863,
+          "maxChannelDifference": 2,
+          "onlyChangesAtMost2RGB": true,
+          "changedPixelsAtMost2": 48,
+          "diffBounds": [
+            0,
+            1,
+            341,
+            243
+          ]
+        },
+        "htmlSelf": {
+          "changedPixels": 0,
+          "totalPixels": 82863,
+          "maxChannelDifference": 0,
+          "onlyChangesAtMost2RGB": true,
+          "changedPixelsAtMost2": 0,
+          "diffBounds": null
+        },
+        "reactSelf": {
+          "changedPixels": 0,
+          "totalPixels": 82863,
+          "maxChannelDifference": 0,
+          "onlyChangesAtMost2RGB": true,
+          "changedPixelsAtMost2": 0,
+          "diffBounds": null
+        }
+      }
+    },
+    {
+      "state": "viewer",
+      "sourceSHA256": "0b1900896b46af9d1f11dd88f01643978629001cb1c956de5f1e7f5987cdbd74",
+      "actual": {
+        "items": {
+          "section": {
+            "absolute": [
+              25,
+              349.9531,
+              341,
+              549.8594
+            ],
+            "text": "Check-in condition photos3 photosVerified upload evidence for this visit only. Does not establish vehicle damage or authenticity.Check-in photo 1Verified upload · Sep 21, 2026, 3:00 PMCheck-in photo 2Verified upload · Sep 21, 2026, 3:00 PMCheck-in photo 3Verified upload · Sep 21, 2026, 3:00 PM",
+            "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "meta": {
+            "absolute": [
+              35.5938,
+              621.4688,
+              144.1094,
+              27.625
+            ],
+            "text": "Verified upload · Sep 21, 2026, 3:00 PM",
+            "font": "10.24px / 13.824px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "13.824px",
+            "outline": "rgb(102, 112, 133) none 3px"
+          },
+          "heading": {
+            "absolute": [
+              25,
+              349.9531,
+              166.5781,
+              19.2656
+            ],
+            "text": "Check-in condition photos",
+            "font": "700 13.76px / 19.264px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "700",
+            "lineHeight": "19.264px",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "viewer": {
+            "absolute": [
+              5,
+              254.7188,
+              380,
+              390.5469
+            ],
+            "text": "Check-in condition photos1 of 3‹›Check-in photo 1Verified uploadEsc closes · Left/Right navigate · Tab stays inside",
+            "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "viewerTitle": {
+            "absolute": [
+              24,
+              268.7188,
+              187.8125,
+              21.2813
+            ],
+            "text": "Check-in condition photos",
+            "font": "700 15.2px / 21.28px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "700",
+            "lineHeight": "21.28px",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "viewerClose": {
+            "absolute": [
+              336,
+              273.3594,
+              30,
+              30
+            ],
+            "text": "",
+            "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(30, 96, 240) none 3px"
+          }
+        },
+        "dpr": 1,
+        "zoom": 1,
+        "lang": "en",
+        "dir": "ltr",
+        "theme": "light",
+        "fontReady": "loaded",
+        "interLoaded": true,
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36"
+      },
+      "expected": {
+        "items": {
+          "section": {
+            "absolute": [
+              25,
+              349.9531,
+              341,
+              549.8594
+            ],
+            "text": "\n          Check-in condition photos3 photos\n          Verified upload evidence for this visit only. Does not establish vehicle damage or authenticity.\n          Check-in photo 1Verified upload · Sep 21, 2026, 3:00 PMCheck-in photo 2Verified upload · Sep 21, 2026, 3:00 PMCheck-in photo 3Verified upload · Sep 21, 2026, 3:00 PM\n        ",
+            "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "meta": {
+            "absolute": [
+              35.5938,
+              621.4688,
+              144.1094,
+              27.625
+            ],
+            "text": "Verified upload · Sep 21, 2026, 3:00 PM",
+            "font": "10.24px / 13.824px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "13.824px",
+            "outline": "rgb(102, 112, 133) none 3px"
+          },
+          "heading": {
+            "absolute": [
+              25,
+              349.9531,
+              166.5781,
+              19.2656
+            ],
+            "text": "Check-in condition photos",
+            "font": "700 13.76px / 19.264px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "700",
+            "lineHeight": "19.264px",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "viewer": {
+            "absolute": [
+              5,
+              254.7188,
+              380,
+              390.5469
+            ],
+            "text": "\n      \n        Check-in condition photos1 of 3\n        \n      \n      \n        ‹\n        \n        ›\n      \n      \n        Check-in photo 1\n        Verified upload\n        Esc closes · Left/Right navigate · Tab stays inside\n      \n    ",
+            "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "viewerTitle": {
+            "absolute": [
+              24,
+              268.7188,
+              187.8125,
+              21.2813
+            ],
+            "text": "Check-in condition photos",
+            "font": "700 15.2px / 21.28px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "700",
+            "lineHeight": "21.28px",
+            "outline": "rgb(16, 24, 40) none 3px"
+          },
+          "viewerClose": {
+            "absolute": [
+              336,
+              273.3594,
+              30,
+              30
+            ],
+            "text": "",
+            "font": "16px Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontFamily": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+            "fontWeight": "400",
+            "lineHeight": "normal",
+            "outline": "rgb(30, 96, 240) none 3px"
+          }
+        },
+        "dpr": 1,
+        "zoom": 1,
+        "lang": "en",
+        "dir": "ltr",
+        "theme": "light",
+        "fontReady": "loaded",
+        "interLoaded": true,
+        "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36"
+      },
+      "pixelEvidence": {
+        "sourceToReact": {
+          "changedPixels": 141,
+          "totalPixels": 148960,
+          "maxChannelDifference": 51,
+          "onlyChangesAtMost2RGB": false,
+          "changedPixelsAtMost2": 15,
+          "diffBounds": [
+            28,
+            0,
+            351,
+            51
+          ]
+        },
+        "htmlSelf": {
+          "changedPixels": 0,
+          "totalPixels": 148960,
+          "maxChannelDifference": 0,
+          "onlyChangesAtMost2RGB": true,
+          "changedPixelsAtMost2": 0,
+          "diffBounds": null
+        },
+        "reactSelf": {
+          "changedPixels": 0,
+          "totalPixels": 148960,
+          "maxChannelDifference": 0,
+          "onlyChangesAtMost2RGB": true,
+          "changedPixelsAtMost2": 0,
+          "diffBounds": null
+        }
+      }
+    }
+  ],
+  "originalProtectedRegions": [
+    {
+      "name": "vehicles-en-dark-320",
+      "sourceToCandidate": {
+        "changedPixels": 39,
+        "totalPixels": 288000,
+        "maxChannelDifference": 2,
+        "onlyChangesAtMost2RGB": true,
+        "changedPixelsAtMost2": 39,
+        "diffBounds": [
+          21,
+          333,
+          126,
+          472
+        ]
+      },
+      "sourceToSourceRepeat": {
+        "changedPixels": 0,
+        "totalPixels": 288000,
+        "maxChannelDifference": 0,
+        "onlyChangesAtMost2RGB": true,
+        "changedPixelsAtMost2": 0,
+        "diffBounds": null
+      },
+      "candidateToSourceRepeat": {
+        "changedPixels": 39,
+        "totalPixels": 288000,
+        "maxChannelDifference": 2,
+        "onlyChangesAtMost2RGB": true,
+        "changedPixelsAtMost2": 39,
+        "diffBounds": [
+          21,
+          333,
+          126,
+          472
+        ]
+      }
+    },
+    {
+      "name": "vehicles-en-dark-390",
+      "sourceToCandidate": {
+        "changedPixels": 39,
+        "totalPixels": 351000,
+        "maxChannelDifference": 2,
+        "onlyChangesAtMost2RGB": true,
+        "changedPixelsAtMost2": 39,
+        "diffBounds": [
+          21,
+          272,
+          126,
+          411
+        ]
+      },
+      "sourceToSourceRepeat": {
+        "changedPixels": 0,
+        "totalPixels": 351000,
+        "maxChannelDifference": 0,
+        "onlyChangesAtMost2RGB": true,
+        "changedPixelsAtMost2": 0,
+        "diffBounds": null
+      },
+      "candidateToSourceRepeat": {
+        "changedPixels": 39,
+        "totalPixels": 351000,
+        "maxChannelDifference": 2,
+        "onlyChangesAtMost2RGB": true,
+        "changedPixelsAtMost2": 39,
+        "diffBounds": [
+          21,
+          272,
+          126,
+          411
+        ]
+      }
+    },
+    {
+      "name": "vehicles-ar-dark-320",
+      "sourceToCandidate": {
+        "changedPixels": 47,
+        "totalPixels": 288000,
+        "maxChannelDifference": 2,
+        "onlyChangesAtMost2RGB": true,
+        "changedPixelsAtMost2": 47,
+        "diffBounds": [
+          21,
+          333,
+          299,
+          472
+        ]
+      },
+      "sourceToSourceRepeat": {
+        "changedPixels": 47,
+        "totalPixels": 288000,
+        "maxChannelDifference": 2,
+        "onlyChangesAtMost2RGB": true,
+        "changedPixelsAtMost2": 47,
+        "diffBounds": [
+          21,
+          333,
+          299,
+          472
+        ]
+      },
+      "candidateToSourceRepeat": {
+        "changedPixels": 0,
+        "totalPixels": 288000,
+        "maxChannelDifference": 0,
+        "onlyChangesAtMost2RGB": true,
+        "changedPixelsAtMost2": 0,
+        "diffBounds": null
+      }
+    },
+    {
+      "name": "vehicles-ar-light-320",
+      "sourceToCandidate": {
+        "changedPixels": 0,
+        "totalPixels": 288000,
+        "maxChannelDifference": 0,
+        "onlyChangesAtMost2RGB": true,
+        "changedPixelsAtMost2": 0,
+        "diffBounds": null
+      },
+      "sourceToSourceRepeat": {
+        "changedPixels": 52,
+        "totalPixels": 288000,
+        "maxChannelDifference": 2,
+        "onlyChangesAtMost2RGB": true,
+        "changedPixelsAtMost2": 52,
+        "diffBounds": [
+          21,
+          333,
+          299,
+          472
+        ]
+      },
+      "candidateToSourceRepeat": {
+        "changedPixels": 52,
+        "totalPixels": 288000,
+        "maxChannelDifference": 2,
+        "onlyChangesAtMost2RGB": true,
+        "changedPixelsAtMost2": 52,
+        "diffBounds": [
+          21,
+          333,
+          299,
+          472
+        ]
+      }
+    }
+  ],
+  "visualDecision": "STRICT_STOP: exact photo 100% not proven; original shell 93/96"
+}
