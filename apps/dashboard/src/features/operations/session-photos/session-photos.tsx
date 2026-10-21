@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
 import { makeSessionPhotoTransport, photoErrorState, type SessionPhotoTransport } from "./photo-client";
@@ -56,6 +56,8 @@ const initial: PhotoState = { phase: "loading", images: [] };
 
 export function SessionPhotos({ api, locationId, sessionId, locale, timezone, scopeKey, transport }: SessionPhotosProps) {
   const t = copy[locale];
+  const viewerTitleId = useId();
+  const viewerDescriptionId = useId();
   const [revision, setRevision] = useState(0);
   const [state, setState] = useState<PhotoState>(initial);
   const [selected, setSelected] = useState<number | null>(null);
@@ -199,7 +201,8 @@ export function SessionPhotos({ api, locationId, sessionId, locale, timezone, sc
       {viewing !== null && typeof document !== "undefined" ? createPortal(
         <div className={styles.viewerBackdrop} onMouseDown={(event) => { event.stopPropagation(); if (event.target === event.currentTarget) closeViewer(); }}>
           <section
-            aria-label={t.title}
+            aria-labelledby={viewerTitleId}
+            aria-describedby={viewerDescriptionId}
             aria-modal="true"
             className={styles.viewer}
             onKeyDown={onViewerKey}
@@ -207,7 +210,7 @@ export function SessionPhotos({ api, locationId, sessionId, locale, timezone, sc
             tabIndex={-1}
           >
             <header className={styles.viewerHeader}>
-              <div><h2>{t.title}</h2><div className={styles.viewerCount}>{viewing + 1} {t.of} {count}</div></div>
+              <div><h2 id={viewerTitleId}>{t.title}</h2><div className={styles.viewerCount}>{viewing + 1} {t.of} {count}</div></div>
               <button aria-label={t.close} className={styles.viewerClose} onClick={closeViewer} ref={viewerCloseRef} type="button"><X size={18} /></button>
             </header>
             <div className={styles.viewerCanvas}>
@@ -216,7 +219,7 @@ export function SessionPhotos({ api, locationId, sessionId, locale, timezone, sc
               <button aria-label={t.next} className={styles.viewerArrow} disabled={count < 2} onClick={() => updateIndex(1)} type="button">{locale === "ar" ? "‹" : "›"}</button>
             </div>
             <footer className={styles.viewerFooter}>
-              <strong>{t.image} {viewing + 1}</strong>
+              <strong id={viewerDescriptionId}>{t.image} {viewing + 1}</strong>
               <span>{t.verified}</span>
               <span className={styles.arrowsHint}>{t.hintKeys}</span>
             </footer>
