@@ -12,6 +12,8 @@ export const issue215ApiPostgresFiles = Object.freeze([
   "issue215-recovery-real-s3.integration.test.ts",
   "issue215-recovery.integration.test.ts",
   "issue215-staff-credential-races.test.ts",
+  "issue309-photo-grant-race.integration.test.ts",
+  "issue309-photo-viewer.integration.test.ts",
 ]);
 export const issue215PostgresFiles = Object.freeze([
   "condition-photo-p1-audit-availability.integration.test.ts",

@@ -27,7 +27,7 @@ const valid = {
   VAYLET_TEST_RUN_ID: "owned-test-run",
 };
 
-test("#292, #283, #284 and #285 exact API tests alone enter the protected Issue215 PostgreSQL project", () => {
+test("reviewed #215 and #309 exact API tests alone enter the protected Issue215 PostgreSQL project", () => {
   assert.deepEqual(issue215ApiPostgresFiles, [
     "issue215-policy-recovery.test.ts",
     "issue215-real-http-integration.test.ts",
@@ -36,6 +36,8 @@ test("#292, #283, #284 and #285 exact API tests alone enter the protected Issue2
     "issue215-recovery-real-s3.integration.test.ts",
     "issue215-recovery.integration.test.ts",
     "issue215-staff-credential-races.test.ts",
+    "issue309-photo-grant-race.integration.test.ts",
+    "issue309-photo-viewer.integration.test.ts",
   ]);
   const apiRoot = fileURLToPath(new URL("../../apps/api/test/", import.meta.url));
   const classified = classifyPackageTests({ packageKind: "api", rootDir: apiRoot });
