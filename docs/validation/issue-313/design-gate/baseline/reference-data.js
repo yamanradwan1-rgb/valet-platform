@@ -1,0 +1,38 @@
+window.ISSUE313_ANALYTICS_BASELINE = {
+  "fixtureId": "issue-313-analytics-frozen-synthetic-v1",
+  "sourceSha": "459e9c42dfff5b2aeb11ee9165a7d1a4338a7783",
+  "synthetic": true,
+  "scope": { "kind": "LOCATION", "organization": "Amman Valet Services", "location": "Downtown Gate", "timezone": "Asia/Amman" },
+  "period": { "from": "2026-10-15", "to": "2026-10-21", "preset": "7" },
+  "kpis": {
+    "carsHandled": { "value": 289, "perActiveEmployee": 28.9, "activeEmployees": 10, "handoffsMissingAttribution": 4 },
+    "retrievalWait": { "averageSeconds": "252.000", "sampleCount": 215, "contributingLocationCount": null },
+    "slaCompliance": { "percentage": 93, "numerator": 200, "denominator": 215, "missingTargets": 8, "invalidIntervals": 2 },
+    "incidents": { "incidentCount": 3, "per1000": "10.380", "severityCounts": { "LOW": 2, "MEDIUM": 1 }, "keyExceptions": 1 }
+  },
+  "activity": [
+    { "date": "2026-10-15", "handledCount": 32 },
+    { "date": "2026-10-16", "handledCount": 47 },
+    { "date": "2026-10-17", "handledCount": 44 },
+    { "date": "2026-10-18", "handledCount": 38 },
+    { "date": "2026-10-19", "handledCount": 36 },
+    { "date": "2026-10-20", "handledCount": 48 },
+    { "date": "2026-10-21", "handledCount": 44 }
+  ],
+  "durations": [
+    { "key": "checkInTime", "averageSeconds": "93.000", "sampleCount": 289, "contributingLocationCount": null },
+    { "key": "parkingTime", "averageSeconds": "187.000", "sampleCount": 263, "contributingLocationCount": null },
+    { "key": "retrievalWait", "averageSeconds": "252.000", "sampleCount": 215, "contributingLocationCount": null },
+    { "key": "retrievalStartLatencyAuxiliary", "averageSeconds": "75.000", "sampleCount": 215, "contributingLocationCount": null },
+    { "key": "handoffTime", "averageSeconds": "112.000", "sampleCount": 209, "contributingLocationCount": null }
+  ],
+  "source": { "financialCurrencies": ["JOD"], "handoffAttributedCount": 285, "employeeEvidenceCount": 10, "mode": "LOCATION" },
+  "labels": {
+    "en": {
+      "title": "Analytics", "subtitle": "Visualize your operational performance.", "organization": "Amman Valet Services", "location": "Downtown Gate", "carsHandled": "Cars Handled", "retrievalWait": "Avg. Retrieval Wait", "slaCompliance": "SLA Compliance", "incidents": "Incidents", "viewEvidence": "View evidence", "vehicleActivity": "Vehicle Activity", "durationComparison": "Duration Comparison", "chartData": "View chart data", "sourceEvidence": "Analytics source evidence", "chartDate": "Date", "chartCars": "Cars handled", "chartMetric": "Duration metric", "chartAverage": "Average seconds", "chartSamples": "Sample count", "chartDisplay": "Duration", "chartLocations": "Contributing Locations", "chartAverageShort": "Average seconds", "timezone": "Source timezone", "period.note": "Based on Location calendar timezone", "period.today": "Today", "period.two": "2D", "period.three": "3D", "period.seven": "7D", "period.fourteen": "14D", "period.thirty": "30D", "period.custom": "Custom", "nav.overview": "Overview", "nav.live": "Live Operations", "nav.vehicles": "Vehicles", "nav.tasks": "Tasks", "nav.employees": "Employees & Shifts", "nav.locations": "Locations", "nav.maps": "Maps & Zones", "nav.keys": "Keys & Spots", "nav.payments": "Payments", "nav.incidents": "Incidents", "nav.contacts": "Visit Contacts", "nav.analytics": "Analytics", "nav.reports": "Reports", "nav.policies": "Policies & Settings", "nav.roles": "Roles & Permissions", "nav.branding": "Branding", "nav.billing": "Billing & Subscription", "nav.audit": "Management Audit", "nav.security": "Security", "nav.help": "Help", "nav.collapse": "Collapse navigation", "carsEvidence": "Cars per active employee", "missingHandoffs": "handoffs missing attribution", "slaEvidence": "SLA evidence", "missingTargets": "missing targets", "invalidIntervals": "invalid/missing intervals", "incidentsPer1000": "Incidents per 1000", "keyExceptions": "Key Exceptions", "retrievalSamples": "samples", "retrievalChartAverage": "Average seconds", "sourceHandoff": "attributed handoffs", "sourceEmployees": "employee evidence", "checkInTime": "Check-in Time", "parkingTime": "Parking Time", "retrievalStartLatencyAuxiliary": "Retrieval Start Latency (Auxiliary)", "handoffTime": "Handoff Time", "checkInShort": "Check-in", "parkingShort": "Parking", "retrievalShort": "Retrieval", "retrievalStartShort": "Start aux.", "handoffShort": "Handoff", "unavailable": "Unavailable"
+    },
+    "ar": {
+      "title": "التحليلات", "subtitle": "اعرض أداء العمليات بالبيانات الفعلية.", "organization": "خدمات عمّان للصف", "location": "بوابة وسط البلد", "carsHandled": "السيارات المُنجزة", "retrievalWait": "متوسط انتظار الاسترجاع", "slaCompliance": "الالتزام باتفاقية الخدمة", "incidents": "الحوادث", "viewEvidence": "عرض الأدلة", "vehicleActivity": "نشاط المركبات", "durationComparison": "مقارنة المدد", "chartData": "عرض بيانات الرسم", "sourceEvidence": "أدلة مصدر التحليلات", "chartDate": "التاريخ", "chartCars": "السيارات المُنجزة", "chartMetric": "مقياس المدة", "chartAverage": "متوسط الثواني", "chartSamples": "عدد العينات", "chartDisplay": "المدة", "chartLocations": "المواقع المساهمة", "chartAverageShort": "متوسط الثواني", "timezone": "المنطقة الزمنية للمصدر", "period.note": "حسب المنطقة الزمنية لتقويم الموقع", "period.today": "اليوم", "period.two": "٢ي", "period.three": "٣ي", "period.seven": "٧ي", "period.fourteen": "١٤ي", "period.thirty": "٣٠ي", "period.custom": "مخصص", "nav.overview": "نظرة عامة", "nav.live": "العمليات المباشرة", "nav.vehicles": "المركبات", "nav.tasks": "المهام", "nav.employees": "الموظفون والورديات", "nav.locations": "المواقع", "nav.maps": "الخرائط والمناطق", "nav.keys": "المفاتيح ومواقف السيارات", "nav.payments": "المدفوعات", "nav.incidents": "الحوادث", "nav.contacts": "جهات اتصال الزيارات", "nav.analytics": "التحليلات", "nav.reports": "التقارير", "nav.policies": "السياسات والإعدادات", "nav.roles": "الأدوار والصلاحيات", "nav.branding": "الهوية البصرية", "nav.billing": "الاشتراك", "nav.audit": "تدقيق الإدارة", "nav.security": "الأمان", "nav.help": "المساعدة", "nav.collapse": "طي القائمة", "carsEvidence": "السيارات لكل موظف نشط", "missingHandoffs": "عمليات تسليم بلا إسناد", "slaEvidence": "دليل اتفاقية الخدمة", "missingTargets": "أهداف مفقودة", "invalidIntervals": "فترات مفقودة/غير صالحة", "incidentsPer1000": "الحوادث لكل 1000", "keyExceptions": "استثناءات المفاتيح", "retrievalSamples": "عينات", "retrievalChartAverage": "متوسط الثواني", "sourceHandoff": "عمليات تسليم مسندة", "sourceEmployees": "دليل الموظفين", "checkInTime": "مدة تسجيل الدخول", "parkingTime": "مدة الاصطفاف", "retrievalStartLatencyAuxiliary": "زمن بدء الاسترجاع (مساعد)", "handoffTime": "مدة التسليم", "checkInShort": "الدخول", "parkingShort": "الاصطفاف", "retrievalShort": "الاسترجاع", "retrievalStartShort": "بدء مساعد", "handoffShort": "التسليم", "unavailable": "غير متاح"
+    }
+  }
+};

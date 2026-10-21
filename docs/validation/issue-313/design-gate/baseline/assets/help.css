@@ -1,0 +1,17 @@
+.headingRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.headingRow > h1 {
+  min-width: 0;
+}
+
+.inlineHelp {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-start: 0.5rem;
+  vertical-align: middle;
+}

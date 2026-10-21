@@ -1,0 +1,18 @@
+{
+  "contract": "issue-313-design-gate-frozen-analytics-shell-v1",
+  "sourceCommit": "459e9c42dfff5b2aeb11ee9165a7d1a4338a7783",
+  "sourceFiles": ["apps/dashboard/src/components/shell/dashboard-shell.tsx", "apps/dashboard/src/components/shell/sidebar.tsx", "apps/dashboard/src/components/shell/topbar.tsx", "apps/dashboard/src/styles/shell.css", "apps/dashboard/src/styles/shell-controls.css", "apps/dashboard/src/app/globals.css", "apps/dashboard/src/features/intelligence/analytics-page.tsx", "apps/dashboard/src/features/intelligence/analytics-cards.tsx", "apps/dashboard/src/features/intelligence/analytics.module.css", "apps/dashboard/src/features/intelligence/analytics-activity-chart.tsx", "apps/dashboard/src/features/intelligence/analytics-secondary-chart.tsx", "apps/dashboard/src/features/intelligence/dashboard-period-control.tsx"],
+  "baselineHtml": "baseline/current-analytics.html",
+  "insertionMarker": "<!-- ISSUE313_FEEDBACK_SECTION -->",
+  "insertionParent": "[data-testid=md05-analytics-page]",
+  "insertAfter": "[data-testid=analytics-card-grid]",
+  "insertBefore": "[data-testid=analytics-chart-grid]",
+  "unchangeable": [".shell", ".sidebar", ".topbar", ".content", ".content-inner", ".header", ".headerActions", "#frozen-kpi-grid", "#frozen-chart-grid"],
+  "geometryFromSource": {
+    "shell": { "viewportHeight": "100vh", "sidebarPx": 260, "collapsedSidebarPx": 80, "topbarPx": 64, "contentPaddingPxDesktop": 32, "contentPaddingPxNarrow": 20, "contentMaxWidthPx": 1600, "sidebarHiddenAtOrBelowPx": 820 },
+    "analytics": { "verticalGapPx": 24, "headerStackUntilPx": 639, "kpiColumns": { "default": 1, "minWidth640": 2, "minWidth1024": 4 }, "kpiGapPx": 16, "kpiPanelPaddingPx": 20, "kpiPanelRadiusPx": 12, "metricValueFontPx": 30, "metricIconPx": 44, "metricIconSvgPx": 20, "chartColumns": { "default": 1, "minWidth1024": 2 }, "chartGapPx": 24, "chartPanelPaddingPx": 20, "chartSvgViewBox": "0 0 500 260", "chartSvgHeightPx": 260, "chartPlotPadding": { "left": 40, "right": 20, "top": 20, "bottom": 30 } },
+    "palette": { "light": { "shell": "#f8fafc", "sidebar": "#0b132b", "panel": "#ffffff", "panelBorder": "#e2e8f0", "metricText": "#0f172a", "muted": "#64748b", "accent": "#1e60f0", "positiveIconBackground": "#ecfdf5", "incidentIconBackground": "#fffbeb" }, "dark": { "shell": "#070c18", "sidebar": "#0b132b", "panel": "#0d152f", "panelBorder": "#172346", "metricText": "#ffffff", "muted": "#94a3b8", "accent": "#1e60f0" } }
+  },
+  "freezeChecks": ["The source HTML outside the marker remains byte-identical across design options", "The original four KPI cards retain order, evidence affordances, display and geometry", "Vehicle Activity remains bar chart; Duration Comparison remains curved line chart", "Selected period appears in each existing chart header", "All options use exactly reference-data.json synthetic fixture, do not change original existing KPI values", "RTL/LTR, light/dark, width 320/390/768/1440; mobile sidebar hidden at <=820 and header card breakpoint at 640"],
+  "baselineLimitations": ["Source-authentic static rendering based on TSX/CSS, not a screenshot obtained from an authenticated live Dashboard", "Fixture is explicitly synthetic; these values are demonstration values and not live customer/tenant statistics", "Sidebar navigation visibility depends on actual role/access requirements; reference deliberately shows broad Company Admin capability", "SVG and button styling reproduce source geometry and visual intent; icons/sidebar states are approximations of Lucide and live React functionality"]
+}
