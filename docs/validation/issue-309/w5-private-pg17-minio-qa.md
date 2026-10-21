@@ -1,6 +1,8 @@
 # Issue #309 W5 — persisted PostgreSQL 17 + private versioned MinIO QA
 
-Date: 2026-10-21. Verdict: **BLOCKED / NO-GO for actual photo byte delivery**.
+Date: 2026-10-21. Initial run **BLOCKED** (23514/42501). Final reviewed
+candidate **7/7 #309 + 6/6 #215 PASS** on isolated live PG17 + MinIO below.
+Production/shared database activation is separately gated.
 
 ## Scope and exact source
 
@@ -120,7 +122,7 @@ Cleanup must use `node scripts/test-harness/issue215-worker9-pg-fixture.mjs stop
 and `node scripts/issue215-local-s3/stop.mjs` from **this W5 worktree**.
 Other teams' containers, shared databases, ports and production were untouched.
 
-## W1/W2 migration acceptance rerun (prepared; pending reviewed commits)
+## Reviewed W8/W9 migration acceptance rerun
 
 Run `scripts/test-harness/run-issue309-private-qa.ps1` from **this isolated
 W5 worktree**, after bringing the reviewed W1 scope and W2 SECURITY DEFINER
@@ -141,8 +143,71 @@ each **newly created, disposable test database** before provisioning an actual
 restricted runtime principal. Thus W1/W2 migrations are applied via the real
 Prisma deploy order, with no migration of any shared database.
 
-Expected live qualification is **7/7 executed #309** viewer/grant-race cases
-and **6/6 executed #215** original real-upload cases, zero skips, with
-`db=0 roles=0 children=0` cleanup and verified fixture removal. The historical
-7/7 #309 failure above remains the last observed result until that rerun passes;
-the new runner is only setup/teardown automation, not acceptance evidence.
+Final live qualification requires **7/7 executed #309** viewer/grant-race
+cases and **6/6 executed #215** original real-upload cases, zero skips,
+verified database/role cleanup and fixture removal. The historical #309
+failure above is preserved as a pre-migration finding; final evidence follows.
+
+## Final live acceptance — Prime 4b351b1c, 2026-10-21
+
+The completed run used a **separate detached QA worktree** at
+`tmp/issue-309-w11-pg17-qa`, exactly Prime source
+`4b351b1ca3afc58d0ed538558af06159aec862b4`, with **only** the test runner
+serialization commit `cfc51f29c94a5c84c888b7b33697efbad670312e`
+(QA cherry-pick `f46d349d632d66f19fbd00339d6390a7fefa0e4e`).
+Every suite independently used a freshly migrated disposable PostgreSQL 17
+database and newly provisioned restricted runtime role. The private MinIO
+bucket had versioning enabled. Both approved migrations were applied via
+Prisma to each new database:
+
+- `20261021009800_issue309_photo_view_anti_abuse_scope`
+- `20261021009900_issue_309_management_photo_evidence_lock`
+
+Command (run from the detached QA worktree root):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-harness/run-issue309-private-qa.ps1 `
+  -ScopeMigration 20261021009800_issue309_photo_view_anti_abuse_scope `
+  -DefinerMigration 20261021009900_issue_309_management_photo_evidence_lock
+```
+
+| Actual live HTTP suite | Results |
+| --- | --- |
+| `issue309-photo-viewer.integration.test.ts` | **5/5 PASS**, zero skips |
+| `issue309-photo-grant-race.integration.test.ts` | **2/2 PASS**, zero skips |
+| `issue215-real-http-integration.test.ts` | **6/6 PASS**, zero skips |
+
+The #309 viewer cases verified real JPEG download with persisted exact
+version/byte count/SHA256, cross-tenant/wrong-ID denial, absent/revoked
+Location grant denial, concurrent readers, and availability downgrade.
+Both revoker-first tests proved that committed grant removal prevents real
+HTTP manifest and JPEG byte disclosure after waiting at the advisory fence.
+The original #215 suite verified actual JPEG upload, qualification and
+check-in policy on the same isolated provider and restricted database.
+
+**Exit status `0`.** All three protected harness teardowns reported
+`db=0 roles=1 children=0`: `roles=1` means **one orphaned task role was
+dropped and verified absent** in `owned-cleanup.mjs` (the output field is
+the number of successfully cleaned resources), not a remaining role.
+The ownership-checked stop handlers then confirmed
+`Issue #215 MinIO container and in-memory object data removed` and
+`Worker9 isolated PG fixture STOPPED and removed`. Subsequent `docker ps -aq`
+queries with both fixture ownership labels returned no containers, all three
+PG/MinIO runtime manifests were absent, and the QA git worktree was clean.
+
+Local raw log (ignored, no credentials displayed):
+`tmp/issue-309-w11-pg17-qa/tmp/issue-309-w11-proof/acceptance-run-sequential.log`;
+7,224 bytes; SHA256
+`e7129686627c0182348d99be79662902219566f72410d6eb6aed3f771bc4aba3`.
+
+The preceding parallel run was **not** accepted: 5 viewer cases passed, but
+two grant-race cases were skipped because Windows Prisma engine extraction
+hit `EPERM` renaming `schema-engine-windows.exe` during simultaneous
+`prisma migrate deploy`; the original #215 remained 6/6 PASS. The narrow
+W5 runner commit serializes the two #309 suite invocations, which eliminated
+this nondeterministic test setup collision in the successful final run.
+
+The HTTP fixture uses test-scoped proposed Location Manager authorization.
+These results verify the database and HTTP read path under that role but
+are not approval for production role activation or Company Admin MFA policy;
+those have separate authorization tests and release gates.
