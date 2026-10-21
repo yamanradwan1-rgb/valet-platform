@@ -104,7 +104,7 @@
   function coverage(container, data, tr, ui, lang, present, available) {
     container.replaceChildren();
     append(container, "p", "in-overline", ui.perspective);
-    append(container, "h3", "in-panel-title", ui.coverageTitle);
+    append(container, "h3", "in-panel-title", ui.coverageTitle).id = "feedback-coverage-heading";
     const ratio = append(container, "div", "in-coverage-rate", available ? fraction(data.participation, lang) : "—");
     ratio.setAttribute("aria-label", `${tr.participation}: ${ratio.textContent}`);
     append(container, "p", "in-muted", tr.coverage);
@@ -161,9 +161,11 @@
       append(completion, "bdi", "in-date", record.completedAt).setAttribute("dir", "ltr");
       const submitted = append(dates, "span", "", `${ui.submittedLabel} `);
       append(submitted, "bdi", "in-date", record.ratedAt).setAttribute("dir", "ltr");
-      const rating = append(item, "span", "in-recent-stars", starGlyph(record.rating));
-      rating.setAttribute("aria-label", `${record.rating} ${record.rating === 1 ? tr.star : tr.stars}`);
+      const rating = append(item, "span", "in-recent-stars");
+      rating.setAttribute("role", "img");
+      rating.setAttribute("aria-label", `${statNumber(record.rating, lang)} ${record.rating === 1 ? tr.star : tr.stars}`);
       rating.setAttribute("dir", "ltr");
+      append(rating, "span", "", starGlyph(record.rating)).setAttribute("aria-hidden", "true");
     }
   }
 

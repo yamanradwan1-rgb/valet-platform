@@ -4,7 +4,7 @@
   --in-bg: #ffffff;
   --in-soft: #f6f9fe;
   --in-text: #16253f;
-  --in-muted: #66758e;
+  --in-muted: #586781;
   --in-primary: #1e60f0;
   --in-bar-track: #eaf0f9;
   --in-positive: #1267c9;
@@ -229,6 +229,10 @@
   --in-primary: #7faeff;
   --in-bar-track: #33465f;
   --in-positive: #5798ff;
+}
+[data-feedback-theme="dark"][data-testid="customer-feedback-section"] .feedback-demo-label {
+  color: #b6d2ff;
+  background: rgba(107, 159, 255, .16);
 }
 [data-feedback-theme="dark"][data-testid="customer-feedback-section"] .in-state[data-status="ready"] {background: #173d36; color: #7fdfb5; border-color: #24644d}
 [data-feedback-theme="dark"][data-testid="customer-feedback-section"] .in-state[data-status="error"],
