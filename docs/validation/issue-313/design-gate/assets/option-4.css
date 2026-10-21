@@ -161,6 +161,7 @@
 [data-testid="customer-feedback-section"] [hidden] {display: none!important}
 [data-testid="customer-feedback-section"] .f4-state button {background: var(--f4-blue);border: 0;color: #fff;cursor: pointer;min-height: 38px;padding: 9px 15px;border-radius: 8px;font-size: 12px;font-weight: 700}
 :root[data-theme="dark"] [data-testid="customer-feedback-section"] {
+  --f4-blue: #83b6ff;
   --f4-surface: #0d152f;
   --f4-muted: #94a3b8;
   --f4-border: #263459;
@@ -168,6 +169,7 @@
   --f4-ink: #f8fafc;
   --f4-track: #1a2a4b;
 }
+:root[data-theme="dark"] [data-testid="customer-feedback-section"] .f4-state button {color: #081020}
 :root[data-theme="dark"] [data-testid="customer-feedback-section"] .feedback-demo-tools {border-color: #334666;background: #101d39}
 :root[data-theme="dark"] [data-testid="customer-feedback-section"] .feedback-demo-label {color: #a2bcff;background: #162f60}
 @media (max-width: 1000px) {

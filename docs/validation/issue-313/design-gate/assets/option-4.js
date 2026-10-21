@@ -161,7 +161,11 @@
       "★".repeat(Math.round(data.average)) + "☆".repeat(5 - Math.round(data.average));
     const track = get("participation-track");
     track.setAttribute("aria-label", tr.participation);
-    track.setAttribute("aria-valuenow", data.participation === null ? "0" : String(Math.round(data.participation * 100)));
+    if (data.participation === null) {
+      track.removeAttribute("aria-valuenow");
+    } else {
+      track.setAttribute("aria-valuenow", String(Math.round(data.participation * 100)));
+    }
     track.setAttribute("aria-valuetext", data.participation === null ? tr.unavailable : pct(data.participation));
     get("participation-fill").style.width = data.participation === null ? "0%" : `${data.participation * 100}%`;
     drawDistribution(data, tr, lang);
