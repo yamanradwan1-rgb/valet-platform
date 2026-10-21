@@ -63,6 +63,7 @@
 
   function ratingNode(rating, s) {
     const wrapper = element("span", "fb3-rating");
+    wrapper.setAttribute("role", "img");
     wrapper.setAttribute("aria-label", s.rating + ": " + rating + " " + s.outOf);
     const stars = element("span", "fb3-rating-stars", "★".repeat(rating) + "☆".repeat(5 - rating));
     stars.setAttribute("aria-hidden", "true");
@@ -138,18 +139,26 @@
 
   function drawDistribution(data, tr, canRead) {
     const host = get('[data-testid="feedback-distribution"]');
+    host.setAttribute("role", "list");
+    host.setAttribute("aria-label", tr.distribution);
     const rows = [];
     for (let star = 5; star >= 1; star--) {
       const count = canRead ? data.counts[5 - star] : 0;
       const row = element("div", "fb3-distribution-row");
-      row.setAttribute("aria-label", star + " " + (star === 1 ? tr.star : tr.stars) + ": " + (canRead ? count : tr.unavailable));
-      row.append(element("span", "", star + "★"));
+      row.setAttribute("role", "listitem");
+      row.setAttribute("aria-label", star + " " + (star === 1 ? tr.star : tr.stars) + ": "
+        + (canRead ? count + " " + tr.visits : tr.unavailable));
+      const key = element("span", "", star + "★");
+      key.setAttribute("aria-hidden", "true");
+      row.append(key);
       const track = element("span", "fb3-dist-track");
       track.setAttribute("aria-hidden", "true");
       const fill = element("span");
       fill.style.width = (data.rated && canRead ? (count / data.rated) * 100 : 0) + "%";
       track.append(fill);
-      row.append(track, element("strong", "", canRead ? count : "—"));
+      const countValue = element("strong", "", canRead ? count : "—");
+      countValue.setAttribute("aria-hidden", "true");
+      row.append(track, countValue);
       rows.push(row);
     }
     host.replaceChildren(...rows);
@@ -178,9 +187,14 @@
   function render(data, tr, language) {
     const s = strings[language];
     const canRead = !["loading", "error", "denied"].includes(data.status);
+    const periodKey = { "2026-08": "aug", "2026-09": "sep", "2026-10": "oct" }[data.period];
+    const scope = data.role === "manager" ? tr.manager
+      : data.location === "all" ? tr.company
+      : (language === "ar" ? "مسؤول الشركة" : "Company Admin") + " · " + tr[data.location];
     setText("#fb3-kicker", s.kicker);
     setText("#fb3-heading", tr.heading);
     setText("#fb3-description", s.subtitle);
+    setText("#fb3-context", scope + " · " + (tr[periodKey] || data.period));
     setText("#fb3-demo-label", tr.demo);
     setText("#fb3-record-label", s.history);
     setText("#fb3-list-title", tr.recent);
