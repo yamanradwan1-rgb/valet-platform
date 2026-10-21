@@ -119,3 +119,30 @@ Only W5 containers own `vaylet.owner=issue215-worker9-final` and
 Cleanup must use `node scripts/test-harness/issue215-worker9-pg-fixture.mjs stop`
 and `node scripts/issue215-local-s3/stop.mjs` from **this W5 worktree**.
 Other teams' containers, shared databases, ports and production were untouched.
+
+## W1/W2 migration acceptance rerun (prepared; pending reviewed commits)
+
+Run `scripts/test-harness/run-issue309-private-qa.ps1` from **this isolated
+W5 worktree**, after bringing the reviewed W1 scope and W2 SECURITY DEFINER
+migration commits into the test candidate. Pass their exact directory basenames:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-harness/run-issue309-private-qa.ps1 `
+  -ScopeMigration 'ACTUAL_W1_MIGRATION_DIRECTORY' `
+  -DefinerMigration 'ACTUAL_W2_MIGRATION_DIRECTORY'
+```
+
+The runner verifies both migrations exist before starting any container;
+refuses to take over existing fixtures; starts the pinned Docker PG17 and
+versioned MinIO instances; passes verified private ownership manifests to the
+existing protected `run-owned-tests.mjs` harness; and always attempts scoped
+teardown. The #215 database fixture executes `prisma migrate deploy` against
+each **newly created, disposable test database** before provisioning an actual
+restricted runtime principal. Thus W1/W2 migrations are applied via the real
+Prisma deploy order, with no migration of any shared database.
+
+Expected live qualification is **7/7 executed #309** viewer/grant-race cases
+and **6/6 executed #215** original real-upload cases, zero skips, with
+`db=0 roles=0 children=0` cleanup and verified fixture removal. The historical
+7/7 #309 failure above remains the last observed result until that rerun passes;
+the new runner is only setup/teardown automation, not acceptance evidence.
