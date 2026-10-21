@@ -215,15 +215,20 @@ describe("#309 actual Next Dashboard -> protected HTTP -> persisted Check-In JPE
         `/v1/staff/dashboard/locations/${locationId}/sessions/${secondVisitId}/condition-photos`,
         currentPhotoAuthorization,
       );
-      // The explicit development allowlist also fences one exact *visit*.
-      expect([403, 404]).toContain(second.status);
+      // A different visit in the same authorized Location must be readable,
+      // but must never inherit the saved JPEGs of this vehicle's first visit.
+      expect(second.status).toBe(200);
+      expect(JSON.parse(second.body.toString("utf8"))).toMatchObject({ items: [] });
       await page.goto(`${next.origin}/vehicles`);
       const visitRows = page.locator("tbody tr").filter({ hasText: "Test alternate" });
       await visitRows.first().waitFor();
       const differentVisitResponse = page.waitForResponse((response: { url(): string }) =>
         response.url().includes(`/sessions/${otherActiveVisitId}/condition-photos`));
       await visitRows.first().getByRole("button", { name: /Details/ }).click();
-      expect([401, 403, 404]).toContain((await differentVisitResponse).status());
+      const otherManifest = await differentVisitResponse;
+      expect(otherManifest.status()).toBe(200);
+      expect(await otherManifest.json()).toMatchObject({ items: [] });
+      await page.getByText("No verified check-in photos").waitFor();
       expect(await page.locator('[class*="photoSection"] img[src^="blob:"]').count()).toBe(0);
       await page.keyboard.press("Escape");
       await page.goto(`${next.origin}/vehicles`);
