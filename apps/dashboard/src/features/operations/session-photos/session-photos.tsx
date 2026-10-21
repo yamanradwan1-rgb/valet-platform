@@ -192,7 +192,7 @@ export function SessionPhotos({ api, locationId, sessionId, locale, timezone, sc
           </div>
         ) : (
           <div className={styles.photoMessage} role={state.phase === "error" ? "alert" : "status"} aria-busy={state.phase === "loading"}>
-            <span className={styles.stateGlyph} aria-hidden="true">{state.phase === "loading" ? "◌" : state.phase === "error" ? "!" : "⊘"}</span>
+            <span className={styles.stateGlyph} aria-hidden="true">{state.phase === "loading" ? "◌" : state.phase === "error" ? "!" : state.phase === "empty" ? "▧" : state.phase === "denied" ? "⊗" : "⊘"}</span>
             <strong>{stateTitle}</strong><p>{description}</p>
             {state.phase === "error" ? <button onClick={() => setRevision((x) => x + 1)} type="button">{t.retry}</button> : null}
           </div>
