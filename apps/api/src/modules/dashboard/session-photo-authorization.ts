@@ -3,7 +3,7 @@ import type { StaffSessionContext } from "../auth/staff-session-context";
 import type { DashboardLocationScope } from "./dashboard-location-authorization";
 import { authorizeLiveHistoryLocation } from "./live-history-read-authorization";
 
-type CandidatePhotoViewerRole = "ORG_ADMIN" | "LOCATION_MANAGER";
+type AcceptedPhotoViewerRole = "ORG_ADMIN" | "LOCATION_MANAGER";
 
 export interface DashboardSessionPhotoViewInput {
   readonly authenticatedUserId: string;
@@ -13,16 +13,28 @@ export interface DashboardSessionPhotoViewInput {
 }
 
 /**
- * Not an accepted Management capability. This contract exists solely to
- * exercise proposed role decisions in isolated unit tests.
+ * The owner accepted the Company Admin/Location Manager role matrix for
+ * #309, subject to independent security, IAM and rollout acceptance.
+ * This policy injection exists solely for isolated tests of that decision.
  *
  * NEVER import the injected-policy helper from an HTTP handler or worker.
  * The public production entry below has no injection argument and always
- * denies until a separate owner-accepted photo VIEW decision is implemented.
+ * denies until the independent IAM/rollout gate is explicitly accepted.
  */
 export interface SessionPhotoViewTestPolicy {
-  readonly proposedRoles: readonly CandidatePhotoViewerRole[];
+  readonly proposedRoles: readonly AcceptedPhotoViewerRole[];
 }
+
+/**
+ * Test-only role matrix accepted by the owner in Issue #309 comment
+ * 6324638519. It does not activate VIEW through the production entry point.
+ * Company Admin still requires current MFA; Location Manager still requires
+ * the active, explicit Location grant checked by Live History authorization.
+ */
+export const ACCEPTED_SESSION_PHOTO_VIEW_TEST_POLICY: SessionPhotoViewTestPolicy =
+  Object.freeze({
+    proposedRoles: Object.freeze(["ORG_ADMIN", "LOCATION_MANAGER"] as const),
+  });
 
 const DENY_UNAPPROVED_PHOTO_VIEW: SessionPhotoViewTestPolicy = Object.freeze({
   proposedRoles: Object.freeze([]),
@@ -32,8 +44,8 @@ const DENY_UNAPPROVED_PHOTO_VIEW: SessionPhotoViewTestPolicy = Object.freeze({
  * #309 owner decision gate: existing Dashboard, Live History, Management
  * Audit and employee Check-In permissions NEVER imply photo byte VIEW.
  *
- * A future accepted decision must explicitly replace this default policy,
- * revise and independently review the API integration and negative tests.
+ * The accepted role matrix has NOT passed the independent IAM/release gate;
+ * a future approved rollout must independently change this production gate.
  */
 export async function authorizeManagementSessionPhotoView(
   transaction: PostgresTransaction,
@@ -50,9 +62,9 @@ export async function authorizeManagementSessionPhotoView(
  * @internal TESTS ONLY. No default export, environment override or public
  * feature flag grants this capability in production.
  *
- * This examines a hypothetical approved role while retaining the *current*
- * Staff session, MFA, subscription, Organization/Location/membership/grant
- * revocation fences provided by the DEC-102 Live History read boundary.
+ * This exercises an owner-approved role in isolated tests while retaining
+ * current Staff session, MFA, subscription, Organization/Location/membership
+ * and grant revocation fences provided by the Live History read boundary.
  */
 export async function authorizeSessionPhotoViewWithTestPolicy(
   transaction: PostgresTransaction,
@@ -94,7 +106,7 @@ export async function authorizeSessionPhotoViewWithTestPolicy(
   // Re-check the actual locked membership role rather than trusting a
   // request-supplied role or a stale management/UI navigation capability.
   const membership = await transaction.query<{
-    readonly role: CandidatePhotoViewerRole;
+    readonly role: AcceptedPhotoViewerRole;
   }>(
     `SELECT membership.role::text AS role
      FROM organization_memberships AS membership

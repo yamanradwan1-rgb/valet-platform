@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { PostgresTransaction } from "../src/common/database/postgres";
+import { MfaStepUpRequiredError } from "../src/modules/auth/mfa/mfa-errors";
 import {
+  ACCEPTED_SESSION_PHOTO_VIEW_TEST_POLICY,
   authorizeManagementSessionPhotoView,
   authorizeSessionPhotoViewWithTestPolicy,
   type DashboardSessionPhotoViewInput,
-  type SessionPhotoViewTestPolicy,
 } from "../src/modules/dashboard/session-photo-authorization";
 import { authorizeLiveHistoryLocation } from "../src/modules/dashboard/live-history-read-authorization";
 
@@ -29,31 +30,33 @@ const input: DashboardSessionPhotoViewInput = {
   },
 };
 
-const proposed: SessionPhotoViewTestPolicy = {
-  proposedRoles: ["ORG_ADMIN", "LOCATION_MANAGER"],
-};
+const approved = ACCEPTED_SESSION_PHOTO_VIEW_TEST_POLICY;
 
 function fakeTransaction(options: {
   readonly isolation?: boolean;
   readonly role?: string | null;
   readonly sessionId?: string | null;
+  readonly duplicateMembership?: boolean;
+  readonly duplicateSession?: boolean;
 } = {}) {
-  const query = vi.fn(async (sql: string) => {
+  const query = vi.fn(async (sql: string, params?: readonly unknown[]) => {
     if (sql.includes("transaction_isolation")) {
       return { rowCount: 1, rows: [{ readCommitted: options.isolation ?? true }] };
     }
     if (sql.includes("FROM organization_memberships AS membership")) {
+      if (params?.length !== 3) throw new Error("Unbound membership scope");
       const role = options.role === undefined ? "ORG_ADMIN" : options.role;
       return {
-        rowCount: role === null ? 0 : 1,
-        rows: role === null ? [] : [{ role }],
+        rowCount: role === null ? 0 : options.duplicateMembership ? 2 : 1,
+        rows: role === null ? [] : options.duplicateMembership ? [{ role }, { role }] : [{ role }],
       };
     }
     if (sql.includes("FROM valet_sessions AS session")) {
+      if (params?.length !== 3) throw new Error("Unbound exact session scope");
       const sessionId = options.sessionId === undefined ? "visit-A" : options.sessionId;
       return {
-        rowCount: sessionId === null ? 0 : 1,
-        rows: sessionId === null ? [] : [{ sessionId }],
+        rowCount: sessionId === null ? 0 : options.duplicateSession ? 2 : 1,
+        rows: sessionId === null ? [] : options.duplicateSession ? [{ sessionId }, { sessionId }] : [{ sessionId }],
       };
     }
     throw new Error("Unexpected authorization query");
@@ -72,6 +75,15 @@ describe("#309 Management photo-view authorization owner gate", () => {
     expect(await authorizeManagementSessionPhotoView(transaction, input)).toBeNull();
     expect(query).not.toHaveBeenCalled();
     expect(authorizeLiveHistoryLocation).not.toHaveBeenCalled();
+  });
+
+  it("keeps accepted roles test-only and immutable without enabling production", async () => {
+    expect(approved.proposedRoles).toEqual(["ORG_ADMIN", "LOCATION_MANAGER"]);
+    expect(Object.isFrozen(approved)).toBe(true);
+    expect(Object.isFrozen(approved.proposedRoles)).toBe(true);
+    const { query, transaction } = fakeTransaction({ role: "LOCATION_MANAGER" });
+    expect(await authorizeManagementSessionPhotoView(transaction, input)).toBeNull();
+    expect(query).not.toHaveBeenCalled();
   });
 
   it("test seam also denies without querying under an empty proposal", async () => {
@@ -95,7 +107,7 @@ describe("#309 Management photo-view authorization owner gate", () => {
   ])("refuses $reason before any DB reads", async ({ changes }) => {
     const { query, transaction } = fakeTransaction();
     expect(await authorizeSessionPhotoViewWithTestPolicy(
-      transaction, { ...input, ...changes }, proposed,
+      transaction, { ...input, ...changes }, approved,
     )).toBeNull();
     expect(query).not.toHaveBeenCalled();
   });
@@ -103,7 +115,7 @@ describe("#309 Management photo-view authorization owner gate", () => {
   it("rejects REPEATABLE READ/SERIALIZABLE-like stale snapshots", async () => {
     const { query, transaction } = fakeTransaction({ isolation: false });
     expect(await authorizeSessionPhotoViewWithTestPolicy(
-      transaction, input, proposed,
+      transaction, input, approved,
     )).toBeNull();
     expect(query).toHaveBeenCalledTimes(1);
     expect(authorizeLiveHistoryLocation).not.toHaveBeenCalled();
@@ -113,8 +125,18 @@ describe("#309 Management photo-view authorization owner gate", () => {
     vi.mocked(authorizeLiveHistoryLocation).mockResolvedValue(null);
     const { query, transaction } = fakeTransaction();
     expect(await authorizeSessionPhotoViewWithTestPolicy(
-      transaction, input, proposed,
+      transaction, input, approved,
     )).toBeNull();
+    expect(query).toHaveBeenCalledTimes(1);
+  });
+
+  it("propagates the current Company Admin MFA failure before photo access", async () => {
+    const mfaDenied = new MfaStepUpRequiredError();
+    vi.mocked(authorizeLiveHistoryLocation).mockRejectedValueOnce(mfaDenied);
+    const { query, transaction } = fakeTransaction({ role: "ORG_ADMIN" });
+    await expect(authorizeSessionPhotoViewWithTestPolicy(
+      transaction, input, approved,
+    )).rejects.toBe(mfaDenied);
     expect(query).toHaveBeenCalledTimes(1);
   });
 
@@ -124,17 +146,17 @@ describe("#309 Management photo-view authorization owner gate", () => {
     });
     const { query, transaction } = fakeTransaction();
     expect(await authorizeSessionPhotoViewWithTestPolicy(
-      transaction, input, proposed,
+      transaction, input, approved,
     )).toBeNull();
     expect(query).toHaveBeenCalledTimes(1);
   });
 
-  it.each(["VALET_SUPERVISOR", "VALET_EMPLOYEE", null])(
+  it.each(["VALET_SUPERVISOR", "VALET_EMPLOYEE", "GUEST", null])(
     "does not inherit upload/audit authority for role %s",
     async (role) => {
       const { query, transaction } = fakeTransaction({ role });
       expect(await authorizeSessionPhotoViewWithTestPolicy(
-        transaction, input, proposed,
+        transaction, input, approved,
       )).toBeNull();
       expect(query).toHaveBeenCalledTimes(2);
     },
@@ -152,18 +174,18 @@ describe("#309 Management photo-view authorization owner gate", () => {
     async (sessionId) => {
       const { query, transaction } = fakeTransaction({ sessionId });
       expect(await authorizeSessionPhotoViewWithTestPolicy(
-        transaction, input, proposed,
+        transaction, input, approved,
       )).toBeNull();
       expect(query).toHaveBeenCalledTimes(3);
     },
   );
 
   it.each(["ORG_ADMIN", "LOCATION_MANAGER"])(
-    "allows only hypothetical approved %s after fenced exact visit read",
+    "allows owner-approved %s only through test injection after fenced exact visit read",
     async (role) => {
       const { query, transaction } = fakeTransaction({ role });
       expect(await authorizeSessionPhotoViewWithTestPolicy(
-        transaction, input, proposed,
+        transaction, input, approved,
       )).toEqual(scope);
       expect(authorizeLiveHistoryLocation).toHaveBeenCalledWith(transaction, {
         authenticatedUserId: input.authenticatedUserId,
@@ -172,6 +194,31 @@ describe("#309 Management photo-view authorization owner gate", () => {
       });
       expect(query).toHaveBeenCalledTimes(3);
       expect(query.mock.calls[2]?.[0]).toContain("FOR SHARE OF session");
+      expect(query.mock.calls[1]?.[1]).toEqual([
+        scope.membershipId, input.authenticatedUserId, scope.organizationId,
+      ]);
+      expect(query.mock.calls[2]?.[1]).toEqual([
+        input.targetSessionId, scope.organizationId, scope.locationId,
+      ]);
     },
   );
+
+  it("requires active locked membership and explicit approved role, not a UI role hint", async () => {
+    const { query, transaction } = fakeTransaction({ role: "ORG_ADMIN" });
+    await authorizeSessionPhotoViewWithTestPolicy(transaction, input, approved);
+    const memberSql = query.mock.calls[1]?.[0] ?? "";
+    expect(memberSql).toContain("membership.status = 'ACTIVE'");
+    expect(memberSql).toContain("membership.role IN ('ORG_ADMIN', 'LOCATION_MANAGER')");
+    expect(memberSql).toContain("FOR SHARE OF membership");
+  });
+
+  it.each([
+    { duplicateMembership: true },
+    { duplicateSession: true },
+  ])("fails closed on ambiguous identity/session rows: %o", async (options) => {
+    const { transaction } = fakeTransaction(options);
+    expect(await authorizeSessionPhotoViewWithTestPolicy(
+      transaction, input, approved,
+    )).toBeNull();
+  });
 });
