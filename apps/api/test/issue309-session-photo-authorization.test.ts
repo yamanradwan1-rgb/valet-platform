@@ -83,17 +83,19 @@ describe("#309 Management photo-view authorization owner gate", () => {
   });
 
   it.each([
-    { authenticatedUserId: "", reason: "missing actor" },
-    { targetLocationId: "", reason: "missing Location" },
-    { targetSessionId: "", reason: "missing exact visit" },
+    { changes: { authenticatedUserId: "" }, reason: "missing actor" },
+    { changes: { targetLocationId: "" }, reason: "missing Location" },
+    { changes: { targetSessionId: "" }, reason: "missing exact visit" },
     {
-      staffSessionContext: { ...input.staffSessionContext, userId: "wrong" },
+      changes: {
+        staffSessionContext: { ...input.staffSessionContext, userId: "wrong" },
+      },
       reason: "unbound Staff session",
     },
-  ])("refuses $reason before any DB reads", async ({ reason: _reason, ...wrong }) => {
+  ])("refuses $reason before any DB reads", async ({ changes }) => {
     const { query, transaction } = fakeTransaction();
     expect(await authorizeSessionPhotoViewWithTestPolicy(
-      transaction, { ...input, ...wrong }, proposed,
+      transaction, { ...input, ...changes }, proposed,
     )).toBeNull();
     expect(query).not.toHaveBeenCalled();
   });
