@@ -116,8 +116,9 @@
       const q=new URLSearchParams({lang:controls.lang.value,theme:controls.theme.value});
       for(const option of previewOptions){
         const src=option.dataset.file+'?'+q.toString();
+        const previewSrc=src+'#customer-feedback';
         const frame=option.querySelector('iframe');
-        if(frame.getAttribute('src')!==src)frame.setAttribute('src',src);
+        if(frame.getAttribute('src')!==previewSrc)frame.setAttribute('src',previewSrc);
         frame.classList.toggle('mobile',controls.viewport.value==='mobile');
         option.querySelector('a.open').href=src;
       }
