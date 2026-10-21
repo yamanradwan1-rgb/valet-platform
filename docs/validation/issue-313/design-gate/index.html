@@ -116,7 +116,11 @@
       const q=new URLSearchParams({lang:controls.lang.value,theme:controls.theme.value});
       for(const option of previewOptions){
         const src=option.dataset.file+'?'+q.toString();
-        const previewSrc=src+'#customer-feedback';
+        // A viewport switch must reload at the feedback anchor: the iframe's
+        // scroll container otherwise resets and shows only frozen KPI cards.
+        const previewQuery=new URLSearchParams(q);
+        previewQuery.set('preview',controls.viewport.value);
+        const previewSrc=option.dataset.file+'?'+previewQuery.toString()+'#customer-feedback';
         const frame=option.querySelector('iframe');
         if(frame.getAttribute('src')!==previewSrc)frame.setAttribute('src',previewSrc);
         frame.classList.toggle('mobile',controls.viewport.value==='mobile');

@@ -19,6 +19,8 @@
     function paint() {
       const language = locale();
       const tr = window.VAYLET313.localeText[language];
+      const activeControl = toolbar.contains(document.activeElement)
+        ? document.activeElement?.dataset?.feedbackControl : null;
       toolbar.replaceChildren();
       for (const [name, options] of controls) {
         const wrapper = document.createElement("label");
@@ -57,6 +59,11 @@
       root.dataset.feedbackLocation = data.location;
       root.dataset.feedbackTheme = isDark() ? "dark" : "light";
       render(data, tr, language);
+      if (activeControl) {
+        const target = toolbar.querySelector(`[data-feedback-control="${activeControl}"]`);
+        const fallback = toolbar.querySelector('[data-feedback-control="role"]');
+        (target?.disabled ? fallback : target)?.focus({ preventScroll: true });
+      }
     }
     const observation = new MutationObserver(() => paint());
     observation.observe(document.documentElement, { attributes: true, attributeFilter: ["lang", "dir", "data-theme"] });

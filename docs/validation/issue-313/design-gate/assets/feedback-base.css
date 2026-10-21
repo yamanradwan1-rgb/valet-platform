@@ -6,14 +6,14 @@
   border:1px dashed #b9c8db;border-radius:10px;background:rgba(148,163,184,.07);
   padding:12px;margin-bottom:16px
 }
-[data-testid="customer-feedback-section"] .feedback-demo-field {min-width:0;display:grid;gap:5px;font-size:11px;font-weight:650;color:var(--analytics-card-label,#64748b)}
+[data-testid="customer-feedback-section"] .feedback-demo-field {min-width:0;display:grid;gap:5px;font-size:11px;font-weight:650;color:var(--analytics-evidence-strong,#334155)}
 [data-testid="customer-feedback-section"] .feedback-demo-field select {
   max-width:100%;min-width:100px;min-height:35px;border:1px solid var(--analytics-control-border,#cbd5e1);
   border-radius:8px;background:var(--analytics-control-bg,#fff);color:var(--analytics-control-text,#334155);
   font:inherit;font-size:12px;padding:6px 9px;cursor:pointer
 }
 [data-testid="customer-feedback-section"] .feedback-demo-field select:disabled {opacity:.7;cursor:not-allowed}
-[data-testid="customer-feedback-section"] .feedback-demo-note {font-size:11px;line-height:1.45;color:var(--analytics-card-label,#64748b);margin:0;flex:1 1 190px}
+[data-testid="customer-feedback-section"] .feedback-demo-note {font-size:11px;line-height:1.45;color:var(--analytics-evidence-strong,#334155);margin:0;flex:1 1 190px}
 [data-testid="customer-feedback-section"] select:focus-visible,
 [data-testid="customer-feedback-section"] button:focus-visible,
 [data-testid="customer-feedback-section"] a:focus-visible,
@@ -21,6 +21,14 @@
 [data-testid="customer-feedback-section"] .feedback-demo-label {
   display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;
   letter-spacing:.035em;color:#1e60f0;background:rgba(30,96,240,.07);border-radius:6px;padding:6px 9px
+}
+:root[data-theme="dark"] [data-testid="customer-feedback-section"] .feedback-demo-label {
+  color:#a6c9ff;
+  background:#1a2e53;
+}
+:root[data-theme="dark"] [data-testid="customer-feedback-section"] .feedback-demo-field,
+:root[data-theme="dark"] [data-testid="customer-feedback-section"] .feedback-demo-note {
+  color:#cbd5e1;
 }
 [data-testid="customer-feedback-section"] .feedback-empty {
   display:grid;place-items:center;gap:10px;text-align:center;min-height:145px;
