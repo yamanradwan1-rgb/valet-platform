@@ -65,8 +65,12 @@ export function harness(overrides: Partial<State> = {}) {
     connect:vi.fn(async () => ({
       query:vi.fn(async (sql: string, args?: unknown[]) => {
         state.queryLog.push(sql);
-        if(sql==="BEGIN"){state.activeTransactions++;return {rows:[],rowCount:0};}
+        if(sql==="BEGIN" || sql==="BEGIN ISOLATION LEVEL READ COMMITTED"){
+          state.activeTransactions++;return {rows:[],rowCount:0};
+        }
         if(sql==="COMMIT"||sql==="ROLLBACK"){state.activeTransactions--;return {rows:[],rowCount:0};}
+        if(sql==="SET LOCAL lock_timeout = '300ms'") return {rows:[],rowCount:0};
+        if(sql==="SELECT 1 AS alive") return {rows:[{alive:1}],rowCount:1};
         if(sql.includes("FROM valet_sessions AS session")){
           expect(args).toEqual([id.session,id.organization,id.location]);
           return {rows:[{exists:state.exists}],rowCount:1};
@@ -118,6 +122,7 @@ export async function deliver(h: ReturnType<typeof harness>,photoId:string=id.ph
   let delivered: Buffer | undefined;
   await deliverManagementSessionPhotoBytes(h.deps,request,photoId,(buffer,release)=>{
     expect(h.state.activeTransactions).toBe(1);
+    expect(h.state.queryLog).toContain("COMMIT");
     delivered=Buffer.from(buffer);
     release();
   });

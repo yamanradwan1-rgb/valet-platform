@@ -134,8 +134,8 @@ export class DashboardSessionPhotoController {
           locationId: requireManagementUuid(locationId),
           sessionId: requireManagementUuid(sessionId),
         }, requireManagementUuid(photoId), (bytes, release) => {
-          // Called synchronously with final W3 auth and AVAILABLE evidence
-          // locked; never await network flush in the database transaction.
+          // Called after acknowledged COMMIT while a separate authenticated
+          // PostgreSQL witness holds its canonical row locks across enqueue.
           // The transport might already have closed during async S3 I/O.
           // Throwing makes the service's !queued finally release its admission.
           if (cannotWrite()) throw new Error("Photo response is no longer writable.");

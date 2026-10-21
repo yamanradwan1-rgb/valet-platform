@@ -16,6 +16,7 @@ import { S3PrivatePhotoStore } from "../vehicle-photos/s3-private-photo-store";
 import type { SelectedConditionPhotoCandidate } from "../valet-sessions/condition-photo-qualified-receipt";
 import type { DashboardLocationScope } from "./dashboard-location-authorization";
 import { DashboardSessionPhotoAdmission } from "./session-photo-admission";
+import { withCommittedPhotoDeliveryFence } from "./session-photo-delivery-fence";
 import {
   lockExactVerifiedPhotoForDelivery,
   requireExactDashboardPhotoSession,
@@ -216,7 +217,7 @@ export async function deliverManagementSessionPhotoBytes(
 
     // Re-authorize scope, membership, exact session and verified AVAILABLE
     // photo identity after potentially slow S3 I/O. Deny changed evidence.
-    await inPostgresTransaction(dependencies.pool, async (tx) => {
+    await withCommittedPhotoDeliveryFence(dependencies.pool, async (tx) => {
       const after = await authorizedScope(tx, request, dependencies.authorize);
       assertSameScope(selected.location, after);
       const current = await verifiedDashboardPhotoCandidates(tx, {
@@ -229,9 +230,9 @@ export async function deliverManagementSessionPhotoBytes(
       if (!(await lockExactVerifiedPhotoForDelivery(
         tx,{location:after,sessionId:request.sessionId},selected.candidate,
       ))) return notVisible();
-      // Lock-held serialization point for bytes release: the last
-      // authorization/evidence check and response.enqueue are ordered against
-      // canonical revokers. Never await a network flush in this transaction.
+    }, () => {
+      // A second PG lease has ACKNOWLEDGED COMMIT. The authorized witness
+      // retains every SHARE lock until this synchronous enqueue finishes.
       const outcome = deliverSync(Buffer.from(raw!), release);
       if (outcome !== undefined) return unavailable();
       queued = true;

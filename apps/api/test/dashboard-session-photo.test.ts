@@ -37,7 +37,7 @@ describe("Issue309 management session condition photos (isolated read pipeline)"
     expect(h.storeRead).toHaveBeenCalledWith({
       key:candidate().objectKey,version:"version-1",
     },10000);
-    expect(h.authorize).toHaveBeenCalledTimes(2);
+    expect(h.authorize).toHaveBeenCalledTimes(3);
     expect(h.release).toHaveBeenCalledOnce();
     expect(h.state.activeTransactions).toBe(0);
   });
@@ -104,11 +104,12 @@ describe("Issue309 management session condition photos (isolated read pipeline)"
     expect(unchangedVerifiedPhoto(candidate(),candidate())).toBe(true);
   });
 
-  it("keeps the in-flight image reservation until HTTP finish/close, not until transaction COMMIT",async()=>{
+  it("enqueues only after COMMIT, retaining admission until HTTP finish/close",async()=>{
     const h=harness();
     let releaseOnFinish: (()=>void) | undefined;
     await deliverManagementSessionPhotoBytes(h.deps,request,id.photo,(_body,release)=>{
       expect(h.state.activeTransactions).toBe(1);
+      expect(h.state.queryLog).toContain("COMMIT");
       releaseOnFinish=release;
     });
     expect(h.release).not.toHaveBeenCalled();
