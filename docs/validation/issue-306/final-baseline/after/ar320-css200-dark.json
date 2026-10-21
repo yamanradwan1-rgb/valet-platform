@@ -1,0 +1,1123 @@
+{
+  "settings": {
+    "id": "ar320-css200-dark",
+    "locale": "ar",
+    "theme": "dark",
+    "width": 320,
+    "zoom": "css"
+  },
+  "reportedNativeZoom": null,
+  "unzoomed": {
+    "innerWidth": 320,
+    "innerHeight": 900,
+    "outerWidth": 516,
+    "outerHeight": 900,
+    "devicePixelRatio": 1,
+    "visualScale": 1,
+    "htmlDir": "rtl",
+    "htmlLang": "ar",
+    "htmlZoom": "1",
+    "documentClientWidth": 320,
+    "documentScrollWidth": 320,
+    "documentScrollLeft": 0,
+    "documentFontStatus": "loaded",
+    "fonts": [],
+    "bodyFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+    "activeElement": "اللغة",
+    "drawer": null,
+    "drawerBody": null,
+    "drawerBodyOverflowX": null,
+    "drawerBodyOverflowY": null,
+    "drawerBodyScrollWidth": null,
+    "drawerBodyClientWidth": null,
+    "drawerBodyScrollHeight": null,
+    "drawerBodyClientHeight": null,
+    "drawerBodyScrollTop": null,
+    "factList": null,
+    "factListOverflowX": null,
+    "factListScrollWidth": null,
+    "factListClientWidth": null,
+    "close": null,
+    "facts": []
+  },
+  "top": {
+    "innerWidth": 320,
+    "innerHeight": 900,
+    "outerWidth": 516,
+    "outerHeight": 900,
+    "devicePixelRatio": 1,
+    "visualScale": 1,
+    "htmlDir": "rtl",
+    "htmlLang": "ar",
+    "htmlZoom": "2",
+    "documentClientWidth": 320,
+    "documentScrollWidth": 640,
+    "documentScrollLeft": -320,
+    "documentFontStatus": "loaded",
+    "fonts": [],
+    "bodyFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+    "activeElement": "إغلاق",
+    "drawer": {
+      "x": 0,
+      "y": 0,
+      "left": 0,
+      "right": 320,
+      "top": 0,
+      "bottom": 900,
+      "width": 320,
+      "height": 900
+    },
+    "drawerBody": {
+      "x": 0,
+      "y": 195,
+      "left": 0,
+      "right": 318,
+      "top": 195,
+      "bottom": 900,
+      "width": 318,
+      "height": 705
+    },
+    "drawerBodyOverflowX": "auto",
+    "drawerBodyOverflowY": "auto",
+    "drawerBodyScrollWidth": 162,
+    "drawerBodyClientWidth": 159,
+    "drawerBodyScrollHeight": 703,
+    "drawerBodyClientHeight": 353,
+    "drawerBodyScrollTop": 0,
+    "factList": {
+      "x": 48,
+      "y": 243,
+      "left": 48,
+      "right": 270,
+      "top": 243,
+      "bottom": 1552.56,
+      "width": 222,
+      "height": 1309.56
+    },
+    "factListOverflowX": "visible",
+    "factListScrollWidth": 137,
+    "factListClientWidth": 109,
+    "close": {
+      "x": -44.23,
+      "y": 66.5,
+      "left": -44.23,
+      "right": 15.77,
+      "top": 66.5,
+      "bottom": 126.5,
+      "width": 60,
+      "height": 60
+    },
+    "facts": [
+      {
+        "label": "النوع",
+        "value": "ضرر بالمركبة",
+        "rect": {
+          "x": -6.92,
+          "y": 277,
+          "left": -6.92,
+          "right": 236,
+          "top": 277,
+          "bottom": 309,
+          "width": 242.92,
+          "height": 32
+        },
+        "labelRect": {
+          "x": 187.91,
+          "y": 277,
+          "left": 187.91,
+          "right": 236,
+          "top": 277,
+          "bottom": 309,
+          "width": 48.09,
+          "height": 32
+        },
+        "valueRect": {
+          "x": -6.92,
+          "y": 277,
+          "left": -6.92,
+          "right": 115.94,
+          "top": 277,
+          "bottom": 309,
+          "width": 122.86,
+          "height": 32
+        },
+        "valueTextBounds": {
+          "left": -6.92,
+          "right": 115.94,
+          "top": 277,
+          "bottom": 309,
+          "width": 122.86,
+          "height": 32
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "rtl",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "الوصف",
+        "value": "Mirror inspection required",
+        "rect": {
+          "x": -6.92,
+          "y": 333,
+          "left": -6.92,
+          "right": 236,
+          "top": 333,
+          "bottom": 429,
+          "width": 242.92,
+          "height": 96
+        },
+        "labelRect": {
+          "x": 161.84,
+          "y": 333,
+          "left": 161.84,
+          "right": 236,
+          "top": 333,
+          "bottom": 365,
+          "width": 74.16,
+          "height": 32
+        },
+        "valueRect": {
+          "x": -6.92,
+          "y": 333,
+          "left": -6.92,
+          "right": 129.84,
+          "top": 333,
+          "bottom": 429,
+          "width": 136.77,
+          "height": 96
+        },
+        "valueTextBounds": {
+          "left": -6.92,
+          "right": 109.72,
+          "top": 333,
+          "bottom": 429,
+          "width": 116.64,
+          "height": 96
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "rtl",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "الحالة",
+        "value": "قيد التحقيق",
+        "rect": {
+          "x": -6.92,
+          "y": 453,
+          "left": -6.92,
+          "right": 236,
+          "top": 453,
+          "bottom": 501.78,
+          "width": 242.92,
+          "height": 48.78
+        },
+        "labelRect": {
+          "x": 181.89,
+          "y": 453,
+          "left": 181.89,
+          "right": 236,
+          "top": 453,
+          "bottom": 485,
+          "width": 54.11,
+          "height": 32
+        },
+        "valueRect": {
+          "x": -6.92,
+          "y": 453,
+          "left": -6.92,
+          "right": 149.89,
+          "top": 453,
+          "bottom": 501.78,
+          "width": 156.81,
+          "height": 48.78
+        },
+        "valueTextBounds": {
+          "left": -6.92,
+          "right": 149.89,
+          "top": 453,
+          "bottom": 501.78,
+          "width": 156.81,
+          "height": 48.78
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "rtl",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "الخطورة",
+        "value": "متوسطة",
+        "rect": {
+          "x": -6.92,
+          "y": 525.78,
+          "left": -6.92,
+          "right": 236,
+          "top": 525.78,
+          "bottom": 574.56,
+          "width": 242.92,
+          "height": 48.78
+        },
+        "labelRect": {
+          "x": 155.84,
+          "y": 525.78,
+          "left": 155.84,
+          "right": 236,
+          "top": 525.78,
+          "bottom": 557.78,
+          "width": 80.16,
+          "height": 32
+        },
+        "valueRect": {
+          "x": -6.92,
+          "y": 525.78,
+          "left": -6.92,
+          "right": 123.27,
+          "top": 525.78,
+          "bottom": 574.56,
+          "width": 130.19,
+          "height": 48.78
+        },
+        "valueTextBounds": {
+          "left": -6.92,
+          "right": 123.27,
+          "top": 525.78,
+          "bottom": 574.56,
+          "width": 130.19,
+          "height": 48.78
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "rtl",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "الموقع",
+        "value": "Main Garage",
+        "rect": {
+          "x": -6.92,
+          "y": 598.56,
+          "left": -6.92,
+          "right": 236,
+          "top": 598.56,
+          "bottom": 630.56,
+          "width": 242.92,
+          "height": 32
+        },
+        "labelRect": {
+          "x": 169.86,
+          "y": 598.56,
+          "left": 169.86,
+          "right": 236,
+          "top": 598.56,
+          "bottom": 630.56,
+          "width": 66.14,
+          "height": 32
+        },
+        "valueRect": {
+          "x": -6.92,
+          "y": 598.56,
+          "left": -6.92,
+          "right": 137.22,
+          "top": 598.56,
+          "bottom": 630.56,
+          "width": 144.14,
+          "height": 32
+        },
+        "valueTextBounds": {
+          "left": -6.92,
+          "right": 137.22,
+          "top": 598.56,
+          "bottom": 630.56,
+          "width": 144.14,
+          "height": 32
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "rtl",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "أبلغ عنه",
+        "value": "عبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمن الخطيبالخطيبالخطيبالخطيبالخطيبالخطيبالخطيبالخطيب",
+        "rect": {
+          "x": -6.92,
+          "y": 654.56,
+          "left": -6.92,
+          "right": 236,
+          "top": 654.56,
+          "bottom": 942.56,
+          "width": 242.92,
+          "height": 288
+        },
+        "labelRect": {
+          "x": 199.92,
+          "y": 654.56,
+          "left": 199.92,
+          "right": 236,
+          "top": 654.56,
+          "bottom": 718.56,
+          "width": 36.08,
+          "height": 64
+        },
+        "valueRect": {
+          "x": -6.92,
+          "y": 654.56,
+          "left": -6.92,
+          "right": 167.92,
+          "top": 654.56,
+          "bottom": 942.56,
+          "width": 174.84,
+          "height": 288
+        },
+        "valueTextBounds": {
+          "left": -6.92,
+          "right": 167.42,
+          "top": 654.56,
+          "bottom": 942.56,
+          "width": 174.34,
+          "height": 288
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "rtl",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "الإنشاء",
+        "value": "٢١ أيلول، ٢:٠٠ م (Asia/Amman)",
+        "rect": {
+          "x": -6.92,
+          "y": 966.56,
+          "left": -6.92,
+          "right": 236,
+          "top": 966.56,
+          "bottom": 1062.56,
+          "width": 242.92,
+          "height": 96
+        },
+        "labelRect": {
+          "x": 171.88,
+          "y": 966.56,
+          "left": 171.88,
+          "right": 236,
+          "top": 966.56,
+          "bottom": 998.56,
+          "width": 64.13,
+          "height": 32
+        },
+        "valueRect": {
+          "x": -6.92,
+          "y": 966.56,
+          "left": -6.92,
+          "right": 139.88,
+          "top": 966.56,
+          "bottom": 1062.56,
+          "width": 146.8,
+          "height": 96
+        },
+        "valueTextBounds": {
+          "left": -6.92,
+          "right": 139.69,
+          "top": 966.56,
+          "bottom": 1062.56,
+          "width": 146.61,
+          "height": 96
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "rtl",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "معرّف الحادث",
+        "value": "77777777-7777-4777-8777-777777777706",
+        "rect": {
+          "x": -6.92,
+          "y": 1086.56,
+          "left": -6.92,
+          "right": 236,
+          "top": 1086.56,
+          "bottom": 1246.56,
+          "width": 242.92,
+          "height": 160
+        },
+        "labelRect": {
+          "x": 167.86,
+          "y": 1086.56,
+          "left": 167.86,
+          "right": 236,
+          "top": 1086.56,
+          "bottom": 1150.56,
+          "width": 68.14,
+          "height": 64
+        },
+        "valueRect": {
+          "x": -6.92,
+          "y": 1086.56,
+          "left": -6.92,
+          "right": 135.86,
+          "top": 1086.56,
+          "bottom": 1246.56,
+          "width": 142.78,
+          "height": 160
+        },
+        "valueTextBounds": {
+          "left": -6.92,
+          "right": 131.13,
+          "top": 1086.56,
+          "bottom": 1246.56,
+          "width": 138.05,
+          "height": 160
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "rtl",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "الجلسة",
+        "value": "77777777-7777-4777-8777-777777777701",
+        "rect": {
+          "x": -6.92,
+          "y": 1270.56,
+          "left": -6.92,
+          "right": 236,
+          "top": 1270.56,
+          "bottom": 1430.56,
+          "width": 242.92,
+          "height": 160
+        },
+        "labelRect": {
+          "x": 167.86,
+          "y": 1270.56,
+          "left": 167.86,
+          "right": 236,
+          "top": 1270.56,
+          "bottom": 1302.56,
+          "width": 68.14,
+          "height": 32
+        },
+        "valueRect": {
+          "x": -6.92,
+          "y": 1270.56,
+          "left": -6.92,
+          "right": 135.86,
+          "top": 1270.56,
+          "bottom": 1430.56,
+          "width": 142.78,
+          "height": 160
+        },
+        "valueTextBounds": {
+          "left": -6.92,
+          "right": 131.13,
+          "top": 1270.56,
+          "bottom": 1430.56,
+          "width": 138.05,
+          "height": 160
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "rtl",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "رمز النوع",
+        "value": "VEHICLE_DAMAGE",
+        "rect": {
+          "x": -6.92,
+          "y": 1454.56,
+          "left": -6.92,
+          "right": 236,
+          "top": 1454.56,
+          "bottom": 1518.56,
+          "width": 242.92,
+          "height": 64
+        },
+        "labelRect": {
+          "x": 174,
+          "y": 1454.56,
+          "left": 174,
+          "right": 236,
+          "top": 1454.56,
+          "bottom": 1518.56,
+          "width": 62,
+          "height": 64
+        },
+        "valueRect": {
+          "x": -6.92,
+          "y": 1454.56,
+          "left": -6.92,
+          "right": 142,
+          "top": 1454.56,
+          "bottom": 1518.56,
+          "width": 148.92,
+          "height": 64
+        },
+        "valueTextBounds": {
+          "left": -6.92,
+          "right": 132.05,
+          "top": 1454.56,
+          "bottom": 1518.56,
+          "width": 138.97,
+          "height": 64
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "rtl",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      }
+    ]
+  },
+  "bottom": {
+    "innerWidth": 320,
+    "innerHeight": 900,
+    "outerWidth": 516,
+    "outerHeight": 900,
+    "devicePixelRatio": 1,
+    "visualScale": 1,
+    "htmlDir": "rtl",
+    "htmlLang": "ar",
+    "htmlZoom": "2",
+    "documentClientWidth": 320,
+    "documentScrollWidth": 640,
+    "documentScrollLeft": -320,
+    "documentFontStatus": "loaded",
+    "fonts": [],
+    "bodyFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+    "activeElement": "إغلاق",
+    "drawer": {
+      "x": 0,
+      "y": 0,
+      "left": 0,
+      "right": 320,
+      "top": 0,
+      "bottom": 900,
+      "width": 320,
+      "height": 900
+    },
+    "drawerBody": {
+      "x": 0,
+      "y": 195,
+      "left": 0,
+      "right": 318,
+      "top": 195,
+      "bottom": 900,
+      "width": 318,
+      "height": 705
+    },
+    "drawerBodyOverflowX": "auto",
+    "drawerBodyOverflowY": "auto",
+    "drawerBodyScrollWidth": 162,
+    "drawerBodyClientWidth": 159,
+    "drawerBodyScrollHeight": 703,
+    "drawerBodyClientHeight": 353,
+    "drawerBodyScrollTop": 350.5,
+    "factList": {
+      "x": 48,
+      "y": -458,
+      "left": 48,
+      "right": 270,
+      "top": -458,
+      "bottom": 851.56,
+      "width": 222,
+      "height": 1309.56
+    },
+    "factListOverflowX": "visible",
+    "factListScrollWidth": 137,
+    "factListClientWidth": 109,
+    "close": {
+      "x": -44.23,
+      "y": 66.5,
+      "left": -44.23,
+      "right": 15.77,
+      "top": 66.5,
+      "bottom": 126.5,
+      "width": 60,
+      "height": 60
+    },
+    "facts": [
+      {
+        "label": "النوع",
+        "value": "ضرر بالمركبة",
+        "rect": {
+          "x": -6.92,
+          "y": -424,
+          "left": -6.92,
+          "right": 236,
+          "top": -424,
+          "bottom": -392,
+          "width": 242.92,
+          "height": 32
+        },
+        "labelRect": {
+          "x": 187.91,
+          "y": -424,
+          "left": 187.91,
+          "right": 236,
+          "top": -424,
+          "bottom": -392,
+          "width": 48.09,
+          "height": 32
+        },
+        "valueRect": {
+          "x": -6.92,
+          "y": -424,
+          "left": -6.92,
+          "right": 115.94,
+          "top": -424,
+          "bottom": -392,
+          "width": 122.86,
+          "height": 32
+        },
+        "valueTextBounds": {
+          "left": -6.92,
+          "right": 115.94,
+          "top": -424,
+          "bottom": -392,
+          "width": 122.86,
+          "height": 32
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "rtl",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "الوصف",
+        "value": "Mirror inspection required",
+        "rect": {
+          "x": -6.92,
+          "y": -368,
+          "left": -6.92,
+          "right": 236,
+          "top": -368,
+          "bottom": -272,
+          "width": 242.92,
+          "height": 96
+        },
+        "labelRect": {
+          "x": 161.84,
+          "y": -368,
+          "left": 161.84,
+          "right": 236,
+          "top": -368,
+          "bottom": -336,
+          "width": 74.16,
+          "height": 32
+        },
+        "valueRect": {
+          "x": -6.92,
+          "y": -368,
+          "left": -6.92,
+          "right": 129.84,
+          "top": -368,
+          "bottom": -272,
+          "width": 136.77,
+          "height": 96
+        },
+        "valueTextBounds": {
+          "left": -6.92,
+          "right": 109.72,
+          "top": -368,
+          "bottom": -272,
+          "width": 116.64,
+          "height": 96
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "rtl",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "الحالة",
+        "value": "قيد التحقيق",
+        "rect": {
+          "x": -6.92,
+          "y": -248,
+          "left": -6.92,
+          "right": 236,
+          "top": -248,
+          "bottom": -199.22,
+          "width": 242.92,
+          "height": 48.78
+        },
+        "labelRect": {
+          "x": 181.89,
+          "y": -248,
+          "left": 181.89,
+          "right": 236,
+          "top": -248,
+          "bottom": -216,
+          "width": 54.11,
+          "height": 32
+        },
+        "valueRect": {
+          "x": -6.92,
+          "y": -248,
+          "left": -6.92,
+          "right": 149.89,
+          "top": -248,
+          "bottom": -199.22,
+          "width": 156.81,
+          "height": 48.78
+        },
+        "valueTextBounds": {
+          "left": -6.92,
+          "right": 149.89,
+          "top": -248,
+          "bottom": -199.22,
+          "width": 156.81,
+          "height": 48.78
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "rtl",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "الخطورة",
+        "value": "متوسطة",
+        "rect": {
+          "x": -6.92,
+          "y": -175.22,
+          "left": -6.92,
+          "right": 236,
+          "top": -175.22,
+          "bottom": -126.44,
+          "width": 242.92,
+          "height": 48.78
+        },
+        "labelRect": {
+          "x": 155.84,
+          "y": -175.22,
+          "left": 155.84,
+          "right": 236,
+          "top": -175.22,
+          "bottom": -143.22,
+          "width": 80.16,
+          "height": 32
+        },
+        "valueRect": {
+          "x": -6.92,
+          "y": -175.22,
+          "left": -6.92,
+          "right": 123.27,
+          "top": -175.22,
+          "bottom": -126.44,
+          "width": 130.19,
+          "height": 48.78
+        },
+        "valueTextBounds": {
+          "left": -6.92,
+          "right": 123.27,
+          "top": -175.22,
+          "bottom": -126.44,
+          "width": 130.19,
+          "height": 48.78
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "rtl",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "الموقع",
+        "value": "Main Garage",
+        "rect": {
+          "x": -6.92,
+          "y": -102.44,
+          "left": -6.92,
+          "right": 236,
+          "top": -102.44,
+          "bottom": -70.44,
+          "width": 242.92,
+          "height": 32
+        },
+        "labelRect": {
+          "x": 169.86,
+          "y": -102.44,
+          "left": 169.86,
+          "right": 236,
+          "top": -102.44,
+          "bottom": -70.44,
+          "width": 66.14,
+          "height": 32
+        },
+        "valueRect": {
+          "x": -6.92,
+          "y": -102.44,
+          "left": -6.92,
+          "right": 137.22,
+          "top": -102.44,
+          "bottom": -70.44,
+          "width": 144.14,
+          "height": 32
+        },
+        "valueTextBounds": {
+          "left": -6.92,
+          "right": 137.22,
+          "top": -102.44,
+          "bottom": -70.44,
+          "width": 144.14,
+          "height": 32
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "rtl",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "أبلغ عنه",
+        "value": "عبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمنعبدالرحمن الخطيبالخطيبالخطيبالخطيبالخطيبالخطيبالخطيبالخطيب",
+        "rect": {
+          "x": -6.92,
+          "y": -46.44,
+          "left": -6.92,
+          "right": 236,
+          "top": -46.44,
+          "bottom": 241.56,
+          "width": 242.92,
+          "height": 288
+        },
+        "labelRect": {
+          "x": 199.92,
+          "y": -46.44,
+          "left": 199.92,
+          "right": 236,
+          "top": -46.44,
+          "bottom": 17.56,
+          "width": 36.08,
+          "height": 64
+        },
+        "valueRect": {
+          "x": -6.92,
+          "y": -46.44,
+          "left": -6.92,
+          "right": 167.92,
+          "top": -46.44,
+          "bottom": 241.56,
+          "width": 174.84,
+          "height": 288
+        },
+        "valueTextBounds": {
+          "left": -6.92,
+          "right": 167.42,
+          "top": -46.44,
+          "bottom": 241.56,
+          "width": 174.34,
+          "height": 288
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "rtl",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "الإنشاء",
+        "value": "٢١ أيلول، ٢:٠٠ م (Asia/Amman)",
+        "rect": {
+          "x": -6.92,
+          "y": 265.56,
+          "left": -6.92,
+          "right": 236,
+          "top": 265.56,
+          "bottom": 361.56,
+          "width": 242.92,
+          "height": 96
+        },
+        "labelRect": {
+          "x": 171.88,
+          "y": 265.56,
+          "left": 171.88,
+          "right": 236,
+          "top": 265.56,
+          "bottom": 297.56,
+          "width": 64.13,
+          "height": 32
+        },
+        "valueRect": {
+          "x": -6.92,
+          "y": 265.56,
+          "left": -6.92,
+          "right": 139.88,
+          "top": 265.56,
+          "bottom": 361.56,
+          "width": 146.8,
+          "height": 96
+        },
+        "valueTextBounds": {
+          "left": -6.92,
+          "right": 139.69,
+          "top": 265.56,
+          "bottom": 361.56,
+          "width": 146.61,
+          "height": 96
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "rtl",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "معرّف الحادث",
+        "value": "77777777-7777-4777-8777-777777777706",
+        "rect": {
+          "x": -6.92,
+          "y": 385.56,
+          "left": -6.92,
+          "right": 236,
+          "top": 385.56,
+          "bottom": 545.56,
+          "width": 242.92,
+          "height": 160
+        },
+        "labelRect": {
+          "x": 167.86,
+          "y": 385.56,
+          "left": 167.86,
+          "right": 236,
+          "top": 385.56,
+          "bottom": 449.56,
+          "width": 68.14,
+          "height": 64
+        },
+        "valueRect": {
+          "x": -6.92,
+          "y": 385.56,
+          "left": -6.92,
+          "right": 135.86,
+          "top": 385.56,
+          "bottom": 545.56,
+          "width": 142.78,
+          "height": 160
+        },
+        "valueTextBounds": {
+          "left": -6.92,
+          "right": 131.13,
+          "top": 385.56,
+          "bottom": 545.56,
+          "width": 138.05,
+          "height": 160
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "rtl",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "الجلسة",
+        "value": "77777777-7777-4777-8777-777777777701",
+        "rect": {
+          "x": -6.92,
+          "y": 569.56,
+          "left": -6.92,
+          "right": 236,
+          "top": 569.56,
+          "bottom": 729.56,
+          "width": 242.92,
+          "height": 160
+        },
+        "labelRect": {
+          "x": 167.86,
+          "y": 569.56,
+          "left": 167.86,
+          "right": 236,
+          "top": 569.56,
+          "bottom": 601.56,
+          "width": 68.14,
+          "height": 32
+        },
+        "valueRect": {
+          "x": -6.92,
+          "y": 569.56,
+          "left": -6.92,
+          "right": 135.86,
+          "top": 569.56,
+          "bottom": 729.56,
+          "width": 142.78,
+          "height": 160
+        },
+        "valueTextBounds": {
+          "left": -6.92,
+          "right": 131.13,
+          "top": 569.56,
+          "bottom": 729.56,
+          "width": 138.05,
+          "height": 160
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "rtl",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "رمز النوع",
+        "value": "VEHICLE_DAMAGE",
+        "rect": {
+          "x": -6.92,
+          "y": 753.56,
+          "left": -6.92,
+          "right": 236,
+          "top": 753.56,
+          "bottom": 817.56,
+          "width": 242.92,
+          "height": 64
+        },
+        "labelRect": {
+          "x": 174,
+          "y": 753.56,
+          "left": 174,
+          "right": 236,
+          "top": 753.56,
+          "bottom": 817.56,
+          "width": 62,
+          "height": 64
+        },
+        "valueRect": {
+          "x": -6.92,
+          "y": 753.56,
+          "left": -6.92,
+          "right": 142,
+          "top": 753.56,
+          "bottom": 817.56,
+          "width": 148.92,
+          "height": 64
+        },
+        "valueTextBounds": {
+          "left": -6.92,
+          "right": 132.05,
+          "top": 753.56,
+          "bottom": 817.56,
+          "width": 138.97,
+          "height": 64
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "rtl",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      }
+    ]
+  }
+}

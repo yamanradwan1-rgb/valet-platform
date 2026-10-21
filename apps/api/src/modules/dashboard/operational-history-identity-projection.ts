@@ -24,7 +24,7 @@ function canonicalComponent(value: string | null): value is string {
 // Historical subjects need not be currently active or granted. Only current
 // canonical, complete names from the correct Organization may be projected.
 export function canonicalHistoryName(
-  row: CanonicalHistoryMembershipName | undefined,
+  row: Pick<CanonicalHistoryMembershipName, "firstName" | "lastName"> | undefined,
 ): HistoricalStaffName | null {
   return row !== undefined &&
     canonicalComponent(row.firstName) &&

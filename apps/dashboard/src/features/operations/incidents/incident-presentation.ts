@@ -65,6 +65,8 @@ export function incidentCopy(locale: DashboardLocale) {
     ? {
         cohort: "الحوادث المفتوحة وقيد التحقيق",
         location: "الموقع",
+        reportedBy: "أبلغ عنه",
+        reporterUnavailable: "المبلّغ غير متاح",
         technicalType: "رمز النوع",
         incidentId: "معرّف الحادث",
         resolved: "وقت المعالجة",
@@ -72,6 +74,8 @@ export function incidentCopy(locale: DashboardLocale) {
     : {
         cohort: "Open and investigating incidents",
         location: "Location",
+        reportedBy: "Reported by",
+        reporterUnavailable: "Reporter unavailable",
         technicalType: "Type code",
         incidentId: "Incident ID",
         resolved: "Resolved at",

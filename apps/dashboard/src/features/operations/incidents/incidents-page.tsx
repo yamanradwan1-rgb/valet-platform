@@ -224,6 +224,10 @@ function IncidentDrawer({
         />
         <Fact label={copy.location} value={<bdi>{locationName}</bdi>} />
         <Fact
+          label={copy.reportedBy}
+          value={<bdi>{item.reporterDisplayName ?? copy.reporterUnavailable}</bdi>}
+        />
+        <Fact
           label={t.created}
           value={`${formatOperationsTime(item.createdAt, timezone, locale)} (${timezone})`}
         />

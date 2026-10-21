@@ -164,6 +164,7 @@ export class DashboardOverviewTestContext extends DashboardTestContext {
   async seedIncident(input: {
     sessionId: string;
     status: "OPEN" | "INVESTIGATING" | "RESOLVED" | "CLOSED";
+    reporterMembershipId?: string;
   }): Promise<string> {
     const base = await this.baseFixture();
     const incidentId = randomUUID();
@@ -179,7 +180,7 @@ export class DashboardOverviewTestContext extends DashboardTestContext {
         base.locationId,
         input.sessionId,
         input.status,
-        base.membershipId,
+        input.reporterMembershipId ?? base.membershipId,
       ],
     );
     return incidentId;

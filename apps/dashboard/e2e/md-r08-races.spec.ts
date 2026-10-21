@@ -83,12 +83,12 @@ for (const family of ["keys", "incidents"] as const) {
       await page
         .getByRole("button", { name: "Change scope", exact: true })
         .click();
-      await select(page, LOCATION_B.name);
+      await page.getByRole("option", { name: LOCATION_B.name }).click();
       await expect(page.getByRole("table")).toContainText("CURRENT_B");
       await page
         .getByRole("button", { name: "Change scope", exact: true })
         .click();
-      await select(page, LOCATION_A.name);
+      await page.getByRole("option", { name: LOCATION_A.name }).click();
       await expect(page.getByRole("table")).toContainText("CURRENT_A");
       release.resolve();
       await delivered.promise;

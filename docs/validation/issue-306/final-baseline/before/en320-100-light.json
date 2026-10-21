@@ -1,0 +1,1029 @@
+{
+  "settings": {
+    "id": "en320-100-light",
+    "locale": "en",
+    "theme": "light",
+    "width": 320,
+    "zoom": "none"
+  },
+  "reportedNativeZoom": null,
+  "unzoomed": {
+    "innerWidth": 320,
+    "innerHeight": 900,
+    "outerWidth": 516,
+    "outerHeight": 900,
+    "devicePixelRatio": 1,
+    "visualScale": 1,
+    "htmlDir": "ltr",
+    "htmlLang": "en",
+    "htmlZoom": "1",
+    "documentClientWidth": 320,
+    "documentScrollWidth": 320,
+    "documentScrollLeft": 0,
+    "documentFontStatus": "loaded",
+    "fonts": [],
+    "bodyFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+    "activeElement": "BODY",
+    "drawer": null,
+    "drawerBody": null,
+    "drawerBodyOverflowX": null,
+    "drawerBodyOverflowY": null,
+    "drawerBodyScrollWidth": null,
+    "drawerBodyClientWidth": null,
+    "drawerBodyScrollHeight": null,
+    "drawerBodyClientHeight": null,
+    "drawerBodyScrollTop": null,
+    "factList": null,
+    "factListOverflowX": null,
+    "factListScrollWidth": null,
+    "factListClientWidth": null,
+    "close": null,
+    "facts": []
+  },
+  "top": {
+    "innerWidth": 320,
+    "innerHeight": 900,
+    "outerWidth": 516,
+    "outerHeight": 900,
+    "devicePixelRatio": 1,
+    "visualScale": 1,
+    "htmlDir": "ltr",
+    "htmlLang": "en",
+    "htmlZoom": "1",
+    "documentClientWidth": 320,
+    "documentScrollWidth": 320,
+    "documentScrollLeft": 0,
+    "documentFontStatus": "loaded",
+    "fonts": [],
+    "bodyFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+    "activeElement": "Close",
+    "drawer": {
+      "x": 0,
+      "y": 0,
+      "left": 0,
+      "right": 320,
+      "top": 0,
+      "bottom": 900,
+      "width": 320,
+      "height": 900
+    },
+    "drawerBody": {
+      "x": 1,
+      "y": 75,
+      "left": 1,
+      "right": 320,
+      "top": 75,
+      "bottom": 900,
+      "width": 319,
+      "height": 825
+    },
+    "drawerBodyOverflowX": "auto",
+    "drawerBodyOverflowY": "auto",
+    "drawerBodyScrollWidth": 319,
+    "drawerBodyClientWidth": 319,
+    "drawerBodyScrollHeight": 825,
+    "drawerBodyClientHeight": 825,
+    "drawerBodyScrollTop": 0,
+    "factList": {
+      "x": 25,
+      "y": 99,
+      "left": 25,
+      "right": 296,
+      "top": 99,
+      "bottom": 421.75,
+      "width": 271,
+      "height": 322.75
+    },
+    "factListOverflowX": "visible",
+    "factListScrollWidth": 269,
+    "factListClientWidth": 269,
+    "close": {
+      "x": 266,
+      "y": 22,
+      "left": 266,
+      "right": 296,
+      "top": 22,
+      "bottom": 52,
+      "width": 30,
+      "height": 30
+    },
+    "facts": [
+      {
+        "label": "Type",
+        "value": "Vehicle damage",
+        "rect": {
+          "x": 42,
+          "y": 116,
+          "left": 42,
+          "right": 279,
+          "top": 116,
+          "bottom": 132,
+          "width": 237,
+          "height": 16
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 116,
+          "left": 42,
+          "right": 66.77,
+          "top": 116,
+          "bottom": 132,
+          "width": 24.77,
+          "height": 16
+        },
+        "valueRect": {
+          "x": 190.41,
+          "y": 116,
+          "left": 190.41,
+          "right": 279,
+          "top": 116,
+          "bottom": 132,
+          "width": 88.59,
+          "height": 16
+        },
+        "valueTextBounds": {
+          "left": 190.41,
+          "right": 279,
+          "top": 116,
+          "bottom": 132,
+          "width": 88.59,
+          "height": 16
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "ltr",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "Description",
+        "value": "Mirror inspection required",
+        "rect": {
+          "x": 42,
+          "y": 144,
+          "left": 42,
+          "right": 279,
+          "top": 144,
+          "bottom": 160,
+          "width": 237,
+          "height": 16
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 144,
+          "left": 42,
+          "right": 102.27,
+          "top": 144,
+          "bottom": 160,
+          "width": 60.27,
+          "height": 16
+        },
+        "valueRect": {
+          "x": 129.58,
+          "y": 144,
+          "left": 129.58,
+          "right": 279,
+          "top": 144,
+          "bottom": 160,
+          "width": 149.42,
+          "height": 16
+        },
+        "valueTextBounds": {
+          "left": 129.58,
+          "right": 279,
+          "top": 144,
+          "bottom": 160,
+          "width": 149.42,
+          "height": 16
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "ltr",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "State",
+        "value": "Investigating",
+        "rect": {
+          "x": 42,
+          "y": 172,
+          "left": 42,
+          "right": 279,
+          "top": 172,
+          "bottom": 196.38,
+          "width": 237,
+          "height": 24.38
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 172,
+          "left": 42,
+          "right": 68.52,
+          "top": 172,
+          "bottom": 188,
+          "width": 26.52,
+          "height": 16
+        },
+        "valueRect": {
+          "x": 186.28,
+          "y": 172,
+          "left": 186.28,
+          "right": 279,
+          "top": 172,
+          "bottom": 196.38,
+          "width": 92.72,
+          "height": 24.38
+        },
+        "valueTextBounds": {
+          "left": 186.28,
+          "right": 279,
+          "top": 172,
+          "bottom": 196.38,
+          "width": 92.72,
+          "height": 24.38
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "ltr",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "Severity",
+        "value": "Medium",
+        "rect": {
+          "x": 42,
+          "y": 208.38,
+          "left": 42,
+          "right": 279,
+          "top": 208.38,
+          "bottom": 232.75,
+          "width": 237,
+          "height": 24.38
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 208.38,
+          "left": 42,
+          "right": 83.63,
+          "top": 208.38,
+          "bottom": 224.38,
+          "width": 41.63,
+          "height": 16
+        },
+        "valueRect": {
+          "x": 211.53,
+          "y": 208.38,
+          "left": 211.53,
+          "right": 279,
+          "top": 208.38,
+          "bottom": 232.75,
+          "width": 67.47,
+          "height": 24.38
+        },
+        "valueTextBounds": {
+          "left": 211.53,
+          "right": 279,
+          "top": 208.38,
+          "bottom": 232.75,
+          "width": 67.47,
+          "height": 24.38
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "ltr",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "Location",
+        "value": "Main Garage",
+        "rect": {
+          "x": 42,
+          "y": 244.75,
+          "left": 42,
+          "right": 279,
+          "top": 244.75,
+          "bottom": 260.75,
+          "width": 237,
+          "height": 16
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 244.75,
+          "left": 42,
+          "right": 87.13,
+          "top": 244.75,
+          "bottom": 260.75,
+          "width": 45.13,
+          "height": 16
+        },
+        "valueRect": {
+          "x": 206.92,
+          "y": 244.75,
+          "left": 206.92,
+          "right": 279,
+          "top": 244.75,
+          "bottom": 260.75,
+          "width": 72.08,
+          "height": 16
+        },
+        "valueTextBounds": {
+          "left": 206.92,
+          "right": 279,
+          "top": 244.75,
+          "bottom": 260.75,
+          "width": 72.08,
+          "height": 16
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "ltr",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "Created",
+        "value": "Sep 21, 2:00 PM (Asia/Amman)",
+        "rect": {
+          "x": 42,
+          "y": 272.75,
+          "left": 42,
+          "right": 279,
+          "top": 272.75,
+          "bottom": 288.75,
+          "width": 237,
+          "height": 16
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 272.75,
+          "left": 42,
+          "right": 83.39,
+          "top": 272.75,
+          "bottom": 288.75,
+          "width": 41.39,
+          "height": 16
+        },
+        "valueRect": {
+          "x": 103.31,
+          "y": 272.75,
+          "left": 103.31,
+          "right": 279,
+          "top": 272.75,
+          "bottom": 288.75,
+          "width": 175.69,
+          "height": 16
+        },
+        "valueTextBounds": {
+          "left": 103.31,
+          "right": 279,
+          "top": 272.75,
+          "bottom": 288.75,
+          "width": 175.69,
+          "height": 16
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "ltr",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "Incident ID",
+        "value": "77777777-7777-4777-8777-777777777706",
+        "rect": {
+          "x": 42,
+          "y": 300.75,
+          "left": 42,
+          "right": 279,
+          "top": 300.75,
+          "bottom": 332.75,
+          "width": 237,
+          "height": 32
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 300.75,
+          "left": 42,
+          "right": 84.69,
+          "top": 300.75,
+          "bottom": 332.75,
+          "width": 42.69,
+          "height": 32
+        },
+        "valueRect": {
+          "x": 100.69,
+          "y": 300.75,
+          "left": 100.69,
+          "right": 279,
+          "top": 300.75,
+          "bottom": 332.75,
+          "width": 178.31,
+          "height": 32
+        },
+        "valueTextBounds": {
+          "left": 121.55,
+          "right": 279,
+          "top": 300.75,
+          "bottom": 332.75,
+          "width": 157.45,
+          "height": 32
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "ltr",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "Session",
+        "value": "77777777-7777-4777-8777-777777777701",
+        "rect": {
+          "x": 42,
+          "y": 344.75,
+          "left": 42,
+          "right": 279,
+          "top": 344.75,
+          "bottom": 376.75,
+          "width": 237,
+          "height": 32
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 344.75,
+          "left": 42,
+          "right": 81.56,
+          "top": 344.75,
+          "bottom": 360.75,
+          "width": 39.56,
+          "height": 16
+        },
+        "valueRect": {
+          "x": 97.56,
+          "y": 344.75,
+          "left": 97.56,
+          "right": 279,
+          "top": 344.75,
+          "bottom": 376.75,
+          "width": 181.44,
+          "height": 32
+        },
+        "valueTextBounds": {
+          "left": 121.55,
+          "right": 279,
+          "top": 344.75,
+          "bottom": 376.75,
+          "width": 157.45,
+          "height": 32
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "ltr",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "Type code",
+        "value": "VEHICLE_DAMAGE",
+        "rect": {
+          "x": 42,
+          "y": 388.75,
+          "left": 42,
+          "right": 279,
+          "top": 388.75,
+          "bottom": 404.75,
+          "width": 237,
+          "height": 16
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 388.75,
+          "left": 42,
+          "right": 95.97,
+          "top": 388.75,
+          "bottom": 404.75,
+          "width": 53.97,
+          "height": 16
+        },
+        "valueRect": {
+          "x": 174.8,
+          "y": 388.75,
+          "left": 174.8,
+          "right": 279,
+          "top": 388.75,
+          "bottom": 404.75,
+          "width": 104.2,
+          "height": 16
+        },
+        "valueTextBounds": {
+          "left": 174.8,
+          "right": 279,
+          "top": 388.75,
+          "bottom": 404.75,
+          "width": 104.2,
+          "height": 16
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "ltr",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      }
+    ]
+  },
+  "bottom": {
+    "innerWidth": 320,
+    "innerHeight": 900,
+    "outerWidth": 516,
+    "outerHeight": 900,
+    "devicePixelRatio": 1,
+    "visualScale": 1,
+    "htmlDir": "ltr",
+    "htmlLang": "en",
+    "htmlZoom": "1",
+    "documentClientWidth": 320,
+    "documentScrollWidth": 320,
+    "documentScrollLeft": 0,
+    "documentFontStatus": "loaded",
+    "fonts": [],
+    "bodyFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+    "activeElement": "Close",
+    "drawer": {
+      "x": 0,
+      "y": 0,
+      "left": 0,
+      "right": 320,
+      "top": 0,
+      "bottom": 900,
+      "width": 320,
+      "height": 900
+    },
+    "drawerBody": {
+      "x": 1,
+      "y": 75,
+      "left": 1,
+      "right": 320,
+      "top": 75,
+      "bottom": 900,
+      "width": 319,
+      "height": 825
+    },
+    "drawerBodyOverflowX": "auto",
+    "drawerBodyOverflowY": "auto",
+    "drawerBodyScrollWidth": 319,
+    "drawerBodyClientWidth": 319,
+    "drawerBodyScrollHeight": 825,
+    "drawerBodyClientHeight": 825,
+    "drawerBodyScrollTop": 0,
+    "factList": {
+      "x": 25,
+      "y": 99,
+      "left": 25,
+      "right": 296,
+      "top": 99,
+      "bottom": 421.75,
+      "width": 271,
+      "height": 322.75
+    },
+    "factListOverflowX": "visible",
+    "factListScrollWidth": 269,
+    "factListClientWidth": 269,
+    "close": {
+      "x": 266,
+      "y": 22,
+      "left": 266,
+      "right": 296,
+      "top": 22,
+      "bottom": 52,
+      "width": 30,
+      "height": 30
+    },
+    "facts": [
+      {
+        "label": "Type",
+        "value": "Vehicle damage",
+        "rect": {
+          "x": 42,
+          "y": 116,
+          "left": 42,
+          "right": 279,
+          "top": 116,
+          "bottom": 132,
+          "width": 237,
+          "height": 16
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 116,
+          "left": 42,
+          "right": 66.77,
+          "top": 116,
+          "bottom": 132,
+          "width": 24.77,
+          "height": 16
+        },
+        "valueRect": {
+          "x": 190.41,
+          "y": 116,
+          "left": 190.41,
+          "right": 279,
+          "top": 116,
+          "bottom": 132,
+          "width": 88.59,
+          "height": 16
+        },
+        "valueTextBounds": {
+          "left": 190.41,
+          "right": 279,
+          "top": 116,
+          "bottom": 132,
+          "width": 88.59,
+          "height": 16
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "ltr",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "Description",
+        "value": "Mirror inspection required",
+        "rect": {
+          "x": 42,
+          "y": 144,
+          "left": 42,
+          "right": 279,
+          "top": 144,
+          "bottom": 160,
+          "width": 237,
+          "height": 16
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 144,
+          "left": 42,
+          "right": 102.27,
+          "top": 144,
+          "bottom": 160,
+          "width": 60.27,
+          "height": 16
+        },
+        "valueRect": {
+          "x": 129.58,
+          "y": 144,
+          "left": 129.58,
+          "right": 279,
+          "top": 144,
+          "bottom": 160,
+          "width": 149.42,
+          "height": 16
+        },
+        "valueTextBounds": {
+          "left": 129.58,
+          "right": 279,
+          "top": 144,
+          "bottom": 160,
+          "width": 149.42,
+          "height": 16
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "ltr",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "State",
+        "value": "Investigating",
+        "rect": {
+          "x": 42,
+          "y": 172,
+          "left": 42,
+          "right": 279,
+          "top": 172,
+          "bottom": 196.38,
+          "width": 237,
+          "height": 24.38
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 172,
+          "left": 42,
+          "right": 68.52,
+          "top": 172,
+          "bottom": 188,
+          "width": 26.52,
+          "height": 16
+        },
+        "valueRect": {
+          "x": 186.28,
+          "y": 172,
+          "left": 186.28,
+          "right": 279,
+          "top": 172,
+          "bottom": 196.38,
+          "width": 92.72,
+          "height": 24.38
+        },
+        "valueTextBounds": {
+          "left": 186.28,
+          "right": 279,
+          "top": 172,
+          "bottom": 196.38,
+          "width": 92.72,
+          "height": 24.38
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "ltr",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "Severity",
+        "value": "Medium",
+        "rect": {
+          "x": 42,
+          "y": 208.38,
+          "left": 42,
+          "right": 279,
+          "top": 208.38,
+          "bottom": 232.75,
+          "width": 237,
+          "height": 24.38
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 208.38,
+          "left": 42,
+          "right": 83.63,
+          "top": 208.38,
+          "bottom": 224.38,
+          "width": 41.63,
+          "height": 16
+        },
+        "valueRect": {
+          "x": 211.53,
+          "y": 208.38,
+          "left": 211.53,
+          "right": 279,
+          "top": 208.38,
+          "bottom": 232.75,
+          "width": 67.47,
+          "height": 24.38
+        },
+        "valueTextBounds": {
+          "left": 211.53,
+          "right": 279,
+          "top": 208.38,
+          "bottom": 232.75,
+          "width": 67.47,
+          "height": 24.38
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "ltr",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "Location",
+        "value": "Main Garage",
+        "rect": {
+          "x": 42,
+          "y": 244.75,
+          "left": 42,
+          "right": 279,
+          "top": 244.75,
+          "bottom": 260.75,
+          "width": 237,
+          "height": 16
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 244.75,
+          "left": 42,
+          "right": 87.13,
+          "top": 244.75,
+          "bottom": 260.75,
+          "width": 45.13,
+          "height": 16
+        },
+        "valueRect": {
+          "x": 206.92,
+          "y": 244.75,
+          "left": 206.92,
+          "right": 279,
+          "top": 244.75,
+          "bottom": 260.75,
+          "width": 72.08,
+          "height": 16
+        },
+        "valueTextBounds": {
+          "left": 206.92,
+          "right": 279,
+          "top": 244.75,
+          "bottom": 260.75,
+          "width": 72.08,
+          "height": 16
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "ltr",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "Created",
+        "value": "Sep 21, 2:00 PM (Asia/Amman)",
+        "rect": {
+          "x": 42,
+          "y": 272.75,
+          "left": 42,
+          "right": 279,
+          "top": 272.75,
+          "bottom": 288.75,
+          "width": 237,
+          "height": 16
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 272.75,
+          "left": 42,
+          "right": 83.39,
+          "top": 272.75,
+          "bottom": 288.75,
+          "width": 41.39,
+          "height": 16
+        },
+        "valueRect": {
+          "x": 103.31,
+          "y": 272.75,
+          "left": 103.31,
+          "right": 279,
+          "top": 272.75,
+          "bottom": 288.75,
+          "width": 175.69,
+          "height": 16
+        },
+        "valueTextBounds": {
+          "left": 103.31,
+          "right": 279,
+          "top": 272.75,
+          "bottom": 288.75,
+          "width": 175.69,
+          "height": 16
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "ltr",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "Incident ID",
+        "value": "77777777-7777-4777-8777-777777777706",
+        "rect": {
+          "x": 42,
+          "y": 300.75,
+          "left": 42,
+          "right": 279,
+          "top": 300.75,
+          "bottom": 332.75,
+          "width": 237,
+          "height": 32
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 300.75,
+          "left": 42,
+          "right": 84.69,
+          "top": 300.75,
+          "bottom": 332.75,
+          "width": 42.69,
+          "height": 32
+        },
+        "valueRect": {
+          "x": 100.69,
+          "y": 300.75,
+          "left": 100.69,
+          "right": 279,
+          "top": 300.75,
+          "bottom": 332.75,
+          "width": 178.31,
+          "height": 32
+        },
+        "valueTextBounds": {
+          "left": 121.55,
+          "right": 279,
+          "top": 300.75,
+          "bottom": 332.75,
+          "width": 157.45,
+          "height": 32
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "ltr",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "Session",
+        "value": "77777777-7777-4777-8777-777777777701",
+        "rect": {
+          "x": 42,
+          "y": 344.75,
+          "left": 42,
+          "right": 279,
+          "top": 344.75,
+          "bottom": 376.75,
+          "width": 237,
+          "height": 32
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 344.75,
+          "left": 42,
+          "right": 81.56,
+          "top": 344.75,
+          "bottom": 360.75,
+          "width": 39.56,
+          "height": 16
+        },
+        "valueRect": {
+          "x": 97.56,
+          "y": 344.75,
+          "left": 97.56,
+          "right": 279,
+          "top": 344.75,
+          "bottom": 376.75,
+          "width": 181.44,
+          "height": 32
+        },
+        "valueTextBounds": {
+          "left": 121.55,
+          "right": 279,
+          "top": 344.75,
+          "bottom": 376.75,
+          "width": 157.45,
+          "height": 32
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "ltr",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      },
+      {
+        "label": "Type code",
+        "value": "VEHICLE_DAMAGE",
+        "rect": {
+          "x": 42,
+          "y": 388.75,
+          "left": 42,
+          "right": 279,
+          "top": 388.75,
+          "bottom": 404.75,
+          "width": 237,
+          "height": 16
+        },
+        "labelRect": {
+          "x": 42,
+          "y": 388.75,
+          "left": 42,
+          "right": 95.97,
+          "top": 388.75,
+          "bottom": 404.75,
+          "width": 53.97,
+          "height": 16
+        },
+        "valueRect": {
+          "x": 174.8,
+          "y": 388.75,
+          "left": 174.8,
+          "right": 279,
+          "top": 388.75,
+          "bottom": 404.75,
+          "width": 104.2,
+          "height": 16
+        },
+        "valueTextBounds": {
+          "left": 174.8,
+          "right": 279,
+          "top": 388.75,
+          "bottom": 404.75,
+          "width": 104.2,
+          "height": 16
+        },
+        "valueOverflowWrap": "anywhere",
+        "valueWordBreak": "normal",
+        "valueDirection": "ltr",
+        "labelFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "valueFont": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif"
+      }
+    ]
+  }
+}

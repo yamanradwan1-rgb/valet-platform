@@ -36,6 +36,7 @@ export function incidentItem() {
     severity: "MEDIUM",
     type: "VEHICLE_DAMAGE",
     description: "Mirror inspection required",
+    reporterDisplayName: null,
     createdAt: "2026-09-21T11:00:00.000Z",
     resolvedAt: null,
   };
