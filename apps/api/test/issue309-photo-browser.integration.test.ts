@@ -52,17 +52,27 @@ describe("#309 actual Next Dashboard -> protected HTTP -> persisted Check-In JPE
     sessionId = seeded.scope.sessionId;
     locationId = seeded.scope.locationId;
     const jpeg = await syntheticJpeg();
-    expectedSha256 = createHash("sha256").update(jpeg).digest("hex");
+    const inputSha256 = createHash("sha256").update(jpeg).digest("hex");
     const upload = await h.upload(sessionId, seeded.authorization, jpeg);
     expect(upload.status).toBe(201);
     photoId = String(JSON.parse(upload.body.toString("utf8")).vehiclePhotoId);
+    const verified = await h.db.admin.query<{ content_sha256: Buffer }>(
+      "SELECT content_sha256 FROM vehicle_photo_verifications WHERE vehicle_photo_id=$1",
+      [photoId],
+    );
+    expect(verified.rows).toHaveLength(1);
+    expectedSha256 = verified.rows[0]!.content_sha256.toString("hex");
+    // Upload sanitizes/reencodes JPEG; the browser must match the persisted
+    // independently verified object, not the original raw input bytes.
+    expect(expectedSha256).not.toBe(inputSha256);
     secondVisitId = randomUUID();
     await h.db.admin.query(
       `INSERT INTO valet_sessions
        (id,customer_access_token_hash,customer_access_expires_at,
-        organization_id,location_id,vehicle_id,state,checked_in_by_membership_id,updated_at)
+        organization_id,location_id,vehicle_id,state,checked_in_by_membership_id,completed_at,created_at,updated_at)
        VALUES($1,$2,clock_timestamp()+interval '1 hour',$3,$4,$5,
-        'CHECKING_IN',$6,clock_timestamp())`,
+        'COMPLETED',$6,clock_timestamp()-interval '1 day',
+        clock_timestamp()-interval '1 day',clock_timestamp()-interval '1 day')`,
       [secondVisitId, `issue309:${randomUUID()}`, seeded.scope.orgId,
         locationId, seeded.scope.vehicleId, seeded.scope.memberId],
     );
@@ -113,8 +123,16 @@ describe("#309 actual Next Dashboard -> protected HTTP -> persisted Check-In JPE
     scopedViewers.set(role, [actor.userId, matched.rows[0]!.id, locationId, sessionId].join(":"));
     process.env.ISSUE309_DEV_PHOTO_VIEW_SCOPES = [...scopedViewers.values()].join(";");
     if (role === "admin") {
-      await page.getByLabel("6-digit authenticator code").fill(currentTotp());
-      await page.getByRole("button", { name: "Verify" }).click();
+      // Genuine TOTP step-up over the live authenticated Next -> Nest rewrite.
+      // Company Admin photo VIEW retains the server's MFA validity check.
+      const step = await page.evaluate(async ({ bearer, code }: { bearer: string; code: string }) => {
+        const response = await fetch("/v1/staff/auth/mfa/step-up", {
+          method: "POST", headers: { authorization: bearer, "content-type": "application/json" },
+          body: JSON.stringify({ code }),
+        });
+        return { status: response.status, body: await response.text() };
+      }, { bearer: `Bearer ${tokenPayload.accessToken}`, code: currentTotp() });
+      expect(step.status, step.body).toBe(200);
     }
     await page.getByRole("button", { name: "P1 isolated test" }).click();
     await page.getByRole("button", { name: "P1 location" }).click();
@@ -131,7 +149,7 @@ describe("#309 actual Next Dashboard -> protected HTTP -> persisted Check-In JPE
           received.push(response.url());
         }
       });
-      await page.locator("tbody tr").filter({ hasText: "Test vehicle" }).last()
+      await page.locator("tbody tr").filter({ hasText: "Test vehicle" }).first()
         .getByRole("button", { name: /Details/ }).click();
       await page.locator('img[src^="blob:"]').first().waitFor();
       const digest = await page.locator('img[src^="blob:"]').first().evaluate(
@@ -144,7 +162,7 @@ describe("#309 actual Next Dashboard -> protected HTTP -> persisted Check-In JPE
       expect(digest).toBe(expectedSha256);
       await page.keyboard.press("Escape");
       await page.goto(`${next.origin}/live-operations`);
-      await page.locator("tbody tr").filter({ hasText: "Test vehicle" }).last()
+      await page.locator("tbody tr").filter({ hasText: "Test vehicle" }).first()
         .getByRole("button", { name: /Details/ }).click();
       await page.locator('img[src^="blob:"]').first().waitFor();
       expect(received.length).toBeGreaterThanOrEqual(2);
@@ -162,12 +180,12 @@ describe("#309 actual Next Dashboard -> protected HTTP -> persisted Check-In JPE
       );
       // The explicit development allowlist also fences one exact *visit*.
       expect([403, 404]).toContain(second.status);
-      await page.locator("tbody tr").filter({ hasText: "Test vehicle" }).first()
+      await page.locator("tbody tr").filter({ hasText: "Test vehicle" }).last()
         .getByRole("button", { name: /Details/ }).click();
       await page.getByText(/not available|not authorized|Access denied|unavailable/u).first().waitFor();
       await page.keyboard.press("Escape");
       await page.goto(`${next.origin}/vehicles`);
-      await page.locator("tbody tr").filter({ hasText: "Test vehicle" }).last()
+      await page.locator("tbody tr").filter({ hasText: "Test vehicle" }).first()
         .getByRole("button", { name: /Details/ }).click();
       await page.locator('img[src^="blob:"]').first().waitFor();
       const saved = await page.evaluate(() => {
@@ -199,7 +217,7 @@ describe("#309 actual Next Dashboard -> protected HTTP -> persisted Check-In JPE
   it("CA must perform genuine TOTP and can read exact saved JPEG", async () => {
     const { context, page } = await signIn(admin, "admin");
     try {
-      await page.locator("tbody tr").filter({ hasText: "Test vehicle" }).last()
+      await page.locator("tbody tr").filter({ hasText: "Test vehicle" }).first()
         .getByRole("button", { name: /Details/ }).click();
       await page.locator('img[src^="blob:"]').first().waitFor();
     } finally { await context.close(); }

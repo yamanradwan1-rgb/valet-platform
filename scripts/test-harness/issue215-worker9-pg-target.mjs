@@ -27,7 +27,8 @@ export function requireWorker9DatabaseUrl(env) {
   try { url = new URL(data.databaseUrl); }
   catch { throw new Error(denied); }
   if (env.NODE_ENV !== "test" || env.VAYLET_ISSUE215_TEST_TARGET !== "worker9" ||
-      !["api-postgres-issue215", "database-postgres-issue215"]
+      !["api-postgres-issue215", "database-postgres-issue215",
+        "api-postgres-issue309-browser"]
         .includes(env.VAYLET_TEST_PROJECT) ||
       !env.VAYLET_TEST_RUN_ID ||
       env.VAYLET_ISSUE215_WORKER9_RUN_ID !== data.runId ||

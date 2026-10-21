@@ -1,7 +1,7 @@
 import { createRequire } from "node:module";
 
 import { preflightIssue215TestTarget } from "../../packages/database/src/condition-photo-p1-test-target.mjs";
-import { ISSUE215_API_PROJECT, ISSUE215_PROJECT, isIssue215ProtectedProject } from "./issue215-test-manifest.mjs";
+import { ISSUE215_API_PROJECT, ISSUE215_PROJECT, ISSUE309_BROWSER_PROJECT, isIssue215ProtectedProject } from "./issue215-test-manifest.mjs";
 
 export function requiresIssue215Preflight(selectedProjects = []) {
   // Callers pass project ownership as resolved by the test manifest / runner,
@@ -24,6 +24,7 @@ export function requiresIssue215StaleOwnerPreflight(staleOwner) {
   return name === "root-tests" || name === "database-package-tests" ||
     name === "focused-database" || name === ISSUE215_PROJECT ||
     name === ISSUE215_API_PROJECT ||
+    name === ISSUE309_BROWSER_PROJECT ||
     name === "database-postgres-direct" ||
     name === "database-postgres-provision" ||
     (typeof name === "string" && name.startsWith("postgres-projects-database-"));

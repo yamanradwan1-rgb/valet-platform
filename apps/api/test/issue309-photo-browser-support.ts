@@ -43,12 +43,13 @@ export async function openRealNext(apiOrigin: string, port: number): Promise<{
   const origin = `http://127.0.0.1:${port}`;
   const nextBin = resolve(dashboardRoot, "node_modules/next/dist/bin/next");
   const child: ChildProcess = spawn(process.execPath,
-    [nextBin, "dev", "--hostname", "127.0.0.1", "--port", String(port)], {
+    [nextBin, "dev", "--webpack", "--hostname", "127.0.0.1", "--port", String(port)], {
       cwd: dashboardRoot,
       windowsHide: true,
       env: {
         ...process.env,
         NODE_ENV: "development", API_ORIGIN: apiOrigin,
+        ISSUE_300_LOCAL_PREVIEW: "1",
         NEXT_TELEMETRY_DISABLED: "1",
       },
       stdio: ["ignore", "pipe", "pipe"],

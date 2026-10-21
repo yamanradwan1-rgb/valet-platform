@@ -3,6 +3,8 @@ import { dirname, extname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   ISSUE215_API_PROJECT,
+  ISSUE309_BROWSER_PROJECT,
+  issue309BrowserTest,
   ISSUE215_PROJECT,
   isIssue215ApiPostgresFile,
   isIssue215PostgresFile,
@@ -54,7 +56,7 @@ export function classifyPackageTests({ packageKind, rootDir }) {
   }
   if (packageKind === "api" && resolve(rootDir) === resolve(repositoryApiTests)) {
     const known = new Set(discovered.map((file) => normalize(relative(rootDir, file))));
-    for (const file of issue215ApiPostgresFiles) {
+    for (const file of [...issue215ApiPostgresFiles, issue309BrowserTest]) {
       if (!known.has(file)) {
         throw new Error(`Issue 215 protected API PostgreSQL test missing from discovery: ${file}.`);
       }
@@ -87,6 +89,8 @@ export function classifyPackageTests({ packageKind, rootDir }) {
     const project =
       packageKind === "database" && isIssue215PostgresFile(relativeFile)
         ? ISSUE215_PROJECT
+        : packageKind === "api" && relativeFile === issue309BrowserTest && dbBacked
+        ? ISSUE309_BROWSER_PROJECT
         : packageKind === "api" && isIssue215ApiPostgresFile(relativeFile)
         ? ISSUE215_API_PROJECT
         : packageKind === "api"

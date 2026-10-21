@@ -8,6 +8,8 @@ import test from "node:test";
 import { classifyPackageTests } from "./test-classification.mjs";
 import {
   ISSUE215_API_PROJECT,
+  ISSUE309_BROWSER_PROJECT,
+  issue309BrowserTest,
   ISSUE215_PROJECT,
   issue215ApiPostgresFiles,
   isIssue215ApiPostgresFile,
@@ -37,7 +39,6 @@ test("reviewed #215 and #309 exact API tests alone enter the protected Issue215 
     "issue215-recovery.integration.test.ts",
     "issue215-staff-credential-races.test.ts",
     "issue309-photo-cross-commit-pg17.integration.test.ts",
-    "issue309-photo-browser.integration.test.ts",
     "issue309-photo-db-blocker-proof.test.ts",
     "issue309-photo-grant-race.integration.test.ts",
     "issue309-photo-viewer.integration.test.ts",
@@ -45,15 +46,18 @@ test("reviewed #215 and #309 exact API tests alone enter the protected Issue215 
   const apiRoot = fileURLToPath(new URL("../../apps/api/test/", import.meta.url));
   const classified = classifyPackageTests({ packageKind: "api", rootDir: apiRoot });
   assert.deepEqual(classified[ISSUE215_API_PROJECT], issue215ApiPostgresFiles);
+  assert.deepEqual(classified[ISSUE309_BROWSER_PROJECT], [issue309BrowserTest]);
   for (const [projectName, files] of Object.entries(classified)) {
     if (projectName === ISSUE215_API_PROJECT) continue;
     assert.ok(files.every((file) => !issue215ApiPostgresFiles.includes(file)));
   }
   assert.equal(postgresProfileForProject(ISSUE215_API_PROJECT).name, "api-race");
+  assert.equal(postgresProfileForProject(ISSUE309_BROWSER_PROJECT).name, "api-photo-browser");
 });
 
 test("protected project ownership includes API but rejects name and CLI-like impostors", () => {
   assert.equal(isIssue215ProtectedProject(ISSUE215_API_PROJECT), true);
+  assert.equal(isIssue215ProtectedProject(ISSUE309_BROWSER_PROJECT), true);
   assert.equal(isIssue215ProtectedProject(ISSUE215_PROJECT), true);
   assert.equal(requiresIssue215Preflight([ISSUE215_API_PROJECT]), true);
   assert.equal(requiresIssue215Preflight(["api-postgres-race"]), false);

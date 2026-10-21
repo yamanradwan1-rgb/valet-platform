@@ -4,6 +4,8 @@
 // authoritative test selection.
 export const ISSUE215_PROJECT = "database-postgres-issue215";
 export const ISSUE215_API_PROJECT = "api-postgres-issue215";
+export const ISSUE309_BROWSER_PROJECT = "api-postgres-issue309-browser";
+export const issue309BrowserTest = "issue309-photo-browser.integration.test.ts";
 export const issue215ApiPostgresFiles = Object.freeze([
   "issue215-policy-recovery.test.ts",
   "issue215-real-http-integration.test.ts",
@@ -13,7 +15,6 @@ export const issue215ApiPostgresFiles = Object.freeze([
   "issue215-recovery.integration.test.ts",
   "issue215-staff-credential-races.test.ts",
   "issue309-photo-cross-commit-pg17.integration.test.ts",
-  "issue309-photo-browser.integration.test.ts",
   "issue309-photo-db-blocker-proof.test.ts",
   "issue309-photo-grant-race.integration.test.ts",
   "issue309-photo-viewer.integration.test.ts",
@@ -38,5 +39,6 @@ export function isIssue215ApiPostgresFile(file) {
 }
 
 export function isIssue215ProtectedProject(projectName) {
-  return projectName === ISSUE215_PROJECT || projectName === ISSUE215_API_PROJECT;
+  return projectName === ISSUE215_PROJECT || projectName === ISSUE215_API_PROJECT ||
+    projectName === ISSUE309_BROWSER_PROJECT;
 }

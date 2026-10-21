@@ -3,6 +3,8 @@ export const POSTGRES_RESOURCE_PROFILES = Object.freeze({
   "api-standard": profile("api-standard", 4, 2, 2, 1, 10, 1),
   "api-compound": profile("api-compound", 4, 3, 2, 1, 10, 1),
   "api-race": profile("api-race", 6, 4, 4, 1, 10, 2),
+  // One isolated Next subprocess plus one Chromium process, no parallel files.
+  "api-photo-browser": profile("api-photo-browser", 6, 4, 4, 2, 20, 1),
   "database-direct": profile("database-direct", 4, 2, 3, 0, 0, 2),
   "database-provision": profile("database-provision", 4, 2, 3, 1, 10, 2),
 });
@@ -12,6 +14,7 @@ const PROJECT_PROFILES = Object.freeze({
   "api-postgres-compound": "api-compound",
   "api-postgres-race": "api-race",
   "api-postgres-issue215": "api-race",
+  "api-postgres-issue309-browser": "api-photo-browser",
   "database-postgres-direct": "database-direct",
   "database-postgres-provision": "database-provision",
   "database-postgres-issue215": "database-provision",
