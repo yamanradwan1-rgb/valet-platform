@@ -32,7 +32,7 @@
 .viewerFooter { padding:14px 18px; font-size:.73rem; color:var(--muted); line-height:1.6; display:grid; gap:5px; }
 .viewerFooter strong { color:var(--text); }
 .viewerFooter .arrowsHint { font-size:.68rem; }
-.photoTile:focus-visible,.photoMessage button:focus-visible,.viewerArrow:focus-visible,.viewerClose:focus-visible { outline:3px solid var(--focus); outline-offset:2px; }
+.photoTile:focus-visible,.photoMessage button:focus-visible,.viewerArrow:focus-visible { outline:3px solid var(--focus); outline-offset:2px; }
 @media(max-width:390px) {
   .photoHeading { align-items:flex-start; } .photoTile img { aspect-ratio:1/1; }
   .viewerBackdrop { padding:5px; } .viewer { border-radius:8px; }
