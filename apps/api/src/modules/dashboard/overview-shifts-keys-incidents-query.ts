@@ -9,6 +9,7 @@ import { inPostgresTransaction } from "../../common/database/postgres-transactio
 import type { StaffSessionContext } from "../auth/staff-session-context";
 import { authorizeDashboardReadLocation } from "./dashboard-read-authorization";
 import { assertAuthorized } from "./dashboard-overview-error";
+import { canonicalHistoryName } from "./operational-history-identity-projection";
 import { createOverviewCursorCodec } from "./overview-cursor";
 
 const shiftCursorCodec = createOverviewCursorCodec("active-shifts");
@@ -175,6 +176,8 @@ export async function listKeyAccountability(
 interface IncidentRow {
   readonly createdAt: Date;
   readonly description: string;
+  readonly reporterFirstName: string | null;
+  readonly reporterLastName: string | null;
   readonly incidentId: string;
   readonly resolvedAt: Date | null;
   readonly severity: string;
@@ -224,9 +227,14 @@ export async function listOpenIncidents(
               incident.severity::text AS severity,
               incident.type,
               incident.description,
+              reporter.first_name AS "reporterFirstName",
+              reporter.last_name AS "reporterLastName",
               incident.created_at AS "createdAt",
               incident.resolved_at AS "resolvedAt"
        FROM incidents AS incident
+       LEFT JOIN organization_memberships AS reporter
+         ON reporter.organization_id = incident.organization_id
+        AND reporter.id = incident.reported_by_membership_id
        WHERE ${predicates.join(" AND ")}
        ORDER BY incident.created_at DESC, incident.id DESC
        LIMIT $${parameters.length}`,
@@ -238,6 +246,13 @@ export async function listOpenIncidents(
         createdAt: row.createdAt.toISOString(),
         description: row.description,
         incidentId: row.incidentId,
+        reporterDisplayName: (() => {
+          const name = canonicalHistoryName({
+            firstName: row.reporterFirstName,
+            lastName: row.reporterLastName,
+          });
+          return name === null ? null : `${name.firstName} ${name.lastName}`;
+        })(),
         resolvedAt:
           row.resolvedAt === null ? null : row.resolvedAt.toISOString(),
         severity: row.severity as IncidentOverviewEntry["severity"],

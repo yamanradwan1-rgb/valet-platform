@@ -61,6 +61,70 @@ test("Incidents localize types/status/severity, humanize Location time and retai
   ).toHaveCount(0);
 });
 
+for (const { locale, dark, width } of [
+  { locale: "en", dark: false, width: 1440 },
+  { locale: "en", dark: true, width: 390 },
+  { locale: "ar", dark: false, width: 390 },
+  { locale: "ar", dark: true, width: 1440 },
+  { locale: "en", dark: false, width: 320 },
+  { locale: "ar", dark: true, width: 768 },
+] as const) {
+  test(`#306 reporter fact ${locale} ${dark ? "dark" : "light"} ${width}px`, async ({ page }, testInfo) => {
+    const { incidentItem } = await import("./support/operations-fixtures");
+    const fixture = r08Fixture((path) => path === r08Path("incidents")
+      ? { body: { items: [
+        { ...incidentItem(), reporterDisplayName: "ليلى الخطيب" },
+        { ...incidentItem(), incidentId: OP_IDS.vehicle, reporterDisplayName: null },
+      ], nextCursor: null } }
+      : undefined);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await enterR08(page, "/incidents", fixture);
+    if (dark) await page.getByRole("button", { name: "Dark", exact: true }).click();
+    if (locale === "ar") await page.getByRole("button", { name: "Language" }).click();
+    await page.setViewportSize({ width, height: 900 });
+    const label = locale === "ar" ? "أبلغ عنه" : "Reported by";
+    await page.locator("tbody tr").first().getByRole("button").click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByText(label, { exact: true })).toHaveCount(1);
+    await expect(dialog.getByText("ليلى الخطيب", { exact: true })).toBeVisible();
+    await expect(page.getByRole("table")).not.toContainText("ليلى الخطيب");
+    await page.screenshot({ path: testInfo.outputPath("incident-reporter-name.png") });
+    await page.keyboard.press("Escape");
+    await page.locator("tbody tr").nth(1).getByRole("button").click();
+    await expect(dialog.getByText(label, { exact: true })).toHaveCount(1);
+    await expect(dialog.getByText(locale === "ar" ? "المبلّغ غير متاح" : "Reporter unavailable", { exact: true })).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath("incident-reporter-unavailable.png") });
+  });
+}
+
+for (const { locale, width } of [
+  { locale: "ar", width: 320 },
+  { locale: "en", width: 1440 },
+] as const) {
+  test(`#306 CSS 200% zoom long reporter ${locale} ${width}px`, async ({ page }, testInfo) => {
+    const { incidentItem } = await import("./support/operations-fixtures");
+    const name = `${"عبدالرحمن".repeat(8)} ${"الخطيب".repeat(8)}`;
+    const fixture = r08Fixture((path) => path === r08Path("incidents")
+      ? { body: { items: [{ ...incidentItem(), reporterDisplayName: name }], nextCursor: null } }
+      : undefined);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await enterR08(page, "/incidents", fixture);
+    if (locale === "ar") await page.getByRole("button", { name: "Language" }).click();
+    await page.setViewportSize({ width, height: 900 });
+    await page.evaluate(() => { document.documentElement.style.zoom = "2"; });
+    const before = await page.evaluate(() => document.documentElement.scrollWidth);
+    await page.locator("tbody tr").first().getByRole("button").click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByText(locale === "ar" ? "أبلغ عنه" : "Reported by", { exact: true })).toHaveCount(1);
+    await expect(dialog.getByText(name, { exact: true })).toBeVisible();
+    const after = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(after).toBeLessThanOrEqual(Math.max(before, width) + 1);
+    await page.screenshot({ path: testInfo.outputPath("reporter-css-zoom-200.png") });
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+  });
+}
+
 test("Audit human labels preserve unknown minimal projection and escaped safe text", async ({
   page,
 }) => {

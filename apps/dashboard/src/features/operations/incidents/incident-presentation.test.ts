@@ -1,6 +1,7 @@
 import { incidentTypeSchema } from "@valet/contracts";
 import { describe, expect, it } from "vitest";
 import {
+  incidentCopy,
   incidentTypeLabel,
   incidentStatusLabel,
   incidentSeverityLabel,
@@ -32,4 +33,14 @@ describe("incident presentation", () => {
       expect(incidentSeverityLabel(severity, "ar")).toMatch(/[\u0600-\u06ff]/u);
     },
   );
+  it("shows bilingual original-reporter detail and unavailable fallback", () => {
+    expect(incidentCopy("en")).toMatchObject({
+      reportedBy: "Reported by",
+      reporterUnavailable: "Reporter unavailable",
+    });
+    expect(incidentCopy("ar")).toMatchObject({
+      reportedBy: "أبلغ عنه",
+      reporterUnavailable: "المبلّغ غير متاح",
+    });
+  });
 });
