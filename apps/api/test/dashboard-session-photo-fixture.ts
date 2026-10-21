@@ -88,8 +88,15 @@ export function harness(overrides: Partial<State> = {}) {
             .map(c=>({photo_id:c.photoId,verified_at:new Date("2026-10-21T14:00:00.000Z")})),
           };
         }
-        if(sql.includes("FOR SHARE OF v,o,a,availability")){
-          return {rows:state.candidates.map(c=>({photo_id:c.photoId})),rowCount:state.candidates.length};
+        if(sql.includes("SELECT public.condition_photo_lock_management_evidence(")){
+          expect(args).toHaveLength(12);
+          expect(args).toEqual([
+            id.photo,id.organization,id.location,id.session,
+            id.operation,id.attempt,id.membership,candidate().objectKey,
+            expect.any(Buffer),bytes.length,"private","version-1",
+          ]);
+          expect((args?.[8] as Buffer).equals(sha256)).toBe(true);
+          return {rows:[{qualifies:true}],rowCount:1};
         }
         throw new Error("Unexpected SQL (test must not simulate missing permission): "+sql.slice(0,65));
       }),
