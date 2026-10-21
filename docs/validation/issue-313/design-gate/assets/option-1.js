@@ -26,7 +26,8 @@
   function headline(data, tr) {
     heading.textContent = tr.heading;
     const chosen = data.location === "all" ? tr.all : tr[data.location];
-    context.textContent = chosen + " · " + tr[data.period];
+    const periodKey = { "2026-08": "aug", "2026-09": "sep", "2026-10": "oct" }[data.period];
+    context.textContent = chosen + " · " + (tr[periodKey] || data.period);
   }
 
   function stateMessage(data, tr, controller) {
