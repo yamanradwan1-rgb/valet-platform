@@ -1,4 +1,4 @@
-﻿.page {
+.page {
   --analytics-grid: #e2e8f0;
   --analytics-muted: #64748b;
   --analytics-divider: #f1f5f9;
@@ -293,4 +293,3 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-

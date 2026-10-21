@@ -1,4 +1,4 @@
-﻿
+
 
 
 
@@ -65,4 +65,3 @@ a { color: inherit; }
 .bidi-code,
 .bidi-number { unicode-bidi: isolate; direction: ltr; }
 .bidi-code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
-
