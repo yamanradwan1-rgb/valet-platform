@@ -1,0 +1,55 @@
+.cardEvidence summary,
+.chartData summary {
+  width: fit-content;
+  cursor: pointer;
+  font-size: 0.75rem;
+  line-height: 1.375rem;
+  font-weight: 500;
+  color: var(--analytics-evidence);
+}
+
+.cardEvidence summary:focus-visible,
+.chartData summary:focus-visible,
+.scrollEvidence:focus-visible,
+.tableScroll:focus-visible {
+  outline: 2px solid #1e60f0;
+  outline-offset: 2px;
+}
+
+.cardEvidence > div,
+.cardEvidence > ul {
+  margin-top: 0.5rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.chartData {
+  margin-top: 0.75rem;
+  color: var(--analytics-evidence);
+}
+
+.tableScroll {
+  overflow-x: auto;
+  margin-top: 0.5rem;
+}
+
+.tableScroll table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+  text-align: start;
+}
+
+.tableScroll caption {
+  text-align: start;
+  font-weight: 600;
+  padding-block: 0.5rem;
+}
+
+.tableScroll th,
+.tableScroll td {
+  text-align: start;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--analytics-divider);
+}
