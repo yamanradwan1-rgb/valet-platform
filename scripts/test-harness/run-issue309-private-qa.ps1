@@ -12,7 +12,8 @@ param(
   [string] $ScopeMigration,
   [Parameter(Mandatory = $true)]
   [string] $DefinerMigration,
-  [switch] $Browser
+  [switch] $Browser,
+  [switch] $BrowserOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -88,9 +89,10 @@ try {
   # Prisma on Windows can extract the same schema engine binary during each
   # worker's concurrent migrate deploy. Keep the two real-PG suites sequential
   # so a shared engine rename cannot cause unrelated tests to skip setup.
-  foreach ($suite in @(
+  $suites = if ($BrowserOnly) { @() } else { @(
     'test/issue309-photo-viewer.integration.test.ts',
-    'test/issue309-photo-grant-race.integration.test.ts')) {
+    'test/issue309-photo-grant-race.integration.test.ts') }
+  foreach ($suite in $suites) {
     Write-Host "Running #309 live suite: $suite"
     try {
       Invoke-Checked 'pnpm' ($runner + @($suite))
@@ -100,7 +102,7 @@ try {
     }
   }
 
-  if ($Browser) {
+  if ($Browser -or $BrowserOnly) {
     Write-Host 'Running real Next Dashboard browser + authenticated HTTP private JPEG suite.'
     try {
       Invoke-Checked 'pnpm' ($runner + @('test/issue309-photo-browser.integration.test.ts'))
@@ -110,12 +112,14 @@ try {
     }
   }
 
-  Write-Host 'Running original #215 6 real upload HTTP regression cases.'
-  try {
-    Invoke-Checked 'pnpm' ($runner + @('test/issue215-real-http-integration.test.ts'))
-  } catch {
-    $failed = $true
-    Write-Warning "#215 regression failed: $_"
+  if (-not $BrowserOnly) {
+    Write-Host 'Running original #215 6 real upload HTTP regression cases.'
+    try {
+      Invoke-Checked 'pnpm' ($runner + @('test/issue215-real-http-integration.test.ts'))
+    } catch {
+      $failed = $true
+      Write-Warning "#215 regression failed: $_"
+    }
   }
 } finally {
   try {
@@ -127,4 +131,4 @@ try {
   Pop-Location
 }
 if ($failed) { exit 1 }
-Write-Host 'Both protected suites completed; owned fixtures removed.'
+Write-Host 'Selected protected suites completed; owned fixtures removed.'

@@ -70,6 +70,7 @@ describe("#309 actual Next Dashboard -> protected HTTP -> persisted Check-In JPE
     admin = await browserActor(h, seeded.scope, "ORG_ADMIN");
     supervisor = await browserActor(h, seeded.scope, "VALET_SUPERVISOR");
     employee = await browserActor(h, seeded.scope, "VALET_EMPLOYEE");
+    h.activateDevelopmentPhotoView();
     next = await openRealNext(h.baseUrl, port);
     browser = await realChromium().launch({ headless: true });
   }, 240_000);

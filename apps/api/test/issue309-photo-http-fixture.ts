@@ -46,6 +46,7 @@ interface HttpResult {
 
 export interface Issue309PhotoHttpFixture {
   readonly baseUrl: string;
+  activateDevelopmentPhotoView(): void;
   readonly db: Issue215HttpDatabase;
   readonly privateStore: S3PrivatePhotoStore;
   seedPhoto(): Promise<{ scope: Issue215HttpScope; authorization: string }>;
@@ -91,7 +92,6 @@ export async function openIssue309PhotoHttpFixture(
       MFA_RECOVERY_HMAC_SECRET_B64URL: randomBytes(32).toString("base64url"),
       ...(options.browserOrigin ? { STAFF_AUTH_ALLOWED_ORIGINS: options.browserOrigin } : {}),
       ...(options.developmentPolicy ? {
-        NODE_ENV: "development",
         ISSUE309_DEV_PHOTO_VIEW_ENABLED: "true",
         ISSUE309_DEV_PHOTO_VIEW_SCOPES: "",
         VAYLET_LOCAL_DISABLE_MFA: "false",
@@ -99,7 +99,11 @@ export async function openIssue309PhotoHttpFixture(
     });
     @Module({ imports: [CheckInModule, DashboardModule] })
     class Issue309PhotoTestModule {}
-    app = await NestFactory.create(Issue309PhotoTestModule, { logger: false });
+    // Surface fixture errors as ordinary test failures; Nest's default
+    // abortOnError hard-terminates the Vitest worker before teardown/reporting.
+    app = await NestFactory.create(Issue309PhotoTestModule, {
+      logger: false, abortOnError: false,
+    });
     await app.listen(0, "127.0.0.1");
     const baseUrl = await app.getUrl();
     client = new S3Client({
@@ -142,6 +146,14 @@ export async function openIssue309PhotoHttpFixture(
     }
     return {
       db, privateStore, baseUrl,
+      activateDevelopmentPhotoView() {
+        if (!options.developmentPolicy || process.env.NODE_ENV !== "test")
+          throw new Error("Expected tested private MinIO startup before dev view test.");
+        // Initialize the existing local HTTP MinIO adapter under its documented
+        // NODE_ENV=test safety gate, then test the real dev-only photo VIEW
+        // policy during HTTP requests. No storage/auth/role dependency is mocked.
+        process.env.NODE_ENV = "development";
+      },
       async seedPhoto() {
         const scope = await db.seed(true);
         return { scope, authorization: await db.createBearer(scope) };
