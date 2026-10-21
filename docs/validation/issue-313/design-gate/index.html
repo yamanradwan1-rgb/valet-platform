@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>VAYLET #313 | Customer Feedback Design Gate</title>
+  <style>
+    :root{font-family:Inter,"Segoe UI",Arial,sans-serif;color:#14213c;background:#f5f7fb}
+    *{box-sizing:border-box}body{margin:0}button,select,a{font:inherit}
+    button,select{border:1px solid #cad5e4;border-radius:9px;padding:9px 13px;background:white;color:#263856;cursor:pointer}
+    button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #1e60f0;outline-offset:3px}
+    .top{background:#0d1931;color:white;padding:36px clamp(20px,5vw,72px)}
+    .brand{font-size:12px;color:#8db5ff;letter-spacing:.18em;font-weight:800}
+    .top h1{font-size:clamp(26px,3vw,40px);letter-spacing:-.035em;max-width:850px;margin:10px 0}
+    .top p{color:#bfcee6;line-height:1.65;max-width:760px;margin:0}
+    .container{max-width:1600px;margin:auto;padding:28px clamp(16px,3vw,46px) 60px}
+    .toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:15px 18px;border:1px solid #e2e8f0;background:white;border-radius:12px}
+    .toolbar label{display:flex;gap:7px;align-items:center;color:#435473;font-size:13px;font-weight:650}
+    .toolbar p{font-size:12px;color:#617089;margin:0 0 0 auto}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin-top:24px}
+    .option{min-width:0;background:white;border:1px solid #dbe3ef;box-shadow:0 1px 8px #15213b0b;border-radius:16px;overflow:hidden}
+    .option-head{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;padding:20px 20px 12px}
+    .option small{color:#557399;font-weight:800;font-size:11px;letter-spacing:.07em}
+    .option h2{font-size:19px;letter-spacing:-.025em;margin:6px 0}
+    .option p{font-size:13px;line-height:1.6;color:#65718a;margin:5px 0}
+    .open{white-space:nowrap;align-self:flex-start;background:#1e60f0;color:white;text-decoration:none;font-size:12px;padding:10px 13px;border-radius:8px;font-weight:750}
+    .open:hover{background:#124fcf}.preview-wrap{margin:0 16px 15px;overflow:hidden;border:1px solid #dbe3ef;border-radius:10px;background:#e8edf5;height:420px;position:relative}
+    .frame{width:100%;height:100%;border:0;display:block;background:white}
+    .frame.mobile{width:390px;max-width:100%;height:100%;margin:auto;border-inline:1px solid #bcc7d7}
+    .analysis{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 20px 20px}
+    .analysis>div{font-size:12px;color:#58677f;line-height:1.55}.analysis strong{display:block;font-size:12px;color:#223453;margin-bottom:3px}
+    .qa{border-top:1px solid #edf0f5;padding:12px 20px;font-size:12px;color:#6b778d}
+    .section-title{font-size:20px;letter-spacing:-.02em;margin:40px 0 14px}
+    .table-wrap{overflow-x:auto;background:white;border:1px solid #dce4ef;border-radius:12px}
+    table{border-collapse:collapse;width:100%;min-width:800px;font-size:13px}
+    th,td{padding:13px 16px;text-align:start;border-bottom:1px solid #e9eff6;vertical-align:top}
+    th{color:#344b72;background:#f7f9fd;font-size:12px}
+    tr:last-child td{border-bottom:0}.bottom{padding:15px 20px;background:#edf3fe;border-inline-start:3px solid #1e60f0;font-size:13px;line-height:1.6;color:#304369;margin-top:20px}
+    @media(max-width:1000px){.grid{grid-template-columns:1fr}.toolbar p{width:100%;margin:0}}
+    @media(max-width:480px){.option-head{flex-wrap:wrap}.analysis{grid-template-columns:1fr}.preview-wrap{height:500px}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">VAYLET · PRODUCT DESIGN REVIEW · ISSUE #313</div>
+    <h1>Customer Feedback Analytics · Four design directions</h1>
+    <p>The same existing VAYLET Analytics shell and operational metrics are preserved in every proposal. Only the new Customer Feedback section changes. This is an offline design demonstration with synthetic rating data, awaiting Owner choice.</p>
+  </header>
+  <main class="container">
+    <div class="toolbar" role="group" aria-label="Prototype preview controls">
+      <label>Language <select id="lang"><option value="en">English / LTR</option><option value="ar">العربية / RTL</option></select></label>
+      <label>Theme <select id="theme"><option value="light">Light</option><option value="dark">Dark</option></select></label>
+      <label>Viewport <select id="viewport"><option value="desktop">Desktop</option><option value="mobile">Mobile 390px</option></select></label>
+      <p>Preview controls simulate local presentation. Use “Open full page” for the complete interactive option and all data states.</p>
+    </div>
+    <div class="grid">
+      <article class="option" data-file="option-1-summary-first.html">
+        <div class="option-head"><div><small>OPTION 01 · EXECUTIVE SCAN</small><h2>Summary First</h2><p>Starts with the overall satisfaction signal; the distribution and recent visits support it.</p></div><a class="open" href="option-1-summary-first.html" target="_blank" rel="noopener">Open full page ↗</a></div>
+        <div class="preview-wrap"><iframe class="frame" loading="lazy" title="Summary First live prototype"></iframe></div>
+        <div class="analysis"><div><strong>Strength</strong>Quickest read for managers looking for the headline rating and participation.</div><div><strong>Trade-off</strong>Full distribution and visit evidence require a second glance.</div></div>
+        <div class="qa">Independent QA: see final review and verification reports.</div>
+      </article>
+      <article class="option" data-file="option-2-insights-first.html">
+        <div class="option-head"><div><small>OPTION 02 · EVIDENCE</small><h2>Insights First</h2><p>Opens with the complete five-to-one star breakdown and coverage denominator.</p></div><a class="open" href="option-2-insights-first.html" target="_blank" rel="noopener">Open full page ↗</a></div>
+        <div class="preview-wrap"><iframe class="frame" loading="lazy" title="Insights First live prototype"></iframe></div>
+        <div class="analysis"><div><strong>Strength</strong>Clear statistical basis and easier scrutiny of the rating mix.</div><div><strong>Trade-off</strong>More analytical reading required before reaching the overall score.</div></div>
+        <div class="qa">Independent QA: see final review and verification reports.</div>
+      </article>
+      <article class="option" data-file="option-3-history-first.html">
+        <div class="option-head"><div><small>OPTION 03 · OPERATIONS</small><h2>History First</h2><p>Individual completed-visit ratings take priority; aggregate evidence remains close.</p></div><a class="open" href="option-3-history-first.html" target="_blank" rel="noopener">Open full page ↗</a></div>
+        <div class="preview-wrap"><iframe class="frame" loading="lazy" title="History First live prototype"></iframe></div>
+        <div class="analysis"><div><strong>Strength</strong>Best for inspecting when and where low or high ratings were submitted.</div><div><strong>Trade-off</strong>Denser on a phone; the aggregate is less visually dominant.</div></div>
+        <div class="qa">Independent QA: see final review and verification reports.</div>
+      </article>
+      <article class="option" data-file="option-4-balanced.html">
+        <div class="option-head"><div><small>OPTION 04 · MANAGEMENT</small><h2>Balanced Executive</h2><p>A coordinated score, participation, star mix and recent visits in one composition.</p></div><a class="open" href="option-4-balanced.html" target="_blank" rel="noopener">Open full page ↗</a></div>
+        <div class="preview-wrap"><iframe class="frame" loading="lazy" title="Balanced Executive live prototype"></iframe></div>
+        <div class="analysis"><div><strong>Strength</strong>Balanced scanning and supporting evidence for recurring management review.</div><div><strong>Trade-off</strong>More competing information than the focused alternatives.</div></div>
+        <div class="qa">Independent QA: see final review and verification reports.</div>
+      </article>
+    </div>
+    <h2 class="section-title">Side-by-side design comparison</h2>
+    <div class="table-wrap"><table aria-label="Comparison of four design options">
+      <thead><tr><th>Criteria</th><th>1 · Summary</th><th>2 · Insights</th><th>3 · History</th><th>4 · Balanced</th></tr></thead>
+      <tbody>
+        <tr><th>Current VAYLET fidelity</th><td>Shared frozen shell</td><td>Shared frozen shell</td><td>Shared frozen shell</td><td>Shared frozen shell</td></tr>
+        <tr><th>Executive readability</th><td>Excellent</td><td>Strong</td><td>Good</td><td>Excellent</td></tr>
+        <tr><th>Statistical transparency</th><td>Strong</td><td>Excellent</td><td>Strong</td><td>Excellent</td></tr>
+        <tr><th>Rating history usability</th><td>Compact list</td><td>Compact evidence</td><td>Primary focus</td><td>Visible alongside metrics</td></tr>
+        <tr><th>Mobile experience</th><td>Short scan</td><td>Sequential chart</td><td>Responsive record list</td><td>Responsive composition</td></tr>
+        <tr><th>RTL quality</th><td>Verification in reports</td><td>Verification in reports</td><td>Verification in reports</td><td>Verification in reports</td></tr>
+        <tr><th>Information density</th><td>Low / medium</td><td>Medium / high</td><td>High</td><td>Medium</td></tr>
+        <tr><th>Implementation simplicity</th><td>Lower complexity</td><td>Medium</td><td>Medium</td><td>Medium</td></tr>
+        <tr><th>UI freeze compliance</th><td>See measured QA</td><td>See measured QA</td><td>See measured QA</td><td>See measured QA</td></tr>
+      </tbody>
+    </table></div>
+    <div class="bottom"><strong>Suggested direction to review:</strong> Option 4, because it keeps the average, distribution, participation denominator and recent ratings accessible together without making history the entire section. This recommendation is provisional until independent visual QA and Owner review. No production implementation has been authorized.</div>
+  </main>
+  <script>
+    const controls={lang:document.getElementById('lang'),theme:document.getElementById('theme'),viewport:document.getElementById('viewport')};
+    const previewOptions=[...document.querySelectorAll('.option')];
+    function refresh(){
+      const q=new URLSearchParams({lang:controls.lang.value,theme:controls.theme.value});
+      for(const option of previewOptions){
+        const src=option.dataset.file+'?'+q.toString();
+        const frame=option.querySelector('iframe');
+        if(frame.getAttribute('src')!==src)frame.setAttribute('src',src);
+        frame.classList.toggle('mobile',controls.viewport.value==='mobile');
+        option.querySelector('a.open').href=src;
+      }
+    }
+    Object.values(controls).forEach(control=>control.addEventListener('change',refresh));
+    refresh();
+  </script>
+</body>
+</html>
