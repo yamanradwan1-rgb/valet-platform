@@ -11,7 +11,8 @@ param(
   [Parameter(Mandatory = $true)]
   [string] $ScopeMigration,
   [Parameter(Mandatory = $true)]
-  [string] $DefinerMigration
+  [string] $DefinerMigration,
+  [switch] $Browser
 )
 
 $ErrorActionPreference = 'Stop'
@@ -96,6 +97,16 @@ try {
     } catch {
       $failed = $true
       Write-Warning "#309 $suite failed: $_"
+    }
+  }
+
+  if ($Browser) {
+    Write-Host 'Running real Next Dashboard browser + authenticated HTTP private JPEG suite.'
+    try {
+      Invoke-Checked 'pnpm' ($runner + @('test/issue309-photo-browser.integration.test.ts'))
+    } catch {
+      $failed = $true
+      Write-Warning "#309 real Next browser E2E failed: $_"
     }
   }
 

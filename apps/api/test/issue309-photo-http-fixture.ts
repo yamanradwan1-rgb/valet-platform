@@ -32,6 +32,10 @@ const environmentKeys = [
   "CONDITION_PHOTO_BUCKET_ALIAS", "CONDITION_PHOTO_STORAGE_REGION",
   "CONDITION_PHOTO_STORAGE_ENDPOINT", "CONDITION_PHOTO_ALLOW_TEST_HTTP",
   "CONDITION_PHOTO_P3_QUALIFICATION_ENABLED", "ANTI_ABUSE_HMAC_SECRET_B64URL",
+  "STAFF_AUTH_ALLOWED_ORIGINS", "NODE_ENV",
+  "MFA_TOTP_ENCRYPTION_KEY_B64URL", "MFA_RECOVERY_HMAC_SECRET_B64URL",
+  "ISSUE309_DEV_PHOTO_VIEW_ENABLED", "ISSUE309_DEV_PHOTO_VIEW_SCOPES",
+  "VAYLET_LOCAL_DISABLE_MFA",
 ] as const;
 
 interface HttpResult {
@@ -41,6 +45,7 @@ interface HttpResult {
 }
 
 export interface Issue309PhotoHttpFixture {
+  readonly baseUrl: string;
   readonly db: Issue215HttpDatabase;
   readonly privateStore: S3PrivatePhotoStore;
   seedPhoto(): Promise<{ scope: Issue215HttpScope; authorization: string }>;
@@ -55,7 +60,11 @@ export interface Issue309PhotoHttpFixture {
 }
 
 export async function openIssue309PhotoHttpFixture(
-  options: { readonly hypotheticalApprovedRoles?: boolean } = {},
+  options: {
+    readonly hypotheticalApprovedRoles?: boolean;
+    readonly browserOrigin?: string;
+    readonly developmentPolicy?: boolean;
+  } = {},
 ): Promise<Issue309PhotoHttpFixture> {
   // The #215 fixture refuses unattested containers and confirms the pinned
   // private versioned bucket *before* a PostgreSQL database can be created.
@@ -78,6 +87,15 @@ export async function openIssue309PhotoHttpFixture(
       CONDITION_PHOTO_ALLOW_TEST_HTTP: "true",
       CONDITION_PHOTO_P3_QUALIFICATION_ENABLED: "true",
       ANTI_ABUSE_HMAC_SECRET_B64URL: randomBytes(32).toString("base64url"),
+      MFA_TOTP_ENCRYPTION_KEY_B64URL: randomBytes(32).toString("base64url"),
+      MFA_RECOVERY_HMAC_SECRET_B64URL: randomBytes(32).toString("base64url"),
+      ...(options.browserOrigin ? { STAFF_AUTH_ALLOWED_ORIGINS: options.browserOrigin } : {}),
+      ...(options.developmentPolicy ? {
+        NODE_ENV: "development",
+        ISSUE309_DEV_PHOTO_VIEW_ENABLED: "true",
+        ISSUE309_DEV_PHOTO_VIEW_SCOPES: "",
+        VAYLET_LOCAL_DISABLE_MFA: "false",
+      } : {}),
     });
     @Module({ imports: [CheckInModule, DashboardModule] })
     class Issue309PhotoTestModule {}
@@ -123,7 +141,7 @@ export async function openIssue309PhotoHttpFixture(
       };
     }
     return {
-      db, privateStore,
+      db, privateStore, baseUrl,
       async seedPhoto() {
         const scope = await db.seed(true);
         return { scope, authorization: await db.createBearer(scope) };
