@@ -1,0 +1,25 @@
+{
+  "description": "QA-only adversarial examples; not the prototypes' shared demo fixture",
+  "period": { "from": "2026-10-02", "to": "2026-10-02" },
+  "locations": {
+    "amman": { "timezone": "Asia/Amman" },
+    "new-york": { "timezone": "America/New_York" }
+  },
+  "visits": [
+    { "ref": "TST-AM-1", "location": "amman", "completedAt": "2026-10-01T21:30:00.000Z", "ratedAt": "2026-10-05T09:00:00.000Z", "rating": 5, "state": "COMPLETED" },
+    { "ref": "TST-AM-2", "location": "amman", "completedAt": "2026-10-02T10:00:00.000Z", "ratedAt": "2026-10-02T13:00:00.000Z", "rating": 2, "state": "COMPLETED" },
+    { "ref": "TST-AM-3", "location": "amman", "completedAt": "2026-10-02T11:00:00.000Z", "ratedAt": null, "rating": null, "state": "COMPLETED" },
+    { "ref": "TST-NY-0", "location": "new-york", "completedAt": "2026-10-02T01:00:00.000Z", "ratedAt": "2026-10-02T03:00:00.000Z", "rating": 1, "state": "COMPLETED" },
+    { "ref": "TST-NY-1", "location": "new-york", "completedAt": "2026-10-02T12:00:00.000Z", "ratedAt": "2026-10-02T20:00:00.000Z", "rating": 4, "state": "COMPLETED" },
+    { "ref": "TST-NY-2", "location": "new-york", "completedAt": "2026-10-02T20:00:00.000Z", "ratedAt": null, "rating": null, "state": "COMPLETED" },
+    { "ref": "TST-NY-3", "location": "new-york", "completedAt": "2026-10-02T12:00:00.000Z", "ratedAt": null, "rating": null, "state": "CANCELLED" },
+    { "ref": "TST-AM-OLD", "location": "amman", "completedAt": "2026-10-01T10:00:00.000Z", "ratedAt": "2026-10-02T13:00:00.000Z", "rating": 5, "state": "COMPLETED" }
+  ],
+  "expect": {
+    "amman": { "eligible": 3, "rated": 2, "sum": 7, "average": 3.5, "responseRate": 66.66666666666667, "distribution": [0, 1, 0, 0, 1] },
+    "new-york": { "eligible": 2, "rated": 1, "sum": 4, "average": 4, "responseRate": 50, "distribution": [0, 0, 0, 1, 0] },
+    "company": { "eligible": 5, "rated": 3, "sum": 11, "average": 3.6666666666666665, "responseRate": 60, "distribution": [0, 1, 0, 1, 1] },
+    "emptyDay": { "eligible": 0, "rated": 0, "sum": 0, "average": null, "responseRate": null, "distribution": [0, 0, 0, 0, 0] },
+    "unratedSubset": { "eligible": 2, "rated": 0, "sum": 0, "average": null, "responseRate": 0, "distribution": [0, 0, 0, 0, 0] }
+  }
+}
