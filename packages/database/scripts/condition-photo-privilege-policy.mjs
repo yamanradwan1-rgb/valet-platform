@@ -12,6 +12,7 @@ export const photoPrivateTables = [
 ];
 
 export const photoRuntimeFunctions = [
+  "public.condition_photo_lock_management_evidence(uuid,uuid,uuid,uuid,uuid,uuid,uuid,text,bytea,integer,text,text)",
   "public.condition_photo_reserve_upload(uuid,uuid,uuid,uuid,bytea,integer,integer,text)",
   "public.condition_photo_claim_upload(uuid,uuid,uuid,boolean,text)",
   "public.condition_photo_mark_stored(uuid,uuid,uuid,uuid,uuid,text,bytea,integer,integer,integer)",
@@ -19,6 +20,9 @@ export const photoRuntimeFunctions = [
   "public.condition_photo_finalize_upload(uuid,uuid,uuid,uuid,uuid,text,bytea,integer,integer,integer)",
   "public.condition_photo_set_availability(uuid,uuid,uuid,condition_photo_availability_state,text)",
 ];
+
+export const managementPhotoLockSignature = photoRuntimeFunctions[0];
+export const managementPhotoLockOwner = "valet_photo_evidence_lock_owner";
 
 export const photoMaintenanceFunctions = [
   "public.condition_photo_expire_operation(uuid)",

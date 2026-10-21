@@ -55,8 +55,35 @@ function roleProvisionHarness() {
           rows: signatures.map((signature, index) => ({
             signature,
             oid: `${index + 100}`,
+            owner: signature === photoRuntimeFunctions[0]
+              ? "valet_photo_evidence_lock_owner" : "valet_migration",
+            security_definer: true,
+            search_path_safe: true,
+            public_denied: true,
+            grant_option_denied: true,
           })),
         };
+      }
+      if (sql === "SELECT current_user AS name") return { rows: [{ name: "valet_migration" }] };
+      if (sql.includes("FROM pg_proc p JOIN pg_roles role ON role.oid=p.proowner")) {
+        return { rowCount: 1, rows: [{
+          prosecdef: true, safe: true, denied: true,
+          owner: "valet_photo_evidence_lock_owner",
+        }] };
+      }
+      if (sql.includes("FROM pg_roles WHERE rolname=$1")) {
+        return { rowCount: 1, rows: [{
+          rolcanlogin: false, rolsuper: false, rolcreatedb: false,
+          rolcreaterole: false, rolreplication: false, rolbypassrls: false,
+          rolinherit: false,
+        }] };
+      }
+      if (sql.includes("COUNT(*)::integer AS total")) return { rows: [{ total: 0 }] };
+      if (sql.includes("SELECT p.prosecdef,r.rolcanlogin")) {
+        return { rowCount: 1, rows: [{
+          prosecdef: true, rolcanlogin: false, rolinherit: false,
+          can_create: false, memberships: 0,
+        }] };
       }
       if (sql.includes("FROM unnest($1::text[])")) {
         return {

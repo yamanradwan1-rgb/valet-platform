@@ -1,11 +1,14 @@
 import {
   listPhotoFunctions,
+  managementPhotoLockOwner,
+  managementPhotoLockSignature,
   photoFunctionIds,
   photoMaintenanceFunctions,
   photoPrivateTables,
   photoReadTables,
   photoRuntimeFunctions,
 } from "./condition-photo-privilege-policy.mjs";
+import { provisionManagementPhotoLockOwner } from "./condition-photo-management-lock-owner.mjs";
 
 async function revokeColumns(client, executeFormatted, table, role) {
   const result = await client.query(
@@ -32,11 +35,19 @@ export async function provisionConditionPhotoRuntimePrivileges(
   executeFormatted,
   runtimeRole,
 ) {
+  await provisionManagementPhotoLockOwner(client, executeFormatted, runtimeRole);
   const catalogFunctions = await listPhotoFunctions(client);
   const required = await photoFunctionIds(client, [
     ...photoRuntimeFunctions,
     ...photoMaintenanceFunctions,
   ]);
+  const lockIds = await photoFunctionIds(client, [managementPhotoLockSignature]);
+  const lock = catalogFunctions.find((item) => lockIds.has(item.oid));
+  if (!lock || lock.owner !== managementPhotoLockOwner ||
+      lock.security_definer !== true || lock.search_path_safe !== true ||
+      lock.public_denied !== true || lock.grant_option_denied !== true) {
+    throw new Error("Management photo evidence-lock owner is not provisioned safely.");
+  }
   if (!catalogFunctions.some((functionRow) => required.has(functionRow.oid))) {
     throw new Error("Condition-photo functions have not been migrated.");
   }
@@ -138,6 +149,7 @@ export async function verifyConditionPhotoRuntimePrivileges(client, runtimeRole)
   }
   const runtimeFunctions = await photoFunctionIds(client, photoRuntimeFunctions);
   const maintenanceFunctions = await photoFunctionIds(client, photoMaintenanceFunctions);
+  const lockIds = await photoFunctionIds(client, [managementPhotoLockSignature]);
   const catalogFunctions = await listPhotoFunctions(client);
   if (catalogFunctions.length < runtimeFunctions.size + maintenanceFunctions.size) {
     throw new Error("Condition-photo functions are missing.");
@@ -152,6 +164,8 @@ export async function verifyConditionPhotoRuntimePrivileges(client, runtimeRole)
       result.rows[0]?.allowed !== allowed ||
       fn.public_denied !== true ||
       fn.grant_option_denied !== true ||
+      (lockIds.has(fn.oid) &&
+        fn.owner !== managementPhotoLockOwner) ||
       (allowed || maintenanceFunctions.has(fn.oid)) &&
         (fn.security_definer !== true ||
           fn.search_path_safe !== true ||

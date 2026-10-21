@@ -21,6 +21,8 @@ export interface PhotoFunctionRow {
 export const photoReadTables: string[];
 export const photoPrivateTables: string[];
 export const photoRuntimeFunctions: string[];
+export const managementPhotoLockSignature: string;
+export const managementPhotoLockOwner: string;
 export const photoMaintenanceFunctions: string[];
 export function listPhotoFunctions(client: PhotoSqlClient): Promise<PhotoFunctionRow[]>;
 export function photoFunctionIds(
