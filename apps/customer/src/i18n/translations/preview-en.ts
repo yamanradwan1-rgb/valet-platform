@@ -68,7 +68,6 @@ export const previewEnTranslations = {
   'demo.rateExperience': 'Rate Experience',
   'demo.reportIssue': 'Report Issue',
   'demo.issueSubmitted': 'Issue Submitted',
-  'demo.help': 'Help',
   'demo.paymentError': 'Payment Error',
   'demo.requestError': 'Request Error',
   'demo.overlayConfirmRequest': 'Confirm Request',

@@ -1,5 +1,6 @@
 import { GuestApiError } from '../../lib/api/api-error';
 import type { GuestApiClient } from '../../lib/api/guest-api-client';
+import { observeRatingOutcome } from './rating-presentation-policy';
 
 export type RatingOutcome = 'saving' | 'saved' | 'conflict' | 'unavailable' | 'unknown' | 'failed';
 
@@ -21,13 +22,17 @@ export class GuestRatingSubmission {
     client: GuestApiClient,
     visitId: string,
     rating: number,
-    notify: (outcome: RatingOutcome) => void,
+    onOutcome: (outcome: RatingOutcome) => void,
   ): Promise<boolean> {
     if (this.inFlight?.client === client && this.inFlight.visitId === visitId) {
       return false; // duplicate press cannot issue another POST
     }
     const current = { sequence: ++this.sequence, client, visitId };
     this.inFlight = current; // synchronous before first await
+    const notify = (outcome: RatingOutcome) => {
+      observeRatingOutcome(client, visitId, outcome);
+      onOutcome(outcome);
+    };
     notify('saving');
     try {
       const response = await client.submitRating(rating);

@@ -3,19 +3,12 @@
 import React, { useEffect, useState } from 'react';
 
 import { AppShell } from '../components/layout/app-shell';
-import type { CustomerTab } from '../components/layout/bottom-nav';
 import { useGuestSession } from '../features/session/use-guest-session';
 import { resolveGuestScreenId } from '../features/session/guest-lifecycle-router';
 import { useRetrieval } from '../features/retrieval/use-retrieval';
 import { useHandoff } from '../features/handoff/use-handoff';
-import {
-  ScreenPaymentOverview,
-  ScreenAddTip,
-  ScreenReceipt,
-} from '../features/deferred/screen-payment';
-import { ScreenHelp } from '../features/deferred/screen-service';
-import { GuestLiveRating } from '../features/rating/guest-live-rating';
-import { GuestPostVisitRoute, type GuestPostVisitSelection } from './guest-post-visit-route';
+import { GuestPostVisitRoute } from './guest-post-visit-route';
+import { useGuestPostVisit } from '../features/post-visit/use-guest-post-visit';
 import { GuestWebPushMount } from './guest-web-push-mount';
 import {
   ScreenNetworkUnavailable,
@@ -40,15 +33,18 @@ const isDev = process.env.NODE_ENV !== 'production';
 export function GuestAppRoot() {
   const {
     client,
+    token,
     isTokenBootstrapComplete,
     isBootstrapTemporarilyUnavailable,
     retryBootstrap,
+    isContextSwitching,
+    isContextSwitchOutcomeAmbiguous,
+    contextConflictScope,
   } = useGuestAuth();
   const { session, isLoading, isNetworkError, isExpired, isFresh, isStale, isRefreshing, isMutating, failureKind, cooldownSeconds, refreshSession } = useGuestSession();
   const retrieval = useRetrieval();
   const handoff = useHandoff();
 
-  const [tab, setTab] = useState<CustomerTab>('vehicle');
   const [demoScreen, setDemoScreen] = useState<DemoNavigationKey>('live');
 
   // Production Overlays
@@ -59,10 +55,16 @@ export function GuestAppRoot() {
   // Dedicated Dev-Only Preview Overlays (Zero Production Side Effects)
   const [devOverlay, setDevOverlay] = useState<DemoOverlayKey | null>(null);
 
-  // Sub-screens for dev preview flows
-  const [paymentSubScreen, setPaymentSubScreen] = useState<'overview' | 'tip' | 'receipt'>('overview');
-  const [helpSubScreen, setHelpSubScreen] = useState<'help' | 'rate'>('help');
-  const [postVisit, setPostVisit] = useState<GuestPostVisitSelection | null>(null);
+  const canRemainPostVisit = Boolean(client && isTokenBootstrapComplete &&
+    !isBootstrapTemporarilyUnavailable && !isContextSwitching &&
+    !isContextSwitchOutcomeAmbiguous && !contextConflictScope &&
+    !isExpired && !isNetworkError && session?.state === 'COMPLETED');
+  const postVisit = useGuestPostVisit({
+    client, session,
+    hasBrowserSession: token === null,
+    canEnter: canRemainPostVisit && isFresh && (!isDev || demoScreen === 'live'),
+    canRemain: canRemainPostVisit,
+  });
 
   useEffect(() => {
     registerServiceWorker();
@@ -79,7 +81,7 @@ export function GuestAppRoot() {
   // 1. Dev Preview Screen Override (strictly dev-only)
   if (isDev && demoScreen !== 'live') {
     return (
-      <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore}>
+      <AppShell onMore={handleOpenMore}>
         <DemoScreenRenderer
           demoScreen={demoScreen}
           onSelectScreen={setDemoScreen}
@@ -98,62 +100,7 @@ export function GuestAppRoot() {
     );
   }
 
-  // 2. Dev-only Tab: Payment Preview
-  if (isDev && tab === 'payment') {
-    return (
-      <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore}>
-        {paymentSubScreen === 'overview' && (
-          <ScreenPaymentOverview
-            onAddTip={() => setPaymentSubScreen('tip')}
-            onPay={() => setPaymentSubScreen('receipt')}
-          />
-        )}
-        {paymentSubScreen === 'tip' && (
-          <ScreenAddTip onContinue={() => setPaymentSubScreen('overview')} />
-        )}
-        {paymentSubScreen === 'receipt' && (
-          <ScreenReceipt onDone={() => setPaymentSubScreen('overview')} />
-        )}
-        <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
-        <DevPreviewControls
-          activeScreen={demoScreen}
-          onSelectScreen={setDemoScreen}
-          overlay={devOverlay}
-          onSelectOverlay={setDevOverlay}
-          onCloseOverlay={() => setDevOverlay(null)}
-        />
-      </AppShell>
-    );
-  }
-
-  // 3. Dev-only Tab: Help Preview
-  if (isDev && tab === 'help') {
-    return (
-      <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore}>
-        {helpSubScreen === 'help' && (
-          <ScreenHelp onPaymentHelp={() => setTab('payment')} />
-        )}
-        {helpSubScreen === 'rate' && (
-          <GuestLiveRating
-            client={client}
-            visitId={session?.valetSessionId ?? null}
-            canRate={Boolean(client && session?.state === 'COMPLETED' && !isExpired && !isNetworkError)}
-            onBack={() => setHelpSubScreen('help')}
-          />
-        )}
-        <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
-        <DevPreviewControls
-          activeScreen={demoScreen}
-          onSelectScreen={setDemoScreen}
-          overlay={devOverlay}
-          onSelectOverlay={setDevOverlay}
-          onCloseOverlay={() => setDevOverlay(null)}
-        />
-      </AppShell>
-    );
-  }
-
-  // 4. Authoritative Route Resolution
+  // Authoritative Route Resolution
   const screenId = resolveGuestScreenId({
     hasAuthority: Boolean(client),
     isTokenBootstrapComplete,
@@ -167,7 +114,7 @@ export function GuestAppRoot() {
 
   if (screenId === 'UNAVAILABLE') {
     return (
-      <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore} showNav={false}>
+      <AppShell onMore={handleOpenMore}>
         <ScreenExpired />
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
         {isDev && (
@@ -185,7 +132,7 @@ export function GuestAppRoot() {
 
   if (screenId === 'NETWORK_ERROR') {
     return (
-      <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore} showNav={false}>
+      <AppShell onMore={handleOpenMore}>
         <ScreenNetworkUnavailable
           failureKind={isBootstrapTemporarilyUnavailable ? 'UNAVAILABLE' : failureKind}
           retryAfterSeconds={cooldownSeconds}
@@ -209,7 +156,7 @@ export function GuestAppRoot() {
 
   if (screenId === 'LOADING') {
     return (
-      <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore} showNav={false}>
+      <AppShell onMore={handleOpenMore}>
         <GuestSessionLoading />
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
         {isDev && (
@@ -227,7 +174,7 @@ export function GuestAppRoot() {
 
   if (!session) {
     return (
-      <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore} showNav={false}>
+      <AppShell onMore={handleOpenMore}>
         <ScreenExpired />
         <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
       </AppShell>
@@ -235,18 +182,18 @@ export function GuestAppRoot() {
   }
 
   if (
-    postVisit && client && session.state === 'COMPLETED' &&
-    postVisit.visitId === session.valetSessionId && !isExpired
+    postVisit.selection && client
   ) {
     return (
-      <GuestPostVisitRoute client={client} session={session} surface={postVisit.surface}
-        tab={tab} onBack={() => setPostVisit(null)} onCloseMore={handleCloseMore} onMore={handleOpenMore}
-        onTab={setTab} showMoreMenu={showMoreMenu} />
+      <GuestPostVisitRoute client={client} session={session} surface={postVisit.selection.surface}
+        onBack={postVisit.back} onAuthorized={postVisit.authorized}
+        onCloseMore={handleCloseMore} onMore={handleOpenMore}
+        showMoreMenu={showMoreMenu} />
     );
   }
 
   return (
-    <AppShell tab={tab} onTab={setTab} onMore={handleOpenMore}>
+    <AppShell onMore={handleOpenMore}>
       <GuestLiveView
         screenId={screenId}
         session={session}
@@ -257,8 +204,8 @@ export function GuestAppRoot() {
         canMutate={isFresh && !isMutating}
         isRefreshing={isRefreshing}
         onViewDetails={() => setShowVehicleDetails(true)}
-        onViewReceipt={() => setPostVisit({ surface: 'payment', visitId: session.valetSessionId })}
-        onRateExperience={() => setPostVisit({ surface: 'rating', visitId: session.valetSessionId })}
+        onViewReceipt={() => postVisit.open('payment')}
+        onRateExperience={() => postVisit.open('rating')}
       />
 
       {/* Production Overlays */}

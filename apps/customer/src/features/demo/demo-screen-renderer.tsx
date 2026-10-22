@@ -18,7 +18,7 @@ import { ScreenPaymentComplimentary } from '../deferred/screen-payment-complimen
 import { ScreenPaymentMethod } from '../deferred/screen-payment-method';
 import { ScreenPaymentSuccess } from '../deferred/screen-payment-success';
 import { ScreenPaymentError } from '../deferred/screen-payment-error';
-import { ScreenRate, ScreenHelp } from '../deferred/screen-service';
+import { ScreenRate } from '../deferred/screen-service';
 import { ScreenReportIssue } from '../deferred/screen-report-issue';
 import { ScreenReportSubmitted } from '../deferred/screen-report-submitted';
 import {
@@ -122,7 +122,7 @@ export function DemoScreenRenderer({
 
     // --- Service ---
     case 'demo-rate-experience':
-      return <ScreenRate onDone={() => onSelectScreen('demo-help')} />;
+      return <ScreenRate onDone={() => onSelectScreen('demo-completed')} />;
     case 'demo-report-issue':
       return (
         <ScreenReportIssue
@@ -132,8 +132,6 @@ export function DemoScreenRenderer({
       );
     case 'demo-issue-submitted':
       return <ScreenReportSubmitted onDone={() => onSelectScreen('demo-parked')} />;
-    case 'demo-help':
-      return <ScreenHelp onPaymentHelp={() => onSelectScreen('demo-payment-overview')} />;
 
     // --- Errors ---
     case 'demo-network-unavailable':

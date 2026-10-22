@@ -24,9 +24,6 @@ export interface GuestPostVisitTranslationTypes {
   'paymentSummary.status.PAID': string;
   'paymentSummary.status.FAILED': string;
   'paymentSummary.refund.SUCCEEDED': string;
-  'help.onsiteEntry': string;
-  'help.onsiteTitle': string;
-  'help.onsiteBody': string;
 }
 
 export type GuestPostVisitTranslationDictionary = {

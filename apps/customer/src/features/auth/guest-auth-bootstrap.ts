@@ -1,5 +1,6 @@
 import { GuestApiError } from '../../lib/api/api-error';
 import { GuestApiClient } from '../../lib/api/guest-api-client';
+import { guestPresentationContext } from '../../lib/guest-presentation-context';
 
 export type GuestContextConflictScope = 'ACTIVE' | 'POST_VISIT';
 export type GuestAuthBootstrapStage = 'PREPARE' | 'EXCHANGE' | 'RECONCILE_SWITCH';
@@ -41,6 +42,9 @@ async function exchangeBrowserSessionWithRecovery(
     if (!isRetryableGuestAuthBootstrapFailure(error)) throw error;
     await bootstrapClient.exchangeBrowserSession();
   }
+  // A fresh successful exchange adopts a new credential context. SAME_VISIT
+  // bypasses this path and preserves deliberate presentation decisions.
+  guestPresentationContext(true);
 }
 
 export async function switchGuestBrowserContextTransport(

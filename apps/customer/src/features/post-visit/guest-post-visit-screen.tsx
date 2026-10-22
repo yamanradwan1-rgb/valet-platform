@@ -4,26 +4,25 @@ import React, { useEffect, useState } from 'react';
 
 import { Btn } from '../../components/primitives/btn';
 import { useTranslation } from '../../i18n/use-translation';
-import { GuestOnsiteHelp } from '../help/guest-onsite-help';
 import { GuestPaymentSummary } from '../payment/guest-payment-summary';
 import { GuestLiveRating } from '../rating/guest-live-rating';
 import type { GuestApiClient } from '../../lib/api/guest-api-client';
 import type { GuestSafeSession } from '../../lib/api/guest-api-types';
 
-export type GuestPostVisitSurface = 'payment' | 'rating' | 'help';
+export type GuestPostVisitSurface = 'payment' | 'rating';
 
 export function GuestPostVisitScreen({
   client,
   session,
   surface,
   onBack,
-  onsiteSupportVerified = false,
+  onAuthorized,
 }: {
   readonly client: GuestApiClient;
   readonly session: GuestSafeSession;
   readonly surface: GuestPostVisitSurface;
   readonly onBack: () => void;
-  readonly onsiteSupportVerified?: boolean;
+  readonly onAuthorized?: () => void;
 }) {
   const { t } = useTranslation();
   const [authorization, setAuthorization] = useState<{
@@ -59,6 +58,10 @@ export function GuestPostVisitScreen({
     };
   }, [client, session.valetSessionId]);
 
+  useEffect(() => {
+    if (currentAuthorization?.authorized) onAuthorized?.();
+  }, [currentAuthorization, onAuthorized]);
+
   if (currentAuthorization === null) return null;
   if (!currentAuthorization.authorized) {
     return (
@@ -80,5 +83,5 @@ export function GuestPostVisitScreen({
       />
     );
   }
-  return onsiteSupportVerified ? <GuestOnsiteHelp onBack={onBack} /> : null;
+  return null;
 }

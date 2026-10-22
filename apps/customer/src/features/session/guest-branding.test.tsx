@@ -58,7 +58,7 @@ function render(
             updateSession: () => {},
           }}
         >
-          <AppShell tab="vehicle" onTab={() => {}} onMore={() => {}}>
+          <AppShell onMore={() => {}}>
             {value && !expired ? (
               <ScreenParked
                 session={value}

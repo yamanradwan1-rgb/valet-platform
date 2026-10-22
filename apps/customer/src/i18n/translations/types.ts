@@ -19,9 +19,6 @@ export interface TranslationDictionary extends GuestErrorTranslationTypes, Guest
   'header.backAria': string;
   'header.moreAria': string;
   'nav.ariaLabel': string;
-  'nav.vehicle': string;
-  'nav.payment': string;
-  'nav.help': string;
 
   // More Menu
   'menu.title': string;
@@ -193,12 +190,6 @@ export interface TranslationDictionary extends GuestErrorTranslationTypes, Guest
 
   'help.rateTitle': string;
   'help.rateBanner': string;
-  'help.title': string;
-  'help.valetDesk': string;
-  'help.valetDeskValue': string;
-  'help.emergency': string;
-  'help.emergencyValue': string;
-  'help.paymentInfo': string;
 
   // Guest UI Preview Completeness
   'paymentComplimentary.badge': string;
@@ -282,7 +273,6 @@ export interface TranslationDictionary extends GuestErrorTranslationTypes, Guest
   'demo.rateExperience': string;
   'demo.reportIssue': string;
   'demo.issueSubmitted': string;
-  'demo.help': string;
   'demo.networkUnavailable': string;
   'demo.paymentError': string;
   'demo.requestError': string;
