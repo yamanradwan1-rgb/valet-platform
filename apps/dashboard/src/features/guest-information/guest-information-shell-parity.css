@@ -1,5 +1,7 @@
 /* Approved Option 2 shell behavior, isolated to the Guest Information route.
    These declarations match the frozen prototype's mobile shell rules. */
+.shell:has(.opt2-page) .topbar .button-quiet { font-size: .79rem; }
+
 @media (max-width: 820px) {
   .shell:has(.opt2-page) .mobile-menu { display: inline-flex; }
   .shell:has(.opt2-page) .topbar { min-height: 4rem; }
