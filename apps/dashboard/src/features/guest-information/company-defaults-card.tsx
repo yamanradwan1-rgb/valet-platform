@@ -8,6 +8,7 @@ import {
   CONTACT_FIELDS, validHttps, validPhone, type ContactDefaults,
   type ContactField, type GuestLanguage,
 } from "./guest-information-model";
+import { useRevisionedDraft } from "./use-revisioned-draft";
 
 export function CompanyDefaultsCard({
   locale, companyName, defaults, onSave, announce, canEdit, onDirtyChange,
@@ -21,7 +22,7 @@ export function CompanyDefaultsCard({
   readonly onDirtyChange: (dirty: boolean) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [values, setValues] = useState<ContactDefaults>(defaults);
+  const [values, setValues] = useRevisionedDraft(defaults.revision, defaults);
   const [saving, setSaving] = useState(false);
   const [invalid, setInvalid] = useState<ContactField | null>(null);
   const toggle = useRef<HTMLButtonElement>(null);

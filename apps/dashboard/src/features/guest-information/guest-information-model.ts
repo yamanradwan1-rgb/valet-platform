@@ -94,6 +94,26 @@ export function contactCounts(defaults: ContactDefaults, contact: LocationContac
   return { configured, customized };
 }
 
+// A Location Manager can read the location-scoped effective projection, but
+// cannot call the Company Admin defaults endpoint. Never infer hidden company
+// fields from an overridden Location value.
+export function scopedEffectiveDefaults(dto: {
+  readonly values: Readonly<Record<ContactField, ContactOverride>>;
+  readonly effective: Readonly<Record<ContactField, { readonly value: string | null }>>;
+}): ContactDefaults {
+  const inherited = (field: ContactField) =>
+    dto.values[field].mode === "INHERIT" ? dto.effective[field].value : null;
+  const hours = inherited("hours");
+  return {
+    displayName: inherited("displayName"),
+    phone: inherited("phone"),
+    supportUrl: inherited("supportUrl"),
+    hours,
+    hoursConfirmed: hours !== null,
+    revision: 0,
+  };
+}
+
 export function validHttps(value: string): boolean {
   if (!value.trim()) return true;
   if (value.length > 2048) return false;

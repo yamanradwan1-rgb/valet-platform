@@ -6,6 +6,7 @@ import {
   policyStatus, validHttps, type GuestLanguage, type LocationPrivacy,
   type PolicyContent,
 } from "./guest-information-model";
+import { useRevisionedDraft } from "./use-revisioned-draft";
 
 type Drafts = Record<GuestLanguage, PolicyContent>;
 type PrivacyOperation = "save" | "publish" | "unpublish";
@@ -24,9 +25,8 @@ export function PrivacySection({
   readonly onDirtyChange: (dirty: boolean) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [drafts, setDrafts] = useState<Drafts>(() => ({
-    en: { ...privacy.drafts.en }, ar: { ...privacy.drafts.ar },
-  }));
+  const [drafts, setDrafts] = useRevisionedDraft<Drafts>(
+    privacy.revision, privacy.drafts);
   const [saving, setSaving] = useState(false);
   const [invalid, setInvalid] = useState<"text" | "url" | null>(null);
   const firstField = useRef<HTMLTextAreaElement>(null);

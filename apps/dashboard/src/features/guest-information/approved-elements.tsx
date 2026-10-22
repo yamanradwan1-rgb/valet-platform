@@ -73,7 +73,8 @@ export function GuestField({
   return (
     <div className="v-field">
       <label htmlFor={id}>{translate(locale, ...fieldLabels[field])}</label>
-      <input id={id} autoComplete="off" value={value} aria-invalid={invalid}
+      <input id={id} autoComplete="off" value={value}
+        aria-invalid={invalid || undefined}
         data-field={`${prefix}.${field}`}
         placeholder={translate(locale, "Not configured", "غير مُعدّ")}
         onChange={(event) => onChange(event.target.value)} />

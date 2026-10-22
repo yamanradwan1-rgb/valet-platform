@@ -140,3 +140,7 @@ export function contactView(dto: ManagementGuestContactLocationResponse): Locati
   const { hoursConfirmed, ...fields } = dto.values;
   return { fields, hoursConfirmed, revision: dto.revision };
 }
+
+// Location managers cannot read the company-wide defaults endpoint. The
+// location-scoped response already supplies the effective values they may see.
+// Only inherited fields can safely be represented as company defaults here.

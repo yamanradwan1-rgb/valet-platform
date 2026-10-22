@@ -36,14 +36,14 @@ export function ContactSection({
             defaults={defaults} contact={contact} onSave={onSaveLocation}
             announce={announce} onDirtyChange={onLocationDirty} />
         </div>
-        <details className="opt2-more">
+        {canEditCompany ? <details className="opt2-more">
           <summary>{translate(locale, "Company contact defaults", "بيانات التواصل الافتراضية للشركة")}</summary>
           <div data-widget="company">
             <CompanyDefaultsCard locale={locale} companyName={companyName}
               defaults={defaults} onSave={onSaveCompany} announce={announce}
               canEdit={canEditCompany} onDirtyChange={onCompanyDirty} />
           </div>
-        </details>
+        </details> : null}
         <details className="opt2-more" data-guest-preview>
           <summary>{translate(locale, "Guest preview", "معاينة الضيف")}</summary>
           <div data-widget="preview">

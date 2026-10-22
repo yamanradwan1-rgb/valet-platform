@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   contactCounts, effectiveContact, policyStatus, validHttps, validPhone,
-  visiblePolicy, type ContactDefaults, type LocationContact, type LocationPrivacy,
+  visiblePolicy, scopedEffectiveDefaults,
+  type ContactDefaults, type LocationContact, type LocationPrivacy,
 } from "./guest-information-model";
 
 const defaults: ContactDefaults = {
@@ -78,5 +79,29 @@ describe("guest-information customer-visible projection", () => {
     expect(validHttps("https://example.com/support")).toBe(true);
     expect(validPhone("+962799000000")).toBe(true);
     expect(validPhone("0799000000")).toBe(false);
+  });
+
+  it("derives LM inherited values from the scoped response without company-wide reads", () => {
+    const local = {
+      ...inherited.fields,
+      phone: { mode: "OVERRIDE" as const, value: "+962799111111" },
+      supportUrl: { mode: "UNAVAILABLE" as const, value: null },
+    };
+    const scoped = scopedEffectiveDefaults({
+      values: local,
+      effective: {
+        displayName: { value: "Company Guest Desk" },
+        phone: { value: "+962799111111" },
+        supportUrl: { value: null },
+        hours: { value: "Sun–Thu 09:00–17:00" },
+      },
+    });
+    expect(scoped.displayName).toBe("Company Guest Desk");
+    expect(scoped.phone).toBeNull();
+    expect(scoped.supportUrl).toBeNull();
+    expect(effectiveContact(scoped, {
+      ...inherited, fields: local,
+    }, "phone").value).toBe("+962799111111");
+    expect(scoped.hoursConfirmed).toBe(true);
   });
 });

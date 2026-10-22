@@ -8,6 +8,7 @@ import {
   CONTACT_FIELDS, effectiveContact, validHttps, validPhone, type ContactDefaults,
   type ContactField, type GuestLanguage, type LocationContact,
 } from "./guest-information-model";
+import { useRevisionedDraft } from "./use-revisioned-draft";
 
 export function LocationContactCard({
   locale, locationName, defaults, contact, onSave, announce, onDirtyChange,
@@ -22,8 +23,9 @@ export function LocationContactCard({
 }) {
   const [expanded, setExpanded] = useState(false);
   const [field, setField] = useState<ContactField>("phone");
-  const [fields, setFields] = useState<LocationContact["fields"]>(contact.fields);
-  const [hoursConfirmed, setHoursConfirmed] = useState(contact.hoursConfirmed);
+  const [fields, setFields] = useRevisionedDraft(contact.revision, contact.fields);
+  const [hoursConfirmed, setHoursConfirmed] = useRevisionedDraft(
+    contact.revision, contact.hoursConfirmed);
   const [saving, setSaving] = useState(false);
   const [invalid, setInvalid] = useState<ContactField | null>(null);
   const toggle = useRef<HTMLButtonElement>(null);

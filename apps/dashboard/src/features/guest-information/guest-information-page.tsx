@@ -16,7 +16,9 @@ import {
   saveCompanyContact, saveLocationContact, savePrivacy,
 } from "./guest-information-api";
 import { ContactSection } from "./contact-section";
-import { contactCounts, type ContactDefaults, type LocationContact } from "./guest-information-model";
+import {
+  contactCounts, scopedEffectiveDefaults, type ContactDefaults, type LocationContact,
+} from "./guest-information-model";
 import { OverviewSection } from "./overview-section";
 import { PrivacySection } from "./privacy-section";
 import {
@@ -37,6 +39,7 @@ function GuestInformationContent() {
   const dashboard = useProtectedDashboard();
   const { selectScope } = useSelectedScope();
   const scope = administrationScope(dashboard.selectedScope);
+  const isCompanyAdmin = scope.authority === "COMPANY_ADMIN";
   const scopeKey = administrationScopeKey(dashboard);
   const { locale, setLocale } = useDashboardLocale();
   const [view, setView] = useState<GuestInformationView>("overview");
@@ -69,7 +72,7 @@ function GuestInformationContent() {
     readCompanyContact(dashboard.api, organizationId, signal),
   [dashboard.api, organizationId]);
   const defaults = useAuthoritativeRead(
-    `${scopeKey}:guest-defaults`, defaultsLoader);
+    `${scopeKey}:guest-defaults`, defaultsLoader, isCompanyAdmin);
   const contactLoader = useCallback((signal: AbortSignal) =>
     readLocationContact(dashboard.api, organizationId, locationId!, signal),
   [dashboard.api, organizationId, locationId]);
@@ -80,8 +83,10 @@ function GuestInformationContent() {
   [dashboard.api, organizationId, locationId, locale]);
   const preview = useAuthoritativeRead(
     `${scopeKey}:guest-preview:${locationId}:${locale}`, previewLoader, validLocation);
-  const isLoading = [privacy, defaults, contact].some((item) => item.loading);
-  const error = [privacy, defaults, contact].find((item) => item.error)?.error;
+  const isLoading = privacy.loading || contact.loading ||
+    (isCompanyAdmin && defaults.loading);
+  const error = privacy.error || contact.error ||
+    (isCompanyAdmin ? defaults.error : null);
   const locationName = dashboard.selectedScope.authority === "COMPANY_ADMIN"
     ? dashboard.selectedScope.context.selectedLocation?.name ?? ""
     : dashboard.selectedScope.authority === "LOCATION_MANAGER"
@@ -153,9 +158,12 @@ function GuestInformationContent() {
         translate(locale, "Save failed.", "تعذّر الحفظ."), "error");
     }
   }
-  const loaded = privacy.data && defaults.data && contact.data && validLocation && locationId;
+  const loaded = privacy.data && contact.data && validLocation && locationId &&
+    (!isCompanyAdmin || defaults.data);
   const currentPrivacy = privacy.data ? privacyView(privacy.data) : null;
-  const currentDefaults = defaults.data ? defaultsView(defaults.data) : null;
+  const currentDefaults = isCompanyAdmin
+    ? defaults.data ? defaultsView(defaults.data) : null
+    : contact.data ? scopedEffectiveDefaults(contact.data) : null;
   const currentContact = contact.data ? contactView(contact.data) : null;
   const counts = currentDefaults && currentContact
     ? contactCounts(currentDefaults, currentContact) : null;
@@ -226,7 +234,7 @@ function GuestInformationContent() {
                     locale={locale} locationName={locationName}
                     companyName={companyName} defaults={currentDefaults}
                     contact={currentContact} preview={preview.data}
-                    canEditCompany={scope.authority === "COMPANY_ADMIN"} announce={show}
+                    canEditCompany={isCompanyAdmin} announce={show}
                     onCompanyDirty={setCompanyDirty} onLocationDirty={setLocationDirty}
                     onSaveCompany={async (value: ContactDefaults) => commit(
                       () => saveCompanyContact(dashboard.api, organizationId, value),
