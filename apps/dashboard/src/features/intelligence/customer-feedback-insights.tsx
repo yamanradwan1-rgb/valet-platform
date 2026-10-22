@@ -48,11 +48,11 @@ export function CustomerFeedbackInsights(props: { readonly data: InsightsData; r
           {data.recentRatings.length > 0 ? data.recentRatings.slice(0, 4).map((record) => (
             <div className={styles.recentItem} key={record.visitReference} role="listitem">
               <div>
-                <bdi className={styles.recentId} dir="ltr">{record.visitReference}</bdi>
+                <div className={styles.recentId} dir="ltr">{record.visitReference}</div>
                 <p className={styles.recentMeta}>
                   {record.authorizedLocationLabel} · {t.completed}{" "}
                   <span>{feedbackDate(record.completedAt, record.locationTimezone, locale)}</span>
-                  <span className={styles.metaBreak} />
+                  <br />
                   {t.submitted}{" "}
                   <span>{feedbackDate(record.ratedAt, record.locationTimezone, locale)}</span>
                 </p>

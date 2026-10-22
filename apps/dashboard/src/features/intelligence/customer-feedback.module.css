@@ -136,9 +136,8 @@
 .recentItem { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--f1-border); }
 .recentItem:first-child { padding-top: 0; }
 .recentItem:last-child { border-bottom: 0; padding-bottom: 0; }
-.recentId { color: var(--f1-text); font-size: 12px; font-weight: 740; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.recentId { color: var(--f1-text); font-size: 12px; font-weight: 740; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
 .recentMeta { margin: 4px 0 0; color: var(--f1-muted); font-size: 11px; line-height: 1.55; }
-.metaBreak { display: block; }
 .ratingChip { white-space: nowrap; color: #8b5b07; background: #fff4d9; border-radius: 7px; padding: 7px 10px; font-size: 12px; font-weight: 780; direction: ltr; }
 
 .empty {
