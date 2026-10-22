@@ -12,7 +12,9 @@ export type IntelligenceCurrentEndpointFamily =
 
 export type IntelligenceAnalyticsEndpointFamily =
   | LocationAnalyticsEndpointFamily
-  | "COMPANY_ANALYTICS";
+  | "COMPANY_ANALYTICS"
+  | "COMPANY_RATINGS"
+  | "LOCATION_RATINGS";
 
 export type IntelligenceReportEndpointFamily =
   | "LOCATION_REPORT"
@@ -93,6 +95,7 @@ function assertDescriptorMatchesScope(
   descriptor: IntelligenceRequestDescriptor,
 ): void {
   const companyFamily = descriptor.endpointFamily === "COMPANY_ANALYTICS" ||
+    descriptor.endpointFamily === "COMPANY_RATINGS" ||
     descriptor.endpointFamily === "COMPANY_REPORT";
   const locationFamily = descriptor.endpointFamily.startsWith("LOCATION_");
   if (

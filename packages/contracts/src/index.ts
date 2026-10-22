@@ -5,6 +5,7 @@ export const nonEmptyStringSchema = z.string().trim().min(1);
 export * from "./api-errors.js";
 export * from "./check-in.js";
 export * from "./company-analytics.js";
+export * from "./customer-feedback-analytics.js";
 export * from "./company-report.js";
 export * from "./condition-photo-upload.js";
 export * from "./complete-handoff.js";

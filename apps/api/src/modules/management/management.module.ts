@@ -15,6 +15,8 @@ import { ManagementContextController } from "./management-context.controller";
 import { ManagementContextService } from "./management-context.service";
 import { ManagementCompanyAnalyticsController } from "./management-company-analytics.controller";
 import { ManagementCompanyAnalyticsService } from "./management-company-analytics.service";
+import { ManagementRatingAnalyticsController } from "./management-rating-analytics.controller";
+import { ManagementRatingAnalyticsService } from "./management-rating-analytics.service";
 import { ManagementIntegrationsService } from "./management-integrations.service";
 import { ManagementAuditController } from "./management-audit.controller";
 import { ManagementAuditService } from "./management-audit.service";
@@ -71,6 +73,7 @@ import {
     ManagementLocationController,
     ManagementVisitContactController,
     ManagementCompanyAnalyticsController,
+    ManagementRatingAnalyticsController,
     ManagementCompanyReportController,
     ManagementCommercialController,
   ],
@@ -98,6 +101,7 @@ import {
     ManagementLocationService,
     ManagementVisitContactService,
     ManagementCompanyAnalyticsService,
+    ManagementRatingAnalyticsService,
     ManagementCompanyReportService,
     ManagementCompanyReportExportService,
     ManagementCommercialReadService,
@@ -128,6 +132,7 @@ export class ManagementModule implements NestModule {
         ManagementLocationController,
         ManagementVisitContactController,
         ManagementCompanyAnalyticsController,
+        ManagementRatingAnalyticsController,
         ManagementCompanyReportController,
         ManagementCommercialController,
       );
