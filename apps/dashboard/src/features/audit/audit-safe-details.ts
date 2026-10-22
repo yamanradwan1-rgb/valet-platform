@@ -56,6 +56,8 @@ export function safeAuditDetailRows(detail: Detail): readonly AuditDetailRow[] {
         ["operation", detail.operation],
         ["settingKey", detail.settingKey],
       ]);
+    case "GUEST_INFORMATION":
+      return [["operation", detail.operation]];
     case "STAFF":
       return compact([
         ["locationCount", detail.locationCount],

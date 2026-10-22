@@ -11,6 +11,7 @@ export function ContactSection({
   locale, locationName, companyName, defaults, contact, preview, canEditCompany,
   active,
   onSaveCompany, onSaveLocation, announce, onCompanyDirty, onLocationDirty,
+  keepUnsavedOnConflict = false,
 }: {
   readonly locale: GuestLanguage;
   readonly active: boolean;
@@ -25,6 +26,7 @@ export function ContactSection({
   readonly announce: (message: string, kind?: "error" | "info") => void;
   readonly onCompanyDirty: (dirty: boolean) => void;
   readonly onLocationDirty: (dirty: boolean) => void;
+  readonly keepUnsavedOnConflict?: boolean;
 }) {
   return (
     <section className="opt2-view" id="opt2-contact" data-view="contact"
@@ -34,14 +36,16 @@ export function ContactSection({
         <div data-widget="overrides">
           <LocationContactCard locale={locale} locationName={locationName}
             defaults={defaults} contact={contact} onSave={onSaveLocation}
-            announce={announce} onDirtyChange={onLocationDirty} />
+            announce={announce} onDirtyChange={onLocationDirty}
+            keepUnsavedOnConflict={keepUnsavedOnConflict} />
         </div>
         {canEditCompany ? <details className="opt2-more">
           <summary>{translate(locale, "Company contact defaults", "بيانات التواصل الافتراضية للشركة")}</summary>
           <div data-widget="company">
             <CompanyDefaultsCard locale={locale} companyName={companyName}
               defaults={defaults} onSave={onSaveCompany} announce={announce}
-              canEdit={canEditCompany} onDirtyChange={onCompanyDirty} />
+              canEdit={canEditCompany} onDirtyChange={onCompanyDirty}
+              keepUnsavedOnConflict={keepUnsavedOnConflict} />
           </div>
         </details> : null}
         <details className="opt2-more" data-guest-preview>

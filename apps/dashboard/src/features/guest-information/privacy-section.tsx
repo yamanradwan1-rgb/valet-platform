@@ -13,7 +13,7 @@ type PrivacyOperation = "save" | "publish" | "unpublish";
 
 export function PrivacySection({
   locale, locationName, privacy, onLocaleChange, onOperation, announce, active,
-  onDirtyChange,
+  onDirtyChange, keepUnsavedOnConflict,
 }: {
   readonly locale: GuestLanguage;
   readonly active: boolean;
@@ -23,10 +23,11 @@ export function PrivacySection({
   readonly onOperation: (operation: PrivacyOperation, drafts: Drafts) => Promise<void>;
   readonly announce: (message: string, kind?: "error" | "info") => void;
   readonly onDirtyChange: (dirty: boolean) => void;
+  readonly keepUnsavedOnConflict?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [drafts, setDrafts] = useRevisionedDraft<Drafts>(
-    privacy.revision, privacy.drafts);
+    privacy.revision, privacy.drafts, keepUnsavedOnConflict);
   const [saving, setSaving] = useState(false);
   const [invalid, setInvalid] = useState<"text" | "url" | null>(null);
   const firstField = useRef<HTMLTextAreaElement>(null);

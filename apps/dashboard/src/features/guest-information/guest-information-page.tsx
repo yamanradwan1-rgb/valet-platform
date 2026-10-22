@@ -6,6 +6,7 @@ import { useProtectedDashboard } from "../../components/foundation/protected-das
 import { useSelectedScope } from "../../components/foundation/selected-scope-provider";
 import { proveLocationSwitchCandidate } from "../../components/scope/location-switch-authority";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
+import { DashboardApiError } from "../../lib/api/dashboard-api-error";
 import { resolveCompanyAdminContext } from "../../lib/scope/dashboard-scope";
 import { administrationScope, administrationScopeKey } from "../administration/administration-scope";
 import { useAuthoritativeRead } from "../administration/use-authoritative-read";
@@ -45,6 +46,7 @@ function GuestInformationContent() {
   const [view, setView] = useState<GuestInformationView>("overview");
   const [dirty, setDirty] = useState({ privacy: false, location: false, company: false });
   const [notice, setNotice] = useState<Notice | null>(null);
+  const [keepUnsavedOnConflict, setKeepUnsavedOnConflict] = useState(false);
   const pane = useRef<HTMLDivElement>(null);
   const locationSwitch = useRef<AbortController | null>(null);
   useEffect(() => () => locationSwitch.current?.abort(), []);
@@ -151,9 +153,25 @@ function GuestInformationContent() {
     setNotice(null);
     try {
       await task();
+      setKeepUnsavedOnConflict(false);
       show(confirmation, "success");
       retry();
     } catch (reason: unknown) {
+      if (reason instanceof DashboardApiError && reason.status === 409) {
+        const keep = window.confirm(translate(locale,
+          "These settings changed elsewhere. Press OK to keep your edits for review, " +
+          "or Cancel to discard them and load the latest saved values.",
+          "تغيّرت هذه الإعدادات في جلسة أخرى. اضغط موافق للاحتفاظ بتعديلاتك " +
+          "للمراجعة، أو إلغاء لتجاهلها وتحميل آخر نسخة محفوظة."));
+        setKeepUnsavedOnConflict(keep);
+        retry();
+        show(translate(locale,
+          keep ? "Latest settings are loading. Review your edits before saving again." :
+            "Latest saved settings are loading.",
+          keep ? "جارٍ تحميل آخر نسخة. راجع تعديلاتك قبل إعادة الحفظ." :
+            "جارٍ تحميل آخر إعدادات محفوظة."), "error");
+        return;
+      }
       show(reason instanceof Error ? reason.message :
         translate(locale, "Save failed.", "تعذّر الحفظ."), "error");
     }
@@ -223,6 +241,7 @@ function GuestInformationContent() {
                     locale={locale} locationName={locationName}
                     privacy={currentPrivacy} onLocaleChange={setLocale}
                     announce={show} onDirtyChange={setPrivacyDirty}
+                    keepUnsavedOnConflict={keepUnsavedOnConflict}
                     onOperation={async (operation, drafts) => commit(
                       () => operation === "save"
                         ? savePrivacy(dashboard.api, organizationId, locationId,
@@ -235,6 +254,7 @@ function GuestInformationContent() {
                     companyName={companyName} defaults={currentDefaults}
                     contact={currentContact} preview={preview.data}
                     canEditCompany={isCompanyAdmin} announce={show}
+                    keepUnsavedOnConflict={keepUnsavedOnConflict}
                     onCompanyDirty={setCompanyDirty} onLocationDirty={setLocationDirty}
                     onSaveCompany={async (value: ContactDefaults) => commit(
                       () => saveCompanyContact(dashboard.api, organizationId, value),

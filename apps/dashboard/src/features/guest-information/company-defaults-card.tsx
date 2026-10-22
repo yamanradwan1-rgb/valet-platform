@@ -12,6 +12,7 @@ import { useRevisionedDraft } from "./use-revisioned-draft";
 
 export function CompanyDefaultsCard({
   locale, companyName, defaults, onSave, announce, canEdit, onDirtyChange,
+  keepUnsavedOnConflict,
 }: {
   readonly locale: GuestLanguage;
   readonly companyName: string;
@@ -20,9 +21,11 @@ export function CompanyDefaultsCard({
   readonly announce: (message: string, kind?: "error" | "info") => void;
   readonly canEdit: boolean;
   readonly onDirtyChange: (dirty: boolean) => void;
+  readonly keepUnsavedOnConflict?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [values, setValues] = useRevisionedDraft(defaults.revision, defaults);
+  const [values, setValues] = useRevisionedDraft(
+    defaults.revision, defaults, keepUnsavedOnConflict);
   const [saving, setSaving] = useState(false);
   const [invalid, setInvalid] = useState<ContactField | null>(null);
   const toggle = useRef<HTMLButtonElement>(null);

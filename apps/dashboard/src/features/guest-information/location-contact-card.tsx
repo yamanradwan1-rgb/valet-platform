@@ -12,6 +12,7 @@ import { useRevisionedDraft } from "./use-revisioned-draft";
 
 export function LocationContactCard({
   locale, locationName, defaults, contact, onSave, announce, onDirtyChange,
+  keepUnsavedOnConflict,
 }: {
   readonly locale: GuestLanguage;
   readonly locationName: string;
@@ -20,12 +21,14 @@ export function LocationContactCard({
   readonly onSave: (contact: LocationContact) => Promise<void>;
   readonly announce: (message: string, kind?: "error" | "info") => void;
   readonly onDirtyChange: (dirty: boolean) => void;
+  readonly keepUnsavedOnConflict?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [field, setField] = useState<ContactField>("phone");
-  const [fields, setFields] = useRevisionedDraft(contact.revision, contact.fields);
+  const [fields, setFields] = useRevisionedDraft(
+    contact.revision, contact.fields, keepUnsavedOnConflict);
   const [hoursConfirmed, setHoursConfirmed] = useRevisionedDraft(
-    contact.revision, contact.hoursConfirmed);
+    contact.revision, contact.hoursConfirmed, keepUnsavedOnConflict);
   const [saving, setSaving] = useState(false);
   const [invalid, setInvalid] = useState<ContactField | null>(null);
   const toggle = useRef<HTMLButtonElement>(null);
