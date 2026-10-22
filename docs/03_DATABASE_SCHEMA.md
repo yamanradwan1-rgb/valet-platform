@@ -2659,6 +2659,30 @@ is submission time rather than a new definition of the Location-local analytics
 visit period. Any additional period/access path or aggregate added by MGT-BE-10
 still requires its own query evidence and accepted analytics contract.
 
+Issue #313 / migration `20261022010000_issue313_rating_analytics_read` adds a
+read-only `management_rating_analytics_projection(uuid,uuid,date,date)`
+`SECURITY DEFINER` function. It uses `guest_ratings` only through the exact
+Organization/Location/ValetSession foreign-key relation, selecting sessions
+whose state is `COMPLETED` and whose `completed_at` lies inside that
+Location's local calendar bounds. The optional Location argument chooses
+Company all-locations versus an exact authorized Location; the API authorizes
+that choice before invoking the function in the fenced read transaction.
+Calls longer than 31 inclusive local dates are rejected inside PostgreSQL.
+The JSON result contains denominator/numerator, decimal average and
+participation (NULL for missing denominators), five exact distribution
+buckets, and at most four deterministically ordered recent ratings. Recent
+references are truncated SHA-256 pseudonyms of random session UUIDs, never
+lookup credentials. Only rating, completion/submission times, authorized
+Location label and timezone accompany them; no Guest, staff or vehicle
+identity is projected. The function uses a fixed
+`search_path = pg_catalog, public` and has no mutations or audit writes.
+`PUBLIC` EXECUTE is revoked in the creating transaction; runtime provisioning
+grants only this exact EXECUTE signature. Ordinary runtime continues to lack
+every direct `guest_ratings` table privilege. The existing measured
+`valet_sessions_org_location_completed_at_kpi_idx` and
+`guest_ratings_org_location_session_id_idx` support its bounded joins;
+no new source index or Prisma model is introduced.
+
 ### MGT-BE-10 KPI source contracts (migration 43)
 
 Migration `20260917004300_mgt_be_10_kpi_analytics` implements DEC-095 with two

@@ -1,5 +1,6 @@
 export const runtimeGuestRatingFunctions = [
   "public.guest_rating_submit(text,integer)",
+  "public.management_rating_analytics_projection(uuid,uuid,date,date)",
 ];
 
 export const privateGuestRatingFunctions = [
@@ -37,6 +38,8 @@ async function functionSecurity(client, runtimeRole, functionName) {
   const result = await client.query(
     `SELECT has_function_privilege($1,$2,'EXECUTE') AS runtime_allowed,
             function.prosecdef AS security_definer,
+            function.proowner <> (SELECT oid FROM pg_roles WHERE rolname=$1)
+              AS owner_safe,
             function.proconfig=ARRAY['search_path=pg_catalog, public']::text[] AS search_path_safe,
             NOT EXISTS (
               SELECT 1 FROM aclexplode(COALESCE(function.proacl,acldefault('f',function.proowner))) privilege
@@ -78,6 +81,7 @@ export async function verifyGuestRatingPrivileges(client, runtimeRole) {
   for (const functionName of runtimeGuestRatingFunctions) {
     const security = await functionSecurity(client, runtimeRole, functionName);
     if (security?.runtime_allowed !== true || security.security_definer !== true ||
+        security.owner_safe !== true ||
         security.search_path_safe !== true || security.public_denied !== true ||
         security.runtime_grant_option_denied !== true) {
       throw new Error("Runtime Guest Rating command privileges are unsafe.");
