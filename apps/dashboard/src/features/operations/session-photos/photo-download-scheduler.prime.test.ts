@@ -130,4 +130,25 @@ describe("#309 invisible bounded private-photo acquisition", () => {
     expect(request).toHaveBeenCalledTimes(2);
     expect(request.mock.calls[0]![0]).toBe("vaylet-management-private-gallery-acquisition");
   });
+
+  it("cancels a gallery waiting for a Web Lock without issuing any protected JPEG GET", async () => {
+    const controller = new AbortController();
+    const read = vi.fn(async (item: number) => item);
+    const request = vi.fn((_name: string, options: { signal: AbortSignal }) =>
+      new Promise<number[]>((_resolve, reject) => {
+        if (options.signal.aborted) {
+          reject(options.signal.reason ?? new DOMException("Aborted", "AbortError"));
+          return;
+        }
+        options.signal.addEventListener("abort", () => {
+          reject(options.signal.reason ?? new DOMException("Aborted", "AbortError"));
+        }, { once: true });
+      }));
+    vi.stubGlobal("navigator", { locks: { request } });
+    const pending = acquireActiveSessionGallery([1, 2], read, controller.signal);
+    controller.abort();
+    await expect(pending).rejects.toMatchObject({ name: "AbortError" });
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(read).not.toHaveBeenCalled();
+  });
 });
