@@ -27,6 +27,7 @@ export function HeaderThemeControl() {
   return (
     <div aria-label={t("theme")} className="theme-segmented" role="group">
       <button
+        aria-label={t("light")}
         aria-pressed={theme === "light"}
         className="theme-segment"
         onClick={() => setTheme("light")}
@@ -36,6 +37,7 @@ export function HeaderThemeControl() {
         <span>{t("light")}</span>
       </button>
       <button
+        aria-label={t("dark")}
         aria-pressed={theme === "dark"}
         className="theme-segment"
         onClick={() => setTheme("dark")}
