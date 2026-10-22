@@ -24,7 +24,7 @@ export class ManagementRatingAnalyticsService {
         transaction, scope.organizationId, null, period,
       );
       await recordAdminActivityInTransaction(transaction, context);
-      return { ...projection, from: period.from, to: period.to, scope: "ALL_LOCATIONS" };
+      return { ...projection, from: period.from, to: period.to, scope: "COMPANY" };
     });
   }
 }
