@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
+import { acquireSessionPhotosInOrder } from "./photo-download-scheduler";
 import { makeSessionPhotoTransport, photoErrorState, type SessionPhotoTransport } from "./photo-client";
 import styles from "./session-photos.module.css";
 
@@ -94,17 +95,16 @@ export function SessionPhotos({ api, locationId, sessionId, locale, timezone, sc
           setState({ phase: "empty", images: [] });
           return;
         }
-        const next: ImageEntry[] = [];
-        for (const photo of manifest) {
-          const blob = await photoTransport.read(locationId, sessionId, photo.photoId, controller.signal);
-          if (disposed || controller.signal.aborted) return;
+        const next = await acquireSessionPhotosInOrder(manifest, async (photo, _index, readSignal): Promise<ImageEntry> => {
+          const blob = await photoTransport.read(locationId, sessionId, photo.photoId, readSignal);
+          if (disposed || readSignal.aborted) throw new DOMException("Aborted", "AbortError");
           if (blob.type !== "image/jpeg" || blob.size < 4 || blob.size > 8 * 1024 * 1024) {
             throw new Error("Invalid private JPEG.");
           }
           const url = URL.createObjectURL(blob);
           allocated.push(url);
-          next.push({ url, photoId: photo.photoId, ...(photo.verifiedAt === undefined ? {} : { verifiedAt: photo.verifiedAt }) });
-        }
+          return { url, photoId: photo.photoId, ...(photo.verifiedAt === undefined ? {} : { verifiedAt: photo.verifiedAt }) };
+        }, controller.signal);
         if (!disposed && !controller.signal.aborted) {
           setState({ phase: "ready", images: next });
         }
