@@ -14,6 +14,7 @@ import helpStyles from "./intelligence-help.module.css";
 import { AnalyticsActivityChart } from "./analytics-activity-chart";
 import { AnalyticsCoverage } from "./analytics-coverage";
 import { AnalyticsCards } from "./analytics-cards";
+import { CustomerFeedbackSection } from "./customer-feedback-section";
 import {
   analyticsCopy,
   analyticsPeriodMessage,
@@ -33,6 +34,7 @@ import {
 } from "./intelligence-api";
 import { intelligenceScope } from "./intelligence-scope";
 import { useDashboardPeriod } from "./use-dashboard-period";
+import { useCustomerFeedbackRead } from "./use-customer-feedback-read";
 import { useIntelligenceRead } from "./use-intelligence-read";
 import styles from "./analytics.module.css";
 
@@ -72,6 +74,7 @@ export function AnalyticsPage() {
   const financial = useLocationRead("LOCATION_FINANCIAL_ANALYTICS", locationEnabled, period, readLocationFinancialAnalytics);
   const incidents = useLocationRead("LOCATION_INCIDENTS", locationEnabled, period, readLocationIncidentAnalytics);
   const kpis = useLocationRead("LOCATION_KPIS", locationEnabled, period, readLocationKpiAnalytics);
+  const feedback = useCustomerFeedbackRead({ period });
 
   if (!scope) return null;
   const scopeKind = scope.kind;
@@ -88,6 +91,7 @@ export function AnalyticsPage() {
     ? company.error
     : operations.error ?? financial.error ?? incidents.error ?? kpis.error;
   const message = analyticsPeriodMessage(locale, periodValidation, readError, loading && !presentation);
+  const feedbackMessage = analyticsPeriodMessage(locale, periodValidation, feedback.error, feedback.loading && !feedback.data);
   const scopeLabel = scope.kind === "COMPANY"
     ? uiCopy("allLocations")
     : scopePresentation.location?.label ?? uiCopy("location");
@@ -100,6 +104,7 @@ export function AnalyticsPage() {
       incidents.retry();
       kpis.retry();
     }
+    feedback.retry();
   }
 
   return (
@@ -127,6 +132,17 @@ export function AnalyticsPage() {
       </header>
 
       <AnalyticsCards message={message} presentation={presentation} locale={locale} />
+
+      <CustomerFeedbackSection
+        data={feedback.data}
+        error={feedback.error}
+        loading={feedback.loading}
+        locale={locale}
+        onRetry={feedback.retry}
+        period={period}
+        periodMessage={feedbackMessage}
+        scopeLabel={scopeLabel}
+      />
 
       <div className={styles.charts} data-testid="analytics-chart-grid">
         <ChartPanel helpKey="analytics.activity" title={t.vehicleActivity} period={period}>

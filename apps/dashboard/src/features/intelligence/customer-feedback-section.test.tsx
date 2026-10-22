@@ -17,7 +17,7 @@ const data: CustomerFeedbackAnalyticsResponse = {
   distribution: { five: 30, four: 24, three: 14, two: 7, one: 3 },
   recentRatings: [
     { visitReference: "VISIT-A", rating: 5, authorizedLocationLabel: "Main Garage",
-      completedAt: "2026-09-30T21:30:00.000Z", ratedAt: "2026-10-02T08:00:00.000Z", locationTimezone: "Asia/Amman" },
+      completedAt: "2026-09-29T21:30:00.000Z", ratedAt: "2026-10-02T08:00:00.000Z", locationTimezone: "Asia/Amman" },
     { visitReference: "VISIT-B", rating: 1, authorizedLocationLabel: "North Garage",
       completedAt: "2026-09-28T18:00:00.000Z", ratedAt: "2026-09-29T18:00:00.000Z", locationTimezone: "America/New_York" },
   ],
@@ -102,6 +102,7 @@ describe("Option 1 Customer Feedback view", () => {
   it("formats each recent completion/rating in its persisted Location timezone", () => {
     expect(feedbackDate("2026-10-01T21:30:00.000Z", "Asia/Amman", "en")).toContain("2 Oct 2026");
     expect(feedbackDate("2026-10-02T01:00:00.000Z", "America/New_York", "en")).toContain("1 Oct 2026");
-    expect(render()).toContain("1 Oct 2026");
+    expect(render()).toContain("30 Sept 2026");
+    expect(render()).toContain("2 Oct 2026");
   });
 });
