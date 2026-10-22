@@ -6,6 +6,7 @@ import { AuthModule } from "../auth/auth.module";
 import { DashboardConfigurationController } from "./dashboard-configuration.controller";
 import { DashboardConfigurationService } from "./dashboard-configuration-command";
 import { DashboardAnalyticsController } from "./analytics.controller";
+import { DashboardRatingAnalyticsController } from "./rating-analytics.controller";
 import { DashboardOverviewController } from "./overview.controller";
 import { DashboardLiveSessionsController } from "./live-sessions.controller";
 import { DashboardBrandingSubscriptionController } from "./branding.controller";
@@ -39,6 +40,7 @@ import {
     DashboardOverviewController,
     DashboardLiveSessionsController,
     DashboardAnalyticsController,
+    DashboardRatingAnalyticsController,
     DashboardReportController,
     DashboardBrandingSubscriptionController,
     DashboardSubscriptionController,
@@ -72,6 +74,7 @@ export class DashboardModule implements NestModule {
         DashboardOverviewController,
         DashboardLiveSessionsController,
         DashboardAnalyticsController,
+        DashboardRatingAnalyticsController,
         DashboardReportController,
         DashboardBrandingSubscriptionController,
         DashboardSubscriptionController,
