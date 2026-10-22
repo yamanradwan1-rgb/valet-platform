@@ -33,7 +33,7 @@ export function GuestPostVisitRoute({
     <AppShell onMore={onMore}>
       <GuestPostVisitScreen client={client} session={session} surface={surface} onBack={onBack}
         onAuthorized={onAuthorized} />
-      <OverlayMoreMenu open={showMoreMenu} onClose={onCloseMore} />
+      <OverlayMoreMenu open={showMoreMenu} onClose={onCloseMore} client={client} />
     </AppShell>
   );
 }

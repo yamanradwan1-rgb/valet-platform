@@ -1,6 +1,7 @@
 import type { TranslationDictionary } from './types';
 import { guestPostVisitEnTranslations } from './guest-post-visit-en';
 import { previewEnTranslations } from './preview-en';
+import { guestInformationEnTranslations } from './guest-information-en';
 
 export const enTranslations: TranslationDictionary = {
   // Common
@@ -255,6 +256,7 @@ export const enTranslations: TranslationDictionary = {
   'demo.networkUnavailable': 'Net Unavailable',
   'demo.expired': 'Expired',
   ...guestPostVisitEnTranslations,
+  ...guestInformationEnTranslations,
   ...previewEnTranslations,
 };
 

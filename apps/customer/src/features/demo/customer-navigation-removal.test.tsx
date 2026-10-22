@@ -72,7 +72,7 @@ describe("#318 / #317 Customer navigation", () => {
   });
 
   it.each(["en", "ar"] as const)(
-    "keeps the unchanged More rows in %s",
+    "keeps the remaining More rows in %s without Photos",
     (locale) => {
       const markup = renderToStaticMarkup(
         <LocaleProvider initialLocale={locale}>
@@ -84,11 +84,11 @@ describe("#318 / #317 Customer navigation", () => {
       const dictionary = locale === "en" ? en : ar;
       for (const key of [
         "menu.languageLabel",
-        "menu.photosLabel",
         "menu.privacyLabel",
         "menu.contactLabel",
       ] as const)
         expect(markup).toContain(dictionary[key].replaceAll("&", "&amp;"));
+      expect(markup).not.toContain(dictionary['menu.photosLabel']);
       expect(markup).not.toContain(locale === "en" ? "Help" : "المساعدة");
     },
   );

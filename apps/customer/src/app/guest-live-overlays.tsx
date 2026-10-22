@@ -3,13 +3,15 @@ import { OverlayConfirmRequest } from '../features/retrieval/overlay-confirm-req
 import { OverlayVehicleDetails } from '../features/deferred/overlay-vehicle-details';
 import { OverlayMoreMenu } from '../features/deferred/overlay-more-menu';
 import type { GuestSafeSession } from '../lib/api/guest-api-types';
+import type { GuestApiClient } from '../lib/api/guest-api-client';
 
 export function GuestLiveOverlays({
-  session, showConfirmRequest, showVehicleDetails, showMoreMenu,
+  session, client, showConfirmRequest, showVehicleDetails, showMoreMenu,
   onCloseConfirm, onConfirm, onCloseDetails, onCloseMore,
   isRequesting, requestError, canRequest,
 }: {
   readonly session: GuestSafeSession;
+  readonly client: GuestApiClient | null;
   readonly showConfirmRequest: boolean;
   readonly showVehicleDetails: boolean;
   readonly showMoreMenu: boolean;
@@ -39,7 +41,7 @@ export function GuestLiveOverlays({
         canConfirm={canRequest}
       />
       <OverlayVehicleDetails open={showVehicleDetails} onClose={onCloseDetails} session={session} />
-      <OverlayMoreMenu open={showMoreMenu} onClose={onCloseMore} />
+      <OverlayMoreMenu open={showMoreMenu} onClose={onCloseMore} client={client} />
     </>
   );
 }

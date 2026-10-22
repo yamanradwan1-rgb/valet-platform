@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { useTranslation } from '../../i18n/use-translation';
 import { useTheme } from '../../theme/use-theme';
 import { BottomSheet } from '../../components/layout/bottom-sheet';
 import {
-  IcCamera,
   IcChevronRight,
   IcLanguage,
   IcMoon,
@@ -12,49 +11,70 @@ import {
   IcPrivacy,
 } from '../../components/icons/action-icons';
 import { C } from '../../lib/theme/colors';
+import type { GuestApiClient } from '../../lib/api/guest-api-client';
+import { OverlayGuestInformationSheet, type GuestInformationSection } from './overlay-guest-information-sheet';
 
 export function OverlayMoreMenu({
   open,
   onClose,
+  client,
 }: {
   readonly open: boolean;
   readonly onClose: () => void;
+  readonly client?: GuestApiClient | null;
 }) {
   const { t, isRtl, toggleLocale } = useTranslation();
   const { isDark, toggleTheme } = useTheme();
+  const [informationSection, setInformationSection] = useState<GuestInformationSection | null>(null);
+  const privacyTrigger = useRef<HTMLButtonElement>(null);
+  const contactTrigger = useRef<HTMLButtonElement>(null);
+  const returnFocus = useRef<GuestInformationSection | null>(null);
+  useEffect(() => {
+    if (!open || informationSection || !returnFocus.current) return;
+    const trigger = returnFocus.current === 'privacy' ? privacyTrigger : contactTrigger;
+    returnFocus.current = null;
+    trigger.current?.focus();
+  }, [open, informationSection]);
+  const closeMenu = () => {
+    returnFocus.current = null;
+    setInformationSection(null);
+    onClose();
+  };
+  const closeInformation = () => {
+    returnFocus.current = informationSection;
+    setInformationSection(null);
+  };
 
   const menuItems = [
     {
       Icon: IcLanguage,
+      triggerRef: undefined,
       label: t('menu.languageLabel'),
       sub: t('menu.languageSub'),
       action: () => {
         toggleLocale();
-        onClose();
+        closeMenu();
       },
     },
     {
-      Icon: IcCamera,
-      label: t('menu.photosLabel'),
-      sub: t('menu.photosSub'),
-      action: onClose,
-    },
-    {
       Icon: IcPrivacy,
+      triggerRef: privacyTrigger,
       label: t('menu.privacyLabel'),
       sub: t('menu.privacySub'),
-      action: onClose,
+      action: () => setInformationSection('privacy'),
     },
     {
       Icon: IcPhone,
+      triggerRef: contactTrigger,
       label: t('menu.contactLabel'),
       sub: t('menu.contactSub'),
-      action: onClose,
+      action: () => setInformationSection('contact'),
     },
   ];
 
   return (
-    <BottomSheet open={open} onClose={onClose} title={t('menu.title')}>
+    <>
+    <BottomSheet open={open && !informationSection} onClose={closeMenu} title={t('menu.title')}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 4 }}>
         {/* Dark Mode Switch Row - Accessible single interactive button */}
         <button
@@ -120,9 +140,10 @@ export function OverlayMoreMenu({
           </div>
         </button>
 
-        {menuItems.map(({ Icon, label, sub, action }) => (
+        {menuItems.map(({ Icon, label, sub, action, triggerRef }) => (
           <button
             key={label}
+            ref={triggerRef}
             type="button"
             onClick={action}
             style={{
@@ -161,5 +182,13 @@ export function OverlayMoreMenu({
         ))}
       </div>
     </BottomSheet>
+    {open && informationSection && (
+      <OverlayGuestInformationSheet
+        section={informationSection}
+        client={client}
+        onClose={closeInformation}
+      />
+    )}
+    </>
   );
 }

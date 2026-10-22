@@ -1,8 +1,9 @@
 import type { GuestErrorTranslationTypes } from './guest-error-translation-types';
 import type { GuestPostVisitTranslationTypes } from './guest-post-visit-translation-types';
 import type { GuestRatingTranslationTypes } from './guest-rating-translation-types';
+import type { GuestInformationTranslationTypes } from './guest-information-translation-types';
 
-export interface TranslationDictionary extends GuestErrorTranslationTypes, GuestPostVisitTranslationTypes, GuestRatingTranslationTypes {
+export interface TranslationDictionary extends GuestErrorTranslationTypes, GuestPostVisitTranslationTypes, GuestRatingTranslationTypes, GuestInformationTranslationTypes {
   // Common
   'common.appName': string;
   'common.poweredBy': string;
