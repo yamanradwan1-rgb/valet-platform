@@ -7,6 +7,7 @@ export async function acquireSessionPhotosInOrder<T, Result>(
   items: readonly T[],
   read: (item: T, index: number, signal: AbortSignal) => Promise<Result>,
   parentSignal: AbortSignal,
+  maximumConcurrency: 1 | 2 = 2,
 ): Promise<Result[]> {
   if (parentSignal.aborted) {
     throw parentSignal.reason ?? new DOMException("Aborted", "AbortError");
@@ -15,7 +16,7 @@ export async function acquireSessionPhotosInOrder<T, Result>(
 
   // Two is the existing per-user API delivery ceiling, not a configurable
   // client-side permission or a reason to loosen server rate limits.
-  const workerCount = Math.min(2, items.length);
+  const workerCount = Math.min(2, maximumConcurrency, items.length);
   const batch = new AbortController();
   const abortForScope = () => batch.abort(parentSignal.reason);
   parentSignal.addEventListener("abort", abortForScope, { once: true });
@@ -55,4 +56,27 @@ export async function acquireSessionPhotosInOrder<T, Result>(
   } finally {
     parentSignal.removeEventListener("abort", abortForScope);
   }
+}
+
+/**
+ * Chromium and other browsers with Web Locks serialize *galleries* across
+ * tabs of this Dashboard origin, while still allowing two requests within
+ * the active gallery. This is capacity coordination, NEVER authorization.
+ * On browsers lacking Web Locks, retain the original serial request behavior
+ * rather than introducing cross-tab 429s above the original single-lane load.
+ */
+export async function acquireActiveSessionGallery<T, Result>(
+  items: readonly T[],
+  read: (item: T, index: number, signal: AbortSignal) => Promise<Result>,
+  parentSignal: AbortSignal,
+): Promise<Result[]> {
+  const locks = typeof navigator === "undefined" ? undefined : navigator.locks;
+  if (locks === undefined) {
+    return await acquireSessionPhotosInOrder(items, read, parentSignal, 1);
+  }
+  return await locks.request(
+    "vaylet-management-private-gallery-acquisition",
+    { mode: "exclusive", signal: parentSignal },
+    () => acquireSessionPhotosInOrder(items, read, parentSignal),
+  );
 }

@@ -1,5 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
-import { acquireSessionPhotosInOrder } from "./photo-download-scheduler";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { acquireActiveSessionGallery, acquireSessionPhotosInOrder } from "./photo-download-scheduler";
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe("#309 invisible bounded private-photo acquisition", () => {
   it("keeps empty and single-photo galleries at zero or one request", async () => {
@@ -84,5 +86,48 @@ describe("#309 invisible bounded private-photo acquisition", () => {
     const read = vi.fn(async () => { throw throttled; });
     await expect(acquireSessionPhotosInOrder([0, 1, 2, 3], read, new AbortController().signal)).rejects.toBe(throttled);
     expect(read.mock.calls.length).toBeLessThanOrEqual(2);
+  });
+
+  it("uses baseline one-at-a-time delivery when cross-tab Web Locks are unsupported", async () => {
+    vi.stubGlobal("navigator", {});
+    let inFlight = 0;
+    let highest = 0;
+    const result = await acquireActiveSessionGallery([1, 2, 3], async (id) => {
+      inFlight++;
+      highest = Math.max(highest, inFlight);
+      await Promise.resolve();
+      inFlight--;
+      return id;
+    }, new AbortController().signal);
+    expect(result).toEqual([1, 2, 3]);
+    expect(highest).toBe(1);
+  });
+
+  it("serializes two galleries across tabs while allowing two reads in the active gallery", async () => {
+    let tail: Promise<unknown> = Promise.resolve();
+    const request = vi.fn((_name: string, _options: unknown, callback: () => Promise<number[]>) => {
+      const next = tail.then(callback);
+      tail = next.catch(() => {});
+      return next;
+    });
+    vi.stubGlobal("navigator", { locks: { request } });
+    let inFlight = 0;
+    let highest = 0;
+    const read = async (id: number) => {
+      inFlight++;
+      highest = Math.max(highest, inFlight);
+      await new Promise<void>((resolve) => setTimeout(resolve, 1));
+      inFlight--;
+      return id;
+    };
+    const [first, second] = await Promise.all([
+      acquireActiveSessionGallery([1, 2, 3, 4], read, new AbortController().signal),
+      acquireActiveSessionGallery([5, 6, 7, 8], read, new AbortController().signal),
+    ]);
+    expect(first).toEqual([1, 2, 3, 4]);
+    expect(second).toEqual([5, 6, 7, 8]);
+    expect(highest).toBe(2);
+    expect(request).toHaveBeenCalledTimes(2);
+    expect(request.mock.calls[0]![0]).toBe("vaylet-management-private-gallery-acquisition");
   });
 });
