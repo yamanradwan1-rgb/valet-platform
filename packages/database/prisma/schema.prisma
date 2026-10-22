@@ -27,6 +27,14 @@ enum ManagementLanguage {
   @@map("management_language")
 }
 
+enum GuestContactFieldMode {
+  INHERIT
+  OVERRIDE
+  UNAVAILABLE
+
+  @@map("guest_contact_field_mode")
+}
+
 enum OperatingWeekday {
   MONDAY
   TUESDAY
@@ -564,6 +572,10 @@ model Organization {
   outboundMessageIntents      OutboundMessageIntent[]
   operatingHours              OrganizationOperatingHour[]
   locationOperatingHourOverrides LocationOperatingHourOverride[]
+  guestContactDefaults GuestContactCompany?
+  guestLocationPrivacy GuestLocationPrivacy[]
+  guestPrivacyPublications GuestPrivacyPublication[]
+  guestContactOverrides GuestContactLocation[]
 
   onboardingInvitations StaffOnboardingInvitation[]
 
@@ -637,6 +649,9 @@ model Location {
   outboundMessagingPolicies OutboundMessagingPolicy[]
   outboundMessageIntents OutboundMessageIntent[]
   operatingHoursOverrides  LocationOperatingHourOverride[]
+  guestPrivacy             GuestLocationPrivacy?
+  guestPrivacyPublications GuestPrivacyPublication[]
+  guestContactOverrides    GuestContactLocation?
 
   shiftStartPresenceModeOverride ShiftPresenceMode? @map("shift_start_presence_mode_override")
   shiftEndPresenceModeOverride ShiftPresenceMode? @map("shift_end_presence_mode_override")
@@ -678,6 +693,85 @@ model LocationOperatingHourOverride {
 
   @@id([organizationId, locationId, weekday])
   @@map("location_operating_hours_overrides")
+}
+
+// #316: Legal drafts are Location-owned. Publishing creates immutable snapshots;
+// the active pointer may be cleared without deleting previous publications.
+model GuestLocationPrivacy {
+  organizationId String @map("organization_id") @db.Uuid
+  locationId String @map("location_id") @db.Uuid
+  draftEnText String? @map("draft_en_text") @db.Text
+  draftEnUrl String? @map("draft_en_url") @db.VarChar(2048)
+  draftArText String? @map("draft_ar_text") @db.Text
+  draftArUrl String? @map("draft_ar_url") @db.VarChar(2048)
+  revision Int @default(0)
+  publishedVersion Int? @map("published_version")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "guest_location_privacy_organization_id_fkey")
+  location Location @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "guest_location_privacy_location_fkey")
+  publications GuestPrivacyPublication[] @relation("GuestPrivacyHistory")
+  activePublication GuestPrivacyPublication? @relation("GuestPrivacyActive", fields: [organizationId, locationId, publishedVersion], references: [organizationId, locationId, version], onDelete: Restrict, map: "guest_location_privacy_active_publication_fkey")
+
+  @@id([organizationId, locationId])
+  @@map("guest_location_privacy")
+}
+
+model GuestPrivacyPublication {
+  organizationId String @map("organization_id") @db.Uuid
+  locationId String @map("location_id") @db.Uuid
+  version Int
+  enText String? @map("en_text") @db.Text
+  enUrl String? @map("en_url") @db.VarChar(2048)
+  arText String? @map("ar_text") @db.Text
+  arUrl String? @map("ar_url") @db.VarChar(2048)
+  publishedAt DateTime @default(now()) @map("published_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "guest_privacy_publications_organization_id_fkey")
+  location Location @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "guest_privacy_publications_location_fkey")
+  privacy GuestLocationPrivacy @relation("GuestPrivacyHistory", fields: [organizationId, locationId], references: [organizationId, locationId], onDelete: Restrict, map: "guest_privacy_publications_privacy_fkey")
+  activeFor GuestLocationPrivacy[] @relation("GuestPrivacyActive")
+
+  @@id([organizationId, locationId, version])
+  @@index([organizationId, locationId, publishedAt(sort: Desc)], map: "guest_privacy_publications_scope_date_idx")
+  @@map("guest_privacy_publications")
+}
+
+model GuestContactCompany {
+  organizationId String @id @map("organization_id") @db.Uuid
+  displayName String? @map("display_name") @db.VarChar(240)
+  phone String? @db.VarChar(32)
+  supportUrl String? @map("support_url") @db.VarChar(240)
+  hours String? @db.VarChar(240)
+  hoursConfirmed Boolean @default(false) @map("hours_confirmed")
+  revision Int @default(0)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@map("guest_contact_company_defaults")
+}
+
+model GuestContactLocation {
+  organizationId String @map("organization_id") @db.Uuid
+  locationId String @map("location_id") @db.Uuid
+  displayNameMode GuestContactFieldMode @default(INHERIT) @map("display_name_mode")
+  displayName String? @map("display_name") @db.VarChar(240)
+  phoneMode GuestContactFieldMode @default(INHERIT) @map("phone_mode")
+  phone String? @db.VarChar(32)
+  supportUrlMode GuestContactFieldMode @default(INHERIT) @map("support_url_mode")
+  supportUrl String? @map("support_url") @db.VarChar(240)
+  hoursMode GuestContactFieldMode @default(INHERIT) @map("hours_mode")
+  hours String? @db.VarChar(240)
+  hoursConfirmed Boolean @default(false) @map("hours_confirmed")
+  revision Int @default(0)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict, map: "guest_contact_location_overrides_organization_id_fkey")
+  location Location @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "guest_contact_location_overrides_location_fkey")
+
+  @@id([organizationId, locationId])
+  @@map("guest_contact_location_overrides")
 }
 
 model User {

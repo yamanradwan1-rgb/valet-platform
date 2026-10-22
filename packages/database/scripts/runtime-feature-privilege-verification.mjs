@@ -8,6 +8,7 @@ import { verifyManagementFeaturePrivileges } from "./management-runtime-privileg
 import { verifyGuestRuntimePrivileges } from "./guest-runtime-privileges.mjs";
 import { verifyConditionPhotoRuntimePrivileges } from "./condition-photo-runtime-privileges.mjs";
 import { verifyOutboundRuntimePrivileges } from "./outbound-runtime-privileges.mjs";
+import { verifyGuestInformationPrivileges } from "./guest-information-runtime-privileges.mjs";
 
 export async function verifyRuntimeFeaturePrivileges(client, runtimeRole) {
   await verifyLocationConfigurationPrivileges(client, runtimeRole);
@@ -20,4 +21,5 @@ export async function verifyRuntimeFeaturePrivileges(client, runtimeRole) {
   await verifyGuestRuntimePrivileges(client, runtimeRole);
   await verifyConditionPhotoRuntimePrivileges(client, runtimeRole);
   await verifyOutboundRuntimePrivileges(client, runtimeRole);
+  await verifyGuestInformationPrivileges(client, runtimeRole);
 }

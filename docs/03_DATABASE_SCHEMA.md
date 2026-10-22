@@ -3147,3 +3147,55 @@ snapshots with EXECUTE-only SECURITY DEFINER functions:
 immutable GRANT/WITHDRAW evidence), and
 `outbound_read_intake_issue_control(text)`. No additional raw table locking
 or Customer UPDATE privilege is granted to the runtime principal.
+
+## Issue #316 — Guest Privacy & Contact (forward migrations 101–102)
+
+Privacy is independently owned by each Location. Migration
+20261022010100_issue316_guest_information_contracts introduces:
+
+| Table | Identity | Content and guarantees |
+| --- | --- | --- |
+| guest_location_privacy | PK (organization_id, location_id) | EN/AR draft text and HTTPS URL, monotone revision, nullable published_version; no row is a valid unconfigured state |
+| guest_privacy_publications | PK (organization_id, location_id, version) | Immutable, timestamped EN/AR published snapshot. A locale may be absent; no cross-locale or cross-Location fallback |
+| guest_contact_company_defaults | PK organization_id | Nullable tenant-supplied display name, E.164 public phone, HTTPS support URL, hours, hours_confirmed, revision |
+| guest_contact_location_overrides | PK (organization_id, location_id) | One independent INHERIT, OVERRIDE, or UNAVAILABLE mode per field, optional confirmed hours, revision |
+
+Composite (organization_id, location_id) FKs enforce tenant-bound Location
+ownership even for direct SQL writes. The active Privacy pointer references
+a publication in the same tenant/Location. Publishing inserts a new immutable
+row and advances the pointer; unpublishing clears the pointer without deleting
+historical published snapshots or saved drafts. EN and AR each hold their own
+text/link, and a missing requested locale is unavailable to the Guest.
+Contact inheritance is evaluated separately for each field:
+INHERIT uses Company default, OVERRIDE must contain a typed value,
+UNAVAILABLE suppresses the field even when Company has a default.
+Hours are Guest-visible only when the source is explicitly confirmed.
+Every table starts empty; no tenant legal content, phone, link or hours are
+seeded by VAYLET. There is no Guest messaging or outbound messaging setting.
+
+Database checks bound draft/publication text to 5,000 characters and links
+to validated HTTPS without userinfo, whitespace, or backslash. Contact
+fields are at most 240 characters (phone canonical E.164). Draft rows,
+publications, defaults and overrides are never writable by ordinary
+runtime table DML. Migration
+20261022010200_issue316_guest_information_authority adds five narrowly
+scoped SECURITY DEFINER commands:
+
+- guest_information_save_privacy: saved EN/AR drafts with optimistic revision;
+- guest_information_publish_privacy: immutable version append and active pointer;
+- guest_information_unpublish_privacy: explicit revocation of active publication;
+- guest_information_set_company_contact: Company-level Contact defaults;
+- guest_information_set_location_contact: four typed per-field Location modes.
+
+The commands revalidate ACTIVE Organization, User and Membership, require
+ORG_ADMIN for Company mutations, and permit LOCATION_MANAGER only
+with explicit access to the exact ACTIVE Location for Location mutations.
+Each command locks the Organization, checks expected_revision, increments
+the revision and writes a same-transaction append-only AuditEvent containing
+operation/revision metadata, without copying legal text, public phone or
+support URL into audit payloads. Privileges grant runtime SELECT for these
+typed records and EXECUTE only on the five vetted functions; PUBLIC cannot
+execute write/private helpers and runtime has no direct INSERT/UPDATE/DELETE.
+The API must separately revalidate the live staff session, MFA and Guest
+session before using these database capabilities and must send Guest only
+the server-resolved published locale and confirmed public Contact fields.
