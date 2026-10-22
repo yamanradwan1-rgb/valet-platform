@@ -13,8 +13,11 @@ const membershipId = "018f1234-5678-4abc-9234-56789abcdef2";
 
 describe("management audit contracts", () => {
   it("publishes the exact bounded current event catalog", () => {
-    expect(managementAuditKnownEventTypes).toHaveLength(100);
-    expect(new Set(managementAuditKnownEventTypes)).toHaveLength(100);
+    expect(managementAuditKnownEventTypes).toHaveLength(101);
+    expect(new Set(managementAuditKnownEventTypes)).toHaveLength(101);
+    expect(managementAuditKnownEventTypes).toContain(
+      "MANAGEMENT_GUEST_INFORMATION_CHANGED",
+    );
     expect(managementAuditKnownEventTypes).toContain(
       "SHIFT_PRESENCE_COMPANY_POLICY_CHANGED",
     );
@@ -123,6 +126,47 @@ describe("management audit contracts", () => {
     expect(
       managementAuditResponseSchema.safeParse({
         items: [{ ...minimal, eventType: "FUTURE_EVENT" }],
+        nextCursor: null,
+      }).success,
+    ).toBe(false);
+  });
+  it("bounds Guest information audit details to an operation without content", () => {
+    const base = {
+      actor: { membershipId, type: "MEMBERSHIP" },
+      details: { kind: "GUEST_INFORMATION", operation: "PRIVACY_PUBLISHED" },
+      entity: { id: locationId, type: "LOCATION" },
+      eventId,
+      eventType: "MANAGEMENT_GUEST_INFORMATION_CHANGED",
+      occurredAt: "2026-09-17T00:00:00.000Z",
+      scope: { kind: "LOCATION", locationId },
+    };
+    expect(
+      managementAuditResponseSchema.safeParse({
+        items: [base],
+        nextCursor: null,
+      }).success,
+    ).toBe(true);
+    for (const sensitive of ["phone", "legalText", "content", "token"]) {
+      expect(
+        managementAuditResponseSchema.safeParse({
+          items: [
+            {
+              ...base,
+              details: { ...base.details, [sensitive]: "private" },
+            },
+          ],
+          nextCursor: null,
+        }).success,
+      ).toBe(false);
+    }
+    expect(
+      managementAuditResponseSchema.safeParse({
+        items: [
+          {
+            ...base,
+            details: { kind: "GUEST_INFORMATION", operation: "INVALID" },
+          },
+        ],
         nextCursor: null,
       }).success,
     ).toBe(false);

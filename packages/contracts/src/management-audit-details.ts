@@ -91,6 +91,18 @@ export const managementAuditKnownDetailSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("MAP") }).strict(),
   z
     .object({
+      kind: z.literal("GUEST_INFORMATION"),
+      operation: z.enum([
+        "PRIVACY_DRAFT_SAVED",
+        "PRIVACY_PUBLISHED",
+        "PRIVACY_UNPUBLISHED",
+        "CONTACT_COMPANY_DEFAULTS_SAVED",
+        "CONTACT_LOCATION_OVERRIDE_SAVED",
+      ]),
+    })
+    .strict(),
+  z
+    .object({
       kind: z.literal("CONFIGURATION"),
       operation: z.enum(["SET", "CLEAR"]).optional(),
       settingKey: z.string().min(1).max(100).optional(),

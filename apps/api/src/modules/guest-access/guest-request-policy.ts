@@ -23,6 +23,7 @@ export const guestRequestPolicy = {
 
 export const guestRouteClasses = {
   "GET /v1/guest/session": "A",
+  "GET /v1/guest/information": "A",
   "GET /v1/guest/valet-sessions/:sessionId/payment": "A",
   "GET /v1/guest/push/config": "A",
   "POST /v1/guest/browser-session/enroll": "B",

@@ -1,0 +1,81 @@
+/* Approved Option 2 shell behavior, isolated to the Guest Information route.
+   These declarations match the frozen prototype's mobile shell rules. */
+@font-face {
+  font-family: "Guest Information Inter";
+  src: url("/fonts/locations/inter-latin.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+body:has(.opt2-page) {
+  font-family: "Guest Information Inter", "Segoe UI", Tahoma, Arial, sans-serif;
+}
+
+.shell:has(.opt2-page) .topbar .button-quiet { font-size: .79rem; }
+
+@media (max-width: 820px) {
+  .shell:has(.opt2-page) .mobile-menu { display: inline-flex; }
+  .shell:has(.opt2-page) .topbar { min-height: 4rem; }
+  .shell:has(.opt2-page) .topbar-actions { flex-wrap: nowrap; }
+  .shell:has(.opt2-page) .topbar .button-quiet { padding-inline: .4rem; }
+  .shell:has(.opt2-page) .location-context { padding-inline: .5rem; }
+  .shell:has(.opt2-page) .location-context-value { max-width: min(25vw, 180px); }
+  .shell:has(.opt2-page) .topbar .theme-segment { padding-inline: .4rem; }
+}
+
+@media (max-width: 390px) {
+  .shell:has(.opt2-page) .topbar { gap: .25rem; padding-inline: .5rem; }
+  .shell:has(.opt2-page) .scope-line,
+  .shell:has(.opt2-page) .topbar-actions { gap: .125rem; }
+  .shell:has(.opt2-page) .location-context-value { max-width: 17vw; }
+}
+
+/* The approved <=240px fallback also covers 200% zoom at 320/390px.
+   Child selectors identify the production locale/theme/account controls. */
+@media (max-width: 240px) {
+  .shell:has(.opt2-page) .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    min-width: 0;
+    padding: .5rem;
+    gap: .375rem;
+  }
+  .shell:has(.opt2-page) .scope-line {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    gap: .25rem;
+  }
+  .shell:has(.opt2-page) .scope-line > :not(.mobile-menu),
+  .shell:has(.opt2-page) .location-context {
+    min-width: 0;
+    width: 100%;
+  }
+  .shell:has(.opt2-page) .location-context {
+    gap: .2rem;
+    padding-inline: .35rem;
+  }
+  .shell:has(.opt2-page) .location-context-value {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: none;
+  }
+  .shell:has(.opt2-page) .topbar-actions {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    gap: .25rem;
+  }
+  .shell:has(.opt2-page) .topbar-actions > :first-child { justify-self: start; }
+  .shell:has(.opt2-page) .topbar-actions > .theme-segmented { justify-self: end; }
+  .shell:has(.opt2-page) .topbar-actions > :last-child {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}

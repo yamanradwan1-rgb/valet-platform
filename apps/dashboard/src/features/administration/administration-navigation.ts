@@ -1,5 +1,6 @@
 import {
   FileCheck,
+  createLucideIcon,
   MapPin,
   Palette,
   Receipt,
@@ -8,6 +9,17 @@ import {
 } from "lucide-react";
 
 import { defineNavigationDestination } from "../../lib/navigation/navigation-registry";
+
+// Exact approved Option2 shell contact symbol (19px / 1.9 stroke is applied
+// by the existing Dashboard navigation list).
+const GuestInformationIcon = createLucideIcon("GuestInformation", [
+  ["rect", { x: "3", y: "4", width: "18", height: "16", rx: "2", key: "frame" }],
+  ["circle", { cx: "9", cy: "10", r: "2", key: "person" }],
+  ["path", {
+    d: "M5 17c0-2 2-3 4-3s4 1 4 3M15 9h4M15 13h4",
+    key: "details",
+  }],
+]);
 
 export const md02NavigationRegistrations = [
   defineNavigationDestination({
@@ -41,6 +53,18 @@ export const md02NavigationRegistrations = [
     icon: FileCheck,
     id: "policies-settings",
     labels: { ar: "السياسات والإعدادات", en: "Policies & Settings" },
+    owner: "MD-02",
+    placement: "MAIN",
+    roles: ["COMPANY_ADMIN", "LOCATION_MANAGER"],
+    scopeRequirement: "ORGANIZATION",
+  }),
+  defineNavigationDestination({
+    accessRequirement: "DASHBOARD",
+    availability: "IMPLEMENTED",
+    href: "/guest-information",
+    icon: GuestInformationIcon,
+    id: "guest-information",
+    labels: { ar: "الخصوصية والتواصل", en: "Privacy & Contact" },
     owner: "MD-02",
     placement: "MAIN",
     roles: ["COMPANY_ADMIN", "LOCATION_MANAGER"],

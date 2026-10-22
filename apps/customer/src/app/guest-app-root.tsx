@@ -88,7 +88,7 @@ export function GuestAppRoot() {
           onRequestClick={() => setDevOverlay('overlay-confirm-request')}
           onViewDetails={() => setDevOverlay('overlay-vehicle-details')}
         />
-        <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
+        <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} client={client} />
         <DevPreviewControls
           activeScreen={demoScreen}
           onSelectScreen={setDemoScreen}
@@ -116,7 +116,7 @@ export function GuestAppRoot() {
     return (
       <AppShell onMore={handleOpenMore}>
         <ScreenExpired />
-        <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
+        <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} client={client} />
         {isDev && (
           <DevPreviewControls
             activeScreen={demoScreen}
@@ -140,7 +140,7 @@ export function GuestAppRoot() {
             void (isBootstrapTemporarilyUnavailable ? retryBootstrap() : refreshSession())
           }
         />
-        <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
+        <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} client={client} />
         {isDev && (
           <DevPreviewControls
             activeScreen={demoScreen}
@@ -158,7 +158,7 @@ export function GuestAppRoot() {
     return (
       <AppShell onMore={handleOpenMore}>
         <GuestSessionLoading />
-        <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
+        <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} client={client} />
         {isDev && (
           <DevPreviewControls
             activeScreen={demoScreen}
@@ -176,7 +176,7 @@ export function GuestAppRoot() {
     return (
       <AppShell onMore={handleOpenMore}>
         <ScreenExpired />
-        <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} />
+        <OverlayMoreMenu open={showMoreMenu} onClose={handleCloseMore} client={client} />
       </AppShell>
     );
   }
@@ -210,6 +210,7 @@ export function GuestAppRoot() {
 
       {/* Production Overlays */}
       <GuestLiveOverlays
+        client={client}
         session={session}
         showConfirmRequest={showConfirmRequest}
         showVehicleDetails={showVehicleDetails}

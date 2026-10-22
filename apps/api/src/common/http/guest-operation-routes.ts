@@ -1,5 +1,6 @@
 export const guestOperationRoutes = [
   { method: "GET", operation: "GUEST_SESSION_READ", path: /^\/v1\/guest\/session$/ },
+  { method: "GET", operation: "GUEST_INFORMATION_READ", path: /^\/v1\/guest\/information$/ },
   {
     method: "POST",
     operation: "GUEST_BROWSER_SESSION_ENROLL",

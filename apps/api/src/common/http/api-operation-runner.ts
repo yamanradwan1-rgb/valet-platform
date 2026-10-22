@@ -17,6 +17,7 @@ export type OperationMeasurementEnricher = () => Readonly<
 
 export type GuestOperationName =
   | "GUEST_SESSION_READ"
+  | "GUEST_INFORMATION_READ"
   | "GUEST_BROWSER_SESSION_ENROLL"
   | "GUEST_BROWSER_SESSION_EXCHANGE"
   | "GUEST_BROWSER_SESSION_END"

@@ -239,6 +239,10 @@ const events = {
     "Location branding override changed",
     "تغيير تجاوز هوية الموقع",
   ],
+  MANAGEMENT_GUEST_INFORMATION_CHANGED: [
+    "Guest information changed",
+    "تغيير معلومات الضيف",
+  ],
   LOCATION_CREATED: ["Location created", "إنشاء الموقع"],
   LOCATION_ACTIVATED: ["Location activated", "تفعيل الموقع"],
   LOCATION_INTAKE_STOPPED: [

@@ -5,6 +5,7 @@ import {
   guestBrowserSwitchReconcileResponseSchema,
   guestBrowserSwitchResponseSchema,
   guestHandoffMaterialResponseSchema,
+  guestInformationResponseSchema,
   guestPaymentProjectionResponseSchema,
   guestRatingSubmissionRequestSchema,
   guestRatingSubmissionResponseSchema,
@@ -14,12 +15,14 @@ import {
   type GuestBrowserSwitchReconcileResponse,
   type GuestBrowserSwitchResponse,
   type GuestPaymentProjectionResponse,
+  type GuestInformationResponse,
   type GuestRatingSubmissionResponse,
 } from "@valet/contracts";
 
 import { getGuestApiBaseUrl } from "./api-config";
 import { GuestApiError } from "./api-error";
 import { executeGuestHttpRequest } from './guest-http-transport';
+import type { Locale } from '../../i18n/locale';
 import {
   announceBrowserContextChange,
   readBrowserContextMarker,
@@ -205,6 +208,21 @@ export class GuestApiClient {
       method: "GET",
       signal,
     }, (raw) => customerSessionReadSchema.parse(raw));
+  }
+
+  async loadInformation(
+    locale: Locale,
+    signal?: AbortSignal | undefined,
+  ): Promise<GuestInformationResponse> {
+    return this.request<GuestInformationResponse>(
+      `/information?locale=${locale}`,
+      { signal },
+      (raw) => {
+        const response = guestInformationResponseSchema.parse(raw);
+        if (response.locale !== locale) throw new Error('Mismatched Guest information locale.');
+        return response;
+      },
+    );
   }
 
   async requestRetrieval(

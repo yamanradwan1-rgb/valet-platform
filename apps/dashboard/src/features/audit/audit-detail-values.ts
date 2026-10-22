@@ -17,6 +17,7 @@ const kinds: Record<Kind, readonly [string, string]> = {
   INCIDENT: ["Incident", "الحادث"],
   FINANCIAL: ["Financial", "المالية"],
   MAP: ["Map", "الخريطة"],
+  GUEST_INFORMATION: ["Guest information", "معلومات الضيف"],
   CONFIGURATION: ["Configuration", "الإعدادات"],
   REPORT: ["Report", "التقرير"],
   STAFF: ["Staff", "فريق العمل"],
@@ -53,6 +54,15 @@ const values: Record<string, readonly [string, string]> = {
   SUPERVISOR_OVERRIDE: ["Supervisor override", "تجاوز المشرف"],
   displayName: ["Display name", "الاسم المعروض"],
   phoneNormalized: ["Phone number", "رقم الهاتف"],
+  PRIVACY_DRAFT_SAVED: ["Privacy draft saved", "حفظ مسودة الخصوصية"],
+  PRIVACY_PUBLISHED: ["Privacy published", "نشر الخصوصية"],
+  PRIVACY_UNPUBLISHED: ["Privacy unpublished", "إلغاء نشر الخصوصية"],
+  CONTACT_COMPANY_DEFAULTS_SAVED: [
+    "Company contact defaults saved", "حفظ معلومات التواصل الافتراضية للشركة",
+  ],
+  CONTACT_LOCATION_OVERRIDE_SAVED: [
+    "Location contact overrides saved", "حفظ تخصيص معلومات التواصل للموقع",
+  ],
 };
 const enumKeys = new Set([
   "fromStatus",

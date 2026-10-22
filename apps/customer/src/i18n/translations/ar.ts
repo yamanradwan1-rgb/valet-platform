@@ -1,6 +1,7 @@
 import type { TranslationDictionary } from './types';
 import { guestPostVisitArTranslations } from './guest-post-visit-ar';
 import { previewArTranslations } from './preview-ar';
+import { guestInformationArTranslations } from './guest-information-ar';
 
 export const arTranslations: TranslationDictionary = {
   // Common
@@ -255,6 +256,7 @@ export const arTranslations: TranslationDictionary = {
   'demo.networkUnavailable': 'انقطاع الاتصال',
   'demo.expired': 'انتهت الصلاحية',
   ...guestPostVisitArTranslations,
+  ...guestInformationArTranslations,
   ...previewArTranslations,
 };
 
