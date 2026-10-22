@@ -12,6 +12,16 @@ export const fieldLabels: Readonly<Record<ContactField, readonly [string, string
   hours: ["Support hours (if confirmed)", "ساعات الدعم (عند التأكيد)"],
 };
 
+export function guestContactFieldId(
+  prefix: "company" | "override", field: ContactField,
+): string {
+  return `guest-information-${prefix}-${field}`;
+}
+
+export function guestPrivacyFieldId(field: "text" | "url"): string {
+  return `guest-information-privacy-${field}`;
+}
+
 export function GuestCard({
   children, title, subtitle, extra,
 }: {
@@ -69,7 +79,7 @@ export function GuestField({
   readonly onChange: (next: string) => void;
   readonly invalid?: boolean;
 }) {
-  const id = `demo-${prefix}-${field}`;
+  const id = guestContactFieldId(prefix, field);
   return (
     <div className="v-field">
       <label htmlFor={id}>{translate(locale, ...fieldLabels[field])}</label>

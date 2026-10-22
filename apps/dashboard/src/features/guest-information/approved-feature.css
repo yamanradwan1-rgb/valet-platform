@@ -136,7 +136,7 @@
   .v-location-list:has(.v-location-cta) .v-location-item > .v-location-cta { grid-column: 1; grid-row: auto; justify-self: start; }
 }
 .v-customer-compare h3 { font-size: .8rem; margin: 0 0 .5rem; }
-.v-customer-mock { max-width: 380px; border: 1px solid var(--border); border-radius: .9rem; padding: .75rem; display: grid; gap: .5rem; background: var(--surface); }
+.v-guest-preview-surface { max-width: 380px; border: 1px solid var(--border); border-radius: .9rem; padding: .75rem; display: grid; gap: .5rem; background: var(--surface); }
 .v-customer-heading { text-align: center; padding: .4rem; font-size: .85rem; font-weight: 700; }
 .v-customer-row { min-height: 48px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; gap: 12px; }
 .v-customer-row strong { font-size: 14px; font-weight: 600; display: block; }
@@ -178,7 +178,7 @@
   .v-badge { white-space: normal; }
   .v-actions { min-width: 0; }
   .v-customer-compare > div { min-width: 0; }
-  .v-customer-mock { width: 100%; min-width: 0; padding: .25rem; }
+  .v-guest-preview-surface { width: 100%; min-width: 0; padding: .25rem; }
   .v-customer-row { min-width: 0; padding: .5rem; gap: .25rem; flex-wrap: wrap; }
   .v-customer-row > span:nth-child(2) { flex: 1 1 100%; min-width: 0; }
   .v-customer-row strong, .v-customer-row small { overflow-wrap: anywhere; }

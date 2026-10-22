@@ -28,7 +28,7 @@ export function GuestPreviewCard({
           "Only saved contact information and published privacy appear to guests.",
           "يظهر للضيوف التواصل المحفوظ وسياسة الخصوصية المنشورة فقط.")}</p>
       </div>
-      <div className="v-editor" id="demo-preview-editor" role="region"
+      <div className="v-editor" id="guest-information-preview-editor" role="region"
         aria-label={translate(locale, "Guest-visible information", "المعلومات الظاهرة للضيف")}>
         <div className="v-preview-columns">
           <div>

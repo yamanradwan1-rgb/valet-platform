@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  fieldLabels, GuestBadge, GuestButton, GuestCard, GuestField, translate,
+  fieldLabels, GuestBadge, GuestButton, GuestCard, GuestField,
+  guestContactFieldId, translate,
 } from "./approved-elements";
 import {
   CONTACT_FIELDS, effectiveContact, validHttps, validPhone, type ContactDefaults,
@@ -57,7 +58,8 @@ export function LocationContactCard({
       setInvalid(wrong);
       announce(translate(locale, "Enter a valid value for the location override.",
         "أدخل قيمة صالحة لتجاوز الموقع."), "error");
-      queueMicrotask(() => document.getElementById(`demo-override-${wrong}`)?.focus());
+      queueMicrotask(() =>
+        document.getElementById(guestContactFieldId("override", wrong))?.focus());
       return;
     }
     setSaving(true);
@@ -101,7 +103,8 @@ export function LocationContactCard({
         </GuestBadge> : null}
         <button type="button" ref={toggle}
           className={`v-btn ${expanded ? "v-btn-quiet" : "v-btn-secondary"}`}
-          aria-expanded={expanded} aria-controls={expanded ? "demo-overrides-editor" : undefined}
+          aria-expanded={expanded}
+          aria-controls={expanded ? "guest-information-overrides-editor" : undefined}
           onClick={() => {
             if (expanded && dirty) {
               announce(translate(locale, "Save or Cancel these edits before closing.",
@@ -116,13 +119,13 @@ export function LocationContactCard({
         </button>
       </div>
       {expanded ? (
-        <div className="v-editor" id="demo-overrides-editor" role="region"
+        <div className="v-editor" id="guest-information-overrides-editor" role="region"
           aria-label={translate(locale, "Customize one contact field", "تخصيص حقل تواصل واحد")}>
           <div className="v-field">
-            <label htmlFor="demo-override-choice">
+            <label htmlFor="guest-information-override-choice">
               {translate(locale, "Choose a field", "اختر الحقل")}
             </label>
-            <select id="demo-override-choice" value={field}
+            <select id="guest-information-override-choice" value={field}
               data-action="select-override-field"
               onChange={(event) => {
                 setField(event.target.value as ContactField);

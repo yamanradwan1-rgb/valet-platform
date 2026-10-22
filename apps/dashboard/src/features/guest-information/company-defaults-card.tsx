@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  GuestBadge, GuestButton, GuestCard, GuestField, translate,
+  GuestBadge, GuestButton, GuestCard, GuestField, guestContactFieldId, translate,
 } from "./approved-elements";
 import {
   CONTACT_FIELDS, validHttps, validPhone, type ContactDefaults,
@@ -44,7 +44,7 @@ export function CompanyDefaultsCard({
       setInvalid(wrong);
       announce(translate(locale, "Enter a valid contact value.",
         "أدخل قيمة تواصل صالحة."), "error");
-      document.getElementById(`demo-company-${wrong}`)?.focus();
+      document.getElementById(guestContactFieldId("company", wrong))?.focus();
       return;
     }
     setSaving(true);
@@ -80,7 +80,7 @@ export function CompanyDefaultsCard({
         </div>
         <button className={`v-btn ${expanded ? "v-btn-quiet" : "v-btn-secondary"}`}
           ref={toggle} type="button" aria-expanded={expanded}
-          aria-controls={expanded ? "demo-company-editor" : undefined}
+          aria-controls={expanded ? "guest-information-company-editor" : undefined}
           disabled={!canEdit} onClick={() => {
             if (expanded && dirty) {
               announce(translate(locale, "Save or Cancel these edits before closing.",
@@ -94,7 +94,7 @@ export function CompanyDefaultsCard({
         </button>
       </div>
       {expanded ? (
-        <div className="v-editor" id="demo-company-editor" role="region"
+        <div className="v-editor" id="guest-information-company-editor" role="region"
           aria-label={translate(locale, "Edit company defaults", "تعديل افتراضيات الشركة")}>
           <div className="v-fields">
             {CONTACT_FIELDS.map((field) => (

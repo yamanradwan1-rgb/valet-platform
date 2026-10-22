@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { GuestBadge, GuestButton, GuestCard, translate } from "./approved-elements";
+import {
+  GuestBadge, GuestButton, GuestCard, guestPrivacyFieldId, translate,
+} from "./approved-elements";
 import {
   policyStatus, validHttps, type GuestLanguage, type LocationPrivacy,
   type PolicyContent,
@@ -57,7 +59,7 @@ export function PrivacySection({
             "Policy link must use a valid HTTPS URL.",
           field === "text" ? "النص يتجاوز ٥٠٠٠ حرف." :
             "رابط السياسة يجب أن يكون HTTPS صالحاً."), "error");
-        document.getElementById(`demo-privacy-${field}`)?.focus();
+        document.getElementById(guestPrivacyFieldId(field))?.focus();
         return;
       }
     }
@@ -103,7 +105,8 @@ export function PrivacySection({
               </div>
               <button type="button" ref={toggleRef}
                 className={`v-btn ${expanded ? "v-btn-quiet" : "v-btn-secondary"}`}
-                aria-expanded={expanded} aria-controls={expanded ? "demo-privacy-editor" : undefined}
+                aria-expanded={expanded}
+                aria-controls={expanded ? "guest-information-privacy-editor" : undefined}
                 onClick={() => {
                   if (expanded && dirty) {
                     announce(translate(locale, "Save or Cancel these edits before closing.",
@@ -119,7 +122,7 @@ export function PrivacySection({
               </button>
             </div>
             {expanded ? (
-              <div className="v-editor" id="demo-privacy-editor" role="region"
+              <div className="v-editor" id="guest-information-privacy-editor" role="region"
                 aria-label={translate(locale, "Edit location privacy", "تعديل خصوصية الموقع")}>
                 <p className="v-small">{translate(locale,
                   "Enter the company-approved text, then save a draft. Publish separately.",
@@ -135,19 +138,19 @@ export function PrivacySection({
                   ))}
                 </div>
                 <div className="v-field">
-                  <label htmlFor="demo-privacy-text">
+                  <label htmlFor={guestPrivacyFieldId("text")}>
                     {translate(locale, "Privacy text", "نص الخصوصية")}
                   </label>
-                  <textarea ref={firstField} id="demo-privacy-text" rows={5}
+                  <textarea ref={firstField} id={guestPrivacyFieldId("text")} rows={5}
                     maxLength={5001} data-field="privacy.text" value={draft.text}
                     aria-invalid={invalid === "text"}
                     onChange={(event) => update("text", event.target.value)} />
                 </div>
                 <div className="v-field">
-                  <label htmlFor="demo-privacy-url">
+                  <label htmlFor={guestPrivacyFieldId("url")}>
                     {translate(locale, "Approved HTTPS link (optional)", "رابط HTTPS معتمد (اختياري)")}
                   </label>
-                  <input type="url" id="demo-privacy-url" data-field="privacy.url"
+                  <input type="url" id={guestPrivacyFieldId("url")} data-field="privacy.url"
                     value={draft.url} autoComplete="off"
                     aria-invalid={invalid === "url"}
                     placeholder="https://"

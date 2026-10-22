@@ -187,7 +187,7 @@ function GuestInformationContent() {
     ? contactCounts(currentDefaults, currentContact) : null;
   return (
     <>
-      <div id="demo-announcement" hidden={!notice}
+      <div id="guest-information-announcement" hidden={!notice}
         className={`v-announcement ${notice ? `v-announcement-${notice.kind}` : ""}`}
         role={notice?.kind === "error" ? "alert" : "status"}
         aria-live={notice?.kind === "error" ? "assertive" : "polite"}>
