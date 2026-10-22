@@ -4,6 +4,11 @@ export const guestInformationLocaleSchema = z.enum(["en", "ar"]);
 const uuidSchema = z.string().uuid();
 const dateTimeSchema = z.string().datetime({ offset: true });
 const revisionSchema = z.number().int().min(0);
+// Keep the canonical WHATWG hostname within the SQL URL CHECK's permitted
+// ASCII host grammar. In particular, trailing-dot FQDNs and bracketed IPv6
+// would otherwise pass the API but fail when PostgreSQL persists the URL.
+const persistedHttpsHostnamePattern =
+  /^[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?$/;
 
 export const guestInformationHttpsUrlSchema = z
   .string()
@@ -18,7 +23,7 @@ export const guestInformationHttpsUrlSchema = z
       const url = new URL(value);
       return (
         url.protocol === "https:" &&
-        !!url.hostname &&
+        persistedHttpsHostnamePattern.test(url.hostname) &&
         url.port !== "0" &&
         !url.username &&
         !url.password

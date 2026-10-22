@@ -129,6 +129,8 @@ describe.skipIf(!enabled)(
         "https://user:pass@evil.test",
         "https://example.com:0/legal",
         "https://example.com:65536/legal",
+        "https://example.com./legal",
+        "https://[::1]/legal",
       ]) {
         await expect(
           owner.query(

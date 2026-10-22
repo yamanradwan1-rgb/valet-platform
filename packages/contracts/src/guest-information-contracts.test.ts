@@ -19,6 +19,8 @@ describe("#316 Guest information contracts", () => {
       "https://user:password@evil.example/",
       "https://example.com:0/legal",
       "https://example.com:65536/legal",
+      "https://example.com./legal",
+      "https://[::1]/legal",
     ]) {
       expect(guestInformationHttpsUrlSchema.safeParse(value).success).toBe(
         false,
