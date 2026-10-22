@@ -57,3 +57,28 @@ Thumbnail variants, speculative prefetch, persistent private-image caching, new 
 **BLOCKED FOR REAL DEVELOPMENT / SECURITY / PERFORMANCE ACCEPTANCE.** Source-level focused tests, frozen JSX/CSS and isolated normal production build passed. Fresh end-to-end image and benchmark evidence could not be collected because services were unavailable, and the coordinated worker team's independent final review did not complete due to COS worker startup/tool-approval failures. Do not merge to `main` or deploy to production based on this evidence alone.
 
 The branch is available for **Owner code review**, not certified production or complete live-Development acceptance.
+
+## Follow-up: restored persistent QA and real-browser acceptance (2026-10-22)
+
+**New evidence after the initial blocked report:** The Docker Desktop Linux engine became accessible again. The existing `vaylet-photo-qa_pg_data` and `vaylet-photo-qa_s3_data` named volumes were confirmed present, and the same isolated PostgreSQL 17/MinIO Compose services were started without volume reset, database migration, or fixture reseeding. PostgreSQL `pg_isready`, MinIO `/minio/health/live`, and the existing locally built API `/health/ready` returned healthy results. The API used the pre-existing isolated QA build, not a newly modified production source build.
+
+The original baseline Dashboard was served from its existing built artifact on `http://127.0.0.1:3113`, and the performance review candidate was already served on `http://localhost:3000`; both answered HTTP 200. These exact hostnames matter: the test API rejects unregistered browser origins (`127.0.0.1:3000` and `localhost:3113` returned Staff refresh HTTP 403). No CORS policy or tracked configuration was weakened to work around this.
+
+The existing ignored `.tmp/photo-qa/qa-309-acceptance.cjs` ran against both authorized origins, reusing persistent, read-only PostgreSQL evidence and actual private JPEG HTTP GETs; no route mocks, API mutation, or evidence writes were used:
+
+| Real-browser check | Original on 3113 | Optimized review candidate on 3000 |
+| --- | --- | --- |
+| Staff Admin login, organization/location selection | PASS | PASS |
+| Vehicle `5f5`: two private JPEG Blobs matching DB SHA-256 and byte count | PASS | PASS |
+| Viewer enlarge/next/previous/close | PASS | PASS |
+| Vehicle `jj`: zero photos and correct empty state | PASS | PASS |
+| Return `jj` -> `5f5`: correct session evidence | PASS | PASS |
+| Live Operations: two original private JPEGs | PASS | PASS |
+| Authenticated manifests/JPEG HTTP 200; no JPEG GET for `jj` | PASS | PASS |
+| **Full scripted acceptance** | **9/9 PASS** | **9/9 PASS** |
+
+The ignored local run reports are `.tmp/photo-qa/qa-309-acceptance-3113-result.json` and `.tmp/photo-qa/qa-309-acceptance-3000-result.json`, respectively. These are local, untracked validation evidence, not committed credentials or photo data.
+
+**Remaining acceptance limitations remain explicit:** This result proves that the candidate works with the real Development PostgreSQL/MinIO and authenticated browser, but does not establish controlled matched p50/p95 performance, the 20% target for 5/10 images, screenshot/pixel/accessibility parity across the full matrix, or a final independent security GO. An exploratory benchmark-script execution attempt was blocked by the execution environment; no timing results are claimed. The prior report's earlier service-unavailable condition is resolved for the tested real QA workflow, but its outstanding performance and independent review gates are not.
+
+**Updated review verdict: REAL DEVELOPMENT FUNCTIONAL QA PASS; FINAL PERFORMANCE / INDEPENDENT SECURITY / FULL VISUAL ACCEPTANCE PENDING.** This branch remains ready for code review, not approved for merge or production deployment.
