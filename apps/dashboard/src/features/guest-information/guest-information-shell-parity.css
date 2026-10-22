@@ -1,5 +1,17 @@
 /* Approved Option 2 shell behavior, isolated to the Guest Information route.
    These declarations match the frozen prototype's mobile shell rules. */
+@font-face {
+  font-family: "Guest Information Inter";
+  src: url("/fonts/locations/inter-latin.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+body:has(.opt2-page) {
+  font-family: "Guest Information Inter", "Segoe UI", Tahoma, Arial, sans-serif;
+}
+
 .shell:has(.opt2-page) .topbar .button-quiet { font-size: .79rem; }
 
 @media (max-width: 820px) {
