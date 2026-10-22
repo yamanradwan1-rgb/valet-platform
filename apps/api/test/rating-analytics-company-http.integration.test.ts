@@ -1,4 +1,8 @@
+import { randomBytes } from "node:crypto";
+
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+import { hashGuestAccessToken } from "../src/modules/valet-sessions/guest-access-command";
 
 import { ManagementControlPlaneTestFixture } from "./management-control-plane-test-fixture";
 import { seedCompanySession } from "./management-company-analytics-test-seed";
@@ -23,6 +27,60 @@ async function companyAdmin() {
 }
 
 describe("Issue #313 Company Customer Feedback API authorization", () => {
+  it("persists a real Guest POST and reads its completed cohort through Management", async () => {
+    const admin = await companyAdmin();
+    // Guest post-visit access is intentionally valid only for 24 hours.
+    const completedAt = new Date(Date.now() - 15_000);
+    const createdAt = new Date(completedAt.getTime() - 60_000);
+    const localDay = new Intl.DateTimeFormat("sv-SE", {
+      timeZone: "Asia/Amman", year: "numeric", month: "2-digit", day: "2-digit",
+    }).format(completedAt);
+    const scoped = {
+      locationId: admin.location.locationId,
+      organizationId: admin.membership.organizationId,
+      membershipId: admin.membership.membershipId,
+    };
+    const completed = await seedCompanySession(fixture, scoped, {
+      state: "COMPLETED",
+      createdAt: createdAt.toISOString(),
+      completedAt: completedAt.toISOString(),
+    });
+    await seedCompanySession(fixture, scoped, {
+      state: "COMPLETED",
+      createdAt: createdAt.toISOString(),
+      completedAt: completedAt.toISOString(),
+    });
+    const guestToken = randomBytes(32).toString("base64url");
+    await fixture.query(
+      `UPDATE valet_sessions SET customer_access_token_hash=$2,
+              customer_access_expires_at=clock_timestamp()+interval '1 day'
+       WHERE id=$1`,
+      [completed, hashGuestAccessToken(guestToken)],
+    );
+    const posted = await fixture.request("/v1/guest/session/rating", {
+      authorization: `Bearer ${guestToken}`,
+      body: { rating: 5 },
+    });
+    expect(posted.status).toBe(200);
+    expect(posted.body).toMatchObject({ rating: 5, valetSessionId: completed });
+    const persisted = await fixture.query<{ rating: number }>(
+      "SELECT rating FROM guest_ratings WHERE valet_session_id=$1", [completed],
+    );
+    expect(persisted.rows).toEqual([{ rating: 5 }]);
+    const analytics = await fixture.managementGet(
+      path(admin.membership.organizationId, `from=${localDay}&to=${localDay}`),
+      admin.auth.accessToken,
+    );
+    expect(analytics.status).toBe(200);
+    expect(analytics.body).toMatchObject({
+      eligibleCompletedVisits: 2, ratedVisits: 1,
+      averageRating: "5.0000", participationRate: "0.500000",
+      distribution: { five: 1, four: 0, three: 0, two: 0, one: 0 },
+    });
+    expect(JSON.stringify(analytics.body)).not.toContain(guestToken);
+    expect(JSON.stringify(analytics.body)).not.toContain(completed);
+  });
+
   it("returns a no-store aggregate without Guest credentials or session identifiers", async () => {
     const admin = await companyAdmin();
     const sessionId = await seedCompanySession(fixture, {
