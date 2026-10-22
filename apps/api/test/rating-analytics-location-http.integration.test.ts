@@ -122,4 +122,97 @@ describe("Issue #313 Location Customer Feedback API authorization", () => {
       expect(response.body?.code, query).toBe("REQUEST_INVALID");
     }
   });
+
+  it("revoker-first: canonical Location-grant removal fences an actual ratings GET", async () => {
+    const fixture = await context.managerFixture();
+    const manager = await context.createStaff(fixture);
+    const admin = await context.createActor(fixture, "ORG_ADMIN");
+    const login = await context.login(manager);
+    const authorization = `Bearer ${String(login.body?.accessToken)}`;
+    const revoker = await context.adminPool.connect();
+    await revoker.query("BEGIN");
+    try {
+      const version = await revoker.query<{ version: number }>(
+        "SELECT version FROM organization_memberships WHERE id=$1",
+        [manager.membershipId],
+      );
+      const revoked = await revoker.query<{ result_code: string }>(
+        `SELECT result_code FROM staff_management_set_location_access(
+          $1::uuid,$2::uuid,$3::uuid,$4::integer,$5::uuid[],$6::boolean)`,
+        [admin.membershipId, fixture.organizationId, manager.membershipId,
+          version.rows[0]!.version, [fixture.locationId], false],
+      );
+      expect(revoked.rows[0]?.result_code).toBe("OK");
+      const reading = context.request("GET", path(fixture.locationId), { authorization });
+      void reading.catch(() => undefined);
+      await expect.poll(async () => {
+        const result = await context.adminPool.query<{ count: number }>(
+          `SELECT count(*)::integer AS count FROM pg_stat_activity
+           WHERE wait_event_type='Lock' AND datname=current_database()
+             AND usename<>current_user`,
+        );
+        return result.rows[0]?.count ?? 0;
+      }, { timeout: 4000, interval: 30 }).toBeGreaterThan(0);
+      await revoker.query("COMMIT");
+      expect((await reading).status).toBe(404);
+    } finally {
+      await revoker.query("ROLLBACK").catch(() => undefined);
+      revoker.release();
+    }
+  }, 25_000);
+
+  it("reader-first: canonical revoke waits for actual ratings GET to finish", async () => {
+    const fixture = await context.managerFixture();
+    const manager = await context.createStaff(fixture);
+    const admin = await context.createActor(fixture, "ORG_ADMIN");
+    const login = await context.login(manager);
+    const authorization = `Bearer ${String(login.body?.accessToken)}`;
+    const tableGate = await context.adminPool.connect();
+    const revoker = await context.adminPool.connect();
+    await tableGate.query("BEGIN");
+    await revoker.query("BEGIN");
+    try {
+      // Block only the projection's table read, after its grant fence is held.
+      await tableGate.query("LOCK TABLE public.guest_ratings IN ACCESS EXCLUSIVE MODE");
+      const reading = context.request("GET", path(fixture.locationId), { authorization });
+      void reading.catch(() => undefined);
+      await expect.poll(async () => {
+        const result = await context.adminPool.query<{ count: number }>(
+          `SELECT count(*)::integer AS count FROM pg_stat_activity
+           WHERE wait_event_type='Lock' AND datname=current_database()
+             AND usename<>current_user`,
+        );
+        return result.rows[0]?.count ?? 0;
+      }, { timeout: 4000, interval: 30 }).toBeGreaterThan(0);
+      const version = await revoker.query<{ version: number }>(
+        "SELECT version FROM organization_memberships WHERE id=$1",
+        [manager.membershipId],
+      );
+      const pid = Number((await revoker.query("SELECT pg_backend_pid() AS pid")).rows[0]?.pid);
+      const revoke = revoker.query<{ result_code: string }>(
+        `SELECT result_code FROM staff_management_set_location_access(
+          $1::uuid,$2::uuid,$3::uuid,$4::integer,$5::uuid[],$6::boolean)`,
+        [admin.membershipId, fixture.organizationId, manager.membershipId,
+          version.rows[0]!.version, [fixture.locationId], false],
+      );
+      void revoke.catch(() => undefined);
+      await expect.poll(async () => {
+        const result = await context.adminPool.query<{ event: string | null }>(
+          "SELECT wait_event_type AS event FROM pg_stat_activity WHERE pid=$1", [pid],
+        );
+        return result.rows[0]?.event;
+      }, { timeout: 4000, interval: 30 }).toBe("Lock");
+      await tableGate.query("COMMIT");
+      expect((await reading).status).toBe(200);
+      expect((await revoke).rows[0]?.result_code).toBe("OK");
+      await revoker.query("COMMIT");
+      expect((await context.request("GET", path(fixture.locationId), { authorization })).status)
+        .toBe(404);
+    } finally {
+      await tableGate.query("ROLLBACK").catch(() => undefined);
+      await revoker.query("ROLLBACK").catch(() => undefined);
+      tableGate.release();
+      revoker.release();
+    }
+  }, 25_000);
 });

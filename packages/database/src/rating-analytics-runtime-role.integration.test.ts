@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { Client, Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { explainDenseRatingProjection } from "./rating-analytics-explain-fixture";
 
 const enabled = process.env.ISSUE313_ISOLATED_DB_TEST === "1";
 const adminUrl = process.env.TEST_DATABASE_URL ?? "";
@@ -281,5 +282,11 @@ describe.skipIf(!enabled)("Issue #313 restricted rating analytics projection", (
       .rejects.toMatchObject({ code: "22023" });
     await expect(projection(sample.firstOrg, null, "2026-10-22", "2026-10-01"))
       .rejects.toMatchObject({ code: "22023" });
+  });
+  it("records actual PostgreSQL EXPLAIN for sparse and 1,000-visit dense cohorts", async () => {
+    const plan = await explainDenseRatingProjection(owner, sample.firstOrg, sample.amman);
+    expect(plan.denseCompletedVisits).toBeGreaterThanOrEqual(1000);
+    expect(plan.dense["Execution Time"]).toBeGreaterThan(0);
+    expect(plan.sparse["Execution Time"]).toBeGreaterThan(0);
   });
 });
