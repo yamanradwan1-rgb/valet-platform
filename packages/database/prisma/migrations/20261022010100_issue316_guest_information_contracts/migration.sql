@@ -10,12 +10,24 @@ CREATE TYPE public.guest_contact_field_mode AS ENUM (
 -- Anchoring prevents a valid prefix from hiding URL userinfo, and forbids
 -- browser-normalized backslashes and whitespace/control characters.
 CREATE FUNCTION public.guest_information_https_url_valid(p_url text)
-RETURNS boolean LANGUAGE sql IMMUTABLE STRICT
+RETURNS boolean LANGUAGE plpgsql IMMUTABLE STRICT
 SET search_path = pg_catalog, public AS $function$
-  SELECT p_url ~
-    '^https://[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?(:[0-9]{1,5})?([/?#].*)?$'
-    AND p_url !~ '[[:space:][:cntrl:]]'
-    AND strpos(p_url, chr(92)) = 0;
+DECLARE
+  v_authority text;
+  v_port text;
+BEGIN
+  IF p_url !~
+      '^https://[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?(:[0-9]{1,5})?([/?#].*)?$'
+     OR p_url ~ '[[:space:][:cntrl:]]'
+     OR strpos(p_url, chr(92)) > 0 THEN
+    RETURN false;
+  END IF;
+  v_authority := split_part(split_part(split_part(
+    substr(p_url,9), '/', 1), '?', 1), '#', 1);
+  IF strpos(v_authority, ':') = 0 THEN RETURN true; END IF;
+  v_port := split_part(v_authority, ':', 2);
+  RETURN v_port::integer BETWEEN 1 AND 65535;
+END;
 $function$;
 
 CREATE TABLE public.guest_location_privacy (

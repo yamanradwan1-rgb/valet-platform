@@ -127,6 +127,8 @@ describe.skipIf(!enabled)(
         "https://safe.example@evil.test",
         "https://safe.example\\@evil.test",
         "https://user:pass@evil.test",
+        "https://example.com:0/legal",
+        "https://example.com:65536/legal",
       ]) {
         await expect(
           owner.query(
@@ -136,6 +138,11 @@ describe.skipIf(!enabled)(
           ),
         ).rejects.toMatchObject({ code: "23514" });
       }
+      await owner.query(
+        `UPDATE guest_location_privacy SET draft_ar_url=$1
+         WHERE organization_id=$2 AND location_id=$3`,
+        ["https://example.com:8443/legal", ids.org, ids.first],
+      );
       await expect(
         owner.query(
           `INSERT INTO guest_contact_location_overrides(

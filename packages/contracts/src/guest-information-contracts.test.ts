@@ -17,6 +17,8 @@ describe("#316 Guest information contracts", () => {
       "https://tenant.example@evil.example/path",
       "https://tenant.example\\@evil.example/path",
       "https://user:password@evil.example/",
+      "https://example.com:0/legal",
+      "https://example.com:65536/legal",
     ]) {
       expect(guestInformationHttpsUrlSchema.safeParse(value).success).toBe(
         false,
@@ -28,6 +30,9 @@ describe("#316 Guest information contracts", () => {
     expect(
       guestInformationHttpsUrlSchema.parse("HTTPS://EXAMPLE.COM/support"),
     ).toBe("https://example.com/support");
+    expect(
+      guestInformationHttpsUrlSchema.parse("https://example.com:8443/legal"),
+    ).toBe("https://example.com:8443/legal");
     expect(
       guestInformationHttpsUrlSchema.parse("https://مثال.إختبار/الشروط"),
     ).toMatch(/^https:\/\/xn--[^/]+\//);

@@ -19,6 +19,7 @@ export const guestInformationHttpsUrlSchema = z
       return (
         url.protocol === "https:" &&
         !!url.hostname &&
+        url.port !== "0" &&
         !url.username &&
         !url.password
       );
