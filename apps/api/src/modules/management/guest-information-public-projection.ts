@@ -71,10 +71,10 @@ export async function readGuestInformationProjection(
   transaction: PostgresTransaction,
   input: { readonly organizationId: string; readonly locationId: string; readonly locale: "en" | "ar" },
 ): Promise<GuestInformationPublicProjection> {
-  // A separate pre-read lock establishes a fresh statement snapshot AFTER any
-  // in-flight deactivation or publication command finishes. All approved
-  // privacy writers lock the Organization/Location before the privacy pointer.
-  // Hold these locks through the caller's transaction/Guest response commit.
+  // Each command first locks the active Organization FOR UPDATE inside the
+  // DB-owned authorize_actor function. A read FOR SHARE on that same row
+  // serializes publication, contact and deactivation against this projection.
+  // Separate statements ensure the final projection uses a fresh snapshot.
   const org = await transaction.query(
     `SELECT id FROM organizations WHERE id=$1 AND status='ACTIVE' FOR SHARE`,
     [input.organizationId]);
@@ -84,10 +84,6 @@ export async function readGuestInformationProjection(
      WHERE organization_id=$1 AND id=$2 AND status='ACTIVE' FOR SHARE`,
     [input.organizationId, input.locationId]);
   if (loc.rowCount !== 1) throw new GuestInformationScopeUnavailableError();
-  await transaction.query(
-    `SELECT published_version FROM guest_location_privacy
-     WHERE organization_id=$1 AND location_id=$2 FOR SHARE`,
-    [input.organizationId, input.locationId]);
   const result = await transaction.query<PublishedInformationRow>(
     `SELECT publication.${input.locale === "ar" ? "ar_text" : "en_text"} AS "privacyText",
             publication.${input.locale === "ar" ? "ar_url" : "en_url"} AS "privacyUrl",

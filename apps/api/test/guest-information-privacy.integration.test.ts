@@ -70,8 +70,8 @@ describe("#316 Location Privacy draft/publication", () => {
       expectedRevision: 2, drafts: drafts("Unpublished revision two", "سياسة غير منشورة"),
     });
     expect(secondDraft.status).toBe(200);
-    expect((await fixture.managementGet(`${base}/preview?locale=en`, actor.auth.accessToken))
-      .body?.privacy?.text).toBe(policyText);
+    const unchanged = await fixture.managementGet(`${base}/preview?locale=en`, actor.auth.accessToken);
+    expect(unchanged.body?.privacy).toMatchObject({ text: policyText });
     const conflict = await fixture.managementPut(`${base}/privacy`, actor.auth.accessToken, {
       expectedRevision: 2, drafts: drafts("Race loser"),
     });
@@ -84,7 +84,7 @@ describe("#316 Location Privacy draft/publication", () => {
     expect(hidden.status).toBe(201);
     expect(hidden.body).toMatchObject({ revision: 4, published: null, publishedVersion: null });
     const after = await fixture.managementGet(`${base}/preview?locale=en`, actor.auth.accessToken);
-    expect(after.body?.privacy?.status).toBe("UNAVAILABLE");
+    expect(after.body?.privacy).toMatchObject({ status: "UNAVAILABLE" });
     const history = await fixture.query<{ count: string; en_text: string }>(
       `SELECT count(*)::text AS count, max(en_text) AS en_text
        FROM guest_privacy_publications WHERE organization_id=$1 AND location_id=$2`,

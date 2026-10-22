@@ -86,11 +86,36 @@ describe("#316 grant and lifecycle revocation races", () => {
       await revoker.query("BEGIN");
       open = true;
       await revoker.query(
-        `UPDATE locations SET status='INACTIVE'
+        `UPDATE locations SET status='INACTIVE',accepting_intake=FALSE
          WHERE organization_id=$1 AND id=$2`,
         [scope.organizationId, scope.locationId]);
       let resolved = false;
       const waiting = fixture.managementPut(scope.path, scope.auth.accessToken, draft)
+        .then((response) => { resolved = true; return response; });
+      await new Promise((resolve) => setTimeout(resolve, 80));
+      expect(resolved).toBe(false);
+      await revoker.query("COMMIT");
+      open = false;
+      const denied = await waiting;
+      expect(denied.status).toBe(404);
+      expect(denied.body?.code).toBe("AUTHORIZATION_DENIED");
+    } finally {
+      if (open) await revoker.query("ROLLBACK");
+      revoker.release();
+    }
+  }, 30_000);
+
+  it("denies a manager read after concurrent Organization deactivation wins", async () => {
+    const scope = await managerContext();
+    const revoker = await adminPool.connect();
+    let open = false;
+    try {
+      await revoker.query("BEGIN");
+      open = true;
+      await revoker.query(`UPDATE organizations SET status='INACTIVE' WHERE id=$1`,
+        [scope.organizationId]);
+      let resolved = false;
+      const waiting = fixture.managementGet(scope.path, scope.auth.accessToken)
         .then((response) => { resolved = true; return response; });
       await new Promise((resolve) => setTimeout(resolve, 80));
       expect(resolved).toBe(false);

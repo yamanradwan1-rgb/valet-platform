@@ -97,6 +97,17 @@ describe("#316 Staff authority, scope and concurrency", () => {
          AND metadata_json->>'operation'='CONTACT_COMPANY_DEFAULTS_SAVED'`,
       [admin.membership.organizationId]);
     expect(audit.rows[0]?.count).toBe("1");
+    const visible = await fixture.managementGet(
+      `/v1/staff/management/organizations/${admin.membership.organizationId}` +
+        `/audit-events?eventType=MANAGEMENT_GUEST_INFORMATION_CHANGED`,
+      admin.auth.accessToken,
+    );
+    expect(visible.status).toBe(200);
+    expect(visible.body).toMatchObject({ items: [{
+      eventType: "MANAGEMENT_GUEST_INFORMATION_CHANGED",
+      details: { kind: "GUEST_INFORMATION", operation: "CONTACT_COMPANY_DEFAULTS_SAVED" },
+    }] });
+    expect(JSON.stringify(visible.body)).not.toMatch(/Parallel A|Parallel B/);
   });
 
   it("fails closed after Staff session revocation and rejects stale sensitive MFA", async () => {
@@ -106,7 +117,9 @@ describe("#316 Staff authority, scope and concurrency", () => {
     const privacy = `${locationBase(organizationId, location.locationId)}/privacy`;
     await fixture.query(
       `UPDATE staff_auth_sessions
-       SET mfa_authenticated_at=clock_timestamp()-interval '6 minutes'
+       SET created_at=mfa_authenticated_at-interval '1 hour',
+           mfa_authenticated_at=mfa_authenticated_at-interval '6 minutes',
+           last_admin_activity_at=mfa_authenticated_at-interval '1 minute'
        WHERE id=$1`, [admin.auth.sessionId]);
     const stale = await fixture.managementPut(privacy, admin.auth.accessToken, {
       expectedRevision: 0, drafts: {

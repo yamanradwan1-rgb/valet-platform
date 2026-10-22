@@ -18,6 +18,19 @@ export interface GuestInformationScope extends GuestInformationActor {
   readonly activeLocationIds: readonly string[] | null;
 }
 
+async function lockActiveOrganization(
+  transaction: PostgresTransaction,
+  organizationId: string,
+): Promise<void> {
+  // Row lock coordinates with ordinary lifecycle UPDATE statements, including
+  // those that do not participate in the management-settings advisory protocol.
+  const active = await transaction.query(
+    `SELECT id FROM organizations WHERE id=$1 AND status='ACTIVE' FOR SHARE`,
+    [organizationId],
+  );
+  if (active.rowCount !== 1) throw new ManagementAccessDeniedError();
+}
+
 export async function authorizeGuestInformationCompany(
   transaction: PostgresTransaction,
   context: StaffSessionContext,
@@ -26,6 +39,7 @@ export async function authorizeGuestInformationCompany(
 ): Promise<GuestInformationActor> {
   await lockManagementSettingsOrganization(transaction, organizationId,
     mutation ? "EXCLUSIVE" : "SHARED");
+  await lockActiveOrganization(transaction, organizationId);
   return authorizeCompanyAdminManagement(transaction, context, {
     assurance: mutation ? "SENSITIVE" : "STANDARD",
     capability: "COMPANY_SETTINGS_MANAGE_ELIGIBLE",
@@ -42,6 +56,7 @@ async function authorizeScopedActor(
 ): Promise<GuestInformationScope> {
   await lockManagementSettingsOrganization(transaction, organizationId,
     mutation ? "EXCLUSIVE" : "SHARED");
+  await lockActiveOrganization(transaction, organizationId);
   // Current token, MFA age and user revocation must be protected by the
   // existing auth-session lock before the exact membership/grant check.
   await requireMfaAssuranceInTransaction(transaction, context, { sensitive: mutation });

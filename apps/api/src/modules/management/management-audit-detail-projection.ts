@@ -54,6 +54,13 @@ const incidentTypes = new Set([
 const membershipStatuses = new Set(["ACTIVE", "INACTIVE"]);
 const locationStatuses = new Set(["ACTIVE", "INACTIVE"]);
 const mutationOperations = new Set(["SET", "CLEAR"]);
+const guestInformationOperations = new Set([
+  "PRIVACY_DRAFT_SAVED",
+  "PRIVACY_PUBLISHED",
+  "PRIVACY_UNPUBLISHED",
+  "CONTACT_COMPANY_DEFAULTS_SAVED",
+  "CONTACT_LOCATION_OVERRIDE_SAVED",
+]);
 const visitContactFields = new Set(["displayName", "phoneNormalized"]);
 const contactNormalizationVersions = new Set(["JORDAN_MOBILE_V1"]);
 const physicalResourceTypes = new Set(["KEY_SLOT", "PARKING_SPOT"]);
@@ -176,6 +183,12 @@ export function projectManagementAuditDetails(
   eventType?: string,
 ): unknown {
   const source = metadata(value);
+  if (eventType === "MANAGEMENT_GUEST_INFORMATION_CHANGED") {
+    return compact({
+      kind: "GUEST_INFORMATION",
+      operation: allowedString(source.operation, guestInformationOperations),
+    });
+  }
   if (family === "CHECK_IN") {
     return compact({
       kind: "CHECK_IN",

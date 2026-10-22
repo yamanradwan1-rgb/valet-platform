@@ -64,7 +64,7 @@ describe("#316 Guest information publication race", () => {
     }
     const after = await fixture.managementGet(`${setup.base}/preview?locale=en`,
       setup.auth.accessToken);
-    expect(after.body?.privacy?.status).toBe("UNAVAILABLE");
+    expect(after.body?.privacy).toMatchObject({ status: "UNAVAILABLE" });
   }, 30_000);
 
   it("unpublisher-first makes a blocked new reader observe the committed unavailable state", async () => {
