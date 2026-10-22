@@ -36,9 +36,44 @@ describe("Issue #313 Location Customer Feedback API authorization", () => {
     const result = await context.request("GET", path(location.locationId), { authorization });
     expect(result.status).toBe(200);
     expect(result.headers.get("cache-control")).toContain("no-store");
-    expect(result.body).toBeDefined();
+    expect(result.body).toMatchObject({
+      scope: "LOCATION",
+      from: "2026-07-10",
+      to: "2026-07-10",
+      eligibleCompletedVisits: 2,
+      ratedVisits: 1,
+      averageRating: "5.0000",
+      participationRate: "0.500000",
+      distribution: { five: 1, four: 0, three: 0, two: 0, one: 0 },
+      recentRatings: [{
+        rating: 5,
+        completedAt: "2026-07-10T10:00:00.000Z",
+        ratedAt: "2026-07-20T12:00:00.000Z",
+        locationTimezone: "Asia/Amman",
+      }],
+    });
     const json = JSON.stringify(result.body);
     expect(json).not.toContain(sessionId);
+    expect((result.body?.recentRatings as { visitReference: string }[])[0]?.visitReference)
+      .toMatch(/^VISIT-[0-9A-F]{12}$/);
+  });
+
+  it("returns null mean and participation for no eligible completed visits", async () => {
+    const fixture = await context.managerFixture();
+    const { authorization } = await context.authenticated(fixture);
+    const empty = await context.request(
+      "GET", path(fixture.locationId, "from=2026-06-01&to=2026-06-01"),
+      { authorization },
+    );
+    expect(empty.status).toBe(200);
+    expect(empty.body).toMatchObject({
+      averageRating: null,
+      eligibleCompletedVisits: 0,
+      participationRate: null,
+      ratedVisits: 0,
+      recentRatings: [],
+      distribution: { five: 0, four: 0, three: 0, two: 0, one: 0 },
+    });
   });
 
   it("denies missing Staff auth, removed Location grants and revoked users", async () => {

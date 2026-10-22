@@ -46,6 +46,22 @@ describe("Issue #313 Company Customer Feedback API authorization", () => {
     );
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toContain("no-store");
+    expect(response.body).toMatchObject({
+      scope: "ALL_LOCATIONS",
+      from: "2026-07-10",
+      to: "2026-07-10",
+      eligibleCompletedVisits: 1,
+      ratedVisits: 1,
+      averageRating: "4.0000",
+      participationRate: "1.000000",
+      distribution: { five: 0, four: 1, three: 0, two: 0, one: 0 },
+      recentRatings: [{
+        rating: 4,
+        completedAt: "2026-07-10T09:10:00.000Z",
+        ratedAt: "2026-07-11T10:00:00.000Z",
+        locationTimezone: "Asia/Amman",
+      }],
+    });
     expect(JSON.stringify(response.body)).not.toContain(sessionId);
   });
 
