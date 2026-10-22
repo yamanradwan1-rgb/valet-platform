@@ -77,8 +77,8 @@ async function addMember(
   memberRole: string,
 ) {
   await owner.query(
-    `INSERT INTO users(id,email,status,updated_at)
-     VALUES($1,$2,'ACTIVE',clock_timestamp())`,
+    `INSERT INTO users(id,email,password_hash,status,updated_at)
+     VALUES($1,$2,'not-a-real-password-hash','ACTIVE',clock_timestamp())`,
     [userId, `${userId}@issue316.invalid`],
   );
   await owner.query(
