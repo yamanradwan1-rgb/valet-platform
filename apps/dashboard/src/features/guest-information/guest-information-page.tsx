@@ -27,6 +27,7 @@ import {
 } from "./section-navigation";
 import "./approved-feature.css";
 import "./approved-option2.css";
+import "./guest-information-shell-parity.css";
 
 type Notice = { readonly text: string; readonly kind: "error" | "info" | "success" };
 
