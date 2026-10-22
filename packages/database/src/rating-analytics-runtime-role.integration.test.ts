@@ -5,9 +5,8 @@ import { fileURLToPath } from "node:url";
 import { Client, Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-const adminUrl = process.env.TEST_DATABASE_URL ??
-  process.env.MIGRATION_DATABASE_URL ??
-  "postgresql://valet:valet@127.0.0.1:5432/valet";
+const enabled = process.env.ISSUE313_ISOLATED_DB_TEST === "1";
+const adminUrl = process.env.TEST_DATABASE_URL ?? "";
 const suffix = `${process.pid}_${Date.now()}`;
 const databaseName = `valet_issue313_${suffix}`;
 const runtimeRole = `valet_issue313_runtime_${suffix}`;
@@ -147,6 +146,12 @@ async function projection(
 }
 
 beforeAll(async () => {
+  if (!enabled) return;
+  const target = new URL(adminUrl);
+  if (!(["127.0.0.1", "localhost"].includes(target.hostname) &&
+        /^\/valet313[-\w]*$/.test(target.pathname))) {
+    throw new Error("Issue #313 requires an explicitly selected loopback disposable TEST_DATABASE_URL.");
+  }
   const bootstrap = new Client({ connectionString: adminUrl });
   await bootstrap.connect();
   await bootstrap.query(`CREATE DATABASE "${databaseName}"`);
@@ -189,9 +194,14 @@ beforeAll(async () => {
     membershipId: sample.foreignMembership, completedAt: "2026-10-20T11:00:00Z",
     rating: 1, ratedAt: "2026-10-21T14:00:00Z",
   });
+  await visit({
+    organizationId: sample.firstOrg, locationId: sample.amman,
+    membershipId: sample.membership, completedAt: "2026-10-22T12:00:00Z",
+  });
 }, 180_000);
 
 afterAll(async () => {
+  if (!enabled) return;
   await runtime?.end();
   await owner?.end();
   const bootstrap = new Client({ connectionString: adminUrl });
@@ -201,7 +211,7 @@ afterAll(async () => {
   await bootstrap.end();
 }, 60_000);
 
-describe("Issue #313 restricted rating analytics projection", () => {
+describe.skipIf(!enabled)("Issue #313 restricted rating analytics projection", () => {
   it("keeps direct rating table reads denied and function execute tightly granted", async () => {
     const rights = await owner.query<{
       select_allowed: boolean; execute_allowed: boolean;
@@ -257,6 +267,13 @@ describe("Issue #313 restricted rating analytics projection", () => {
     expect((await projection(
       sample.secondOrg, sample.foreignLocation, "2026-10-20", "2026-10-20",
     )).distribution.one).toBe(1);
+    const unrated = await projection(sample.firstOrg, sample.amman, "2026-10-22", "2026-10-22");
+    expect(unrated).toMatchObject({
+      eligibleCompletedVisits: 1, ratedVisits: 0,
+      averageRating: null, participationRate: "0.000000",
+      distribution: { one: 0, two: 0, three: 0, four: 0, five: 0 },
+      recentRatings: [],
+    });
   });
 
   it("rejects direct calls outside the authorized 31-day period envelope", async () => {

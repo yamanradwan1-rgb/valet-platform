@@ -65,7 +65,7 @@ export function CustomerFeedbackSection(props: CustomerFeedbackSectionProps) {
         )}
       </div>
       <span aria-atomic="true" className={styles.visuallyHidden} role="status">
-        {state === "ready" ? "" : message}
+        {state === "ready" ? t.loaded : message}
       </span>
     </section>
   );
