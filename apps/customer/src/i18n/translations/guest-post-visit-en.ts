@@ -26,7 +26,4 @@ export const guestPostVisitEnTranslations: GuestPostVisitTranslationDictionary =
   'paymentSummary.status.PAID': 'Paid',
   'paymentSummary.status.FAILED': 'Failed',
   'paymentSummary.refund.SUCCEEDED': 'Refunded',
-  'help.onsiteEntry': 'Help',
-  'help.onsiteTitle': 'Need assistance?',
-  'help.onsiteBody': 'Please speak with a valet staff member at this location.',
 };

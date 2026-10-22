@@ -1,0 +1,69 @@
+
+> valet-platform@0.0.0 typecheck D:\kndoom\valet-platform\tmp\customer-312-317-318
+> turbo run typecheck
+
+• turbo 2.10.6
+
+   • Packages in scope: @valet/api, @valet/config, @valet/contracts, @valet/customer, @valet/dashboard, @valet/database, @valet/employee-client, @valet/testing, @valet/ui, @valet/valet, @valet/valet-native
+   • Running typecheck in 11 packages
+   • Remote caching disabled, using shared worktree cache
+
+@valet/contracts:typecheck: cache hit, replaying logs 44c7dc0a01d13e29
+@valet/contracts:typecheck:
+@valet/contracts:typecheck: > @valet/contracts@0.0.0 typecheck D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\contracts
+@valet/contracts:typecheck: > tsc -p tsconfig.json --noEmit
+@valet/contracts:typecheck:
+@valet/config:typecheck: cache hit, replaying logs 213f0175bd6b4d7f
+@valet/database:typecheck: cache hit, replaying logs c375a6e42ebc35ca
+@valet/config:typecheck:
+@valet/config:typecheck: > @valet/config@0.0.0 typecheck D:\kndoom\valet-platform\tmp\issue304-option3-integration\packages\config
+@valet/config:typecheck: > tsc -p tsconfig.json --noEmit
+@valet/config:typecheck:
+@valet/database:typecheck:
+@valet/database:typecheck: > @valet/database@0.0.0 typecheck D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\database
+@valet/database:typecheck: > tsc -p tsconfig.json --noEmit
+@valet/database:typecheck:
+@valet/ui:typecheck: cache hit, replaying logs 3736efd13dc33dba
+@valet/api:typecheck: cache miss, executing c617b11b74918cc9
+@valet/ui:typecheck:
+@valet/ui:typecheck: > @valet/ui@0.0.0 typecheck D:\kndoom\valet-platform\tmp\issue304-option3-integration\packages\ui
+@valet/ui:typecheck: > tsc -p tsconfig.json --noEmit
+@valet/ui:typecheck:
+@valet/testing:typecheck: cache hit, replaying logs 3b7adcf2f499526a
+@valet/testing:typecheck:
+@valet/testing:typecheck: > @valet/testing@0.0.0 typecheck D:\kndoom\valet-platform\tmp\issue304-option3-integration\packages\testing
+@valet/testing:typecheck: > tsc -p tsconfig.json --noEmit
+@valet/testing:typecheck:
+@valet/employee-client:typecheck: cache hit, replaying logs 8f2a54617f7a652f
+@valet/employee-client:typecheck:
+@valet/employee-client:typecheck: > @valet/employee-client@0.0.0 typecheck D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\employee-client
+@valet/employee-client:typecheck: > tsc -p tsconfig.json --noEmit
+@valet/employee-client:typecheck:
+@valet/customer:typecheck: cache miss, executing 6d803f1b6335efe6
+@valet/dashboard:typecheck: cache hit, replaying logs 55906d9dbb5a5e3c
+@valet/dashboard:typecheck:
+@valet/dashboard:typecheck: > @valet/dashboard@0.0.0 typecheck D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\dashboard
+@valet/dashboard:typecheck: > tsc --noEmit
+@valet/dashboard:typecheck:
+@valet/valet:typecheck: cache hit, replaying logs 3b2681ec5a066ff9
+@valet/valet:typecheck:
+@valet/valet:typecheck: > @valet/valet@0.0.0 typecheck D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\valet
+@valet/valet:typecheck: > tsc --noEmit
+@valet/valet:typecheck:
+@valet/valet-native:typecheck: cache hit, replaying logs 8a0dba2d60fc7eef
+@valet/valet-native:typecheck:
+@valet/valet-native:typecheck: > @valet/valet-native@0.0.0 typecheck D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\valet-native
+@valet/valet-native:typecheck: > tsc -p tsconfig.json --noEmit
+@valet/valet-native:typecheck:
+@valet/api:typecheck:
+@valet/api:typecheck: > @valet/api@0.0.0 typecheck D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\api
+@valet/api:typecheck: > tsc -p tsconfig.json --noEmit
+@valet/api:typecheck:
+@valet/customer:typecheck:
+@valet/customer:typecheck: > @valet/customer@0.0.0 typecheck D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\customer
+@valet/customer:typecheck: > tsc --noEmit
+@valet/customer:typecheck:
+
+ Tasks:    11 successful, 11 total
+Cached:    9 cached, 11 total
+  Time:    18.539s

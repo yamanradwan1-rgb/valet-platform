@@ -1,0 +1,10 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/customer-312-317-318/apps/api
+
+
+ Test Files  3 passed (3)
+      Tests  9 passed (9)
+   Start at  21:58:47
+   Duration  1.76s (transform 972ms, setup 458ms, import 2.01s, tests 19ms, environment 0ms)
+
+[test-harness] api-non-postgres:test/guest-rating-command.test.ts,test/guest-rating-service.test.ts,test/guest-browser-transport.test.ts passed wallMs=5646

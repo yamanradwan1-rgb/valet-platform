@@ -19,9 +19,6 @@ export const arTranslations: TranslationDictionary = {
   'header.backAria': 'رجوع',
   'header.moreAria': 'خيارات إضافية',
   'nav.ariaLabel': 'تنقل الضيف',
-  'nav.vehicle': 'السيارة',
-  'nav.payment': 'الدفع (معاينة)',
-  'nav.help': 'المساعدة (معاينة)',
 
   // More Menu
   'menu.title': 'خيارات إضافية',
@@ -240,12 +237,6 @@ export const arTranslations: TranslationDictionary = {
   'help.rateTitle': 'تقييم تجربتك (معاينة)',
   'help.rateBanner':
     'معاينة فقط · جمع التقييمات مؤجل إلى مرحلة بوابة العملاء.',
-  'help.title': 'المساعدة والدعم',
-  'help.valetDesk': 'مكتب الاصطفاف',
-  'help.valetDeskValue': 'التحدث مع الموظفين في الموقع',
-  'help.emergency': 'طوارئ',
-  'help.emergencyValue': 'الاتصال باستقبال الفندق',
-  'help.paymentInfo': 'معلومات الدفع (معاينة)',
 
   // Dev Demo Navigator
   'demo.navigatorTitle': 'متصفح معاينة التطوير',

@@ -68,7 +68,6 @@ export const previewArTranslations = {
   'demo.rateExperience': 'تقييم التجربة',
   'demo.reportIssue': 'الإبلاغ عن مشكلة',
   'demo.issueSubmitted': 'تم إرسال البلاغ',
-  'demo.help': 'المساعدة',
   'demo.paymentError': 'خطأ في الدفع',
   'demo.requestError': 'خطأ في الطلب',
   'demo.overlayConfirmRequest': 'تأكيد الطلب',

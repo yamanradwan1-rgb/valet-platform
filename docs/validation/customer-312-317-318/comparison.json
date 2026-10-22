@@ -1,0 +1,4618 @@
+{
+  "baselineSha": "27b22d13fdb450e1468822728028e046b76ff92c",
+  "implementationSha": "eb7cb292db293ee356b8a4ca79c98eea696f49fe",
+  "policy": "No masks, thresholds, excluded pixels or DOM/style normalization. Animation timing fixed identically.",
+  "evidenceLevel": "Production Chromium; visual states use synthetic HTTP contract fixtures. Separate real API/PostgreSQL browser test.",
+  "total": 384,
+  "passed": 384,
+  "results": [
+    {
+      "file": "1440-ar-dark-completed-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-completed.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-more-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-more.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-network-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-network.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-payment-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-payment.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-pin-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-pin.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-qr-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-qr.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-rating-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-rating.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-ready-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-ready.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-request-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-request.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-retrieval-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-retrieval.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-unavailable-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-unavailable.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-vehicle-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-dark-vehicle.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-completed-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-completed.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-more-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-more.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-network-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-network.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-payment-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-payment.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-pin-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-pin.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-qr-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-qr.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-rating-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-rating.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-ready-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-ready.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-request-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-request.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-retrieval-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-retrieval.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-unavailable-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-unavailable.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-vehicle-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-ar-light-vehicle.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-completed-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-completed.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-more-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-more.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-network-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-network.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-payment-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-payment.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-pin-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-pin.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-qr-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-qr.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-rating-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-rating.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-ready-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-ready.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-request-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-request.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-retrieval-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-retrieval.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-unavailable-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-unavailable.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-vehicle-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-dark-vehicle.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-completed-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-completed.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-more-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-more.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-network-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-network.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-payment-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-payment.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-pin-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-pin.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-qr-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-qr.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-rating-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-rating.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-ready-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-ready.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-request-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-request.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-retrieval-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-retrieval.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-unavailable-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-unavailable.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-vehicle-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "1440-en-light-vehicle.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-completed-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-completed.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-more-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-more.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-network-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-network.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-payment-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-payment.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-pin-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-pin.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-qr-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-qr.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-rating-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-rating.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-ready-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-ready.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-request-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-request.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-retrieval-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-retrieval.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-unavailable-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-unavailable.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-vehicle-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-dark-vehicle.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-completed-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-completed.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-more-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-more.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-network-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-network.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-payment-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-payment.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-pin-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-pin.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-qr-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-qr.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-rating-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-rating.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-ready-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-ready.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-request-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-request.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-retrieval-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-retrieval.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-unavailable-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-unavailable.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-vehicle-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-ar-light-vehicle.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-completed-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-completed.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-more-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-more.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-network-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-network.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-payment-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-payment.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-pin-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-pin.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-qr-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-qr.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-rating-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-rating.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-ready-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-ready.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-request-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-request.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-retrieval-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-retrieval.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-unavailable-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-unavailable.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-vehicle-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-dark-vehicle.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-completed-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-completed.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-more-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-more.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-network-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-network.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-payment-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-payment.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-pin-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-pin.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-qr-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-qr.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-rating-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-rating.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-ready-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-ready.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-request-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-request.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-retrieval-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-retrieval.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-unavailable-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-unavailable.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-vehicle-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "320-en-light-vehicle.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-completed-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-completed.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-more-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-more.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-network-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-network.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-payment-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-payment.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-pin-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-pin.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-qr-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-qr.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-rating-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-rating.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-ready-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-ready.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-request-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-request.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-retrieval-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-retrieval.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-unavailable-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-unavailable.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-vehicle-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-dark-vehicle.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-completed-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-completed.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-more-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-more.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-network-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-network.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-payment-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-payment.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-pin-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-pin.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-qr-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-qr.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-rating-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-rating.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-ready-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-ready.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-request-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-request.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-retrieval-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-retrieval.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-unavailable-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-unavailable.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-vehicle-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-ar-light-vehicle.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-completed-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-completed.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-more-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-more.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-network-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-network.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-payment-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-payment.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-pin-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-pin.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-qr-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-qr.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-rating-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-rating.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-ready-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-ready.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-request-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-request.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-retrieval-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-retrieval.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-unavailable-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-unavailable.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-vehicle-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-dark-vehicle.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-completed-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-completed.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-more-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-more.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-network-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-network.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-payment-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-payment.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-pin-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-pin.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-qr-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-qr.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-rating-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-rating.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-ready-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-ready.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-request-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-request.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-retrieval-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-retrieval.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-unavailable-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-unavailable.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-vehicle-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "390-en-light-vehicle.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-completed-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-completed.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-more-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-more.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-network-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-network.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-payment-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-payment.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-pin-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-pin.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-qr-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-qr.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-rating-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-rating.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-ready-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-ready.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-request-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-request.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-retrieval-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-retrieval.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-unavailable-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-unavailable.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-vehicle-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-dark-vehicle.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-completed-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-completed.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-more-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-more.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-network-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-network.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-payment-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-payment.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-pin-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-pin.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-qr-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-qr.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-rating-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-rating.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-ready-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-ready.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-request-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-request.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-retrieval-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-retrieval.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-unavailable-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-unavailable.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-vehicle-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-ar-light-vehicle.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-completed-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-completed.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-more-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-more.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-network-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-network.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-payment-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-payment.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-pin-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-pin.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-qr-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-qr.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-rating-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-rating.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-ready-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-ready.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-request-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-request.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-retrieval-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-retrieval.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-unavailable-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-unavailable.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-vehicle-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-dark-vehicle.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-completed-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-completed.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-more-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-more.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-network-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-network.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-payment-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-payment.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-pin-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-pin.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-qr-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-qr.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-rating-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-rating.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-ready-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-ready.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-request-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-request.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-retrieval-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-retrieval.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-unavailable-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-unavailable.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-vehicle-native200.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    },
+    {
+      "file": "768-en-light-vehicle.png",
+      "pngBytesEqual": true,
+      "changedPixels": 0,
+      "maximumChannelDelta": 0,
+      "dom": {
+        "htmlEqual": true,
+        "boxesEqual": true,
+        "stylesEqual": true
+      },
+      "pass": true
+    }
+  ]
+}

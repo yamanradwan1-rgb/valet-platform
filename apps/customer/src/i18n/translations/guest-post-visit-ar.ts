@@ -26,7 +26,4 @@ export const guestPostVisitArTranslations: GuestPostVisitTranslationDictionary =
   'paymentSummary.status.PAID': 'مدفوع',
   'paymentSummary.status.FAILED': 'فشل',
   'paymentSummary.refund.SUCCEEDED': 'تم الاسترداد',
-  'help.onsiteEntry': 'المساعدة',
-  'help.onsiteTitle': 'هل تحتاج إلى مساعدة؟',
-  'help.onsiteBody': 'يرجى التحدث مع أحد موظفي خدمة صف السيارات في هذا الموقع.',
 };

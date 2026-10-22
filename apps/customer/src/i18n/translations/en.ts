@@ -19,9 +19,6 @@ export const enTranslations: TranslationDictionary = {
   'header.backAria': 'Go back',
   'header.moreAria': 'More options',
   'nav.ariaLabel': 'Guest navigation',
-  'nav.vehicle': 'Vehicle',
-  'nav.payment': 'Payment (Preview)',
-  'nav.help': 'Help (Preview)',
 
   // More Menu
   'menu.title': 'More options',
@@ -240,12 +237,6 @@ export const enTranslations: TranslationDictionary = {
   'help.rateTitle': 'Rate Your Experience (Preview)',
   'help.rateBanner':
     'Preview Only · Guest feedback collection is deferred to customer portal phase.',
-  'help.title': 'Help & Support',
-  'help.valetDesk': 'Valet Desk',
-  'help.valetDeskValue': 'Speak to staff on site',
-  'help.emergency': 'Emergency',
-  'help.emergencyValue': 'Contact hotel reception',
-  'help.paymentInfo': 'Payment Information (Preview)',
 
   // Dev Demo Navigator
   'demo.navigatorTitle': 'Dev Preview Navigator',

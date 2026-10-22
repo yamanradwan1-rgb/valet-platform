@@ -146,21 +146,5 @@ describe('T5 mounted production post-visit surfaces', () => {
     expect((submit as unknown as Record<string, { disabled?: boolean }>)[reactKey]?.disabled).toBe(true);
   });
 
-  it('keeps Help hidden without a verified Location support fact and shows only approved copy when verified', async () => {
-    const api = client();
-    await mount(<GuestPostVisitScreen client={api} session={completed} surface="help" onBack={() => {}} />);
-    expect(container.textContent).toBe('');
 
-    await act(async () => {
-      root?.render(
-        <LocaleProvider initialLocale="en">
-          <GuestPostVisitScreen client={api} session={completed} surface="help" onsiteSupportVerified onBack={() => {}} />
-        </LocaleProvider>,
-      );
-      await flush();
-    });
-    expect(container.textContent).toContain('Need assistance?');
-    expect(container.textContent).toContain('Please speak with a valet staff member at this location.');
-    expect(container.textContent).not.toContain('reception');
-  });
 });

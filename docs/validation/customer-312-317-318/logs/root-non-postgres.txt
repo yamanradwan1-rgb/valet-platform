@@ -1,0 +1,839 @@
+
+> valet-platform@0.0.0 test:non-postgres D:\kndoom\valet-platform\tmp\customer-312-317-318
+> node scripts/test-harness/run-root-tests.mjs --non-postgres-only
+
+• turbo 2.10.6
+
+   • Packages in scope: @valet/config, @valet/contracts, @valet/customer, @valet/dashboard, @valet/employee-client, @valet/testing, @valet/ui, @valet/valet, @valet/valet-native
+   • Running test in 9 packages
+   • Remote caching disabled, using shared worktree cache
+
+@valet/contracts:test: cache miss, executing fd2ae9f107654b32
+@valet/contracts:test:
+@valet/contracts:test: > @valet/contracts@0.0.0 test D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\contracts
+@valet/contracts:test: > vitest run src
+@valet/contracts:test:
+@valet/contracts:test:
+@valet/contracts:test:  RUN  v4.1.10 D:/kndoom/valet-platform/tmp/customer-312-317-318/packages/contracts
+@valet/contracts:test:
+@valet/contracts:test:  ✓ src/issue300-closure-contract.test.ts (4 tests) 11ms
+@valet/contracts:test:  ✓ src/payments.test.ts (17 tests) 27ms
+@valet/contracts:test:  ✓ src/condition-photo-upload.test.ts (7 tests) 23ms
+@valet/contracts:test:  ✓ src/staff-valet-session.test.ts (11 tests) 16ms
+@valet/contracts:test:  ✓ src/staff-management.test.ts (8 tests) 23ms
+@valet/contracts:test:  ✓ src/company-analytics.test.ts (9 tests) 58ms
+@valet/contracts:test:  ✓ src/dispatch.test.ts (6 tests) 59ms
+@valet/contracts:test:  ✓ src/shift-presence-public.test.ts (6 tests) 20ms
+@valet/contracts:test:  ✓ src/shift-presence-consumer.test.ts (17 tests) 24ms
+@valet/contracts:test:  ✓ src/staff-mfa.test.ts (7 tests) 18ms
+@valet/contracts:test:  ✓ src/staff-vehicle-directory.test.ts (11 tests) 20ms
+@valet/contracts:test:  ✓ src/company-report.test.ts (5 tests) 25ms
+@valet/contracts:test:  ✓ src/location-configuration.test.ts (5 tests) 31ms
+@valet/contracts:test:  ✓ src/staff-context.test.ts (6 tests) 16ms
+@valet/contracts:test:  ✓ src/returning-check-in.test.ts (4 tests) 20ms
+@valet/contracts:test:  ✓ src/map-setup.test.ts (5 tests) 33ms
+@valet/contracts:test:  ✓ src/shift-presence-management-result.test.ts (6 tests) 18ms
+@valet/contracts:test:  ✓ src/management-control-plane.test.ts (6 tests) 18ms
+@valet/contracts:test:  ✓ src/index.test.ts (14 tests) 20ms
+@valet/contracts:test:  ✓ src/staff-push.test.ts (28 tests) 22ms
+@valet/contracts:test:  ✓ src/shift-presence.test.ts (18 tests) 21ms
+@valet/contracts:test:  ✓ src/physical-resource-overview.test.ts (4 tests) 16ms
+@valet/contracts:test:  ✓ src/audit-investigation-common.test.ts (4 tests) 21ms
+@valet/contracts:test:  ✓ src/audit-investigation-search.test.ts (4 tests) 29ms
+@valet/contracts:test:  ✓ src/staff-onboarding.test.ts (5 tests) 19ms
+@valet/contracts:test:  ✓ src/management-audit.test.ts (5 tests) 22ms
+@valet/contracts:test:  ✓ src/live-session-overview.test.ts (5 tests) 18ms
+@valet/contracts:test:  ✓ src/session-overview-query.test.ts (3 tests) 15ms
+@valet/contracts:test:  ✓ src/management-settings.test.ts (14 tests) 24ms
+@valet/contracts:test:  ✓ src/staff-shift-history.test.ts (14 tests) 33ms
+@valet/contracts:test:  ✓ src/staff-check-in-continuations.test.ts (7 tests) 11ms
+@valet/contracts:test:  ✓ src/management-visit-contacts.test.ts (4 tests) 19ms
+@valet/contracts:test:  ✓ src/payment-projections.test.ts (3 tests) 18ms
+@valet/contracts:test:  ✓ src/staff-auth.test.ts (5 tests) 13ms
+@valet/contracts:test:  ✓ src/staff-check-in-drafts.test.ts (7 tests) 14ms
+@valet/contracts:test:  ✓ src/staff-activation.test.ts (4 tests) 17ms
+@valet/contracts:test:  ✓ src/shift-presence-mocked.test.ts (14 tests) 21ms
+@valet/contracts:test:  ✓ src/confirm-parked.test.ts (2 tests) 13ms
+@valet/contracts:test:  ✓ src/shifts-correlation.test.ts (9 tests) 65ms
+@valet/contracts:test:  ✓ src/handoff.test.ts (4 tests) 16ms
+@valet/contracts:test:  ✓ src/audit-investigation-timeline.test.ts (3 tests) 28ms
+@valet/contracts:test:  ✓ src/audit-investigation-detail.test.ts (4 tests) 16ms
+@valet/contracts:test:  ✓ src/staff-shift-force-end.test.ts (12 tests) 16ms
+@valet/contracts:test:  ✓ src/check-in-guest-access.test.ts (6 tests) 13ms
+@valet/contracts:test:  ✓ src/cancel-check-in.test.ts (3 tests) 14ms
+@valet/contracts:test:  ✓ src/incident-recovery.test.ts (3 tests) 18ms
+@valet/contracts:test:  ✓ src/guest-rating.test.ts (22 tests) 22ms
+@valet/contracts:test:  ✓ src/dashboard-feature-authority.test.ts (3 tests) 14ms
+@valet/contracts:test:  ✓ src/parking-spot-validation.test.ts (16 tests) 21ms
+@valet/contracts:test:  ✓ src/customer-feedback-analytics.test.ts (16 tests) 17ms
+@valet/contracts:test:  ✓ src/resource-occupancy.test.ts (3 tests) 14ms
+@valet/contracts:test:  ✓ src/plate-ocr.test.ts (17 tests) 16ms
+@valet/contracts:test:  ✓ src/location-analytics-kpis.test.ts (5 tests) 17ms
+@valet/contracts:test:  ✓ src/cancel-before-parking.test.ts (2 tests) 13ms
+@valet/contracts:test:  ✓ src/management-audit-human-identity.test.ts (3 tests) 20ms
+@valet/contracts:test:  ✓ src/live-operations-map.test.ts (2 tests) 22ms
+@valet/contracts:test:  ✓ src/parking-zone-creation.test.ts (9 tests) 21ms
+@valet/contracts:test:  ✓ src/management-commercial.test.ts (2 tests) 12ms
+@valet/contracts:test:  ✓ src/mark-ready.test.ts (2 tests) 10ms
+@valet/contracts:test:  ✓ src/audit-investigation-filters.test.ts (2 tests) 11ms
+@valet/contracts:test:  ✓ src/start-retrieval.test.ts (2 tests) 13ms
+@valet/contracts:test:  ✓ src/gps-ingestion.test.ts (12 tests) 16ms
+@valet/contracts:test:  ✓ src/start-parking.test.ts (2 tests) 16ms
+@valet/contracts:test:  ✓ src/physical-resource-configuration.test.ts (3 tests) 11ms
+@valet/contracts:test:  ✓ src/check-in-phone.test.ts (16 tests) 12ms
+@valet/contracts:test:  ✓ src/complete-handoff.test.ts (2 tests) 12ms
+@valet/contracts:test:  ✓ src/route-history.test.ts (2 tests) 13ms
+@valet/contracts:test:  ✓ src/guest-effective-branding.test.ts (2 tests) 9ms
+@valet/contracts:test:
+@valet/contracts:test:  Test Files  68 passed (68)
+@valet/contracts:test:       Tests  493 passed (493)
+@valet/contracts:test:    Start at  21:48:57
+@valet/contracts:test:    Duration  6.48s (transform 4.29s, setup 0ms, import 26.50s, tests 1.36s, environment 11ms)
+@valet/contracts:test:
+@valet/ui:test: cache miss, executing de5217b7202fa9c2
+@valet/ui:test:
+@valet/ui:test: > @valet/ui@0.0.0 test D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\ui
+@valet/ui:test: > vitest run src
+@valet/ui:test:
+@valet/ui:test:
+@valet/ui:test:  RUN  v4.1.10 D:/kndoom/valet-platform/tmp/customer-312-317-318/packages/ui
+@valet/ui:test:
+@valet/ui:test:  ✓ src/index.test.ts (1 test) 3ms
+@valet/ui:test:
+@valet/ui:test:  Test Files  1 passed (1)
+@valet/ui:test:       Tests  1 passed (1)
+@valet/ui:test:    Start at  21:49:05
+@valet/ui:test:    Duration  330ms (transform 18ms, setup 0ms, import 41ms, tests 3ms, environment 0ms)
+@valet/ui:test:
+@valet/config:test: cache miss, executing ee3be378632432d4
+@valet/config:test:
+@valet/config:test: > @valet/config@0.0.0 test D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\config
+@valet/config:test: > vitest run src
+@valet/config:test:
+@valet/config:test:
+@valet/config:test:  RUN  v4.1.10 D:/kndoom/valet-platform/tmp/customer-312-317-318/packages/config
+@valet/config:test:
+@valet/config:test:  ✓ src/index.test.ts (1 test) 5ms
+@valet/config:test:
+@valet/config:test:  Test Files  1 passed (1)
+@valet/config:test:       Tests  1 passed (1)
+@valet/config:test:    Start at  21:49:06
+@valet/config:test:    Duration  562ms (transform 38ms, setup 0ms, import 75ms, tests 5ms, environment 0ms)
+@valet/config:test:
+@valet/testing:test: cache miss, executing 334930ea49753537
+@valet/testing:test:
+@valet/testing:test: > @valet/testing@0.0.0 test D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\testing
+@valet/testing:test: > vitest run src
+@valet/testing:test:
+@valet/testing:test:
+@valet/testing:test:  RUN  v4.1.10 D:/kndoom/valet-platform/tmp/customer-312-317-318/packages/testing
+@valet/testing:test:
+@valet/testing:test:  ✓ src/index.test.ts (1 test) 4ms
+@valet/testing:test:
+@valet/testing:test:  Test Files  1 passed (1)
+@valet/testing:test:       Tests  1 passed (1)
+@valet/testing:test:    Start at  21:49:09
+@valet/testing:test:    Duration  453ms (transform 38ms, setup 0ms, import 73ms, tests 4ms, environment 0ms)
+@valet/testing:test:
+@valet/employee-client:test: cache miss, executing 4fc531fbe998dd97
+@valet/employee-client:test:
+@valet/employee-client:test: > @valet/employee-client@0.0.0 test D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\employee-client
+@valet/employee-client:test: > vitest run src
+@valet/employee-client:test:
+@valet/employee-client:test:
+@valet/employee-client:test:  RUN  v4.1.10 D:/kndoom/valet-platform/tmp/customer-312-317-318/packages/employee-client
+@valet/employee-client:test:
+@valet/employee-client:test:  ✓ src/employee-condition-photo-session.test.ts (9 tests) 18ms
+@valet/employee-client:test:  ✓ src/employee-parking-start-session.test.ts (15 tests) 18ms
+@valet/employee-client:test:  ✓ src/employee-operational-accept.test.ts (12 tests) 16ms
+@valet/employee-client:test:  ✓ src/employee-task-queue-lifecycle.test.ts (9 tests) 78ms
+@valet/employee-client:test:  ✓ src/employee-retrieval-flow-session.test.ts (14 tests) 19ms
+@valet/employee-client:test:  ✓ src/employee-handoff-flow-session.test.ts (12 tests) 15ms
+@valet/employee-client:test:  ✓ src/employee-release-flow-session.test.ts (12 tests) 18ms
+@valet/employee-client:test:  ✓ src/employee-operational-barrier.test.ts (11 tests) 22ms
+@valet/employee-client:test:  ✓ src/employee-telemetry.test.ts (102 tests) 33ms
+@valet/employee-client:test:  ✓ src/employee-parking-cancellation-session.test.ts (11 tests) 19ms
+@valet/employee-client:test:  ✓ src/native-auth-storage-matrix.test.ts (12 tests) 29ms
+@valet/employee-client:test:  ✓ src/native-auth-logout.test.ts (9 tests) 34ms
+@valet/employee-client:test:  ✓ src/employee-telemetry-privacy.test.ts (10 tests) 14ms
+@valet/employee-client:test:  ✓ src/employee-check-in-transport.test.ts (5 tests) 25ms
+@valet/employee-client:test:  ✓ src/incident-recovery.test.ts (9 tests) 27ms
+@valet/employee-client:test:  ✓ src/employee-process-death-parking.test.ts (7 tests) 28ms
+@valet/employee-client:test:  ✓ src/employee-shift-presence-restart.test.ts (11 tests) 40ms
+@valet/employee-client:test:  ✓ src/employee-check-in-correction-recovery.test.ts (7 tests) 16ms
+@valet/employee-client:test:  ✓ src/employee-check-in-continuation.test.ts (9 tests) 19ms
+@valet/employee-client:test:  ✓ src/employee-check-in-condition-recovery.test.ts (7 tests) 17ms
+@valet/employee-client:test:  ✓ src/employee-check-in-session.test.ts (15 tests) 30ms
+@valet/employee-client:test:  ✓ src/employee-shift-end-session.test.ts (12 tests) 21ms
+@valet/employee-client:test:  ✓ src/employee-process-death-shift-task.test.ts (12 tests) 19ms
+@valet/employee-client:test:  ✓ src/native-auth-restore.test.ts (12 tests) 23ms
+@valet/employee-client:test:  ✓ src/employee-shift-start-mutation.test.ts (10 tests) 15ms
+@valet/employee-client:test:  ✓ src/employee-cancel-check-in-session.test.ts (6 tests) 23ms
+@valet/employee-client:test:  ✓ src/employee-retrieval-attention.test.ts (11 tests) 11ms
+@valet/employee-client:test:  ✓ src/employee-process-death-handoff.test.ts (4 tests) 15ms
+@valet/employee-client:test:  ✓ src/employee-check-in-condition.test.ts (5 tests) 19ms
+@valet/employee-client:test:  ✓ src/employee-shift-presence-local-provenance.test.ts (6 tests) 35ms
+@valet/employee-client:test:  ✓ src/employee-parking-spot-validation.test.ts (20 tests) 29ms
+@valet/employee-client:test:  ✓ src/employee-confirm-parked-recovery.test.ts (7 tests) 18ms
+@valet/employee-client:test:  ✓ src/employee-shift-presence-definite-failure.test.ts (13 tests) 32ms
+@valet/employee-client:test:  ✓ src/employee-check-in-condition-replay.test.ts (3 tests) 12ms
+@valet/employee-client:test:  ✓ src/employee-parking-spot-validation-fences.test.ts (18 tests) 22ms
+@valet/employee-client:test:  ✓ src/employee-shift-presence-exceptions.test.ts (10 tests) 34ms
+@valet/employee-client:test:  ✓ src/employee-client.test.ts (7 tests) 19ms
+@valet/employee-client:test:  ✓ src/employee-operational-load.test.ts (8 tests) 12ms
+@valet/employee-client:test:  ✓ src/employee-process-death-retrieval.test.ts (6 tests) 18ms
+@valet/employee-client:test:  ✓ src/employee-retrieval-flow-fences.test.ts (6 tests) 12ms
+@valet/employee-client:test:  ✓ src/employee-confirm-parked-fences.test.ts (9 tests) 18ms
+@valet/employee-client:test:  ✓ src/employee-task-queue-invalidation.test.ts (6 tests) 23ms
+@valet/employee-client:test:  ✓ src/employee-operational-background-action-fence.test.ts (4 tests) 15ms
+@valet/employee-client:test:  ✓ src/employee-operational-identity.test.ts (5 tests) 26ms
+@valet/employee-client:test:  ✓ src/employee-gps-sample-buffer.test.ts (7 tests) 31ms
+@valet/employee-client:test:  ✓ src/employee-vehicle-directory-session.test.ts (4 tests) 19ms
+@valet/employee-client:test:  ✓ src/employee-workflow-read-background-fences.test.ts (5 tests) 18ms
+@valet/employee-client:test:  ✓ src/incident-recovery-preflight.test.ts (6 tests) 21ms
+@valet/employee-client:test:  ✓ src/employee-shift-start-reconciliation.test.ts (9 tests) 14ms
+@valet/employee-client:test:  ✓ src/employee-operational-context-action-recovery.test.ts (7 tests) 17ms
+@valet/employee-client:test:  ✓ src/qr-input.test.ts (42 tests) 16ms
+@valet/employee-client:test:  ✓ src/employee-shift-end-fences.test.ts (10 tests) 21ms
+@valet/employee-client:test:  ✓ src/employee-release-flow-lifecycle.test.ts (5 tests) 12ms
+@valet/employee-client:test:  ✓ src/qr-capture-session.test.ts (11 tests) 10ms
+@valet/employee-client:test:  ✓ src/native-auth-account-switch-truth.test.ts (5 tests) 22ms
+@valet/employee-client:test:  ✓ src/employee-shift-start-background-fence.test.ts (5 tests) 14ms
+@valet/employee-client:test:  ✓ src/employee-parking-cancellation-queue.test.ts (2 tests) 12ms
+@valet/employee-client:test:  ✓ src/employee-shift-presence-recovery.test.ts (8 tests) 27ms
+@valet/employee-client:test:  ✓ src/employee-check-in-recovery.test.ts (4 tests) 13ms
+@valet/employee-client:test:  ✓ src/employee-shift-presence-modes.test.ts (15 tests) 34ms
+@valet/employee-client:test:  ✓ src/employee-process-death-release.test.ts (2 tests) 12ms
+@valet/employee-client:test:  ✓ src/employee-shift-presence-transport.test.ts (4 tests) 27ms
+@valet/employee-client:test:  ✓ src/employee-task-tracking-authority.test.ts (5 tests) 15ms
+@valet/employee-client:test:  ✓ src/native-auth-login.test.ts (5 tests) 16ms
+@valet/employee-client:test:  ✓ src/employee-parking-bootstrap-background-fence.test.ts (4 tests) 10ms
+@valet/employee-client:test:  ✓ src/employee-connectivity-owner.test.ts (13 tests) 11ms
+@valet/employee-client:test:  ✓ src/employee-shift-start-selection.test.ts (6 tests) 12ms
+@valet/employee-client:test:  ✓ src/employee-shift-presence-fencing.test.ts (9 tests) 29ms
+@valet/employee-client:test:  ✓ src/employee-handoff-flow-transport.test.ts (2 tests) 17ms
+@valet/employee-client:test:  ✓ src/employee-handoff-flow-fences.test.ts (3 tests) 8ms
+@valet/employee-client:test:  ✓ src/employee-shift-end-state.test.ts (18 tests) 14ms
+@valet/employee-client:test:  ✓ src/employee-revalidation-coordinator.test.ts (5 tests) 9ms
+@valet/employee-client:test:  ✓ src/employee-operational-action-scope.test.ts (2 tests) 14ms
+@valet/employee-client:test:  ✓ src/employee-confirm-parked-flow.test.ts (3 tests) 16ms
+@valet/employee-client:test:  ✓ src/employee-check-in-targeted-entry.test.ts (3 tests) 12ms
+@valet/employee-client:test:  ✓ src/employee-parking-cancellation-transport.test.ts (2 tests) 17ms
+@valet/employee-client:test:  ✓ src/employee-check-in-returning-correction.test.ts (1 test) 14ms
+@valet/employee-client:test:  ✓ src/employee-check-in-revalidation.test.ts (3 tests) 10ms
+@valet/employee-client:test:  ✓ src/incident-recovery-provider.test.ts (4 tests) 17ms
+@valet/employee-client:test:  ✓ src/employee-parking-start-transport.test.ts (1 test) 17ms
+@valet/employee-client:test:  ✓ src/employee-check-in-phone.test.ts (4 tests) 14ms
+@valet/employee-client:test:  ✓ src/employee-shift-start-integration.test.ts (1 test) 9ms
+@valet/employee-client:test:  ✓ src/incident-recovery-identity-race.test.ts (1 test) 11ms
+@valet/employee-client:test:  ✓ src/employee-http-failure-taxonomy.test.ts (8 tests) 16ms
+@valet/employee-client:test:  ✓ src/employee-condition-photo-transport.test.ts (7 tests) 25ms
+@valet/employee-client:test:  ✓ src/employee-shift-presence-stage.test.ts (6 tests) 19ms
+@valet/employee-client:test:  ✓ src/employee-operational-bootstrap-ordering.test.ts (2 tests) 10ms
+@valet/employee-client:test:  ✓ src/employee-workflow-background-fences.test.ts (3 tests) 18ms
+@valet/employee-client:test:  ✓ src/employee-check-in-lifecycle-fence.test.ts (1 test) 12ms
+@valet/employee-client:test:  ✓ src/employee-cancel-check-in-transport.test.ts (2 tests) 15ms
+@valet/employee-client:test:  ✓ src/employee-retrieval-flow-transport.test.ts (2 tests) 20ms
+@valet/employee-client:test:  ✓ src/employee-vehicle-directory-actions-transport.test.ts (1 test) 14ms
+@valet/employee-client:test:  ✓ src/employee-auth-read-concurrency.test.ts (1 test) 11ms
+@valet/employee-client:test:  ✓ src/employee-telemetry-operation-types.test.ts (35 tests) 13ms
+@valet/employee-client:test:  ✓ src/employee-locale.test.ts (3 tests) 9ms
+@valet/employee-client:test:  ✓ src/employee-gps-ingestion-transport.test.ts (2 tests) 13ms
+@valet/employee-client:test:  ✓ src/api-error.test.ts (9 tests) 29ms
+@valet/employee-client:test:  ✓ src/employee-release-flow-transport.test.ts (5 tests) 14ms
+@valet/employee-client:test:  ✓ src/employee-operational-lifecycle-race.test.ts (1 test) 10ms
+@valet/employee-client:test:  ✓ src/employee-check-in-secure-id.test.ts (1 test) 10ms
+@valet/employee-client:test:
+@valet/employee-client:test:  Test Files  100 passed (100)
+@valet/employee-client:test:       Tests  843 passed (843)
+@valet/employee-client:test:    Start at  21:49:11
+@valet/employee-client:test:    Duration  16.69s (transform 18.44s, setup 0ms, import 77.42s, tests 1.90s, environment 21ms)
+@valet/employee-client:test:
+@valet/customer:test: cache miss, executing 72873efe3e02299d
+@valet/customer:test:
+@valet/customer:test: > @valet/customer@0.0.0 test D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\customer
+@valet/customer:test: > vitest run src
+@valet/customer:test:
+@valet/customer:test:
+@valet/customer:test:  RUN  v4.1.10 D:/kndoom/valet-platform/tmp/customer-312-317-318/apps/customer
+@valet/customer:test:
+@valet/customer:test:  ✓ src/app/readyz/readiness-concurrency.test.ts (6 tests) 149ms
+@valet/customer:test:  ✓ src/features/post-visit/guest-post-visit.mounted.test.tsx (13 tests) 215ms
+@valet/customer:test:  ✓ src/features/post-visit/guest-auto-rating.mounted.test.tsx (16 tests) 178ms
+@valet/customer:test:  ✓ src/components/primitives/pickup-pin.test.tsx (5 tests) 102ms
+@valet/customer:test:  ✓ src/lib/pwa/guest-static-cache.test.ts (5 tests) 165ms
+@valet/customer:test:  ✓ src/theme/theme-matrix.test.tsx (40 tests) 305ms
+@valet/customer:test:  ✓ src/features/demo/demo-screen-renderer.test.tsx (7 tests) 150ms
+@valet/customer:test:  ✓ src/features/demo/demo-safety.test.tsx (11 tests) 234ms
+@valet/customer:test:  ✓ src/app/readyz/route.test.ts (4 tests) 89ms
+@valet/customer:test:  ✓ src/features/demo/demo-visual-matrix.test.tsx (12 tests) 501ms
+@valet/customer:test:  ✓ src/features/web-push/guest-web-push-sw.test.ts (4 tests) 80ms
+@valet/customer:test:  ✓ src/lib/api/guest-api-client-context-switch.test.ts (4 tests) 61ms
+@valet/customer:test:  ✓ src/lib/api/guest-t5-api.test.ts (14 tests) 77ms
+@valet/customer:test:  ✓ src/lib/api/guest-http-transport.test.ts (8 tests) 78ms
+@valet/customer:test:  ✓ src/lib/api/guest-api-client.test.ts (8 tests) 132ms
+@valet/customer:test:  ✓ src/features/auth/guest-auth-context.test.tsx (17 tests) 83ms
+@valet/customer:test:  ✓ src/features/handoff/use-handoff.mounted.test.tsx (5 tests) 95ms
+@valet/customer:test:  ✓ src/features/web-push/guest-web-push-transport.test.ts (3 tests) 69ms
+@valet/customer:test:  ✓ src/features/session/guest-branding.test.tsx (8 tests) 524ms
+@valet/customer:test:  ✓ src/features/handoff/use-handoff.recovery.mounted.test.tsx (6 tests) 40ms
+@valet/customer:test:  ✓ src/features/auth/guest-auth-context-switch.test.tsx (9 tests) 81ms
+@valet/customer:test:  ✓ src/i18n/locale.test.ts (7 tests) 44ms
+@valet/customer:test:  ✓ src/features/handoff/use-handoff.reconcile-failure.mounted.test.tsx (1 test) 29ms
+@valet/customer:test:  ✓ src/features/session/guest-session-ready-alert-composition.test.ts (2 tests) 13ms
+@valet/customer:test:  ✓ src/components/layout/bottom-sheet.mounted.test.tsx (5 tests) 39ms
+@valet/customer:test:  ✓ src/app/guest-web-push-mount.test.tsx (2 tests) 17ms
+@valet/customer:test:  ✓ src/i18n/locale-integration.test.ts (5 tests) 24ms
+@valet/customer:test:  ✓ src/features/demo/customer-navigation-removal.test.tsx (6 tests) 76ms
+@valet/customer:test:  ✓ src/features/auth/overlay-guest-context-conflict.test.tsx (7 tests) 28ms
+@valet/customer:test:  ✓ src/app/guest-refresh-mounted.test.tsx (5 tests) 358ms
+@valet/customer:test:  ✓ src/features/ready-alert/guest-vehicle-ready-alert.test.tsx (3 tests) 19ms
+@valet/customer:test:  ✓ src/features/handoff/qr-code.test.ts (2 tests) 33ms
+@valet/customer:test:  ✓ src/features/session/guest-request-coordinator.test.ts (16 tests) 17ms
+@valet/customer:test:  ✓ src/features/web-push/guest-web-push-client.test.ts (9 tests) 17ms
+@valet/customer:test:  ✓ src/features/rating/guest-rating-submission.test.ts (11 tests) 11ms
+@valet/customer:test:  ✓ src/features/auth/guest-token-adapter.test.ts (6 tests) 11ms
+@valet/customer:test:  ✓ src/features/web-push/guest-web-push-permission-card.test.tsx (2 tests) 17ms
+@valet/customer:test:  ✓ src/features/demo/demo-registry.test.ts (5 tests) 15ms
+@valet/customer:test:  ✓ src/features/rating/rating-presentation-policy.test.ts (9 tests) 8ms
+@valet/customer:test:  ✓ src/theme/theme.test.ts (6 tests) 38ms
+@valet/customer:test:  ✓ src/features/ready-alert/guest-ready-alert-tracker.test.ts (13 tests) 10ms
+@valet/customer:test:  ✓ src/features/session/production-behavior.test.ts (4 tests) 16ms
+@valet/customer:test:  ✓ src/lib/api/api-origin.test.ts (13 tests) 14ms
+@valet/customer:test:  ✓ src/features/ready-alert/guest-ready-alert-audio.test.ts (3 tests) 23ms
+@valet/customer:test:  ✓ src/features/web-push/guest-web-push-copy.test.ts (2 tests) 12ms
+@valet/customer:test:  ✓ src/features/session/guest-bootstrap-flow.test.ts (5 tests) 5ms
+@valet/customer:test:  ✓ src/features/session/session-state-flow.test.ts (4 tests) 14ms
+@valet/customer:test:  ✓ src/lib/api/api-error.test.ts (2 tests) 6ms
+@valet/customer:test:  ✓ src/app/document-bootstrap-script.test.tsx (3 tests) 11ms
+@valet/customer:test:  ✓ src/features/session/guest-read-error-classification.test.ts (2 tests) 5ms
+@valet/customer:test:  ✓ src/lib/app-info.test.ts (1 test) 4ms
+@valet/customer:test:  ✓ src/features/retrieval/use-retrieval.test.ts (3 tests) 10ms
+@valet/customer:test:  ✓ src/features/handoff/use-handoff.test.ts (5 tests) 11ms
+@valet/customer:test:
+@valet/customer:test:  Test Files  53 passed (53)
+@valet/customer:test:       Tests  374 passed (374)
+@valet/customer:test:    Start at  21:49:29
+@valet/customer:test:    Duration  9.12s (transform 21.42s, setup 0ms, import 40.54s, tests 4.36s, environment 11ms)
+@valet/customer:test:
+@valet/dashboard:test: cache miss, executing 916638903667d53f
+@valet/dashboard:test:
+@valet/dashboard:test: > @valet/dashboard@0.0.0 test D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\dashboard
+@valet/dashboard:test: > vitest run src
+@valet/dashboard:test:
+@valet/dashboard:test:
+@valet/dashboard:test:  RUN  v4.1.10 D:/kndoom/valet-platform/tmp/customer-312-317-318/apps/dashboard
+@valet/dashboard:test:
+@valet/dashboard:test:  ✓ src/features/intelligence/analytics-presentation.test.ts (9 tests) 13ms
+@valet/dashboard:test:  ✓ src/components/foundation/md05-intelligence-authority.test.ts (7 tests) 17ms
+@valet/dashboard:test:  ✓ src/components/foundation/md04-feature-authority-revalidation.test.ts (8 tests) 19ms
+@valet/dashboard:test:  ✓ src/components/foundation/navigation-authority-special-scopes.test.ts (7 tests) 14ms
+@valet/dashboard:test:  ✓ src/components/foundation/resolve-navigation-authority.test.ts (8 tests) 19ms
+@valet/dashboard:test:  ✓ src/components/foundation/use-selected-scope-revalidation.test.ts (10 tests) 18ms
+@valet/dashboard:test:  ✓ src/lib/api/dashboard-api-client-binary.test.ts (25 tests) 131ms
+@valet/dashboard:test:  ✓ src/features/audit/investigation/search/investigation-member-options.test.ts (9 tests) 79ms
+@valet/dashboard:test:  ✓ src/lib/api/dashboard-api-client.test.ts (16 tests) 116ms
+@valet/dashboard:test:  ✓ src/features/administration/settings/shift-presence-policy.test.tsx (16 tests) 230ms
+@valet/dashboard:test:  ✓ src/components/foundation/location-maps-revalidation.test.ts (7 tests) 14ms
+@valet/dashboard:test:  ✓ src/components/foundation/selected-scope-restoration-hint.test.ts (15 tests) 18ms
+@valet/dashboard:test:  ✓ src/features/operations/maps/live-map-refresh-owner.test.ts (9 tests) 22ms
+@valet/dashboard:test:  ✓ src/features/help/context-help-coverage.test.ts (6 tests) 169ms
+@valet/dashboard:test:  ✓ src/features/audit/investigation/timeline/timeline-state.test.ts (12 tests) 34ms
+@valet/dashboard:test:  ✓ src/components/foundation/navigation-authority-generation.test.ts (8 tests) 17ms
+@valet/dashboard:test:  ✓ src/lib/navigation/md05-intelligence-navigation.test.ts (5 tests) 12ms
+@valet/dashboard:test:  ✓ src/features/audit/investigation/timeline/investigation-live-projection.test.tsx (10 tests) 194ms
+@valet/dashboard:test:  ✓ src/features/audit/investigation/search/investigation-search-controller.test.ts (7 tests) 22ms
+@valet/dashboard:test:  ✓ src/features/intelligence/intelligence-generation.test.ts (7 tests) 10ms
+@valet/dashboard:test:  ✓ src/features/intelligence/intelligence-api.test.ts (20 tests) 108ms
+@valet/dashboard:test:  ✓ src/lib/navigation/navigation-registry.test.ts (9 tests) 31ms
+@valet/dashboard:test:  ✓ src/lib/auth/staff-auth-client.test.ts (6 tests) 140ms
+@valet/dashboard:test:  ✓ src/components/foundation/authority-separation.test.ts (7 tests) 19ms
+@valet/dashboard:test:  ✓ src/features/audit/investigation/issue300-closure.test.ts (7 tests) 96ms
+@valet/dashboard:test:  ✓ src/features/administration/settings/shift-presence-api.test.ts (17 tests) 203ms
+@valet/dashboard:test:  ✓ src/features/audit/investigation/search/investigation-search-contract.test.ts (4 tests) 44ms
+@valet/dashboard:test:  ✓ src/components/scope/location-switch-authority.test.ts (5 tests) 24ms
+@valet/dashboard:test:  ✓ src/features/intelligence/overview-presentation.test.ts (7 tests) 9ms
+@valet/dashboard:test:  ✓ src/features/intelligence/payments-presentation.test.ts (8 tests) 11ms
+@valet/dashboard:test:  ✓ src/components/scope/location-maps-scope-entry.test.ts (8 tests) 14ms
+@valet/dashboard:test:  ✓ src/components/foundation/selected-scope-restoration.test.ts (12 tests) 14ms
+@valet/dashboard:test:  ✓ src/features/audit/investigation/issue300-browser-safety.test.ts (8 tests) 72ms
+@valet/dashboard:test:  ✓ src/features/operations/session-photos/photo-download-scheduler.prime.test.ts (10 tests) 73ms
+@valet/dashboard:test:  ✓ src/features/operations/maps/map-presentation.test.ts (6 tests) 42ms
+@valet/dashboard:test:  ✓ src/features/operations/maps/operational-google-map-runtime.test.ts (2 tests) 10ms
+@valet/dashboard:test:  ✓ src/lib/navigation/md04-feature-authority-navigation.test.ts (8 tests) 9ms
+@valet/dashboard:test:  ✓ src/features/administration/settings/shift-presence-guided-apply.test.ts (6 tests) 29ms
+@valet/dashboard:test:  ✓ src/features/operations/maps/operational-map-model.test.ts (6 tests) 43ms
+@valet/dashboard:test:  ✓ src/lib/maps/google-maps-sdk.test.ts (9 tests) 51ms
+@valet/dashboard:test:  ✓ src/components/foundation/dashboard-feature-target.test.ts (3 tests) 9ms
+@valet/dashboard:test:  ✓ src/components/foundation/selected-scope-restoration-lifecycle.test.ts (8 tests) 10ms
+@valet/dashboard:test:  ✓ src/features/administration/administration-api.test.ts (7 tests) 13ms
+@valet/dashboard:test:  ✓ src/features/visit-contacts/md04-generation.test.ts (9 tests) 10ms
+@valet/dashboard:test:  ✓ src/lib/scope/dashboard-commercial-access.test.ts (7 tests) 8ms
+@valet/dashboard:test:  ✓ src/features/operations/operations-presentation.test.ts (8 tests) 57ms
+@valet/dashboard:test:  ✓ src/features/operations/live-operations/live-operations-presentation.test.ts (8 tests) 40ms
+@valet/dashboard:test:  ✓ src/features/audit/investigation/timeline/timeline-projection.test.ts (6 tests) 30ms
+@valet/dashboard:test:  ✓ src/features/administration/settings/shift-presence-retained-intent.test.ts (7 tests) 11ms
+@valet/dashboard:test:  ✓ src/features/audit/audit-presentation.test.ts (127 tests) 83ms
+@valet/dashboard:test:  ✓ src/features/operations/live-operations/session-staff-attribution.test.tsx (5 tests) 301ms
+@valet/dashboard:test:  ✓ src/components/foundation/selected-scope-restoration-location-manager.test.ts (6 tests) 13ms
+@valet/dashboard:test:  ✓ src/features/administration/settings/shift-presence-validation.test.tsx (18 tests) 635ms
+@valet/dashboard:test:      ✓ uses server strict blockers, never active-count alone; no fingerprint shown  615ms
+@valet/dashboard:test:  ✓ src/features/administration/settings/shift-presence-guided-copy.test.ts (3 tests) 26ms
+@valet/dashboard:test:  ✓ src/features/audit/investigation-demo-fixtures.test.ts (6 tests) 11ms
+@valet/dashboard:test:  ✓ src/features/administration/settings/shift-presence-map-first-layout.test.tsx (11 tests) 39ms
+@valet/dashboard:test:  ✓ src/features/audit/investigation/timeline/timeline-api.test.ts (4 tests) 26ms
+@valet/dashboard:test:  ✓ src/features/intelligence/reports-presentation.test.ts (6 tests) 10ms
+@valet/dashboard:test:  ✓ src/features/help/context-help-registry.test.ts (6 tests) 32ms
+@valet/dashboard:test:  ✓ src/features/intelligence/customer-feedback-section.test.tsx (5 tests) 266ms
+@valet/dashboard:test:  ✓ src/features/intelligence/reports-export-api.test.ts (15 tests) 22ms
+@valet/dashboard:test:  ✓ src/features/operations/live-operations/issue-276-baseline-diagnostic.test.tsx (3 tests) 115ms
+@valet/dashboard:test:  ✓ src/lib/scope/dashboard-scope.test.ts (5 tests) 16ms
+@valet/dashboard:test:  ✓ src/components/foundation/selected-scope-base-authority-sharing.test.ts (3 tests) 11ms
+@valet/dashboard:test:  ✓ src/lib/navigation/location-maps-navigation.test.ts (3 tests) 12ms
+@valet/dashboard:test:  ✓ src/lib/auth/staff-auth-continuity.test.ts (8 tests) 121ms
+@valet/dashboard:test:  ✓ src/features/administration/roles/roles-page.test.ts (4 tests) 13ms
+@valet/dashboard:test:  ✓ src/features/audit/investigation/investigation-ui-manifest.test.tsx (6 tests) 62ms
+@valet/dashboard:test:  ✓ src/features/operations/maps/use-map-setup-mutation.test.ts (12 tests) 15ms
+@valet/dashboard:test:  ✓ src/features/operations/session-photos/photo-client.test.ts (4 tests) 16ms
+@valet/dashboard:test:  ✓ src/features/audit/investigation/search/investigation-live-panel.test.tsx (5 tests) 89ms
+@valet/dashboard:test:  ✓ src/features/audit/investigation-demo-ui.test.tsx (8 tests) 136ms
+@valet/dashboard:test:  ✓ src/features/administration/physical-resources/issue304-action-dialogs.test.tsx (4 tests) 20ms
+@valet/dashboard:test:  ✓ src/components/scope/location-switch-policy.test.ts (5 tests) 8ms
+@valet/dashboard:test:  ✓ src/features/administration/physical-resources/issue304-action-reopen.test.tsx (2 tests) 18ms
+@valet/dashboard:test:  ✓ src/lib/navigation/navigation-commercial-access.test.ts (2 tests) 6ms
+@valet/dashboard:test:  ✓ src/features/visit-contacts/visit-contacts-api.test.ts (4 tests) 17ms
+@valet/dashboard:test:  ✓ src/features/administration/settings/attendance-zone-bounds.test.ts (6 tests) 11ms
+@valet/dashboard:test:  ✓ src/features/administration/administration-navigation.test.ts (4 tests) 8ms
+@valet/dashboard:test:  ✓ src/features/audit/investigation/search/investigation-selector-controller.test.ts (3 tests) 15ms
+@valet/dashboard:test:  ✓ src/features/audit/investigation/search/investigation-selector-resolution.test.ts (3 tests) 8ms
+@valet/dashboard:test:  ✓ src/features/audit/investigation-live-query.test.ts (5 tests) 70ms
+@valet/dashboard:test:  ✓ src/features/administration/physical-resources/issue304-create-key-slot.test.ts (4 tests) 20ms
+@valet/dashboard:test:  ✓ src/features/intelligence/dashboard-period-calendar.test.ts (11 tests) 42ms
+@valet/dashboard:test:  ✓ src/features/audit/audit-safe-renderer.test.ts (16 tests) 32ms
+@valet/dashboard:test:  ✓ src/features/audit/investigation-demo-audit-guard.test.tsx (6 tests) 29ms
+@valet/dashboard:test:  ✓ src/features/operations/operations-navigation.test.ts (5 tests) 7ms
+@valet/dashboard:test:  ✓ src/features/help/context-help-administration-mounts.test.ts (2 tests) 89ms
+@valet/dashboard:test:  ✓ src/features/administration/physical-resources/issue304-native-variant.test.tsx (3 tests) 34ms
+@valet/dashboard:test:  ✓ src/features/audit/audit-event-labels.test.ts (9 tests) 24ms
+@valet/dashboard:test:  ✓ src/lib/navigation/dashboard-navigation.test.ts (5 tests) 8ms
+@valet/dashboard:test:  ✓ src/lib/api/api-origin.test.ts (7 tests) 13ms
+@valet/dashboard:test:  ✓ src/features/operations/map-setup-api.test.ts (2 tests) 15ms
+@valet/dashboard:test:  ✓ src/lib/mfa/dashboard-mfa-client.test.ts (3 tests) 13ms
+@valet/dashboard:test:  ✓ src/features/administration/staff/staff-shift-force-end-api.test.ts (6 tests) 51ms
+@valet/dashboard:test:  ✓ src/features/help/context-help-phase-e-mounts.test.ts (3 tests) 88ms
+@valet/dashboard:test:  ✓ src/features/administration/use-sensitive-mutation.test.ts (5 tests) 11ms
+@valet/dashboard:test:  ✓ src/features/intelligence/customer-feedback-api.test.ts (2 tests) 11ms
+@valet/dashboard:test:  ✓ src/features/administration/staff/staff-force-end-intent.test.ts (13 tests) 16ms
+@valet/dashboard:test:  ✓ src/components/foundation/supervisor-foundation-access.test.ts (4 tests) 17ms
+@valet/dashboard:test:  ✓ src/features/operations/session-photos/protected-photo-get.test.ts (2 tests) 65ms
+@valet/dashboard:test:  ✓ src/features/administration/physical-resources/issue304-option3-create-form.test.tsx (3 tests) 25ms
+@valet/dashboard:test:  ✓ src/features/operations/operations-api.test.ts (2 tests) 10ms
+@valet/dashboard:test:  ✓ src/features/administration/settings/shift-presence-zone-code.test.tsx (12 tests) 26ms
+@valet/dashboard:test:  ✓ src/lib/navigation/md04-production-navigation.test.ts (2 tests) 9ms
+@valet/dashboard:test:  ✓ src/features/operations/operations-scope.test.ts (2 tests) 7ms
+@valet/dashboard:test:  ✓ src/features/operations/keys/resource-inspector-contract.test.ts (2 tests) 9ms
+@valet/dashboard:test:  ✓ src/features/administration/physical-resources/issue304-action-intent.test.ts (4 tests) 8ms
+@valet/dashboard:test:  ✓ src/features/administration/settings/whatsapp-settings-api.test.tsx (3 tests) 6ms
+@valet/dashboard:test:  ✓ src/features/administration/staff/staff-shift-time.test.ts (3 tests) 58ms
+@valet/dashboard:test:  ✓ src/features/intelligence/intelligence-navigation.test.ts (2 tests) 6ms
+@valet/dashboard:test:  ✓ src/features/operations/maps/operational-map-camera-fit.test.ts (2 tests) 5ms
+@valet/dashboard:test:  ✓ src/lib/navigation/navigation-landing.test.ts (4 tests) 7ms
+@valet/dashboard:test:  ✓ src/features/visit-contacts/visit-contact-privacy.test.ts (3 tests) 6ms
+@valet/dashboard:test:  ✓ src/components/foundation/root-product-landing-help.test.tsx (2 tests) 17ms
+@valet/dashboard:test:  ✓ src/features/administration/staff/staff-force-end-recovery.test.ts (4 tests) 6ms
+@valet/dashboard:test:  ✓ src/features/administration/physical-resources/issue304-option3-heading.test.tsx (2 tests) 50ms
+@valet/dashboard:test:  ✓ src/features/operations/incidents/incident-presentation.test.ts (25 tests) 15ms
+@valet/dashboard:test:  ✓ src/features/administration/staff/staff-presentation.test.ts (3 tests) 35ms
+@valet/dashboard:test:  ✓ src/features/audit/audit-api.test.ts (4 tests) 12ms
+@valet/dashboard:test:  ✓ src/components/foundation/navigation-authority-demand.test.ts (1 test) 6ms
+@valet/dashboard:test:  ✓ src/features/intelligence/dashboard-period-selection.test.ts (11 tests) 8ms
+@valet/dashboard:test:  ✓ src/features/intelligence/overview-duration.test.ts (3 tests) 38ms
+@valet/dashboard:test:  ✓ src/features/administration/administration-scope.test.ts (1 test) 8ms
+@valet/dashboard:test:  ✓ src/features/operations/live-operations/live-sessions-transport.test.ts (1 test) 7ms
+@valet/dashboard:test:  ✓ src/features/intelligence/intelligence-period-validation.test.ts (3 tests) 9ms
+@valet/dashboard:test:  ✓ src/components/scope/scope-entry-policy.test.ts (3 tests) 5ms
+@valet/dashboard:test:  ✓ src/features/intelligence/payments-labels.test.ts (2 tests) 6ms
+@valet/dashboard:test:  ✓ src/features/intelligence/report-row-label.test.ts (2 tests) 5ms
+@valet/dashboard:test:  ✓ src/features/visit-contacts/visit-contact-correction-recovery.test.ts (2 tests) 6ms
+@valet/dashboard:test:  ✓ src/components/security/mfa-ui.test.ts (2 tests) 5ms
+@valet/dashboard:test:  ✓ src/features/operations/keys/key-presentation.test.ts (3 tests) 7ms
+@valet/dashboard:test:  ✓ src/lib/navigation/account-security-navigation.test.ts (2 tests) 6ms
+@valet/dashboard:test:  ✓ src/lib/presentation/resource-vehicle-identity.test.ts (1 test) 5ms
+@valet/dashboard:test:  ✓ src/lib/maps/google-maps-sdk-ownership.test.ts (1 test) 3087ms
+@valet/dashboard:test:    ✓ keeps Attendance and Operations on the one shared Maps SDK loader  3077ms
+@valet/dashboard:test:  ✓ src/features/intelligence/overview-session-state.test.ts (2 tests) 7ms
+@valet/dashboard:test:  ✓ src/features/administration/settings/shift-presence-id.test.ts (2 tests) 5ms
+@valet/dashboard:test:  ✓ src/lib/presentation/resource-vehicle-identity-text.test.tsx (2 tests) 13ms
+@valet/dashboard:test:  ✓ src/lib/api/dashboard-protected-jpeg-body.test.ts (2 tests) 56ms
+@valet/dashboard:test:  ✓ src/features/operations/maps/operational-google-map-config.test.ts (1 test) 4ms
+@valet/dashboard:test:  ✓ src/lib/app-info.test.ts (1 test) 5ms
+@valet/dashboard:test:  ✓ src/lib/i18n/locale.test.ts (2 tests) 5ms
+@valet/dashboard:test:  ✓ src/features/visit-contacts/visit-contact-time.test.ts (1 test) 42ms
+@valet/dashboard:test:  ✓ src/lib/auth/staff-auth-context.test.ts (1 test) 5ms
+@valet/dashboard:test:  ❯ src/features/help/administration-settings-help.test.ts (3 tests) 118305ms
+@valet/dashboard:test:      ✓ matches all actual company, management-location and LM keys to one Save-adjacent help  2051ms
+@valet/dashboard:test:      ✓ preserves modified ordinary draft and makes zero mutation or network requests  433ms
+@valet/dashboard:test:      ✓ keeps seven Operating Hours drafts and invalid SLA disabled after opening help  581ms
+@valet/dashboard:test:  ❯ src/features/help/context-help.test.tsx (10 tests) 125636ms
+@valet/dashboard:test:      ✓ mounts exactly the requested English key, a named icon button and correct dialog semantics  1162ms
+@valet/dashboard:test:      ✓ supports Arabic, RTL, localized name and updates both title and body while open  613ms
+@valet/dashboard:test:      ✓ closes on Close, Escape, backdrop but not inside clicks; returns focus without double dialogs  717ms
+@valet/dashboard:test:      ✓ keeps one help dialog across separate triggers, including rapid cross-trigger opening  499ms
+@valet/dashboard:test:      ✓ keeps the parent dialog and dirty input after nested help Escape  462ms
+@valet/dashboard:test:      ✓ renders full-screen help from transformed clipped hosts without dismissing the parent  515ms
+@valet/dashboard:test:      ✓ closes stale help immediately on identity changes and falls back after route unmount  458ms
+@valet/dashboard:test:      ✓ keeps focus in the surviving parent modal after nested scope revocation  452ms
+@valet/dashboard:test:      ✓ preserves form drafts and has no submission, API, geolocation or navigation effects  433ms
+@valet/dashboard:test:      ✓ keeps long localized text within available small-screen space and theme tokens  505ms
+@valet/dashboard:test:
+@valet/dashboard:test: ⎯⎯⎯⎯⎯⎯ Failed Suites 2 ⎯⎯⎯⎯⎯⎯⎯
+@valet/dashboard:test:
+@valet/dashboard:test:  FAIL  src/features/help/administration-settings-help.test.ts > 278-D Administration settings mounted help
+@valet/dashboard:test: Error: Hook timed out in 90000ms.
+@valet/dashboard:test: If this is a long-running hook, pass a timeout value as the last argument or configure it globally with "hookTimeout".
+@valet/dashboard:test:  ❯ src/features/help/administration-settings-help.test.ts:67:3
+@valet/dashboard:test:      65|   }, 45_000);
+@valet/dashboard:test:      66|
+@valet/dashboard:test:      67|   afterAll(async () => {
+@valet/dashboard:test:        |   ^
+@valet/dashboard:test:      68|     await page?.context().close();
+@valet/dashboard:test:      69|     await browser?.close();
+@valet/dashboard:test:
+@valet/dashboard:test: ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+@valet/dashboard:test:
+@valet/dashboard:test:  FAIL  src/features/help/context-help.test.tsx > ContextHelp real-browser mounted accessibility and lifecycle
+@valet/dashboard:test: Error: Hook timed out in 90000ms.
+@valet/dashboard:test: If this is a long-running hook, pass a timeout value as the last argument or configure it globally with "hookTimeout".
+@valet/dashboard:test:  ❯ src/features/help/context-help.test.tsx:100:3
+@valet/dashboard:test:      98|   });
+@valet/dashboard:test:      99|
+@valet/dashboard:test:     100|   afterAll(async () => {
+@valet/dashboard:test:        |   ^
+@valet/dashboard:test:     101|     await browser?.close();
+@valet/dashboard:test:     102|     await browserServer?.kill();
+@valet/dashboard:test:
+@valet/dashboard:test: ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+@valet/dashboard:test:
+@valet/dashboard:test:
+@valet/dashboard:test:  Test Files  2 failed | 144 passed (146)
+@valet/dashboard:test:       Tests  997 passed (997)
+@valet/dashboard:test:    Start at  21:49:40
+@valet/dashboard:test:    Duration  129.68s (transform 39.10s, setup 0ms, import 141.97s, tests 252.84s, environment 37ms)
+@valet/dashboard:test:
+@valet/dashboard:test:  ELIFECYCLE  Test failed. See above for more details.
+@valet/valet:test: cache miss, executing fce10bdc058c9415
+@valet/valet-native:test: cache miss, executing 275c3e8551cc8016
+@valet/dashboard#test:  ERROR  command (D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\dashboard) C:\Program Files\nodejs\pnpm.CMD run test exited (1)
+
+ Tasks:    6 successful, 9 total
+Cached:    0 cached, 9 total
+  Time:    2m54.466s
+Failed:    @valet/dashboard#test
+
+ ERROR  run failed: command  exited (1)
+[test-harness] root:pure-turbo failed exit=1 category=test-failure wallMs=174992
+
+> @valet/api@0.0.0 test:non-postgres D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\api
+> node ../../scripts/test-harness/run-api-node-tests.mjs && vitest run --config vitest.config.mjs --project api-non-postgres
+
+✔ T01/T30: same Session AND uses separate in-window historical witnesses (5.0716ms)
+✔ T02/T37: reused current slot and session creation are not witnesses (0.5869ms)
+✔ T06/T07: QUEUED Dispatch is independently present with nullable actor (0.3332ms)
+✔ T03/T08/T10: reassignment actor, participants, same-time slot rows separate (0.37ms)
+✔ T01/T17: A→B→C custody and verified handoff do not imply holder or release (0.5051ms)
+✔ T30/T31: same-Session filter AND cannot join staff from a foreign Session (0.2295ms)
+✔ T17/T18/T39: equal-time persisted RELEASED and COMPLETED both survive (0.2869ms)
+✔ T21/T38: Incident and paired Audit distinct; full timeline exceeds search interval (0.2826ms)
+✔ T35: half-open exact millisecond endpoint excludes to, includes from (0.4041ms)
+✔ T48 reference: cross-tenant Session never returned despite matching slot/time (0.4802ms)
+✔ T15: a direct Session pointer must not excuse missing/wrong Task entity (3.3948ms)
+✔ T15/T21: a direct Session pointer must not excuse missing/wrong Incident entity (0.3244ms)
+✔ T25: conflicting vehicle Audit reference does not qualify a witness (0.1447ms)
+✔ T48/T53: direct point source bounds exact Location and Session before detail (0.1977ms)
+✔ T52: Incident point source cannot bypass inactive-Location boundary (0.2035ms)
+✔ T39/T67: four-source tuple order and bounded fail-closed first page (1.6723ms)
+✔ T60: Investigation cannot mount native Audit Events hook in the same view (1.7348ms)
+✔ T56/T70: scope-generation fencing plus cancel on transitions and refresh (0.586ms)
+✔ T56/T59: LIVE source/time/current facts are not fixture-derived (0.3403ms)
+✔ T45/T62/T63: normal signed pagination retains specific unsafe-cohort veto (1.5309ms)
+✔ P1: >200 Member directory must not prevent time-only Investigation search (0.4204ms)
+✔ P1: stale point details are aborted and generation-fenced on selection/scope change (0.2245ms)
+✔ reauthorization precedes session and all source SQL (1.9524ms)
+✔ bounded multi-source one-page never claims cross-request snapshot (1.2724ms)
+✔ unproven cursor or limit overflow fails closed (0.6676ms)
+✔ inactive Location keeps non-Incident history but denies Incident coverage (0.4593ms)
+✔ equal-time source rank, UUID order and duplicate source keys enforced (0.5125ms)
+✔ source outage aborts page, not three-source partial success (0.2608ms)
+✔ detail requires Session containment then W4 source proof then source row (0.5514ms)
+✔ indirect Audit detail requires failed direct proof and independent scoped containment (0.4277ms)
+✔ indirect authority requires the Audit row's own Session entity and excludes unproven parent-only linkage (0.9564ms)
+✔ indirect scope denies missing proof and binds four UUID parameters exactly (1.2184ms)
+✔ custody is historical slot and actor only; current holder never inferred (2.5378ms)
+✔ actual RELEASED event permits null slot while CHECKED_OUT does not (0.7737ms)
+✔ unrecognized historical Incident type is partial and never echoed (0.5834ms)
+✔ dispatch actor, former/new assignees stay separate; no reason or current Task (0.552ms)
+✔ Incident reporter only; current status is not invented transition (0.3758ms)
+✔ unknown Audit type never exposes raw kind or enriches actor (0.2846ms)
+✔ four-source SQL uses exact scope and no sensitive source columns (17.4415ms)
+✔ safe point-detail SQL filters explicit source AND event ID (8.8059ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 678.6179
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/customer-312-317-318/apps/api
+
+ ❯ |api-non-postgres| test/issue300-r2-positive-signed-gate.integration.test.ts (3 tests | 2 failed) 154ms
+     × model-only verifier accepts exact signed file and enables only signed U005 scopes 44ms
+     × even test model fails closed for stale lease, wrong scope, unsigned or changed build 54ms
+[Nest] 12148  - 10/22/2026, 9:52:02 PM   ERROR [DashboardSessionPhotoController] PHOTO_BYTES_ERROR_AFTER_CLOSE requestId=socket-lifecycle-test
+[Nest] 12148  - 10/22/2026, 9:52:02 PM   ERROR [DashboardSessionPhotoController] PHOTO_BYTES_ERROR_AFTER_CLOSE requestId=socket-lifecycle-test
+[Nest] 18368  - 10/22/2026, 9:52:04 PM     LOG [T4Readiness] T4_READINESS state=ready
+[Nest] 18368  - 10/22/2026, 9:52:04 PM     LOG [T4Readiness] T4_READINESS state=unavailable
+[Nest] 18368  - 10/22/2026, 9:52:04 PM     LOG [T4Readiness] T4_READINESS state=unavailable
+[Nest] 18368  - 10/22/2026, 9:52:04 PM     LOG [T4Readiness] T4_READINESS state=unavailable
+[Nest] 18368  - 10/22/2026, 9:52:04 PM     LOG [T4Readiness] T4_READINESS state=unavailable
+[Nest] 20192  - 10/22/2026, 9:52:09 PM     LOG [T4Readiness] T4_READINESS state=ready
+[Nest] 20192  - 10/22/2026, 9:52:09 PM     LOG [T4Readiness] T4_READINESS state=ready
+[Nest] 20192  - 10/22/2026, 9:52:09 PM     LOG [T4Readiness] T4_READINESS state=unavailable
+[Nest] 20192  - 10/22/2026, 9:52:09 PM     LOG [T4Readiness] T4_READINESS state=ready
+[Nest] 20192  - 10/22/2026, 9:52:12 PM     LOG [T4Readiness] T4_READINESS state=unavailable
+[Nest] 20192  - 10/22/2026, 9:52:12 PM     LOG [T4Readiness] T4_READINESS state=ready
+[Nest] 20192  - 10/22/2026, 9:52:12 PM     LOG [T4Readiness] T4_READINESS state=unavailable
+[Nest] 20192  - 10/22/2026, 9:52:12 PM     LOG [T4Readiness] T4_READINESS state=unavailable
+[Nest] 20192  - 10/22/2026, 9:52:12 PM     LOG [T4Readiness] T4_READINESS state=ready
+[Nest] 20192  - 10/22/2026, 9:52:12 PM     LOG [T4Readiness] T4_READINESS state=unavailable
+[Nest] 20192  - 10/22/2026, 9:52:12 PM     LOG [T4Readiness] T4_READINESS state=ready
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=0
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER no-match status=200 results=0
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=0
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER no-match status=200 results=0
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=0
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER no-match status=200 results=0
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=0
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER no-match status=200 results=0
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=0
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER no-match status=200 results=0
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=0
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER no-match status=200 results=0
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=3
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER match status=200 results=3
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=0
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER no-match status=200 results=0
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=1
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER no-match status=200 results=1
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER invalid-provider-shape status=200
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER invalid-provider-shape status=200
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=1
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER candidate-validation-failure status=200 results=1
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=1
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER candidate-validation-failure status=200 results=1
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER network-error
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-non-ok status=429
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER invalid-json status=200
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER response-too-large status=200
+[Nest] 22004  - 10/22/2026, 9:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 22004  - 10/22/2026, 9:52:18 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER timeout
+ ❯ |api-non-postgres| test/issue300-r2-versioned-proof-files.test.ts (4 tests | 3 failed) 51ms
+   × derives only closed v1 per-SHA/lease names 18ms
+   × rejects forged leaf symlinks and hard links; exposes changed bytes for digest checks 11ms
+   × accepts only exact owned signed-certificate filenames and sidecars 12ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |api-non-postgres| test/issue300-r2-positive-signed-gate.integration.test.ts > TEST-ONLY ephemeral Ed25519 whole R2 certificate → U005 gate > model-only verifier accepts exact signed file and enables only signed U005 scopes
+AssertionError: expected undefined to be 'issue300-r2-unit-positive-lease-001' // Object.is equality
+
+- Expected:
+"issue300-r2-unit-positive-lease-001"
+
++ Received:
+undefined
+
+ ❯ test/issue300-r2-positive-signed-gate.integration.test.ts:170:29
+    168|     injection.enabled = true;
+    169|     const parsed = readR2ProofAttestation();
+    170|     expect(parsed?.leaseId).toBe(lease);
+       |                             ^
+    171|     expect(isU05LocalProofEnabled()).toBe(true);
+    172|     expect(isU05R2IndirectHttpProofCandidate()).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  |api-non-postgres| test/issue300-r2-positive-signed-gate.integration.test.ts > TEST-ONLY ephemeral Ed25519 whole R2 certificate → U005 gate > even test model fails closed for stale lease, wrong scope, unsigned or changed build
+AssertionError: expected null not to be null
+ ❯ test/issue300-r2-positive-signed-gate.integration.test.ts:189:42
+    187|     const f = fixture();
+    188|     injection.enabled = true;
+    189|     expect(readR2ProofAttestation()).not.toBeNull();
+       |                                          ^
+    190|     process.env.ISSUE300_R2_PROOF_LEASE_ID = "issue300-r2-foreign-leas…
+    191|     expect(readR2ProofAttestation()).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  |api-non-postgres| test/issue300-r2-versioned-proof-files.test.ts > derives only closed v1 per-SHA/lease names
+AssertionError: expected null to deeply equal Buffer[ 123, 34, 99, 97, 110, …(-71) ]
+
+- Expected:
+Buffer [
+  123,
+  34,
+  99,
+  97,
+  110,
+  100,
+  105,
+  100,
+  97,
+  116,
+  101,
+  83,
+  104,
+  97,
+  34,
+  58,
+  34,
+  115,
+  121,
+  110,
+  116,
+  104,
+  101,
+  116,
+  105,
+  99,
+  34,
+  125,
+]
+
++ Received:
+null
+
+ ❯ test/issue300-r2-versioned-proof-files.test.ts:42:54
+     40|   const proof = { artifactVersion: 1, candidateSha: sha, leaseId: leas…
+     41|     resourceManifestFilename: name };
+     42|   expect(r2ReadVersionedManifest(entrypoint, proof)).toEqual(bytes);
+       |                                                      ^
+     43|   expect(r2VersionedManifestName("../", lease)).toBeNull();
+     44|   expect(r2VersionedManifestName(sha, "../escape")).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  |api-non-postgres| test/issue300-r2-versioned-proof-files.test.ts > rejects forged leaf symlinks and hard links; exposes changed bytes for digest checks
+Error: EPERM: operation not permitted, symlink 'C:\Users\ADMINI~1\AppData\Local\Temp\r2-versioned-proof-pH3i96\tmp\issue300-r2-w7-acceptance-v2-owned\R2_OWNED_RESOURCE_MANIFEST.v1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.issue300-r2-local-lease-0001.json' -> 'C:\Users\ADMINI~1\AppData\Local\Temp\r2-versioned-proof-pH3i96\tmp\issue300-r2-w7-acceptance-v2-owned\R2_OWNED_RESOURCE_MANIFEST.v1.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.issue300-r2-local-lease-0001.json'
+ ❯ test/issue300-r2-versioned-proof-files.test.ts:72:3
+     70|   const { entrypoint, owned, path } = caseFiles();
+     71|   const alias = join(owned, r2VersionedManifestName(otherSha, lease)!);
+     72|   symlinkSync(path, alias, "file");
+       |   ^
+     73|   expect(r2ReadVersionedManifest(entrypoint, {
+     74|     artifactVersion: 1, candidateSha: otherSha, leaseId: lease,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  |api-non-postgres| test/issue300-r2-versioned-proof-files.test.ts > accepts only exact owned signed-certificate filenames and sidecars
+AssertionError: expected null to be truthy
+
+- Expected:
+true
+
++ Received:
+null
+
+ ❯ test/issue300-r2-versioned-proof-files.test.ts:100:6
+     98|   writeFileSync(cert + ".sig", "a".repeat(88));
+     99|   expect(r2ReadSignedCertificateFile(entrypoint, cert, sha, lease))
+    100|     .toBeTruthy();
+       |      ^
+    101|   expect(r2ReadSignedCertificateFile(entrypoint, cert + ".sig",
+    102|     sha, lease, true)).toBeTruthy();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  2 failed | 166 passed | 2 skipped (170)
+      Tests  5 failed | 1150 passed | 6 skipped (1161)
+   Start at  21:51:58
+   Duration  36.31s (transform 24.21s, setup 29.70s, import 171.51s, tests 75.02s, environment 29ms)
+
+D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\api:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @valet/api@0.0.0 test:non-postgres: `node ../../scripts/test-harness/run-api-node-tests.mjs && vitest run --config vitest.config.mjs --project api-non-postgres`
+Exit status 1
+[test-harness] api:non-postgres failed exit=1 category=test-failure wallMs=44600
+
+> @valet/database@0.0.0 test:non-postgres D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\database
+> vitest run --config vitest.config.mjs --project database-non-postgres
+
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/customer-312-317-318/packages/database
+
+ ❯ |database-non-postgres| src/issue304-migration-source-appendix.test.ts (1 test | 1 failed) 14ms
+     × keeps migrations 1..97 frozen and appends only the approved #309 photo-view migrations 12ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |database-non-postgres| src/issue304-migration-source-appendix.test.ts > Issue #304 additive forward-only migration history > keeps migrations 1..97 frozen and appends only the approved #309 photo-view migrations
+AssertionError: expected [ …(3) ] to deeply equal [ …(2) ]
+
+- Expected
++ Received
+
+  [
+    "20261021009800_issue309_photo_view_anti_abuse_scope",
+    "20261021009900_issue_309_management_photo_evidence_lock",
++   "20261022010000_issue313_rating_analytics_read",
+  ]
+
+ ❯ src/issue304-migration-source-appendix.test.ts:24:30
+     22|       .filter((entry) => entry.isDirectory()).map((entry) => entry.nam…
+     23|     expect(actual.slice(0, 97)).toEqual(expectedCurrentMigrationDirect…
+     24|     expect(actual.slice(97)).toEqual([
+       |                              ^
+     25|       "20261021009800_issue309_photo_view_anti_abuse_scope",
+     26|       "20261021009900_issue_309_management_photo_evidence_lock",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 7 passed (8)
+      Tests  1 failed | 64 passed (65)
+   Start at  21:52:36
+   Duration  864ms (transform 1.02s, setup 1.68s, import 858ms, tests 110ms, environment 1ms)
+
+D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\database:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @valet/database@0.0.0 test:non-postgres: `vitest run --config vitest.config.mjs --project database-non-postgres`
+Exit status 1
+[test-harness] database:non-postgres failed exit=1 category=migration-failure wallMs=2395
+ ELIFECYCLE  Command failed with exit code 1.

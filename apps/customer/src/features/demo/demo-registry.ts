@@ -22,7 +22,6 @@ export type DemoRenderableScreenKey =
   | 'demo-rate-experience'
   | 'demo-report-issue'
   | 'demo-issue-submitted'
-  | 'demo-help'
   // Errors
   | 'demo-network-unavailable'
   | 'demo-payment-error'
@@ -84,7 +83,6 @@ export const DEMO_GROUPS: readonly DemoGroup[] = [
       { kind: 'screen', id: 'demo-rate-experience', labelKey: 'demo.rateExperience' },
       { kind: 'screen', id: 'demo-report-issue', labelKey: 'demo.reportIssue' },
       { kind: 'screen', id: 'demo-issue-submitted', labelKey: 'demo.issueSubmitted' },
-      { kind: 'screen', id: 'demo-help', labelKey: 'demo.help' },
     ],
   },
   {

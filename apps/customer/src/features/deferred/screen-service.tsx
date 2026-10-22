@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 
 import { useTranslation } from '../../i18n/use-translation';
 import { Btn } from '../../components/primitives/btn';
-import { InfoRow } from '../../components/primitives/info-row';
 import { SectionTitle } from '../../components/primitives/typography-primitives';
 import { C } from '../../lib/theme/colors';
 
@@ -57,48 +56,6 @@ export function ScreenRate({
       <Btn variant="primary" onClick={onDone}>
         {t('common.done')}
       </Btn>
-    </div>
-  );
-}
-
-export function ScreenHelp({
-  onPaymentHelp,
-}: {
-  readonly onPaymentHelp?: () => void;
-}) {
-  const { t } = useTranslation();
-
-  return (
-    <div
-      className="screen-enter"
-      style={{
-        paddingLeft: 20,
-        paddingRight: 20,
-        paddingTop: 24,
-        paddingBottom: 32,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 20,
-      }}
-    >
-      <SectionTitle>{t('help.title')}</SectionTitle>
-
-      <div
-        style={{
-          borderRadius: 14,
-          padding: 20,
-          backgroundColor: C.iceSemantic,
-        }}
-      >
-        <InfoRow label={t('help.valetDesk')} value={t('help.valetDeskValue')} />
-        <InfoRow label={t('help.emergency')} value={t('help.emergencyValue')} />
-      </div>
-
-      {onPaymentHelp && (
-        <Btn variant="secondary" onClick={onPaymentHelp}>
-          {t('help.paymentInfo')}
-        </Btn>
-      )}
     </div>
   );
 }

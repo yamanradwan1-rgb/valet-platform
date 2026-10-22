@@ -5,28 +5,21 @@ import { GuestSessionContext } from "../../features/session/use-guest-session";
 import { guestBrandStyle } from "../../features/session/guest-branding";
 import { ThemeContext } from "../../theme/theme-provider";
 import { AppHeader } from "./app-header";
-import { BottomNav, type CustomerTab } from "./bottom-nav";
 
 export function AppShell({
   children,
-  tab,
-  onTab,
   onMore,
   onBack,
   headerTitle,
   showHeader = true,
-  showNav = true,
   dark,
   whiteLabel = true,
 }: {
   readonly children: React.ReactNode;
-  readonly tab: CustomerTab;
-  readonly onTab: (tab: CustomerTab) => void;
   readonly onMore: () => void;
   readonly onBack?: (() => void) | undefined;
   readonly headerTitle?: string | undefined;
   readonly showHeader?: boolean | undefined;
-  readonly showNav?: boolean | undefined;
   readonly dark?: boolean | undefined;
   readonly whiteLabel?: boolean | undefined;
 }) {
@@ -81,7 +74,6 @@ export function AppShell({
         >
           {children}
         </main>
-        {showNav && <BottomNav tab={tab} onTab={onTab} />}
       </div>
     </div>
   );

@@ -1,0 +1,43 @@
+
+> @valet/database@0.0.0 test:non-postgres D:\kndoom\valet-platform\tmp\customer-ui-baseline-27b\packages\database
+> vitest run --config vitest.config.mjs --project database-non-postgres
+
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/customer-ui-baseline-27b/packages/database
+
+ ❯ |database-non-postgres| src/issue304-migration-source-appendix.test.ts (1 test | 1 failed) 15ms
+     × keeps migrations 1..97 frozen and appends only the approved #309 photo-view migrations 13ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |database-non-postgres| src/issue304-migration-source-appendix.test.ts > Issue #304 additive forward-only migration history > keeps migrations 1..97 frozen and appends only the approved #309 photo-view migrations
+AssertionError: expected [ …(3) ] to deeply equal [ …(2) ]
+
+- Expected
++ Received
+
+  [
+    "20261021009800_issue309_photo_view_anti_abuse_scope",
+    "20261021009900_issue_309_management_photo_evidence_lock",
++   "20261022010000_issue313_rating_analytics_read",
+  ]
+
+ ❯ src/issue304-migration-source-appendix.test.ts:24:30
+     22|       .filter((entry) => entry.isDirectory()).map((entry) => entry.nam…
+     23|     expect(actual.slice(0, 97)).toEqual(expectedCurrentMigrationDirect…
+     24|     expect(actual.slice(97)).toEqual([
+       |                              ^
+     25|       "20261021009800_issue309_photo_view_anti_abuse_scope",
+     26|       "20261021009900_issue_309_management_photo_evidence_lock",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 7 passed (8)
+      Tests  1 failed | 64 passed (65)
+   Start at  22:11:48
+   Duration  949ms (transform 1.25s, setup 2.01s, import 956ms, tests 115ms, environment 3ms)
+
+D:\kndoom\valet-platform\tmp\customer-ui-baseline-27b\packages\database:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @valet/database@0.0.0 test:non-postgres: `vitest run --config vitest.config.mjs --project database-non-postgres`
+Exit status 1
