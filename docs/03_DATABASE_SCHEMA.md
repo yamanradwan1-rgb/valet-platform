@@ -3199,3 +3199,12 @@ execute write/private helpers and runtime has no direct INSERT/UPDATE/DELETE.
 The API must separately revalidate the live staff session, MFA and Guest
 session before using these database capabilities and must send Guest only
 the server-resolved published locale and confirmed public Contact fields.
+
+The runtime SQL principal is trusted to pass only the authenticated,
+server-derived actor Membership ID. Database functions independently re-check
+that Membership's current Organization, role, active state and Location grant,
+but the Membership UUID itself is not cryptographically bound to the pooled
+database connection. This is the existing DEC-058 Management settings trust
+boundary. Future defense against a compromised SQL execution context would
+require a separately accepted session-proof or per-principal database
+identity design; it is not silently introduced in Issue #316.
