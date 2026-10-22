@@ -20,11 +20,14 @@ import { GuestBrowserContextService } from "./guest-browser-context.service";
 import { GuestBrowserLimiter } from "./guest-browser-limiter";
 import { GuestAuthOriginPolicy } from "./guest-browser-transport";
 import { GuestCredentialAuthorizer } from "./guest-credential-authorizer";
+import { GuestInformationController } from "./guest-information.controller";
+import { GuestInformationService } from "./guest-information.service";
 
 @Module({
   controllers: [
     StaffGuestAccessController,
     GuestAccessController,
+    GuestInformationController,
     GuestRatingController,
     GuestBrowserSessionController,
     GuestBrowserContextController,
@@ -44,6 +47,7 @@ import { GuestCredentialAuthorizer } from "./guest-credential-authorizer";
     GuestAuthOriginPolicy,
     GuestCredentialAuthorizer,
     GuestRatingService,
+    GuestInformationService,
   ],
   exports: [
     GuestAccessService,
@@ -59,6 +63,7 @@ export class GuestAccessModule implements NestModule {
       .forRoutes(
         StaffGuestAccessController,
         GuestAccessController,
+        GuestInformationController,
         GuestRatingController,
         GuestBrowserSessionController,
         GuestBrowserContextController,
