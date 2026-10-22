@@ -92,14 +92,14 @@ export function OverviewSection({
       </div>
       <details className="opt2-more">
         <summary>
-          {translate(locale, "Choose another demo location", "اختيار موقع تجريبي آخر")}
+          {translate(locale, "Choose another location", "اختيار موقع آخر")}
         </summary>
         <div className="opt2-widgets">
           <div data-widget="locations">
             <GuestCard title={translate(locale, "Locations", "المواقع")}
               subtitle={translate(locale, "Choose where to work", "اختر الموقع")}>
               <div className="v-location-list" role="group"
-                aria-label={translate(locale, "Demo Locations", "المواقع التجريبية")}>
+                aria-label={translate(locale, "Available Locations", "المواقع المتاحة")}>
                 {overview.locations.map((item) => (
                   <button type="button" key={item.id} className="v-location-item"
                     aria-pressed={item.id === locationId}

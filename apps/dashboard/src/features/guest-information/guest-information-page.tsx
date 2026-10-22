@@ -270,8 +270,8 @@ function GuestInformationContent() {
           </div>
         </div>
         <p className="opt2-footer">
-          {translate(locale, "Demo data only. No changes are published.",
-            "بيانات تجريبية فقط. لا تُنشر أي تغييرات.")}
+          {translate(locale, "Save changes. Publish privacy separately.",
+            "احفظ التغييرات. انشر الخصوصية بشكل منفصل.")}
         </p>
       </div>
     </>

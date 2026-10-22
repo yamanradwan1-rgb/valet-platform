@@ -21,7 +21,7 @@ export function GuestPreviewCard({
         "Resolved for the selected Location and language",
         "محسوبة للموقع واللغة المحددين")}
       extra={<GuestBadge kind="neutral">
-        {translate(locale, "DEMO · No API", "تجريبي · دون API")}
+        {translate(locale, "Saved · Current", "محفوظ · حالي")}
       </GuestBadge>}>
       <div className="v-compact-head">
         <p className="v-small">{translate(locale,

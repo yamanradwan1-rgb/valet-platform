@@ -89,7 +89,7 @@ export function PrivacySection({
               <div className="v-compact-status">
                 <GuestBadge kind={status === "PUBLISHED" ? "good" : "warn"}>
                   {status === "PUBLISHED"
-                    ? translate(locale, "Published · DEMO", "منشور · تجريبي")
+                    ? translate(locale, "Published · Active", "منشور · نشط")
                     : status === "UNAVAILABLE"
                       ? translate(locale, "Not available in English", "غير متاح بالعربية")
                       : translate(locale, "Unpublished", "غير منشور")}
@@ -150,7 +150,7 @@ export function PrivacySection({
                   <input type="url" id="demo-privacy-url" data-field="privacy.url"
                     value={draft.url} autoComplete="off"
                     aria-invalid={invalid === "url"}
-                    placeholder="https://example.com/privacy"
+                    placeholder="https://"
                     onChange={(event) => update("url", event.target.value)} />
                 </div>
                 <div className="v-editor-actions">
@@ -160,7 +160,7 @@ export function PrivacySection({
                   </GuestButton>
                   {canPublish ? <GuestButton disabled={saving}
                     onClick={() => void execute("publish")}>
-                    {translate(locale, "Publish · DEMO", "نشر · تجريبي")}
+                    {translate(locale, "Publish policy", "نشر السياسة")}
                   </GuestButton> : null}
                   {privacy.published ? <GuestButton kind="quiet" disabled={saving}
                     onClick={() => void execute("unpublish")}>
