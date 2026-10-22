@@ -43,7 +43,7 @@ for (const file of (await readdir(join(evidence, "after")))
       }
   }
   let dom = null;
-  if (!file.includes("native200")) {
+  {
     const a = JSON.parse(
       await readFile(join(evidence, "before", file.replace(".png", ".json"))),
     );

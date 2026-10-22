@@ -1,0 +1,69 @@
+
+> valet-platform@0.0.0 lint D:\kndoom\valet-platform\tmp\customer-312-317-318
+> turbo run lint
+
+• turbo 2.10.6
+
+   • Packages in scope: @valet/api, @valet/config, @valet/contracts, @valet/customer, @valet/dashboard, @valet/database, @valet/employee-client, @valet/testing, @valet/ui, @valet/valet, @valet/valet-native
+   • Running lint in 11 packages
+   • Remote caching disabled, using shared worktree cache
+
+@valet/config:lint: cache hit, replaying logs 6f92d0c486f29ce7
+@valet/contracts:lint: cache hit, replaying logs e6dece97b5e266f2
+@valet/testing:lint: cache hit, replaying logs 312d19a7bd3c7c76
+@valet/database:lint: cache hit, replaying logs d5231ba1f6366338
+@valet/ui:lint: cache hit, replaying logs 1fc81e751ed812ff
+@valet/ui:lint:
+@valet/ui:lint: > @valet/ui@0.0.0 lint D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\ui
+@valet/ui:lint: > eslint src --max-warnings=0
+@valet/ui:lint:
+@valet/database:lint:
+@valet/database:lint: > @valet/database@0.0.0 lint D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\database
+@valet/testing:lint:
+@valet/contracts:lint:
+@valet/testing:lint: > @valet/testing@0.0.0 lint D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\testing
+@valet/config:lint:
+@valet/config:lint: > @valet/config@0.0.0 lint D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\config
+@valet/config:lint: > eslint src --max-warnings=0
+@valet/testing:lint: > eslint src --max-warnings=0
+@valet/testing:lint:
+@valet/contracts:lint: > @valet/contracts@0.0.0 lint D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\contracts
+@valet/database:lint: > eslint src --max-warnings=0
+@valet/config:lint:
+@valet/contracts:lint: > eslint src --max-warnings=0
+@valet/contracts:lint:
+@valet/database:lint:
+@valet/api:lint: cache miss, executing 9a538a0540cfc759
+@valet/employee-client:lint: cache hit, replaying logs 0ae661d1cff41891
+@valet/employee-client:lint:
+@valet/employee-client:lint: > @valet/employee-client@0.0.0 lint D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\employee-client
+@valet/employee-client:lint: > eslint src --max-warnings=0
+@valet/employee-client:lint:
+@valet/customer:lint: cache miss, executing 986d55c427eea52d
+@valet/dashboard:lint: cache hit, replaying logs 90b4535190de0790
+@valet/dashboard:lint:
+@valet/dashboard:lint: > @valet/dashboard@0.0.0 lint D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\dashboard
+@valet/dashboard:lint: > eslint src --max-warnings=0
+@valet/dashboard:lint:
+@valet/valet-native:lint: cache hit, replaying logs 971af3db6bc2e571
+@valet/valet-native:lint:
+@valet/valet-native:lint: > @valet/valet-native@0.0.0 lint D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\valet-native
+@valet/valet-native:lint: > eslint app.config.ts app src test --max-warnings=0
+@valet/valet-native:lint:
+@valet/valet:lint: cache hit, replaying logs 1720543bd0d81b1f
+@valet/valet:lint:
+@valet/valet:lint: > @valet/valet@0.0.0 lint D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\valet
+@valet/valet:lint: > eslint src --max-warnings=0
+@valet/valet:lint:
+@valet/api:lint:
+@valet/api:lint: > @valet/api@0.0.0 lint D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\api
+@valet/api:lint: > eslint src test tools --max-warnings=0
+@valet/api:lint:
+@valet/customer:lint:
+@valet/customer:lint: > @valet/customer@0.0.0 lint D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\customer
+@valet/customer:lint: > eslint src --max-warnings=0
+@valet/customer:lint:
+
+ Tasks:    11 successful, 11 total
+Cached:    9 cached, 11 total
+  Time:    20.294s

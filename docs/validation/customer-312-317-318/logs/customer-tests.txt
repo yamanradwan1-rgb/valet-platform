@@ -1,0 +1,12 @@
+
+> @valet/customer@0.0.0 test D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\customer
+> vitest run src
+
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/customer-312-317-318/apps/customer
+
+
+ Test Files  56 passed (56)
+      Tests  390 passed (390)
+   Start at  22:18:12
+   Duration  8.38s (transform 16.52s, setup 0ms, import 37.90s, tests 4.46s, environment 12ms)

@@ -16,9 +16,15 @@ const browser = await chromium.launch({ headless: false });
 const results = [];
 await mkdir(join(evidence, phase), { recursive: true });
 try {
-  for (const width of [320, 390, 768, 1440])
-    for (const locale of ["en", "ar"])
-      for (const theme of ["light", "dark"]) {
+  for (const width of process.env.QA_WIDTH
+    ? [Number(process.env.QA_WIDTH)]
+    : [320, 390, 768, 1440])
+    for (const locale of process.env.QA_LOCALE
+      ? [process.env.QA_LOCALE]
+      : ["en", "ar"])
+      for (const theme of process.env.QA_THEME
+        ? [process.env.QA_THEME]
+        : ["light", "dark"]) {
         const context = await browser.newContext({
           viewport: { width, height: 900 },
           deviceScaleFactor: 1,
@@ -42,21 +48,37 @@ try {
         const back = locale === "en" ? "Back" : "رجوع";
         const summary = locale === "en" ? "Payment summary" : "ملخص الدفع";
         async function capture(screen) {
+          await page.waitForFunction(() =>
+            document
+              .getAnimations()
+              .every(
+                (a) =>
+                  a.effect?.getTiming().iterations === Infinity ||
+                  a.playState === "finished",
+              ),
+          );
           await page.evaluate(async () => {
+            const fonts = new Set(
+              [...document.querySelectorAll("header *, main *")].map((el) => {
+                const s = getComputedStyle(el);
+                return `${s.fontWeight} ${s.fontSize} ${s.fontFamily}`;
+              }),
+            );
+            await Promise.all(
+              [...fonts].map((font) => document.fonts.load(font)),
+            );
             await document.fonts.ready;
             document.getAnimations().forEach((a) => {
               if (a.effect?.getTiming().iterations === Infinity) {
                 a.pause();
                 a.currentTime = 0;
-              } else {
-                a.finish();
-                a.pause();
               }
             });
             await new Promise((resolve) =>
               requestAnimationFrame(() => requestAnimationFrame(resolve)),
             );
           });
+          await page.waitForFunction(() => document.fonts.status === "loaded");
           const name = `${width}-${locale}-${theme}-${screen}`;
           const dom = await page.evaluate(() => {
             const root = document.querySelector("header")?.parentElement;

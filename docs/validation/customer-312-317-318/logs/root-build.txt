@@ -1,0 +1,166 @@
+
+> valet-platform@0.0.0 build D:\kndoom\valet-platform\tmp\customer-312-317-318
+> node scripts/build/run-build.mjs verification
+
+• turbo 2.10.6
+
+   • Packages in scope: @valet/api, @valet/config, @valet/contracts, @valet/customer, @valet/dashboard, @valet/database, @valet/employee-client, @valet/testing, @valet/ui, @valet/valet, @valet/valet-native
+   • Running build in 11 packages
+   • Remote caching disabled, using shared worktree cache
+
+@valet/testing:build: cache miss, executing dc39b8bcdbaf8e1b
+@valet/database:build: cache miss, executing 6d088b1b5bdf25ac
+@valet/ui:build: cache miss, executing 79b8cdfb89295d1c
+@valet/contracts:build: cache miss, executing 0f590eac48bd1f25
+@valet/config:build: cache miss, executing 5dab5fe9fff0b1e0
+@valet/testing:build:
+@valet/testing:build: > @valet/testing@0.0.0 build D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\testing
+@valet/testing:build: > tsc -p tsconfig.json
+@valet/testing:build:
+@valet/database:build:
+@valet/database:build: > @valet/database@0.0.0 build D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\database
+@valet/database:build: > tsc -p tsconfig.json
+@valet/database:build:
+@valet/ui:build:
+@valet/ui:build: > @valet/ui@0.0.0 build D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\ui
+@valet/ui:build: > tsc -p tsconfig.json
+@valet/ui:build:
+@valet/contracts:build:
+@valet/contracts:build: > @valet/contracts@0.0.0 build D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\contracts
+@valet/contracts:build: > tsc -p tsconfig.json
+@valet/contracts:build:
+@valet/config:build:
+@valet/config:build: > @valet/config@0.0.0 build D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\config
+@valet/config:build: > tsc -p tsconfig.json
+@valet/config:build:
+@valet/dashboard:build: cache miss, executing 18b9638c08639d67
+@valet/customer:build: cache miss, executing 2d0ad81f34ace2f8
+@valet/employee-client:build: cache miss, executing 44011bcbd2ccebb0
+@valet/api:build: cache miss, executing c92eb3f863c8a3c5
+@valet/dashboard:build:
+@valet/dashboard:build: > @valet/dashboard@0.0.0 build D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\dashboard
+@valet/dashboard:build: > next build
+@valet/dashboard:build:
+@valet/customer:build:
+@valet/customer:build: > @valet/customer@0.0.0 build D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\customer
+@valet/customer:build: > pnpm --filter @valet/contracts build && next build && node scripts/prepare-standalone.mjs && node ../../scripts/build/validate-customer-artifact.mjs
+@valet/customer:build:
+@valet/employee-client:build:
+@valet/employee-client:build: > @valet/employee-client@0.0.0 build D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\employee-client
+@valet/employee-client:build: > tsc -p tsconfig.json
+@valet/employee-client:build:
+@valet/api:build:
+@valet/api:build: > @valet/api@0.0.0 build D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\api
+@valet/api:build: > tsc -p tsconfig.build.json
+@valet/api:build:
+@valet/customer:build:
+@valet/customer:build: > @valet/contracts@0.0.0 build D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\contracts
+@valet/customer:build: > tsc -p tsconfig.json
+@valet/customer:build:
+@valet/dashboard:build: ▲ Next.js 16.2.11 (Turbopack)
+@valet/dashboard:build:
+@valet/dashboard:build:   Creating an optimized production build ...
+@valet/valet:build: cache miss, executing 947f2056c926c13d
+@valet/customer:build: ▲ Next.js 16.2.11 (Turbopack)
+@valet/customer:build:
+@valet/customer:build:   Creating an optimized production build ...
+@valet/valet:build:
+@valet/valet:build: > @valet/valet@0.0.0 build D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\valet
+@valet/valet:build: > next build
+@valet/valet:build:
+@valet/dashboard:build: ✓ Compiled successfully in 10.2s
+@valet/dashboard:build:   Running TypeScript ...
+@valet/valet:build: ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+@valet/valet:build:  We detected multiple lockfiles and selected the directory of D:\kndoom\valet-platform\pnpm-workspace.yaml as the root directory.
+@valet/valet:build:  To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+@valet/valet:build:    See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+@valet/valet:build:  Detected additional lockfiles:
+@valet/valet:build:    * D:\kndoom\valet-platform\tmp\customer-312-317-318\pnpm-workspace.yaml
+@valet/valet:build:
+@valet/valet:build: ▲ Next.js 16.2.11 (Turbopack)
+@valet/valet:build:
+@valet/valet:build:   Creating an optimized production build ...
+@valet/customer:build: ✓ Compiled successfully in 6.5s
+@valet/customer:build:   Running TypeScript ...
+@valet/valet:build: ✓ Compiled successfully in 13.2s
+@valet/valet:build:   Running TypeScript ...
+@valet/customer:build:   Finished TypeScript in 12.8s ...
+@valet/customer:build:   Collecting page data using 5 workers ...
+@valet/customer:build:   Generating static pages using 5 workers (0/4) ...
+@valet/customer:build:   Generating static pages using 5 workers (1/4)
+@valet/customer:build:   Generating static pages using 5 workers (2/4)
+@valet/customer:build:   Generating static pages using 5 workers (3/4)
+@valet/customer:build: ✓ Generating static pages using 5 workers (4/4) in 1077ms
+@valet/customer:build:   Finalizing page optimization ...
+@valet/customer:build:
+@valet/customer:build: Route (app)
+@valet/customer:build: ┌ ○ /
+@valet/customer:build: ├ ○ /_not-found
+@valet/customer:build: └ ƒ /readyz
+@valet/customer:build:
+@valet/customer:build:
+@valet/customer:build: ○  (Static)   prerendered as static content
+@valet/customer:build: ƒ  (Dynamic)  server-rendered on demand
+@valet/customer:build:
+@valet/dashboard:build:   Finished TypeScript in 25.5s ...
+@valet/dashboard:build:   Collecting page data using 11 workers ...
+@valet/valet:build:   Finished TypeScript in 9.9s ...
+@valet/valet:build:   Collecting page data using 5 workers ...
+@valet/dashboard:build:   Generating static pages using 11 workers (0/26) ...
+@valet/valet:build:   Generating static pages using 5 workers (0/4) ...
+@valet/dashboard:build:   Generating static pages using 11 workers (6/26)
+@valet/dashboard:build:   Generating static pages using 11 workers (12/26)
+@valet/dashboard:build:   Generating static pages using 11 workers (19/26)
+@valet/dashboard:build: ✓ Generating static pages using 11 workers (26/26) in 757ms
+@valet/dashboard:build:   Finalizing page optimization ...
+@valet/valet:build:   Generating static pages using 5 workers (1/4)
+@valet/valet:build:   Generating static pages using 5 workers (2/4)
+@valet/valet:build:   Generating static pages using 5 workers (3/4)
+@valet/valet:build: ✓ Generating static pages using 5 workers (4/4) in 1138ms
+@valet/valet:build:   Finalizing page optimization ...
+@valet/dashboard:build:
+@valet/dashboard:build: Route (app)
+@valet/dashboard:build: ┌ ○ /
+@valet/dashboard:build: ├ ○ /_not-found
+@valet/dashboard:build: ├ ○ /analytics
+@valet/dashboard:build: ├ ○ /audit-log
+@valet/dashboard:build: ├ ○ /billing-subscription
+@valet/dashboard:build: ├ ○ /branding
+@valet/dashboard:build: ├ ○ /customers
+@valet/dashboard:build: ├ ○ /employees
+@valet/dashboard:build: ├ ○ /foundation-test-subscription-recovery
+@valet/dashboard:build: ├ ○ /help
+@valet/dashboard:build: ├ ○ /incidents
+@valet/dashboard:build: ├ ○ /integrations
+@valet/dashboard:build: ├ ○ /keys
+@valet/dashboard:build: ├ ○ /live-operations
+@valet/dashboard:build: ├ ○ /locations
+@valet/dashboard:build: ├ ○ /maps-zones
+@valet/dashboard:build: ├ ○ /overview
+@valet/dashboard:build: ├ ○ /payments
+@valet/dashboard:build: ├ ƒ /policies
+@valet/dashboard:build: ├ ○ /reports
+@valet/dashboard:build: ├ ○ /roles-permissions
+@valet/dashboard:build: ├ ○ /security
+@valet/dashboard:build: ├ ○ /staff/activate
+@valet/dashboard:build: ├ ○ /tasks
+@valet/dashboard:build: └ ○ /vehicles
+@valet/dashboard:build:
+@valet/dashboard:build:
+@valet/dashboard:build: ○  (Static)   prerendered as static content
+@valet/dashboard:build: ƒ  (Dynamic)  server-rendered on demand
+@valet/dashboard:build:
+@valet/valet:build:
+@valet/valet:build: Route (app)
+@valet/valet:build: ┌ ƒ /
+@valet/valet:build: ├ ƒ /_not-found
+@valet/valet:build: └ ○ /manifest.webmanifest
+@valet/valet:build:
+@valet/valet:build:
+@valet/valet:build: ○  (Static)   prerendered as static content
+@valet/valet:build: ƒ  (Dynamic)  server-rendered on demand
+@valet/valet:build:
+
+ Tasks:    10 successful, 10 total
+Cached:    0 cached, 10 total
+  Time:    48.063s

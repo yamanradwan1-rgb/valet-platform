@@ -1,0 +1,133 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/customer-ui-baseline-27b/apps/api
+
+ ❯ |api-non-postgres| test/issue300-r2-versioned-proof-files.test.ts (4 tests | 3 failed) 38ms
+   × derives only closed v1 per-SHA/lease names 14ms
+   × rejects forged leaf symlinks and hard links; exposes changed bytes for digest checks 8ms
+   × accepts only exact owned signed-certificate filenames and sidecars 8ms
+ ❯ |api-non-postgres| test/issue300-r2-positive-signed-gate.integration.test.ts (3 tests | 2 failed) 76ms
+     × model-only verifier accepts exact signed file and enables only signed U005 scopes 20ms
+     × even test model fails closed for stale lease, wrong scope, unsigned or changed build 14ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |api-non-postgres| test/issue300-r2-positive-signed-gate.integration.test.ts > TEST-ONLY ephemeral Ed25519 whole R2 certificate → U005 gate > model-only verifier accepts exact signed file and enables only signed U005 scopes
+AssertionError: expected undefined to be 'issue300-r2-unit-positive-lease-001' // Object.is equality
+
+- Expected:
+"issue300-r2-unit-positive-lease-001"
+
++ Received:
+undefined
+
+ ❯ test/issue300-r2-positive-signed-gate.integration.test.ts:170:29
+    168|     injection.enabled = true;
+    169|     const parsed = readR2ProofAttestation();
+    170|     expect(parsed?.leaseId).toBe(lease);
+       |                             ^
+    171|     expect(isU05LocalProofEnabled()).toBe(true);
+    172|     expect(isU05R2IndirectHttpProofCandidate()).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  |api-non-postgres| test/issue300-r2-positive-signed-gate.integration.test.ts > TEST-ONLY ephemeral Ed25519 whole R2 certificate → U005 gate > even test model fails closed for stale lease, wrong scope, unsigned or changed build
+AssertionError: expected null not to be null
+ ❯ test/issue300-r2-positive-signed-gate.integration.test.ts:189:42
+    187|     const f = fixture();
+    188|     injection.enabled = true;
+    189|     expect(readR2ProofAttestation()).not.toBeNull();
+       |                                          ^
+    190|     process.env.ISSUE300_R2_PROOF_LEASE_ID = "issue300-r2-foreign-leas…
+    191|     expect(readR2ProofAttestation()).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  |api-non-postgres| test/issue300-r2-versioned-proof-files.test.ts > derives only closed v1 per-SHA/lease names
+AssertionError: expected null to deeply equal Buffer[ 123, 34, 99, 97, 110, …(-71) ]
+
+- Expected:
+Buffer [
+  123,
+  34,
+  99,
+  97,
+  110,
+  100,
+  105,
+  100,
+  97,
+  116,
+  101,
+  83,
+  104,
+  97,
+  34,
+  58,
+  34,
+  115,
+  121,
+  110,
+  116,
+  104,
+  101,
+  116,
+  105,
+  99,
+  34,
+  125,
+]
+
++ Received:
+null
+
+ ❯ test/issue300-r2-versioned-proof-files.test.ts:42:54
+     40|   const proof = { artifactVersion: 1, candidateSha: sha, leaseId: leas…
+     41|     resourceManifestFilename: name };
+     42|   expect(r2ReadVersionedManifest(entrypoint, proof)).toEqual(bytes);
+       |                                                      ^
+     43|   expect(r2VersionedManifestName("../", lease)).toBeNull();
+     44|   expect(r2VersionedManifestName(sha, "../escape")).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  |api-non-postgres| test/issue300-r2-versioned-proof-files.test.ts > rejects forged leaf symlinks and hard links; exposes changed bytes for digest checks
+Error: EPERM: operation not permitted, symlink 'C:\Users\ADMINI~1\AppData\Local\Temp\r2-versioned-proof-fxeawO\tmp\issue300-r2-w7-acceptance-v2-owned\R2_OWNED_RESOURCE_MANIFEST.v1.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.issue300-r2-local-lease-0001.json' -> 'C:\Users\ADMINI~1\AppData\Local\Temp\r2-versioned-proof-fxeawO\tmp\issue300-r2-w7-acceptance-v2-owned\R2_OWNED_RESOURCE_MANIFEST.v1.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.issue300-r2-local-lease-0001.json'
+ ❯ test/issue300-r2-versioned-proof-files.test.ts:72:3
+     70|   const { entrypoint, owned, path } = caseFiles();
+     71|   const alias = join(owned, r2VersionedManifestName(otherSha, lease)!);
+     72|   symlinkSync(path, alias, "file");
+       |   ^
+     73|   expect(r2ReadVersionedManifest(entrypoint, {
+     74|     artifactVersion: 1, candidateSha: otherSha, leaseId: lease,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  |api-non-postgres| test/issue300-r2-versioned-proof-files.test.ts > accepts only exact owned signed-certificate filenames and sidecars
+AssertionError: expected null to be truthy
+
+- Expected:
+true
+
++ Received:
+null
+
+ ❯ test/issue300-r2-versioned-proof-files.test.ts:100:6
+     98|   writeFileSync(cert + ".sig", "a".repeat(88));
+     99|   expect(r2ReadSignedCertificateFile(entrypoint, cert, sha, lease))
+    100|     .toBeTruthy();
+       |      ^
+    101|   expect(r2ReadSignedCertificateFile(entrypoint, cert + ".sig",
+    102|     sha, lease, true)).toBeTruthy();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  5 failed | 2 passed (7)
+   Start at  22:11:57
+   Duration  674ms (transform 239ms, setup 294ms, import 176ms, tests 114ms, environment 0ms)
+
+[test-harness] api-non-postgres:test/issue300-r2-positive-signed-gate.integration.test.ts,test/issue300-r2-versioned-proof-files.test.ts failed exit=1 category=test-failure wallMs=4594
+undefined
+D:\kndoom\valet-platform\tmp\customer-ui-baseline-27b\apps\api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: node ../../scripts/test-harness/run-owned-tests.mjs api vitest.config.mjs test/issue300-r2-positive-signed-gate.integration.test.ts test/issue300-r2-versioned-proof-files.test.ts

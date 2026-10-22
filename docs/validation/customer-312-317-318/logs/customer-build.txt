@@ -1,0 +1,30 @@
+
+> @valet/customer@0.0.0 build D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\customer
+> pnpm --filter @valet/contracts build && next build && node scripts/prepare-standalone.mjs && node ../../scripts/build/validate-customer-artifact.mjs
+
+
+> @valet/contracts@0.0.0 build D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\contracts
+> tsc -p tsconfig.json
+
+▲ Next.js 16.2.11 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 2.5s
+  Running TypeScript ...
+  Finished TypeScript in 5.3s ...
+  Collecting page data using 5 workers ...
+  Generating static pages using 5 workers (0/4) ...
+  Generating static pages using 5 workers (1/4)
+  Generating static pages using 5 workers (2/4)
+  Generating static pages using 5 workers (3/4)
+✓ Generating static pages using 5 workers (4/4) in 754ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+└ ƒ /readyz
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand

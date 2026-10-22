@@ -1,0 +1,14 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/customer-312-317-318/apps/api
+
+[postgres-harness] project=api-postgres-standard profile=api-standard workers=1 supported=4 max=120 reserved=3 nonTest=20 envelope=20 admitted=20 headroom=77
+(node:13696) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  22:36:39
+   Duration  35.26s (transform 969ms, setup 158ms, import 2.48s, tests 32.20s, environment 0ms)
+
+[postgres-harness] cleanup run=run_focused-api_8wg_dd3650128a23 db=0 roles=1 children=0 wallMs=35252
+[test-harness] api-postgres-standard:test/customer-auto-rating.browser.integration.test.ts passed wallMs=39040

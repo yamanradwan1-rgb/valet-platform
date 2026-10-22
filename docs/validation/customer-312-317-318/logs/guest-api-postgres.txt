@@ -1,0 +1,103 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/customer-312-317-318/apps/api
+
+[postgres-harness] project=api-postgres-standard profile=api-standard workers=1 supported=4 max=120 reserved=3 nonTest=20 envelope=20 admitted=20 headroom=77
+(node:2472) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:25392) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:2580) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:10608) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+ Test Files  4 passed (4)
+      Tests  44 passed (44)
+   Start at  21:53:06
+   Duration  36.96s (transform 1.73s, setup 412ms, import 5.88s, tests 29.52s, environment 0ms)
+
+[postgres-harness] cleanup run=run_focused-api_3dc_aebb6ac0118f db=0 roles=1 children=0 wallMs=36927
+[test-harness] api-postgres-standard:test/guest-rating-boundary.integration.test.ts,test/guest-rating-idempotency.integration.test.ts,test/guest-browser-session-http.integration.test.ts,test/guest-browser-session-lifecycle.integration.test.ts passed wallMs=41020
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/customer-312-317-318/apps/api
+
+[postgres-harness] project=api-postgres-race profile=api-race workers=2 supported=2 max=120 reserved=3 nonTest=20 envelope=38 admitted=76 headroom=21
+(node:2908) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:16088) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ❯ |api-postgres-race| test/guest-browser-session-context-switch-races.integration.test.ts (7 tests | 7 skipped) 7182ms
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |api-postgres-race| test/guest-browser-session-context-switch-races.integration.test.ts > Guest Browser Session T1 atomic context-switch races
+Error: Database setup command failed (1).
+> @valet/database@0.0.0 runtime:provision D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\database
+> node scripts/provision-runtime-role.mjs
+
+D:\kndoom\valet-platform\tmp\customer-312-317-318\node_modules\.pnpm\pg@8.22.0\node_modules\pg\lib\client.js:652
+          Error.captureStackTrace(err)
+                ^
+
+error: duplicate key value violates unique constraint "pg_authid_rolname_index"
+    at D:\kndoom\valet-platform\tmp\customer-312-317-318\node_modules\.pnpm\pg@8.22.0\node_modules\pg\lib\client.js:652:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async file:///D:/kndoom/valet-platform/tmp/customer-312-317-318/scripts/test-harness/postgres-ownership-hooks.mjs:72:22
+    at async executeFormatted (file:///D:/kndoom/valet-platform/tmp/customer-312-317-318/packages/database/scripts/provision-runtime-role.mjs:39:3)
+    at async provisionManagementPhotoLockOwner (file:///D:/kndoom/valet-platform/tmp/customer-312-317-318/packages/database/scripts/condition-photo-management-lock-owner.mjs:34:5)
+    at async provisionConditionPhotoRuntimePrivileges (file:///D:/kndoom/valet-platform/tmp/customer-312-317-318/packages/database/scripts/condition-photo-runtime-privileges.mjs:38:3)
+    at async provisionRuntimeTablePrivileges (file:///D:/kndoom/valet-platform/tmp/customer-312-317-318/packages/database/scripts/runtime-table-privileges.mjs:277:3)
+    at async provisionRuntimeRole (file:///D:/kndoom/valet-platform/tmp/customer-312-317-318/packages/database/scripts/provision-runtime-role.mjs:201:5)
+    at async file:///D:/kndoom/valet-platform/tmp/customer-312-317-318/packages/database/scripts/provision-runtime-role.mjs:328:1 {
+  length: 249,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (rolname)=(valet_photo_evidence_lock_owner) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'pg_catalog',
+  table: 'pg_authid',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'pg_authid_rolname_index',
+  file: 'nbtinsert.c',
+  line: '673',
+  routine: '_bt_check_unique'
+}
+
+Node.js v24.19.0
+D:\kndoom\valet-platform\tmp\customer-312-317-318\packages\database:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @valet/database@0.0.0 runtime:provision: `node scripts/provision-runtime-role.mjs`
+Exit status 1
+
+ ❯ ../../node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js:652:17
+ ❯ ../../scripts/test-harness/postgres-ownership-hooks.mjs:72:22
+     70|     }
+     71|     try {
+     72|       const result = await action(
+       |                      ^
+     73|         ...applyDatabaseConnectionLimit(queryArgs, created, connection…
+     74|       );
+ ❯ executeFormatted ../../packages/database/scripts/provision-runtime-role.mjs:39:3
+ ❯ provisionManagementPhotoLockOwner ../../packages/database/scripts/condition-photo-management-lock-owner.mjs:34:5
+ ❯ provisionConditionPhotoRuntimePrivileges ../../packages/database/scripts/condition-photo-runtime-privileges.mjs:38:3
+ ❯ provisionRuntimeTablePrivileges ../../packages/database/scripts/runtime-table-privileges.mjs:277:3
+ ❯ provisionRuntimeRole ../../packages/database/scripts/provision-runtime-role.mjs:201:5
+ ❯ ChildProcess.<anonymous> test/shift-test-context.ts:65:11
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  4 passed | 7 skipped (11)
+   Start at  21:53:47
+   Duration  10.96s (transform 2.47s, setup 473ms, import 4.96s, tests 14.91s, environment 0ms)
+
+[postgres-harness] cleanup run=run_focused-api_3dc_aebb6ac0118f db=0 roles=1 children=0 wallMs=11061
+[test-harness] api-postgres-race:test/guest-rating-concurrency.integration.test.ts,test/guest-browser-session-context-switch-races.integration.test.ts failed exit=1 category=test-failure wallMs=15222
+undefined
+D:\kndoom\valet-platform\tmp\customer-312-317-318\apps\api:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command failed with exit code 1: node ../../scripts/test-harness/run-owned-tests.mjs api vitest.config.mjs test/guest-rating-boundary.integration.test.ts test/guest-rating-idempotency.integration.test.ts test/guest-rating-concurrency.integration.test.ts test/guest-browser-session-http.integration.test.ts test/guest-browser-session-lifecycle.integration.test.ts test/guest-browser-session-context-switch-races.integration.test.ts

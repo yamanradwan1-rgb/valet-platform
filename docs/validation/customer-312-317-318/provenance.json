@@ -1,0 +1,14 @@
+{
+  "implementationSha": "eb7cb292db293ee356b8a4ca79c98eea696f49fe",
+  "baselineSha": "27b22d13fdb450e1468822728028e046b76ff92c",
+  "freshProductionBuildId": "X9z5xvQy5r70V7ptbIqLx",
+  "visualComparisons": 384,
+  "pngCount": 768,
+  "rawDomSnapshots": 768,
+  "browser": "Chromium 151.0.7922.34",
+  "nativeZoomScenarios": 192,
+  "apiOrigin": "http://127.0.0.1:3311",
+  "archiveSha256": "8551d0a6f860c9298702b8015e208bcad6440469f721ee46d9dede6b350c45ac",
+  "evidenceRoot": "C:\\Users\\Administrator\\.codex\\visualizations\\2026\\10\\22\\01a164e3-d882-7723-b567-a8f92893284e\\customer-ui-frozen-final",
+  "freshBuildSmoke": "real Nest/PostgreSQL browser PASS and 390 EN Light visual smoke; full comparison remains 384/384"
+}
