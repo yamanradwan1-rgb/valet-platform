@@ -41,6 +41,7 @@ describe("MD-02 navigation authority", () => {
       ["/employees", "DASHBOARD"],
       ["/locations", "DASHBOARD"],
       ["/policies", "DASHBOARD"],
+      ["/guest-information", "DASHBOARD"],
       ["/roles-permissions", "DASHBOARD"],
       ["/branding", "BRANDING"],
       ["/billing-subscription", "SUBSCRIPTION_READ"],
@@ -57,6 +58,7 @@ describe("MD-02 navigation authority", () => {
       "employees-shifts",
       "locations",
       "policies-settings",
+      "guest-information",
       "roles-permissions",
       "branding",
       "billing-subscription",
@@ -65,6 +67,7 @@ describe("MD-02 navigation authority", () => {
       "employees-shifts",
       "locations",
       "policies-settings",
+      "guest-information",
       "branding",
       "billing-subscription",
     ]);
