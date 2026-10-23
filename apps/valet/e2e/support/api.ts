@@ -1,6 +1,10 @@
 import { type APIRequestContext, request } from "@playwright/test";
+import { resolveE2eApiOrigin } from "./api-origin";
 
-const API_BASE = process.env.E2E_API_URL ?? "http://localhost:3001";
+const API_BASE = resolveE2eApiOrigin({
+  e2eApiUrl: process.env.E2E_API_URL,
+  apiOrigin: process.env.API_ORIGIN,
+});
 
 let authContext: APIRequestContext | null = null;
 
