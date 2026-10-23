@@ -20,6 +20,7 @@ import {
   buildSettingProjections,
   loadLocationConfigurationRow,
 } from "./dashboard-configuration-projection";
+import { authorizeDashboardReadLocation } from "./dashboard-read-authorization";
 import { authorizeDashboardLocation } from "./dashboard-location-authorization";
 import type { DashboardLocationScope } from "./dashboard-location-authorization";
 
@@ -95,11 +96,18 @@ export class DashboardConfigurationService {
     input: Readonly<{ authenticatedUserId: string; locationId: string }>,
   ): Promise<LocationConfigurationResponse> {
     return inPostgresTransaction(this.pool, async (transaction) => {
-      const scope = await requireAuthorizedScope(
-        transaction,
-        input.authenticatedUserId,
-        input.locationId,
-      );
+      // The configuration GET remains Location Manager-only: without a Staff
+      // session context the shared #315 reader cannot take its CA branch.
+      // Its shared org advisory and post-lock grant recheck stay held through
+      // readResponse in this same transaction.
+      const scope = await authorizeDashboardReadLocation(transaction, {
+        authenticatedUserId: input.authenticatedUserId,
+        capability: "LOCATION_DASHBOARD_READ",
+        targetLocationId: input.locationId,
+      });
+      if (scope === null) {
+        throw new DashboardConfigurationError("AUTHORIZATION_DENIED");
+      }
       return readResponse(transaction, scope);
     });
   }
