@@ -60,11 +60,18 @@ if MODE not in EXPECTED:
 rows = ["### " + ("Static Security Audit" if MODE == "static" else "Local-only ZAP Audit"), "",
         "| Tool report | Candidate findings |", "| --- | ---: |"]
 missing = []
+parser_errors = 0
 for filename in EXPECTED[MODE]:
     data = read_report(filename)
     result = count(filename, data) if data is not None else "Invalid format"
     if data is None or result == "Invalid format":
         missing.append(filename)
+    if filename == "semgrep.json" and isinstance(data, dict):
+        errors = data.get("errors")
+        if not isinstance(errors, list):
+            missing.append("semgrep.json.errors field")
+        else:
+            parser_errors = len(errors)
     rows.append(f"| {filename} | {result if data is not None else 'INCOMPLETE'} |")
 
 failed_steps = [name for name in STEP_NAMES[MODE]
@@ -78,6 +85,8 @@ if missing:
     rows.append("**Scanner report missing or invalid:** " + ", ".join(missing))
 if failed_steps:
     rows.append("**Scanner failed:** " + ", ".join(failed_steps))
+if MODE == "static":
+    rows.append(f"**Semgrep parser/scan errors: {parser_errors}** (must be 0 for complete parser coverage)")
 
 body = "\n".join(rows) + "\n"
 ROOT.mkdir(parents=True, exist_ok=True)
@@ -86,5 +95,5 @@ print(body)
 if os.getenv("GITHUB_STEP_SUMMARY"):
     with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
         summary.write(body)
-if missing or failed_steps:
+if missing or failed_steps or parser_errors:
     raise SystemExit(1)
