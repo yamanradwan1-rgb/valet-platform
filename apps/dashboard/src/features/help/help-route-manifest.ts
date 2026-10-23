@@ -24,6 +24,7 @@ export const helpRouteManifest = {
   "/employees": { classification: "CONTENT", helpKey: "staff.page" },
   "/locations": { classification: "CONTENT", helpKey: "locations.page" },
   "/policies": { classification: "CONTENT", helpKey: "policies.page" },
+  "/guest-information": { classification: "CONTENT", helpKey: "guest-information.page" },
   "/roles-permissions": { classification: "CONTENT", helpKey: "roles.page" },
   "/branding": { classification: "CONTENT", helpKey: "branding.page" },
   "/billing-subscription": { classification: "CONTENT", helpKey: "billing.page" },

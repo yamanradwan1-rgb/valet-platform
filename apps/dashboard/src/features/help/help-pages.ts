@@ -67,6 +67,12 @@ export const helppages = {
     ar: { title: "السياسات والإعدادات",
       body: "تتحكم الإعدادات بالقيم الافتراضية للشركة واستثناءات الموقع المصرّح بها. قد تكون القيمة الفعلية موروثة؛ زر الحفظ يغيّر إعداداً محدداً فقط بعد التحقق، بينما حالة الخدمات معلوماتية ولا تُفعّل البنية التحتية." },
   },
+  "guest-information.page": {
+    en: { title: "Privacy & Contact",
+      body: "Manage your organization's published guest privacy notice and service contact details only through the authorized editing workflow. The published copy and contact settings are distinct from private guest credentials; changing them never grants permission to view a different guest, session, or Location." },
+    ar: { title: "الخصوصية والتواصل",
+      body: "أدِر إشعار خصوصية الضيوف المنشور ومعلومات التواصل الخدمية للشركة فقط عبر مسار التحرير المصرّح به. النص المنشور وإعدادات التواصل منفصلان عن بيانات دخول الضيوف الخاصة، ولا يمنح تعديلهما صلاحية عرض ضيف أو جلسة أو موقع آخر." },
+  },
   "roles.page": {
     en: { title: "Roles & Permissions",
       body: "This page explains the existing fixed staff roles, their scope and conditions. It is a reference table, not a role builder or permission editor; actual access depends on active membership, relevant Location grants, and operation-specific security checks such as Shift eligibility where applicable." },
