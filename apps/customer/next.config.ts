@@ -16,6 +16,18 @@ const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingRoot: repositoryRoot,
   poweredByHeader: false,
+  async headers() {
+    return [{
+      source: "/:path*",
+      headers: [
+        { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+        { key: "X-Frame-Options", value: "DENY" },
+        { key: "X-Content-Type-Options", value: "nosniff" },
+        { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(self)" },
+      ],
+    }];
+  },
   transpilePackages: ["@valet/ui"],
   turbopack: {
     root: repositoryRoot,

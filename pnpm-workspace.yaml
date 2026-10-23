@@ -2,6 +2,22 @@ packages:
   - "apps/*"
   - "packages/*"
 
+# Nest 11 pins an affected Multer 2.2.0 transitively. Keep the framework
+# major stable and select patched compatible versions until Nest updates.
+overrides:
+  multer: 2.5.0
+  proxy-addr: 2.0.8
+  qs: 6.16.0
+  compression: 1.8.2
+  shell-quote: 1.11.0
+  fast-uri: 3.1.8
+  source-map-js: 1.2.2
+  vite: 8.2.4
+  js-yaml@4.3.1: 4.3.2
+  js-yaml@5.2.1: 5.4.1
+  brace-expansion@1.1.18: 1.1.21
+  brace-expansion@5.0.9: 5.0.12
+
 onlyBuiltDependencies:
   - "@prisma/engines"
   - "esbuild"
