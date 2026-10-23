@@ -40,8 +40,7 @@ jobs:
         id: semgrep
         continue-on-error: true
         run: |
-          pipx install semgrep
-          "$HOME/.local/bin/semgrep" scan --config p/security-audit --config p/owasp-top-ten \
+          pipx run --spec semgrep==1.182.1 semgrep scan --config p/security-audit --config p/owasp-top-ten \
             --metrics=off --disable-version-check --json \
             --output security-reports/semgrep.json \
             --exclude '**/node_modules/**' --exclude '**/dist/**' \
@@ -182,6 +181,7 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm --filter @valet/database migrate:deploy
           pnpm --filter @valet/database runtime:provision
+          pnpm --filter @valet/contracts build
           pnpm --filter @valet/api build
 
       - name: Start localhost API and Dashboard
@@ -189,17 +189,52 @@ jobs:
           mkdir -p security-reports
           chmod 777 security-reports
           nohup pnpm --filter @valet/api start > "$RUNNER_TEMP/api.log" 2>&1 &
+          api_pid=$!
+          api_ready=0
           for i in $(seq 1 90); do
-            curl -fsS http://127.0.0.1:3001/health/live > /dev/null 2>&1 && break
+            if curl -fsS http://127.0.0.1:3001/health/live > /dev/null 2>&1; then
+              api_ready=1
+              break
+            fi
+            kill -0 "$api_pid" 2>/dev/null || break
             sleep 1
           done
+          if [ "$api_ready" != 1 ]; then
+            echo "::error::Disposable API did not become ready on loopback"
+            exit 1
+          fi
           curl --fail --silent --show-error http://127.0.0.1:3001/docs-json > /dev/null
           nohup pnpm --filter @valet/dashboard dev > "$RUNNER_TEMP/dashboard.log" 2>&1 &
+          dashboard_pid=$!
+          dashboard_ready=0
           for i in $(seq 1 90); do
-            curl -fsS http://127.0.0.1:3003/ > /dev/null 2>&1 && break
+            if curl -fsS http://127.0.0.1:3003/ > /dev/null 2>&1; then
+              dashboard_ready=1
+              break
+            fi
+            kill -0 "$dashboard_pid" 2>/dev/null || break
             sleep 1
           done
+          if [ "$dashboard_ready" != 1 ]; then
+            echo "::error::Disposable Dashboard did not become ready on loopback"
+            exit 1
+          fi
           curl --fail --silent --show-error http://127.0.0.1:3003/ > /dev/null
+
+      - name: Diagnose failed local startup (safe signatures only)
+        if: failure()
+        run: |
+          for service in api dashboard; do
+            log="$RUNNER_TEMP/$service.log"
+            test -f "$log" || continue
+            echo "$service startup failure categories:"
+            signatures="$(grep -Eo 'MODULE_NOT_FOUND|ERR_[A-Z0-9_]+|EADDRINUSE|ECONNREFUSED|Cannot find module|Required [A-Za-z ]+ configuration is invalid' "$log" | sort -u || true)"
+            if [ -n "$signatures" ]; then
+              printf '%s\n' "$signatures"
+            else
+              echo "No allowlisted signature; raw logs withheld."
+            fi
+          done
 
       - name: ZAP Dashboard passive baseline
         id: zap_dashboard
