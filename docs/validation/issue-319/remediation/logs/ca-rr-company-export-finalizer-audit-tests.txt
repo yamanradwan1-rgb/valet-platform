@@ -1,0 +1,31 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:35972) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:35972) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-ca-rr-company-export-finalizer.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_35972_b7681762',
+  runtime: 'valet_runtime_mob007_35972_b7681762',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-ca-rr-company-export-finalizer.integration.test.ts > Issue #319 final gate: Company Report Export finalizer > denies bytes and generation audit after recovery commits between RR and fresh finalizer
+ISSUE319_COMPANY_EXPORT_FINALIZER_TRACE [{"event":"REPORT_EXPORT_RR_COMPLETED_RENDERER_ENTERED_BEFORE_FINALIZER","ms":29025.603},{"event":"CANONICAL_RECOVERY_COMMITTED_BEFORE_EXPORT_FINALIZER","ms":29094.612},{"event":"REPORT_EXPORT_RESPONSE status=403 pdfHeader=false","ms":29122.808}]
+
+ ✓ test/dashboard-issue319-ca-rr-company-export-finalizer.integration.test.ts > Issue #319 final gate: Company Report Export finalizer > denies bytes and generation audit after recovery commits between RR and fresh finalizer 2267ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  20:38:14
+   Duration  29.88s (transform 10.06s, setup 0ms, import 16.63s, tests 12.75s, environment 0ms)

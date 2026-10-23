@@ -1,0 +1,55 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:35580) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:35580) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-ca-rr-kpi-gate.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_35580_330159dc',
+  runtime: 'valet_runtime_mob007_35580_330159dc',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-ca-rr-kpi-gate.integration.test.ts > Issue #319 final gate: Company Admin KPI RR factor retirement > must not return synthetic KPI projection after committed recovery of its assured factor
+KPI_MFA_FIXTURE_CONFIRM_REJECTED 400 REQUEST_INVALID
+
+ × test/dashboard-issue319-ca-rr-kpi-gate.integration.test.ts > Issue #319 final gate: Company Admin KPI RR factor retirement > must not return synthetic KPI projection after committed recovery of its assured factor 418ms
+   → expected 400 to be 200 // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/dashboard-issue319-ca-rr-kpi-gate.integration.test.ts > Issue #319 final gate: Company Admin KPI RR factor
+retirement > must not return synthetic KPI projection after committed recovery of its assured factor
+AssertionError: expected 400 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 400
+
+ ❯ test/dashboard-issue319-ca-rr-kpi-gate.integration.test.ts:40:30
+     38|         (confirmed.body as { code?: unknown } | undefined)?.code);
+     39|     }
+     40|     expect(confirmed.status).toBe(200);
+       |                              ^
+     41|     const recoveryCode = (confirmed.body?.recoveryCodes as unknown[] |…
+     42|     if (typeof recoveryCode !== 'string') throw new Error('Canonical r…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  20:21:11
+   Duration  14.91s (transform 5.04s, setup 0ms, import 7.93s, tests 6.75s, environment 0ms)

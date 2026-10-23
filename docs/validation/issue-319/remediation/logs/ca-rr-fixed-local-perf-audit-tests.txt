@@ -1,0 +1,37 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:17320) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:17320) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-ca-rr-performance.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_17320_7728ad03',
+  runtime: 'valet_runtime_mob007_17320_7728ad03',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-ca-rr-performance.integration.test.ts > Issue #319 final CA RR fixed-path uncontended HTTP performance > samples accepted MFA Company Admin KPI, analytics and daily report read paths
+ISSUE319_CA_RR_FIXED_HTTP_PERFORMANCE {"route":"KPI","samples":40,"p50Ms":30.41,"p95Ms":38.04,"minimumMs":22.26,"maximumMs":86.76,"concurrency":1,"contention":"none","measurements":"sequential local Nest HTTP"}
+
+stdout | test/dashboard-issue319-ca-rr-performance.integration.test.ts > Issue #319 final CA RR fixed-path uncontended HTTP performance > samples accepted MFA Company Admin KPI, analytics and daily report read paths
+ISSUE319_CA_RR_FIXED_HTTP_PERFORMANCE {"route":"COMPANY_ANALYTICS","samples":40,"p50Ms":33.02,"p95Ms":43.62,"minimumMs":24.47,"maximumMs":56.27,"concurrency":1,"contention":"none","measurements":"sequential local Nest HTTP"}
+
+stdout | test/dashboard-issue319-ca-rr-performance.integration.test.ts > Issue #319 final CA RR fixed-path uncontended HTTP performance > samples accepted MFA Company Admin KPI, analytics and daily report read paths
+ISSUE319_CA_RR_FIXED_HTTP_PERFORMANCE {"route":"COMPANY_REPORT_DAILY","samples":40,"p50Ms":32.99,"p95Ms":44.97,"minimumMs":26.08,"maximumMs":56.32,"concurrency":1,"contention":"none","measurements":"sequential local Nest HTTP"}
+
+ ✓ test/dashboard-issue319-ca-rr-performance.integration.test.ts > Issue #319 final CA RR fixed-path uncontended HTTP performance > samples accepted MFA Company Admin KPI, analytics and daily report read paths 5005ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  20:40:37
+   Duration  34.45s (transform 8.78s, setup 0ms, import 16.92s, tests 16.92s, environment 0ms)

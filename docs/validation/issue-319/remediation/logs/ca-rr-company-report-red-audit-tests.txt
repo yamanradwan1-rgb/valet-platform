@@ -1,0 +1,55 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:36724) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:36724) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-ca-rr-company-report-gate.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_36724_7cdb06f5',
+  runtime: 'valet_runtime_mob007_36724_7cdb06f5',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-ca-rr-company-report-gate.integration.test.ts > Issue #319 final gate: Company Report RR factor retirement > must not expose synthetic daily report after distinct-session canonical recovery
+ISSUE319_COMPANY_REPORT_RR_TRACE [{"event":"COMPANY_REPORT_RR_SNAPSHOT_BEFORE_MFA_FACTOR_CHECK","ms":25132.011},{"event":"CANONICAL_DISTINCT_SESSION_FACTOR_RETIREMENT_COMMITTED","ms":25217.883},{"event":"COMPANY_REPORT_RESPONSE status=200 containsSyntheticTimezone=true","ms":25288.44}]
+
+ × test/dashboard-issue319-ca-rr-company-report-gate.integration.test.ts > Issue #319 final gate: Company Report RR factor retirement > must not expose synthetic daily report after distinct-session canonical recovery 1019ms
+   → expected 200 to be 403 // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/dashboard-issue319-ca-rr-company-report-gate.integration.test.ts > Issue #319 final gate: Company Report
+RR factor retirement > must not expose synthetic daily report after distinct-session canonical recovery
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ test/dashboard-issue319-ca-rr-company-report-gate.integration.test.ts:92:30
+     90|       .includes(sentinel);
+     91|     event(`COMPANY_REPORT_RESPONSE status=${response?.status} contains…
+     92|     expect(response?.status).toBe(403);
+       |                              ^
+     93|     expect(exposed).toBe(false);
+     94|     const fresh = await fixture.managementGet(path, a.auth.accessToken…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  20:28:29
+   Duration  25.63s (transform 9.66s, setup 0ms, import 15.96s, tests 9.24s, environment 0ms)

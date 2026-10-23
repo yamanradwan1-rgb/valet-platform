@@ -1,0 +1,55 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:23192) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:23192) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-ca-rr-company-analytics-gate.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_23192_a7e20530',
+  runtime: 'valet_runtime_mob007_23192_a7e20530',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-ca-rr-company-analytics-gate.integration.test.ts > Issue #319 final gate: Company Analytics RR MFA factor retirement > must not expose synthetic Company Analytics after distinct-session MFA recovery
+ISSUE319_COMPANY_ANALYTICS_RR_TRACE [{"event":"COMPANY_ANALYTICS_RR_SNAPSHOT_BEFORE_MFA_FACTOR_CHECK","ms":15588.531},{"event":"CANONICAL_DISTINCT_SESSION_FACTOR_RETIREMENT_COMMITTED","ms":15662.709},{"event":"COMPANY_ANALYTICS_RESPONSE status=200 containsSyntheticTimezone=true","ms":15726.568}]
+
+ × test/dashboard-issue319-ca-rr-company-analytics-gate.integration.test.ts > Issue #319 final gate: Company Analytics RR MFA factor retirement > must not expose synthetic Company Analytics after distinct-session MFA recovery 811ms
+   → expected 200 to be 403 // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/dashboard-issue319-ca-rr-company-analytics-gate.integration.test.ts > Issue #319 final gate: Company
+Analytics RR MFA factor retirement > must not expose synthetic Company Analytics after distinct-session MFA recovery
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ test/dashboard-issue319-ca-rr-company-analytics-gate.integration.test.ts:92:30
+     90|       .includes(sentinel);
+     91|     event(`COMPANY_ANALYTICS_RESPONSE status=${response?.status} conta…
+     92|     expect(response?.status).toBe(403);
+       |                              ^
+     93|     expect(exposed).toBe(false);
+     94|     const fresh = await fixture.managementGet(path, a.auth.accessToken…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  20:25:00
+   Duration  16.08s (transform 5.32s, setup 0ms, import 8.53s, tests 7.28s, environment 0ms)

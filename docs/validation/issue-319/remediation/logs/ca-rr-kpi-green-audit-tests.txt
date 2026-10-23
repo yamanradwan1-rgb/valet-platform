@@ -1,0 +1,31 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:33476) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:33476) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-ca-rr-kpi-gate.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_33476_189067ff',
+  runtime: 'valet_runtime_mob007_33476_189067ff',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-ca-rr-kpi-gate.integration.test.ts > Issue #319 final gate: Company Admin KPI RR factor retirement > must not return synthetic KPI projection after committed recovery of its assured factor
+ISSUE319_CA_KPI_RR_TRACE [{"event":"KPI_RR_AUTH_SNAPSHOT_BEFORE_FACTOR_CHECK","ms":14441.464},{"event":"CANONICAL_DISTINCT_SESSION_RECOVERY_COMMITTED","ms":14494.771},{"event":"KPI_RR_RESPONSE status=403 containsSyntheticTimezone=false","ms":14513.011}]
+
+ ✓ test/dashboard-issue319-ca-rr-kpi-gate.integration.test.ts > Issue #319 final gate: Company Admin KPI RR factor retirement > must not return synthetic KPI projection after committed recovery of its assured factor 621ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  20:23:07
+   Duration  14.82s (transform 4.97s, setup 0ms, import 7.82s, tests 6.78s, environment 0ms)
