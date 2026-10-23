@@ -63,6 +63,7 @@ rows = ["### " + ("Static Security Audit" if MODE == "static" else "Local-only Z
         "| Tool report | Candidate findings |", "| --- | ---: |"]
 missing = []
 parser_errors = 0
+scanned_paths = 0
 for filename in EXPECTED[MODE]:
     data = read_report(filename)
     result = count(filename, data) if data is not None else "Invalid format"
@@ -74,6 +75,13 @@ for filename in EXPECTED[MODE]:
             missing.append("semgrep.json.errors field")
         else:
             parser_errors = len(errors)
+        paths = data.get("paths")
+        scanned = paths.get("scanned") if isinstance(paths, dict) else None
+        if (not isinstance(scanned, list) or not scanned
+                or any(not isinstance(path, str) or not path.strip() for path in scanned)):
+            missing.append("semgrep.json.paths.scanned field")
+        else:
+            scanned_paths = len(scanned)
     rows.append(f"| {filename} | {result if data is not None else 'INCOMPLETE'} |")
 
 failed_steps = [name for name in STEP_NAMES[MODE]
@@ -88,7 +96,8 @@ if missing:
 if failed_steps:
     rows.append("**Scanner failed:** " + ", ".join(failed_steps))
 if MODE == "static":
-    rows.append(f"**Semgrep parser/scan errors: {parser_errors}** (must be 0 for complete parser coverage)")
+    rows.append(f"**Semgrep reported scanned paths: {scanned_paths}** (must be nonzero)")
+    rows.append(f"**Semgrep parser/scan errors: {parser_errors}** (must be 0; zero does not prove full source coverage)")
 
 body = "\n".join(rows) + "\n"
 ROOT.mkdir(parents=True, exist_ok=True)
