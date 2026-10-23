@@ -1,0 +1,55 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:23916) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:23916) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-ca-mfa-rr-candidate.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_23916_6bf0c0d5',
+  runtime: 'valet_runtime_mob007_23916_6bf0c0d5',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-ca-mfa-rr-candidate.integration.test.ts > Issue #319 candidate: Company Admin Physical overview RR MFA factor retirement > does not expose protected overview data after canonical recovery retires the factor
+ISSUE319_CA_MFA_RR_CANDIDATE_TRACE [{"event":"CA_RR_FIRST_ELIGIBILITY_SNAPSHOT_OBSERVED","ms":113661.997},{"event":"RR_SNAPSHOT_HELD_BEFORE_CA_ORG_ADVISORY","ms":113674.437},{"event":"CANONICAL_REAL_MFA_RECOVERY_HTTP_COMMITTED","ms":113718.601},{"event":"RETIRED_FACTOR_COMMITTED_WITH_UNCHANGED_SESSION_ASSURANCE","ms":113719.936},{"event":"CA_RR_AUTHORIZATION_CONTINUES_AFTER_FACTOR_RETIREMENT","ms":113720.36}]
+
+ × test/dashboard-issue319-ca-mfa-rr-candidate.integration.test.ts > Issue #319 candidate: Company Admin Physical overview RR MFA factor retirement > does not expose protected overview data after canonical recovery retires the factor 2197ms
+   → expected 200 to be 403 // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/dashboard-issue319-ca-mfa-rr-candidate.integration.test.ts > Issue #319 candidate: Company Admin Physical
+overview RR MFA factor retirement > does not expose protected overview data after canonical recovery retires the factor
+AssertionError: expected 200 to be 403 // Object.is equality
+
+- Expected
++ Received
+
+- 403
++ 200
+
+ ❯ test/dashboard-issue319-ca-mfa-rr-candidate.integration.test.ts:183:29
+    181|     // This assertion intentionally fails if the RR snapshot incorrect…
+    182|     // treats the retired factor as ACTIVE. It is evidence, not a sour…
+    183|     expect(inFlight.status).toBe(403);
+       |                             ^
+    184|     expect(inFlight.body).not.toHaveProperty('keySlots');
+    185|     expect(JSON.stringify(inFlight.body)).not.toContain(a.keySlotId);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  19:02:53
+   Duration  115.44s (transform 15.45s, setup 0ms, import 37.18s, tests 77.11s, environment 0ms)

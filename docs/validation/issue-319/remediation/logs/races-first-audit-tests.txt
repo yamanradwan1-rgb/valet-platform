@@ -1,0 +1,51 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:30084) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:30084) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-remediation-races.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_30084_955639e5',
+  runtime: 'valet_runtime_mob007_30084_955639e5',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > reader-first key-slots keeps the shared grant fence through real response projection
+ISSUE319_REMEDIATION_RACE_TRACE [{"event":"PHYSICAL_AUTHORIZATION_RETURN_PAUSED","ms":66025.157},{"event":"REAL_CA_MFA_REVOKE_HTTP_STARTED","ms":66026.219},{"event":"POSTGRES_1_WAITERS_CONFIRMED","ms":66082.016},{"event":"AUTHORIZED_READER_COMPLETED_BEFORE_REVOKER","ms":66088.048},{"event":"REAL_CA_MFA_REVOKE_HTTP_COMPLETED","ms":66113.775}]
+
+ ✓ test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > reader-first key-slots keeps the shared grant fence through real response projection 966ms
+stdout | test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > reader-first overview keeps the shared grant fence through real response projection
+ISSUE319_REMEDIATION_RACE_TRACE [{"event":"PHYSICAL_AUTHORIZATION_RETURN_PAUSED","ms":66548.072},{"event":"REAL_CA_MFA_REVOKE_HTTP_STARTED","ms":66548.681},{"event":"POSTGRES_1_WAITERS_CONFIRMED","ms":66563.371},{"event":"AUTHORIZED_READER_COMPLETED_BEFORE_REVOKER","ms":66584.883},{"event":"REAL_CA_MFA_REVOKE_HTTP_COMPLETED","ms":66606.749}]
+
+ ✓ test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > reader-first overview keeps the shared grant fence through real response projection 490ms
+stdout | test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > reader-first configuration keeps the shared grant fence through real response projection
+ISSUE319_REMEDIATION_RACE_TRACE [{"event":"CONFIG_SAVED_SETTING_PROJECTION_PAUSED","ms":66988.303},{"event":"REAL_CA_MFA_REVOKE_HTTP_STARTED","ms":66988.598},{"event":"POSTGRES_1_WAITERS_CONFIRMED","ms":67000.719},{"event":"AUTHORIZED_READER_COMPLETED_BEFORE_REVOKER","ms":67004.68},{"event":"REAL_CA_MFA_REVOKE_HTTP_COMPLETED","ms":67011.136}]
+
+ ✓ test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > reader-first configuration keeps the shared grant fence through real response projection 400ms
+stdout | test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > revoker-first key-slots waits behind real CA HTTP revocation then denies protected data
+ISSUE319_REMEDIATION_RACE_TRACE [{"event":"REAL_CA_MFA_REVOKE_HTTP_STARTED","ms":67524.797},{"event":"POSTGRES_1_WAITERS_CONFIRMED","ms":67536.074},{"event":"POSTGRES_2_WAITERS_CONFIRMED","ms":67547.819},{"event":"REAL_CA_MFA_REVOKE_HTTP_COMPLETED","ms":67558.457},{"event":"READER_DENIED_AFTER_CA_REVOKE_COMMIT","ms":67559.992}]
+
+ ✓ test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > revoker-first key-slots waits behind real CA HTTP revocation then denies protected data 553ms
+stdout | test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > revoker-first overview waits behind real CA HTTP revocation then denies protected data
+ISSUE319_REMEDIATION_RACE_TRACE [{"event":"REAL_CA_MFA_REVOKE_HTTP_STARTED","ms":67998.258},{"event":"POSTGRES_1_WAITERS_CONFIRMED","ms":68010.597},{"event":"POSTGRES_2_WAITERS_CONFIRMED","ms":68024.225},{"event":"REAL_CA_MFA_REVOKE_HTTP_COMPLETED","ms":68031.916},{"event":"READER_DENIED_AFTER_CA_REVOKE_COMMIT","ms":68035.231}]
+
+ ✓ test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > revoker-first overview waits behind real CA HTTP revocation then denies protected data 476ms
+stdout | test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > revoker-first configuration waits behind real CA HTTP revocation then denies protected data
+ISSUE319_REMEDIATION_RACE_TRACE [{"event":"REAL_CA_MFA_REVOKE_HTTP_STARTED","ms":68474.333},{"event":"POSTGRES_1_WAITERS_CONFIRMED","ms":68486.951},{"event":"POSTGRES_2_WAITERS_CONFIRMED","ms":68499.795},{"event":"REAL_CA_MFA_REVOKE_HTTP_COMPLETED","ms":68509.004},{"event":"READER_DENIED_AFTER_CA_REVOKE_COMMIT","ms":68511.053}]
+
+ ✓ test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > revoker-first configuration waits behind real CA HTTP revocation then denies protected data 477ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  18:32:35
+   Duration  68.82s (transform 6.59s, setup 0ms, import 34.60s, tests 33.25s, environment 0ms)

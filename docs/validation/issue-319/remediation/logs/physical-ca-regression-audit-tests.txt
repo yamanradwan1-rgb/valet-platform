@@ -1,0 +1,28 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:5944) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:5944) [DE...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-physical-matrix.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_5944_51e3c38e',
+  runtime: 'valet_runtime_mob007_5944_51e3c38e',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+ ✓ test/dashboard-issue319-physical-matrix.integration.test.ts > Issue319 all seven Physical Resources GET routes > allows current exact grant then denies every fresh path after canonical removal 971ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  19:23:18
+   Duration  19.05s (transform 6.32s, setup 0ms, import 10.35s, tests 8.40s, environment 0ms)

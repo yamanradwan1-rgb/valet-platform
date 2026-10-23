@@ -28,22 +28,27 @@ function describeLatency(label: string, samples: number[]) {
 describe('Issue319 uncontended real HTTP latency, descriptive local baseline only', () => {
   it('measures scoped Dashboard, Physical Resources and Discovery independently', async () => {
     const a = await actor();
+    const admin = await actor('ORG_ADMIN');
     const routes = [
-      { label: 'dashboard-overview-keys', path: overviewPath(a) },
-      { label: 'physical-resource-key-slots', path: physicalPath(a) },
-      { label: 'scope-discovery-locations', path: discoveryPath(a) },
+      { label: 'dashboard-overview-keys', path: overviewPath(a), token: a.auth.accessToken },
+      { label: 'physical-resource-key-slots', path: physicalPath(a), token: a.auth.accessToken },
+      { label: 'scope-discovery-locations', path: discoveryPath(a), token: a.auth.accessToken },
+      { label: 'physical-resource-overview-rr', path: physicalPath(a, 'overview'), token: a.auth.accessToken },
+      { label: 'physical-resource-key-slots-ca-mfa', path: physicalPath(admin), token: admin.auth.accessToken },
+      { label: 'physical-resource-overview-rr-ca-mfa', path: physicalPath(admin, 'overview'), token: admin.auth.accessToken },
+      { label: 'configuration-location-settings', path: `/v1/staff/dashboard/locations/${a.locationId}/configuration`, token: a.auth.accessToken },
     ];
     for (const route of routes) {
       const samples: number[] = [];
       // Warm up one instrumented HTTP/controller/database path per route.
-      expect((await fixture.managementGet(route.path, a.auth.accessToken)).status).toBe(200);
+      expect((await fixture.managementGet(route.path, route.token)).status).toBe(200);
       for (let sample = 0; sample < samplesPerRoute; sample++) {
         const start = performance.now();
-        const response = await fixture.managementGet(route.path, a.auth.accessToken);
+        const response = await fixture.managementGet(route.path, route.token);
         samples.push(performance.now() - start);
         expect(response.status).toBe(200);
       }
       describeLatency(route.label, samples);
     }
-  }, 45_000);
+  }, 60_000);
 });

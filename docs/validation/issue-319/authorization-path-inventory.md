@@ -1,5 +1,7 @@
 # Issue #319 — Dashboard and Management HTTP read authorization inventory
 
+> **Historical source-path snapshot at `20998a0`.** Route counts below remain the original reviewed route universe, not 85 independently retested concurrency cases. The four narrowly changed GET reader paths Physical Resources, Configuration, Branding and Subscription now use the post-remediation fences documented under [remediation/](remediation/FINAL_REMEDIATION_ACCEPTANCE.md). A new Company Admin RR/MFA finding F319-05 is recorded separately; unchanged entries below should not be misread as current patched line references.
+
 Status: read-only source inventory; no vulnerability proof, product change, database access, or runtime assertion.
 Source: worktree /valet-platform/tmp/issue-319-audit at HEAD / origin/main 20998a069eb5d576895c0e6c149271a4a0e4028b (2026-10-23).
 Authority: Issues #315 and #319, AGENTS.md, Accepted DEC-080/081/082/083/090/092/094/095/099/100/102.

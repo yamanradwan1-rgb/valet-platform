@@ -1,0 +1,51 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:33400) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:33400) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_33400_3f8c1db0',
+  runtime: 'valet_runtime_mob007_33400_3f8c1db0',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > two real HTTP readers hold shared org locks; CA lifecycle writer waits for both
+ISSUE319_LOCK_EXTENSION_TRACE [{"event":"LM_READER_0_SHARED_LOCK_HELD","ms":21413.115},{"event":"LM_READER_1_SHARED_LOCK_HELD","ms":21511.072},{"event":"TWO_ACTUAL_SHARED_ADVISORY_LOCKS","ms":21512.527},{"event":"WRITER_PID_39840_BLOCKED_BY_2_READERS","ms":21531.315},{"event":"WRITER_PID_39840_BLOCKED_BY_1_READERS","ms":21560.981},{"event":"WRITER_STILL_BLOCKED_AFTER_ONE_READER","ms":21560.997}]
+
+ ✓ test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > two real HTTP readers hold shared org locks; CA lifecycle writer waits for both 1123ms
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > exclusive lock for one Organization does not block another Organization reader
+ISSUE319_LOCK_EXTENSION_TRACE [{"event":"ORG_A_EXCLUSIVE_GATE_HELD","ms":22458.569},{"event":"ORG_B_HTTP_READ_COMPLETED_UNDER_UNRELATED_GATE","ms":22479.992}]
+
+ ✓ test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > exclusive lock for one Organization does not block another Organization reader 830ms
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > 'lock' timeout of managed reader rolls back and leaves same connection usable
+ISSUE319_LOCK_EXTENSION_TRACE [{"event":"PG_ERROR_55P03_OBSERVED","ms":23073.552},{"event":"ROLLBACK_CLEANUP_AND_FRESH_READ_PASS","ms":23079.277}]
+
+ ✓ test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > 'lock' timeout of managed reader rolls back and leaves same connection usable 601ms
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > 'statement' timeout of managed reader rolls back and leaves same connection usable
+ISSUE319_LOCK_EXTENSION_TRACE [{"event":"PG_ERROR_57014_OBSERVED","ms":23800.948},{"event":"ROLLBACK_CLEANUP_AND_FRESH_READ_PASS","ms":23807.669}]
+
+ ✓ test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > 'statement' timeout of managed reader rolls back and leaves same connection usable 728ms
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > KPI session-lock acquisition timeout discards ambiguous pooled connection
+ISSUE319_LOCK_EXTENSION_TRACE [{"event":"PG_OBSERVED_1_LOCK_WAITERS","ms":24104.259},{"event":"KPI_SESSION_ADVISORY_CANCELLED_BEFORE_BEGIN","ms":24856.251},{"event":"KPI_POOL_RECOVERED_WITH_NO_ADVISORY_LOCK","ms":24922.242}]
+
+ ✓ test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > KPI session-lock acquisition timeout discards ambiguous pooled connection 1121ms
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > KPI action exception rolls back, releases session lock, and preserves reusable pool
+ISSUE319_LOCK_EXTENSION_TRACE [{"event":"KPI_ROLLBACK_RELEASE_AND_REUSE_SUCCEEDED","ms":25231.856}]
+
+ ✓ test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > KPI action exception rolls back, releases session lock, and preserves reusable pool 298ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  18:40:26
+   Duration  25.56s (transform 7.44s, setup 0ms, import 11.55s, tests 13.66s, environment 0ms)

@@ -1,5 +1,7 @@
 # Issue #319 — PostgreSQL revocation and read-authorization matrix
 
+> **Historical baseline run only.** The 25/25 green assertions here intentionally include stale HTTP 200 vulnerability reproductions at the original source SHA. See [remediation/postgres-race-regression.md](remediation/postgres-race-regression.md), [remediation/F319-05-ca-mfa-rr-finding.md](remediation/F319-05-ca-mfa-rr-finding.md) and the final remediation acceptance for patched test counts and remaining NO-GO.
+
 **Status:** FINAL evidence report, read-only audit of VAYLET baseline origin/main 20998a069eb5d576895c0e6c149271a4a0e4028b on 2026-10-23. **Runtime:** isolated PostgreSQL 17.11, actual API HTTP requests, synthetic tenant fixtures. **Product changes:** none.
 
 **Result:** #319 audit **25/25 PASS in four test files** (logs/audit-tests.txt:124-139); independent #315 baseline **28/28 PASS in four files** (logs/baseline-tests.txt:13-54). PASS describes the assertions made by these tests; the tests intentionally reproduce certain authorization races, so a green suite is **not** a product security GO. Specifically, F319-01 is a **confirmed stale in-flight disclosure** in Physical Resources, including a real Company Admin Staff Management revoke. A separate legacy Configuration GET demonstrates the same stale-in-flight pattern. The canonical #315 Dashboard read fence does block the tested real Location lifecycle deactivate in both orders.

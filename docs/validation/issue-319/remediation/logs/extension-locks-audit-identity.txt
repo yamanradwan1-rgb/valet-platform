@@ -1,0 +1,6 @@
+current_database|current_user|inet_server_port|current_setting|version
+postgres|issue315_owner|54733|D:/kndoom/valet-platform/tmp/issue-319-audit/tmp/issue-315-pg-qa/issue319-38a6ca3972bc4e459be7b11a399b8c95/.issue315-private-cluster|PostgreSQL 17.11 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit
+(1 row)
+rolname|rolsuper|rolcreatedb|rolcreaterole
+issue315_owner|t|t|t
+(1 row)

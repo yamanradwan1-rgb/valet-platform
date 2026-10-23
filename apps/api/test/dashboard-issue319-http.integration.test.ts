@@ -2,7 +2,6 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 
 import * as physicalAuth from '../src/modules/dashboard/physical-resource-authorization';
 import * as dashboardLocationAuth from '../src/modules/dashboard/dashboard-location-authorization';
-import * as companyAuth from '../src/modules/management/management-authorization';
 import { DatabaseStaffSessionContextResolver } from '../src/modules/auth/staff-session-context';
 import {
   actor, discoveryPath, event, fixture, grantWriter, latch, logout,
@@ -16,6 +15,25 @@ afterEach(() => {
   if (trace.length) console.log('ISSUE319_HTTP_TRACE', JSON.stringify(trace.splice(0)));
 });
 
+async function waitForCanonicalWriter() {
+  const deadline = Date.now() + 7_000;
+  while (Date.now() < deadline) {
+    const result = await fixture.query<{ blocked: number }>(`SELECT count(*)::integer AS blocked
+      FROM pg_stat_activity AS activity
+      WHERE activity.datname=current_database() AND activity.wait_event_type='Lock'
+        AND cardinality(pg_blocking_pids(activity.pid))>0
+        AND EXISTS (SELECT 1 FROM pg_locks AS waiting
+          WHERE waiting.pid=activity.pid AND waiting.locktype='advisory'
+            AND NOT waiting.granted)`);
+    if (result.rows[0]?.blocked) {
+      event('CANONICAL_WRITER_ADVISORY_WAIT_PROVEN');
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  throw new Error('Canonical revocation did not reach an observable advisory lock wait.');
+}
+
 describe('Issue319 real HTTP security boundary characterization', () => {
   it('authorized LM receives only its synthetic physical resource', async () => {
     const a = await actor();
@@ -24,7 +42,7 @@ describe('Issue319 real HTTP security boundary characterization', () => {
     expect(result.body?.items).toEqual([expect.objectContaining({ keySlotId: a.keySlotId })]);
   });
 
-  it('REPRO F319-01: physical list projects after canonical grant revocation commits', async () => {
+  it('POST-FIX F319-01: physical list holds grant fence while canonical SQL revocation waits', async () => {
     const a = await actor();
     const entered = latch();
     const resume = latch();
@@ -40,19 +58,25 @@ describe('Issue319 real HTTP security boundary characterization', () => {
     event('HTTP_READER_START');
     const pending = fixture.managementGet(physicalPath(a), a.auth.accessToken);
     await entered.promise;
-    try { await grantWriter(a); event('CANONICAL_GRANT_COMMITTED'); }
-    finally { resume.resolve(); }
+    let writer: Promise<void> | undefined;
+    try {
+      writer = grantWriter(a);
+      await waitForCanonicalWriter();
+      event('CANONICAL_GRANT_WRITER_BLOCKED_BY_READER');
+    } finally { resume.resolve(); }
     const result = await pending;
     event('HTTP_READER_COMPLETE');
     expect(result.status).toBe(200);
     expect(result.body?.items).toEqual([expect.objectContaining({ keySlotId: a.keySlotId })]);
+    await writer;
+    event('CANONICAL_GRANT_COMMITTED_AFTER_READER_FENCE');
     vi.restoreAllMocks();
     const fresh = await fixture.managementGet(physicalPath(a), a.auth.accessToken);
     expect(fresh.status).toBe(404);
     expect(fresh.body).not.toHaveProperty('items');
   });
 
-  it('REPRO F319-01: real CA Staff Management HTTP revoke commits before LM physical response', async () => {
+  it('POST-FIX F319-01: real CA Staff Management HTTP revoke waits for LM physical fence', async () => {
     const a = await actor();
     const adminUser = await fixture.createUser();
     await fixture.addMembership(a.organizationId, adminUser.id, 'ORG_ADMIN');
@@ -73,35 +97,43 @@ describe('Issue319 real HTTP security boundary characterization', () => {
     });
     const pending = fixture.managementGet(physicalPath(a), a.auth.accessToken);
     await entered.promise;
+    let revoke: Promise<Awaited<ReturnType<typeof fixture.managementPost>>> | undefined;
     try {
       event('STAFF_MANAGEMENT_HTTP_REVOKE_START');
-      const revoke = await fixture.managementPost(
+      revoke = fixture.managementPost(
         `/v1/staff/management/organizations/${a.organizationId}/staff/${a.membershipId}/location-access/revoke`,
         adminAuth.accessToken,
         { expectedVersion: version.rows[0]!.version, locationIds: [a.locationId] },
       );
-      event('STAFF_MANAGEMENT_HTTP_REVOKE_COMPLETE');
-      expect(revoke.status).toBe(201);
+      await waitForCanonicalWriter();
+      event('STAFF_MANAGEMENT_HTTP_REVOKE_LOCK_BLOCKED');
     } finally { resume.resolve(); }
     const result = await pending;
-    event('LM_PHYSICAL_HTTP_COMPLETE_AFTER_ADMIN_REVOKE');
+    event('LM_PHYSICAL_HTTP_COMPLETE_BEFORE_ADMIN_REVOKE_COMMIT');
     expect(result.status).toBe(200);
     expect(result.body?.items).toEqual([expect.objectContaining({ keySlotId: a.keySlotId })]);
+    const revoked = await revoke!;
+    expect(revoked.status).toBe(201);
+    event('STAFF_MANAGEMENT_HTTP_REVOKE_COMPLETE');
     vi.restoreAllMocks();
     expect((await fixture.managementGet(physicalPath(a), a.auth.accessToken)).status).toBe(404);
   });
 
-  it('REPRO F319-01: RR overview accepts stale grant even before LM authorization runs', async () => {
+  it('POST-FIX F319-01: RR overview rejects grant revoked before the protected snapshot', async () => {
     const a = await actor();
     const entered = latch();
     const resume = latch();
-    const original = companyAuth.eligibleCompanyAdminLocationOrganization;
-    vi.spyOn(companyAuth, 'eligibleCompanyAdminLocationOrganization').mockImplementation(async (...args) => {
+    const original = dashboardLocationAuth.authorizeDashboardLocation;
+    let intercepted = false;
+    vi.spyOn(dashboardLocationAuth, 'authorizeDashboardLocation').mockImplementation(async (...args) => {
       const hint = await original(...args);
-      event('RR_SNAPSHOT_ESTABLISHED_CA_HINT_NULL_BEFORE_LM_AUTH');
-      entered.resolve();
-      await resume.promise;
-      event('LM_AUTH_AND_PROJECTION_RESUME_AFTER_REVOKE');
+      if (!intercepted && hint?.locationId === a.locationId) {
+        intercepted = true;
+        event('RR_NONAUTHORITATIVE_LOCATION_HINT_BEFORE_SESSION_ADVISORY');
+        entered.resolve();
+        await resume.promise;
+        event('RR_PRELOCK_ACQUISITION_RESUMED_AFTER_REVOKE');
+      }
       return hint;
     });
     event('HTTP_READER_START');
@@ -111,14 +143,13 @@ describe('Issue319 real HTTP security boundary characterization', () => {
     finally { resume.resolve(); }
     const result = await pending;
     event('HTTP_READER_COMPLETE');
-    expect(result.status).toBe(200);
-    const keys = result.body?.keySlots as { items: { keySlotId: string }[] };
-    expect(keys.items.some((item) => item.keySlotId === a.keySlotId)).toBe(true);
+    expect(result.status).toBe(404);
+    expect(result.body).not.toHaveProperty('keySlots');
     vi.restoreAllMocks();
     expect((await fixture.managementGet(physicalPath(a, 'overview'), a.auth.accessToken)).status).toBe(404);
   });
 
-  it('REPRO F319-01: legacy configuration GET also projects after canonical grant removal', async () => {
+  it('POST-FIX F319-02: legacy configuration GET rejects revocation after initial hint', async () => {
     const a = await actor();
     const entered = latch();
     const resume = latch();
@@ -141,10 +172,8 @@ describe('Issue319 real HTTP security boundary characterization', () => {
     try { await grantWriter(a); event('CANONICAL_GRANT_COMMITTED'); }
     finally { resume.resolve(); }
     const result = await pending;
-    expect(result.status).toBe(200);
-    expect(result.body?.locationId).toBe(a.locationId);
-    expect(result.body?.organizationId).toBe(a.organizationId);
-    expect(result.body?.settings).toHaveLength(10);
+    expect(result.status).toBe(404);
+    expect(result.body).not.toHaveProperty('settings');
     vi.restoreAllMocks();
     expect((await fixture.managementGet(path, a.auth.accessToken)).status).toBe(404);
   });

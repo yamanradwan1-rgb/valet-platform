@@ -1,5 +1,7 @@
 # Issue #319 — security finding triage and remediation handoff
 
+> **Historical audit severity/reproduction, preserved.** The “NOT IMPLEMENTED” and Owner approval statements below refer to the original `af62a11` pre-remediation snapshot. Four P2 findings F319-01..04 have Owner-authorized scoped source fixes and separate POST-fix evidence. Independent real HTTP + PostgreSQL testing subsequently confirmed F319-05 CA RR MFA factor recovery as a fifth P2; the Owner explicitly approved its focused correction, with separate immutable RED and GREEN logs. See [remediation/FINAL_REMEDIATION_ACCEPTANCE.md](remediation/FINAL_REMEDIATION_ACCEPTANCE.md) and [remediation/F319-05-ca-mfa-rr-finding.md](remediation/F319-05-ca-mfa-rr-finding.md); this historical report does not indicate closure or GO.
+
 Baseline and tested application source: 20998a069eb5d576895c0e6c149271a4a0e4028b. Isolated QA only. Independent read-only security reviewer W4 signed on 2026-10-23: **P0 0 / P1 0 / P2 2 confirmed; NO-GO for Issue closure**. No physical cross-tenant BOLA and no MFA bypass were confirmed within tested routes; coverage gaps are not negative proofs.
 
 ## F319-01 — P2: Physical Resources Location Manager read can project after grant revocation

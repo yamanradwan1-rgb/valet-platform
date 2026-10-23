@@ -1,11 +1,21 @@
-param([ValidateSet('baseline', 'audit')][string]$Suite = 'baseline')
+param(
+  [ValidateSet('baseline', 'audit')][string]$Suite = 'baseline',
+  [ValidateSet('historical', 'remediation')][string]$Evidence = 'historical',
+  [ValidatePattern('^[a-z0-9-]+$')][string]$RunTag = '',
+  [ValidatePattern('^test/dashboard-issue319-[a-z0-9-]+\.integration\.test\.ts$')][string]$TestFile = ''
+)
 $ErrorActionPreference = 'Stop'
 $auditRoot = (Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path
 $pgBin = 'C:\Program Files\PostgreSQL\17\bin'
 $runId = [Guid]::NewGuid().ToString('N')
 $labRoot = Join-Path $auditRoot "tmp/issue-315-pg-qa/issue319-$runId"
 $dataPath = Join-Path $labRoot '.issue315-private-cluster'
-$logRoot = Join-Path $PSScriptRoot 'logs'
+$logRoot = if ($Evidence -eq 'remediation') {
+  Join-Path $PSScriptRoot 'remediation/logs'
+} else {
+  Join-Path $PSScriptRoot 'logs'
+}
+$logPrefix = if ($RunTag -ne '') { "$RunTag-$Suite" } else { $Suite }
 New-Item -ItemType Directory -Path $labRoot,$logRoot -Force | Out-Null
 $passwordFile = Join-Path $labRoot 'bootstrap-password'
 $password = [Guid]::NewGuid().ToString('N') + [Guid]::NewGuid().ToString('N')
@@ -24,7 +34,7 @@ try {
   if ($LASTEXITCODE -ne 0) { throw 'Private PostgreSQL start failed.' }
   $started = $true
   $env:PGPASSWORD = $password
-  & "$pgBin/psql.exe" -h 127.0.0.1 -p $port -U issue315_owner -d postgres -X -A -c "SELECT current_database(),current_user,inet_server_port(),current_setting('data_directory'),version(); SELECT rolname,rolsuper,rolcreatedb,rolcreaterole FROM pg_roles WHERE rolname=current_user;" | Tee-Object (Join-Path $logRoot "$Suite-identity.txt")
+  & "$pgBin/psql.exe" -h 127.0.0.1 -p $port -U issue315_owner -d postgres -X -A -c "SELECT current_database(),current_user,inet_server_port(),current_setting('data_directory'),version(); SELECT rolname,rolsuper,rolcreatedb,rolcreaterole FROM pg_roles WHERE rolname=current_user;" | Tee-Object (Join-Path $logRoot "$logPrefix-identity.txt")
   if ($LASTEXITCODE -ne 0) { throw 'Private cluster identity query failed.' }
   $env:TEST_DATABASE_URL = "postgresql://issue315_owner:$password@127.0.0.1:$port/postgres"
   $env:MIGRATION_DATABASE_URL = $env:TEST_DATABASE_URL
@@ -39,15 +49,19 @@ try {
     # The native exit code, not warning-stream formatting, owns test status.
     $ErrorActionPreference = 'Continue'
     if ($Suite -eq 'baseline') {
-      & pnpm exec vitest run --config ../../docs/validation/issue-315/pg-qa/vitest.config.mjs --reporter=verbose 2>&1 | Tee-Object (Join-Path $logRoot 'baseline-tests.txt')
+      & pnpm exec vitest run --config ../../docs/validation/issue-315/pg-qa/vitest.config.mjs --reporter=verbose 2>&1 | Tee-Object (Join-Path $logRoot "$logPrefix-tests.txt")
     } else {
-      & pnpm exec vitest run --config ../../docs/validation/issue-319/vitest.config.mjs --reporter=verbose 2>&1 | Tee-Object (Join-Path $logRoot 'audit-tests.txt')
+      if ($TestFile -ne '') {
+        & pnpm exec vitest run --config ../../docs/validation/issue-319/vitest.config.mjs $TestFile --reporter=verbose 2>&1 | Tee-Object (Join-Path $logRoot "$logPrefix-tests.txt")
+      } else {
+        & pnpm exec vitest run --config ../../docs/validation/issue-319/vitest.config.mjs --reporter=verbose 2>&1 | Tee-Object (Join-Path $logRoot "$logPrefix-tests.txt")
+      }
     }
     $testExit = $LASTEXITCODE
   } finally { $ErrorActionPreference = 'Stop'; Pop-Location }
 } finally {
   if ($started) {
-    & "$pgBin/psql.exe" -h 127.0.0.1 -p $port -U issue315_owner -d postgres -X -A -c "SELECT datname FROM pg_database WHERE datname NOT IN ('postgres','template0','template1'); SELECT rolname FROM pg_roles WHERE rolname LIKE 'valet_%'; SELECT count(*) AS child_connections FROM pg_stat_activity WHERE datname <> 'postgres';" | Tee-Object (Join-Path $logRoot "$Suite-cleanup.txt")
+    & "$pgBin/psql.exe" -h 127.0.0.1 -p $port -U issue315_owner -d postgres -X -A -c "SELECT datname FROM pg_database WHERE datname NOT IN ('postgres','template0','template1'); SELECT rolname FROM pg_roles WHERE rolname LIKE 'valet_%'; SELECT count(*) AS child_connections FROM pg_stat_activity WHERE datname <> 'postgres';" | Tee-Object (Join-Path $logRoot "$logPrefix-cleanup.txt")
     & "$pgBin/pg_ctl.exe" -D $dataPath -m immediate -w stop
     if ($LASTEXITCODE -ne 0) { throw 'Owned cluster stop failed; preserve directory for recovery.' }
   }
@@ -58,11 +72,11 @@ try {
   $expectedParent = [IO.Path]::GetFullPath((Join-Path $auditRoot 'tmp/issue-315-pg-qa')) + [IO.Path]::DirectorySeparatorChar
   if (!$resolvedLab.StartsWith($expectedParent, [StringComparison]::OrdinalIgnoreCase) -or !$resolvedLab.EndsWith("issue319-$runId")) { throw 'Unsafe cleanup target.' }
   Remove-Item -LiteralPath $resolvedLab -Recurse -Force
-  "OWNED_CLUSTER_DIRECTORY_REMOVED=$(!(Test-Path -LiteralPath $resolvedLab))" | Tee-Object -Append (Join-Path $logRoot "$Suite-cleanup.txt")
+  "OWNED_CLUSTER_DIRECTORY_REMOVED=$(!(Test-Path -LiteralPath $resolvedLab))" | Tee-Object -Append (Join-Path $logRoot "$logPrefix-cleanup.txt")
   # Windows PowerShell 5.1 Tee-Object emits UTF-16LE by default; preserve
   # reviewable Git text artifacts without changing the captured assertions.
   foreach ($name in @('identity', 'tests', 'cleanup')) {
-    $captured = Join-Path $logRoot "$Suite-$name.txt"
+    $captured = Join-Path $logRoot "$logPrefix-$name.txt"
     if (Test-Path -LiteralPath $captured) {
       $contents = [IO.File]::ReadAllText($captured)
       $contents = [regex]::Replace($contents, '[ \t]+(?=\r?\n|$)', '')

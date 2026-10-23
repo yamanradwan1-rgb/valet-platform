@@ -1,5 +1,7 @@
 # Issue #319 — lock safety, availability, and latency
 
+> **Historical pre-fix latency and lock evidence.** The 80-sample p50/p95 data below are the unpatched reference, not post-change measurements. For post-fix comparable samples, two-reader PID waits, 55P03/57014 rollback, RR lease quarantine and remaining limitations, see [remediation/lock-cleanup-and-performance.md](remediation/lock-cleanup-and-performance.md).
+
 Worktree source SHA: 20998a069eb5d576895c0e6c149271a4a0e4028b, dedicated audit-only tests. Final repeated PostgreSQL/HTTP run: 25/25 PASS in docs/validation/issue-319/logs/audit-tests.txt (2026-10-23, 05:04:27 runner time).
 
 ## Real loopback HTTP, uncontended measurements

@@ -1,0 +1,35 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:12924) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:12924) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-ca-mfa-rr-regression.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_12924_3339f84f',
+  runtime: 'valet_runtime_mob007_12924_3339f84f',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-ca-mfa-rr-regression.integration.test.ts > Issue #319 F319-05 Company Admin RR MFA factor recovery > reader-first holds MFA authority through protected RR overview projection
+ISSUE319_CA_MFA_RR_REGRESSION_TRACE [{"event":"CA_RR_FACTOR_SHARE_FENCE_HELD_BY_PID_29436","ms":20839.958},{"event":"CA_FACTOR_RECOVERY_REAL_HTTP_STARTED","ms":20840.564},{"event":"CA_MFA_RECOVERY_BLOCKED_BY_READER_29436_PG_30296","ms":20916.615},{"event":"CA_FACTOR_RECOVERY_REAL_HTTP_COMMITTED","ms":20939.543}]
+
+ ✓ test/dashboard-issue319-ca-mfa-rr-regression.integration.test.ts > Issue #319 F319-05 Company Admin RR MFA factor recovery > reader-first holds MFA authority through protected RR overview projection 929ms
+stdout | test/dashboard-issue319-ca-mfa-rr-regression.integration.test.ts > Issue #319 F319-05 Company Admin RR MFA factor recovery > revoker-first commits recovery before CA factor recheck and denies stale RR data
+ISSUE319_CA_MFA_RR_REGRESSION_TRACE [{"event":"CA_FACTOR_RECOVERY_REAL_HTTP_STARTED","ms":21602.195},{"event":"CA_MFA_RECOVERY_PID_37140_QUEUED_BEHIND_40128","ms":21615.67},{"event":"CA_RR_FACTOR_SHARE_QUEUED_BEHIND_RECOVERY_UPDATE","ms":21629.706},{"event":"CA_FACTOR_RECOVERY_REAL_HTTP_COMMITTED","ms":21644.315}]
+
+ ✓ test/dashboard-issue319-ca-mfa-rr-regression.integration.test.ts > Issue #319 F319-05 Company Admin RR MFA factor recovery > revoker-first commits recovery before CA factor recheck and denies stale RR data 682ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  19:24:08
+   Duration  22.08s (transform 7.29s, setup 0ms, import 11.69s, tests 10.12s, environment 0ms)

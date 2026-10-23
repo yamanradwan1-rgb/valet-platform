@@ -1,5 +1,7 @@
 # Issue #319 — real HTTP authorization acceptance
 
+> **Historical pre-fix HTTP evidence preserved.** Old HTTP 200-after-revocation is a security failure reproduced on source `20998a0`, not a patched acceptance. Real post-fix reader/revoker orders, exact PostgreSQL waits and the newly confirmed CA RR MFA failure are in [remediation/http-security-regression.md](remediation/http-security-regression.md) and [remediation/FINAL_REMEDIATION_ACCEPTANCE.md](remediation/FINAL_REMEDIATION_ACCEPTANCE.md).
+
 Baseline: 20998a069eb5d576895c0e6c149271a4a0e4028b. All requests here use the actual Nest controller/service stack on a loopback ephemeral listener from apps/api/test/staff-auth-native-fixture.ts:131-134,187-213, with real PostgreSQL 17.11. Synthetic records only. Source: apps/api/test/dashboard-issue319-*.integration.test.ts; exact retained timestamps and statuses: logs/audit-tests.txt. No production traffic.
 
 ## Decisive in-flight disclosure evidence

@@ -1,5 +1,7 @@
 # VAYLET Issue #319 — Final Security Audit Acceptance / Owner Handoff
 
+> **Historical pre-remediation audit checkpoint — preserved at `af62a11add5d97ec291ca0dbf49fdd29be88f708`.** The Owner subsequently approved F319-01/F319-02, then F319-03/F319-04 Branding/Subscription, and finally F319-05 CA RR MFA recovery. The original statements below describe the vulnerable baseline, **not the current patched worktree or Issue closure verdict**. Current tested findings, F319-05 red-to-green evidence and final security decision are in [remediation/FINAL_REMEDIATION_ACCEPTANCE.md](remediation/FINAL_REMEDIATION_ACCEPTANCE.md). Original logs are deliberately retained.
+
 **Decision: SECURITY NO-GO for Issue #319 closure.** Two independently reviewed P2 read-revocation races are reproduced by real loopback HTTP and isolated PostgreSQL 17.11; application authorization has **not** been changed. Separate Owner approval is required for the narrowed production remediation, then regression proof and a renewed review. No merge, deployment or Issue closure is authorized by this report.
 
 ## Exact repository and environment identity
