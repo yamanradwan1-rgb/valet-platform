@@ -85,7 +85,11 @@ validated from actual deployment evidence.
 Integration source changes, focused tests and the 104-unit historical ledger
 have been prepared in the isolated Prime branch. See
 `FINAL_CANDIDATE_REPORT.md` and `MASTER_DISPOSITION.md` for the actual results.
-The COS worker sessions repeatedly failed to start; Prime performed the
-candidate implementation directly. Independent W7 review was **NOT
-PERFORMED**. Therefore the candidate remains **CONDITIONAL**, not a security
-GO or approved production release. Unverified items stay UNRESOLVED/NOT RUN.
+The initial COS worker sessions repeatedly failed to start; Prime performed
+the initial remediation. Later worker sessions completed independent #309
+PostgreSQL test boundary triage, #319 private-cluster CI triage, focused
+Employee E2E origin coverage, and an independent READ-ONLY security source
+review (no P0/P1 confirmed). See `PR334_CI_ACCEPTANCE.md` for the scope
+and continued CI blockers. This candidate remains **CONDITIONAL**, not a
+security GO or approved production release. Unverified items stay
+UNRESOLVED/NOT RUN.

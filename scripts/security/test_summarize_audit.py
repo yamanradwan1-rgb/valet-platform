@@ -50,6 +50,17 @@ class SemgrepCoverageGateTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("semgrep.json.errors field", result.stdout)
 
+    def test_missing_results_is_not_misreported_as_clean_scan(self):
+        result = self.run_summary({"errors": []})
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("semgrep.json", result.stdout)
+        self.assertIn("Scanner report missing or invalid", result.stdout)
+
+    def test_invalid_results_shape_is_rejected(self):
+        result = self.run_summary({"results": {}, "errors": []})
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("Scanner report missing or invalid", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

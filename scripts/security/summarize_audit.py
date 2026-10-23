@@ -30,7 +30,9 @@ def read_report(name):
 
 def count(name, data):
     if name == "semgrep.json":
-        return str(len(data.get("results", []))) if isinstance(data, dict) else "Invalid format"
+        if not isinstance(data, dict) or not isinstance(data.get("results"), list):
+            return "Invalid format"
+        return str(len(data["results"]))
     if name == "trivy.json":
         if not isinstance(data, dict):
             return "Invalid format"

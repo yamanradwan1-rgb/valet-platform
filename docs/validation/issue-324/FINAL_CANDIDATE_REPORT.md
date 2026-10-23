@@ -8,7 +8,7 @@
 
 **Candidate branch/worktree:** `security/issue-324-prime` / `tmp/issue-324-prime`
 
-**Final SHA:** obtain with `git rev-parse HEAD` on the candidate branch; no immutable release artifact or deployed SHA exists.
+**Final SHA:** obtain with `git rev-parse HEAD` at PR review; post-baseline CI remediation commits are recorded in `PR334_CI_ACCEPTANCE.md`. No deployed release SHA exists.
 
 **Decision:** **CONDITIONAL — SPECIFIC BLOCKERS.** This branch is a reviewable engineering candidate, **not** an independent security GO or a production release approval.
 
@@ -19,7 +19,7 @@
 3. The plate OCR endpoint validator requires HTTPS for remote endpoints; plaintext requests are allowed only to literal `127.0.0.1` or `[::1]` in `development`/`test`. Invalid configurations produce no outbound provider fetch. Existing redirect/time/response-size controls, fallback and production OCR cost guard remain unchanged.
 4. Dashboard, Customer and Employee Web use restrictive framing/MIME/referrer headers; the intentionally **framing-only** CSP avoids breaking Next scripts, maps, camera, browser location, cookies and localized layouts. `X-Powered-By` disabled across all three.
 5. Upgraded resolved Next.js `16.2.11 → 16.4.3` across three web apps, API Sharp `0.34.5 → 0.35.5`, and transitive Multer `2.2.0 → 2.5.0` via pnpm override. Other narrow patched transitive pins: `proxy-addr`, `qs`, `compression`, `shell-quote`, `fast-uri`, `source-map-js`, `vite`, `js-yaml`, `brace-expansion`.
-6. Scanner quality summary now rejects Semgrep `errors` (including `PartialParsing`) and missing parser error metadata. Existing static scanner reports and artifacts remain intact; no new CI run or broad scanner sweep was performed.
+6. Scanner quality summary rejects Semgrep `errors` (including `PartialParsing`), missing parser-error metadata, **missing or malformed `results`**. Static scanner artifacts remain intact. The previous PR CI run had failures documented in `PR334_CI_ACCEPTANCE.md`; actual new Semgrep complete scan remains NOT RUN.
 7. `MASTER_DISPOSITION.md` maps 104 historical review units one-for-one: 57 dependency/advisory pairs, 29 Gitleaks suspected sites, 17 ZAP categories, one Semgrep MFA item. It contains **no matched secret values**.
 
 ## Verified local tests (candidate worktree; no production systems)
@@ -33,12 +33,19 @@
 | `pnpm architecture:check` | PASS, with grandfathered line-count warnings already recorded by policy |
 | Focused Vitest API header + Swagger + OCR provider/diagnostics/cost guard | PASS, 48/48 assertions across 5 files |
 | Focused condition-photo multipart + ingress Vitest | PASS, 4/4 across 2 files; **not** an OCR-authenticated PostgreSQL HTTP test |
-| `python -m unittest scripts/security/test_summarize_audit.py` | PASS, 3/3; synthetic partial parsing and missing parser metadata fail closed |
+| `python -m unittest scripts/security/test_summarize_audit.py` | PASS, 5/5; partial parsing, missing metadata, missing or malformed results fail closed |
+| `node --test scripts/test-harness/*.test.mjs` | PASS, 39/39 (current candidate) |
+| Database non-PostgreSQL Vitest | PASS, 65/65 |
+| Postgres17 disposable migration manifest acceptance | PASS 5/5 (were RED 5/5 on main 2bee94f2) |
+| Staff Operational Context controller and auth-transition tests | PASS 9/9 |
+| Windows capacity PID tests | PASS 16/16 on Windows |
+| Employee E2E API origin contract Playwright | PASS 4/4 (not full lifecycle) |
+| Full `pnpm test:non-postgres` | FAIL, baseline-inherited test drift confirmed in selected API/Dashboard tests; see `PR334_CI_ACCEPTANCE.md`. Not a clean PASS |
 | `pnpm audit --json` | Runs and reports remaining advisories; **nonzero audit status**, **not a clean PASS** |
 | Authenticated OCR HTTP+PostgreSQL suites / abort/disconnect load tests | **NOT RUN** |
 | Semgrep actual scan with corrected parser inputs | **NOT RUN**; historical 9 partial parser errors remain visible |
 | Authenticated full PostgreSQL suite and #333 race campaign | **NOT RUN**, intentionally outside this scope |
-| Independent W7 source/security review | **NOT PERFORMED**; COS worker sessions did not start successfully |
+| Independent W11 READ-ONLY source-diff review | Performed on Prime 0afa8641: 32 changed files inspected, no P0/P1 confirmed; P2 Semgrep report-structure gap found and locally fixed after review. Follow-up of final patched diff and production verification remain separate |
 | Public production TLS, reverse proxy, header/WAF, operational DNS verification | **NOT RUN**; requires operator deployment evidence |
 
 ## Supply-chain result and residual risks
@@ -65,4 +72,4 @@ Six Moderate advisory rows remain in local `pnpm audit`: Vitest and `@vitest/moc
 
 No direct merge to `main`, force push, release artifact, live deploy, destructive cleanup, production database access, secret rotation or production configuration change occurred.
 
-**Owner review candidate:** available locally on the isolated branch with a complete ledger and successful scoped code/build tests. **Not production-ready/Issue-closure-ready** until the remaining three High paths have accepted reachability/mitigation decisions, the Semgrep parser gap is rerun or explicitly deferred, actual ingress and credential owner evidence is recorded, and a genuinely independent review examines this final diff.
+**Owner review candidate:** available on the isolated branch with a complete ledger, successful focused tests and independently identified scanner-quality correction. **Not production-ready/Issue-closure-ready** until the remaining three High paths have accepted reachability/mitigation decisions, Semgrep is rerun with full parse coverage or explicitly deferred, actual ingress and credential-owner evidence are recorded, mandatory CI/PG E2E gates are resolved through approved safe infrastructure and final changes are independently reviewed.
