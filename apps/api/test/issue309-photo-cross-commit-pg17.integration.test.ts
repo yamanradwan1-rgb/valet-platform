@@ -24,13 +24,26 @@ async function revoke(writer: PoolClient, item: PhotoFenceCase, kind: Revoker) {
   );
 }
 
-async function ensureNoIdleTransaction(h: Issue309PhotoHttpFixture) {
-  const result = await h.db.admin.query<{ pending: number }>(
-    `SELECT COUNT(*)::int AS pending FROM pg_stat_activity
+async function ensureNoIdleTransaction(h: Issue309PhotoHttpFixture, writerPid?: number) {
+  const result = await h.db.admin.query<{
+    pid: number;
+    usename: string;
+    application_name: string;
+    xact_start: Date | null;
+    state_change: Date | null;
+    query: string;
+  }>(
+    `SELECT pid,usename,application_name,xact_start,state_change,
+            left(query,160) AS query
+     FROM pg_stat_activity
      WHERE datname=current_database() AND pid<>pg_backend_pid()
-       AND state='idle in transaction'`,
+       AND state='idle in transaction'
+     ORDER BY pid`,
   );
-  expect(result.rows[0]?.pending).toBe(0);
+  // Keep the zero-idle invariant; surface backend identity to distinguish a
+  // pending test writer from an unreleased photo witness or app pool lease.
+  expect(result.rows, `Idle transaction(s); test writer PID=${writerPid ?? "none"}: ${JSON.stringify(result.rows)}`)
+    .toEqual([]);
 }
 
 describe("Issue #309 two-connection real restricted PG17 + Node HTTP fence", () => {
@@ -60,6 +73,9 @@ describe("Issue #309 two-connection real restricted PG17 + Node HTTP fence", () 
     it(`revoker-first ${kind} transaction wins and denies real JPEG`,async()=>{
       const item = await seedPhotoFenceCase(h);
       const writer = await h.db.admin.connect();
+      const writerPid = (await writer.query<{ pid: number }>(
+        "SELECT pg_backend_pid() AS pid",
+      )).rows[0]!.pid;
       let open = false;
       try {
         await writer.query("BEGIN"); open=true;
@@ -72,7 +88,7 @@ describe("Issue #309 two-connection real restricted PG17 + Node HTTP fence", () 
         const result = await pending;
         expect(result.status).toBe(503);
         expect(result.order).not.toContain("jpeg-enqueued");
-        await ensureNoIdleTransaction(h);
+        await ensureNoIdleTransaction(h, writerPid);
       } finally {
         if(open) await writer.query("ROLLBACK");
         writer.release();
