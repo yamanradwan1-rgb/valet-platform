@@ -2,12 +2,10 @@ import { Inject, Injectable } from "@nestjs/common";
 import type { CompanyAnalyticsResponse } from "@valet/contracts";
 
 import type { PostgresPool } from "../../common/database/postgres";
-import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
 import type { StaffSessionContext } from "../auth/staff-session-context";
-import { recordAdminActivityInTransaction } from "../auth/mfa/mfa-assurance-policy";
+import { inFencedCompanyAdminRrSnapshot } from "./company-admin-rr-snapshot";
 import { composeCompanyAnalyticsSources } from "./company-analytics-source";
-import { authorizeCompanyAdminManagement } from "./management-authorization";
 
 @Injectable()
 export class ManagementCompanyAnalyticsService {
@@ -20,21 +18,16 @@ export class ManagementCompanyAnalyticsService {
     organizationId: string,
     period: { readonly from: string; readonly to: string },
   ): Promise<CompanyAnalyticsResponse> {
-    return inPostgresTransaction(this.pool, async (transaction) => {
-      await transaction.query("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ");
-      const scope = await authorizeCompanyAdminManagement(transaction, context, {
-        capability: "ANALYTICS_READ",
-        organizationId,
-      });
+    return inFencedCompanyAdminRrSnapshot(this.pool, context, organizationId,
+      "ANALYTICS_READ", async (transaction, authorizedOrgId) => {
       const summary = await composeCompanyAnalyticsSources(transaction, {
         from: period.from,
-        organizationId: scope.organizationId,
+        organizationId: authorizedOrgId,
         to: period.to,
       });
-      await recordAdminActivityInTransaction(transaction, context);
       return {
         from: period.from,
-        organizationId: scope.organizationId,
+        organizationId: authorizedOrgId,
         summary,
         to: period.to,
       };
