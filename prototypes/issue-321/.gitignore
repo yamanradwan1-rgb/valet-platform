@@ -1,0 +1,4 @@
+# Local build outputs and temporary Playwright failure traces are reproducible.
+dist/
+node_modules/
+evidence/full-coverage-qa/playwright-artifacts/

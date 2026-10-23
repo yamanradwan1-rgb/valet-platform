@@ -1,0 +1,84 @@
+{
+  "results": [
+    {
+      "variant": "a",
+      "case": "keyboard navigation, history and drafts",
+      "status": "PASS"
+    },
+    {
+      "variant": "a",
+      "case": "role matrix and locale/theme",
+      "status": "PASS"
+    },
+    {
+      "variant": "a",
+      "case": "Shift Presence subviews and Help focus",
+      "status": "PASS"
+    },
+    {
+      "variant": "a",
+      "case": "presence scope, strict confirmation, exceptions and guided setup",
+      "status": "PASS"
+    },
+    {
+      "variant": "b",
+      "case": "keyboard navigation, history and drafts",
+      "status": "PASS"
+    },
+    {
+      "variant": "b",
+      "case": "role matrix and locale/theme",
+      "status": "PASS"
+    },
+    {
+      "variant": "b",
+      "case": "Shift Presence subviews and Help focus",
+      "status": "PASS"
+    },
+    {
+      "variant": "b",
+      "case": "presence scope, strict confirmation, exceptions and guided setup",
+      "status": "PASS"
+    },
+    {
+      "variant": "c",
+      "case": "keyboard navigation, history and drafts",
+      "status": "PASS"
+    },
+    {
+      "variant": "c",
+      "case": "role matrix and locale/theme",
+      "status": "PASS"
+    },
+    {
+      "variant": "c",
+      "case": "Shift Presence subviews and Help focus",
+      "status": "PASS"
+    },
+    {
+      "variant": "c",
+      "case": "presence scope, strict confirmation, exceptions and guided setup",
+      "status": "PASS"
+    },
+    {
+      "variant": "d",
+      "case": "keyboard navigation, history and drafts",
+      "status": "PASS"
+    },
+    {
+      "variant": "d",
+      "case": "role matrix and locale/theme",
+      "status": "PASS"
+    },
+    {
+      "variant": "d",
+      "case": "Shift Presence subviews and Help focus",
+      "status": "PASS"
+    },
+    {
+      "variant": "d",
+      "case": "presence scope, strict confirmation, exceptions and guided setup",
+      "status": "PASS"
+    }
+  ]
+}

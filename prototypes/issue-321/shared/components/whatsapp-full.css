@@ -1,0 +1,33 @@
+.p321-wa { min-width: 0; padding: 1rem; border: 1px solid var(--border); border-radius: .8rem; background: var(--surface); color: var(--text); }
+.p321-wa-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+.p321-wa-header h3 { font-size: 1rem; font-weight: 800; margin: .25rem 0 .4rem; }
+.p321-wa-header p { color: var(--muted); font-size: .76rem; line-height: 1.6; margin: 0; max-width: 46rem; }
+.p321-wa-kicker { color: var(--accent); text-transform: uppercase; font-size: .65rem; letter-spacing: .09em; font-weight: 800; }
+.p321-wa-scope { color: var(--text); background: var(--surface-soft); border: 1px solid var(--border); padding: .3rem .6rem; font-size: .68rem; font-weight: 750; border-radius: 999px; white-space: nowrap; }
+.p321-wa-prototype { margin: 1rem 0; color: var(--muted); font-size: .7rem; font-weight: 700; line-height: 1.5; }
+.p321-wa-gate { display: flex; gap: .7rem; align-items: flex-start; background: color-mix(in srgb, var(--danger) 7%, var(--surface)); border: 1px solid color-mix(in srgb, var(--danger) 22%, var(--border)); border-radius: .65rem; padding: .8rem .9rem; }
+.p321-wa-gate-dot { width: .55rem; height: .55rem; border-radius: 50%; background: var(--danger); flex: 0 0 auto; margin-block-start: .3rem; }
+.p321-wa-gate strong { font-size: .78rem; }
+.p321-wa-gate p { margin: .3rem 0 0; font-size: .72rem; line-height: 1.65; color: var(--muted); }
+.p321-wa-stats { margin-block: .85rem 1rem; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .55rem; }
+.p321-wa-stats > div { min-width: 0; display: grid; gap: .35rem; padding: .75rem; border: 1px solid var(--border); border-radius: .55rem; background: var(--surface-soft); }
+.p321-wa-stats span { color: var(--muted); font-size: .68rem; }
+.p321-wa-stats strong { font-size: .76rem; }
+.p321-wa-number { direction: ltr; unicode-bidi: isolate; }
+.p321-wa-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; }
+.p321-wa-field { min-width: 0; display: grid; align-content: start; gap: .3rem; }
+.p321-wa-field label { color: var(--text); font-size: .76rem; font-weight: 750; }
+.p321-wa-field p { color: var(--muted); font-size: .7rem; line-height: 1.6; margin: 0 0 .2rem; }
+.p321-wa-field select { width: 100%; min-width: 0; min-height: 2.55rem; border: 1px solid var(--border); border-radius: .5rem; background: var(--surface-soft); color: var(--text); padding: .5rem; font: inherit; font-size: .75rem; }
+.p321-wa-field select:disabled { opacity: .72; cursor: not-allowed; }
+.p321-wa-field small { color: var(--muted); font-size: .66rem; line-height: 1.5; }
+.p321-wa-field :focus-visible, .p321-wa button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.p321-wa-error, .p321-wa-info { border-radius: .55rem; padding: .8rem; margin: .8rem 0 0; font-size: .73rem; line-height: 1.55; }
+.p321-wa-error { color: var(--danger); background: color-mix(in srgb, var(--danger) 8%, var(--surface)); border: 1px solid color-mix(in srgb, var(--danger) 25%, var(--border)); }
+.p321-wa-info { color: var(--text); background: var(--surface-soft); border: 1px solid var(--border); }
+.p321-wa-footer { margin-block-start: 1rem; padding-block-start: 1rem; border-block-start: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: .6rem; flex-wrap: wrap; }
+.p321-wa-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.p321-wa-simulate { min-height: 2.25rem; padding: .45rem .55rem; background: none; border: 1px dashed var(--border); border-radius: .5rem; color: var(--muted); font-size: .7rem; font-weight: 700; cursor: pointer; }
+.p321-wa-simulate:hover { color: var(--accent); border-color: var(--accent); }
+@media (max-width: 700px) { .p321-wa-fields { grid-template-columns: minmax(0, 1fr); } .p321-wa-stats { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 390px) { .p321-wa { padding: .8rem; } .p321-wa-header { flex-wrap: wrap; } .p321-wa-scope { white-space: normal; } .p321-wa-actions, .p321-wa-actions button, .p321-wa-simulate { width: 100%; } }

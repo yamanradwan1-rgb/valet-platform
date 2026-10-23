@@ -1,10 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import adminStyles from "../../../apps/dashboard/src/features/administration/administration.module.css";
 import { allowedSections, ordinarySettings } from "../shared/fixtures/settings-catalog";
 import { fixtureNotice, sampleCompanyDefaults, sampleLocationOverrides, samplePresence, scenarios } from "../shared/fixtures/simulated-data";
 import type { FixtureValue } from "../shared/fixtures/settings-catalog";
 import { HelpDialog } from "../shared/components/HelpDialog";
 import { SettingsPane } from "../shared/components/SettingsPane";
+import type { Zone } from "../shared/components/shift-presence-prototype-model";
+import type { Schedule } from "../shared/components/OperatingHoursFull";
+import type { WhatsAppPrototypeSnapshot } from "../shared/components/WhatsAppFull";
 import { ProductionDashboardShell } from "../shared/shell/ProductionDashboardShell";
 import type { PolicySection, PolicySectionId, PolicyVariantProps, PrototypeLocale, PrototypeTheme } from "../shared/types/variant";
 import OptionA from "../variants/option-a/OptionA";
@@ -15,6 +18,7 @@ import "./prototype-controls.css";
 
 type OptionKey = "a" | "b" | "c" | "d";
 type Value = FixtureValue | "__INHERIT__";
+type PrototypeRoute = { option: OptionKey; section: PolicySectionId; scenario: string; locale: PrototypeLocale; theme: PrototypeTheme };
 const optionComponents: Record<OptionKey, (props: PolicyVariantProps) => React.ReactNode> = {
   a: OptionA, b: OptionB, c: OptionC, d: OptionD,
 };
@@ -25,7 +29,15 @@ const optionNames = {
   d: { en: "D · Compact Workspace", ar: "D · مساحة عمل مدمجة" },
 } as const;
 
-function currentRoute() {
+function normalizeRoute(route: PrototypeRoute): PrototypeRoute {
+  const scenario = scenarios.find(item => item.id === route.scenario) ?? scenarios[0];
+  const eligible = allowedSections(scenario.role, scenario.hasLocation);
+  return eligible.some(item => item.id === route.section) ? route : {
+    ...route, section: (eligible.find(item => !item.optional)?.id ?? eligible[0]?.id ?? "overview") as PolicySectionId,
+  };
+}
+
+function currentRoute(): PrototypeRoute {
   const params = new URLSearchParams(window.location.search);
   const path = window.location.pathname.slice(1).toLowerCase();
   const option = (["a", "b", "c", "d"].includes(path) ? path : "a") as OptionKey;
@@ -34,9 +46,9 @@ function currentRoute() {
   const scenario = scenarios.some(s => s.id === params.get("scenario")) ? params.get("scenario")! : "company-with-location";
   const locale = (params.get("lang") === "ar" ? "ar" : "en") as PrototypeLocale;
   const theme = (params.get("theme") === "dark" ? "dark" : "light") as PrototypeTheme;
-  return { option, section, scenario, locale, theme };
+  return normalizeRoute({ option, section, scenario, locale, theme });
 }
-function routeUrl(route: ReturnType<typeof currentRoute>) {
+function routeUrl(route: PrototypeRoute) {
   const params = new URLSearchParams({ section: route.section, scenario: route.scenario, lang: route.locale, theme: route.theme });
   return `/${route.option}?${params.toString()}`;
 }
@@ -78,13 +90,21 @@ export default function App() {
   const [saved, setSaved] = useState(initialValues);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
+  const [featureDirty, setFeatureDirty] = useState<Record<string, boolean>>({});
+  const [zonesByScenario, setZonesByScenario] = useState<Record<string, Zone[]>>({});
+  const [slaByScenario, setSlaByScenario] = useState<Record<string, number | null>>({});
+  const [hoursByScenario, setHoursByScenario] = useState<Record<string, { company: Schedule | null; location: Schedule | null }>>({});
+  const [whatsAppByScenario, setWhatsAppByScenario] = useState<Record<string, Partial<Record<"company" | "location", WhatsAppPrototypeSnapshot>>>>({});
   const routeRef = useRef(route);
-  const dirty = Object.keys(draft).some(key => draft[key] !== saved[key]);
+  const dirty = Object.keys(draft).some(key => draft[key] !== saved[key]) || Object.values(featureDirty).some(Boolean);
   const dirtyRef = useRef(dirty);
   const savedRef = useRef(saved);
   routeRef.current = route;
   dirtyRef.current = dirty;
   savedRef.current = saved;
+  const reportFeatureDirty = useCallback((source: string, isDirty: boolean) => {
+    setFeatureDirty(old => old[source] === isDirty ? old : { ...old, [source]: isDirty });
+  }, []);
   const scenario = scenarios.find(s => s.id === route.scenario) ?? scenarios[0];
   const hasLocation = scenario.hasLocation;
   const eligible = useMemo(() => availableSections(scenario.role, hasLocation, route.locale), [scenario.role, hasLocation, route.locale]);
@@ -99,12 +119,20 @@ export default function App() {
     document.documentElement.dataset.theme = route.theme;
   }, [route.locale, route.theme]);
   useEffect(() => {
+    // The address bar must describe the pane that the simulated role may actually view.
+    const normalized = routeUrl(route);
+    if (window.location.pathname + window.location.search !== normalized) {
+      window.history.replaceState({}, "", normalized);
+    }
+  }, [route]);
+  useEffect(() => {
     function onPop() {
       if (dirtyRef.current && !window.confirm(routeRef.current.locale === "ar" ? "توجد تغييرات غير محفوظة. هل تريد مغادرة القسم؟" : "You have unsaved changes. Leave this section?")) {
         window.history.pushState({}, "", routeUrl(routeRef.current));
         return;
       }
       if (dirtyRef.current) setDraft({ ...savedRef.current });
+      if (dirtyRef.current) setFeatureDirty({});
       setRoute(currentRoute());
       setError(null);
     }
@@ -120,13 +148,13 @@ export default function App() {
 
   function change(next: Partial<typeof route>, confirmDirty = false) {
     if (confirmDirty && dirty && !window.confirm(route.locale === "ar" ? "توجد تغييرات غير محفوظة. هل تريد المتابعة؟" : "Discard unsaved changes and continue?")) return;
-    if (confirmDirty && dirty) setDraft({ ...saved });
-    const updated = { ...route, ...next };
+    if (confirmDirty && dirty) { setDraft({ ...saved }); setFeatureDirty({}); }
+    const updated = normalizeRoute({ ...route, ...next });
     window.history.pushState({}, "", routeUrl(updated));
     setRoute(updated);
     setError(null);
     setNotice("");
-    if (next.scenario && next.scenario !== route.scenario) { setDraft(initialValues()); setSaved(initialValues()); }
+    if (next.scenario && next.scenario !== route.scenario) { setDraft(initialValues()); setSaved(initialValues()); setFeatureDirty({}); }
   }
 
   function onSave(key: string) {
@@ -147,6 +175,13 @@ export default function App() {
     setSaved(previous => ({ ...previous, [key]: value }));
     setError(null);
     setNotice(route.locale === "ar" ? "تم حفظ القيمة في ذاكرة النموذج فقط." : "Saved to prototype memory only. No API request was sent.");
+  }
+  function onClear(key: string) {
+    if (!key.startsWith("location:")) return;
+    setDraft(previous => ({ ...previous, [key]: "__INHERIT__" }));
+    setSaved(previous => ({ ...previous, [key]: "__INHERIT__" }));
+    setError(null);
+    setNotice(route.locale === "ar" ? "تمت إزالة تخصيص الموقع في المحاكاة فقط." : "Location override cleared in prototype memory only.");
   }
 
   const Variant = optionComponents[route.option];
@@ -169,7 +204,7 @@ export default function App() {
             aria-pressed={route.option === key} onClick={() => change({ option: key }, true)}>{optionNames[key][route.locale]}</button>)}
         </fieldset>
         <label className="p321-scenario-label">{route.locale === "ar" ? "محاكاة الصلاحية والنطاق" : "Role & scope simulation"}
-          <select data-testid="scenario" value={scenario.id} onChange={e => change({ scenario: e.target.value, section: e.target.value === "location-manager" ? "location" : "company" }, true)}>
+          <select data-testid="scenario" value={scenario.id} onChange={e => change({ scenario: e.target.value, section: "company" }, true)}>
             {scenarios.map(entry => <option key={entry.id} value={entry.id}>{entry.label[route.locale]}</option>)}
           </select></label>
       </div>
@@ -179,10 +214,30 @@ export default function App() {
         "This role has no Policies & Settings access in the simulation."}</div> : <Variant locale={route.locale} role={scenario.role} activeSection={selected} sections={eligible}
         organizationLabel={organization} locationLabel={location}
         onSelect={section => change({ section }, true)}
-        renderPane={presentation => <SettingsPane section={selected} locale={route.locale} role={scenario.role}
-          hasLocation={hasLocation} presentation={presentation} draft={draft} saved={saved} error={error}
+        renderPane={presentation => <SettingsPane key={scenario.id} section={selected} locale={route.locale} theme={route.theme} role={scenario.role}
+          hasLocation={hasLocation} presenceCanEdit={scenario.presenceCanEdit} presenceCanReviewExceptions={scenario.presenceCanReviewExceptions}
+          presentation={presentation} draft={draft} saved={saved} error={error}
+          zones={zonesByScenario[scenario.id] ?? []}
+          onZonesChange={transform => setZonesByScenario(current => ({
+            ...current, [scenario.id]: transform(current[scenario.id] ?? []),
+          }))}
+          slaSavedValue={slaByScenario[scenario.id] ?? null}
+          onSlaSavedValue={value => setSlaByScenario(current => ({ ...current, [scenario.id]: value }))}
+          hoursCompany={hoursByScenario[scenario.id]?.company ?? null}
+          hoursLocation={hoursByScenario[scenario.id]?.location ?? null}
+          onHoursSaved={(scope, schedule) => setHoursByScenario(current => ({
+            ...current, [scenario.id]: { company: current[scenario.id]?.company ?? null,
+              location: current[scenario.id]?.location ?? null, [scope]: schedule },
+          }))}
+          whatsappSnapshot={whatsAppByScenario[scenario.id]?.[selected === "company" ? "company" : "location"]}
+          whatsappCompany={whatsAppByScenario[scenario.id]?.company}
+          onWhatsAppSnapshot={(scope, snapshot) => setWhatsAppByScenario(current => ({ ...current,
+            [scenario.id]: { ...current[scenario.id], [scope]: snapshot },
+          }))}
           onChange={(key, value) => { setDraft(old => ({ ...old, [key]: value })); setNotice(""); }} onSave={onSave}
+          onClear={onClear}
           onConflict={() => setError(route.locale === "ar" ? "محاكاة تعارض 409: تغير الإصدار على الخادم؛ راجع القيم قبل إعادة المحاولة." : "Simulated 409 conflict: server revision changed. Review values before retrying.")}
+          onFeatureDirty={reportFeatureDirty}
           onSelect={section => change({ section }, true)} />}
       />}
     </div>

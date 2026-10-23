@@ -24,6 +24,7 @@ interface Props {
   readonly saved: Record<string, FixtureValue | "__INHERIT__">;
   readonly onChange: (key: string, value: FixtureValue | "__INHERIT__") => void;
   readonly onSave: (key: string) => void;
+  readonly onClear?: (key: string) => void;
   readonly compact?: boolean;
 }
 
@@ -33,8 +34,9 @@ function valueLabel(value: FixtureValue | "__INHERIT__" | undefined, locale: Pro
   return optionLabels[String(value)]?.[locale] ?? String(value);
 }
 
-export function SettingRows({ scope, locale, role, draft, saved, onChange, onSave, compact }: Props) {
-  const [showAll, setShowAll] = useState(false);
+export function SettingRows({ scope, locale, role, draft, saved, onChange, onSave, onClear, compact }: Props) {
+  // Owner's full-coverage review starts with every authorized setting visible.
+  const [showAll, setShowAll] = useState(true);
   const ar = locale === "ar";
   const fields = ordinarySettings.filter(field => scope === "company" || role === "COMPANY_ADMIN" || field.locationManager);
   const shown = showAll ? fields : fields.slice(0, compact ? 7 : 5);
@@ -45,10 +47,15 @@ export function SettingRows({ scope, locale, role, draft, saved, onChange, onSav
       const placeholder = scope === "location" ? "__INHERIT__" : null;
       const value = draft[stateKey] ?? placeholder;
       const isDirty = value !== (saved[stateKey] ?? placeholder);
+      const overrideSaved = saved[stateKey] !== "__INHERIT__";
+      const companySaved = saved[`company:${field.key}`] ?? sampleCompanyDefaults[field.key];
+      const savedValue = saved[stateKey] ?? placeholder;
+      const savedEffective = savedValue === "__INHERIT__" ? companySaved : savedValue;
+      const draftPreview = value === "__INHERIT__" ? companySaved : value;
       return <div className="p321-setting-row" key={field.key}>
         <div className="p321-setting-caption">
           <label htmlFor={`field-${stateKey}`}>{field.label[locale]}</label>
-          {scope === "location" && <small>{ar ? "الافتراضي: " : "Company default: "}{valueLabel(sampleCompanyDefaults[field.key], locale)}</small>}
+          {scope === "location" && <small>{ar ? "افتراضي الشركة المحفوظ: " : "Saved Company default: "}{valueLabel(companySaved, locale)}</small>}
         </div>
         <div className="p321-setting-edit">
           {field.kind === "integer" || field.kind === "money" ?
@@ -68,11 +75,16 @@ export function SettingRows({ scope, locale, role, draft, saved, onChange, onSav
           {scope === "location" && (field.kind === "integer" || field.kind === "money") &&
             <button className="p321-inline-inherit" type="button" disabled={value === "__INHERIT__"}
               onClick={() => onChange(stateKey, "__INHERIT__")}>{ar ? "وراثة قيمة الشركة" : "Inherit company"}</button>}
-          <span className="p321-effective-value">{ar ? "معاينة المسودة: " : "Draft preview: "}{valueLabel(value, locale)}</span>
+          {scope === "location" && <span className="p321-effective-value">{ar ? "المصدر المحفوظ: " : "Saved source: "}
+            {savedValue === "__INHERIT__" ? (ar ? "موروث" : "Inherited") : (ar ? "مخصّص" : "Overridden")}
+            {" · "}{ar ? "القيمة الفعلية المحفوظة: " : "Saved effective: "}{valueLabel(savedEffective, locale)}</span>}
+          <span className="p321-effective-value">{ar ? "معاينة المسودة: " : "Draft preview: "}{valueLabel(draftPreview, locale)}</span>
         </div>
         <div className="p321-row-actions">
           <button className="p321-save" disabled={!isDirty} type="button" onClick={() => onSave(stateKey)}>{ar ? "حفظ" : "Save"}</button>
           <HelpDialog helpKey={field.helpKey} locale={locale} fallback={field.label[locale]} />
+          {scope === "location" && onClear && <button className="p321-outline" type="button" disabled={!overrideSaved}
+            onClick={() => onClear(stateKey)}>{ar ? "إزالة التخصيص" : "Clear Override"}</button>}
         </div>
       </div>;
     })}

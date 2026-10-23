@@ -123,6 +123,8 @@ export interface FixtureScenario {
   readonly id: string;
   readonly role: FixtureRole;
   readonly hasLocation: boolean;
+  readonly presenceCanEdit?: boolean;
+  readonly presenceCanReviewExceptions?: boolean;
   readonly label: Readonly<{ en: string; ar: string }>;
 }
 
@@ -144,6 +146,14 @@ export const scenarios: readonly FixtureScenario[] = [
     role: "LOCATION_MANAGER",
     hasLocation: true,
     label: { en: "Location Manager · Authorized sample location", ar: "مدير الموقع · موقع تجريبي مصرح" },
+  },
+  {
+    id: "location-manager-read-only",
+    role: "LOCATION_MANAGER",
+    hasLocation: true,
+    presenceCanEdit: false,
+    presenceCanReviewExceptions: false,
+    label: { en: "Location Manager · Presence read-only capability", ar: "مدير موقع · صلاحية حضور للقراءة فقط" },
   },
   {
     id: "denied",

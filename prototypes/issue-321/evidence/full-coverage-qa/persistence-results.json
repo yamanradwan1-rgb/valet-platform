@@ -1,0 +1,88 @@
+{
+  "total": 16,
+  "passed": 16,
+  "failed": 0,
+  "apiRequests": [],
+  "cases": [
+    {
+      "variant": "a",
+      "feature": "attendance zone persists after section switch",
+      "result": "PASS"
+    },
+    {
+      "variant": "a",
+      "feature": "Operating Hours saved schedule survives section switch",
+      "result": "PASS"
+    },
+    {
+      "variant": "a",
+      "feature": "WhatsApp policy saved language survives section switch",
+      "result": "PASS"
+    },
+    {
+      "variant": "a",
+      "feature": "Location SLA saved value survives section switch",
+      "result": "PASS"
+    },
+    {
+      "variant": "b",
+      "feature": "attendance zone persists after section switch",
+      "result": "PASS"
+    },
+    {
+      "variant": "b",
+      "feature": "Operating Hours saved schedule survives section switch",
+      "result": "PASS"
+    },
+    {
+      "variant": "b",
+      "feature": "WhatsApp policy saved language survives section switch",
+      "result": "PASS"
+    },
+    {
+      "variant": "b",
+      "feature": "Location SLA saved value survives section switch",
+      "result": "PASS"
+    },
+    {
+      "variant": "c",
+      "feature": "attendance zone persists after section switch",
+      "result": "PASS"
+    },
+    {
+      "variant": "c",
+      "feature": "Operating Hours saved schedule survives section switch",
+      "result": "PASS"
+    },
+    {
+      "variant": "c",
+      "feature": "WhatsApp policy saved language survives section switch",
+      "result": "PASS"
+    },
+    {
+      "variant": "c",
+      "feature": "Location SLA saved value survives section switch",
+      "result": "PASS"
+    },
+    {
+      "variant": "d",
+      "feature": "attendance zone persists after section switch",
+      "result": "PASS"
+    },
+    {
+      "variant": "d",
+      "feature": "Operating Hours saved schedule survives section switch",
+      "result": "PASS"
+    },
+    {
+      "variant": "d",
+      "feature": "WhatsApp policy saved language survives section switch",
+      "result": "PASS"
+    },
+    {
+      "variant": "d",
+      "feature": "Location SLA saved value survives section switch",
+      "result": "PASS"
+    }
+  ]
+}

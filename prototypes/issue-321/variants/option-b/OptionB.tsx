@@ -9,7 +9,6 @@ export default function OptionB(props: PolicyVariantProps) {
   const ar = props.locale === "ar";
   const [expanded, setExpanded] = useState<Record<string, boolean>>({ company: true, location: true, information: true });
   const [mobileOpen, setMobileOpen] = useState(false);
-  const headingRef = useRef<HTMLHeadingElement>(null);
   const previousSection = useRef(props.activeSection);
   const names = {
     company: ar ? "إعدادات الشركة" : "Company configuration",
@@ -26,7 +25,7 @@ export default function OptionB(props: PolicyVariantProps) {
     if (selected) setExpanded(state => ({ ...state, [selected.group]: true }));
     if (previousSection.current !== props.activeSection) {
       previousSection.current = props.activeSection;
-      headingRef.current?.focus({ preventScroll: true });
+      document.getElementById("p321-current-section")?.focus({ preventScroll: true });
     }
   }, [props.activeSection, props.sections]);
 
@@ -64,7 +63,7 @@ export default function OptionB(props: PolicyVariantProps) {
             <span>{names[group.id]}</span>
             <ChevronDown size={14} aria-hidden="true" />
           </button>
-          {(expanded[group.id] ?? true) && <ul className="p321-b-group-items" id={`p321-b-${group.id}`}>
+          <ul className="p321-b-group-items" id={`p321-b-${group.id}`} hidden={!(expanded[group.id] ?? true)}>
             {group.items.map(section => <li key={section.id}>
               <button type="button" className="p321-b-link" aria-current={props.activeSection === section.id ? "page" : undefined}
                 onClick={() => pick(section)}>
@@ -72,7 +71,7 @@ export default function OptionB(props: PolicyVariantProps) {
                 {section.readOnly ? <span className="p321-b-readonly">{ar ? "عرض" : "View"}</span> : <ChevronRight size={14} aria-hidden="true" />}
               </button>
             </li>)}
-          </ul>}
+          </ul>
         </div>)}
       </nav>
       <div className="p321-b-rail-foot">
@@ -83,7 +82,6 @@ export default function OptionB(props: PolicyVariantProps) {
     <div className="p321-b-workspace">
       <div className="p321-b-breadcrumb"><span>{ar ? "الإعدادات" : "Settings"}</span><ChevronRight size={14} aria-hidden="true" />
         <span>{active?.label ?? ""}</span></div>
-      <h2 className="p321-b-focus-title" tabIndex={-1} ref={headingRef}>{active?.label}</h2>
       <div role="status" className="p321-b-sr">{ar ? "القسم المحدد" : "Selected section"}: {active?.label}</div>
       {props.renderPane("grouped")}
     </div>

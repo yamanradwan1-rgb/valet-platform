@@ -13,13 +13,25 @@ pnpm --dir prototypes/issue-321 dev
 
 Open `http://127.0.0.1:3321/a`, `/b`, `/c`, or `/d`. The compare switcher above the secondary navigation changes variants in the same session. To select a section directly, append `?section=company`, `?section=location`, `?section=presence`, `?section=services`, or `?section=overview`.
 
-The preview also supports `scenario=company-with-location`, `company-no-location`, `location-manager`, and `denied`, together with `lang=en|ar` and `theme=light|dark`. For example:
+The preview also supports `scenario=company-with-location`, `company-no-location`, `location-manager`, `location-manager-read-only`, and `denied`, together with `lang=en|ar` and `theme=light|dark`. Forbidden deep-linked sections are normalized to an allowed section in the address bar. For example:
 
 ```text
 http://127.0.0.1:3321/c?section=location&scenario=location-manager&lang=ar&theme=dark
 ```
 
-Use the actual Dashboard header controls for theme, language, and scope. Use the browser's Back, Forward, and Refresh to check URL state. Try Help (including Escape/focus return), individual setting drafts/Save, unsaved-navigation confirmation, Inherit company, role simulation, Shift Presence scope, and the clearly labeled revision-conflict simulation.
+Use the actual Dashboard header controls for theme, language, and scope. Use the browser's Back, Forward, and Refresh to check URL state. Try Help (including Escape/focus return), individual setting drafts/Save/Clear Override, unsaved-navigation confirmation, Company/Location inheritance, role/capability simulation and revision-conflict examples.
+
+For the formerly missing Shift Presence flow, open `/b?section=presence&scenario=company-with-location`, then:
+
+1. **Overview & map** shows the saved demonstration zones and the distinction between local samples and server readiness.
+2. **Attendance zones → Add zone** opens an interactive map and form. Click a map point, manually edit latitude/longitude, set a 5–1000 m radius, or press **Use My Current Location** (one foreground browser permission request). Enter label/code/state and save the zone *to the current prototype session*; then try Edit, Enable and Disable.
+3. **Start / end policy** offers the four real independently saved fields and the distinction between Company defaults and exact Location overrides. Strict modes require explicit confirmation in the simulation.
+4. **Exceptions** starts with honest empty Pending/History lists. Choose **Load a fictional request** to examine the review dialog, explicit simulated approval/rejection confirmation, and role-restricted Details mode. Every request and action is visibly synthetic, requires no backend/MFA, and never changes a real shift.
+5. **Guided setup** has Scope, Zones, Policy and Review, consistent with the actual production step structure.
+
+The default self-contained preview uses a clickable offline coordinate-grid schematic, clearly marked as illustrative. To test the **actual Google geographic map**, supply the optional `VITE_GOOGLE_MAPS_API_KEY` to the Vite process from a key authorized for local preview; the component reuses the Dashboard's production Google Maps loader and a real marker/circle. Google map requests can process a viewed center, including a user-proposed position. Neither map mode calls a VAYLET API or performs continuous tracking. Without a valid Maps key, geographic tiles are **not** claimed as visually verified.
+
+Other complete content surfaces include all 15 Company/CA Location typed ordinary settings (10 authorized LM keys), the seven-day OPEN/CLOSED schedule with real HH:mm times and Company inheritance, Location-only SLA Save/Clear validation, the current four-field WhatsApp policy editor in its existing CA Company/Location placement, and read-only Service Status search/filter/refresh.
 
 Run checks with:
 
@@ -28,7 +40,7 @@ pnpm --dir prototypes/issue-321 typecheck
 pnpm --dir prototypes/issue-321 build
 ```
 
-The `Save` and `Sign out` controls are **prototype-only simulations**. No backend authorization, actual persistence, messaging, or external service configuration is performed. All organization, location, and settings values are synthetic; they do not describe a real tenant.
+The `Save` and `Sign out` controls are **prototype-only simulations**. No backend authorization, actual server persistence, messaging, or external service configuration is performed. All organization, location, and settings values are synthetic; they do not describe a real tenant. Saved samples are retained only in the running React preview session; browser Refresh rebuilds the fixtures.
 
 ## Four options
 
@@ -62,7 +74,7 @@ All variant and shared-component styles are scoped to prototype classes. The onl
 - Preview parity is about the shared **global shell**, not identical Policies content: the four alternative secondary-navigation arrangements are the purpose of this issue.
 - Source-identical shell components and matched DOM geometry establish strong design fidelity, but pixel-exact **1440px logo** comparison remains blocked: the original W1 baseline screenshots were captured before the Next image completed loading, and the isolated original Next server could not be safely restarted because of a local module-resolution failure. The preview correctly loads the original VAYLET logo assets. Do not mistake a blank reference logo for the intended design.
 - The 160%/200% zoom captures establish no **new** overflow relative to the current Dashboard baseline, but inherited global shell overflow at extreme effective widths is visible in both. These snapshots alone cannot establish WCAG reflow conformance or a passing 200% usability gate; treat that as an existing shell constraint requiring separate product authorization.
-- The Operating Hours card and WhatsApp panel deliberately demonstrate current placement/concepts without imitating their full secured production editors. Status and presence readiness cannot be truthfully populated without an authorized backend read. Saved fixture values are not server-effective values.
-- Production authentication/MFA, server validation, grants, optimistic concurrency, provider statuses, live attendance zone maps and messaging delivery require Phase B wiring after Owner approval. This Phase A is a design-selection aid.
+- The prototypes represent the existing settings editors/sections but continue to simulate server authorization, MFA, revisions and mutations. Service Status and presence readiness cannot be truthfully populated without an authorized backend read, and fixture values are not server-effective values. Fictional presence exception requests can be explicitly loaded for a dialog/review demonstration; the lists start empty and the simulated approval never starts or ends a shift.
+- Production authentication/MFA, server validation, grants, canonical optimistic concurrency and messaging delivery require Phase B wiring after Owner approval. The separate optional Google preview demonstrates actual geographic tiles, while the default offline map supports full zone-draft interactions without map-service credentials.
 
 To keep comparisons meaningful, leave original production shell CSS, theme definitions, sidebar, topbar, and navigation untouched during this phase.

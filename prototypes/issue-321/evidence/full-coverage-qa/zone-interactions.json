@@ -1,0 +1,45 @@
+{
+  "results": [
+    {
+      "variant": "a",
+      "case": "map and zone CRUD / geolocation",
+      "status": "PASS"
+    },
+    {
+      "variant": "a",
+      "case": "unsaved zone dismissal / Escape",
+      "status": "PASS"
+    },
+    {
+      "variant": "b",
+      "case": "map and zone CRUD / geolocation",
+      "status": "PASS"
+    },
+    {
+      "variant": "b",
+      "case": "unsaved zone dismissal / Escape",
+      "status": "PASS"
+    },
+    {
+      "variant": "c",
+      "case": "map and zone CRUD / geolocation",
+      "status": "PASS"
+    },
+    {
+      "variant": "c",
+      "case": "unsaved zone dismissal / Escape",
+      "status": "PASS"
+    },
+    {
+      "variant": "d",
+      "case": "map and zone CRUD / geolocation",
+      "status": "PASS"
+    },
+    {
+      "variant": "d",
+      "case": "unsaved zone dismissal / Escape",
+      "status": "PASS"
+    }
+  ],
+  "apiRequests": []
+}
