@@ -1,0 +1,47 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:33416) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:33416) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-final-retry-cleanup.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_33416_77b91465',
+  runtime: 'valet_runtime_mob007_33416_77b91465',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-final-retry-cleanup.integration.test.ts > Issue319 fresh RR 40001 retries and cleanup > real PostgreSQL 40001 conflict count=1 uses bounded fresh snapshots
+ISSUE319_FINAL_RETRY_CLEANUP_TRACE [{"event":"REAL_40001_CONFLICTS_1_ATTEMPTS_2","ms":17019.991}]
+
+ ✓ test/dashboard-issue319-final-retry-cleanup.integration.test.ts > Issue319 fresh RR 40001 retries and cleanup > real PostgreSQL 40001 conflict count=1 uses bounded fresh snapshots 683ms
+stdout | test/dashboard-issue319-final-retry-cleanup.integration.test.ts > Issue319 fresh RR 40001 retries and cleanup > real PostgreSQL 40001 conflict count=5 uses bounded fresh snapshots
+ISSUE319_FINAL_RETRY_CLEANUP_TRACE [{"event":"REAL_40001_CONFLICTS_5_ATTEMPTS_5","ms":17443.546}]
+
+ ✓ test/dashboard-issue319-final-retry-cleanup.integration.test.ts > Issue319 fresh RR 40001 retries and cleanup > real PostgreSQL 40001 conflict count=5 uses bounded fresh snapshots 424ms
+stdout | test/dashboard-issue319-final-retry-cleanup.integration.test.ts > Issue319 fresh RR 40001 retries and cleanup > lock_timeout while MFA factor is locked aborts and returns clean pool lease
+ISSUE319_FINAL_RETRY_CLEANUP_TRACE [{"event":"FACTOR_LOCK_TIMEOUT_ROLLED_BACK_PID_1212","ms":18792.807},{"event":"FACTOR_LOCK_TIMEOUT_SAFE_CONNECTION_REUSE","ms":18799.849}]
+
+ ✓ test/dashboard-issue319-final-retry-cleanup.integration.test.ts > Issue319 fresh RR 40001 retries and cleanup > lock_timeout while MFA factor is locked aborts and returns clean pool lease 1350ms
+stdout | test/dashboard-issue319-final-retry-cleanup.integration.test.ts > Issue319 fresh RR 40001 retries and cleanup > cancel while MFA factor is locked aborts and returns clean pool lease
+ISSUE319_FINAL_RETRY_CLEANUP_TRACE [{"event":"FACTOR_CANCEL_ROLLED_BACK_PID_40540","ms":19420.612},{"event":"FACTOR_CANCEL_SAFE_CONNECTION_REUSE","ms":19425.264}]
+
+ ✓ test/dashboard-issue319-final-retry-cleanup.integration.test.ts > Issue319 fresh RR 40001 retries and cleanup > cancel while MFA factor is locked aborts and returns clean pool lease 625ms
+stdout | test/dashboard-issue319-final-retry-cleanup.integration.test.ts > Issue319 fresh RR 40001 retries and cleanup > unexpected projection rollback releases exclusive organization lock and allows fresh read
+ISSUE319_FINAL_RETRY_CLEANUP_TRACE [{"event":"CA_RR_PROJECTION_ROLLBACK_RELEASED_LOCK_AND_RETRIED","ms":19875.607}]
+
+ ✓ test/dashboard-issue319-final-retry-cleanup.integration.test.ts > Issue319 fresh RR 40001 retries and cleanup > unexpected projection rollback releases exclusive organization lock and allows fresh read 448ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  21:01:29
+   Duration  20.26s (transform 5.30s, setup 0ms, import 8.79s, tests 11.19s, environment 0ms)
