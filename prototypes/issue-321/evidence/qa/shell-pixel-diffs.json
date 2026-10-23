@@ -1,0 +1,1581 @@
+{
+  "measurement": "Exact RGBA pixel comparison of global .sidebar and .topbar rectangles at zoom100",
+  "cases": [
+    {
+      "option": "a",
+      "id": "1440-en-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": false,
+          "totalPixels": 234000,
+          "differingPixels": 1340,
+          "differingOver8": 865,
+          "diffBounds": {
+            "minX": 20,
+            "minY": 21,
+            "maxX": 169,
+            "maxY": 41
+          },
+          "changedRows": {
+            "0": 856,
+            "40": 9
+          }
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 75520,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "a",
+      "id": "1440-en-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": false,
+          "totalPixels": 234000,
+          "differingPixels": 5103,
+          "differingOver8": 1612,
+          "diffBounds": {
+            "minX": 19,
+            "minY": 21,
+            "maxX": 169,
+            "maxY": 880
+          },
+          "changedRows": {
+            "0": 477,
+            "40": 8,
+            "840": 1119,
+            "880": 8
+          }
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 75520,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "a",
+      "id": "1440-ar-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": false,
+          "totalPixels": 234000,
+          "differingPixels": 1394,
+          "differingOver8": 484,
+          "diffBounds": {
+            "minX": 1270,
+            "minY": 21,
+            "maxX": 1418,
+            "maxY": 41
+          },
+          "changedRows": {
+            "0": 476,
+            "40": 8
+          }
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 75520,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "a",
+      "id": "1440-ar-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": false,
+          "totalPixels": 234000,
+          "differingPixels": 1394,
+          "differingOver8": 484,
+          "diffBounds": {
+            "minX": 1270,
+            "minY": 21,
+            "maxX": 1418,
+            "maxY": 41
+          },
+          "changedRows": {
+            "0": 476,
+            "40": 8
+          }
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 75520,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "a",
+      "id": "768-en-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 49152,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "a",
+      "id": "768-en-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 49152,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "a",
+      "id": "768-ar-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 49152,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "a",
+      "id": "768-ar-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 49152,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "a",
+      "id": "390-en-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 36270,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "a",
+      "id": "390-en-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 36270,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "a",
+      "id": "390-ar-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 36270,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "a",
+      "id": "390-ar-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 36270,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "a",
+      "id": "320-en-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 43200,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "a",
+      "id": "320-en-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 43200,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "a",
+      "id": "320-ar-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 43200,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "a",
+      "id": "320-ar-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 43200,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "b",
+      "id": "1440-en-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": false,
+          "totalPixels": 234000,
+          "differingPixels": 1340,
+          "differingOver8": 865,
+          "diffBounds": {
+            "minX": 20,
+            "minY": 21,
+            "maxX": 169,
+            "maxY": 41
+          },
+          "changedRows": {
+            "0": 856,
+            "40": 9
+          }
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 75520,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "b",
+      "id": "1440-en-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": false,
+          "totalPixels": 234000,
+          "differingPixels": 5103,
+          "differingOver8": 1612,
+          "diffBounds": {
+            "minX": 19,
+            "minY": 21,
+            "maxX": 169,
+            "maxY": 880
+          },
+          "changedRows": {
+            "0": 477,
+            "40": 8,
+            "840": 1119,
+            "880": 8
+          }
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 75520,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "b",
+      "id": "1440-ar-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": false,
+          "totalPixels": 234000,
+          "differingPixels": 1394,
+          "differingOver8": 484,
+          "diffBounds": {
+            "minX": 1270,
+            "minY": 21,
+            "maxX": 1418,
+            "maxY": 41
+          },
+          "changedRows": {
+            "0": 476,
+            "40": 8
+          }
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 75520,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "b",
+      "id": "1440-ar-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": false,
+          "totalPixels": 234000,
+          "differingPixels": 1394,
+          "differingOver8": 484,
+          "diffBounds": {
+            "minX": 1270,
+            "minY": 21,
+            "maxX": 1418,
+            "maxY": 41
+          },
+          "changedRows": {
+            "0": 476,
+            "40": 8
+          }
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 75520,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "b",
+      "id": "768-en-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 49152,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "b",
+      "id": "768-en-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 49152,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "b",
+      "id": "768-ar-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 49152,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "b",
+      "id": "768-ar-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 49152,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "b",
+      "id": "390-en-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 36270,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "b",
+      "id": "390-en-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 36270,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "b",
+      "id": "390-ar-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 36270,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "b",
+      "id": "390-ar-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 36270,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "b",
+      "id": "320-en-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 43200,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "b",
+      "id": "320-en-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 43200,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "b",
+      "id": "320-ar-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 43200,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "b",
+      "id": "320-ar-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 43200,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "c",
+      "id": "1440-en-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": false,
+          "totalPixels": 234000,
+          "differingPixels": 1340,
+          "differingOver8": 865,
+          "diffBounds": {
+            "minX": 20,
+            "minY": 21,
+            "maxX": 169,
+            "maxY": 41
+          },
+          "changedRows": {
+            "0": 856,
+            "40": 9
+          }
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 75520,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "c",
+      "id": "1440-en-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": false,
+          "totalPixels": 234000,
+          "differingPixels": 5103,
+          "differingOver8": 1612,
+          "diffBounds": {
+            "minX": 19,
+            "minY": 21,
+            "maxX": 169,
+            "maxY": 880
+          },
+          "changedRows": {
+            "0": 477,
+            "40": 8,
+            "840": 1119,
+            "880": 8
+          }
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 75520,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "c",
+      "id": "1440-ar-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": false,
+          "totalPixels": 234000,
+          "differingPixels": 1394,
+          "differingOver8": 484,
+          "diffBounds": {
+            "minX": 1270,
+            "minY": 21,
+            "maxX": 1418,
+            "maxY": 41
+          },
+          "changedRows": {
+            "0": 476,
+            "40": 8
+          }
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 75520,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "c",
+      "id": "1440-ar-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": false,
+          "totalPixels": 234000,
+          "differingPixels": 1394,
+          "differingOver8": 484,
+          "diffBounds": {
+            "minX": 1270,
+            "minY": 21,
+            "maxX": 1418,
+            "maxY": 41
+          },
+          "changedRows": {
+            "0": 476,
+            "40": 8
+          }
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 75520,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "c",
+      "id": "768-en-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 49152,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "c",
+      "id": "768-en-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 49152,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "c",
+      "id": "768-ar-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 49152,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "c",
+      "id": "768-ar-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 49152,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "c",
+      "id": "390-en-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 36270,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "c",
+      "id": "390-en-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 36270,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "c",
+      "id": "390-ar-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 36270,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "c",
+      "id": "390-ar-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 36270,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "c",
+      "id": "320-en-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 43200,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "c",
+      "id": "320-en-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 43200,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "c",
+      "id": "320-ar-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 43200,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "c",
+      "id": "320-ar-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 43200,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "d",
+      "id": "1440-en-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": false,
+          "totalPixels": 234000,
+          "differingPixels": 1340,
+          "differingOver8": 865,
+          "diffBounds": {
+            "minX": 20,
+            "minY": 21,
+            "maxX": 169,
+            "maxY": 41
+          },
+          "changedRows": {
+            "0": 856,
+            "40": 9
+          }
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 75520,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "d",
+      "id": "1440-en-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": false,
+          "totalPixels": 234000,
+          "differingPixels": 5103,
+          "differingOver8": 1612,
+          "diffBounds": {
+            "minX": 19,
+            "minY": 21,
+            "maxX": 169,
+            "maxY": 880
+          },
+          "changedRows": {
+            "0": 477,
+            "40": 8,
+            "840": 1119,
+            "880": 8
+          }
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 75520,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "d",
+      "id": "1440-ar-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": false,
+          "totalPixels": 234000,
+          "differingPixels": 1394,
+          "differingOver8": 484,
+          "diffBounds": {
+            "minX": 1270,
+            "minY": 21,
+            "maxX": 1418,
+            "maxY": 41
+          },
+          "changedRows": {
+            "0": 476,
+            "40": 8
+          }
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 75520,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "d",
+      "id": "1440-ar-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": false,
+          "totalPixels": 234000,
+          "differingPixels": 1394,
+          "differingOver8": 484,
+          "diffBounds": {
+            "minX": 1270,
+            "minY": 21,
+            "maxX": 1418,
+            "maxY": 41
+          },
+          "changedRows": {
+            "0": 476,
+            "40": 8
+          }
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 75520,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "d",
+      "id": "768-en-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 49152,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "d",
+      "id": "768-en-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 49152,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "d",
+      "id": "768-ar-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 49152,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "d",
+      "id": "768-ar-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 49152,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "d",
+      "id": "390-en-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 36270,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "d",
+      "id": "390-en-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 36270,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "d",
+      "id": "390-ar-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 36270,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "d",
+      "id": "390-ar-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 36270,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "d",
+      "id": "320-en-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 43200,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "d",
+      "id": "320-en-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 43200,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "d",
+      "id": "320-ar-light-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 43200,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    },
+    {
+      "option": "d",
+      "id": "320-ar-dark-zoom100",
+      "regions": [
+        {
+          "name": ".sidebar",
+          "skipped": true,
+          "totalPixels": 0,
+          "differingPixels": 0,
+          "differingOver8": 0
+        },
+        {
+          "name": ".topbar",
+          "skipped": false,
+          "totalPixels": 43200,
+          "differingPixels": 0,
+          "differingOver8": 0,
+          "diffBounds": null,
+          "changedRows": {}
+        }
+      ]
+    }
+  ]
+}

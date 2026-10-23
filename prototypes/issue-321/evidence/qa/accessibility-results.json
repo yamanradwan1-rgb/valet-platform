@@ -1,0 +1,517 @@
+{
+  "method": "Rendered DOM checks; not a full WCAG or screen-reader conformance audit",
+  "cases": [
+    {
+      "option": "a",
+      "width": 1440,
+      "locale": "en",
+      "h1": [
+        "Policies & Settings"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 57,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "a",
+      "width": 1440,
+      "locale": "ar",
+      "h1": [
+        "السياسات والإعدادات"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 57,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "a",
+      "width": 768,
+      "locale": "en",
+      "h1": [
+        "Policies & Settings"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 37,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "a",
+      "width": 768,
+      "locale": "ar",
+      "h1": [
+        "السياسات والإعدادات"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 37,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "a",
+      "width": 390,
+      "locale": "en",
+      "h1": [
+        "Policies & Settings"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 37,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "a",
+      "width": 390,
+      "locale": "ar",
+      "h1": [
+        "السياسات والإعدادات"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 37,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "a",
+      "width": 320,
+      "locale": "en",
+      "h1": [
+        "Policies & Settings"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 37,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "a",
+      "width": 320,
+      "locale": "ar",
+      "h1": [
+        "السياسات والإعدادات"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 37,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "b",
+      "width": 1440,
+      "locale": "en",
+      "h1": [
+        "Policies & Settings"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 60,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "b",
+      "width": 1440,
+      "locale": "ar",
+      "h1": [
+        "السياسات والإعدادات"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 60,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "b",
+      "width": 768,
+      "locale": "en",
+      "h1": [
+        "Policies & Settings"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 40,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "b",
+      "width": 768,
+      "locale": "ar",
+      "h1": [
+        "السياسات والإعدادات"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 40,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "b",
+      "width": 390,
+      "locale": "en",
+      "h1": [
+        "Policies & Settings"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 33,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "b",
+      "width": 390,
+      "locale": "ar",
+      "h1": [
+        "السياسات والإعدادات"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 33,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "b",
+      "width": 320,
+      "locale": "en",
+      "h1": [
+        "Policies & Settings"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 33,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "b",
+      "width": 320,
+      "locale": "ar",
+      "h1": [
+        "السياسات والإعدادات"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 33,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "c",
+      "width": 1440,
+      "locale": "en",
+      "h1": [
+        "Policies & Settings"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 57,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "c",
+      "width": 1440,
+      "locale": "ar",
+      "h1": [
+        "السياسات والإعدادات"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 57,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "c",
+      "width": 768,
+      "locale": "en",
+      "h1": [
+        "Policies & Settings"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 37,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "c",
+      "width": 768,
+      "locale": "ar",
+      "h1": [
+        "السياسات والإعدادات"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 37,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "c",
+      "width": 390,
+      "locale": "en",
+      "h1": [
+        "Policies & Settings"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 37,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "c",
+      "width": 390,
+      "locale": "ar",
+      "h1": [
+        "السياسات والإعدادات"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 37,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "c",
+      "width": 320,
+      "locale": "en",
+      "h1": [
+        "Policies & Settings"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 37,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "c",
+      "width": 320,
+      "locale": "ar",
+      "h1": [
+        "السياسات والإعدادات"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 37,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "d",
+      "width": 1440,
+      "locale": "en",
+      "h1": [
+        "Policies & Settings"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 63,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "d",
+      "width": 1440,
+      "locale": "ar",
+      "h1": [
+        "السياسات والإعدادات"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 63,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "d",
+      "width": 768,
+      "locale": "en",
+      "h1": [
+        "Policies & Settings"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 43,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "d",
+      "width": 768,
+      "locale": "ar",
+      "h1": [
+        "السياسات والإعدادات"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 43,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "d",
+      "width": 390,
+      "locale": "en",
+      "h1": [
+        "Policies & Settings"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 43,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "d",
+      "width": 390,
+      "locale": "ar",
+      "h1": [
+        "السياسات والإعدادات"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 43,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "d",
+      "width": 320,
+      "locale": "en",
+      "h1": [
+        "Policies & Settings"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 43,
+      "missingNames": [],
+      "tinyTargets": []
+    },
+    {
+      "option": "d",
+      "width": 320,
+      "locale": "ar",
+      "h1": [
+        "السياسات والإعدادات"
+      ],
+      "mainCount": 1,
+      "navCount": 3,
+      "activeLocal": 1,
+      "modalLabels": 0,
+      "duplicateIds": [],
+      "controls": 43,
+      "missingNames": [],
+      "tinyTargets": []
+    }
+  ]
+}

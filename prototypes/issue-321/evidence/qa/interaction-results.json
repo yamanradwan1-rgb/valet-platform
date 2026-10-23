@@ -1,0 +1,247 @@
+{
+  "cases": [
+    {
+      "option": "a",
+      "name": "deep link + Refresh",
+      "result": "PASS"
+    },
+    {
+      "option": "a",
+      "name": "legacy ?tab=services",
+      "result": "PASS"
+    },
+    {
+      "option": "a",
+      "name": "keyboard section switching + Back/Forward",
+      "result": "PASS"
+    },
+    {
+      "option": "a",
+      "name": "Help Escape closes and focus returns",
+      "result": "PASS"
+    },
+    {
+      "option": "a",
+      "name": "dirty draft blocks section change when rejected",
+      "result": "PASS"
+    },
+    {
+      "option": "a",
+      "name": "accepted discard clears draft",
+      "result": "PASS"
+    },
+    {
+      "option": "a",
+      "name": "Save changes only prototype state",
+      "result": "PASS"
+    },
+    {
+      "option": "a",
+      "name": "invalid negative raw-GPS retention rejected",
+      "result": "PASS"
+    },
+    {
+      "option": "a",
+      "name": "Location Manager access matrix",
+      "result": "PASS"
+    },
+    {
+      "option": "a",
+      "name": "denied role has no editable section",
+      "result": "PASS"
+    },
+    {
+      "option": "a",
+      "name": "no-location empty state prevents override editing",
+      "result": "PASS"
+    },
+    {
+      "option": "a",
+      "name": "Arabic page direction and section navigation",
+      "result": "PASS"
+    },
+    {
+      "option": "b",
+      "name": "deep link + Refresh",
+      "result": "PASS"
+    },
+    {
+      "option": "b",
+      "name": "legacy ?tab=services",
+      "result": "PASS"
+    },
+    {
+      "option": "b",
+      "name": "keyboard section switching + Back/Forward",
+      "result": "PASS"
+    },
+    {
+      "option": "b",
+      "name": "Help Escape closes and focus returns",
+      "result": "PASS"
+    },
+    {
+      "option": "b",
+      "name": "dirty draft blocks section change when rejected",
+      "result": "PASS"
+    },
+    {
+      "option": "b",
+      "name": "accepted discard clears draft",
+      "result": "PASS"
+    },
+    {
+      "option": "b",
+      "name": "Save changes only prototype state",
+      "result": "PASS"
+    },
+    {
+      "option": "b",
+      "name": "invalid negative raw-GPS retention rejected",
+      "result": "PASS"
+    },
+    {
+      "option": "b",
+      "name": "Location Manager access matrix",
+      "result": "PASS"
+    },
+    {
+      "option": "b",
+      "name": "denied role has no editable section",
+      "result": "PASS"
+    },
+    {
+      "option": "b",
+      "name": "no-location empty state prevents override editing",
+      "result": "PASS"
+    },
+    {
+      "option": "b",
+      "name": "Arabic page direction and section navigation",
+      "result": "PASS"
+    },
+    {
+      "option": "c",
+      "name": "deep link + Refresh",
+      "result": "PASS"
+    },
+    {
+      "option": "c",
+      "name": "legacy ?tab=services",
+      "result": "PASS"
+    },
+    {
+      "option": "c",
+      "name": "keyboard section switching + Back/Forward",
+      "result": "PASS"
+    },
+    {
+      "option": "c",
+      "name": "Help Escape closes and focus returns",
+      "result": "PASS"
+    },
+    {
+      "option": "c",
+      "name": "dirty draft blocks section change when rejected",
+      "result": "PASS"
+    },
+    {
+      "option": "c",
+      "name": "accepted discard clears draft",
+      "result": "PASS"
+    },
+    {
+      "option": "c",
+      "name": "Save changes only prototype state",
+      "result": "PASS"
+    },
+    {
+      "option": "c",
+      "name": "invalid negative raw-GPS retention rejected",
+      "result": "PASS"
+    },
+    {
+      "option": "c",
+      "name": "Location Manager access matrix",
+      "result": "PASS"
+    },
+    {
+      "option": "c",
+      "name": "denied role has no editable section",
+      "result": "PASS"
+    },
+    {
+      "option": "c",
+      "name": "no-location empty state prevents override editing",
+      "result": "PASS"
+    },
+    {
+      "option": "c",
+      "name": "Arabic page direction and section navigation",
+      "result": "PASS"
+    },
+    {
+      "option": "d",
+      "name": "deep link + Refresh",
+      "result": "PASS"
+    },
+    {
+      "option": "d",
+      "name": "legacy ?tab=services",
+      "result": "PASS"
+    },
+    {
+      "option": "d",
+      "name": "keyboard section switching + Back/Forward",
+      "result": "PASS"
+    },
+    {
+      "option": "d",
+      "name": "Help Escape closes and focus returns",
+      "result": "PASS"
+    },
+    {
+      "option": "d",
+      "name": "dirty draft blocks section change when rejected",
+      "result": "PASS"
+    },
+    {
+      "option": "d",
+      "name": "accepted discard clears draft",
+      "result": "PASS"
+    },
+    {
+      "option": "d",
+      "name": "Save changes only prototype state",
+      "result": "PASS"
+    },
+    {
+      "option": "d",
+      "name": "invalid negative raw-GPS retention rejected",
+      "result": "PASS"
+    },
+    {
+      "option": "d",
+      "name": "Location Manager access matrix",
+      "result": "PASS"
+    },
+    {
+      "option": "d",
+      "name": "denied role has no editable section",
+      "result": "PASS"
+    },
+    {
+      "option": "d",
+      "name": "no-location empty state prevents override editing",
+      "result": "PASS"
+    },
+    {
+      "option": "d",
+      "name": "Arabic page direction and section navigation",
+      "result": "PASS"
+    }
+  ],
+  "total": 48,
+  "passed": 48,
+  "failed": 0
+}

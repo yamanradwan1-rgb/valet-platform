@@ -1,0 +1,2183 @@
+{
+  "cases": [
+    {
+      "option": "a",
+      "id": "1440-en-light-zoom160",
+      "zoom": 1.6,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 2304,
+        "clientWidth": 1440,
+        "innerWidth": 1440,
+        "shell": {
+          "x": 0,
+          "y": 0,
+          "width": 2304,
+          "height": 1440,
+          "display": "grid",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(248, 250, 252)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 416,
+          "height": 1440,
+          "display": "flex",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": 416,
+          "y": 0,
+          "width": 1888,
+          "height": 102.390625,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "actions": {
+          "x": 1770.4375,
+          "y": 17.421875,
+          "width": 495.171875,
+          "height": 66.546875,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": 467.1875,
+          "y": 530.234130859375,
+          "width": 393.59375,
+          "height": 653.015625,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "policyPane": {
+          "x": 889.578125,
+          "y": 530.234130859375,
+          "width": 1363.234375,
+          "height": 1624.765625,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        }
+      }
+    },
+    {
+      "option": "a",
+      "id": "1440-en-light-zoom200",
+      "zoom": 2,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 2880,
+        "clientWidth": 1440,
+        "innerWidth": 1440,
+        "shell": {
+          "x": 0,
+          "y": 0,
+          "width": 2880,
+          "height": 1800,
+          "display": "grid",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(248, 250, 252)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 520,
+          "height": 1800,
+          "display": "flex",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": 520,
+          "y": 0,
+          "width": 2360,
+          "height": 128,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "actions": {
+          "x": 2208.5,
+          "y": 21.40625,
+          "width": 623.5,
+          "height": 83.1875,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": 584,
+          "y": 662.953125,
+          "width": 492,
+          "height": 818.578125,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "policyPane": {
+          "x": 1112,
+          "y": 662.953125,
+          "width": 1704,
+          "height": 2044.796875,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        }
+      }
+    },
+    {
+      "option": "a",
+      "id": "768-ar-dark-zoom160",
+      "zoom": 1.6,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 1229,
+        "clientWidth": 768,
+        "innerWidth": 768,
+        "shell": {
+          "x": -460.796875,
+          "y": 0,
+          "width": 1228.796875,
+          "height": 1440,
+          "display": "grid",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(7, 12, 24)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": -460.796875,
+          "y": 0,
+          "width": 1228.796875,
+          "height": 102.390625,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "actions": {
+          "x": -435.203125,
+          "y": 17.421875,
+          "width": 432.203125,
+          "height": 66.546875,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": -428.796875,
+          "y": 511.3932800292969,
+          "width": 1164.796875,
+          "height": 653.015625,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        },
+        "policyPane": {
+          "x": -428.796875,
+          "y": 1193.205810546875,
+          "width": 1164.796875,
+          "height": 1624.765625,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        }
+      }
+    },
+    {
+      "option": "a",
+      "id": "768-ar-dark-zoom200",
+      "zoom": 2,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 1536,
+        "clientWidth": 768,
+        "innerWidth": 768,
+        "shell": {
+          "x": -768,
+          "y": 0,
+          "width": 1536,
+          "height": 1800,
+          "display": "grid",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(7, 12, 24)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": -768,
+          "y": 0,
+          "width": 1536,
+          "height": 128,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "actions": {
+          "x": -736,
+          "y": 21.40625,
+          "width": 544.8125,
+          "height": 83.1875,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": -728,
+          "y": 638.953125,
+          "width": 1456,
+          "height": 818.578125,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        },
+        "policyPane": {
+          "x": -728,
+          "y": 1493.53125,
+          "width": 1456,
+          "height": 2044.796875,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        }
+      }
+    },
+    {
+      "option": "a",
+      "id": "390-en-light-zoom160",
+      "zoom": 1.6,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 624,
+        "clientWidth": 390,
+        "innerWidth": 390,
+        "shell": {
+          "x": 0,
+          "y": 0,
+          "width": 624,
+          "height": 1440,
+          "display": "grid",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(248, 250, 252)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "width": 624,
+          "height": 146.890625,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "actions": {
+          "x": 302.328125,
+          "y": 0,
+          "width": 296.078125,
+          "height": 145.890625,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": 32,
+          "y": 750.9635620117188,
+          "width": 560,
+          "height": 635.4219360351562,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "policyPane": {
+          "x": 32,
+          "y": 1415.182373046875,
+          "width": 560,
+          "height": 2252.28125,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        }
+      }
+    },
+    {
+      "option": "a",
+      "id": "390-en-light-zoom200",
+      "zoom": 2,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 780,
+        "clientWidth": 390,
+        "innerWidth": 390,
+        "shell": {
+          "x": 0,
+          "y": 0,
+          "width": 780,
+          "height": 1800,
+          "display": "grid",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(248, 250, 252)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "width": 780,
+          "height": 184.375,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "actions": {
+          "x": 377.59375,
+          "y": 0,
+          "width": 370.40625,
+          "height": 182.375,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": 40,
+          "y": 941.671875,
+          "width": 700,
+          "height": 796.578125,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "policyPane": {
+          "x": 40,
+          "y": 1774.25,
+          "width": 700,
+          "height": 2827.6875,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        }
+      }
+    },
+    {
+      "option": "a",
+      "id": "320-ar-dark-zoom160",
+      "zoom": 1.6,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 512,
+        "clientWidth": 320,
+        "innerWidth": 320,
+        "shell": {
+          "x": -192,
+          "y": 0,
+          "width": 512,
+          "height": 1440,
+          "display": "grid",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(7, 12, 24)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": -192,
+          "y": 0,
+          "width": 512,
+          "height": 212.859375,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "actions": {
+          "x": -166.40625,
+          "y": 0,
+          "width": 203.921875,
+          "height": 211.859375,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": -160,
+          "y": 842.343994140625,
+          "width": 448,
+          "height": 635.421875,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        },
+        "policyPane": {
+          "x": -160,
+          "y": 1506.562744140625,
+          "width": 448,
+          "height": 2352.421875,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        }
+      }
+    },
+    {
+      "option": "a",
+      "id": "320-ar-dark-zoom200",
+      "zoom": 2,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 640,
+        "clientWidth": 320,
+        "innerWidth": 320,
+        "shell": {
+          "x": -320,
+          "y": 0,
+          "width": 640,
+          "height": 1800,
+          "display": "grid",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(7, 12, 24)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": -320,
+          "y": 0,
+          "width": 640,
+          "height": 268.375,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "actions": {
+          "x": -288,
+          "y": 0,
+          "width": 253.34375,
+          "height": 266.375,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": -280,
+          "y": 1056.671875,
+          "width": 560,
+          "height": 796.578125,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        },
+        "policyPane": {
+          "x": -280,
+          "y": 1889.25,
+          "width": 560,
+          "height": 2952.875,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        }
+      }
+    },
+    {
+      "option": "b",
+      "id": "1440-en-light-zoom160",
+      "zoom": 1.6,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 2304,
+        "clientWidth": 1440,
+        "innerWidth": 1440,
+        "shell": {
+          "x": 0,
+          "y": 0,
+          "width": 2304,
+          "height": 1440,
+          "display": "grid",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(248, 250, 252)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 416,
+          "height": 1440,
+          "display": "flex",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": 416,
+          "y": 0,
+          "width": 1888,
+          "height": 102.390625,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "actions": {
+          "x": 1770.4375,
+          "y": 17.421875,
+          "width": 495.171875,
+          "height": 66.546875,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": 467.1875,
+          "y": 530.5827026367188,
+          "width": 440,
+          "height": 955.2655639648438,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "policyPane": {
+          "x": 939.1875,
+          "y": 530.5827026367188,
+          "width": 1313.625,
+          "height": 1573.562255859375,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        }
+      }
+    },
+    {
+      "option": "b",
+      "id": "1440-en-light-zoom200",
+      "zoom": 2,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 2880,
+        "clientWidth": 1440,
+        "innerWidth": 1440,
+        "shell": {
+          "x": 0,
+          "y": 0,
+          "width": 2880,
+          "height": 1800,
+          "display": "grid",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(248, 250, 252)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 520,
+          "height": 1800,
+          "display": "flex",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": 520,
+          "y": 0,
+          "width": 2360,
+          "height": 128,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "actions": {
+          "x": 2208.5,
+          "y": 21.40625,
+          "width": 623.5,
+          "height": 83.1875,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": 584,
+          "y": 662.953125,
+          "width": 550,
+          "height": 1212.90625,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "policyPane": {
+          "x": 1174,
+          "y": 662.953125,
+          "width": 1642,
+          "height": 1979.25,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        }
+      }
+    },
+    {
+      "option": "b",
+      "id": "768-ar-dark-zoom160",
+      "zoom": 1.6,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 1229,
+        "clientWidth": 768,
+        "innerWidth": 768,
+        "shell": {
+          "x": -460.796875,
+          "y": 0,
+          "width": 1228.796875,
+          "height": 1440,
+          "display": "grid",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(7, 12, 24)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": -460.796875,
+          "y": 0,
+          "width": 1228.796875,
+          "height": 102.390625,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "actions": {
+          "x": -435.203125,
+          "y": 17.421875,
+          "width": 432.203125,
+          "height": 66.546875,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": 352,
+          "y": 511.3956298828125,
+          "width": 384,
+          "height": 955.265625,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        },
+        "policyPane": {
+          "x": -428.796875,
+          "y": 511.3956298828125,
+          "width": 761.609375,
+          "height": 1585.3748779296875,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        }
+      }
+    },
+    {
+      "option": "b",
+      "id": "768-ar-dark-zoom200",
+      "zoom": 2,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 1536,
+        "clientWidth": 768,
+        "innerWidth": 768,
+        "shell": {
+          "x": -768,
+          "y": 0,
+          "width": 1536,
+          "height": 1800,
+          "display": "grid",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(7, 12, 24)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": -768,
+          "y": 0,
+          "width": 1536,
+          "height": 128,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "actions": {
+          "x": -736,
+          "y": 21.40625,
+          "width": 544.8125,
+          "height": 83.1875,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": 248,
+          "y": 638.953125,
+          "width": 480,
+          "height": 1212.90625,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        },
+        "policyPane": {
+          "x": -728,
+          "y": 638.953125,
+          "width": 952,
+          "height": 1994.03125,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        }
+      }
+    },
+    {
+      "option": "b",
+      "id": "390-en-light-zoom160",
+      "zoom": 1.6,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 624,
+        "clientWidth": 390,
+        "innerWidth": 390,
+        "shell": {
+          "x": 0,
+          "y": 0,
+          "width": 624,
+          "height": 1440,
+          "display": "grid",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(248, 250, 252)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "width": 624,
+          "height": 146.890625,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "actions": {
+          "x": 302.328125,
+          "y": 0,
+          "width": 296.078125,
+          "height": 145.890625,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "policyPane": {
+          "x": 32,
+          "y": 836.050537109375,
+          "width": 560,
+          "height": 2206.8125,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        }
+      }
+    },
+    {
+      "option": "b",
+      "id": "390-en-light-zoom200",
+      "zoom": 2,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 780,
+        "clientWidth": 390,
+        "innerWidth": 390,
+        "shell": {
+          "x": 0,
+          "y": 0,
+          "width": 780,
+          "height": 1800,
+          "display": "grid",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(248, 250, 252)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "width": 780,
+          "height": 184.375,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "actions": {
+          "x": 377.59375,
+          "y": 0,
+          "width": 370.40625,
+          "height": 182.375,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "policyPane": {
+          "x": 40,
+          "y": 1050.0625,
+          "width": 700,
+          "height": 2769.328125,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        }
+      }
+    },
+    {
+      "option": "b",
+      "id": "320-ar-dark-zoom160",
+      "zoom": 1.6,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 512,
+        "clientWidth": 320,
+        "innerWidth": 320,
+        "shell": {
+          "x": -192,
+          "y": 0,
+          "width": 512,
+          "height": 1440,
+          "display": "grid",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(7, 12, 24)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": -192,
+          "y": 0,
+          "width": 512,
+          "height": 212.859375,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "actions": {
+          "x": -166.40625,
+          "y": 0,
+          "width": 203.921875,
+          "height": 211.859375,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        },
+        "policyPane": {
+          "x": -160,
+          "y": 927.4002075195312,
+          "width": 448,
+          "height": 2306.953125,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        }
+      }
+    },
+    {
+      "option": "b",
+      "id": "320-ar-dark-zoom200",
+      "zoom": 2,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 640,
+        "clientWidth": 320,
+        "innerWidth": 320,
+        "shell": {
+          "x": -320,
+          "y": 0,
+          "width": 640,
+          "height": 1800,
+          "display": "grid",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(7, 12, 24)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": -320,
+          "y": 0,
+          "width": 640,
+          "height": 268.375,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "actions": {
+          "x": -288,
+          "y": 0,
+          "width": 253.34375,
+          "height": 266.375,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        },
+        "policyPane": {
+          "x": -280,
+          "y": 1165.0625,
+          "width": 560,
+          "height": 2894.515625,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        }
+      }
+    },
+    {
+      "option": "c",
+      "id": "1440-en-light-zoom160",
+      "zoom": 1.6,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 2304,
+        "clientWidth": 1440,
+        "innerWidth": 1440,
+        "shell": {
+          "x": 0,
+          "y": 0,
+          "width": 2304,
+          "height": 1440,
+          "display": "grid",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(248, 250, 252)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 416,
+          "height": 1440,
+          "display": "flex",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": 416,
+          "y": 0,
+          "width": 1888,
+          "height": 102.390625,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "actions": {
+          "x": 1770.4375,
+          "y": 17.421875,
+          "width": 495.171875,
+          "height": 66.546875,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": 467.1875,
+          "y": 950.9959716796875,
+          "width": 400,
+          "height": 835.65625,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "policyPane": {
+          "x": 892.78125,
+          "y": 950.9959716796875,
+          "width": 1360.03125,
+          "height": 1757.4844970703125,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        }
+      }
+    },
+    {
+      "option": "c",
+      "id": "1440-en-light-zoom200",
+      "zoom": 2,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 2880,
+        "clientWidth": 1440,
+        "innerWidth": 1440,
+        "shell": {
+          "x": 0,
+          "y": 0,
+          "width": 2880,
+          "height": 1800,
+          "display": "grid",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(248, 250, 252)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 520,
+          "height": 1800,
+          "display": "flex",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": 520,
+          "y": 0,
+          "width": 2360,
+          "height": 128,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "actions": {
+          "x": 2208.5,
+          "y": 21.40625,
+          "width": 623.5,
+          "height": 83.1875,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": 584,
+          "y": 1191,
+          "width": 500,
+          "height": 1055.90625,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "policyPane": {
+          "x": 1116,
+          "y": 1191,
+          "width": 1700,
+          "height": 2211.203125,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        }
+      }
+    },
+    {
+      "option": "c",
+      "id": "768-ar-dark-zoom160",
+      "zoom": 1.6,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 1229,
+        "clientWidth": 768,
+        "innerWidth": 768,
+        "shell": {
+          "x": -460.796875,
+          "y": 0,
+          "width": 1228.796875,
+          "height": 1440,
+          "display": "grid",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(7, 12, 24)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": -460.796875,
+          "y": 0,
+          "width": 1228.796875,
+          "height": 102.390625,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "actions": {
+          "x": -435.203125,
+          "y": 17.421875,
+          "width": 432.203125,
+          "height": 66.546875,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": -428.796875,
+          "y": 921.83740234375,
+          "width": 1164.796875,
+          "height": 835.65625,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        },
+        "policyPane": {
+          "x": -428.796875,
+          "y": 1783.08740234375,
+          "width": 1164.796875,
+          "height": 1757.484375,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        }
+      }
+    },
+    {
+      "option": "c",
+      "id": "768-ar-dark-zoom200",
+      "zoom": 2,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 1536,
+        "clientWidth": 768,
+        "innerWidth": 768,
+        "shell": {
+          "x": -768,
+          "y": 0,
+          "width": 1536,
+          "height": 1800,
+          "display": "grid",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(7, 12, 24)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": -768,
+          "y": 0,
+          "width": 1536,
+          "height": 128,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "actions": {
+          "x": -736,
+          "y": 21.40625,
+          "width": 544.8125,
+          "height": 83.1875,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": -728,
+          "y": 1154.515625,
+          "width": 1456,
+          "height": 1055.90625,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        },
+        "policyPane": {
+          "x": -728,
+          "y": 2242.421875,
+          "width": 1456,
+          "height": 2211.203125,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        }
+      }
+    },
+    {
+      "option": "c",
+      "id": "390-en-light-zoom160",
+      "zoom": 1.6,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 624,
+        "clientWidth": 390,
+        "innerWidth": 390,
+        "shell": {
+          "x": 0,
+          "y": 0,
+          "width": 624,
+          "height": 1440,
+          "display": "grid",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(248, 250, 252)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "width": 624,
+          "height": 146.890625,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "actions": {
+          "x": 302.328125,
+          "y": 0,
+          "width": 296.078125,
+          "height": 145.890625,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": 32,
+          "y": 1344.019287109375,
+          "width": 560,
+          "height": 835.65625,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "policyPane": {
+          "x": 32,
+          "y": 2205.269287109375,
+          "width": 560,
+          "height": 2415.202880859375,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        }
+      }
+    },
+    {
+      "option": "c",
+      "id": "390-en-light-zoom200",
+      "zoom": 2,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 780,
+        "clientWidth": 390,
+        "innerWidth": 390,
+        "shell": {
+          "x": 0,
+          "y": 0,
+          "width": 780,
+          "height": 1800,
+          "display": "grid",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(248, 250, 252)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "width": 780,
+          "height": 184.375,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "actions": {
+          "x": 377.59375,
+          "y": 0,
+          "width": 370.40625,
+          "height": 182.375,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": 40,
+          "y": 1687.953125,
+          "width": 700,
+          "height": 1055.90625,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "policyPane": {
+          "x": 40,
+          "y": 2775.859375,
+          "width": 700,
+          "height": 3031.890625,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        }
+      }
+    },
+    {
+      "option": "c",
+      "id": "320-ar-dark-zoom160",
+      "zoom": 1.6,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 512,
+        "clientWidth": 320,
+        "innerWidth": 320,
+        "shell": {
+          "x": -192,
+          "y": 0,
+          "width": 512,
+          "height": 1440,
+          "display": "grid",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(7, 12, 24)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": -192,
+          "y": 0,
+          "width": 512,
+          "height": 212.859375,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "actions": {
+          "x": -166.40625,
+          "y": 0,
+          "width": 203.921875,
+          "height": 211.859375,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": -160,
+          "y": 1471.0897216796875,
+          "width": 448,
+          "height": 835.6561279296875,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        },
+        "policyPane": {
+          "x": -160,
+          "y": 2332.339599609375,
+          "width": 448,
+          "height": 2515.343994140625,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        }
+      }
+    },
+    {
+      "option": "c",
+      "id": "320-ar-dark-zoom200",
+      "zoom": 2,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 640,
+        "clientWidth": 320,
+        "innerWidth": 320,
+        "shell": {
+          "x": -320,
+          "y": 0,
+          "width": 640,
+          "height": 1800,
+          "display": "grid",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(7, 12, 24)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": -320,
+          "y": 0,
+          "width": 640,
+          "height": 268.375,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "actions": {
+          "x": -288,
+          "y": 0,
+          "width": 253.34375,
+          "height": 266.375,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": -280,
+          "y": 1887.234375,
+          "width": 560,
+          "height": 1055.90625,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        },
+        "policyPane": {
+          "x": -280,
+          "y": 2975.140625,
+          "width": 560,
+          "height": 3157.078125,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        }
+      }
+    },
+    {
+      "option": "d",
+      "id": "1440-en-light-zoom160",
+      "zoom": 1.6,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 2304,
+        "clientWidth": 1440,
+        "innerWidth": 1440,
+        "shell": {
+          "x": 0,
+          "y": 0,
+          "width": 2304,
+          "height": 1440,
+          "display": "grid",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(248, 250, 252)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 416,
+          "height": 1440,
+          "display": "flex",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": 416,
+          "y": 0,
+          "width": 1888,
+          "height": 102.390625,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "actions": {
+          "x": 1770.4375,
+          "y": 17.421875,
+          "width": 495.171875,
+          "height": 66.546875,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": 467.1875,
+          "y": 530.96142578125,
+          "width": 345.59375,
+          "height": 801.984375,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "policyPane": {
+          "x": 835.171875,
+          "y": 530.96142578125,
+          "width": 1417.640625,
+          "height": 1816.609375,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        }
+      }
+    },
+    {
+      "option": "d",
+      "id": "1440-en-light-zoom200",
+      "zoom": 2,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 2880,
+        "clientWidth": 1440,
+        "innerWidth": 1440,
+        "shell": {
+          "x": 0,
+          "y": 0,
+          "width": 2880,
+          "height": 1800,
+          "display": "grid",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(248, 250, 252)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 520,
+          "height": 1800,
+          "display": "flex",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": 520,
+          "y": 0,
+          "width": 2360,
+          "height": 128,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "actions": {
+          "x": 2208.5,
+          "y": 21.40625,
+          "width": 623.5,
+          "height": 83.1875,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": 584,
+          "y": 662.953125,
+          "width": 432,
+          "height": 1005,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "policyPane": {
+          "x": 1044,
+          "y": 662.953125,
+          "width": 1772,
+          "height": 2286.84375,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        }
+      }
+    },
+    {
+      "option": "d",
+      "id": "768-ar-dark-zoom160",
+      "zoom": 1.6,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 1229,
+        "clientWidth": 768,
+        "innerWidth": 768,
+        "shell": {
+          "x": -460.796875,
+          "y": 0,
+          "width": 1228.796875,
+          "height": 1440,
+          "display": "grid",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(7, 12, 24)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": -460.796875,
+          "y": 0,
+          "width": 1228.796875,
+          "height": 102.390625,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "actions": {
+          "x": -435.203125,
+          "y": 17.421875,
+          "width": 432.203125,
+          "height": 66.546875,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": -428.796875,
+          "y": 511.77734375,
+          "width": 1164.796875,
+          "height": 693.703125,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        },
+        "policyPane": {
+          "x": -428.796875,
+          "y": 1224.66796875,
+          "width": 1164.796875,
+          "height": 1810.515625,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        }
+      }
+    },
+    {
+      "option": "d",
+      "id": "768-ar-dark-zoom200",
+      "zoom": 2,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 1536,
+        "clientWidth": 768,
+        "innerWidth": 768,
+        "shell": {
+          "x": -768,
+          "y": 0,
+          "width": 1536,
+          "height": 1800,
+          "display": "grid",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(7, 12, 24)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": -768,
+          "y": 0,
+          "width": 1536,
+          "height": 128,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "actions": {
+          "x": -736,
+          "y": 21.40625,
+          "width": 544.8125,
+          "height": 83.1875,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": -728,
+          "y": 638.953125,
+          "width": 1456,
+          "height": 869.59375,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        },
+        "policyPane": {
+          "x": -728,
+          "y": 1532.546875,
+          "width": 1456,
+          "height": 2279.234375,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        }
+      }
+    },
+    {
+      "option": "d",
+      "id": "390-en-light-zoom160",
+      "zoom": 1.6,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 624,
+        "clientWidth": 390,
+        "innerWidth": 390,
+        "shell": {
+          "x": 0,
+          "y": 0,
+          "width": 624,
+          "height": 1440,
+          "display": "grid",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(248, 250, 252)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "width": 624,
+          "height": 146.890625,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "actions": {
+          "x": 302.328125,
+          "y": 0,
+          "width": 296.078125,
+          "height": 145.890625,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": 32,
+          "y": 750.9640502929688,
+          "width": 560,
+          "height": 774.8124389648438,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "policyPane": {
+          "x": 32,
+          "y": 1544.9639892578125,
+          "width": 560,
+          "height": 2691.9375,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        }
+      }
+    },
+    {
+      "option": "d",
+      "id": "390-en-light-zoom200",
+      "zoom": 2,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 780,
+        "clientWidth": 390,
+        "innerWidth": 390,
+        "shell": {
+          "x": 0,
+          "y": 0,
+          "width": 780,
+          "height": 1800,
+          "display": "grid",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(248, 250, 252)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "width": 780,
+          "height": 184.375,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "actions": {
+          "x": 377.59375,
+          "y": 0,
+          "width": 370.40625,
+          "height": 182.375,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": 40,
+          "y": 941.671875,
+          "width": 700,
+          "height": 971,
+          "display": "flex",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "policyPane": {
+          "x": 40,
+          "y": 1936.671875,
+          "width": 700,
+          "height": 3378.53125,
+          "display": "block",
+          "color": "rgb(16, 24, 40)",
+          "background": "rgb(255, 255, 255)"
+        }
+      }
+    },
+    {
+      "option": "d",
+      "id": "320-ar-dark-zoom160",
+      "zoom": 1.6,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 512,
+        "clientWidth": 320,
+        "innerWidth": 320,
+        "shell": {
+          "x": -192,
+          "y": 0,
+          "width": 512,
+          "height": 1440,
+          "display": "grid",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(7, 12, 24)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": -192,
+          "y": 0,
+          "width": 512,
+          "height": 212.859375,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "actions": {
+          "x": -166.40625,
+          "y": 0,
+          "width": 203.921875,
+          "height": 211.859375,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": -160,
+          "y": 841.5512084960938,
+          "width": 448,
+          "height": 774.8125610351562,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        },
+        "policyPane": {
+          "x": -160,
+          "y": 1635.55126953125,
+          "width": 448,
+          "height": 2792.078125,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        }
+      }
+    },
+    {
+      "option": "d",
+      "id": "320-ar-dark-zoom200",
+      "zoom": 2,
+      "overflow": true,
+      "baselineOverflow": true,
+      "inheritedOverflow": true,
+      "regressionOverflow": false,
+      "metrics": {
+        "pageWidth": 640,
+        "clientWidth": 320,
+        "innerWidth": 320,
+        "shell": {
+          "x": -320,
+          "y": 0,
+          "width": 640,
+          "height": 1800,
+          "display": "grid",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(7, 12, 24)"
+        },
+        "sidebar": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "display": "none",
+          "color": "rgb(219, 229, 255)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "topbar": {
+          "x": -320,
+          "y": 0,
+          "width": 640,
+          "height": 268.375,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(11, 19, 43)"
+        },
+        "actions": {
+          "x": -288,
+          "y": 0,
+          "width": 253.34375,
+          "height": 266.375,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        "policyNav": {
+          "x": -280,
+          "y": 1056.671875,
+          "width": 560,
+          "height": 971,
+          "display": "flex",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        },
+        "policyPane": {
+          "x": -280,
+          "y": 2051.671875,
+          "width": 560,
+          "height": 3503.71875,
+          "display": "block",
+          "color": "rgb(248, 250, 252)",
+          "background": "rgb(13, 21, 47)"
+        }
+      }
+    }
+  ],
+  "total": 32,
+  "regressionOverflowCount": 0,
+  "inheritedOverflowCount": 32
+}

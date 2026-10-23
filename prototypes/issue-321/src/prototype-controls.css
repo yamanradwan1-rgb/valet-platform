@@ -1,0 +1,12 @@
+.p321-page { min-width: 0; }
+.p321-fixture-banner { color: var(--muted); background: var(--surface-soft); border: 1px dashed var(--border); border-radius: .6rem; padding: .65rem .85rem; font-size: .69rem; font-weight: 700; }
+.p321-demo-controls { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: .75rem; margin-top: .8rem; margin-bottom: 1.1rem; }
+.p321-options { display: flex; flex-wrap: wrap; gap: .35rem; border: 0; min-width: 0; padding: 0; margin: 0; }
+.p321-options legend { padding: 0; margin-bottom: .35rem; color: var(--muted); font-size: .67rem; font-weight: 800; }
+.p321-options button { border: 1px solid var(--border); background: var(--surface); color: var(--muted); border-radius: .5rem; padding: .55rem .7rem; font-size: .72rem; font-weight: 700; cursor: pointer; }
+.p321-options button[aria-pressed="true"] { background: var(--accent); color: white; border-color: var(--accent); }
+.p321-scenario-label { display: grid; gap: .35rem; color: var(--muted); font-size: .67rem; font-weight: 800; }
+.p321-scenario-label select { min-height: 2.3rem; max-width: min(100%, 285px); padding: .5rem; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: .5rem; font-size: .73rem; }
+.p321-toast { padding: .65rem; color: var(--text); background: var(--accent-soft); border-radius: .5rem; font-size: .72rem; }
+.p321-page [role="status"] { overflow-wrap: anywhere; }
+@media (max-width: 390px) { .p321-demo-controls { display: block; } .p321-options { margin-bottom: .8rem; } .p321-options button { flex: 1 1 calc(50% - .35rem); } }
