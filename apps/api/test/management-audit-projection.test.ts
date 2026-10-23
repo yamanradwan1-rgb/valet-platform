@@ -64,13 +64,22 @@ describe("management audit projection", () => {
       reason: "private-reason",
       storage_object_key: "private-storage-key",
     };
-    expect(managementAuditKnownEventTypes).toHaveLength(100);
+    expect(managementAuditKnownEventTypes).toHaveLength(101);
+    expect(managementAuditKnownEventTypes).toContain("MANAGEMENT_GUEST_INFORMATION_CHANGED");
     for (const eventType of managementAuditKnownEventTypes) {
+      const eventMetadata = eventType === "MANAGEMENT_GUEST_INFORMATION_CHANGED"
+        ? { ...sensitiveMetadata, operation: "PRIVACY_PUBLISHED" }
+        : sensitiveMetadata;
       const projected = projectManagementAuditEvent(
-        row(eventType, sensitiveMetadata),
+        row(eventType, eventMetadata),
         admin,
       );
       expect(projected.eventType).toBe(eventType);
+      if (eventType === "MANAGEMENT_GUEST_INFORMATION_CHANGED") {
+        expect(projected.details).toEqual({
+          kind: "GUEST_INFORMATION", operation: "PRIVACY_PUBLISHED",
+        });
+      }
       const serialized = JSON.stringify(projected);
       for (const secret of [
         "999.000",

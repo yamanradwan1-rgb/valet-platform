@@ -14,6 +14,8 @@ import { GuestBrowserLimiter } from "../src/modules/guest-access/guest-browser-l
 import { GuestBrowserSessionService } from "../src/modules/guest-access/guest-browser-session.service";
 import { GuestAuthOriginPolicy } from "../src/modules/guest-access/guest-browser-transport";
 import { GuestCredentialAuthorizer } from "../src/modules/guest-access/guest-credential-authorizer";
+import { GuestInformationController } from "../src/modules/guest-access/guest-information.controller";
+import { GuestInformationService } from "../src/modules/guest-access/guest-information.service";
 import { GuestRatingController } from "../src/modules/guest-access/guest-rating.controller";
 import { GuestRatingService } from "../src/modules/guest-access/guest-rating.service";
 import { GuestRequestAdmission } from "../src/modules/guest-access/guest-request-admission";
@@ -27,6 +29,7 @@ describe("MGT-BE-09 Guest Rating module ownership", () => {
     expect(metadata(MODULE_METADATA.CONTROLLERS)).toEqual([
       StaffGuestAccessController,
       GuestAccessController,
+      GuestInformationController,
       GuestRatingController,
       GuestBrowserSessionController,
       GuestBrowserContextController,
@@ -40,6 +43,7 @@ describe("MGT-BE-09 Guest Rating module ownership", () => {
       GuestAuthOriginPolicy,
       GuestCredentialAuthorizer,
       GuestRatingService,
+      GuestInformationService,
     ]);
     expect(metadata(MODULE_METADATA.EXPORTS)).toEqual([
       GuestAccessService,
