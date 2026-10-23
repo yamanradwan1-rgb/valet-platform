@@ -67,7 +67,7 @@ export async function proveConnectedMaintenanceRole(url: string): Promise<void> 
     await denied(client, "TRUNCATE TABLE public.vehicle_photo_verifications");
     await denied(client, "SELECT public.condition_photo_reserve_upload($1::uuid,$2::uuid,$3::uuid,$4::uuid,$5::bytea,1,1,'test')",
       [randomId(), randomId(), randomId(), randomId(), Buffer.alloc(32)]);
-    await denied(client, `SELECT ${photoRuntimeFunctions[4]?.split("(")[0]}($1::uuid,$2::uuid,$3::uuid,$4::uuid,$5::uuid,NULL::text,$6::bytea,1,1,1)`,
+    await denied(client, "SELECT public.condition_photo_finalize_upload($1::uuid,$2::uuid,$3::uuid,$4::uuid,$5::uuid,NULL::text,$6::bytea,1,1,1)",
       [randomId(), randomId(), randomId(), randomId(), randomId(), Buffer.alloc(32)]);
   });
 }

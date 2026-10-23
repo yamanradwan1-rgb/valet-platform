@@ -66,8 +66,14 @@ const params = {
   period,
   recordManagementActivity: false,
 };
+const staffContext = {
+  accessTokenHash: "token-315",
+  createdAt: new Date("2026-07-10T00:00:00.000Z"),
+  staffAuthSessionId: "session-315",
+  userId: params.authenticatedUserId,
+};
 
-function simulatedPostgres() {
+function simulatedPostgres({ factorActive = true }: { factorActive?: boolean } = {}) {
   const events: string[] = [];
   const transactions: Array<{ isolation: string }> = [];
   const pool = {
@@ -78,7 +84,16 @@ function simulatedPostgres() {
       transactions.push(state);
       const connection = {
         query: vi.fn(async (sql: string, values?: unknown[]) => {
-          if (sql.startsWith("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")) {
+          if (sql.includes("INNER JOIN user_mfa_totp_factors AS factor")) {
+            expect(inTransaction).toBe(true);
+            expect(sql).toContain("FOR SHARE OF factor");
+            expect(values).toEqual(["session-315", "user-315", "token-315"]);
+            events.push("mfa-factor-share-lock");
+            return {
+              rowCount: factorActive ? 1 : 0,
+              rows: factorActive ? [{ id: "factor-315" }] : [],
+            };
+          } else if (sql.startsWith("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")) {
             expect(inTransaction).toBe(true);
             state.isolation = "repeatable read";
             isolationAtQuery.set(connection, state.isolation);
@@ -209,15 +224,31 @@ describe("#315 KPI REPEATABLE READ LM regression contract", () => {
     const db = simulatedPostgres();
     const result = await locationKpiAnalytics(db.pool, {
       ...params,
-      staffSessionContext: { userId: "user-315" } as NonNullable<
-        Parameters<typeof locationKpiAnalytics>[1]["staffSessionContext"]
-      >,
+      staffSessionContext: staffContext,
     });
     expect(result.locationId).toBe(lmScope.locationId);
     expect(mfa).toHaveBeenCalledTimes(1);
     expect(ca).toHaveBeenCalledTimes(1);
+    expect(db.events).toContain("mfa-factor-share-lock");
     expect(db.events).not.toContain("shared-org-lock");
     expect(db.events).not.toContain("shared-org-unlock");
     expect(db.events).toContain("repeatable-read");
+  });
+
+  it("denies Company Admin KPIs when the factor was retired before the RR fence", async () => {
+    lm.mockResolvedValue(null);
+    eligible.mockResolvedValue(lmScope.organizationId);
+    ca.mockResolvedValue({
+      organizationId: lmScope.organizationId,
+      membershipId: "ca-315",
+    } as Awaited<ReturnType<typeof authorizeCompanyAdminManagement>>);
+    const db = simulatedPostgres({ factorActive: false });
+    await expect(locationKpiAnalytics(db.pool, {
+      ...params,
+      staffSessionContext: staffContext,
+    })).rejects.toMatchObject({ code: "MFA_STEP_UP_REQUIRED" });
+    expect(db.events).toContain("mfa-factor-share-lock");
+    expect(db.events).toContain("rollback");
+    expect(db.events).not.toContain("commit");
   });
 });

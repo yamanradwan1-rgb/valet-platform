@@ -34,16 +34,17 @@ describe("T3 derived envelope and finite capacity", () => {
   });
 
   it("maps every actual Guest surface without separate transport quotas", () => {
-    expect(Object.keys(guestRouteClasses)).toHaveLength(16);
+    expect(Object.keys(guestRouteClasses)).toHaveLength(17);
     expect(
       Object.values(guestRouteClasses).filter((value) => value === "A"),
-    ).toHaveLength(3);
+    ).toHaveLength(4);
     expect(
       Object.values(guestRouteClasses).filter((value) => value === "D"),
     ).toHaveLength(2);
     expect(
       guestRouteClasses["POST /v1/guest/browser-session/switch/reconcile"],
     ).toBe("B");
+    expect(guestRouteClasses["GET /v1/guest/information"]).toBe("A");
   });
 
   it("requires real production capacity inputs and includes rollout surge", () => {

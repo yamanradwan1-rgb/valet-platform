@@ -1,105 +1,37 @@
-import { execFile } from "node:child_process";
-import {
-  mkdir,
-  mkdtemp,
-  rm,
-  symlink,
-  unlink,
-  writeFile,
-} from "node:fs/promises";
+import { mkdir, mkdtemp, symlink, unlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, resolve } from "node:path";
-import { promisify } from "node:util";
+import { resolve } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
 import { checkArchitecture } from "../../../scripts/architecture-check.mjs";
-import { BASELINE_SOURCE_COMMIT } from "../../../scripts/architecture-line-policy.mjs";
 import {
   parseGitPathOutput,
   readRepositoryOwnedTextFiles,
   sameRepositoryRoot,
 } from "../../../scripts/architecture-repository-files.mjs";
+import {
+  baseline,
+  cleanupFixtures,
+  content,
+  GIT_FIXTURE_TIMEOUT_MS,
+  runFixture,
+  runFixtureGit,
+  trackTemporaryRoot,
+} from "./architecture-repository-fixture";
 
-const executeFile = promisify(execFile);
-const temporaryRoots: string[] = [];
-
-function content(lines: number) {
-  return Array.from({ length: lines }, () => "export const value = true;").join(
-    "\n",
-  );
-}
-
-function baseline(
-  grandfathered: Array<{ maxLines: number; path: string }> = [],
+function gitTest(
+  name: string,
+  test: () => Promise<void>,
+  timeout = GIT_FIXTURE_TIMEOUT_MS,
 ) {
-  return JSON.stringify({
-    grandfathered,
-    sourceCommit: BASELINE_SOURCE_COMMIT,
-    version: 1,
-  });
+  it(name, test, timeout);
 }
 
-interface FixtureOptions {
-  readonly commit?: boolean;
-  readonly deleteAfterAdd?: string[];
-  readonly files: Record<string, string>;
-  readonly historical?: ReadonlyMap<string, string | undefined>;
-  readonly infoExclude?: string;
-  readonly tracked?: string[];
-}
-
-async function runFixture(options: FixtureOptions) {
-  const root = await mkdtemp(resolve(tmpdir(), "valet-owned-files-"));
-  temporaryRoots.push(root);
-  await executeFile("git", ["init", "--quiet"], { cwd: root });
-  if (options.infoExclude !== undefined) {
-    await writeFile(resolve(root, ".git/info/exclude"), options.infoExclude);
-  }
-  const files = {
-    "scripts/architecture-line-baseline.json": baseline(),
-    ...options.files,
-  };
-  for (const [path, value] of Object.entries(files)) {
-    const target = resolve(root, path);
-    await mkdir(dirname(target), { recursive: true });
-    await writeFile(target, value);
-  }
-  if (options.tracked !== undefined) {
-    await executeFile("git", ["add", "--", ...options.tracked], { cwd: root });
-  }
-  if (options.commit === true) {
-    await executeFile(
-      "git",
-      [
-        "-c",
-        "user.name=Architecture Fixture",
-        "-c",
-        "user.email=architecture-fixture@valet.test",
-        "commit",
-        "--quiet",
-        "-m",
-        "fixture",
-      ],
-      { cwd: root },
-    );
-  }
-  for (const path of options.deleteAfterAdd ?? []) {
-    await rm(resolve(root, path));
-  }
-  return checkArchitecture(root, async () => new Map(options.historical ?? []));
-}
-
-afterEach(async () => {
-  await Promise.all(
-    temporaryRoots
-      .splice(0)
-      .map((root) => rm(root, { force: true, recursive: true })),
-  );
-});
+afterEach(cleanupFixtures, 60_000);
 
 describe("repository-owned authored file discovery", () => {
-  it("rejects an oversized tracked authored file", async () => {
+  gitTest("rejects an oversized tracked authored file", async () => {
     const path = "apps/example/tracked.ts";
     const result = await runFixture({
       files: { [path]: content(301) },
@@ -108,25 +40,31 @@ describe("repository-owned authored file discovery", () => {
     expect(result.violations.join("\n")).toContain(`${path}: 301 lines`);
   });
 
-  it("rejects an oversized untracked non-ignored file before git add", async () => {
-    const path = "apps/example/untracked.ts";
-    const result = await runFixture({ files: { [path]: content(301) } });
-    expect(result.violations.join("\n")).toContain(`${path}: 301 lines`);
-  });
+  gitTest(
+    "rejects an oversized untracked non-ignored file before git add",
+    async () => {
+      const path = "apps/example/untracked.ts";
+      const result = await runFixture({ files: { [path]: content(301) } });
+      expect(result.violations.join("\n")).toContain(`${path}: 301 lines`);
+    },
+  );
 
-  it("excludes ignored files through standard Git info/exclude semantics", async () => {
-    const result = await runFixture({
-      files: {
-        "local ignored.ts": content(301),
-        "local/nested/ignored.js": content(301),
-        "local/nested/ignored.tsx": content(301),
-      },
-      infoExclude: "/local ignored.ts\n/local/\n",
-    });
-    expect(result.violations).toEqual([]);
-  });
+  gitTest(
+    "excludes ignored files through standard Git info/exclude semantics",
+    async () => {
+      const result = await runFixture({
+        files: {
+          "local ignored.ts": content(301),
+          "local/nested/ignored.js": content(301),
+          "local/nested/ignored.tsx": content(301),
+        },
+        infoExclude: "/local ignored.ts\n/local/\n",
+      });
+      expect(result.violations).toEqual([]);
+    },
+  );
 
-  it("handles spaces with NUL-delimited Git discovery", async () => {
+  gitTest("handles spaces with NUL-delimited Git discovery", async () => {
     const path = "apps/example/path with spaces.ts";
     const result = await runFixture({
       files: { [path]: content(301) },
@@ -135,50 +73,57 @@ describe("repository-owned authored file discovery", () => {
     expect(result.violations.join("\n")).toContain(path);
   });
 
-  it("preserves grandfather growth and stale-entry enforcement", async () => {
-    const path = "apps/example/legacy.ts";
-    const entry = [{ maxLines: 350, path }];
-    const historical = new Map([[path, content(350)]]);
-    const grown = await runFixture({
-      files: {
-        [path]: content(351),
-        "scripts/architecture-line-baseline.json": baseline(entry),
-      },
-      historical,
-      tracked: [path],
-    });
-    expect(grown.violations.join("\n")).toContain("GRANDFATHERED_FILE_GREW");
+  gitTest(
+    "preserves grandfather growth and stale-entry enforcement",
+    async () => {
+      const path = "apps/example/legacy.ts";
+      const entry = [{ maxLines: 350, path }];
+      const historical = new Map([[path, content(350)]]);
+      const grown = await runFixture({
+        files: {
+          [path]: content(351),
+          "scripts/architecture-line-baseline.json": baseline(entry),
+        },
+        historical,
+        tracked: [path],
+      });
+      expect(grown.violations.join("\n")).toContain("GRANDFATHERED_FILE_GREW");
 
-    const shrunk = await runFixture({
-      files: {
-        [path]: content(300),
-        "scripts/architecture-line-baseline.json": baseline(entry),
-      },
-      historical,
-      tracked: [path],
-    });
-    expect(shrunk.violations.join("\n")).toContain("STALE_GRANDFATHER_ENTRY");
-  });
+      const shrunk = await runFixture({
+        files: {
+          [path]: content(300),
+          "scripts/architecture-line-baseline.json": baseline(entry),
+        },
+        historical,
+        tracked: [path],
+      });
+      expect(shrunk.violations.join("\n")).toContain("STALE_GRANDFATHER_ENTRY");
+    },
+    30_000,
+  ); // Two independently built and inspected Git fixtures.
 
-  it("skips a normal tracked deletion while retaining stale-baseline semantics", async () => {
-    const path = "apps/example/deleted.ts";
-    const entry = [{ maxLines: 350, path }];
-    const result = await runFixture({
-      deleteAfterAdd: [path],
-      files: {
-        [path]: content(350),
-        "scripts/architecture-line-baseline.json": baseline(entry),
-      },
-      historical: new Map([[path, content(350)]]),
-      tracked: [path],
-    });
-    expect(result.violations.join("\n")).toContain("STALE_GRANDFATHER_ENTRY");
-    expect(result.violations.join("\n")).not.toContain("cannot read");
-  });
+  gitTest(
+    "skips a normal tracked deletion while retaining stale-baseline semantics",
+    async () => {
+      const path = "apps/example/deleted.ts";
+      const entry = [{ maxLines: 350, path }];
+      const result = await runFixture({
+        deleteAfterAdd: [path],
+        files: {
+          [path]: content(350),
+          "scripts/architecture-line-baseline.json": baseline(entry),
+        },
+        historical: new Map([[path, content(350)]]),
+        tracked: [path],
+      });
+      expect(result.violations.join("\n")).toContain("STALE_GRANDFATHER_ENTRY");
+      expect(result.violations.join("\n")).not.toContain("cannot read");
+    },
+  );
 
   it("fails closed when an owned readable path disappears before reading", async () => {
     const root = await mkdtemp(resolve(tmpdir(), "valet-owned-read-race-"));
-    temporaryRoots.push(root);
+    trackTemporaryRoot(root);
     const path = "apps/example/disappeared.ts";
     await expect(
       readRepositoryOwnedTextFiles(root, {
@@ -188,34 +133,40 @@ describe("repository-owned authored file discovery", () => {
     ).rejects.toThrow(`cannot read ${path}`);
   });
 
-  it("ignores generated Native projects but covers Native src", async () => {
-    const result = await runFixture({
-      files: {
-        ".gitignore": "apps/valet-native/android/\napps/valet-native/ios/\n",
-        "apps/valet-native/android/generated.ts": content(301),
-        "apps/valet-native/ios/generated.js": content(301),
-        "apps/valet-native/src/owned.ts": content(301),
-      },
-    });
-    expect(result.violations.join("\n")).toContain(
-      "apps/valet-native/src/owned.ts",
-    );
-    expect(result.violations.join("\n")).not.toContain("/android/");
-    expect(result.violations.join("\n")).not.toContain("/ios/");
-  });
+  gitTest(
+    "ignores generated Native projects but covers Native src",
+    async () => {
+      const result = await runFixture({
+        files: {
+          ".gitignore": "apps/valet-native/android/\napps/valet-native/ios/\n",
+          "apps/valet-native/android/generated.ts": content(301),
+          "apps/valet-native/ios/generated.js": content(301),
+          "apps/valet-native/src/owned.ts": content(301),
+        },
+      });
+      expect(result.violations.join("\n")).toContain(
+        "apps/valet-native/src/owned.ts",
+      );
+      expect(result.violations.join("\n")).not.toContain("/android/");
+      expect(result.violations.join("\n")).not.toContain("/ios/");
+    },
+  );
 
-  it("rejects generated Native project content if it becomes tracked", async () => {
-    const path = "apps/valet-native/android/generated.ts";
-    const result = await runFixture({
-      files: { [path]: "export const generated = true;" },
-      tracked: [path],
-    });
-    expect(result.violations.join("\n")).toContain(
-      "generated Native project content must not be repository-owned",
-    );
-  });
+  gitTest(
+    "rejects generated Native project content if it becomes tracked",
+    async () => {
+      const path = "apps/valet-native/android/generated.ts";
+      const result = await runFixture({
+        files: { [path]: "export const generated = true;" },
+        tracked: [path],
+      });
+      expect(result.violations.join("\n")).toContain(
+        "generated Native project content must not be repository-owned",
+      );
+    },
+  );
 
-  it("passes a clean tracked checkout", async () => {
+  gitTest("passes a clean tracked checkout", async () => {
     const path = "apps/example/source.ts";
     const result = await runFixture({
       commit: true,
@@ -227,7 +178,7 @@ describe("repository-owned authored file discovery", () => {
 
   it("compares repository roots by filesystem identity", async () => {
     const root = await mkdtemp(resolve(tmpdir(), "valet root identity-"));
-    temporaryRoots.push(root);
+    trackTemporaryRoot(root);
     const nested = resolve(root, "nested");
     await mkdir(nested);
     expect(await sameRepositoryRoot(root, root.replaceAll("\\", "/"))).toBe(
@@ -258,10 +209,10 @@ describe("repository-owned authored file discovery", () => {
     );
   });
 
-  it("rejects a nested directory as the repository root", async () => {
+  gitTest("rejects a nested directory as the repository root", async () => {
     const root = await mkdtemp(resolve(tmpdir(), "valet-nested-root-"));
-    temporaryRoots.push(root);
-    await executeFile("git", ["init", "--quiet"], { cwd: root });
+    trackTemporaryRoot(root);
+    await runFixtureGit(root, ["init", "--quiet"]);
     const nested = resolve(root, "nested");
     await mkdir(nested);
     const result = await checkArchitecture(nested, async () => new Map());
@@ -270,7 +221,7 @@ describe("repository-owned authored file discovery", () => {
 
   it("fails closed outside a Git repository", async () => {
     const root = await mkdtemp(resolve(tmpdir(), "valet-no-git-"));
-    temporaryRoots.push(root);
+    trackTemporaryRoot(root);
     const result = await checkArchitecture(root, async () => new Map());
     expect(result.violations.join("\n")).toContain(
       "repository file discovery: Git command failed",

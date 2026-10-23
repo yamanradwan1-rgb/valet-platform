@@ -13,6 +13,7 @@ import {
   validateCapacityDetail,
   validateCapacityQueue,
 } from "../tools/capacity/capacity-validation";
+import type { ProcessMetricSampler } from "../tools/capacity/capacity-process-sampler";
 import type { RequestSample } from "../tools/capacity/capacity-types";
 
 function sample(status = 200, durationMs = 10): RequestSample {
@@ -27,19 +28,28 @@ describe("MOB-025A capacity harness", () => {
   });
 
   it("rejects invalid and unreadable API PIDs", async () => {
+    const unavailable: ProcessMetricSampler = {
+      async sample() { throw new Error("PID unavailable"); },
+    };
     await expect(requireCapacityApiPid("not-a-pid")).rejects.toThrow(
       "CAPACITY_API_PID must be an integer greater than 1.",
     );
     await expect(requireCapacityApiPid("1")).rejects.toThrow(
       "CAPACITY_API_PID must be an integer greater than 1.",
     );
-    await expect(requireCapacityApiPid("2147483647")).rejects.toThrow(
+    await expect(requireCapacityApiPid("2147483647", unavailable)).rejects.toThrow(
       "CAPACITY_API_PID does not identify a readable process.",
     );
   });
 
   it("accepts a currently readable API PID", async () => {
-    await expect(requireCapacityApiPid(String(process.pid))).resolves.toBe(
+    const readable: ProcessMetricSampler = {
+      async sample(pid) {
+        expect(pid).toBe(process.pid);
+        return { oneCpuCapacityUnits: 1, processCpuUnits: 0, processIdentity: "test", rssBytes: 1 };
+      },
+    };
+    await expect(requireCapacityApiPid(String(process.pid), readable)).resolves.toBe(
       process.pid,
     );
   });

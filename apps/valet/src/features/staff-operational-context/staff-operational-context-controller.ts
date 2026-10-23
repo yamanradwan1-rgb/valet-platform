@@ -40,6 +40,14 @@ export class StaffOperationalContextController {
     this.onStateChange = options.onStateChange;
   }
 
+  // React dev StrictMode replays mount effects (setup-cleanup-setup) without
+  // recreating useState. Reattach only on a real effect setup, never during
+  // render; a destroyed controller must not leak requests or updates.
+  public attach(onStateChange: (state: StaffOperationalContextState) => void): void {
+    this.onStateChange = onStateChange;
+    this.isDestroyed = false;
+  }
+
   public getState(): StaffOperationalContextState {
     return this.state;
   }

@@ -54,6 +54,7 @@ const caAdministration = [
   "employees-shifts",
   "locations",
   "policies-settings",
+  "guest-information",
   "roles-permissions",
   "branding",
   "billing-subscription",
@@ -62,6 +63,7 @@ const lmAdministration = [
   "employees-shifts",
   "locations",
   "policies-settings",
+  "guest-information",
   "branding",
   "billing-subscription",
 ];
@@ -244,6 +246,7 @@ describe("MD-04 navigation filtering", () => {
       "employees-shifts",
       "locations",
       "policies-settings",
+      "guest-information",
       "roles-permissions",
       "billing-subscription",
       "test-visit-contacts",

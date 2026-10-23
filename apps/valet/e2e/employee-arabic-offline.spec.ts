@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Request } from "@playwright/test";
 
 const STAFF_EMAIL = process.env.E2E_STAFF_EMAIL ?? "e2e-driver@valet.test";
 const STAFF_PASSWORD =
@@ -25,9 +25,32 @@ test("keeps authenticated Arabic live UI truthful through offline recovery", asy
   await expect(page.getByRole("heading", { name: "المهام" })).toBeVisible({
     timeout: 20_000,
   });
+  const pendingDiscovery = new Set<Request>();
+  const discoveredPaths = new Set<string>();
+  const expectedPaths = new Set([
+    "/v1/staff/check-in/drafts",
+    "/v1/staff/check-in/continuations",
+  ]);
+  page.on("request", (request) => {
+    const path = new URL(request.url()).pathname;
+    if (request.method() !== "GET" || !expectedPaths.has(path)) return;
+    discoveredPaths.add(path);
+    pendingDiscovery.add(request);
+  });
+  page.on("requestfinished", (request) => pendingDiscovery.delete(request));
+  page.on("requestfailed", (request) => pendingDiscovery.delete(request));
   await page.getByRole("button", { name: "مركبة جديدة" }).click();
-  await page.getByRole("button", { name: "إدخال يدوي" }).click();
+  const manualEntry = page.getByRole("button", { name: "إدخال يدوي" });
+  await expect(manualEntry).toBeVisible();
+  // Concurrent draft/continuation discovery may settle after plate-scan first
+  // appears. Wait only for those named requests before switching steps.
+  await expect.poll(
+    () => discoveredPaths.size === expectedPaths.size && pendingDiscovery.size === 0,
+    { timeout: 15_000 },
+  ).toBeTruthy();
+  await manualEntry.click();
   const plateInput = page.locator('input[placeholder="e.g. 12-34567"]');
+  await expect(plateInput).toBeVisible();
   await expect(plateInput).toHaveAttribute("dir", "ltr");
   await plateInput.fill(plate);
   await page.getByRole("button", { name: "متابعة", exact: true }).click();

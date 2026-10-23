@@ -27,6 +27,7 @@ import { GuestAccessService } from "../src/modules/guest-access/guest-access.ser
 import { GuestInformationController } from "../src/modules/guest-access/guest-information.controller";
 import { GuestInformationService } from "../src/modules/guest-access/guest-information.service";
 import { GuestInformationScopeUnavailableError } from "../src/modules/management/guest-information-public-projection";
+import { GuestAccessError } from "../src/modules/valet-sessions/guest-access-command";
 import {
   guestAdmissionQueryStub,
   guestAuthorizerTestProviders,
@@ -94,6 +95,8 @@ const unavailable = {
 const guestInformation = {
   async read(reservation: unknown, credential: unknown, locale: "en" | "ar") {
     calls(reservation, credential, locale);
+    // The real service locks and resolves the credential again after admission.
+    if (!valid) throw new GuestAccessError("GUEST_ACCESS_INVALID");
     if (!locationActive) throw new GuestInformationScopeUnavailableError();
     return locale === "en" ? published : unavailable;
   },
@@ -203,17 +206,13 @@ describe("Guest #316 published information HTTP boundary", () => {
     expect(calls).not.toHaveBeenCalled();
   });
 
-  it("rejects missing, ambiguous and revoked Guest credentials", async () => {
+  it("rejects missing and ambiguous Guest credentials before the projection", async () => {
     const missing = await get("?locale=en");
     const ambiguous = await get("?locale=en", {
       authorization: `Bearer ${guestBearer}`,
       cookie: browserCookie,
     });
-    valid = false;
-    const revoked = await get("?locale=en", {
-      authorization: `Bearer ${guestBearer}`,
-    });
-    for (const result of [missing, ambiguous, revoked]) {
+    for (const result of [missing, ambiguous]) {
       expect(result).toMatchObject({
         body: { code: "GUEST_ACCESS_INVALID" },
         status: 401,
@@ -221,6 +220,19 @@ describe("Guest #316 published information HTTP boundary", () => {
       noStore(result.headers);
     }
     expect(calls).not.toHaveBeenCalled();
+  });
+
+  it("rejects a revoked credential after the service rechecks it", async () => {
+    valid = false;
+    const revoked = await get("?locale=en", {
+      authorization: `Bearer ${guestBearer}`,
+    });
+    expect(revoked).toMatchObject({
+      body: { code: "GUEST_ACCESS_INVALID" },
+      status: 401,
+    });
+    noStore(revoked.headers);
+    expect(calls).toHaveBeenCalledOnce();
   });
 
   it("returns a concealed 401 when a validated Guest's Location became inactive", async () => {

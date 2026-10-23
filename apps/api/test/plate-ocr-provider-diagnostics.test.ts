@@ -4,6 +4,7 @@ import { readPlateOcrConfig } from "../src/modules/check-in-api/plate-ocr-config
 import { PlateRecognizerSnapshotProvider } from "../src/modules/check-in-api/plate-recognizer-snapshot.provider";
 
 const env = {
+  NODE_ENV: "test",
   PLATE_OCR_ENDPOINT: "http://127.0.0.1:8181/read/",
   PLATE_OCR_TOKEN: "test-only-secret",
 };

@@ -47,6 +47,7 @@ describe("production dashboard navigation order", () => {
       "analytics",
       "reports",
       "policies-settings",
+      "guest-information",
       "roles-permissions",
       "branding",
       "billing-subscription",

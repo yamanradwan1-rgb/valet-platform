@@ -24,13 +24,25 @@ async function revoke(writer: PoolClient, item: PhotoFenceCase, kind: Revoker) {
   );
 }
 
-async function ensureNoIdleTransaction(h: Issue309PhotoHttpFixture) {
-  const result = await h.db.admin.query<{ pending: number }>(
-    `SELECT COUNT(*)::int AS pending FROM pg_stat_activity
+async function ensureNoIdleTransaction(h: Issue309PhotoHttpFixture, writerPid?: number) {
+  const result = await h.db.admin.query<{
+    pid: number;
+    usename: string;
+    application_name: string;
+    xact_start: Date | null;
+    state_change: Date | null;
+  }>(
+    `SELECT pid,usename,application_name,xact_start,state_change
+     FROM pg_stat_activity
      WHERE datname=current_database() AND pid<>pg_backend_pid()
-       AND state='idle in transaction'`,
+       AND state='idle in transaction'
+     ORDER BY pid`,
   );
-  expect(result.rows[0]?.pending).toBe(0);
+  // Preserve the zero-idle invariant while attributing the backend. Never
+  // include pg_stat_activity.query: a failed CI assertion must not log SQL
+  // text (or any bound values possibly present in statement diagnostics).
+  expect(result.rows, `Idle transaction(s); test writer PID=${writerPid ?? "none"}: ${JSON.stringify(result.rows)}`)
+    .toEqual([]);
 }
 
 describe("Issue #309 two-connection real restricted PG17 + Node HTTP fence", () => {
@@ -60,8 +72,12 @@ describe("Issue #309 two-connection real restricted PG17 + Node HTTP fence", () 
     it(`revoker-first ${kind} transaction wins and denies real JPEG`,async()=>{
       const item = await seedPhotoFenceCase(h);
       const writer = await h.db.admin.connect();
+      let writerPid: number | undefined;
       let open = false;
       try {
+        writerPid = (await writer.query<{ pid: number }>(
+          "SELECT pg_backend_pid() AS pid",
+        )).rows[0]?.pid;
         await writer.query("BEGIN"); open=true;
         await revoke(writer,item,kind);
         const pending = runPhotoFenceHttp(h,item);
@@ -72,7 +88,7 @@ describe("Issue #309 two-connection real restricted PG17 + Node HTTP fence", () 
         const result = await pending;
         expect(result.status).toBe(503);
         expect(result.order).not.toContain("jpeg-enqueued");
-        await ensureNoIdleTransaction(h);
+        await ensureNoIdleTransaction(h, writerPid);
       } finally {
         if(open) await writer.query("ROLLBACK");
         writer.release();

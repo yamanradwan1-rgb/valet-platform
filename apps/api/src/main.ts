@@ -2,9 +2,13 @@ import "reflect-metadata";
 
 import { Logger } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
 import { AppModule } from "./app.module";
+import {
+  configureApiDocumentation,
+  setApiSecurityResponseHeaders,
+  type ApiHeaderResponse,
+} from "./common/http/api-security-bootstrap";
 import { createHttpMetricsMiddleware } from "./common/observability/http-metrics.middleware";
 import { createApplicationDrainMiddleware } from "./health/application-drain-middleware";
 import { ApplicationDrainState } from "./health/application-drain-state";
@@ -36,19 +40,19 @@ async function bootstrap() {
     // photo multipart/streaming body routes. Do not log request.rawBody.
     rawBody: true,
   });
+  const expressApp = app.getHttpAdapter().getInstance() as {
+    disable(setting: string): void;
+  };
+  expressApp.disable("x-powered-by");
+  app.use(
+    (_request: unknown, response: ApiHeaderResponse, next: () => void) => {
+      setApiSecurityResponseHeaders(response);
+      next();
+    },
+  );
   app.use(createHttpMetricsMiddleware());
   app.use(createApplicationDrainMiddleware(app.get(ApplicationDrainState)));
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle("Valet Platform API")
-    .setDescription("Valet platform operational API")
-    .setVersion("0.0.0")
-    .build();
-
-  SwaggerModule.setup(
-    "docs",
-    app,
-    SwaggerModule.createDocument(app, swaggerConfig),
-  );
+  configureApiDocumentation(app, process.env.NODE_ENV);
 
   app.enableShutdownHooks([...applicationShutdownSignals]);
   armEarlyShutdownWithdrawal(app, app.get(ApplicationDrainState), process);

@@ -5,6 +5,7 @@ import {
   createCapacityProcessSampler,
   parseLinuxProcessSample,
   parseWindowsProcessSample,
+  requireCapacityApiPid,
   type ProcessMetricSample,
   type ProcessMetricSampler,
 } from "../tools/capacity/capacity-process-sampler";
@@ -48,6 +49,30 @@ function healthyPool(active = 1, waiting = 0): Pool {
 }
 
 describe("capacity process sampling", () => {
+  it.skipIf(process.platform !== "win32")(
+    "bounds and verifies the real Windows Get-Process reader",
+    async () => {
+      // This dedicated platform integration proves actual native sampling;
+      // portable PID contract tests use a deterministic injected sampler so
+      // slow PowerShell startup cannot make validation tests flaky.
+      const sample = await createCapacityProcessSampler("win32").sample(
+        process.pid,
+      );
+      expect(sample.processIdentity).toMatch(/^windows:/);
+      expect(sample.oneCpuCapacityUnits).toBeGreaterThan(0);
+      expect(sample.rssBytes).toBeGreaterThan(0);
+      await expect(
+        requireCapacityApiPid("2147483647", {
+          sample: async () => {
+            throw new Error("No such process.");
+          },
+        }),
+      ).rejects.toThrow(
+        "CAPACITY_API_PID does not identify a readable process.",
+      );
+    },
+    25_000,
+  );
   it("parses Linux /proc samples without assuming a space-free process name", () => {
     const statFields = [
       "R",

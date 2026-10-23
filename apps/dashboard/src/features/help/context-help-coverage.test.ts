@@ -39,6 +39,7 @@ const expectedPageHelpByRoute = {
   "/employees": "staff.page",
   "/locations": "locations.page",
   "/policies": "policies.page",
+  "/guest-information": "guest-information.page",
   "/roles-permissions": "roles.page",
   "/branding": "branding.page",
   "/billing-subscription": "billing.page",
@@ -67,8 +68,8 @@ describe("source-driven contextual-help coverage", () => {
   it("classifies every actual App Router page and excludes redirect/internal test routes", () => {
     const routes = actualAppRoutes();
     expect(inspectRouteInventory(routes, helpRouteManifest)).toEqual([]);
-    expect(routes).toHaveLength(24);
-    expect(contentRoutes).toHaveLength(22);
+    expect(routes).toHaveLength(25);
+    expect(contentRoutes).toHaveLength(23);
     expect(Object.fromEntries(contentRoutes.map(([route, entry]) => {
       if (entry.classification !== "CONTENT") throw new Error("Invalid CONTENT filter");
       return [route, entry.helpKey];
@@ -167,7 +168,8 @@ describe("source-driven contextual-help coverage", () => {
       "policies.presence", "presence.readiness", "presence.zones",
       "presence.zoneForm", "presence.exceptions", "presence.review",
       "services.status"]) expect(additionalHelpKeys).toContain(key);
-    expect(new Set(allDeclaredKeys).size).toBe(111);
+    // The accepted #316 guest-information route has its own bilingual help key.
+    expect(new Set(allDeclaredKeys).size).toBe(112);
     expect(inspectHelpCatalog(Object.entries(contextHelpRegistry), allDeclaredKeys)).toEqual([]);
     expect(Object.keys(contextHelpRegistry).slice().sort()).toEqual(allDeclaredKeys.slice().sort());
   });
