@@ -116,4 +116,3 @@ Historical scan at `c12500a816e588edac9059d3aa559f9039f8535f` (225 scanner rows 
 - #319 completed and merged before baseline; remaining concurrency #333 separate. Historical 403-file PostgreSQL suite NOT RUN.
 - Gitleaks 29 sites are suspected patterns, not proven live secrets; operator-only validity and restrictions checks remain.
 - BOLA/SQLi/Stored XSS/CSRF reviewed nonexhaustively in prior Astra source review, not comprehensively tested here.
-

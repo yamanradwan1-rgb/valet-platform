@@ -82,6 +82,10 @@ validated from actual deployment evidence.
 
 ## Final acceptance
 
-PENDING integration, focused tests, the 104-unit ledger and independent W7
-verdict. Any unverified item remains explicitly UNRESOLVED/NOT RUN rather than
-being silently represented as PASS.
+Integration source changes, focused tests and the 104-unit historical ledger
+have been prepared in the isolated Prime branch. See
+`FINAL_CANDIDATE_REPORT.md` and `MASTER_DISPOSITION.md` for the actual results.
+The COS worker sessions repeatedly failed to start; Prime performed the
+candidate implementation directly. Independent W7 review was **NOT
+PERFORMED**. Therefore the candidate remains **CONDITIONAL**, not a security
+GO or approved production release. Unverified items stay UNRESOLVED/NOT RUN.
