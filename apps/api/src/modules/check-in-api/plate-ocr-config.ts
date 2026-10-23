@@ -24,8 +24,13 @@ export function resolvePlateOcrConfig(
     return { status: "unavailable", reason: "provider-config-missing" };
   try {
     const endpoint = new URL(endpointValue);
+    const isHttps = endpoint.protocol === "https:";
+    const isDevelopmentLoopback =
+      endpoint.protocol === "http:" &&
+      (env.NODE_ENV === "development" || env.NODE_ENV === "test") &&
+      (endpoint.hostname === "127.0.0.1" || endpoint.hostname === "[::1]");
     if (
-      !["https:", "http:"].includes(endpoint.protocol) ||
+      (!isHttps && !isDevelopmentLoopback) ||
       endpoint.username ||
       endpoint.password ||
       endpoint.search ||

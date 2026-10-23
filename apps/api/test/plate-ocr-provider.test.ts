@@ -6,6 +6,7 @@ import {
 import { PlateRecognizerSnapshotProvider } from "../src/modules/check-in-api/plate-recognizer-snapshot.provider";
 
 const env = {
+  NODE_ENV: "test",
   PLATE_OCR_ENDPOINT: "http://127.0.0.1:8181/read/",
   PLATE_OCR_TOKEN: "test-only-secret",
 };
@@ -25,6 +26,45 @@ function setup(payload: unknown) {
 }
 afterEach(() => vi.useRealTimers());
 describe("Snapshot-compatible adapter", () => {
+  it("requires TLS for remote OCR tokens/images and restricts plaintext fixtures to explicit development loopback", async () => {
+    const blocked = [
+      "http://ocr.example.test/read/",
+      "http://localhost:8181/read/",
+      "http://127.0.0.2:8181/read/",
+      "http://0.0.0.0:8181/read/",
+      "http://192.168.1.2:8181/read/",
+    ];
+    for (const endpoint of blocked) {
+      for (const nodeEnv of ["production", "test", undefined]) {
+        const values = {
+          ...env,
+          PLATE_OCR_ENDPOINT: endpoint,
+          NODE_ENV: nodeEnv,
+        };
+        expect(resolvePlateOcrConfig(values)).toEqual({
+          status: "unavailable",
+          reason: "provider-endpoint-invalid",
+        });
+        const http = vi.fn<typeof fetch>();
+        expect(
+          await new PlateRecognizerSnapshotProvider(
+            readPlateOcrConfig(values),
+            http,
+          ).recognize(input),
+        ).toEqual({ status: "UNAVAILABLE" });
+        expect(http).not.toHaveBeenCalled();
+      }
+    }
+    for (const nodeEnv of ["development", "test"]) {
+      expect(resolvePlateOcrConfig({ ...env, NODE_ENV: nodeEnv }).status).toBe("configured");
+    }
+    expect(resolvePlateOcrConfig({ ...env, NODE_ENV: "production" }).status).toBe("unavailable");
+    expect(resolvePlateOcrConfig({
+      ...env,
+      NODE_ENV: "production",
+      PLATE_OCR_ENDPOINT: "https://ocr.example.test/read/",
+    }).status).toBe("configured");
+  });
   it("classifies missing, invalid-endpoint, and invalid provider configuration without secrets", () => {
     expect(resolvePlateOcrConfig({})).toEqual({
       status: "unavailable",

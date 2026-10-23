@@ -35,14 +35,16 @@ describe("API security bootstrap", () => {
     const setup = vi.spyOn(SwaggerModule, "setup");
     const app = {} as INestApplication;
 
-    expect(shouldExposeApiDocumentation("production")).toBe(false);
+    for (const environment of ["production", "staging", undefined, ""]) {
+      expect(shouldExposeApiDocumentation(environment)).toBe(false);
+    }
     configureApiDocumentation(app, "production");
 
     expect(createDocument).not.toHaveBeenCalled();
     expect(setup).not.toHaveBeenCalled();
   });
 
-  it.each([undefined, "development", "test"])(
+  it.each(["development", "test"])(
     "keeps Swagger explicitly registered in %s environment",
     (nodeEnv) => {
       const createDocument = vi

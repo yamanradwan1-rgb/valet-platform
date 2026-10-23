@@ -27,9 +27,9 @@ export function setApiSecurityResponseHeaders(
 }
 
 export function shouldExposeApiDocumentation(nodeEnv: string | undefined) {
-  // Neither Swagger UI nor its /docs-json and /docs-yaml document endpoints
-  // are registered in production. No secret toggle may bypass this default.
-  return nodeEnv !== "production";
+  // Fail closed on missing/unknown environment as well as production.
+  // Neither the UI nor /docs-json or /docs-yaml can be exposed by omission.
+  return nodeEnv === "development" || nodeEnv === "test";
 }
 
 export function configureApiDocumentation(

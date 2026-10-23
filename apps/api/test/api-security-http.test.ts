@@ -49,8 +49,8 @@ async function withApi(
 }
 
 describe("API HTTP security configuration", () => {
-  it("does not expose Swagger UI or raw JSON/YAML docs in production", async () => {
-    await withApi("production", async (origin) => {
+  it.each(["production", "staging"])("does not expose Swagger UI or document routes in %s", async (env) => {
+    await withApi(env, async (origin) => {
       for (const path of ["/docs", "/docs/", "/docs-json", "/docs-yaml"]) {
         const response = await fetch(`${origin}${path}`, {
           redirect: "manual",
