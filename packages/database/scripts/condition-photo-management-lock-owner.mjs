@@ -25,28 +25,46 @@ export async function provisionManagementPhotoLockOwner(client, executeFormatted
       !fn.rows[0].denied || ![migrationRole, owner].includes(fn.rows[0].owner)) {
     throw new Error("Management photo lock has an untrusted definition/owner.");
   }
-  const roles = await client.query(
-    `SELECT rolcanlogin,rolsuper,rolcreatedb,rolcreaterole,rolreplication,
-            rolbypassrls,rolinherit FROM pg_roles WHERE rolname=$1`, [owner],
-  );
-  const created = roles.rowCount === 0;
-  if (created) {
-    await executeFormatted(client,
-      "CREATE ROLE %I WITH NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS",
-      [owner]);
-  } else {
-    const role = roles.rows[0];
-    if (role.rolcanlogin || role.rolsuper || role.rolcreatedb || role.rolcreaterole ||
-        role.rolreplication || role.rolbypassrls || role.rolinherit) {
-      throw new Error("Management photo lock owner has privileged role attributes.");
+  const roleSql = `SELECT rolcanlogin,rolsuper,rolcreatedb,rolcreaterole,rolreplication,
+                          rolbypassrls,rolinherit FROM pg_roles WHERE rolname=$1`;
+  // Roles are cluster-wide: two databases can both observe absence before CREATE.
+  // A savepoint preserves the outer provisioning transaction after that catalog race.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const existing = await client.query(roleSql, [owner]);
+    if (existing.rowCount !== 0) break;
+    await client.query("SAVEPOINT management_photo_role_create");
+    try {
+      await executeFormatted(client,
+        "CREATE ROLE %I WITH NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS",
+        [owner]);
+      await client.query("RELEASE SAVEPOINT management_photo_role_create");
+      break;
+    } catch (error) {
+      await client.query("ROLLBACK TO SAVEPOINT management_photo_role_create");
+      await client.query("RELEASE SAVEPOINT management_photo_role_create");
+      if (error?.code !== "23505" || error?.constraint !== "pg_authid_rolname_index") {
+        throw error;
+      }
+      if (attempt === 2) {
+        throw new Error("Management photo lock owner creation conflicted repeatedly.", {
+          cause: error,
+        });
+      }
     }
-    const member = await client.query(
-      `SELECT COUNT(*)::integer AS total FROM pg_auth_members m
-       JOIN pg_roles a ON a.oid=m.member JOIN pg_roles b ON b.oid=m.roleid
-       WHERE a.rolname=$1 OR b.rolname=$1`, [owner],
-    );
-    if (member.rows[0]?.total !== 0) throw new Error("Photo lock owner inherits roles.");
   }
+  const roles = await client.query(roleSql, [owner]);
+  if (roles.rowCount !== 1) throw new Error("Management photo lock owner is missing.");
+  const role = roles.rows[0];
+  if (role.rolcanlogin || role.rolsuper || role.rolcreatedb || role.rolcreaterole ||
+      role.rolreplication || role.rolbypassrls || role.rolinherit) {
+    throw new Error("Management photo lock owner has privileged role attributes.");
+  }
+  const member = await client.query(
+    `SELECT COUNT(*)::integer AS total FROM pg_auth_members m
+     JOIN pg_roles a ON a.oid=m.member JOIN pg_roles b ON b.oid=m.roleid
+     WHERE a.rolname=$1 OR b.rolname=$1`, [owner],
+  );
+  if (member.rows[0]?.total !== 0) throw new Error("Photo lock owner inherits roles.");
   const owned = await client.query(
     `SELECT COUNT(*)::integer AS total FROM pg_proc p
      JOIN pg_roles r ON r.oid=p.proowner WHERE r.rolname=$1
