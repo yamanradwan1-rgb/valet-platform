@@ -19,6 +19,26 @@ export async function readLocationSubscription(
   input: { authenticatedUserId: string; locationId: string },
 ): Promise<LocationSubscriptionResponse> {
   return inPostgresTransaction(pool, async (transaction) => {
+    const scopeHint = await authorizeDashboardLocation(
+      transaction,
+      input.authenticatedUserId,
+      input.locationId,
+      null,
+    );
+    assertAuthorized(scopeHint);
+    // Canonical Staff Management writers take this org advisory EXCLUSIVE.
+    // Hold its SHARED transaction lock through subscription projection and
+    // recheck with a fresh READ COMMITTED snapshot after an earlier revoker.
+    const fence = await transaction.query<{ readonly readCommitted: boolean }>(
+      `SELECT pg_advisory_xact_lock_shared(
+         hashtextextended('staff-management-org:' || $1::text, 0)
+       ), current_setting('transaction_isolation') = 'read committed'
+         AS "readCommitted"`,
+      [scopeHint.organizationId],
+    );
+    assertAuthorized(fence.rows[0]?.readCommitted === true ? scopeHint : null);
+    // Keep subscription reads available even if dashboardAccess is disabled;
+    // this is an LM-only scope and must never fall back to Company Admin.
     const scope = await authorizeDashboardLocation(
       transaction,
       input.authenticatedUserId,
@@ -26,6 +46,13 @@ export async function readLocationSubscription(
       null,
     );
     assertAuthorized(scope);
+    if (
+      scope.organizationId !== scopeHint.organizationId ||
+      scope.membershipId !== scopeHint.membershipId ||
+      scope.locationId !== scopeHint.locationId
+    ) {
+      assertAuthorized(null);
+    }
     const rows = await transaction.query<SubscriptionRow>(
       `SELECT location.organization_id::text AS "organizationId",
               subscription.plan_code AS "planCode",

@@ -1,0 +1,9 @@
+datname
+(0 rows)
+rolname
+valet_photo_evidence_lock_owner
+(1 row)
+child_connections
+0
+(1 row)
+OWNED_CLUSTER_DIRECTORY_REMOVED=True

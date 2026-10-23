@@ -1,0 +1,32 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:34260) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:34260) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-physical-lease.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_34260_5e04ede6',
+  runtime: 'valet_runtime_mob007_34260_5e04ede6',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+ ✓ test/dashboard-issue319-physical-lease.integration.test.ts > Issue319 Physical RR session advisory lease cleanup > cancels session advisory acquisition, destroys ambiguous lease, and reauthorizes on fresh pool client 1569ms
+ ✓ test/dashboard-issue319-physical-lease.integration.test.ts > Issue319 Physical RR session advisory lease cleanup > rolls back projection exception, releases session advisory, and permits safe retry 257ms
+stdout | test/dashboard-issue319-physical-lease.integration.test.ts
+ISSUE319_PHYSICAL_LEASE_TRACE [{"event":"PHYSICAL_RR_SESSION_SHARED_ADVISORY_BLOCKED","ms":18020.032},{"event":"PHYSICAL_RR_SESSION_ACQUIRE_TIMEOUT_57014","ms":18911.428},{"event":"PHYSICAL_RR_FRESH_POOL_CLIENT_NO_LOCK_REUSE","ms":18954.847},{"event":"PHYSICAL_RR_ROLLBACK_SESSION_UNLOCK_AND_RETRY","ms":19215.589}]
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  18:38:44
+   Duration  19.53s (transform 6.10s, setup 0ms, import 9.71s, tests 9.50s, environment 0ms)

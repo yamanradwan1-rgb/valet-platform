@@ -1,0 +1,52 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:18212) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:18212) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-ca-rr-kpi-gate.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_18212_d371ec8f',
+  runtime: 'valet_runtime_mob007_18212_d371ec8f',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+ × test/dashboard-issue319-ca-rr-kpi-gate.integration.test.ts > Issue #319 final gate: Company Admin KPI RR factor retirement > must not return synthetic KPI projection after committed recovery of its assured factor 542ms
+   → expected 400 to be 200 // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/dashboard-issue319-ca-rr-kpi-gate.integration.test.ts > Issue #319 final gate: Company Admin KPI RR factor
+retirement > must not return synthetic KPI projection after committed recovery of its assured factor
+AssertionError: expected 400 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 400
+
+ ❯ test/dashboard-issue319-ca-rr-kpi-gate.integration.test.ts:36:30
+     34|     const confirmed = await fixture.postMfa('/v1/staff/auth/mfa/enroll…
+     35|       a.auth.accessToken, { code, factorId });
+     36|     expect(confirmed.status).toBe(200);
+       |                              ^
+     37|     const recoveryCode = (confirmed.body?.recoveryCodes as unknown[] |…
+     38|     if (typeof recoveryCode !== 'string') throw new Error('Canonical r…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  20:20:03
+   Duration  30.24s (transform 5.63s, setup 0ms, import 16.03s, tests 13.19s, environment 0ms)

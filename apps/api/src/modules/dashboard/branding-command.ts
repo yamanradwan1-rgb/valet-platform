@@ -35,6 +35,48 @@ async function requireAuthorizedScope(
   return { locationId: scope.locationId, membershipId: scope.membershipId };
 }
 
+async function requireAuthorizedReadScope(
+  transaction: PostgresTransaction,
+  authenticatedUserId: string,
+  locationId: string,
+): Promise<void> {
+  // The first BASIC_BRANDING check is only a manager eligibility hint. Staff
+  // Management grant writers hold the matching EXCLUSIVE organization lock.
+  const hint = await authorizeDashboardLocation(
+    transaction,
+    authenticatedUserId,
+    locationId,
+    "BASIC_BRANDING",
+  );
+  assertAuthorized(hint);
+
+  const fence = await transaction.query<{ readonly readCommitted: boolean }>(
+    `SELECT pg_advisory_xact_lock_shared(
+       hashtextextended('staff-management-org:' || $1::text, 0)
+     ), current_setting('transaction_isolation') = 'read committed'
+       AS "readCommitted"`,
+    [hint.organizationId],
+  );
+  // A stale REPEATABLE READ snapshot cannot prove post-revocation authority.
+  assertAuthorized(fence.rows[0]?.readCommitted === true ? hint : null);
+
+  const current = await authorizeDashboardLocation(
+    transaction,
+    authenticatedUserId,
+    locationId,
+    "BASIC_BRANDING",
+  );
+  // Never switch to Company Admin while holding a SHARED manager lock.
+  assertAuthorized(
+    current?.organizationId === hint.organizationId &&
+      current.membershipId === hint.membershipId
+      ? current
+      : null,
+  );
+  // The advisory lock remains held through the Branding row projection until
+  // inPostgresTransaction commits or rolls back this read.
+}
+
 interface BrandingRow {
   readonly name: string;
   readonly brandPrimaryColor: string;
@@ -101,7 +143,7 @@ export async function readLocationBranding(
   input: { authenticatedUserId: string; locationId: string },
 ): Promise<BrandingReadResponse> {
   return inPostgresTransaction(pool, async (transaction) => {
-    await requireAuthorizedScope(
+    await requireAuthorizedReadScope(
       transaction,
       input.authenticatedUserId,
       input.locationId,

@@ -1,0 +1,41 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:35836) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:35836) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-adjacent-eligibility.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_35836_0212d78e',
+  runtime: 'valet_runtime_mob007_35836_0212d78e',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+ ✓ test/dashboard-issue319-adjacent-eligibility.integration.test.ts > Issue319 adjacent Branding/Subscription eligibility, real HTTP and isolated PG > eligible LM Branding GET returns the exact stored default/override projection 702ms
+ ✓ test/dashboard-issue319-adjacent-eligibility.integration.test.ts > Issue319 adjacent Branding/Subscription eligibility, real HTTP and isolated PG > eligible LM Subscription GET returns its exact subscription entitlement projection 354ms
+ ✓ test/dashboard-issue319-adjacent-eligibility.integration.test.ts > Issue319 adjacent Branding/Subscription eligibility, real HTTP and isolated PG > branding rejects an MFA-assured Company Admin with no LM fallback 430ms
+ ✓ test/dashboard-issue319-adjacent-eligibility.integration.test.ts > Issue319 adjacent Branding/Subscription eligibility, real HTTP and isolated PG > subscription rejects an MFA-assured Company Admin with no LM fallback 394ms
+ ✓ test/dashboard-issue319-adjacent-eligibility.integration.test.ts > Issue319 adjacent Branding/Subscription eligibility, real HTTP and isolated PG > branding rejects cross-tenant, ungranted and unknown Locations 671ms
+ ✓ test/dashboard-issue319-adjacent-eligibility.integration.test.ts > Issue319 adjacent Branding/Subscription eligibility, real HTTP and isolated PG > subscription rejects cross-tenant, ungranted and unknown Locations 672ms
+ ✓ test/dashboard-issue319-adjacent-eligibility.integration.test.ts > Issue319 adjacent Branding/Subscription eligibility, real HTTP and isolated PG > branding rejects an inactive LM membership 315ms
+ ✓ test/dashboard-issue319-adjacent-eligibility.integration.test.ts > Issue319 adjacent Branding/Subscription eligibility, real HTTP and isolated PG > subscription rejects an inactive LM membership 404ms
+ ✓ test/dashboard-issue319-adjacent-eligibility.integration.test.ts > Issue319 adjacent Branding/Subscription eligibility, real HTTP and isolated PG > branding rejects an LM downgraded to employee 350ms
+ ✓ test/dashboard-issue319-adjacent-eligibility.integration.test.ts > Issue319 adjacent Branding/Subscription eligibility, real HTTP and isolated PG > subscription rejects an LM downgraded to employee 317ms
+ ✓ test/dashboard-issue319-adjacent-eligibility.integration.test.ts > Issue319 adjacent Branding/Subscription eligibility, real HTTP and isolated PG > branding denies a disabled LM user at authentication 361ms
+ ✓ test/dashboard-issue319-adjacent-eligibility.integration.test.ts > Issue319 adjacent Branding/Subscription eligibility, real HTTP and isolated PG > subscription denies a disabled LM user at authentication 331ms
+ ✓ test/dashboard-issue319-adjacent-eligibility.integration.test.ts > Issue319 adjacent Branding/Subscription eligibility, real HTTP and isolated PG > Branding requires BASIC_BRANDING even with DASHBOARD_ACCESS enabled 365ms
+ ✓ test/dashboard-issue319-adjacent-eligibility.integration.test.ts > Issue319 adjacent Branding/Subscription eligibility, real HTTP and isolated PG > Subscription remains available with DASHBOARD_ACCESS disabled and reports false 331ms
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+   Start at  19:01:23
+   Duration  54.62s (transform 10.76s, setup 0ms, import 32.22s, tests 21.54s, environment 0ms)

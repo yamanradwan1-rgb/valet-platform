@@ -1,0 +1,49 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:22056) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:22056) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-performance.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_22056_282cb53b',
+  runtime: 'valet_runtime_mob007_22056_282cb53b',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-performance.integration.test.ts > Issue319 uncontended real HTTP latency, descriptive local baseline only > measures scoped Dashboard, Physical Resources and Discovery independently
+ISSUE319_UNCONTENDED_HTTP_LATENCY {"label":"dashboard-overview-keys","n":80,"p50Ms":9.31,"p95Ms":17.01,"maxMs":30.56,"minMs":6.18,"meanMs":10.24}
+
+stdout | test/dashboard-issue319-performance.integration.test.ts > Issue319 uncontended real HTTP latency, descriptive local baseline only > measures scoped Dashboard, Physical Resources and Discovery independently
+ISSUE319_UNCONTENDED_HTTP_LATENCY {"label":"physical-resource-key-slots","n":80,"p50Ms":8.23,"p95Ms":12.58,"maxMs":47.98,"minMs":5.86,"meanMs":9.26}
+
+stdout | test/dashboard-issue319-performance.integration.test.ts > Issue319 uncontended real HTTP latency, descriptive local baseline only > measures scoped Dashboard, Physical Resources and Discovery independently
+ISSUE319_UNCONTENDED_HTTP_LATENCY {"label":"scope-discovery-locations","n":80,"p50Ms":6.27,"p95Ms":9.1,"maxMs":14.73,"minMs":3.81,"meanMs":6.63}
+
+stdout | test/dashboard-issue319-performance.integration.test.ts > Issue319 uncontended real HTTP latency, descriptive local baseline only > measures scoped Dashboard, Physical Resources and Discovery independently
+ISSUE319_UNCONTENDED_HTTP_LATENCY {"label":"physical-resource-overview-rr","n":80,"p50Ms":10.42,"p95Ms":17.51,"maxMs":26.59,"minMs":7.13,"meanMs":11.5}
+
+stdout | test/dashboard-issue319-performance.integration.test.ts > Issue319 uncontended real HTTP latency, descriptive local baseline only > measures scoped Dashboard, Physical Resources and Discovery independently
+ISSUE319_UNCONTENDED_HTTP_LATENCY {"label":"physical-resource-key-slots-ca-mfa","n":80,"p50Ms":6.92,"p95Ms":10.22,"maxMs":69.44,"minMs":4.91,"meanMs":8.02}
+
+stdout | test/dashboard-issue319-performance.integration.test.ts > Issue319 uncontended real HTTP latency, descriptive local baseline only > measures scoped Dashboard, Physical Resources and Discovery independently
+ISSUE319_UNCONTENDED_HTTP_LATENCY {"label":"physical-resource-overview-rr-ca-mfa","n":80,"p50Ms":11.99,"p95Ms":17.46,"maxMs":20.92,"minMs":9.6,"meanMs":12.74}
+
+stdout | test/dashboard-issue319-performance.integration.test.ts > Issue319 uncontended real HTTP latency, descriptive local baseline only > measures scoped Dashboard, Physical Resources and Discovery independently
+ISSUE319_UNCONTENDED_HTTP_LATENCY {"label":"configuration-location-settings","n":80,"p50Ms":7.12,"p95Ms":10.72,"maxMs":17.48,"minMs":4.89,"meanMs":7.61}
+
+ ✓ test/dashboard-issue319-performance.integration.test.ts > Issue319 uncontended real HTTP latency, descriptive local baseline only > measures scoped Dashboard, Physical Resources and Discovery independently 6170ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  19:30:26
+   Duration  22.59s (transform 5.81s, setup 0ms, import 9.20s, tests 13.06s, environment 0ms)

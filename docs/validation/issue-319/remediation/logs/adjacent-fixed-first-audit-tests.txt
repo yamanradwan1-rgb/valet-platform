@@ -1,0 +1,35 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:19296) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:19296) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-adjacent-candidates.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_19296_84b3993c',
+  runtime: 'valet_runtime_mob007_19296_84b3993c',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-adjacent-candidates.integration.test.ts > Issue319 adjacent Branding / Subscription revoker-first regression > branding denies a reader whose grant was revoked before its authorization fence
+ISSUE319_ADJACENT_CANDIDATE_TRACE [{"event":"ADJACENT_PREPROJECTION_AUTH_HINT_COMPLETE","ms":25028.5},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":25282.053},{"event":"ADJACENT_CANONICAL_GRANT_REMOVAL_COMMITTED","ms":25282.32},{"event":"ADJACENT_HTTP_DENIED_AFTER_PRIOR_REVOCATION","ms":25292.574}]
+
+ ✓ test/dashboard-issue319-adjacent-candidates.integration.test.ts > Issue319 adjacent Branding / Subscription revoker-first regression > branding denies a reader whose grant was revoked before its authorization fence 1348ms
+stdout | test/dashboard-issue319-adjacent-candidates.integration.test.ts > Issue319 adjacent Branding / Subscription revoker-first regression > subscription denies a reader whose grant was revoked before its authorization fence
+ISSUE319_ADJACENT_CANDIDATE_TRACE [{"event":"ADJACENT_PREPROJECTION_AUTH_HINT_COMPLETE","ms":25842.316},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":26142.519},{"event":"ADJACENT_CANONICAL_GRANT_REMOVAL_COMMITTED","ms":26142.692},{"event":"ADJACENT_HTTP_DENIED_AFTER_PRIOR_REVOCATION","ms":26149.765}]
+
+ ✓ test/dashboard-issue319-adjacent-candidates.integration.test.ts > Issue319 adjacent Branding / Subscription revoker-first regression > subscription denies a reader whose grant was revoked before its authorization fence 834ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  18:52:03
+   Duration  26.69s (transform 5.79s, setup 0ms, import 11.54s, tests 14.60s, environment 0ms)

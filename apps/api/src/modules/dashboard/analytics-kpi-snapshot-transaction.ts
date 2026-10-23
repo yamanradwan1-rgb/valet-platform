@@ -8,6 +8,9 @@ import {
   remainingDatabaseOperationMs,
 } from "../../common/database/runtime-database-deadline";
 import type { StaffSessionContext } from "../auth/staff-session-context";
+import { MfaStepUpRequiredError } from "../auth/mfa/mfa-errors";
+import { localMfaBypassEnabled } from "../auth/mfa/local-mfa-bypass";
+import { requireCurrentMfaFactorFenceInRr } from "../auth/mfa/mfa-rr-factor-fence";
 import {
   authorizeDashboardLocation,
   type DashboardLocationScope,
@@ -103,6 +106,17 @@ export async function inAuthorizedKpiSnapshot<T>(
           scope.organizationId === managerHint.organizationId))
       ? scope : null;
     assertAuthorized(authorizedScope);
+    if (managerHint === null && !localMfaBypassEnabled()) {
+      // The CA Management path has already locked the Staff session/User and
+      // the Organization. A plain RR EXISTS check could still see a factor
+      // retired by recovery after the first authorization snapshot. A row
+      // SHARE lock either fences recovery until COMMIT or raises 40001 when
+      // its UPDATE committed after this snapshot. The KPI caller retries the
+      // ENTIRE transaction on 40001 against fresh authorization state.
+      const context = input.staffSessionContext;
+      if (context === undefined) throw new MfaStepUpRequiredError();
+      await requireCurrentMfaFactorFenceInRr(client, context);
+    }
     const result = await action(client, authorizedScope);
     if (isGuestDatabaseOperation()) remainingDatabaseOperationMs();
     committing = true;

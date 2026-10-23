@@ -1,0 +1,11 @@
+datname
+valet_mob007_auth_40480_328fb46c
+(1 row)
+rolname
+valet_runtime_mob007_40480_328fb46c
+valet_photo_evidence_lock_owner
+(2 rows)
+child_connections
+0
+(1 row)
+OWNED_CLUSTER_DIRECTORY_REMOVED=True

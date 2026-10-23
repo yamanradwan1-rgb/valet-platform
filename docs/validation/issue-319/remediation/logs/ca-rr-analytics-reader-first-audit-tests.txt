@@ -1,0 +1,35 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:1428) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:1428) [DE...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-ca-rr-company-analytics-gate.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_1428_967574c9',
+  runtime: 'valet_runtime_mob007_1428_967574c9',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-ca-rr-company-analytics-gate.integration.test.ts > Issue #319 final gate: Company Analytics RR MFA factor retirement > must not expose synthetic Company Analytics after distinct-session MFA recovery
+ISSUE319_COMPANY_ANALYTICS_RR_TRACE [{"event":"COMPANY_ANALYTICS_RR_SNAPSHOT_BEFORE_MFA_FACTOR_CHECK","ms":18928.318},{"event":"CANONICAL_DISTINCT_SESSION_FACTOR_RETIREMENT_COMMITTED","ms":18989.394},{"event":"COMPANY_ANALYTICS_RESPONSE status=403 containsSyntheticTimezone=false","ms":19004.068}]
+
+ ✓ test/dashboard-issue319-ca-rr-company-analytics-gate.integration.test.ts > Issue #319 final gate: Company Analytics RR MFA factor retirement > must not expose synthetic Company Analytics after distinct-session MFA recovery 733ms
+stdout | test/dashboard-issue319-ca-rr-company-analytics-gate.integration.test.ts > Issue #319 final gate: Company Analytics RR MFA factor retirement > reader-first holds the valid factor fence until canonical recovery waits and commits
+ISSUE319_COMPANY_ANALYTICS_RR_TRACE [{"event":"COMPANY_ANALYTICS_FACTOR_FENCE_HELD_PID_25692","ms":19350.914},{"event":"RECOVERY_HTTP_BLOCKED_BY_READER_PID_25692","ms":19370.991}]
+
+ ✓ test/dashboard-issue319-ca-rr-company-analytics-gate.integration.test.ts > Issue #319 final gate: Company Analytics RR MFA factor retirement > reader-first holds the valid factor fence until canonical recovery waits and commits 468ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  20:37:00
+   Duration  19.88s (transform 6.47s, setup 0ms, import 10.68s, tests 8.80s, environment 0ms)

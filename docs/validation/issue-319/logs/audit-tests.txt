@@ -1,0 +1,139 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:19420) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:19420) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-http.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_19420_961ce835',
+  runtime: 'valet_runtime_mob007_19420_961ce835',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > authorized LM receives only its synthetic physical resource 495ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > REPRO F319-01: physical list projects after canonical grant revocation commits
+ISSUE319_HTTP_TRACE [{"event":"HTTP_READER_START","ms":24924.248},{"event":"PHYSICAL_AUTHORIZATION_COMPLETE_BEFORE_PROJECTION","ms":24948.906},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":25181.713},{"event":"CANONICAL_GRANT_COMMITTED","ms":25181.84},{"event":"PROTECTED_PROJECTION_RESUMED","ms":25181.847},{"event":"HTTP_READER_COMPLETE","ms":25189.389}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > REPRO F319-01: physical list projects after canonical grant revocation commits 632ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > REPRO F319-01: real CA Staff Management HTTP revoke commits before LM physical response
+ISSUE319_HTTP_TRACE [{"event":"APP_WRITER_RACE_LM_AUTH_COMPLETE","ms":25880.224},{"event":"STAFF_MANAGEMENT_HTTP_REVOKE_START","ms":25880.239},{"event":"STAFF_MANAGEMENT_HTTP_REVOKE_COMPLETE","ms":26079.863},{"event":"APP_WRITER_RACE_LM_PROJECTION_RESUMES","ms":26080.012},{"event":"LM_PHYSICAL_HTTP_COMPLETE_AFTER_ADMIN_REVOKE","ms":26083.203}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > REPRO F319-01: real CA Staff Management HTTP revoke commits before LM physical response 889ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > REPRO F319-01: RR overview accepts stale grant even before LM authorization runs
+ISSUE319_HTTP_TRACE [{"event":"HTTP_READER_START","ms":26422.883},{"event":"RR_SNAPSHOT_ESTABLISHED_CA_HINT_NULL_BEFORE_LM_AUTH","ms":26432.215},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":26753.631},{"event":"CANONICAL_GRANT_COMMITTED","ms":26753.867},{"event":"LM_AUTH_AND_PROJECTION_RESUME_AFTER_REVOKE","ms":26753.879},{"event":"HTTP_READER_COMPLETE","ms":26784.62}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > REPRO F319-01: RR overview accepts stale grant even before LM authorization runs 699ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > REPRO F319-01: legacy configuration GET also projects after canonical grant removal
+ISSUE319_HTTP_TRACE [{"event":"CONFIGURATION_LM_AUTH_COMPLETE","ms":27119.332},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":27374.914},{"event":"CANONICAL_GRANT_COMMITTED","ms":27375.114},{"event":"CONFIGURATION_PROJECTION_RESUMED","ms":27375.12}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > REPRO F319-01: legacy configuration GET also projects after canonical grant removal 600ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > logout committed before request denies overview at real resolver
+ISSUE319_HTTP_TRACE [{"event":"LOGOUT_REQUEST_START","ms":27688.672},{"event":"LOGOUT_HTTP_COMPLETE_AFTER_COMMIT","ms":27712.05}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > logout committed before request denies overview at real resolver 327ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > logout committed before request denies physical at real resolver
+ISSUE319_HTTP_TRACE [{"event":"LOGOUT_REQUEST_START","ms":28078.04},{"event":"LOGOUT_HTTP_COMPLETE_AFTER_COMMIT","ms":28099.224}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > logout committed before request denies physical at real resolver 389ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > logout committed before request denies discovery at real resolver
+ISSUE319_HTTP_TRACE [{"event":"LOGOUT_REQUEST_START","ms":28490.844},{"event":"LOGOUT_HTTP_COMPLETE_AFTER_COMMIT","ms":28495.9}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > logout committed before request denies discovery at real resolver 392ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > characterizes logout after resolver but before overview transaction
+ISSUE319_HTTP_TRACE [{"event":"HTTP_READER_START","ms":28741.917},{"event":"AUTHENTICATION_RESOLUTION_COMPLETE","ms":28746.74},{"event":"LOGOUT_REQUEST_START","ms":28746.752},{"event":"LOGOUT_HTTP_COMPLETE_AFTER_COMMIT","ms":28752.178},{"event":"PROTECTED_TRANSACTION_START_AFTER_LOGOUT","ms":28752.193},{"event":"HTTP_READER_COMPLETE","ms":28783.155}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > characterizes logout after resolver but before overview transaction 283ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > characterizes logout after resolver but before physical transaction
+ISSUE319_HTTP_TRACE [{"event":"HTTP_READER_START","ms":29068.598},{"event":"AUTHENTICATION_RESOLUTION_COMPLETE","ms":29073.497},{"event":"LOGOUT_REQUEST_START","ms":29073.51},{"event":"LOGOUT_HTTP_COMPLETE_AFTER_COMMIT","ms":29085.193},{"event":"PROTECTED_TRANSACTION_START_AFTER_LOGOUT","ms":29085.212},{"event":"HTTP_READER_COMPLETE","ms":29093.484}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > characterizes logout after resolver but before physical transaction 310ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > characterizes logout after resolver but before discovery transaction
+ISSUE319_HTTP_TRACE [{"event":"HTTP_READER_START","ms":29452.755},{"event":"AUTHENTICATION_RESOLUTION_COMPLETE","ms":29457.351},{"event":"LOGOUT_REQUEST_START","ms":29457.366},{"event":"LOGOUT_HTTP_COMPLETE_AFTER_COMMIT","ms":29463.876},{"event":"PROTECTED_TRANSACTION_START_AFTER_LOGOUT","ms":29463.886},{"event":"HTTP_READER_COMPLETE","ms":29467.405}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > characterizes logout after resolver but before discovery transaction 374ms
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > CA with ordinary accepted MFA succeeds; password-only CA is denied 839ms
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > denies VALET_EMPLOYEE Management physical reads 471ms
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > denies VALET_SUPERVISOR Management physical reads 481ms
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > foreign Organization, same-Organization ungranted Location and unknown UUID disclose no resources 772ms
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > denies physical read when membership is ineligible before request 403ms
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > denies physical read when user is ineligible before request 449ms
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > denies physical read when organization is ineligible before request 399ms
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > denies physical read when location is ineligible before request 416ms
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > denies physical read when expired is ineligible before request 452ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > fresh scope-discovery after canonical grant removal omits Location
+ISSUE319_HTTP_TRACE [{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":34938.795}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > fresh scope-discovery after canonical grant removal omits Location 806ms
+(node:25228) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security
+vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-lifecycle.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_25228_68173090',
+  runtime: 'valet_runtime_mob007_25228_68173090',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-lifecycle.integration.test.ts > Issue319 canonical Location lifecycle HTTP and lock ordering > reader-first holds managed deactivation until the authorized read completes
+ISSUE319_LIFECYCLE_TRACE [{"event":"READER_REQUEST_START","ms":19745.311},{"event":"DASHBOARD_ORG_SHARED_FENCE_HELD","ms":19764.576},{"event":"POSTGRES_1_LOCK_WAITS_OBSERVED","ms":19857.72},{"event":"DASHBOARD_PROJECTION_RESUMED","ms":19857.748},{"event":"READER_HTTP_COMPLETE","ms":19886.604},{"event":"DEACTIVATION_HTTP_COMPLETE","ms":19959.162}]
+
+ ✓ test/dashboard-issue319-lifecycle.integration.test.ts > Issue319 canonical Location lifecycle HTTP and lock ordering > reader-first holds managed deactivation until the authorized read completes 1578ms
+stdout | test/dashboard-issue319-lifecycle.integration.test.ts > Issue319 canonical Location lifecycle HTTP and lock ordering > revoker-first queues reader after real lifecycle writer and rejects upon commit
+ISSUE319_LIFECYCLE_TRACE [{"event":"POSTGRES_1_LOCK_WAITS_OBSERVED","ms":20894.573},{"event":"REVOKER_QUEUED_BEFORE_READER","ms":20894.603},{"event":"POSTGRES_2_LOCK_WAITS_OBSERVED","ms":20911.225},{"event":"EXTERNAL_GATE_RELEASED","ms":20912.01},{"event":"READER_HTTP_COMPLETE_AFTER_REVOKER","ms":20928.138}]
+
+ ✓ test/dashboard-issue319-lifecycle.integration.test.ts > Issue319 canonical Location lifecycle HTTP and lock ordering > revoker-first queues reader after real lifecycle writer and rejects upon commit 963ms
+(node:20904) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security
+vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-performance.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_20904_9f43395d',
+  runtime: 'valet_runtime_mob007_20904_9f43395d',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-performance.integration.test.ts > Issue319 uncontended real HTTP latency, descriptive local baseline only > measures scoped Dashboard, Physical Resources and Discovery independently
+ISSUE319_UNCONTENDED_HTTP_LATENCY {"label":"dashboard-overview-keys","n":80,"p50Ms":13.98,"p95Ms":20.95,"maxMs":88.92,"minMs":6.85,"meanMs":16.11}
+
+stdout | test/dashboard-issue319-performance.integration.test.ts > Issue319 uncontended real HTTP latency, descriptive local baseline only > measures scoped Dashboard, Physical Resources and Discovery independently
+ISSUE319_UNCONTENDED_HTTP_LATENCY {"label":"physical-resource-key-slots","n":80,"p50Ms":8.44,"p95Ms":14.05,"maxMs":24.15,"minMs":5.11,"meanMs":9.46}
+
+stdout | test/dashboard-issue319-performance.integration.test.ts > Issue319 uncontended real HTTP latency, descriptive local baseline only > measures scoped Dashboard, Physical Resources and Discovery independently
+ISSUE319_UNCONTENDED_HTTP_LATENCY {"label":"scope-discovery-locations","n":80,"p50Ms":12.16,"p95Ms":25.32,"maxMs":36.71,"minMs":7.14,"meanMs":14.13}
+
+ ✓ test/dashboard-issue319-performance.integration.test.ts > Issue319 uncontended real HTTP latency, descriptive local baseline only > measures scoped Dashboard, Physical Resources and Discovery independently 4204ms
+(node:31788) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security
+vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-physical-matrix.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_31788_5167839e',
+  runtime: 'valet_runtime_mob007_31788_5167839e',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+ ✓ test/dashboard-issue319-physical-matrix.integration.test.ts > Issue319 all seven Physical Resources GET routes > allows current exact grant then denies every fresh path after canonical removal 1206ms
+
+ Test Files  4 passed (4)
+      Tests  25 passed (25)
+   Start at  05:04:27
+   Duration  101.31s (transform 8.14s, setup 0ms, import 34.62s, tests 64.85s, environment 1ms)

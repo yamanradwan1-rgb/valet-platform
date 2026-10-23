@@ -10,14 +10,12 @@ import type {
   PostgresPool,
   PostgresTransaction,
 } from "../../common/database/postgres";
-import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
 import type { StaffSessionContext } from "../auth/staff-session-context";
-import { recordAdminActivityInTransaction } from "../auth/mfa/mfa-assurance-policy";
 import type { AnalyticsPeriod } from "../dashboard/analytics-period";
+import { inFencedCompanyAdminRrSnapshot } from "./company-admin-rr-snapshot";
 import { composeCompanyAnalyticsSources } from "./company-analytics-source";
 import { queryCompanyDailyActivity } from "./company-report-daily-activity-query";
-import { authorizeCompanyAdminManagement } from "./management-authorization";
 
 const maximumDispatchGroups = 16;
 const maximumCustodyGroups = 5;
@@ -77,18 +75,13 @@ export class ManagementCompanyReportService {
     kind: ReportKind,
     period: AnalyticsPeriod,
   ): Promise<CompanyReportResponse> {
-    return inPostgresTransaction(this.pool, async (transaction) => {
-      await transaction.query("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ");
-      const scope = await authorizeCompanyAdminManagement(transaction, context, {
-        capability: "REPORTS_READ",
-        organizationId,
-      });
+    return inFencedCompanyAdminRrSnapshot(this.pool, context, organizationId,
+      "REPORTS_READ", async (transaction, authorizedOrgId) => {
       const report = await composeCompanyReportSnapshot(transaction, {
         kind,
-        organizationId: scope.organizationId,
+        organizationId: authorizedOrgId,
         period,
       });
-      await recordAdminActivityInTransaction(transaction, context);
       return report;
     });
   }

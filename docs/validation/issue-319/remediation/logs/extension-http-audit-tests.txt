@@ -1,0 +1,98 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:12980) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:12980) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-extension-http.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_12980_80df3cf7',
+  runtime: 'valet_runtime_mob007_12980_80df3cf7',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > scope discovery rechecks current grant after its locked Staff session recheck
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"DISCOVERY_SESSION_RECHECK_COMPLETE","ms":16289.615},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":16410.72},{"event":"DISCOVERY_CANONICAL_REVOKE_COMMITTED","ms":16410.832},{"event":"DISCOVERY_GRANT_SELECT_RESUMES","ms":16410.838}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > scope discovery rechecks current grant after its locked Staff session recheck 596ms
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > physical parking-spots holds authorization fence until protected projection completes
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"PHYSICAL_parking-spots_AUTH_COMPLETE","ms":16643.934},{"event":"CANONICAL_WRITER_WAITING_FOR_VALID_READ_FENCE","ms":16785.922},{"event":"PHYSICAL_parking-spots_PROJECTION_RESUMES","ms":16785.939},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":16831.939},{"event":"PHYSICAL_GRANT_REVOKED_AFTER_READER_FENCE","ms":16832.075}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > physical parking-spots holds authorization fence until protected projection completes 419ms
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > physical parking-zones holds authorization fence until protected projection completes
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"PHYSICAL_parking-zones_AUTH_COMPLETE","ms":17127.656},{"event":"CANONICAL_WRITER_WAITING_FOR_VALID_READ_FENCE","ms":17304.093},{"event":"PHYSICAL_parking-zones_PROJECTION_RESUMES","ms":17304.109},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":17320.01},{"event":"PHYSICAL_GRANT_REVOKED_AFTER_READER_FENCE","ms":17320.135}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > physical parking-zones holds authorization fence until protected projection completes 487ms
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > physical key-label holds authorization fence until protected projection completes
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"PHYSICAL_key-label_AUTH_COMPLETE","ms":17610.065},{"event":"CANONICAL_WRITER_WAITING_FOR_VALID_READ_FENCE","ms":17756.693},{"event":"PHYSICAL_key-label_PROJECTION_RESUMES","ms":17756.725},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":17783.08},{"event":"PHYSICAL_GRANT_REVOKED_AFTER_READER_FENCE","ms":17783.196}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > physical key-label holds authorization fence until protected projection completes 465ms
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > physical spot-label holds authorization fence until protected projection completes
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"PHYSICAL_spot-label_AUTH_COMPLETE","ms":18086.27},{"event":"CANONICAL_WRITER_WAITING_FOR_VALID_READ_FENCE","ms":18346.808},{"event":"PHYSICAL_spot-label_PROJECTION_RESUMES","ms":18346.828},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":18364.953},{"event":"PHYSICAL_GRANT_REVOKED_AFTER_READER_FENCE","ms":18365.076}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > physical spot-label holds authorization fence until protected projection completes 580ms
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > physical custody holds authorization fence until protected projection completes
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"PHYSICAL_custody_AUTH_COMPLETE","ms":18615.552},{"event":"CANONICAL_WRITER_WAITING_FOR_VALID_READ_FENCE","ms":18782.276},{"event":"PHYSICAL_custody_PROJECTION_RESUMES","ms":18782.296},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":18811.102},{"event":"PHYSICAL_GRANT_REVOKED_AFTER_READER_FENCE","ms":18811.273}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > physical custody holds authorization fence until protected projection completes 446ms
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > old LM access token overview during in-flight native refresh follows established session boundary
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"STAFF_RESOLVER_COMPLETE","ms":19128.14},{"event":"NATIVE_REFRESH_HTTP_COMMITTED","ms":19150.787},{"event":"STAFF_AUTH_CONTINUES_AFTER_ROTATION","ms":19150.806}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > old LM access token overview during in-flight native refresh follows established session boundary 380ms
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > old LM access token physical during in-flight native refresh follows established session boundary
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"STAFF_RESOLVER_COMPLETE","ms":19434.158},{"event":"NATIVE_REFRESH_HTTP_COMMITTED","ms":19441.931},{"event":"STAFF_AUTH_CONTINUES_AFTER_ROTATION","ms":19441.939}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > old LM access token physical during in-flight native refresh follows established session boundary 265ms
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > old LM access token discovery during in-flight native refresh follows established session boundary
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"STAFF_RESOLVER_COMPLETE","ms":19727.288},{"event":"NATIVE_REFRESH_HTTP_COMMITTED","ms":19737.744},{"event":"STAFF_AUTH_CONTINUES_AFTER_ROTATION","ms":19737.754}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > old LM access token discovery during in-flight native refresh follows established session boundary 292ms
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > CA Physical read rechecks its Staff session after concurrent refresh
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"STAFF_RESOLVER_COMPLETE","ms":20082.892},{"event":"CA_REFRESH_COMMITTED_BEFORE_MFA_RECHECK","ms":20102.37},{"event":"STAFF_AUTH_CONTINUES_AFTER_ROTATION","ms":20102.382}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > CA Physical read rechecks its Staff session after concurrent refresh 351ms
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > CA Physical MFA expiry before authorization fails closed
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"CA_ELIGIBILITY_HINT_COMPLETE","ms":20426.664},{"event":"CA_MFA_RECHECK_BEGINS","ms":20429.272}]
+
+ × test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > CA Physical MFA expiry before authorization fails closed 325ms
+   → new row for relation "staff_auth_sessions" violates check constraint "staff_auth_sessions_mfa_assurance_check"
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation
+interleavings > CA Physical MFA expiry before authorization fails closed
+error: new row for relation "staff_auth_sessions" violates check constraint "staff_auth_sessions_mfa_assurance_check"
+ ❯ ../../../../node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:45:11
+ ❯ test/dashboard-issue319-extension-http.integration.test.ts:193:7
+    191|     await entered.promise;
+    192|     try {
+    193|       await fixture.query(`UPDATE staff_auth_sessions
+       |       ^
+    194|         SET mfa_authenticated_at=clock_timestamp()-interval '9 hours'
+    195|         WHERE id=$1`, [a.auth.sessionId]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { length: 624, severity: 'ERROR', code: '23514', detail: 'Failing row contains
+(645aca5e-25b2-4c8f-b9d9-2913856cdb48, b4564ca9-8bd7-4ede-9aa7-4a8555654003,
+staff-access-sha256:v1:a6772bf95c2d4d1fa45bab201e36fb7d6c72e2c4a..., 2026-10-23 18:49:36.606+03, 2026-11-22
+18:34:36.606+03, null, 2026-10-23 18:34:36.606+03, 2026-10-23 18:34:36.606+03, 2026-10-23 09:34:36.662+03,
+34658e3a-d78b-46ac-b5ee-951726c5c88e, 2026-10-23 18:34:36.643+03).', hint: undefined, position: undefined,
+internalPosition: undefined, internalQuery: undefined, where: undefined, schema: 'public', table:
+'staff_auth_sessions', dataType: undefined, constraint: 'staff_auth_sessions_mfa_assurance_check', file: 'execMain.c',
+routine: 'ExecConstraints' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 10 passed (11)
+   Start at  18:34:16
+   Duration  23.81s (transform 5.85s, setup 0ms, import 9.20s, tests 14.34s, environment 0ms)

@@ -1,0 +1,48 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:36852) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:36852) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-ca-rr-company-analytics-gate.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_36852_73753e01',
+  runtime: 'valet_runtime_mob007_36852_73753e01',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-ca-rr-company-analytics-gate.integration.test.ts > Issue #319 final gate: Company Analytics RR MFA factor retirement > must not expose synthetic Company Analytics after distinct-session MFA recovery
+ISSUE319_COMPANY_ANALYTICS_RR_TRACE [{"event":"COMPANY_ANALYTICS_RR_SNAPSHOT_BEFORE_MFA_FACTOR_CHECK","ms":14955.85},{"event":"CANONICAL_DISTINCT_SESSION_FACTOR_RETIREMENT_COMMITTED","ms":15026.416}]
+
+ × test/dashboard-issue319-ca-rr-company-analytics-gate.integration.test.ts > Issue #319 final gate: Company Analytics RR MFA factor retirement > must not expose synthetic Company Analytics after distinct-session MFA recovery 875ms
+   → Cannot read properties of undefined (reading 'includes')
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/dashboard-issue319-ca-rr-company-analytics-gate.integration.test.ts > Issue #319 final gate: Company
+Analytics RR MFA factor retirement > must not expose synthetic Company Analytics after distinct-session MFA recovery
+TypeError: Cannot read properties of undefined (reading 'includes')
+ ❯ test/dashboard-issue319-ca-rr-company-analytics-gate.integration.test.ts:89:90
+     87|     expect(after).toMatchObject({ pid: before?.pid,
+     88|       isolation: 'repeatable read', snapshot: before?.snapshot });
+     89|     const exposed = JSON.stringify(response?.body?.summary?.coverage?.…
+       |                                                                                          ^
+     90|       .includes(sentinel);
+     91|     event(`COMPANY_ANALYTICS_RESPONSE status=${response?.status} conta…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  20:26:46
+   Duration  15.33s (transform 5.02s, setup 0ms, import 7.93s, tests 7.18s, environment 0ms)

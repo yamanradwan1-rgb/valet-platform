@@ -1,0 +1,43 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:35212) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:35212) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-adjacent-remediation-races.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_35212_8a0e8a43',
+  runtime: 'valet_runtime_mob007_35212_8a0e8a43',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-adjacent-remediation-races.integration.test.ts > Issue #319 adjacent Branding and Subscription revocation serialization > reader-first branding retains a shared fence through projection
+ISSUE319_ADJACENT_REMEDIATION_RACE_TRACE [{"event":"ADJACENT_BRANDING_POST_FENCE_PID_17056","ms":86488.246},{"event":"ADJACENT_CA_MFA_HTTP_REVOKE_STARTED","ms":86490.698},{"event":"ADJACENT_CA_WRITER_PID_22408_BLOCKED_BY_17056","ms":86559.702},{"event":"ADJACENT_AUTHORIZED_READER_PROJECTED_BEFORE_REVOKER","ms":86564.233},{"event":"ADJACENT_CA_MFA_HTTP_REVOKE_COMMITTED","ms":86622.205}]
+
+ ✓ test/dashboard-issue319-adjacent-remediation-races.integration.test.ts > Issue #319 adjacent Branding and Subscription revocation serialization > reader-first branding retains a shared fence through projection 2238ms
+stdout | test/dashboard-issue319-adjacent-remediation-races.integration.test.ts > Issue #319 adjacent Branding and Subscription revocation serialization > reader-first subscription retains a shared fence through projection
+ISSUE319_ADJACENT_REMEDIATION_RACE_TRACE [{"event":"ADJACENT_SUBSCRIPTION_POST_FENCE_PID_17056","ms":87778.6},{"event":"ADJACENT_CA_MFA_HTTP_REVOKE_STARTED","ms":87779.738},{"event":"ADJACENT_CA_WRITER_PID_35764_BLOCKED_BY_17056","ms":87797.574},{"event":"ADJACENT_AUTHORIZED_READER_PROJECTED_BEFORE_REVOKER","ms":87806.967},{"event":"ADJACENT_CA_MFA_HTTP_REVOKE_COMMITTED","ms":87829.538}]
+
+ ✓ test/dashboard-issue319-adjacent-remediation-races.integration.test.ts > Issue #319 adjacent Branding and Subscription revocation serialization > reader-first subscription retains a shared fence through projection 1198ms
+stdout | test/dashboard-issue319-adjacent-remediation-races.integration.test.ts > Issue #319 adjacent Branding and Subscription revocation serialization > revoker-first branding denies after the queued CA HTTP commit
+ISSUE319_ADJACENT_REMEDIATION_RACE_TRACE [{"event":"ADJACENT_CA_MFA_HTTP_REVOKE_STARTED","ms":88863.714},{"event":"ADJACENT_CA_WRITER_PID_35764_QUEUED_BEHIND_33128","ms":88877.31},{"event":"ADJACENT_READER_SHARED_FENCE_QUEUED_AFTER_CA_WRITER","ms":88894.329},{"event":"ADJACENT_CA_MFA_HTTP_REVOKE_COMMITTED","ms":88906.922},{"event":"ADJACENT_REVOKER_COMMITTED_BEFORE_DENIED_READER","ms":88911.052}]
+
+ ✓ test/dashboard-issue319-adjacent-remediation-races.integration.test.ts > Issue #319 adjacent Branding and Subscription revocation serialization > revoker-first branding denies after the queued CA HTTP commit 1089ms
+stdout | test/dashboard-issue319-adjacent-remediation-races.integration.test.ts > Issue #319 adjacent Branding and Subscription revocation serialization > revoker-first subscription denies after the queued CA HTTP commit
+ISSUE319_ADJACENT_REMEDIATION_RACE_TRACE [{"event":"ADJACENT_CA_MFA_HTTP_REVOKE_STARTED","ms":89955.466},{"event":"ADJACENT_CA_WRITER_PID_22408_QUEUED_BEHIND_30656","ms":89968.69},{"event":"ADJACENT_READER_SHARED_FENCE_QUEUED_AFTER_CA_WRITER","ms":89983.382},{"event":"ADJACENT_CA_MFA_HTTP_REVOKE_COMMITTED","ms":89994.856},{"event":"ADJACENT_REVOKER_COMMITTED_BEFORE_DENIED_READER","ms":89997.979}]
+
+ ✓ test/dashboard-issue319-adjacent-remediation-races.integration.test.ts > Issue #319 adjacent Branding and Subscription revocation serialization > revoker-first subscription denies after the queued CA HTTP commit 1084ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  18:59:06
+   Duration  91.01s (transform 17.51s, setup 0ms, import 48.25s, tests 41.41s, environment 0ms)

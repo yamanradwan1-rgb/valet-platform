@@ -1,0 +1,35 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:37984) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:37984) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-adjacent-candidates.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_37984_720e9387',
+  runtime: 'valet_runtime_mob007_37984_720e9387',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-adjacent-candidates.integration.test.ts > Issue319 adjacent bare-LM helper candidate evidence; not authorized remediation > REPRO candidate branding: canonical grant removal can commit before unfenced HTTP projection
+ISSUE319_ADJACENT_CANDIDATE_TRACE [{"event":"ADJACENT_PREPROJECTION_AUTH_HINT_COMPLETE","ms":22896.286},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":23155.186},{"event":"ADJACENT_CANONICAL_GRANT_REMOVAL_COMMITTED","ms":23155.346},{"event":"ADJACENT_HTTP_STALE_RESPONSE_COMPLETED","ms":23159.762}]
+
+ ✓ test/dashboard-issue319-adjacent-candidates.integration.test.ts > Issue319 adjacent bare-LM helper candidate evidence; not authorized remediation > REPRO candidate branding: canonical grant removal can commit before unfenced HTTP projection 892ms
+stdout | test/dashboard-issue319-adjacent-candidates.integration.test.ts > Issue319 adjacent bare-LM helper candidate evidence; not authorized remediation > REPRO candidate subscription: canonical grant removal can commit before unfenced HTTP projection
+ISSUE319_ADJACENT_CANDIDATE_TRACE [{"event":"ADJACENT_PREPROJECTION_AUTH_HINT_COMPLETE","ms":23462.815},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":23642.315},{"event":"ADJACENT_CANONICAL_GRANT_REMOVAL_COMMITTED","ms":23642.425},{"event":"ADJACENT_HTTP_STALE_RESPONSE_COMPLETED","ms":23649.836}]
+
+ ✓ test/dashboard-issue319-adjacent-candidates.integration.test.ts > Issue319 adjacent bare-LM helper candidate evidence; not authorized remediation > REPRO candidate subscription: canonical grant removal can commit before unfenced HTTP projection 470ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  18:41:15
+   Duration  24.19s (transform 7.74s, setup 0ms, import 11.87s, tests 12.02s, environment 0ms)

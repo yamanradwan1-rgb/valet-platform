@@ -1,0 +1,318 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:35796) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:35796) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-extension-http.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_35796_11dd4ce3',
+  runtime: 'valet_runtime_mob007_35796_11dd4ce3',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > scope discovery rechecks current grant after its locked Staff session recheck
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"DISCOVERY_SESSION_RECHECK_COMPLETE","ms":19456.259},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":19611.662},{"event":"DISCOVERY_CANONICAL_REVOKE_COMMITTED","ms":19611.826},{"event":"DISCOVERY_GRANT_SELECT_RESUMES","ms":19611.836}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > scope discovery rechecks current grant after its locked Staff session recheck 688ms
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > physical parking-spots holds authorization fence until protected projection completes
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"PHYSICAL_parking-spots_AUTH_COMPLETE","ms":19923.632},{"event":"CANONICAL_WRITER_WAITING_FOR_VALID_READ_FENCE","ms":20101.499},{"event":"PHYSICAL_parking-spots_PROJECTION_RESUMES","ms":20101.519},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":20160.039},{"event":"PHYSICAL_GRANT_REVOKED_AFTER_READER_FENCE","ms":20160.214}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > physical parking-spots holds authorization fence until protected projection completes 544ms
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > physical parking-zones holds authorization fence until protected projection completes
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"PHYSICAL_parking-zones_AUTH_COMPLETE","ms":20478.274},{"event":"CANONICAL_WRITER_WAITING_FOR_VALID_READ_FENCE","ms":20627.781},{"event":"PHYSICAL_parking-zones_PROJECTION_RESUMES","ms":20627.799},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":20652.533},{"event":"PHYSICAL_GRANT_REVOKED_AFTER_READER_FENCE","ms":20652.704}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > physical parking-zones holds authorization fence until protected projection completes 492ms
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > physical key-label holds authorization fence until protected projection completes
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"PHYSICAL_key-label_AUTH_COMPLETE","ms":20932.391},{"event":"CANONICAL_WRITER_WAITING_FOR_VALID_READ_FENCE","ms":21088.915},{"event":"PHYSICAL_key-label_PROJECTION_RESUMES","ms":21088.945},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":21124.129},{"event":"PHYSICAL_GRANT_REVOKED_AFTER_READER_FENCE","ms":21124.307}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > physical key-label holds authorization fence until protected projection completes 468ms
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > physical spot-label holds authorization fence until protected projection completes
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"PHYSICAL_spot-label_AUTH_COMPLETE","ms":21423.681},{"event":"CANONICAL_WRITER_WAITING_FOR_VALID_READ_FENCE","ms":21600.039},{"event":"PHYSICAL_spot-label_PROJECTION_RESUMES","ms":21600.086},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":21622.014},{"event":"PHYSICAL_GRANT_REVOKED_AFTER_READER_FENCE","ms":21622.131}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > physical spot-label holds authorization fence until protected projection completes 496ms
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > physical custody holds authorization fence until protected projection completes
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"PHYSICAL_custody_AUTH_COMPLETE","ms":21894.574},{"event":"CANONICAL_WRITER_WAITING_FOR_VALID_READ_FENCE","ms":22047.467},{"event":"PHYSICAL_custody_PROJECTION_RESUMES","ms":22047.492},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":22071.322},{"event":"PHYSICAL_GRANT_REVOKED_AFTER_READER_FENCE","ms":22071.501}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > physical custody holds authorization fence until protected projection completes 449ms
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > old LM access token overview during in-flight native refresh follows established session boundary
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"STAFF_RESOLVER_COMPLETE","ms":22328.964},{"event":"NATIVE_REFRESH_HTTP_COMMITTED","ms":22339.495},{"event":"STAFF_AUTH_CONTINUES_AFTER_ROTATION","ms":22339.502}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > old LM access token overview during in-flight native refresh follows established session boundary 302ms
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > old LM access token physical during in-flight native refresh follows established session boundary
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"STAFF_RESOLVER_COMPLETE","ms":22576.511},{"event":"NATIVE_REFRESH_HTTP_COMMITTED","ms":22585.808},{"event":"STAFF_AUTH_CONTINUES_AFTER_ROTATION","ms":22585.817}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > old LM access token physical during in-flight native refresh follows established session boundary 222ms
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > old LM access token discovery during in-flight native refresh follows established session boundary
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"STAFF_RESOLVER_COMPLETE","ms":22844.818},{"event":"NATIVE_REFRESH_HTTP_COMMITTED","ms":22852.499},{"event":"STAFF_AUTH_CONTINUES_AFTER_ROTATION","ms":22852.506}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > old LM access token discovery during in-flight native refresh follows established session boundary 261ms
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > CA Physical read rechecks its Staff session after concurrent refresh
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"STAFF_RESOLVER_COMPLETE","ms":23294.468},{"event":"CA_REFRESH_COMMITTED_BEFORE_MFA_RECHECK","ms":23305.225},{"event":"STAFF_AUTH_CONTINUES_AFTER_ROTATION","ms":23305.234}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > CA Physical read rechecks its Staff session after concurrent refresh 444ms
+stdout | test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > CA Physical MFA factor retirement before assurance recheck fails closed
+ISSUE319_EXTENSION_HTTP_TRACE [{"event":"CA_ELIGIBILITY_HINT_COMPLETE","ms":23597.776},{"event":"SYNTHETIC_MFA_FACTOR_RETIRED","ms":23605.47},{"event":"CA_MFA_RECHECK_BEGINS","ms":23605.485}]
+
+ ✓ test/dashboard-issue319-extension-http.integration.test.ts > Issue319 additional real HTTP revocation interleavings > CA Physical MFA factor retirement before assurance recheck fails closed 300ms
+(node:37864) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security
+vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-remediation-races.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_37864_67e76536',
+  runtime: 'valet_runtime_mob007_37864_67e76536',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > reader-first key-slots keeps the shared grant fence through real response projection
+ISSUE319_REMEDIATION_RACE_TRACE [{"event":"PHYSICAL_AUTHORIZATION_RETURN_PAUSED","ms":12354.568},{"event":"REAL_CA_MFA_REVOKE_HTTP_STARTED","ms":12355.536},{"event":"POSTGRES_1_WAITERS_CONFIRMED","ms":12426.405},{"event":"AUTHORIZED_READER_COMPLETED_BEFORE_REVOKER","ms":12434.718},{"event":"REAL_CA_MFA_REVOKE_HTTP_COMPLETED","ms":12470.508}]
+
+ ✓ test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > reader-first key-slots keeps the shared grant fence through real response projection 908ms
+stdout | test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > reader-first overview keeps the shared grant fence through real response projection
+ISSUE319_REMEDIATION_RACE_TRACE [{"event":"PHYSICAL_AUTHORIZATION_RETURN_PAUSED","ms":13127.541},{"event":"REAL_CA_MFA_REVOKE_HTTP_STARTED","ms":13128.523},{"event":"POSTGRES_1_WAITERS_CONFIRMED","ms":13147.996},{"event":"AUTHORIZED_READER_COMPLETED_BEFORE_REVOKER","ms":13179.319},{"event":"REAL_CA_MFA_REVOKE_HTTP_COMPLETED","ms":13203.81}]
+
+ ✓ test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > reader-first overview keeps the shared grant fence through real response projection 728ms
+stdout | test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > reader-first configuration keeps the shared grant fence through real response projection
+ISSUE319_REMEDIATION_RACE_TRACE [{"event":"CONFIG_SAVED_SETTING_PROJECTION_PAUSED","ms":13738.85},{"event":"REAL_CA_MFA_REVOKE_HTTP_STARTED","ms":13739.614},{"event":"POSTGRES_1_WAITERS_CONFIRMED","ms":13752.947},{"event":"AUTHORIZED_READER_COMPLETED_BEFORE_REVOKER","ms":13759.801},{"event":"REAL_CA_MFA_REVOKE_HTTP_COMPLETED","ms":13767.811}]
+
+ ✓ test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > reader-first configuration keeps the shared grant fence through real response projection 561ms
+stdout | test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > revoker-first key-slots waits behind real CA HTTP revocation then denies protected data
+ISSUE319_REMEDIATION_RACE_TRACE [{"event":"REAL_CA_MFA_REVOKE_HTTP_STARTED","ms":14394.491},{"event":"POSTGRES_1_WAITERS_CONFIRMED","ms":14407.002},{"event":"POSTGRES_2_WAITERS_CONFIRMED","ms":14420.38},{"event":"REAL_CA_MFA_REVOKE_HTTP_COMPLETED","ms":14436.185},{"event":"READER_DENIED_AFTER_CA_REVOKE_COMMIT","ms":14437.672}]
+
+ ✓ test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > revoker-first key-slots waits behind real CA HTTP revocation then denies protected data 676ms
+stdout | test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > revoker-first overview waits behind real CA HTTP revocation then denies protected data
+ISSUE319_REMEDIATION_RACE_TRACE [{"event":"REAL_CA_MFA_REVOKE_HTTP_STARTED","ms":14921.059},{"event":"POSTGRES_1_WAITERS_CONFIRMED","ms":14934.421},{"event":"POSTGRES_2_WAITERS_CONFIRMED","ms":14949.827},{"event":"REAL_CA_MFA_REVOKE_HTTP_COMPLETED","ms":14964.191},{"event":"READER_DENIED_AFTER_CA_REVOKE_COMMIT","ms":14968.801}]
+
+ ✓ test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > revoker-first overview waits behind real CA HTTP revocation then denies protected data 531ms
+stdout | test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > revoker-first configuration waits behind real CA HTTP revocation then denies protected data
+ISSUE319_REMEDIATION_RACE_TRACE [{"event":"REAL_CA_MFA_REVOKE_HTTP_STARTED","ms":15481.772},{"event":"POSTGRES_1_WAITERS_CONFIRMED","ms":15494.076},{"event":"POSTGRES_2_WAITERS_CONFIRMED","ms":15505.997},{"event":"REAL_CA_MFA_REVOKE_HTTP_COMPLETED","ms":15524.108},{"event":"READER_DENIED_AFTER_CA_REVOKE_COMMIT","ms":15525.554}]
+
+ ✓ test/dashboard-issue319-remediation-races.integration.test.ts > Issue #319 F319-01 / F319-02 real HTTP revocation races > revoker-first configuration waits behind real CA HTTP revocation then denies protected data 553ms
+(node:38160) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security
+vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-http.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_38160_eb4a9dcf',
+  runtime: 'valet_runtime_mob007_38160_eb4a9dcf',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > authorized LM receives only its synthetic physical resource 473ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > POST-FIX F319-01: physical list holds grant fence while canonical SQL revocation waits
+ISSUE319_HTTP_TRACE [{"event":"HTTP_READER_START","ms":11639.442},{"event":"PHYSICAL_AUTHORIZATION_COMPLETE_BEFORE_PROJECTION","ms":11666.379},{"event":"CANONICAL_WRITER_ADVISORY_WAIT_PROVEN","ms":11837.675},{"event":"CANONICAL_GRANT_WRITER_BLOCKED_BY_READER","ms":11837.691},{"event":"PROTECTED_PROJECTION_RESUMED","ms":11837.698},{"event":"HTTP_READER_COMPLETE","ms":11844.756},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":11865.528},{"event":"CANONICAL_GRANT_COMMITTED_AFTER_READER_FENCE","ms":11865.717}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > POST-FIX F319-01: physical list holds grant fence while canonical SQL revocation waits 529ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > POST-FIX F319-01: real CA Staff Management HTTP revoke waits for LM physical fence
+ISSUE319_HTTP_TRACE [{"event":"APP_WRITER_RACE_LM_AUTH_COMPLETE","ms":12418.04},{"event":"STAFF_MANAGEMENT_HTTP_REVOKE_START","ms":12418.076},{"event":"CANONICAL_WRITER_ADVISORY_WAIT_PROVEN","ms":12472.486},{"event":"STAFF_MANAGEMENT_HTTP_REVOKE_LOCK_BLOCKED","ms":12472.496},{"event":"APP_WRITER_RACE_LM_PROJECTION_RESUMES","ms":12472.5},{"event":"LM_PHYSICAL_HTTP_COMPLETE_BEFORE_ADMIN_REVOKE_COMMIT","ms":12474.438},{"event":"STAFF_MANAGEMENT_HTTP_REVOKE_COMPLETE","ms":12498.504}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > POST-FIX F319-01: real CA Staff Management HTTP revoke waits for LM physical fence 627ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > POST-FIX F319-01: RR overview rejects grant revoked before the protected snapshot
+ISSUE319_HTTP_TRACE [{"event":"HTTP_READER_START","ms":12725.541},{"event":"RR_NONAUTHORITATIVE_LOCATION_HINT_BEFORE_SESSION_ADVISORY","ms":12731.909},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":12866.012},{"event":"CANONICAL_GRANT_COMMITTED","ms":12866.168},{"event":"RR_PRELOCK_ACQUISITION_RESUMED_AFTER_REVOKE","ms":12866.174},{"event":"HTTP_READER_COMPLETE","ms":12870.779}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > POST-FIX F319-01: RR overview rejects grant revoked before the protected snapshot 373ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > POST-FIX F319-02: legacy configuration GET rejects revocation after initial hint
+ISSUE319_HTTP_TRACE [{"event":"CONFIGURATION_LM_AUTH_COMPLETE","ms":13119.412},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":13390.19},{"event":"CANONICAL_GRANT_COMMITTED","ms":13390.299},{"event":"CONFIGURATION_PROJECTION_RESUMED","ms":13390.304}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > POST-FIX F319-02: legacy configuration GET rejects revocation after initial hint 522ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > logout committed before request denies overview at real resolver
+ISSUE319_HTTP_TRACE [{"event":"LOGOUT_REQUEST_START","ms":13713.884},{"event":"LOGOUT_HTTP_COMPLETE_AFTER_COMMIT","ms":13739.138}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > logout committed before request denies overview at real resolver 345ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > logout committed before request denies physical at real resolver
+ISSUE319_HTTP_TRACE [{"event":"LOGOUT_REQUEST_START","ms":14047.901},{"event":"LOGOUT_HTTP_COMPLETE_AFTER_COMMIT","ms":14056.077}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > logout committed before request denies physical at real resolver 315ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > logout committed before request denies discovery at real resolver
+ISSUE319_HTTP_TRACE [{"event":"LOGOUT_REQUEST_START","ms":14319.356},{"event":"LOGOUT_HTTP_COMPLETE_AFTER_COMMIT","ms":14326.771}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > logout committed before request denies discovery at real resolver 270ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > characterizes logout after resolver but before overview transaction
+ISSUE319_HTTP_TRACE [{"event":"HTTP_READER_START","ms":14610.447},{"event":"AUTHENTICATION_RESOLUTION_COMPLETE","ms":14619.928},{"event":"LOGOUT_REQUEST_START","ms":14619.948},{"event":"LOGOUT_HTTP_COMPLETE_AFTER_COMMIT","ms":14626.867},{"event":"PROTECTED_TRANSACTION_START_AFTER_LOGOUT","ms":14626.889},{"event":"HTTP_READER_COMPLETE","ms":14653.201}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > characterizes logout after resolver but before overview transaction 322ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > characterizes logout after resolver but before physical transaction
+ISSUE319_HTTP_TRACE [{"event":"HTTP_READER_START","ms":14911.174},{"event":"AUTHENTICATION_RESOLUTION_COMPLETE","ms":14915.496},{"event":"LOGOUT_REQUEST_START","ms":14915.511},{"event":"LOGOUT_HTTP_COMPLETE_AFTER_COMMIT","ms":14921.852},{"event":"PROTECTED_TRANSACTION_START_AFTER_LOGOUT","ms":14921.863},{"event":"HTTP_READER_COMPLETE","ms":14927.808}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > characterizes logout after resolver but before physical transaction 275ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > characterizes logout after resolver but before discovery transaction
+ISSUE319_HTTP_TRACE [{"event":"HTTP_READER_START","ms":15175.079},{"event":"AUTHENTICATION_RESOLUTION_COMPLETE","ms":15179.701},{"event":"LOGOUT_REQUEST_START","ms":15179.713},{"event":"LOGOUT_HTTP_COMPLETE_AFTER_COMMIT","ms":15186.459},{"event":"PROTECTED_TRANSACTION_START_AFTER_LOGOUT","ms":15186.475},{"event":"HTTP_READER_COMPLETE","ms":15189.761}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > characterizes logout after resolver but before discovery transaction 261ms
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > CA with ordinary accepted MFA succeeds; password-only CA is denied 704ms
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > denies VALET_EMPLOYEE Management physical reads 285ms
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > denies VALET_SUPERVISOR Management physical reads 280ms
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > foreign Organization, same-Organization ungranted Location and unknown UUID disclose no resources 554ms
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > denies physical read when membership is ineligible before request 245ms
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > denies physical read when user is ineligible before request 274ms
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > denies physical read when organization is ineligible before request 297ms
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > denies physical read when location is ineligible before request 280ms
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > denies physical read when expired is ineligible before request 262ms
+stdout | test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > fresh scope-discovery after canonical grant removal omits Location
+ISSUE319_HTTP_TRACE [{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":18839.843}]
+
+ ✓ test/dashboard-issue319-http.integration.test.ts > Issue319 real HTTP security boundary characterization > fresh scope-discovery after canonical grant removal omits Location 478ms
+(node:36796) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security
+vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-performance.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_36796_2ea8abea',
+  runtime: 'valet_runtime_mob007_36796_2ea8abea',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-performance.integration.test.ts > Issue319 uncontended real HTTP latency, descriptive local baseline only > measures scoped Dashboard, Physical Resources and Discovery independently
+ISSUE319_UNCONTENDED_HTTP_LATENCY {"label":"dashboard-overview-keys","n":80,"p50Ms":10.76,"p95Ms":15.17,"maxMs":38.65,"minMs":6.82,"meanMs":11.31}
+
+stdout | test/dashboard-issue319-performance.integration.test.ts > Issue319 uncontended real HTTP latency, descriptive local baseline only > measures scoped Dashboard, Physical Resources and Discovery independently
+ISSUE319_UNCONTENDED_HTTP_LATENCY {"label":"physical-resource-key-slots","n":80,"p50Ms":10.28,"p95Ms":12.64,"maxMs":14.67,"minMs":7.77,"meanMs":10.51}
+
+stdout | test/dashboard-issue319-performance.integration.test.ts > Issue319 uncontended real HTTP latency, descriptive local baseline only > measures scoped Dashboard, Physical Resources and Discovery independently
+ISSUE319_UNCONTENDED_HTTP_LATENCY {"label":"scope-discovery-locations","n":80,"p50Ms":8.34,"p95Ms":13.53,"maxMs":93.6,"minMs":5.54,"meanMs":10.15}
+
+stdout | test/dashboard-issue319-performance.integration.test.ts > Issue319 uncontended real HTTP latency, descriptive local baseline only > measures scoped Dashboard, Physical Resources and Discovery independently
+ISSUE319_UNCONTENDED_HTTP_LATENCY {"label":"physical-resource-overview-rr","n":80,"p50Ms":14.36,"p95Ms":20.41,"maxMs":28.08,"minMs":11.01,"meanMs":15.04}
+
+stdout | test/dashboard-issue319-performance.integration.test.ts > Issue319 uncontended real HTTP latency, descriptive local baseline only > measures scoped Dashboard, Physical Resources and Discovery independently
+ISSUE319_UNCONTENDED_HTTP_LATENCY {"label":"physical-resource-key-slots-ca-mfa","n":80,"p50Ms":10.25,"p95Ms":14.81,"maxMs":21.63,"minMs":7.46,"meanMs":10.78}
+
+stdout | test/dashboard-issue319-performance.integration.test.ts > Issue319 uncontended real HTTP latency, descriptive local baseline only > measures scoped Dashboard, Physical Resources and Discovery independently
+ISSUE319_UNCONTENDED_HTTP_LATENCY {"label":"configuration-location-settings","n":80,"p50Ms":9.78,"p95Ms":13.57,"maxMs":28.06,"minMs":6.36,"meanMs":10.23}
+
+ ✓ test/dashboard-issue319-performance.integration.test.ts > Issue319 uncontended real HTTP latency, descriptive local baseline only > measures scoped Dashboard, Physical Resources and Discovery independently 6525ms
+(node:34196) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security
+vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_34196_bbe260a6',
+  runtime: 'valet_runtime_mob007_34196_bbe260a6',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > two real HTTP readers hold shared org locks; CA lifecycle writer waits for both
+ISSUE319_LOCK_EXTENSION_TRACE [{"event":"LM_READER_0_SHARED_LOCK_HELD","ms":11198.62},{"event":"LM_READER_1_SHARED_LOCK_HELD","ms":11342.114},{"event":"TWO_ACTUAL_SHARED_ADVISORY_LOCKS","ms":11344.073},{"event":"WRITER_PID_38928_BLOCKED_BY_2_READERS","ms":11401.512},{"event":"WRITER_PID_38928_BLOCKED_BY_1_READERS","ms":11411.168},{"event":"WRITER_STILL_BLOCKED_AFTER_ONE_READER","ms":11411.178}]
+
+ ✓ test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > two real HTTP readers hold shared org locks; CA lifecycle writer waits for both 1005ms
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > exclusive lock for one Organization does not block another Organization reader
+ISSUE319_LOCK_EXTENSION_TRACE [{"event":"ORG_A_EXCLUSIVE_GATE_HELD","ms":11987.744},{"event":"ORG_B_HTTP_READ_COMPLETED_UNDER_UNRELATED_GATE","ms":12012.752}]
+
+ ✓ test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > exclusive lock for one Organization does not block another Organization reader 533ms
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > 'lock' timeout of managed reader rolls back and leaves same connection usable
+ISSUE319_LOCK_EXTENSION_TRACE [{"event":"PG_ERROR_55P03_OBSERVED","ms":12556.488},{"event":"ROLLBACK_CLEANUP_AND_FRESH_READ_PASS","ms":12561.107}]
+
+ ✓ test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > 'lock' timeout of managed reader rolls back and leaves same connection usable 547ms
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > 'statement' timeout of managed reader rolls back and leaves same connection usable
+ISSUE319_LOCK_EXTENSION_TRACE [{"event":"PG_ERROR_57014_OBSERVED","ms":13178.521},{"event":"ROLLBACK_CLEANUP_AND_FRESH_READ_PASS","ms":13183.533}]
+
+ ✓ test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > 'statement' timeout of managed reader rolls back and leaves same connection usable 623ms
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > KPI session-lock acquisition timeout discards ambiguous pooled connection
+ISSUE319_LOCK_EXTENSION_TRACE [{"event":"PG_OBSERVED_1_LOCK_WAITERS","ms":13551.345},{"event":"KPI_SESSION_ADVISORY_CANCELLED_BEFORE_BEGIN","ms":14293.28},{"event":"KPI_POOL_RECOVERED_WITH_NO_ADVISORY_LOCK","ms":14453.107}]
+
+ ✓ test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > KPI session-lock acquisition timeout discards ambiguous pooled connection 1269ms
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > KPI action exception rolls back, releases session lock, and preserves reusable pool
+ISSUE319_LOCK_EXTENSION_TRACE [{"event":"KPI_ROLLBACK_RELEASE_AND_REUSE_SUCCEEDED","ms":14748.504}]
+
+ ✓ test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > KPI action exception rolls back, releases session lock, and preserves reusable pool 291ms
+(node:21084) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security
+vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-lifecycle.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_21084_9e929c7b',
+  runtime: 'valet_runtime_mob007_21084_9e929c7b',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-lifecycle.integration.test.ts > Issue319 canonical Location lifecycle HTTP and lock ordering > reader-first holds managed deactivation until the authorized read completes
+ISSUE319_LIFECYCLE_TRACE [{"event":"READER_REQUEST_START","ms":11216.114},{"event":"DASHBOARD_ORG_SHARED_FENCE_HELD","ms":11250.389},{"event":"POSTGRES_1_LOCK_WAITS_OBSERVED","ms":11346.551},{"event":"DASHBOARD_PROJECTION_RESUMED","ms":11346.575},{"event":"READER_HTTP_COMPLETE","ms":11372.743},{"event":"DEACTIVATION_HTTP_COMPLETE","ms":11436.545}]
+
+ ✓ test/dashboard-issue319-lifecycle.integration.test.ts > Issue319 canonical Location lifecycle HTTP and lock ordering > reader-first holds managed deactivation until the authorized read completes 1040ms
+stdout | test/dashboard-issue319-lifecycle.integration.test.ts > Issue319 canonical Location lifecycle HTTP and lock ordering > revoker-first queues reader after real lifecycle writer and rejects upon commit
+ISSUE319_LIFECYCLE_TRACE [{"event":"POSTGRES_1_LOCK_WAITS_OBSERVED","ms":12198.719},{"event":"REVOKER_QUEUED_BEFORE_READER","ms":12198.739},{"event":"POSTGRES_2_LOCK_WAITS_OBSERVED","ms":12212.024},{"event":"EXTERNAL_GATE_RELEASED","ms":12212.277},{"event":"READER_HTTP_COMPLETE_AFTER_REVOKER","ms":12223.209}]
+
+ ✓ test/dashboard-issue319-lifecycle.integration.test.ts > Issue319 canonical Location lifecycle HTTP and lock ordering > revoker-first queues reader after real lifecycle writer and rejects upon commit 778ms
+(node:34936) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security
+vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-adjacent-candidates.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_34936_7f16aa94',
+  runtime: 'valet_runtime_mob007_34936_7f16aa94',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-adjacent-candidates.integration.test.ts > Issue319 adjacent bare-LM helper candidate evidence; not authorized remediation > REPRO candidate branding: canonical grant removal can commit before unfenced HTTP projection
+ISSUE319_ADJACENT_CANDIDATE_TRACE [{"event":"ADJACENT_PREPROJECTION_AUTH_HINT_COMPLETE","ms":9925.921},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":10054.121},{"event":"ADJACENT_CANONICAL_GRANT_REMOVAL_COMMITTED","ms":10054.246},{"event":"ADJACENT_HTTP_STALE_RESPONSE_COMPLETED","ms":10059.529}]
+
+ ✓ test/dashboard-issue319-adjacent-candidates.integration.test.ts > Issue319 adjacent bare-LM helper candidate evidence; not authorized remediation > REPRO candidate branding: canonical grant removal can commit before unfenced HTTP projection 511ms
+stdout | test/dashboard-issue319-adjacent-candidates.integration.test.ts > Issue319 adjacent bare-LM helper candidate evidence; not authorized remediation > REPRO candidate subscription: canonical grant removal can commit before unfenced HTTP projection
+ISSUE319_ADJACENT_CANDIDATE_TRACE [{"event":"ADJACENT_PREPROJECTION_AUTH_HINT_COMPLETE","ms":10278.327},{"event":"CANONICAL_GRANT_WRITER_SQL_COMPLETE","ms":10391.659},{"event":"ADJACENT_CANONICAL_GRANT_REMOVAL_COMMITTED","ms":10391.79},{"event":"ADJACENT_HTTP_STALE_RESPONSE_COMPLETED","ms":10397.813}]
+
+ ✓ test/dashboard-issue319-adjacent-candidates.integration.test.ts > Issue319 adjacent bare-LM helper candidate evidence; not authorized remediation > REPRO candidate subscription: canonical grant removal can commit before unfenced HTTP projection 327ms
+(node:32836) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security
+vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-physical-matrix.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_32836_fac0ec25',
+  runtime: 'valet_runtime_mob007_32836_fac0ec25',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+ ✓ test/dashboard-issue319-physical-matrix.integration.test.ts > Issue319 all seven Physical Resources GET routes > allows current exact grant then denies every fresh path after canonical removal 758ms
+(node:36160) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security
+vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-physical-lease.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_36160_5ce2c47d',
+  runtime: 'valet_runtime_mob007_36160_5ce2c47d',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+ ✓ test/dashboard-issue319-physical-lease.integration.test.ts > Issue319 Physical RR session advisory lease cleanup > cancels session advisory acquisition, destroys ambiguous lease, and reauthorizes on fresh pool client 1517ms
+ ✓ test/dashboard-issue319-physical-lease.integration.test.ts > Issue319 Physical RR session advisory lease cleanup > rolls back projection exception, releases session advisory, and permits safe retry 256ms
+stdout | test/dashboard-issue319-physical-lease.integration.test.ts
+ISSUE319_PHYSICAL_LEASE_TRACE [{"event":"PHYSICAL_RR_SESSION_SHARED_ADVISORY_BLOCKED","ms":11163.312},{"event":"PHYSICAL_RR_SESSION_ACQUIRE_TIMEOUT_57014","ms":12061.456},{"event":"PHYSICAL_RR_FRESH_POOL_CLIENT_NO_LOCK_REUSE","ms":12102.685},{"event":"PHYSICAL_RR_ROLLBACK_SESSION_UNLOCK_AND_RETRY","ms":12361.535}]
+
+
+ Test Files  9 passed (9)
+      Tests  52 passed (52)
+   Start at  18:42:16
+   Duration  140.15s (transform 6.55s, setup 0ms, import 36.97s, tests 100.57s, environment 1ms)

@@ -1,0 +1,47 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:18956) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:18956) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-final-reader-export.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_18956_d32c053f',
+  runtime: 'valet_runtime_mob007_18956_d32c053f',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-final-reader-export.integration.test.ts > Issue319 final CA RR read and export acceptance > KPI reader-first orders canonical factor recovery with actual PG lock wait
+ISSUE319_FINAL_READ_EXPORT_TRACE [{"event":"KPI_READER_AUTH_FENCE_HELD_PID_7008","ms":22186.07},{"event":"KPI_RECOVERY_PID_32428_WAITED_ON_READER_7008","ms":22234.107}]
+
+ ✓ test/dashboard-issue319-final-reader-export.integration.test.ts > Issue319 final CA RR read and export acceptance > KPI reader-first orders canonical factor recovery with actual PG lock wait 720ms
+stdout | test/dashboard-issue319-final-reader-export.integration.test.ts > Issue319 final CA RR read and export acceptance > Company Report reader-first orders canonical factor recovery with actual PG lock wait
+ISSUE319_FINAL_READ_EXPORT_TRACE [{"event":"REPORT_READER_AUTH_FENCE_HELD_PID_32428","ms":22659.427},{"event":"REPORT_RECOVERY_PID_7008_WAITED_ON_READER_32428","ms":22671.743}]
+
+ ✓ test/dashboard-issue319-final-reader-export.integration.test.ts > Issue319 final CA RR read and export acceptance > Company Report reader-first orders canonical factor recovery with actual PG lock wait 422ms
+stdout | test/dashboard-issue319-final-reader-export.integration.test.ts > Issue319 final CA RR read and export acceptance > WEEKLY Report RR denies revoker-first previously assured snapshot
+ISSUE319_FINAL_READ_EXPORT_TRACE [{"event":"WEEKLY_RECOVERY_COMMITTED_BEFORE_RR_FACTOR_FENCE","ms":23003.285}]
+
+ ✓ test/dashboard-issue319-final-reader-export.integration.test.ts > Issue319 final CA RR read and export acceptance > WEEKLY Report RR denies revoker-first previously assured snapshot 304ms
+stdout | test/dashboard-issue319-final-reader-export.integration.test.ts > Issue319 final CA RR read and export acceptance > MONTHLY Report RR denies revoker-first previously assured snapshot
+ISSUE319_FINAL_READ_EXPORT_TRACE [{"event":"MONTHLY_RECOVERY_COMMITTED_BEFORE_RR_FACTOR_FENCE","ms":23312.364}]
+
+ ✓ test/dashboard-issue319-final-reader-export.integration.test.ts > Issue319 final CA RR read and export acceptance > MONTHLY Report RR denies revoker-first previously assured snapshot 305ms
+stdout | test/dashboard-issue319-final-reader-export.integration.test.ts > Issue319 final CA RR read and export acceptance > CSV export finalizer rechecks authorization after previous RR snapshot
+ISSUE319_FINAL_READ_EXPORT_TRACE [{"event":"CSV_AFTER_RR_BEFORE_FRESH_FINALIZER","ms":23710.933},{"event":"CSV_CANONICAL_RECOVERY_COMMITTED_BEFORE_FINALIZER","ms":23720.602}]
+
+ ✓ test/dashboard-issue319-final-reader-export.integration.test.ts > Issue319 final CA RR read and export acceptance > CSV export finalizer rechecks authorization after previous RR snapshot 412ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  20:58:54
+   Duration  24.01s (transform 5.13s, setup 0ms, import 11.07s, tests 12.62s, environment 0ms)

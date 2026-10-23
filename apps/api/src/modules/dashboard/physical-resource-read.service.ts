@@ -19,6 +19,7 @@ import {
 import { listParkingZoneSelectors } from "../parking-zones/parking-zone-selector-query";
 import { readPhysicalResourceOverview } from "./physical-resource-overview-query";
 import { readPhysicalResourceCustody } from "./physical-resource-custody-query";
+import { inAuthorizedPhysicalResourceOverview } from "./physical-resource-overview-transaction";
 
 @Injectable()
 export class PhysicalResourceReadService {
@@ -31,26 +32,18 @@ export class PhysicalResourceReadService {
     locationId: string,
     query: PhysicalResourceOverviewQuery,
   ) {
-    return inPostgresTransaction(this.pool, async (transaction) => {
-      // Three bounded reads must see one database snapshot, including current sessions.
-      await transaction.query(
-        "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ",
-      );
-      const authority = await authorizePhysicalResourceManagement(
-        transaction,
-        context,
-        locationId,
-        "LIST",
-      );
-      const result = await readPhysicalResourceOverview(
-        transaction,
-        authority,
-        query,
-      );
-      if (authority.role === "ORG_ADMIN")
-        await recordAdminActivityInTransaction(transaction, context);
-      return result;
-    });
+    return inAuthorizedPhysicalResourceOverview(
+      this.pool, context, locationId, async (transaction, authority) => {
+        const result = await readPhysicalResourceOverview(
+          transaction,
+          authority,
+          query,
+        );
+        if (authority.role === "ORG_ADMIN")
+          await recordAdminActivityInTransaction(transaction, context);
+        return result;
+      },
+    );
   }
 
   keyCustody(
@@ -65,6 +58,7 @@ export class PhysicalResourceReadService {
         context,
         locationId,
         "LIST",
+        { kind: "READ_COMMITTED" },
       );
       const result = await readPhysicalResourceCustody(
         transaction,
@@ -89,6 +83,7 @@ export class PhysicalResourceReadService {
         context,
         locationId,
         "LIST",
+        { kind: "READ_COMMITTED" },
       );
       const result = await listKeySlots(transaction, authority, query);
       if (authority.role === "ORG_ADMIN")
@@ -108,6 +103,7 @@ export class PhysicalResourceReadService {
         context,
         locationId,
         "LIST",
+        { kind: "READ_COMMITTED" },
       );
       const result = await listParkingSpots(transaction, authority, query);
       if (authority.role === "ORG_ADMIN")
@@ -127,6 +123,7 @@ export class PhysicalResourceReadService {
         context,
         locationId,
         "LIST",
+        { kind: "READ_COMMITTED" },
       );
       const result = await listParkingZoneSelectors(
         transaction,
@@ -151,6 +148,7 @@ export class PhysicalResourceReadService {
         context,
         locationId,
         "LABEL",
+        { kind: "READ_COMMITTED" },
       );
       const result = await readPhysicalResourceLabel(
         transaction,

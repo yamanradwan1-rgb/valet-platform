@@ -1,0 +1,87 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:40480) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:40480) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_40480_328fb46c',
+  runtime: 'valet_runtime_mob007_40480_328fb46c',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > two real HTTP readers hold shared org locks; CA lifecycle writer waits for both
+ISSUE319_LOCK_EXTENSION_TRACE [{"event":"LM_READER_0_SHARED_LOCK_HELD","ms":14807.794},{"event":"LM_READER_1_SHARED_LOCK_HELD","ms":14839.946},{"event":"TWO_ACTUAL_SHARED_ADVISORY_LOCKS","ms":14840.687},{"event":"WRITER_PID_40552_BLOCKED_BY_2_READERS","ms":14891.256}]
+
+ × test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > two real HTTP readers hold shared org locks; CA lifecycle writer waits for both 25006ms
+   → Test timed out in 25000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > exclusive lock for one Organization does not block another Organization reader
+ISSUE319_LOCK_EXTENSION_TRACE [{"event":"ORG_A_EXCLUSIVE_GATE_HELD","ms":39528.749},{"event":"ORG_B_HTTP_READ_COMPLETED_UNDER_UNRELATED_GATE","ms":39542.12}]
+
+ ✓ test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > exclusive lock for one Organization does not block another Organization reader 474ms
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > 'lock' timeout of managed reader rolls back and leaves same connection usable
+ISSUE319_LOCK_EXTENSION_TRACE [{"event":"PG_ERROR_55P03_OBSERVED","ms":40228.401},{"event":"ROLLBACK_CLEANUP_AND_FRESH_READ_PASS","ms":40233.551}]
+
+ ✓ test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > 'lock' timeout of managed reader rolls back and leaves same connection usable 691ms
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > 'statement' timeout of managed reader rolls back and leaves same connection usable
+ISSUE319_LOCK_EXTENSION_TRACE [{"event":"PG_ERROR_57014_OBSERVED","ms":40722.971},{"event":"ROLLBACK_CLEANUP_AND_FRESH_READ_PASS","ms":40728.428}]
+
+ ✓ test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > 'statement' timeout of managed reader rolls back and leaves same connection usable 494ms
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > KPI session-lock acquisition timeout discards ambiguous pooled connection
+ISSUE319_LOCK_EXTENSION_TRACE [{"event":"PG_OBSERVED_1_LOCK_WAITERS","ms":41008.567},{"event":"KPI_SESSION_ADVISORY_CANCELLED_BEFORE_BEGIN","ms":41749.595},{"event":"KPI_POOL_RECOVERED_WITH_NO_ADVISORY_LOCK","ms":41792.254}]
+
+ ✓ test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > KPI session-lock acquisition timeout discards ambiguous pooled connection 1064ms
+stdout | test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > KPI action exception rolls back, releases session lock, and preserves reusable pool
+ISSUE319_LOCK_EXTENSION_TRACE [{"event":"KPI_ROLLBACK_RELEASE_AND_REUSE_SUCCEEDED","ms":42005.985}]
+
+ ✓ test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and lease boundaries > KPI action exception rolls back, releases session lock, and preserves reusable pool 211ms
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/dashboard-issue319-extension-locks.integration.test.ts [
+test/dashboard-issue319-extension-locks.integration.test.ts ]
+Error: Hook timed out in 90000ms.
+If this is a long-running hook, pass a timeout value as the last argument or configure it globally with "hookTimeout".
+ ❯ test/dashboard-issue319-extension-locks.integration.test.ts:9:1
+      7|
+      8| beforeAll(startLab, 180_000);
+      9| afterAll(() => fixture.stop(), 90_000);
+       | ^
+     10| afterEach(() => {
+     11|   vi.restoreAllMocks();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/dashboard-issue319-extension-locks.integration.test.ts > Issue319 additional real PostgreSQL lock and
+lease boundaries > two real HTTP readers hold shared org locks; CA lifecycle writer waits for both
+Error: Test timed out in 25000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ test/dashboard-issue319-extension-locks.integration.test.ts:65:3
+     63|
+     64| describe('Issue319 additional real PostgreSQL lock and lease boundarie…
+     65|   it('two real HTTP readers hold shared org locks; CA lifecycle writer…
+       |   ^
+     66|     const a = await actor();
+     67|     const user = await fixture.createUser();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 5 passed (6)
+   Start at  18:36:06
+   Duration  132.03s (transform 4.56s, setup 0ms, import 7.29s, tests 124.47s, environment 0ms)

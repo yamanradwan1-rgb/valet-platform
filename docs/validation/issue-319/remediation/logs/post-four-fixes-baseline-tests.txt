@@ -1,0 +1,54 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:13160) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:13160) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ✓ test/dashboard-issue315-concurrency.integration.test.ts > Issue #315 isolated PG grant/read race > reader-first: 'actual SECURITY DEFINER staff_managem…' waits until reader commits 1360ms
+ ✓ test/dashboard-issue315-concurrency.integration.test.ts > Issue #315 isolated PG grant/read race > reader-first: 'managed advisory grant revoke' waits until reader commits 562ms
+ ✓ test/dashboard-issue315-concurrency.integration.test.ts > Issue #315 isolated PG grant/read race > reader-first: 'membership role change' waits until reader commits 608ms
+ ✓ test/dashboard-issue315-concurrency.integration.test.ts > Issue #315 isolated PG grant/read race > reader-first: 'Location deactivation' waits until reader commits 678ms
+ ✓ test/dashboard-issue315-concurrency.integration.test.ts > Issue #315 isolated PG grant/read race > revoker-first: 'actual SECURITY DEFINER grant revoke' waits then denies 646ms
+ ✓ test/dashboard-issue315-concurrency.integration.test.ts > Issue #315 isolated PG grant/read race > revoker-first: 'managed advisory DELETE' waits then denies 458ms
+ ✓ test/dashboard-issue315-concurrency.integration.test.ts > Issue #315 isolated PG grant/read race > revoker-first: 'membership role downgrade' waits then denies 483ms
+ ✓ test/dashboard-issue315-concurrency.integration.test.ts > Issue #315 isolated PG grant/read race > revoker-first: 'Location disabled' waits then denies 521ms
+ ✓ test/dashboard-issue315-concurrency.integration.test.ts > Issue #315 isolated PG grant/read race > denies cross-tenant and ungranted Location 775ms
+ ✓ test/dashboard-issue315-concurrency.integration.test.ts > Issue #315 isolated PG grant/read race > accepts authorized, active LM for LOCATION_DASHBOARD_READ 530ms
+ ✓ test/dashboard-issue315-concurrency.integration.test.ts > Issue #315 isolated PG grant/read race > accepts authorized, active LM for ANALYTICS_READ 665ms
+ ✓ test/dashboard-issue315-concurrency.integration.test.ts > Issue #315 isolated PG grant/read race > accepts authorized, active LM for REPORTS_READ 432ms
+ ✓ test/dashboard-issue315-concurrency.integration.test.ts > Issue #315 isolated PG grant/read race > documents residual raw privileged DELETE bypass without advisory participation 633ms
+ ✓ test/dashboard-issue315-concurrency.integration.test.ts > Issue #315 isolated PG grant/read race > two independent readers retain SHARE advisory while managed revoker waits 955ms
+(node:33216) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security
+vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ✓ test/dashboard-issue315-extended.integration.test.ts > Issue #315 isolated PG extended concurrency and fault matrix > revoker-first DELETE followed by same-transaction regrant yields valid current authority 1604ms
+ ✓ test/dashboard-issue315-extended.integration.test.ts > Issue #315 isolated PG extended concurrency and fault matrix > multiple concurrent revokers serialize without deadlock 728ms
+ ✓ test/dashboard-issue315-extended.integration.test.ts > Issue #315 isolated PG extended concurrency and fault matrix > blocked reader fails under bounded lock_timeout, not PG deadlock 772ms
+ ✓ test/dashboard-issue315-extended.integration.test.ts > Issue #315 isolated PG extended concurrency and fault matrix > fails closed on non-READ COMMITTED REPEATABLE READ snapshot 598ms
+ ✓ test/dashboard-issue315-extended.integration.test.ts > Issue #315 isolated PG extended concurrency and fault matrix > fails closed on non-READ COMMITTED SERIALIZABLE snapshot 501ms
+ ✓ test/dashboard-issue315-extended.integration.test.ts > Issue #315 isolated PG extended concurrency and fault matrix > REPORT_EXPORT checks exact current Staff session revocation 576ms
+ ✓ test/dashboard-issue315-extended.integration.test.ts > Issue #315 isolated PG extended concurrency and fault matrix > disabled Staff user and inactive membership deny all dashboard reads 1211ms
+ ✓ test/dashboard-issue315-extended.integration.test.ts > Issue #315 isolated PG extended concurrency and fault matrix > documents the raw privileged revoker-first uncommitted grant bypass 590ms
+(node:9520) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security
+vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ✓ test/dashboard-issue315-kpi-pg.integration.test.ts > #315 real PostgreSQL KPI snapshot and revocation > allows real LM KPI and retains one RR snapshot across SQL projection 1611ms
+ ✓ test/dashboard-issue315-kpi-pg.integration.test.ts > #315 real PostgreSQL KPI snapshot and revocation > reader-first: canonical revoker waits until RR KPI commits; next read denies 833ms
+ ✓ test/dashboard-issue315-kpi-pg.integration.test.ts > #315 real PostgreSQL KPI snapshot and revocation > revoker-first: KPI waits then denies committed grant change 761ms
+ ✓ test/dashboard-issue315-kpi-pg.integration.test.ts > #315 real PostgreSQL KPI snapshot and revocation > two simultaneous RR readers each hold canonical grant writer until both finish 829ms
+(node:2632) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security
+vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ✓ test/dashboard-issue315-kpi-ca-retry.integration.test.ts > #315 real PostgreSQL KPI Company Admin and retry > preserves genuine CA MFA authorization while KPI projection remains RR 1628ms
+ ✓ test/dashboard-issue315-kpi-ca-retry.integration.test.ts > #315 real PostgreSQL KPI Company Admin and retry > retries one 40001 projection abort in a new RR transaction without leaking LM lock 627ms
+
+ Test Files  4 passed (4)
+      Tests  28 passed (28)
+   Start at  18:54:00
+   Duration  262.31s (transform 11.14s, setup 0ms, import 93.18s, tests 162.96s, environment 1ms)

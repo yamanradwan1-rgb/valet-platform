@@ -1,0 +1,31 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:18584) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:18584) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-ca-mfa-rr-candidate.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_18584_954a2a44',
+  runtime: 'valet_runtime_mob007_18584_954a2a44',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-ca-mfa-rr-candidate.integration.test.ts > Issue #319 candidate: Company Admin Physical overview RR MFA factor retirement > does not expose protected overview data after canonical recovery retires the factor
+ISSUE319_CA_MFA_RR_CANDIDATE_TRACE [{"event":"CA_RR_FIRST_ELIGIBILITY_SNAPSHOT_OBSERVED","ms":28606.651},{"event":"RR_SNAPSHOT_HELD_BEFORE_CA_ORG_ADVISORY","ms":28614.671},{"event":"CANONICAL_REAL_MFA_RECOVERY_HTTP_COMMITTED","ms":28682.596},{"event":"RETIRED_FACTOR_COMMITTED_WITH_UNCHANGED_SESSION_ASSURANCE","ms":28683.601},{"event":"CA_RR_AUTHORIZATION_CONTINUES_AFTER_FACTOR_RETIREMENT","ms":28684.084},{"event":"CA_RR_INFLIGHT_RESULT responseStatus=403 containsSyntheticKeySlot=false","ms":28708.272}]
+
+ ✓ test/dashboard-issue319-ca-mfa-rr-candidate.integration.test.ts > Issue #319 candidate: Company Admin Physical overview RR MFA factor retirement > does not expose protected overview data after canonical recovery retires the factor 908ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  19:22:03
+   Duration  29.08s (transform 8.41s, setup 0ms, import 15.70s, tests 12.85s, environment 0ms)

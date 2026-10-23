@@ -1,0 +1,31 @@
+
+ RUN  v4.1.10 D:/kndoom/valet-platform/tmp/issue-319-audit/apps/api
+
+node.exe : (node:29804) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead
+to security vulnerabilities, as the arguments are not escaped, only concatenated.
+At C:\Program Files\nodejs\pnpm.ps1:16 char:5
++     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/pnpm. ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:29804) [D...y concatenated.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-deprecation ...` to show where the warning was created)
+stdout | test/dashboard-issue319-ca-rr-company-analytics-gate.integration.test.ts
+ISSUE319_RUNTIME_IDENTITY {
+  db: 'valet_mob007_auth_29804_768b841f',
+  runtime: 'valet_runtime_mob007_29804_768b841f',
+  rolsuper: false,
+  rolcreatedb: false,
+  rolcreaterole: false,
+  owner: 'issue315_owner'
+}
+
+stdout | test/dashboard-issue319-ca-rr-company-analytics-gate.integration.test.ts > Issue #319 final gate: Company Analytics RR MFA factor retirement > must not expose synthetic Company Analytics after distinct-session MFA recovery
+ISSUE319_COMPANY_ANALYTICS_RR_TRACE [{"event":"COMPANY_ANALYTICS_RR_SNAPSHOT_BEFORE_MFA_FACTOR_CHECK","ms":15714.652},{"event":"CANONICAL_DISTINCT_SESSION_FACTOR_RETIREMENT_COMMITTED","ms":15811.709},{"event":"COMPANY_ANALYTICS_RESPONSE status=403 containsSyntheticTimezone=false","ms":15828.83}]
+
+ ✓ test/dashboard-issue319-ca-rr-company-analytics-gate.integration.test.ts > Issue #319 final gate: Company Analytics RR MFA factor retirement > must not expose synthetic Company Analytics after distinct-session MFA recovery 850ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  20:27:26
+   Duration  16.17s (transform 5.24s, setup 0ms, import 8.43s, tests 7.52s, environment 0ms)
