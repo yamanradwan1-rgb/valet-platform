@@ -203,8 +203,14 @@ test("current API and database tests each have exactly one owner", () => {
   );
   assert.equal(database["database-non-postgres"].length, 8);
   assert.ok(database["database-non-postgres"].includes("issue304-migration-source-appendix.test.ts"));
-  assert.equal(database["database-postgres-direct"].length, 41);
-  assert.equal(database["database-postgres-provision"].length, 41);
+  // Current immutable migration fixtures add one direct #309 scope proof;
+  // the newer #313/#316 privileges add two provisioned runtime-role proofs.
+  // Keep rejecting missing or multiply-owned tests via the discovery counts.
+  assert.equal(database["database-postgres-direct"].length, 42);
+  assert.ok(database["database-postgres-direct"].includes("issue309-photo-scope-migration.integration.test.ts"));
+  assert.equal(database["database-postgres-provision"].length, 43);
+  assert.ok(database["database-postgres-provision"].includes("rating-analytics-runtime-role.integration.test.ts"));
+  assert.ok(database["database-postgres-provision"].includes("visit-contact-runtime-role.integration.test.ts"));
   assert.deepEqual(database[ISSUE215_PROJECT], issue215PostgresFiles);
   assert.ok(api["api-non-postgres"].includes("postgres.test.ts"));
   assert.ok(

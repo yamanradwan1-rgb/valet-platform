@@ -14,6 +14,7 @@ const photoEvidenceTables = [
 ] as const;
 
 const newViewBudgetScope = "v1:dashboard-session-photo-view-user";
+const unknownViewBudgetScope = "v1:dashboard-session-photo-view-unknown";
 
 describe("#309 PG17 concrete runtime blockers without photo VIEW permission", () => {
   let db: Issue215HttpDatabase;
@@ -29,7 +30,7 @@ describe("#309 PG17 concrete runtime blockers without photo VIEW permission", ()
     finally { await db?.close(); }
   }, 90_000);
 
-  it("scope fails SQLSTATE 23514 even for the correctly provisioned runtime role", async () => {
+  it("accepts the migrated #309 view-budget scope but rejects an unknown scope under restricted runtime grants", async () => {
     const identity = await runtime.query<{
       readonly actor: string;
       readonly canInsertTable: boolean;
@@ -56,21 +57,28 @@ describe("#309 PG17 concrete runtime blockers without photo VIEW permission", ()
       canInsertTable: false, canInsertScope: true,
       canInsertKey: true, canInsertState: true,
     });
-    expect(identity.rows[0]?.constraintSql).not.toContain(newViewBudgetScope);
+    // Migration 98 is an accepted, guarded, forward-only #309 contract:
+    // the viewer budget scope is now deliberately allowlisted. The old
+    // pre-migration denial assertion contradicted the immutable SQL.
+    expect(identity.rows[0]?.constraintSql).toContain(newViewBudgetScope);
 
-    // This fixture owns a brand-new disposable database. A refused INSERT
-    // leaves zero events, proving the CHECK alone breaks the new API budget.
+    // Real task-owned PostgreSQL proves the restricted runtime role can
+    // account for this *approved* budget while an unknown scope stays denied.
     const keyHash = `anti-abuse-hmac-sha256:v1:${"a".repeat(64)}`;
     await expect(runtime.query(
       `INSERT INTO public.anti_abuse_events(scope,key_hash,state)
        VALUES ($1,$2,'COUNTED')`, [newViewBudgetScope, keyHash],
+    )).resolves.toMatchObject({ rowCount: 1 });
+    await expect(runtime.query(
+      `INSERT INTO public.anti_abuse_events(scope,key_hash,state)
+       VALUES ($1,$2,'COUNTED')`, [unknownViewBudgetScope, keyHash],
     )).rejects.toMatchObject({
       code: "23514", constraint: "anti_abuse_events_scope_check",
     });
     const events = await runtime.query<{ readonly count: number }>(
       "SELECT count(*)::int AS count FROM public.anti_abuse_events",
     );
-    expect(events.rows[0]?.count).toBe(0);
+    expect(events.rows[0]?.count).toBe(1);
   }, 60_000);
 
   it("plain SELECT works but FOR SHARE fails SQLSTATE 42501 on all four private evidence relations", async () => {
