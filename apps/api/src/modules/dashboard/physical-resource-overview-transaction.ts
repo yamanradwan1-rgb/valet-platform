@@ -7,6 +7,9 @@ import {
   isGuestDatabaseOperation,
   remainingDatabaseOperationMs,
 } from "../../common/database/runtime-database-deadline";
+import { MfaStepUpRequiredError } from "../auth/mfa/mfa-errors";
+import { requireMfaAssuranceInTransaction } from "../auth/mfa/mfa-assurance-policy";
+import { localMfaBypassEnabled } from "../auth/mfa/local-mfa-bypass";
 import type { StaffSessionContext } from "../auth/staff-session-context";
 import { authorizeDashboardLocation } from "./dashboard-location-authorization";
 import {
@@ -20,10 +23,38 @@ import {
  * snapshot after an earlier writer; acquire the canonical SESSION advisory
  * before BEGIN instead. The hint is never authority and is rechecked in RR.
  *
- * Company Admin never holds the shared advisory: its existing MFA-gated
- * exclusive Management path runs in the RR transaction without lock upgrade.
+ * Company Admin never holds the shared organization advisory: its existing
+ * MFA-gated exclusive Management path runs in RR. A fresh pre-BEGIN MFA
+ * preflight and a locked factor recheck guard against retired-factor snapshots.
  */
 export async function inAuthorizedPhysicalResourceOverview<T>(
+  pool: PostgresPool,
+  context: StaffSessionContext,
+  locationId: string,
+  action: (
+    transaction: PostgresTransaction,
+    authority: PhysicalResourceAuthority,
+  ) => Promise<T>,
+): Promise<T> {
+  // A factor UPDATE committed after RR's first snapshot raises 40001 when the
+  // guarded factor is SHARE-locked. Start again with fresh eligibility/MFA
+  // rather than retrying a query against the stale snapshot.
+  for (let attempt = 1; attempt <= 5; attempt += 1) {
+    try {
+      return await inAuthorizedPhysicalResourceOverviewAttempt(
+        pool, context, locationId, action,
+      );
+    } catch (error) {
+      if (
+        (error as { readonly code?: unknown }).code !== "40001" ||
+        attempt === 5
+      ) throw error;
+    }
+  }
+  throw new Error("Physical overview serialization retry exhausted.");
+}
+
+async function inAuthorizedPhysicalResourceOverviewAttempt<T>(
   pool: PostgresPool,
   context: StaffSessionContext,
   locationId: string,
@@ -67,6 +98,36 @@ export async function inAuthorizedPhysicalResourceOverview<T>(
         [advisoryOrganizationId],
       );
       advisoryAcquired = true;
+    } else {
+      // A non-authoritative eligibility preflight keeps unrelated users on the
+      // existing 404 path. The exact CA scope and MFA are checked again in RR.
+      const eligible = await client.query(
+        `SELECT 1
+         FROM organization_memberships AS membership
+         INNER JOIN organizations AS organization
+           ON organization.id = membership.organization_id
+         INNER JOIN locations AS location
+           ON location.organization_id = organization.id
+         WHERE membership.user_id = $1
+           AND membership.status = 'ACTIVE'
+           AND membership.role = 'ORG_ADMIN'
+           AND organization.status = 'ACTIVE'
+           AND location.id = $2
+         LIMIT 1`,
+        [context.userId, locationId],
+      );
+      if (eligible.rowCount === 1) {
+        const isolation = await client.query<{ readCommitted: boolean }>(
+          `SELECT current_setting('transaction_isolation') = 'read committed'
+             AS "readCommitted"`,
+        );
+        if (isolation.rows[0]?.readCommitted !== true) {
+          throw new MfaStepUpRequiredError();
+        }
+        await requireMfaAssuranceInTransaction(client, context, {
+          sensitive: false,
+        });
+      }
     }
 
     beginAttempted = true;
@@ -83,6 +144,26 @@ export async function inAuthorizedPhysicalResourceOverview<T>(
         ? { kind: "RR_COMPANY_ADMIN_ONLY" }
         : { kind: "PRELOCKED_RR_LOCATION_MANAGER", hint: managerHint },
     );
+    if (authority.role === "ORG_ADMIN" && !localMfaBypassEnabled()) {
+      // Management already holds this exact session/User FOR UPDATE. Lock the
+      // corresponding active factor through the projection and COMMIT.
+      // PostgreSQL RR raises 40001 if recovery retired the factor after the
+      // snapshot was first taken; the outer boundary retries fresh.
+      const factor = await client.query(
+        `SELECT factor.id
+         FROM staff_auth_sessions AS session
+         INNER JOIN user_mfa_totp_factors AS factor
+           ON factor.id = session.mfa_factor_id
+          AND factor.user_id = session.user_id
+         WHERE session.id = $1
+           AND session.user_id = $2
+           AND session.current_access_token_hash = $3
+           AND factor.state = 'ACTIVE'
+         FOR SHARE OF factor`,
+        [context.staffAuthSessionId, context.userId, context.accessTokenHash],
+      );
+      if (factor.rowCount !== 1) throw new MfaStepUpRequiredError();
+    }
     const result = await action(client, authority);
     if (isGuestDatabaseOperation()) remainingDatabaseOperationMs();
     committing = true;
