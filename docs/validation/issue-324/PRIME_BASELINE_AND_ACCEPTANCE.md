@@ -61,6 +61,25 @@ cleanup, new broad SQLi/XSS/CSRF/BOLA audit, or #333 concurrency campaign.
 Operator-only TLS/ingress/secrets controls stay NEEDS OPERATOR EVIDENCE unless
 validated from actual deployment evidence.
 
+## Source-controlled ingress review
+
+- `infra/nginx/README.md` is a placeholder, not an effective Nginx
+  configuration. `infra/docker/README.md` does not supply a production
+  proxy/container topology; the root compose is PostgreSQL-only.
+- `infra/systemd/README.md` describes a dedicated Customer server bound to
+  `127.0.0.1:3002` behind a managed Cloudflare Tunnel and private
+  `API_ORIGIN=http://127.0.0.1:3001`; this is documentation, not live
+  attestation of public TLS, tunnel hostname or API ingress restrictions.
+- `docs/GUEST_T4_DEPLOYMENT_AND_RECOVERY_RUNBOOK.md` explicitly requires a
+  separate operator deployment decision, verified origin, internal API hop,
+  trust CIDRs, reverse-proxy behavior, replica topology and immutable
+  artifact config. Source review cannot establish these.
+- Consequently no guessed production Nginx directives, broad forwarded-IP
+  trust, loopback-only API binding or HSTS max-age are introduced by Prime.
+  Effective external TLS termination, redirects, WAF, client IP trust,
+  forwarded-proto semantics and edge security headers remain
+  **NEEDS OPERATOR EVIDENCE** with an approved actual topology.
+
 ## Final acceptance
 
 PENDING integration, focused tests, the 104-unit ledger and independent W7
