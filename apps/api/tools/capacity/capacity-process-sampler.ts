@@ -156,20 +156,30 @@ async function sampleWindowsProcess(pid: number): Promise<ProcessMetricSample> {
     "$result=[pscustomobject]@{pid=$p.Id;cpuMs=$p.TotalProcessorTime.TotalMilliseconds;rssBytes=[double]$p.WorkingSet64;sampleMs=$sampleMs;startTimeUtc=$p.StartTime.ToUniversalTime().ToString('o')}",
     "$result | ConvertTo-Json -Compress",
   ].join("; ");
-  const { stdout } = await executeFile(
-    "powershell.exe",
-    ["-NoProfile", "-NonInteractive", "-Command", script],
-    {
-      encoding: "utf8",
-      env: { ...process.env, VAYLET_CAPACITY_PID: String(pid) },
-      maxBuffer: 64 * 1024,
-      // Get-Process uses a separate Windows PowerShell process. Bound that
-      // subprocess even when a heavily contended runner cannot start it
-      // promptly. The caller still fails closed on an incomplete sample.
-      timeout: 10_000,
-      killSignal: "SIGKILL",
-      windowsHide: true,
-    },
-  );
-  return parseWindowsProcessSample(stdout, pid);
+  // A contended Windows runner may time out while starting PowerShell. Retry
+  // that transient child timeout once; each child still has its own hard cap.
+  // Missing PIDs, malformed output, and all other failures remain fail-closed.
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const { stdout } = await executeFile(
+        "powershell.exe",
+        ["-NoProfile", "-NonInteractive", "-Command", script],
+        {
+          encoding: "utf8",
+          env: { ...process.env, VAYLET_CAPACITY_PID: String(pid) },
+          maxBuffer: 64 * 1024,
+          timeout: 10_000,
+          killSignal: "SIGKILL",
+          windowsHide: true,
+        },
+      );
+      return parseWindowsProcessSample(stdout, pid);
+    } catch (error) {
+      const child = error as { killed?: boolean; signal?: string };
+      if (attempt > 0 || child.killed !== true || child.signal !== "SIGKILL") {
+        throw error;
+      }
+    }
+  }
+  throw new Error("Windows process sample is unavailable.");
 }

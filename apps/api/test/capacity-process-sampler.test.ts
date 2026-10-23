@@ -55,11 +55,19 @@ describe("capacity process sampling", () => {
       // This dedicated platform integration proves actual native sampling;
       // portable PID contract tests use a deterministic injected sampler so
       // slow PowerShell startup cannot make validation tests flaky.
-      const sample = await createCapacityProcessSampler("win32").sample(process.pid);
+      const sample = await createCapacityProcessSampler("win32").sample(
+        process.pid,
+      );
       expect(sample.processIdentity).toMatch(/^windows:/);
       expect(sample.oneCpuCapacityUnits).toBeGreaterThan(0);
       expect(sample.rssBytes).toBeGreaterThan(0);
-      await expect(requireCapacityApiPid("2147483647")).rejects.toThrow(
+      await expect(
+        requireCapacityApiPid("2147483647", {
+          sample: async () => {
+            throw new Error("No such process.");
+          },
+        }),
+      ).rejects.toThrow(
         "CAPACITY_API_PID does not identify a readable process.",
       );
     },
