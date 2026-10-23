@@ -245,7 +245,12 @@ test("all variants preserve roles, history, draft protection, Arabic and focus",
       await page.goto(visit(variant, "location"));
       await expect(page.locator(".p321-sla-full")).toBeVisible();
       await page.goto(visit(variant, "services"));
-      await expect(page.locator(".p321-services-full")).toBeVisible();
+      if (variant === "d") {
+        await expect(page).toHaveURL(/section=company/);
+        await expect(page.locator(".p321-services-full")).toHaveCount(0);
+      } else {
+        await expect(page.locator(".p321-services-full")).toBeVisible();
+      }
     });
     await record(results, variant, "Shift Presence subviews and Help focus", async () => {
       await page.goto(visit(variant));

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
+import { Bell, CarFront, MapPinned, WalletCards } from "lucide-react";
 import { ordinarySettings } from "../fixtures/settings-catalog";
 import { sampleCompanyDefaults } from "../fixtures/simulated-data";
 import type { FixtureValue } from "../fixtures/settings-catalog";
@@ -15,6 +16,19 @@ const optionLabels: Record<string, { en: string; ar: string }> = {
   CASH_OR_DIGITAL: { en: "Cash or digital", ar: "نقدي أو رقمي" },
   EN: { en: "English", ar: "الإنجليزية" }, AR: { en: "Arabic", ar: "العربية" },
 };
+
+// Option D alone presents the existing fields in recognizable, icon-led clusters.
+// No setting is created or removed; the other three options keep source order.
+const compactGroups = [
+  { id: "journey", title: { en: "Arrival & handoff", ar: "الدخول والتسليم" }, icon: CarFront,
+    keys: ["checkInPhotosRequired", "handoffStandardMethodPolicy", "validationEnabled", "ocrAssistEnabled", "parkingSpotRequired"] },
+  { id: "tracking", title: { en: "Location & tracking", ar: "الموقع والتتبع" }, icon: MapPinned,
+    keys: ["trackingEnabled", "rawGpsRetentionDays"] },
+  { id: "payments", title: { en: "Fees & payment", ar: "الرسوم والدفع" }, icon: WalletCards,
+    keys: ["valetServiceFee", "paymentServicePayer", "paymentMethodsPolicy", "tipsEnabled", "releaseRequiresPayment"] },
+  { id: "comms", title: { en: "Language & notifications", ar: "اللغة والإشعارات" }, icon: Bell,
+    keys: ["languageDefault", "employeeRetrievalRequestedNotificationEnabled", "guestVehicleReadyNotificationEnabled"] },
+] as const;
 
 interface Props {
   readonly scope: "company" | "location";
@@ -39,10 +53,14 @@ export function SettingRows({ scope, locale, role, draft, saved, onChange, onSav
   const [showAll, setShowAll] = useState(true);
   const ar = locale === "ar";
   const fields = ordinarySettings.filter(field => scope === "company" || role === "COMPANY_ADMIN" || field.locationManager);
-  const shown = showAll ? fields : fields.slice(0, compact ? 7 : 5);
+  const ordered = compact ? compactGroups.flatMap(group => fields.filter(field => (group.keys as readonly string[]).includes(field.key))) : fields;
+  const shown = showAll ? ordered : ordered.slice(0, compact ? 7 : 5);
 
   return <div className="p321-setting-list">
-    {shown.map(field => {
+    {shown.map((field, index) => {
+      const group = compact ? compactGroups.find(entry => (entry.keys as readonly string[]).includes(field.key)) : undefined;
+      const previousGroup = index > 0 ? compactGroups.find(entry => (entry.keys as readonly string[]).includes(shown[index - 1].key)) : undefined;
+      const GroupIcon = group?.icon;
       const stateKey = `${scope}:${field.key}`;
       const placeholder = scope === "location" ? "__INHERIT__" : null;
       const value = draft[stateKey] ?? placeholder;
@@ -52,7 +70,12 @@ export function SettingRows({ scope, locale, role, draft, saved, onChange, onSav
       const savedValue = saved[stateKey] ?? placeholder;
       const savedEffective = savedValue === "__INHERIT__" ? companySaved : savedValue;
       const draftPreview = value === "__INHERIT__" ? companySaved : value;
-      return <div className="p321-setting-row" key={field.key}>
+      return <Fragment key={field.key}>
+        {group && group !== previousGroup && GroupIcon && <div className="p321-setting-group">
+          <GroupIcon aria-hidden="true" size={17} strokeWidth={1.85} />
+          <h3>{group.title[locale]}</h3>
+        </div>}
+        <div className="p321-setting-row">
         <div className="p321-setting-caption">
           <label htmlFor={`field-${stateKey}`}>{field.label[locale]}</label>
           {scope === "location" && <small>{ar ? "افتراضي الشركة المحفوظ: " : "Saved Company default: "}{valueLabel(companySaved, locale)}</small>}
@@ -86,7 +109,8 @@ export function SettingRows({ scope, locale, role, draft, saved, onChange, onSav
           {scope === "location" && onClear && <button className="p321-outline" type="button" disabled={!overrideSaved}
             onClick={() => onClear(stateKey)}>{ar ? "إزالة التخصيص" : "Clear Override"}</button>}
         </div>
-      </div>;
+        </div>
+      </Fragment>;
     })}
     {fields.length > shown.length && <button className="p321-expand" type="button" onClick={() => setShowAll(true)}>
       {ar ? `إظهار كل الإعدادات (${fields.length})` : `Show all settings (${fields.length})`}

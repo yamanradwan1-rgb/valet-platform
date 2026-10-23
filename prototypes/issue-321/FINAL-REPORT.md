@@ -7,6 +7,8 @@
 **Isolated worktree:** `/valet-platform/tmp/issue-321-prototypes`
 **Scope:** Four React + TypeScript prototypes under `prototypes/issue-321/`; no production source, routing, APIs, permissions, or database changes.
 
+**Owner's provisional Phase A selection (23 October): Option D.** An additional polish pass added icon-led navigation and ordinary-setting groups, a mobile disclosure, single content heading/focus, and removed Service Status **from D only**, including direct-link normalization. A/B/C stay available as original comparison options. Details and fresh screenshots: [`evidence/option-d-polish/REVIEW.md`](evidence/option-d-polish/REVIEW.md). Final user acceptance and Phase B authorization remain separate.
+
 ## What to run and review
 
 See [README.md](README.md) for the standalone Vite startup command and direct `/a`, `/b`, `/c`, `/d` URLs. All options share the *real* DashboardShell and source design assets. The blue Compare controls and the Role & scope simulation selector exist **inside** the prototype Policies page, not in the global Dashboard.
@@ -28,7 +30,7 @@ See [README.md](README.md) for the standalone Vite startup command and direct `/
 
 ² Engineering assessment from variant complexity and new layout behavior; no Phase B estimate or authorization.
 
-**Provisional design recommendation:** **Option B**. Its grouped rail exposes the existing Company/Location division clearly and gets users to the first setting substantially sooner on narrow screens. A is the closest familiar extension; C has the strongest explicit scope explanation; D is a compact alternative. The Founder makes the final selection.
+**Original comparative recommendation before the Owner's preference:** **Option B**, based on the earlier narrow-screen first-form measurement. The Owner has since **provisionally selected Option D**, which was further polished. The previous B recommendation is historical and does not override that selection; a new first-form measurement for the polished D is not claimed here.
 
 ## Source-faithful shell and truthful settings
 
@@ -75,6 +77,8 @@ node apps/dashboard/node_modules/@playwright/test/cli.js test --config prototype
 ```
 
 **Result: PASS 8/8 Playwright tests (2.1 minutes, exit 0)** in three new spec files, plus TypeScript, Vite build (1957 modules) and ESLint (0 warnings) PASS. The suite uses one browser worker and does not call production VAYLET APIs.
+
+**Post-Owner Option D polish rerun (23 October): PASS 10/10 Playwright (2.6 minutes, exit 0).** The two added tests enforce D's complete Service Status removal from navigation/deep links/variant changes and its accessible mobile disclosure, Escape/focus and single heading. TypeScript, ESLint (zero warnings) and Vite build (1957 modules) all passed again. The 192-case matrix and 64 primary plus 8 focused screenshots were recaptured with the polished D; evidence files below reflect this latest run.
 
 | Final evidence | Result | File / exact meaning |
 | --- | --- | --- |

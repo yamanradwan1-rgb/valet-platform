@@ -33,6 +33,14 @@ The default self-contained preview uses a clickable offline coordinate-grid sche
 
 Other complete content surfaces include all 15 Company/CA Location typed ordinary settings (10 authorized LM keys), the seven-day OPEN/CLOSED schedule with real HH:mm times and Company inheritance, Location-only SLA Save/Clear validation, the current four-field WhatsApp policy editor in its existing CA Company/Location placement, and read-only Service Status search/filter/refresh.
 
+### Option D — Owner's provisional selection and final polish
+
+The Owner provisionally selected **D** for further design work on 23 October. Only D now omits **Service Status** entirely: it is absent from its sidebar and direct `/d?section=services` URLs normalize to an allowed editing section. A/B/C remain preserved for comparison and retain their original Service Status demonstration.
+
+D now uses icon-led sidebar group labels and four meaningful editor groupings — Arrival & handoff, Location & tracking, Fees & payment, and Language & notifications — without changing the 15 original fields or their permissions. The redundant second section heading has been removed. At mobile widths the vertical secondary navigation is an accessible disclosure, with Enter/Space to open, Escape to close, and focus management after choosing a section. The global Dashboard shell remains exactly the same.
+
+Review the post-selection captures and QA notes in [`evidence/option-d-polish/`](evidence/option-d-polish/REVIEW.md). This is still Phase A, pending the Owner's final visual acceptance for Phase B.
+
 Run checks with:
 
 ```powershell
@@ -49,7 +57,7 @@ The `Save` and `Sign out` controls are **prototype-only simulations**. No backen
 | A — Classic Focused | `variants/option-a/` | Quiet, traditional vertical section rail | Safest layout extension; fewer advanced group cues |
 | B — Grouped Enterprise | `variants/option-b/` | Expandable Company, Location and Information groups | Scales to more settings; slightly busier on narrow screens |
 | C — Context First | `variants/option-c/` | Scope chain above a descriptive section sidebar | Clear Company→Location inheritance; uses more vertical space |
-| D — Compact Workspace | `variants/option-d/` | Dense, understated vertical navigation | Most efficient desktop use; fewer explanatory hints |
+| D — Compact Workspace | `variants/option-d/` | Icon-led grouped navigation, compact editors and mobile disclosure; Service Status omitted | Efficient section access; deliberate compact density |
 
 Exactly one selected settings pane is displayed in each option. Secondary navigation exists only inside the Policies & Settings content area, while the global Dashboard sidebar/topbar remain shared and unmodified.
 

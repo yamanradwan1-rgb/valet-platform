@@ -31,10 +31,15 @@ const optionNames = {
 
 function normalizeRoute(route: PrototypeRoute): PrototypeRoute {
   const scenario = scenarios.find(item => item.id === route.scenario) ?? scenarios[0];
-  const eligible = allowedSections(scenario.role, scenario.hasLocation);
+  const eligible = allowedForOption(route.option, scenario.role, scenario.hasLocation);
   return eligible.some(item => item.id === route.section) ? route : {
     ...route, section: (eligible.find(item => !item.optional)?.id ?? eligible[0]?.id ?? "overview") as PolicySectionId,
   };
+}
+
+function allowedForOption(option: OptionKey, role: "COMPANY_ADMIN" | "LOCATION_MANAGER" | "DENIED", hasLocation: boolean) {
+  const allowed = allowedSections(role, hasLocation);
+  return option === "d" ? allowed.filter(section => section.id !== "services") : allowed;
 }
 
 function currentRoute(): PrototypeRoute {
@@ -67,8 +72,8 @@ function initialValues(): Record<string, Value> {
   return state;
 }
 
-function availableSections(role: "COMPANY_ADMIN" | "LOCATION_MANAGER" | "DENIED", hasLocation: boolean, locale: PrototypeLocale): PolicySection[] {
-  const allowed = allowedSections(role, hasLocation);
+function availableSections(option: OptionKey, role: "COMPANY_ADMIN" | "LOCATION_MANAGER" | "DENIED", hasLocation: boolean, locale: PrototypeLocale): PolicySection[] {
+  const allowed = allowedForOption(option, role, hasLocation);
   return allowed.map(section => ({
     id: section.id as PolicySectionId,
     label: section.label[locale],
@@ -107,7 +112,7 @@ export default function App() {
   }, []);
   const scenario = scenarios.find(s => s.id === route.scenario) ?? scenarios[0];
   const hasLocation = scenario.hasLocation;
-  const eligible = useMemo(() => availableSections(scenario.role, hasLocation, route.locale), [scenario.role, hasLocation, route.locale]);
+  const eligible = useMemo(() => availableSections(route.option, scenario.role, hasLocation, route.locale), [route.option, scenario.role, hasLocation, route.locale]);
   const selected = eligible.some(section => section.id === route.section) ? route.section : (eligible[0]?.id ?? "overview");
   // Exact nonproduction labels from the W1 repository browser fixture.
   const organization = "Acme Valet";

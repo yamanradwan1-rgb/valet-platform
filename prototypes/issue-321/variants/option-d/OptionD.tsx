@@ -1,11 +1,14 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  Activity,
   Building2,
+  ChevronDown,
   ChevronRight,
-  Clock3,
   LayoutDashboard,
+  Layers3,
   MapPin,
+  MapPinned,
+  PanelLeft,
+  SlidersHorizontal,
   type LucideIcon,
 } from "lucide-react";
 
@@ -17,19 +20,23 @@ import type {
 
 import "./option-d.css";
 
-const sectionIcons: Record<PolicySectionId, LucideIcon> = {
+const sectionIcons: Partial<Record<PolicySectionId, LucideIcon>> = {
   overview: LayoutDashboard,
   company: Building2,
+  location: SlidersHorizontal,
+  presence: MapPinned,
+};
+const groupIcons: Record<PolicySection["group"], LucideIcon> = {
+  company: Building2,
   location: MapPin,
-  presence: Clock3,
-  services: Activity,
+  information: Layers3,
 };
 
 const copy = {
   en: {
     navigation: "Policy sections",
     sections: "Sections",
-    selected: "Current section",
+    workspace: "Settings workspace",
     company: "Company",
     location: "Location",
     information: "Information",
@@ -41,7 +48,7 @@ const copy = {
   ar: {
     navigation: "أقسام السياسات",
     sections: "الأقسام",
-    selected: "القسم الحالي",
+    workspace: "مساحة الإعدادات",
     company: "الشركة",
     location: "الموقع",
     information: "معلومات",
@@ -64,13 +71,15 @@ export default function OptionD({
 }: PolicyVariantProps) {
   const t = copy[locale];
   const selected = sections.find((section) => section.id === activeSection);
-  const headingRef = useRef<HTMLHeadingElement>(null);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
   const previousSection = useRef(activeSection);
+  const SelectedIcon = sectionIcons[activeSection] ?? LayoutDashboard;
 
   useEffect(() => {
     if (previousSection.current !== activeSection) {
       previousSection.current = activeSection;
-      headingRef.current?.focus();
+      document.querySelector<HTMLElement>(".issue321-option-d #p321-current-section")?.focus();
     }
   }, [activeSection]);
 
@@ -89,21 +98,37 @@ export default function OptionD({
       <div className="issue321-option-d__layout">
         <aside className="issue321-option-d__rail">
           <div className="issue321-option-d__rail-header">
-            <span className="issue321-option-d__eyebrow">{t.sections}</span>
+            <span className="issue321-option-d__eyebrow"><PanelLeft aria-hidden="true" size={14} />{t.sections}</span>
+            <button ref={toggleRef} className="issue321-option-d__mobile-toggle" type="button"
+              aria-controls="issue321-option-d-sections" aria-expanded={mobileNavOpen}
+              onClick={() => setMobileNavOpen(open => !open)}>
+              <SelectedIcon aria-hidden="true" size={17} strokeWidth={1.85} />
+              <span>{selected?.label ?? t.sections}</span>
+              <ChevronDown aria-hidden="true" size={16} className={mobileNavOpen ? "is-open" : undefined} />
+            </button>
           </div>
 
-          <nav aria-label={t.navigation} className="issue321-option-d__nav">
+          <nav id="issue321-option-d-sections" aria-label={t.navigation} className="issue321-option-d__nav"
+            data-mobile-open={mobileNavOpen} onKeyDown={event => {
+              if (event.key === "Escape" && mobileNavOpen) {
+                event.preventDefault();
+                setMobileNavOpen(false);
+                toggleRef.current?.focus();
+              }
+            }}>
             <ul className="issue321-option-d__nav-list">
               {sections.map((section) => {
                 const showGroup = section.group !== previousGroup;
                 previousGroup = section.group;
-                const Icon = sectionIcons[section.id];
+                const Icon = sectionIcons[section.id] ?? LayoutDashboard;
+                const GroupIcon = groupIcons[section.group];
                 const current = section.id === activeSection;
 
                 return (
                   <li key={section.id} className="issue321-option-d__nav-entry">
                     {showGroup ? (
                       <span className="issue321-option-d__group-label">
+                        <GroupIcon aria-hidden="true" size={13} strokeWidth={1.8} />
                         {groupName(section.group)}
                       </span>
                     ) : null}
@@ -113,7 +138,9 @@ export default function OptionD({
                       aria-controls="issue321-option-d-selected-pane"
                       className="issue321-option-d__nav-button"
                       onClick={() => {
+                        setMobileNavOpen(false);
                         if (!current) onSelect(section.id);
+                        else toggleRef.current?.focus();
                       }}
                     >
                       <Icon aria-hidden="true" size={17} strokeWidth={1.85} />
@@ -153,22 +180,16 @@ export default function OptionD({
           className="issue321-option-d__pane"
           id="issue321-option-d-selected-pane"
           role="region"
-          aria-labelledby="issue321-option-d-heading"
+          aria-labelledby={selected ? "p321-current-section" : "issue321-option-d-heading"}
         >
           {selected ? (
             <>
-              <header className="issue321-option-d__pane-header">
-                <div className="issue321-option-d__pane-heading">
-                  <span className="issue321-option-d__eyebrow">{t.selected}</span>
-                  <h2 id="issue321-option-d-heading" ref={headingRef} tabIndex={-1}>
-                    {selected.label}
-                  </h2>
-                  <p>{selected.description}</p>
-                </div>
+              <div className="issue321-option-d__workspace-caption">
+                <span><SlidersHorizontal aria-hidden="true" size={15} strokeWidth={1.8} />{t.workspace}</span>
                 {selected.readOnly ? (
                   <span className="issue321-option-d__read-only">{t.readOnly}</span>
                 ) : null}
-              </header>
+              </div>
               <span className="issue321-option-d__sr-only" role="status" aria-live="polite">
                 {selected.label}
               </span>
