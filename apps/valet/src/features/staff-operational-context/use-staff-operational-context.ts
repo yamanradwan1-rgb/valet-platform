@@ -68,6 +68,11 @@ export function useStaffOperationalContext(
   }, [controller, apiClient]);
 
   useEffect(() => {
+    controller.attach(setControllerState);
+    return () => controller.destroy();
+  }, [controller]);
+
+  useEffect(() => {
     controller.setAuth(status, accessToken, sessionGeneration);
 
     const onVisibilityChange = () => {
@@ -90,12 +95,6 @@ export function useStaffOperationalContext(
       window.removeEventListener("online", onOnline);
     };
   }, [controller, status, accessToken, sessionGeneration]);
-
-  useEffect(() => {
-    return () => {
-      controller.destroy();
-    };
-  }, [controller]);
 
   const refresh = useCallback(async (): Promise<void> => {
     await controller.refresh();

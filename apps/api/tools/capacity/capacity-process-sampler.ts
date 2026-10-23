@@ -163,6 +163,11 @@ async function sampleWindowsProcess(pid: number): Promise<ProcessMetricSample> {
       encoding: "utf8",
       env: { ...process.env, VAYLET_CAPACITY_PID: String(pid) },
       maxBuffer: 64 * 1024,
+      // Get-Process uses a separate Windows PowerShell process. Bound that
+      // subprocess even when a heavily contended runner cannot start it
+      // promptly. The caller still fails closed on an incomplete sample.
+      timeout: 10_000,
+      killSignal: "SIGKILL",
       windowsHide: true,
     },
   );

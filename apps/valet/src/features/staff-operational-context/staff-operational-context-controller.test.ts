@@ -3,7 +3,7 @@ import type { StaffOperationalContextResponse } from "@valet/contracts";
 
 import { EmployeeApiError } from "../../lib/api/employee-api-errors";
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
-import { StaffOperationalContextController } from "./staff-operational-context-controller";
+import { StaffOperationalContextController, type StaffOperationalContextState } from "./staff-operational-context-controller";
 
 const flushAsync = async () => {
   await Promise.resolve();
@@ -42,6 +42,27 @@ const makeContext = (
 });
 
 describe("StaffOperationalContextController Refresh & Invalidation", () => {
+  it("rebinds after StrictMode effect cleanup and accepts authenticated context without resurrecting stale work", async () => {
+    const response = makeContext("44444444-4444-4444-8444-444444444444", "Hotel");
+    const request = vi.fn().mockResolvedValue(response);
+    const updates: StaffOperationalContextState[] = [];
+    const controller = new StaffOperationalContextController({
+      apiClient: { request } as unknown as EmployeeApiClient,
+      onStateChange: (state) => updates.push(state),
+    });
+    controller.setAuth("unauthenticated", null, 0);
+    controller.destroy();
+    controller.attach((state) => updates.push(state));
+    controller.setAuth("authenticated", "token", 1);
+    await flushAsync();
+    expect(request).toHaveBeenCalledOnce();
+    expect(controller.getState().response).toEqual(response);
+    expect(updates.at(-1)?.response).toEqual(response);
+    controller.destroy();
+    controller.setAuth("authenticated", "stale", 2);
+    expect(request).toHaveBeenCalledOnce();
+  });
+
   beforeEach(() => {
     vi.useFakeTimers();
   });
