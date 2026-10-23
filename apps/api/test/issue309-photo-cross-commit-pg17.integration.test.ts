@@ -31,17 +31,16 @@ async function ensureNoIdleTransaction(h: Issue309PhotoHttpFixture, writerPid?: 
     application_name: string;
     xact_start: Date | null;
     state_change: Date | null;
-    query: string;
   }>(
-    `SELECT pid,usename,application_name,xact_start,state_change,
-            left(query,160) AS query
+    `SELECT pid,usename,application_name,xact_start,state_change
      FROM pg_stat_activity
      WHERE datname=current_database() AND pid<>pg_backend_pid()
        AND state='idle in transaction'
      ORDER BY pid`,
   );
-  // Keep the zero-idle invariant; surface backend identity to distinguish a
-  // pending test writer from an unreleased photo witness or app pool lease.
+  // Preserve the zero-idle invariant while attributing the backend. Never
+  // include pg_stat_activity.query: a failed CI assertion must not log SQL
+  // text (or any bound values possibly present in statement diagnostics).
   expect(result.rows, `Idle transaction(s); test writer PID=${writerPid ?? "none"}: ${JSON.stringify(result.rows)}`)
     .toEqual([]);
 }
