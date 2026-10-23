@@ -73,11 +73,12 @@ describe("Issue #309 two-connection real restricted PG17 + Node HTTP fence", () 
     it(`revoker-first ${kind} transaction wins and denies real JPEG`,async()=>{
       const item = await seedPhotoFenceCase(h);
       const writer = await h.db.admin.connect();
-      const writerPid = (await writer.query<{ pid: number }>(
-        "SELECT pg_backend_pid() AS pid",
-      )).rows[0]!.pid;
+      let writerPid: number | undefined;
       let open = false;
       try {
+        writerPid = (await writer.query<{ pid: number }>(
+          "SELECT pg_backend_pid() AS pid",
+        )).rows[0]?.pid;
         await writer.query("BEGIN"); open=true;
         await revoke(writer,item,kind);
         const pending = runPhotoFenceHttp(h,item);
