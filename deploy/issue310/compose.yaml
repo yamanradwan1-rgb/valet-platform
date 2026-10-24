@@ -1,0 +1,146 @@
+name: vaylet-wa310
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: wa310_bootstrap
+      POSTGRES_PASSWORD: ${WA310_BOOTSTRAP_PASSWORD:?missing isolated bootstrap password}
+      POSTGRES_DB: vaylet_wa310
+      WA310_MIGRATION_PASSWORD: ${WA310_MIGRATION_PASSWORD:?missing isolated migration password}
+      WA310_API_PASSWORD: ${WA310_API_PASSWORD:?missing isolated API password}
+      WA310_SENDER_PASSWORD: ${WA310_SENDER_PASSWORD:?missing isolated sender password}
+      WA310_WEBHOOK_PASSWORD: ${WA310_WEBHOOK_PASSWORD:?missing isolated webhook password}
+    ports:
+      - "127.0.0.1:56310:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres-init.sh:/docker-entrypoint-initdb.d/10-wa310-roles.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wa310_bootstrap -d vaylet_wa310"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    networks:
+      - data
+      - maintenance
+    labels:
+      vaylet.issue: "310"
+      vaylet.environment: "new-isolated-whatsapp-sandbox"
+
+  minio:
+    image: cgr.dev/chainguard/minio@sha256:2136d593beacf4461187035eca949fe49abd589d5079735025c711ca58fee0c8
+    command: ["server", "/data", "--address", ":9000"]
+    environment:
+      MINIO_ROOT_USER: ${WA310_MINIO_USER:?missing isolated MinIO user}
+      MINIO_ROOT_PASSWORD: ${WA310_MINIO_PASSWORD:?missing isolated MinIO password}
+    ports:
+      - "127.0.0.1:59310:9000"
+    volumes:
+      - miniostore:/data
+    networks:
+      - data
+      - maintenance
+    labels:
+      vaylet.issue: "310"
+      vaylet.environment: "new-isolated-whatsapp-sandbox"
+
+  api:
+    build:
+      context: ../..
+      dockerfile: deploy/issue310/Dockerfile
+    image: vaylet-wa310-app:local
+    env_file: ../../tmp/wa310-runtime/api.env
+    environment:
+      WA310_RUNTIME_SERVICE: api
+      STAFF_PUSH_ACTIVE_REGISTRATION_STALE_DAYS: "30"
+      STAFF_PUSH_CLEANUP_INTERVAL_HOURS: "24"
+      STAFF_PUSH_RETRIEVAL_CREATION_ENABLED: "false"
+      STAFF_PUSH_RETRIEVAL_INTENT_TTL_SECONDS: "300"
+      STAFF_PUSH_RETRIEVAL_MAX_ATTEMPTS: "4"
+      STAFF_PUSH_RETRIEVAL_POLICY_VERSION: "1"
+      STAFF_PUSH_INTENT_DELIVERY_RETENTION_DAYS: "7"
+      STAFF_PUSH_LEASE_DURATION_SECONDS: "30"
+      STAFF_PUSH_PROVIDER_CALL_TIMEOUT_SECONDS: "10"
+      STAFF_PUSH_RETRY_CAP_SECONDS: "60"
+      STAFF_PUSH_RETRY_MINIMUM_SECONDS: "10"
+      STAFF_PUSH_WORKER_SENDING_ENABLED: "false"
+      STAFF_PUSH_TERMINAL_REGISTRATION_RETENTION_DAYS: "30"
+    command: ["node", "deploy/issue310/entrypoint.mjs"]
+    volumes:
+      - ../../tmp/wa310-runtime/transport-public.pem:/run/wa310/transport-public.pem:ro
+    ports:
+      - "127.0.0.1:33110:3001"
+      - "127.0.0.1:33112:3002"
+      - "127.0.0.1:33113:3003"
+    networks:
+      - data
+      - edge
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 24
+    labels:
+      vaylet.issue: "310"
+
+  customer:
+    image: vaylet-wa310-app:local
+    environment:
+      WA310_RUNTIME_SERVICE: customer
+      NODE_ENV: production
+      API_ORIGIN: http://127.0.0.1:3001
+      HOSTNAME: 0.0.0.0
+      PORT: "3002"
+    command: ["node", "deploy/issue310/entrypoint.mjs"]
+    network_mode: "service:api"
+    depends_on:
+      api:
+        condition: service_healthy
+    labels:
+      vaylet.issue: "310"
+
+  dashboard:
+    image: vaylet-wa310-app:local
+    environment:
+      NODE_ENV: production
+      API_ORIGIN: http://127.0.0.1:3001
+      HOSTNAME: 0.0.0.0
+      PORT: "3003"
+    command: ["node", "apps/dashboard/.next/standalone/apps/dashboard/server.js"]
+    network_mode: "service:api"
+    depends_on:
+      api:
+        condition: service_healthy
+    labels:
+      vaylet.issue: "310"
+
+  sender:
+    image: vaylet-wa310-app:local
+    env_file: ../../tmp/wa310-runtime/sender.env
+    environment:
+      WA310_RUNTIME_SERVICE: sender
+    command: ["node", "deploy/issue310/entrypoint.mjs"]
+    volumes:
+      - ../../tmp/wa310-runtime/transport-private.pem:/run/wa310/transport-private.pem:ro
+    networks:
+      - data
+      - edge
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      vaylet.issue: "310"
+
+networks:
+  data:
+    internal: true
+  edge: {}
+  maintenance: {}
+
+volumes:
+  pgdata: {}
+  miniostore: {}

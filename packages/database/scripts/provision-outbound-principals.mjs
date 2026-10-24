@@ -1,6 +1,6 @@
 import "dotenv/config";
 import pg from "pg";
-import { migrationClientConfig, verifyMigrationConnectionTls } from "./database-connection-policy.mjs";
+import { migrationClientConfig, parseMigrationDatabaseUrl, verifyMigrationConnectionTls } from "./database-connection-policy.mjs";
 import { provisionOutboundPrincipal } from "./outbound-principal-privileges.mjs";
 
 function extractRole(source, label) {
@@ -24,7 +24,8 @@ async function main() {
   if (identities.size !== 4 || [sender,webhook,runtime].some((row) => row.database !== migration.database)) {
     throw new Error("Outbound database principals must be distinct and target one database.");
   }
-  const client = new pg.Client(migrationClientConfig(migrationUrl, process.env.NODE_ENV));
+  const migrationConnection = parseMigrationDatabaseUrl(migrationUrl, process.env.NODE_ENV);
+  const client = new pg.Client(migrationClientConfig(migrationConnection, process.env.NODE_ENV));
   await client.connect();
   try {
     await verifyMigrationConnectionTls(client, process.env.NODE_ENV);

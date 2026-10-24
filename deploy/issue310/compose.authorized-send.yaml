@@ -1,0 +1,7 @@
+# Apply only for a separately verified, time-limited, single-recipient live test.
+# This opt-in overlay mounts a local ignored credential into the sender alone.
+# It intentionally does not alter the default OFF flags or durable SQL controls.
+services:
+  sender:
+    volumes:
+      - ../../tmp/wa310-runtime/meta-access-token:/run/wa310/meta-access-token:ro
