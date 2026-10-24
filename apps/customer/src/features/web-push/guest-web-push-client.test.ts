@@ -158,10 +158,10 @@ describe('Guest Web Push browser contract', () => {
       auth: 'auth-key',
       locale: 'ar',
       p256dh: 'p256dh-key',
-    }, undefined);
+    }, expect.any(AbortSignal));
   });
 
-  it('removes a newly-created browser subscription when server binding fails', async () => {
+  it('retains a newly-created subscription when server binding outcome is unknown', async () => {
     const subscription = fakeSubscription();
     const transport: GuestWebPushTransport = {
       loadVapidPublicKey: vi.fn(async () => 'BEl6N3N1hXlJ2HtQ8LrT7t75cQ'),
@@ -174,6 +174,6 @@ describe('Guest Web Push browser contract', () => {
         pushManager: { getSubscription: async () => null, subscribe: async () => subscription },
       }) as unknown as ServiceWorkerRegistration,
     })).rejects.toThrow('unavailable');
-    expect(subscription.unsubscribe).toHaveBeenCalledTimes(1);
+    expect(subscription.unsubscribe).not.toHaveBeenCalled();
   });
 });

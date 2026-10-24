@@ -4,6 +4,11 @@ import {
   announceBrowserContextChange,
   readBrowserContextMarker,
 } from '../../lib/api/guest-browser-context-marker';
+import {
+  boundedGuestWebPushStage,
+  guestWebPushAbortError,
+  guestWebPushStages,
+} from './guest-web-push-stage';
 
 export type GuestWebPushCapability =
   | 'AVAILABLE'
@@ -135,35 +140,76 @@ export async function enableGuestWebPush(
   dependencies: BrowserPushDependencies = browserDependencies(),
 ): Promise<'ENABLED' | GuestWebPushCapability> {
   const browserContext = readBrowserContextMarker();
+  const stages = guestWebPushStages(signal);
+  const assertCurrent = () => {
+    if (signal?.aborted) throw guestWebPushAbortError();
+    assertGuestPushContext(browserContext);
+  };
+  assertCurrent();
   const initial = dependencies.capability();
   const initialCapability = detectGuestWebPushCapability(initial);
   if (initialCapability !== 'AVAILABLE') return initialCapability;
 
   let permission = initial.permission;
-  if (permission === 'default') permission = await dependencies.requestPermission();
+  if (permission === 'default') {
+    permission = await stages('permission', 15_000, () => dependencies.requestPermission());
+  }
+  assertCurrent();
   if (permission !== 'granted') return permission === 'denied' ? 'DENIED' : 'AVAILABLE';
-  assertGuestPushContext(browserContext);
-  signal?.throwIfAborted();
 
-  const registration = await dependencies.serviceWorkerReady();
-  let subscription = await registration.pushManager.getSubscription();
+  const registration = await stages('service worker', 8_000, () => dependencies.serviceWorkerReady());
+  assertCurrent();
+  let subscription = await stages(
+    'existing subscription',
+    5_000,
+    () => registration.pushManager.getSubscription(),
+  );
+  assertCurrent();
   let created = false;
   if (subscription === null) {
-    const publicKey = await transport.loadVapidPublicKey(signal);
-    signal?.throwIfAborted();
-    subscription = await registration.pushManager.subscribe({
-      applicationServerKey: decodeVapidPublicKey(publicKey),
+    const publicKey = await stages(
+      'public key',
+      8_000,
+      (stageSignal) => transport.loadVapidPublicKey(stageSignal),
+    );
+    assertCurrent();
+    const applicationServerKey = decodeVapidPublicKey(publicKey);
+    // subscribe() is native and not abortable. A late resolution must never
+    // continue into server binding or remove a subscription a retry may reuse.
+    subscription = await stages('subscribe', 10_000, () => registration.pushManager.subscribe({
+      applicationServerKey,
       userVisibleOnly: true,
-    });
+    }));
     created = true;
+    assertCurrent();
   }
 
+  let registrationStarted = false;
   try {
-    assertGuestPushContext(browserContext);
-    await transport.registerSubscription(serializeSubscription(subscription, locale), signal);
+    const payload = serializeSubscription(subscription, locale);
+    assertCurrent();
+    await stages(
+      'server registration',
+      10_000,
+      (stageSignal) => {
+        registrationStarted = true;
+        return transport.registerSubscription(payload, stageSignal);
+      },
+    );
+    assertCurrent();
     return 'ENABLED';
   } catch (error) {
-    if (created) await subscription.unsubscribe().catch(() => false);
+    // Once POST begins, a rejected/aborted/lost response is an UNKNOWN commit.
+    // Keep the browser subscription so a new authorized gesture can reconcile.
+    // Also preserve subscriptions reused by this or a concurrent operation.
+    if (created && !registrationStarted && !signal?.aborted &&
+        browserContext === readBrowserContextMarker()) {
+      await boundedGuestWebPushStage(
+        'local subscription cleanup',
+        () => subscription.unsubscribe(),
+        1_500,
+      ).catch(() => false);
+    }
     throw error;
   }
 }
