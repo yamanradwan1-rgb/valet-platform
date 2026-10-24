@@ -1,9 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Btn } from '../../components/primitives/btn';
 import { useTranslation } from '../../i18n/use-translation';
+import {
+  GUEST_CONTEXT_CHANGED_EVENT,
+  readBrowserContextMarker,
+} from '../../lib/api/guest-browser-context-marker';
 import { C } from '../../lib/theme/colors';
 import { guestWebPushCopy } from './guest-web-push-copy';
 import {
@@ -16,6 +20,8 @@ import {
 import { createGuestWebPushTransport } from './guest-web-push-transport';
 
 type PresentationState = GuestWebPushCapability | 'CHECKING' | 'ENABLING' | 'FAILED';
+const CONFIG_CHECK_DEADLINE_MS = 12_000;
+const ENABLE_DEADLINE_MS = 35_000;
 
 export function GuestWebPushPermissionPresentation({
   copy,
@@ -87,36 +93,106 @@ export function GuestWebPushPermissionCard({
   const { direction, locale } = useTranslation();
   const copy = guestWebPushCopy(locale);
   const [activeTransport] = useState(() => transport ?? createGuestWebPushTransport());
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed, updateDismissed] = useState(false);
+  const mountedRef = useRef(false);
+  const dismissedRef = useRef(false);
+  const generationRef = useRef(0);
+  const operationRef = useRef<AbortController | null>(null);
   const [state, setState] = useState<PresentationState>(() => {
     if (typeof window === 'undefined') return 'UNSUPPORTED';
     const capability = detectGuestWebPushCapability(readGuestWebPushCapability());
     return capability === 'AVAILABLE' ? 'CHECKING' : capability;
   });
 
+  const invalidate = useCallback(() => {
+    generationRef.current += 1;
+    operationRef.current?.abort();
+    operationRef.current = null;
+  }, []);
+
+  // The existing Not now JSX calls this synchronously, including while enabling.
+  const setDismissed = useCallback((value: boolean) => {
+    if (value) {
+      dismissedRef.current = true;
+      invalidate();
+    }
+    updateDismissed(value);
+  }, [invalidate]);
+
+  const canCommit = useCallback((
+    controller: AbortController,
+    generation: number,
+    marker: string | null,
+  ) => {
+    if (!mountedRef.current || dismissedRef.current || controller.signal.aborted ||
+      operationRef.current !== controller || generationRef.current !== generation) return false;
+    if (readBrowserContextMarker() !== marker) {
+      setDismissed(true);
+      return false;
+    }
+    return true;
+  }, [setDismissed]);
+
   useEffect(() => {
-    if (state !== 'CHECKING') return;
-    let current = true;
-    void activeTransport.loadVapidPublicKey().then(
-      () => { if (current) setState('AVAILABLE'); },
-      () => { if (current) setState('FAILED'); },
-    );
-    return () => { current = false; };
-  }, [activeTransport, state]);
+    mountedRef.current = true;
+    const onContextChange = () => setDismissed(true);
+    window.addEventListener(GUEST_CONTEXT_CHANGED_EVENT, onContextChange);
+    return () => {
+      mountedRef.current = false;
+      window.removeEventListener(GUEST_CONTEXT_CHANGED_EVENT, onContextChange);
+      invalidate();
+    };
+  }, [invalidate, setDismissed]);
+
+  useEffect(() => {
+    if (state !== 'CHECKING' || dismissedRef.current) return;
+    const controller = new AbortController();
+    const generation = ++generationRef.current;
+    const marker = readBrowserContextMarker();
+    operationRef.current = controller;
+    const deadline = setTimeout(() => {
+      if (!canCommit(controller, generation, marker)) return;
+      invalidate();
+      setState('FAILED');
+    }, CONFIG_CHECK_DEADLINE_MS);
+    void activeTransport.loadVapidPublicKey(controller.signal).then(
+      () => { if (canCommit(controller, generation, marker)) setState('AVAILABLE'); },
+      () => { if (canCommit(controller, generation, marker)) setState('FAILED'); },
+    ).finally(() => clearTimeout(deadline));
+    return () => {
+      clearTimeout(deadline);
+      controller.abort();
+      if (operationRef.current === controller) operationRef.current = null;
+    };
+  }, [activeTransport, canCommit, invalidate, state]);
 
   if (dismissed || state === 'CHECKING') return null;
   const onEnable = async () => {
-    if (state !== 'AVAILABLE' && state !== 'FAILED') return;
+    if ((state !== 'AVAILABLE' && state !== 'FAILED') ||
+      !mountedRef.current || dismissedRef.current || operationRef.current !== null) return;
+    const controller = new AbortController();
+    const generation = ++generationRef.current;
+    const marker = readBrowserContextMarker();
+    operationRef.current = controller;
     setState('ENABLING');
+    const deadline = setTimeout(() => {
+      if (!canCommit(controller, generation, marker)) return;
+      invalidate();
+      setState('FAILED');
+    }, ENABLE_DEADLINE_MS);
     try {
-      const result = await enableGuestWebPush(activeTransport, locale);
+      const result = await enableGuestWebPush(activeTransport, locale, controller.signal);
+      if (!canCommit(controller, generation, marker)) return;
       if (result === 'ENABLED') {
         setDismissed(true);
         return;
       }
       setState(result);
     } catch {
-      setState('FAILED');
+      if (canCommit(controller, generation, marker)) setState('FAILED');
+    } finally {
+      clearTimeout(deadline);
+      if (operationRef.current === controller) operationRef.current = null;
     }
   };
 
