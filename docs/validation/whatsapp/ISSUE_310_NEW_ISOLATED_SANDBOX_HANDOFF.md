@@ -95,3 +95,80 @@ The database smoke uses random synthetic digest and tests a stale-revision denia
 6. Immediately disable test issuance and sending, stop sender, revoke the temporary token and verify zero unexpected extra sends. Keep production controls OFF throughout.
 
 **Final gate now: CONFIG_BLOCKED.** No live WhatsApp acceptance, signed webhook, physical Customer session match or full CI pass is claimed.
+
+## Follow-up: owner-side browser setup and separate Tailscale host (2026-10-24)
+
+The owner reports that Antigravity saved these **tailnet administration**
+objects: `tag:vaylet-wa310-host`, `svc:vaylet-wa310-customer`, endpoint
+`tcp:443`, hostname `vaylet-wa310-customer.taild797f4.ts.net`.
+This is evidence of the **admin-side definition**, not a running tagged host.
+Host-side inspection independently found the existing Windows
+`DESKTOP-K4VORAN` node online but untagged; no connected Issue310 tagged
+host was listed. All old `tailscale serve status` mappings remained unchanged.
+The new Service DNS name resolved, but HTTPS navigation to its root failed.
+
+Two optional, tracked Issue310-only artifacts now prepare a separate host:
+
+- `deploy/issue310/compose.tailscale-service.yaml` — a **profile-only**
+  Tailscale container `tailscale-customer`, `network_mode: service:api`,
+  userspace networking, `TS_EXTRA_ARGS=--advertise-tags=tag:vaylet-wa310-host`.
+  Its state uses its own `tailscale_state` volume; it never changes the
+  Windows Tailscale node identity.
+- `deploy/issue310/tailscale-service-config/serveconfig.json` — the exact
+  `svc:vaylet-wa310-customer` `tcp:443` mapping to **HTTP
+  `127.0.0.1:3002`** inside the API/Customer shared network namespace.
+  `docker exec vaylet-wa310-api-1 node -e ...` verified HTTP **200** from
+  that same namespace. The published Windows `33112` port is an external
+  loopback mirror; the sidecar must use internal port **3002**.
+
+Tailscale's official containerboot implementation supports
+`TS_AUTHKEY=file:/run/secrets/wa310-host-authkey`, so no auth-key value
+is embedded in Git, Docker Compose variables, or inspectable container
+environment. The secret mount points only to the ignored private runtime.
+`docker compose ... config --quiet` passed with the overlay.
+**No tagged-host auth-key file currently exists; the sidecar was not started.**
+
+### Minimal owner-side Tailscale credential dependency
+
+1. Generate a **short-lived, tag-scoped** auth key in the Tailscale admin
+   console for `tag:vaylet-wa310-host`; choose expiry/reuse policy
+   appropriate to this single dedicated test host. Do not paste it into
+   chat, Git, shell history or reports.
+2. Install it securely as the existing private Issue310 runtime file
+   `tmp/wa310-runtime/tailscale-host-authkey`, with restricted NTFS
+   permissions inherited from that private directory.
+3. From the last-mile worktree, start **only** the optional host:
+
+   ```powershell
+   docker compose -p vaylet-wa310 -f deploy/issue310/compose.yaml -f deploy/issue310/compose.tailscale-service.yaml --env-file tmp/wa310-runtime/compose.env --profile wa310-tailnet up -d --no-deps tailscale-customer
+   ```
+
+4. On the sidecar, inspect Tailscale status, tag and Service advertisement.
+   Confirm admin approval/access to `svc:vaylet-wa310-customer`, then check
+   `https://vaylet-wa310-customer.taild797f4.ts.net/` from both Windows and
+   the authorized tailnet phone. Check the Guest bootstrap/fragment before
+   installing the origin in the sender configuration.
+5. Only after live HTTPS passes, update the **Issue310-only** Customer origin,
+   API Guest allowed origins and sender configuration. Rebuild/restart only
+   affected Issue310 app containers. Never redirect existing Windows 443.
+
+### Updated Meta evidence and remaining authorization
+
+The owner also reports Meta Sandbox WABA `3491682417667249`, Phone ID
+`1426684017189271`, `guest_access` Arabic template
+`2003500221022564` and English template `28615795824783341`,
+both approved with one BODY URL variable. One recipient is reported
+Meta-verified. These facts document the owner-side portal check; they
+do **not** attest a verified binding or valid VAYLET consent in SQL.
+The last-mile readiness SQL still reports binding/policy/consent/template
+as BLOCKED. There is no current recipient-specific consent GRANT or
+authorized verified binding in this Issue310 database. Never backdate
+`provider_verified_at`, use a fabricated evidence reference, or mark
+the recipient opted in merely because Meta lists them as test-verified.
+The API's sensitive-MFA management path and a genuinely authorized
+provider onboarding/verification authority must perform those changes.
+
+No Meta temporary access token has been generated or requested; no
+single-message dispatch, phone delivery, Guest Session match or signed
+webhook receipt has been observed. Issue310 remains **CONFIG_BLOCKED**
+with test and production issue/send controls OFF/OFF.

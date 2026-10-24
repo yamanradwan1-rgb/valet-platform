@@ -1,0 +1,35 @@
+# Include only for the approved, separately tagged Issue310 Service host.
+# Compose intentionally requires an ignored local auth-key file before starting.
+services:
+  tailscale-customer:
+    image: tailscale/tailscale:v1.104.1@sha256:87c55d6be56ad85b3d8bceca5f87f73de288c609131460dd1be1874c250cc41d
+    profiles: ["wa310-tailnet"]
+    hostname: vaylet-wa310-host
+    network_mode: "service:api"
+    environment:
+      TS_USERSPACE: "true"
+      TS_AUTH_ONCE: "true"
+      TS_HOSTNAME: "vaylet-wa310-host"
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_AUTHKEY: "file:/run/secrets/wa310-host-authkey"
+      TS_EXTRA_ARGS: "--advertise-tags=tag:vaylet-wa310-host"
+      TS_SERVE_CONFIG: "/config/serveconfig.json"
+      TS_EXPERIMENTAL_SERVICE_AUTO_ADVERTISEMENT: "true"
+    volumes:
+      - tailscale_state:/var/lib/tailscale
+      - ./tailscale-service-config:/config:ro
+    secrets:
+      - wa310_host_authkey
+    depends_on:
+      api:
+        condition: service_healthy
+    labels:
+      vaylet.issue: "310"
+      vaylet.environment: "separate-tagged-customer-service-host"
+
+secrets:
+  wa310_host_authkey:
+    file: ../../tmp/wa310-runtime/tailscale-host-authkey
+
+volumes:
+  tailscale_state: {}
