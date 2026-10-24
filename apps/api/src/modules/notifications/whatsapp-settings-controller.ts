@@ -1,5 +1,5 @@
 import {
-  Body, Controller, Get, Headers, Inject, Param, Put, Req, Res,
+  Body, Controller, Get, Headers, Inject, Param, Post, Put, Req, Res,
 } from "@nestjs/common";
 import { ApiOperationRunner } from "../../common/http/api-operation-runner";
 import type { ApiRequest } from "../../common/http/api-request";
@@ -14,15 +14,46 @@ import {
 } from "../management/staff-management-http";
 import { WhatsAppSettingsService } from "./whatsapp-settings-service";
 import { validateWhatsAppPolicy } from "./whatsapp-settings-validation";
+import { WhatsAppSandboxBindingService } from "./whatsapp-sandbox-binding-service";
+import { validateSandboxBindingRequest } from "./whatsapp-sandbox-binding-input";
+import { WhatsAppSandboxConsentService } from "./whatsapp-sandbox-consent-service";
+import { validateSandboxConsentInput } from "./whatsapp-sandbox-consent-input";
 
 @Controller("v1/staff/management/organizations/:organizationId")
 export class WhatsAppSettingsController {
   constructor(
     private readonly settings: WhatsAppSettingsService,
+    private readonly bindings: WhatsAppSandboxBindingService,
+    private readonly consent: WhatsAppSandboxConsentService,
     private readonly runner: ApiOperationRunner,
     @Inject(STAFF_SESSION_CONTEXT_RESOLVER)
     private readonly sessions: StaffSessionContextResolver,
   ) {}
+
+  @Post("whatsapp-test-recipient-consent")
+  updateSandboxConsent(
+    @Req() request: ApiRequest, @Headers("authorization") auth: string | undefined,
+    @Param("organizationId") org: string, @Body() body: unknown,
+    @Res({ passthrough: true }) response: HeaderResponse,
+  ) {
+    setNoStoreResponseHeaders(response);
+    const input = validateSandboxConsentInput(body);
+    return this.runner.run("WHATSAPP_SANDBOX_CONSENT_CHANGE", request, async () =>
+      this.consent.change(await this.context(request, auth),
+        requireManagementUuid(org), input));
+  }
+
+  @Post("whatsapp-sandbox-binding-request")
+  requestPendingSandboxBinding(
+    @Req() request: ApiRequest, @Headers("authorization") auth: string | undefined,
+    @Param("organizationId") org: string, @Body() body: unknown,
+    @Res({ passthrough: true }) response: HeaderResponse,
+  ) {
+    setNoStoreResponseHeaders(response);
+    validateSandboxBindingRequest(body);
+    return this.runner.run("WHATSAPP_SANDBOX_BINDING_REQUEST", request, async () =>
+      this.bindings.requestPending(await this.context(request, auth), requireManagementUuid(org)));
+  }
 
   private async context(request: ApiRequest, authorization?: string) {
     requireSingleManagementAuthorization(request);

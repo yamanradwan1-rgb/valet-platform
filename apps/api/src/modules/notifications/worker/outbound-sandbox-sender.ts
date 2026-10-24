@@ -1,4 +1,5 @@
 import { META_GRAPH_VERSION } from "../config/meta-cloud-policy";
+import { META_SANDBOX_WABA_ID, META_SANDBOX_PHONE_ID } from "../config/meta-sandbox-assets";
 import { createMetaCloudProvider } from "../providers/meta-cloud-provider";
 import { templateApprovedForAccount } from "../whatsapp-template-authority";
 import type { OutboundSenderAssembly } from "./outbound-worker-composition";
@@ -8,8 +9,7 @@ import type {
 } from "./outbound-postgres-types";
 
 /** Deployment-pinned Meta *sandbox* assets. Never resolve a production account here. */
-export const META_SANDBOX_WABA_ID = "3491682417667249";
-export const META_SANDBOX_PHONE_ID = "1426684017189271";
+export { META_SANDBOX_WABA_ID, META_SANDBOX_PHONE_ID };
 
 const e164 = /^\+[1-9][0-9]{7,14}$/;
 const aliasPattern = /^[A-Za-z0-9._-]{1,64}$/;
