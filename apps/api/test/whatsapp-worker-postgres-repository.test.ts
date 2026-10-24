@@ -110,9 +110,12 @@ describe("WhatsApp sender-restricted PostgreSQL function boundary", () => {
   it("commits the SQL permit, binds scope to immutable AAD and erases cached bytes", async () => {
     const fakes = postgresFake();
     const result = await fakes.repository.prepareDispatch(syntheticClaim);
-    expect(result).toEqual({
-      kind: "DISPATCH", attemptId, attemptHandle: permit.callback_handle, remainingMs: 24_000,
+    expect(result).toMatchObject({
+      kind: "DISPATCH", attemptId, attemptHandle: permit.callback_handle,
     });
+    if (result.kind !== "DISPATCH") throw new Error("Expected SQL-authorized dispatch");
+    expect(result.remainingMs).toBeGreaterThan(12_000);
+    expect(result.remainingMs).toBeLessThanOrEqual(24_000);
     const material = await fakes.repository.loadForPermit(syntheticClaim, attemptId);
     expect(material?.expectedAAD).toEqual({
       version: 1,
@@ -126,8 +129,9 @@ describe("WhatsApp sender-restricted PostgreSQL function boundary", () => {
       expiresAt: now.toISOString(),
     });
     expect(material?.sealed.ciphertext).toEqual(permit.ciphertext);
-    expect(await fakes.repository.confirmPermit(syntheticClaim, attemptId))
-      .toEqual({ remainingMs: 10_001 });
+    const confirmed = await fakes.repository.confirmPermit(syntheticClaim, attemptId);
+    expect(confirmed?.remainingMs).toBeGreaterThan(12_000);
+    expect(confirmed?.remainingMs).toBeLessThanOrEqual(24_000);
     expect(fakes.query.mock.calls.some(([sql]) => sql.includes("outbound_confirm_dispatch")))
       .toBe(true);
     expect(fakes.query).toHaveBeenCalledWith(
@@ -137,6 +141,92 @@ describe("WhatsApp sender-restricted PostgreSQL function boundary", () => {
     );
     fakes.repository.forgetPermit(attemptId);
     expect(await fakes.repository.loadForPermit(syntheticClaim, attemptId)).toBeUndefined();
+  });
+
+  it("exposes Meta transport authority only after SQL confirmation and erases it afterward", async () => {
+    const fakes = postgresFake();
+    fakes.config.mockImplementation(async () => ({
+      bindingId: permit.binding_id, phoneNumberId: permit.phone_number_id,
+      wabaId: permit.waba_id, environment: "test" as const,
+      accessToken: "synthetic-test-only-token", graphVersion: "v26.0",
+      templateName: "guest_access", templateVersion: "test-v1", language: "ar" as const,
+      sandbox: {
+        customerOrigin: "https://customer.example.test",
+        allowedRecipient: permit.phone_normalized,
+        credentialExpiresAt: Date.now() + 30_000,
+        template: {
+          catalogVersion: "test-v1", locale: "ar" as const, languageCode: "ar" as const,
+          name: "guest_access", status: "APPROVED" as const,
+          layout: "BODY_ONE_URL" as const, wabaId: permit.waba_id,
+        },
+      },
+    }));
+    expect(await fakes.repository.resolveAuthorizedMetaAttempt(permit.callback_handle)).toBeNull();
+    await fakes.repository.prepareDispatch(syntheticClaim);
+    expect(await fakes.repository.resolveAuthorizedMetaAttempt(permit.callback_handle)).toBeNull();
+    expect(await fakes.repository.resolveAuthorizedMetaAttempt("forged-handle")).toBeNull();
+    await fakes.repository.confirmPermit(syntheticClaim, attemptId);
+    expect(await fakes.repository.resolveAuthorizedMetaAttempt(permit.callback_handle))
+      .toMatchObject({
+        organizationId: permit.organization_id, locationId: permit.location_id,
+        bindingId: permit.binding_id, configAlias: permit.config_alias,
+        recipientE164: permit.phone_normalized, enabled: true,
+        template: { name: "guest_access", locale: "ar", status: "APPROVED" },
+      });
+    fakes.rows.set("outbound_confirm_dispatch", [{ allowed: false }]);
+    expect(await fakes.repository.resolveAuthorizedMetaAttempt(permit.callback_handle))
+      .toBeNull();
+    // Even an affirmative SQL response cannot extend an expired local budget.
+    fakes.rows.set("outbound_confirm_dispatch", [{ allowed: true }]);
+    const originalQuery = fakes.query.getMockImplementation();
+    fakes.query.mockImplementation(async (sql, args) => {
+      const result = await originalQuery!(sql, args);
+      if (sql.includes("outbound_confirm_dispatch")) {
+        vi.setSystemTime(new Date(Date.now() + 13_000));
+      }
+      return result;
+    });
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      expect(await fakes.repository.resolveAuthorizedMetaAttempt(permit.callback_handle))
+        .toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+    fakes.repository.forgetPermit(attemptId);
+    expect(await fakes.repository.resolveAuthorizedMetaAttempt(permit.callback_handle)).toBeNull();
+  });
+
+  it("denies transport when the current permit has less than the safe call budget", async () => {
+    const fakes = postgresFake();
+    fakes.rows.set("outbound_dispatch_permit", [{
+      ...permit, remaining_seconds: "11.500",
+    }]);
+    await fakes.repository.prepareDispatch(syntheticClaim);
+    expect(await fakes.repository.confirmPermit(syntheticClaim, attemptId)).toBeUndefined();
+    expect(await fakes.repository.resolveAuthorizedMetaAttempt(permit.callback_handle))
+      .toBeNull();
+  });
+
+  it("never restores permit lifetime consumed by a delayed configuration lookup", async () => {
+    const fakes = postgresFake();
+    const originalConfig = fakes.config.getMockImplementation();
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-16T01:00:00.000Z"));
+    try {
+      fakes.config.mockImplementation(async () => {
+        vi.setSystemTime(new Date("2026-10-16T01:00:13.000Z"));
+        return originalConfig!();
+      });
+      const dispatched = await fakes.repository.prepareDispatch(syntheticClaim);
+      expect(dispatched.kind).toBe("DISPATCH");
+      if (dispatched.kind !== "DISPATCH") throw new Error("Expected dispatch");
+      expect(dispatched.remainingMs).toBe(11_000);
+      expect(await fakes.repository.confirmPermit(syntheticClaim, attemptId))
+        .toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("fails closed if SQL omits verified AAD or account binding metadata", async () => {

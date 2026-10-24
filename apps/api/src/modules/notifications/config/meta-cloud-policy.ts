@@ -23,7 +23,10 @@ export interface ApprovedMetaTemplate {
 /** The resolver is server-only and must authorize this exact immutable attempt. */
 export interface MetaAuthorizedAttempt {
   readonly organizationId: string;
+  /** Restricted sender test scope; ordinary provider fixture accounts may omit it. */
+  readonly locationId?: string;
   readonly bindingId: string;
+  readonly configAlias?: string;
   readonly environment: MetaEnvironment;
   readonly wabaId: string;
   readonly phoneNumberId: string;

@@ -1,6 +1,7 @@
 import type { PostgresPool } from "../../../common/database/postgres";
 import type { OutboundClaim, OutboundLeaseRepository, DispatchPreparation } from "../contracts/outbound-lease";
 import type { OutboundSendResult } from "../contracts/outbound-provider";
+import type { MetaAuthorizedAttempt } from "../config/meta-cloud-policy";
 import type { OutboundPermitTransportSource, OutboundTransportMaterial } from "./outbound-transport-source";
 import { equalRecipientDigest, permittedSenderMaterial } from "./outbound-postgres-permit";
 import type {
@@ -35,12 +36,16 @@ interface PreparedMaterial {
   readonly deliveryId: string;
   readonly recipientDigest: string;
   readonly value: OutboundTransportMaterial;
+  readonly authorizedMeta: MetaAuthorizedAttempt | null;
+  readonly expiresAtMs: number;
+  confirmed: boolean;
 }
 
 /** W1 SECURITY DEFINER functions own all mutation, rate budgets and locking. */
 export class PostgresOutboundLeaseRepository
 implements OutboundLeaseRepository, OutboundPermitTransportSource {
   private readonly prepared = new Map<string, PreparedMaterial>();
+  private readonly handles = new Map<string, string>();
 
   constructor(
     private readonly pool: PostgresPool,
@@ -73,6 +78,10 @@ implements OutboundLeaseRepository, OutboundPermitTransportSource {
     }
 
     let row: OutboundPgPermitRow | undefined;
+    // The SQL remaining_seconds value is measured inside the pending query.
+    // Anchor its projected expiry before the query so transport/configuration
+    // latency can only shorten the sender's local deadline, never extend it.
+    const permitQueryStartedMs = Date.now();
     try {
       const permitted = await this.pool.query<OutboundPgPermitRow>(
         "SELECT * FROM public.outbound_dispatch_permit($1,$2,$3)",
@@ -105,6 +114,7 @@ implements OutboundLeaseRepository, OutboundPermitTransportSource {
 
     const config = await this.resolveConfig({
       organizationId: row.organization_id,
+      locationId: row.location_id,
       bindingId: row.binding_id,
       phoneNumberId: row.phone_number_id,
       wabaId: row.waba_id,
@@ -127,17 +137,36 @@ implements OutboundLeaseRepository, OutboundPermitTransportSource {
     if (!Number.isFinite(seconds) || seconds <= 0 || seconds > 30 * 60) {
       throw new Error("OUTBOUND_PERMIT_DEADLINE_INVALID");
     }
+    const expiresAtMs = permitQueryStartedMs + seconds * 1_000;
     this.prepared.set(row.attempt_id, {
       leaseToken: claim.leaseToken,
       deliveryId: claim.deliveryId,
       recipientDigest: actualDigest,
       value,
+      authorizedMeta: config.sandbox ? {
+        organizationId: row.organization_id,
+        locationId: row.location_id,
+        bindingId: row.binding_id,
+        configAlias: row.config_alias,
+        environment: row.provider_environment,
+        wabaId: row.waba_id,
+        phoneNumberId: row.phone_number_id,
+        accessToken: config.accessToken,
+        enabled: true,
+        recipientE164: row.phone_normalized,
+        customerOrigin: config.sandbox.customerOrigin,
+        template: config.sandbox.template,
+        testRecipientAllowlist: [config.sandbox.allowedRecipient],
+      } : null,
+      expiresAtMs,
+      confirmed: false,
     });
+    this.handles.set(row.callback_handle, row.attempt_id);
     return {
       kind: "DISPATCH",
       attemptId: row.attempt_id,
       attemptHandle: row.callback_handle,
-      remainingMs: Math.floor(seconds * 1_000),
+      remainingMs: Math.max(0, Math.floor(expiresAtMs - Date.now())),
     };
   }
 
@@ -163,11 +192,38 @@ implements OutboundLeaseRepository, OutboundPermitTransportSource {
         stored.value.recipientE164],
     );
     // The SQL confirm gate independently checks DB wall time > provider timeout.
-    return result.rows[0]?.allowed === true ? { remainingMs: 10_001 } : undefined;
+    if (result.rows[0]?.allowed !== true) return undefined;
+    // Use the DB permit's deadline projection, reduced by time spent in
+    // this process, instead of treating a Boolean confirm as a fresh 10s TTL.
+    const remainingMs = Math.floor(stored.expiresAtMs - Date.now());
+    if (remainingMs <= 12_000) return undefined;
+    stored.confirmed = true;
+    return { remainingMs };
   }
 
   forgetPermit(attemptId: string): void {
+    for (const [handle, id] of this.handles) {
+      if (id === attemptId) this.handles.delete(handle);
+    }
     this.prepared.delete(attemptId);
+  }
+
+  /** A committed, current SQL dispatch permit is the only source of Meta authority. */
+  async resolveAuthorizedMetaAttempt(handle: string): Promise<MetaAuthorizedAttempt | null> {
+    const id = this.handles.get(handle);
+    const prepared = id === undefined ? undefined : this.prepared.get(id);
+    if (!prepared?.confirmed || prepared.expiresAtMs <= Date.now() + 10_000 ||
+        !prepared.authorizedMeta) return null;
+    // Re-read current SQL authorization immediately before the provider call.
+    // The earlier permit alone cannot authorize after consent/policy revocation.
+    const check = await this.pool.query<{ allowed: boolean }>(
+      "SELECT public.outbound_confirm_dispatch($1,$2,$3,$4,$5) AS allowed",
+      [prepared.deliveryId, prepared.leaseToken, id,
+        prepared.recipientDigest, prepared.value.recipientE164],
+    );
+    if (check.rows[0]?.allowed !== true ||
+        prepared.expiresAtMs <= Date.now() + 12_000) return null;
+    return prepared.authorizedMeta;
   }
 
   async finalizeAttempt(

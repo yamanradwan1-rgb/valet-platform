@@ -1,3 +1,5 @@
+import type { ApprovedMetaTemplate } from "../config/meta-cloud-policy";
+
 export interface OutboundPgClaimRow {
   readonly delivery_id: string;
   readonly lease_token: string;
@@ -47,10 +49,18 @@ export interface OutboundVerifiedSenderConfig {
   readonly templateName: string;
   readonly templateVersion: string;
   readonly language: "ar" | "en";
+  /** Only the explicitly approved sandbox resolver supplies transport authority. */
+  readonly sandbox?: {
+    readonly customerOrigin: string;
+    readonly template: ApprovedMetaTemplate;
+    readonly allowedRecipient: string;
+    readonly credentialExpiresAt: number;
+  };
 }
 
 export type ResolveOutboundSenderConfig = (input: {
   readonly organizationId: string;
+  readonly locationId: string;
   readonly bindingId: string;
   readonly phoneNumberId: string;
   readonly wabaId: string;

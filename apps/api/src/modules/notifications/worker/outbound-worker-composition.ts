@@ -10,7 +10,7 @@ import type { ResolveOutboundSenderConfig } from "./outbound-postgres-types";
 
 /** Prime wires W3 approved-template/credential resolution in the sender only. */
 export interface OutboundSenderAssembly {
-  readonly provider: OutboundProvider;
+  readonly createProvider: (leases: PostgresOutboundLeaseRepository) => OutboundProvider;
   readonly resolveAuthorizedConfig: ResolveOutboundSenderConfig;
 }
 
@@ -51,7 +51,7 @@ export function createOutboundWorkerPorts(
       leases,
       material: leases,
       opener,
-      provider: assembly.provider,
+      provider: assembly.createProvider(leases),
       guestOrigin: origin,
     }),
     checkReady: requireReady,
