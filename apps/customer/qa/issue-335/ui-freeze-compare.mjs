@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
@@ -23,11 +24,6 @@ function listLines(text) {
   return text ? text.split(/\r?\n/).filter(Boolean) : [];
 }
 
-const changed = new Set([
-  ...listLines(git(['diff', '--name-only', baseline, '--', 'apps/customer'])),
-  ...listLines(git(['ls-files', '--others', '--exclude-standard', '--', 'apps/customer'])),
-]);
-
 function isTest(path) {
   return /(?:\.test|\.spec)\.[cm]?[jt]sx?$/.test(path)
     || /\/qa\//.test(path);
@@ -43,7 +39,7 @@ function forbiddenPresentationFile(path) {
 function sourceFile(path, content) {
   const file = ts.createSourceFile(
     path,
-    content,
+    content.replace(/\r\n/g, '\n'),
     ts.ScriptTarget.Latest,
     true,
     ts.ScriptKind.TSX,
@@ -102,6 +98,24 @@ function jsxFingerprint(file) {
   visit(file);
   return JSON.stringify(roots);
 }
+
+if (baseline === '--self-test') {
+  const fingerprint = (source) => jsxFingerprint(sourceFile('fixture.tsx', source));
+  const original = 'const view = <button onClick={() => save()}>Enable</button>;\n';
+  const handlerOnly = 'const view = <button onClick={() => retry()}>Enable</button>;\r\n';
+  const changedLabel = 'const view = <button onClick={() => save()}>Allow</button>;\n';
+  const changedStyle = 'const view = <button style={{ color: "red" }}>Enable</button>;\n';
+  assert.equal(fingerprint(original), fingerprint(handlerOnly), 'handler/CRLF must be allowed');
+  assert.notEqual(fingerprint(original), fingerprint(changedLabel), 'copy change must be rejected');
+  assert.notEqual(fingerprint(original), fingerprint(changedStyle), 'style change must be rejected');
+  console.log('PASS UI Freeze guard self-test: line endings/callbacks, copy and style');
+  process.exit(0);
+}
+
+const changed = new Set([
+  ...listLines(git(['diff', '--name-only', baseline, '--', 'apps/customer'])),
+  ...listLines(git(['ls-files', '--others', '--exclude-standard', '--', 'apps/customer'])),
+]);
 
 const violations = [];
 const reviewed = [];
