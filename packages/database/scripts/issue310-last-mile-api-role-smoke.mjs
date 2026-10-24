@@ -61,15 +61,38 @@ try {
       throw new Error("API consent/onboarding SQL grants violate least privilege.");
     }
 
-    const bindingId = randomUUID();
-    const binding = await scalar(`INSERT INTO outbound_provider_bindings
-      (id,organization_id,purpose,provider,environment,waba_id,phone_number_id,config_alias)
-      VALUES ($1,$2,'INITIAL_GUEST_ACCESS','META_CLOUD','test',$3,$4,'wa310-meta-sandbox')
-      RETURNING enabled,provider_verified_at AS verified,provider_evidence_reference AS evidence`,
-    [bindingId,operator.organization,"3491682417667249","1426684017189271"]);
-    if (binding.enabled !== false || binding.verified !== null || binding.evidence !== null) {
-      throw new Error("Pending sandbox binding gained verification authority.");
+    let bindingId = randomUUID();
+    if (identity.bindings === 0) {
+      const binding = await scalar(`INSERT INTO outbound_provider_bindings
+        (id,organization_id,purpose,provider,environment,waba_id,phone_number_id,config_alias)
+        VALUES ($1,$2,'INITIAL_GUEST_ACCESS','META_CLOUD','test',$3,$4,'wa310-meta-sandbox')
+        RETURNING enabled,provider_verified_at AS verified,provider_evidence_reference AS evidence`,
+      [bindingId,operator.organization,"3491682417667249","1426684017189271"]);
+      if (binding.enabled !== false || binding.verified !== null || binding.evidence !== null) {
+        throw new Error("Pending sandbox binding gained verification authority.");
+      }
+    } else if (identity.bindings === 1) {
+      const existing = await scalar(`SELECT id::text,organization_id::text AS org,
+        waba_id AS waba,phone_number_id AS phone,environment,provider
+        FROM outbound_provider_bindings WHERE organization_id=$1`, [operator.organization]);
+      if (!existing || existing.org !== operator.organization ||
+          existing.waba !== "3491682417667249" ||
+          existing.phone !== "1426684017189271" ||
+          existing.environment !== "test" || existing.provider !== "META_CLOUD") {
+        throw new Error("Unexpected existing sandbox provider binding authority.");
+      }
+      bindingId = existing.id;
+    } else {
+      throw new Error("Unexpected number of isolated sandbox provider bindings.");
     }
+    await connection.query("SAVEPOINT forged_verification");
+    let forgedDenied = false;
+    try {
+      await scalar(`UPDATE outbound_provider_bindings SET provider_verified_at=clock_timestamp()
+        WHERE id=$1 RETURNING id`, [bindingId]);
+    } catch (error) { forgedDenied = error.code === "42501"; }
+    await connection.query("ROLLBACK TO SAVEPOINT forged_verification");
+    if (!forgedDenied) throw new Error("API role could forge provider verification.");
 
     const digest = `hmac:v1:${randomBytes(32).toString("base64url")}`;
     const evidence = "wa310-opt-in-disposable-rollback-only";
@@ -97,7 +120,7 @@ try {
     catch (error) { staleDenied = error.code === "40001"; }
     await connection.query("ROLLBACK TO SAVEPOINT stale_revision");
     if (!staleDenied) throw new Error("Stale consent revision was not rejected.");
-    console.log("PASS: Issue310 API-only pending binding, no forged verification privileges.");
+    console.log("PASS: Issue310 API-only pending onboarding ACL, verified binding forge 42501.");
     console.log("PASS: synthetic SQL GRANT/WITHDRAW, revisions, stale replay denied; event SELECT denied.");
     console.log("All writes are inside one rollback-only transaction; no consent is recorded.");
   } finally { await connection.query("ROLLBACK"); }

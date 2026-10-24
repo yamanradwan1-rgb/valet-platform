@@ -4,16 +4,17 @@ services:
   tailscale-customer:
     image: tailscale/tailscale:v1.104.1@sha256:87c55d6be56ad85b3d8bceca5f87f73de288c609131460dd1be1874c250cc41d
     profiles: ["wa310-tailnet"]
-    hostname: vaylet-wa310-host
     network_mode: "service:api"
     environment:
       TS_USERSPACE: "true"
       TS_AUTH_ONCE: "true"
       TS_HOSTNAME: "vaylet-wa310-host"
       TS_STATE_DIR: /var/lib/tailscale
-      TS_AUTHKEY: "file:/run/secrets/wa310-host-authkey"
+      TS_AUTHKEY: "file:/run/secrets/wa310_host_authkey"
       TS_EXTRA_ARGS: "--advertise-tags=tag:vaylet-wa310-host"
-      TS_SERVE_CONFIG: "/config/serveconfig.json"
+      # TS_SERVE_CONFIG resets Service endpoints on restart for this image.
+      # The isolated state volume retains the HTTPS mapping configured with
+      # `tailscale serve --service=svc:vaylet-wa310-customer --https=443`.
       TS_EXPERIMENTAL_SERVICE_AUTO_ADVERTISEMENT: "true"
     volumes:
       - tailscale_state:/var/lib/tailscale

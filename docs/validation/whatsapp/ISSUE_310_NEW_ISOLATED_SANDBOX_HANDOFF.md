@@ -172,3 +172,106 @@ No Meta temporary access token has been generated or requested; no
 single-message dispatch, phone delivery, Guest Session match or signed
 webhook receipt has been observed. Issue310 remains **CONFIG_BLOCKED**
 with test and production issue/send controls OFF/OFF.
+
+## Final last-mile evidence update — 2026-10-24 (supersedes earlier pending items)
+
+This dated update records the **current state**; the earlier entries above are
+retained as historical evidence from before the tagged host and authenticated
+management configuration were available.
+
+- **HTTPS is operational:** the isolated `vaylet-wa310-tailscale-customer-1`
+  uses `tag:vaylet-wa310-host` and advertises
+  `svc:vaylet-wa310-customer`. The tailnet-only URL
+  `https://vaylet-wa310-customer.taild797f4.ts.net/` returned **HTTP 200**
+  after rebuilding and recreating the Issue310 application containers.
+  `tailscale serve status` showed `/: http://127.0.0.1:3002` in the
+  API/Customer shared network namespace. The Windows Tailscale node and its
+  original mappings were not reconfigured. The dedicated Tailscale state
+  volume preserves the mapping across a sidecar restart/recreation; do not
+  reintroduce `TS_SERVE_CONFIG`, which was observed clearing the Service
+  endpoints on restart. The Customer app itself returned 200, but no live
+  token fragment/bootstrap was tested on the physical phone.
+- **Isolated application rebuilt:** `docker compose -p vaylet-wa310 -f
+  deploy/issue310/compose.yaml --env-file tmp/wa310-runtime/compose.env
+  build api` succeeded, producing local image
+  `sha256:38807826187279a39e55209dabb3cd5ff862821d861e67e270f396d35292f5eb`.
+  The API, Customer, Dashboard, Sender and separate Tailscale sidecar were
+  recreated from Issue310-only Compose files; PostgreSQL and MinIO were not
+  recreated. API `/health/ready` and Customer HTTPS returned **200**.
+- **Authenticated Company Admin:** a newly enrolled MFA factor was confirmed
+  through the staff authentication API. A genuine MFA-assured Company Admin
+  request created pending sandbox binding
+  `6e76369a-3c9b-4bb4-89b1-7f3d0fdda078`; its state remains
+  **PENDING_META_VERIFICATION**. The isolated Organization has a scoped local
+  Dashboard entitlement. The owner-attested recipient opt-in was recorded via
+  `whatsapp-test-recipient-consent` as an auditable **GRANTED revision 1**
+  with reference `wa310-opt-in-owner-explicit-20261024`. No raw phone,
+  recipient digest, credential or MFA factor appears in this report.
+- **Catalog/policy:** Issue310 API and sender privately register internal `ar`
+  and `en` for approved sandbox WABA `3491682417667249`, exact catalog
+  `meta_guest_access_20261024`; outbound English resolves to Meta `en_US`.
+  Organization and Location policies were prepared through authenticated
+  management APIs and remain **DISABLED**. This is deliberate until the
+  binding is independently verified through an authenticated Meta Graph read.
+- **Live Meta authority:** the sender-only verifier reads the temporary token
+  solely from `/run/wa310/meta-access-token` and checks WABA phone ownership,
+  the two exact approved `guest_access` template IDs, `UTILITY` category and
+  one BODY URL variable using Graph v26.0. The scoped maintenance onboarding
+  operator requires a fresh bounded Graph proof **and** the existing
+  Company Admin request audit before marking the binding verified, recording
+  an evidence fingerprint and append-only audit event. **It has not run:** no
+  sender-only temporary Meta token has been installed. A browser-side Meta
+  account session was unavailable to this execution context. No Meta HTTP
+  send, provider response, physical handset receipt, Guest Session match or
+  webhook callback can honestly be claimed.
+- **Security posture:** 102/102 migrations, restricted API/sender/webhook
+  principals and exact tenant/location checks pass. Durable test and
+  production issue/send controls remain OFF/OFF. API issuance,
+  `OUTBOUND_MESSAGING_SEND_ENABLED` and sandbox activation all remain OFF;
+  the sender credential revocation marker remains `true`.
+
+### Final focused validation
+
+| Command / proof | Result |
+| --- | --- |
+| `node --test deploy/issue310/meta-sandbox-graph-authority.test.mjs packages/database/scripts/issue310-last-mile-gates.test.mjs` | **10/10 PASS** — approval/phone/locale/template/credential negative tests |
+| `node packages/database/scripts/issue310-last-mile-api-role-smoke.mjs` with the protected runtime pointer | **PASS** — forged verified binding denied `42501`; GRANT/WITHDRAW and stale revision rollback tests |
+| `node packages/database/scripts/issue310-last-mile-readiness.mjs` with the protected runtime pointer | **CONFIG_BLOCKED** — 9 local positive gates PASS; binding and policy BLOCKED; external device/Meta evidence unverified |
+| `pnpm architecture:check` | **PASS** (preexisting grandfathered notices) |
+| `pnpm --filter @valet/api typecheck` | **PASS** |
+| `pnpm --filter @valet/api lint` | **PASS** |
+| Docker image build and isolated application recreation | **PASS** |
+| Customer HTTPS root and API ready after recreation | **HTTP 200 / HTTP 200** |
+| `docker exec vaylet-wa310-sender-1 node deploy/issue310/meta-sandbox-graph-proof.mjs` without installed token | **EXPECTED DENIAL** — failed closed before any Graph request |
+| Real Meta send, physical guest bootstrap, signed webhook, exact-SHA full CI | **NOT RUN / NOT PROVEN** |
+
+### Minimal remaining external handoff and disabled release gate
+
+1. In the existing Issue310 private runtime directory, install the genuine
+   short-lived Meta sandbox credential at `meta-access-token` without copying
+   its contents into Git, a terminal command, browser storage or chat. Record
+   its actual expiry in the protected sender configuration and keep the token
+   restricted to the Sender. For controlled verification, mount it using
+   `deploy/issue310/compose.authorized-send.yaml`; no sending flags turn ON
+   merely by mounting it. Do not reuse any production Meta asset.
+2. With issue/send controls still OFF, run `node
+   packages/database/scripts/issue310-verified-meta-binding.mjs
+   --verify-live-meta-ownership` using the protected
+   `WA310_PRIVATE_RUNTIME_DIR` pointer. If Meta Graph denies any required
+   phone/template fact, leave binding PENDING and stop activation.
+3. Only after verified evidence, run `node
+   deploy/issue310/operator-authorized-consent.mjs
+   --activate-verified-policy` using the same private runtime pointer and
+   repeat SQL role, recipient, catalog, location and revocation readiness.
+4. Verify the *actual phone* can load the dedicated tailnet HTTPS URL. Then,
+   and only with all authorizations checked, enable the smallest possible
+   test-only issuance/send flags and durable test switches for the **single**
+   authorized Native Check-In. Collect one sanitized Meta response and
+   physical Guest bootstrap/session match. Never retry an uncertain provider
+   acceptance. Disable issue/send, stop the sender and revoke the temporary
+   credential immediately afterward. Production controls stay OFF.
+
+**Release classification: IMPLEMENTED_BUT_CONFIG_BLOCKED.** The genuinely
+missing dependency is a temporary authorized Meta sandbox credential in the
+sender (plus physical-device Guest/session proof during the one-message test).
+No real WhatsApp message has been sent and no live E2E success is asserted.
