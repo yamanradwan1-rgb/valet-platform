@@ -1,7 +1,7 @@
 const OPERATION_DEADLINE_MS = 30_000;
 
 export class GuestWebPushTimeoutError extends Error {
-  override readonly name = 'GuestWebPushTimeoutError';
+  override readonly name = "GuestWebPushTimeoutError";
 
   constructor(stage: string) {
     super(`Guest Web Push ${stage} timed out.`);
@@ -9,7 +9,7 @@ export class GuestWebPushTimeoutError extends Error {
 }
 
 export function guestWebPushAbortError(): DOMException {
-  return new DOMException('Guest Web Push operation cancelled.', 'AbortError');
+  return new DOMException("Guest Web Push operation cancelled.", "AbortError");
 }
 
 /**
@@ -31,7 +31,7 @@ export function boundedGuestWebPushStage<T>(
 
     const cleanup = () => {
       clearTimeout(timer);
-      ownerSignal?.removeEventListener('abort', onAbort);
+      ownerSignal?.removeEventListener("abort", onAbort);
     };
     const fail = (error: Error) => {
       if (settled) return;
@@ -41,8 +41,11 @@ export function boundedGuestWebPushStage<T>(
       reject(error);
     };
     const onAbort = () => fail(guestWebPushAbortError());
-    ownerSignal?.addEventListener('abort', onAbort, { once: true });
-    const timer = setTimeout(() => fail(new GuestWebPushTimeoutError(stage)), timeoutMs);
+    ownerSignal?.addEventListener("abort", onAbort, { once: true });
+    const timer = setTimeout(
+      () => fail(new GuestWebPushTimeoutError(stage)),
+      timeoutMs,
+    );
 
     if (ownerSignal?.aborted) {
       onAbort();
@@ -83,7 +86,8 @@ export function guestWebPushStages(ownerSignal?: AbortSignal) {
   ): Promise<T> => {
     if (ownerSignal?.aborted) return Promise.reject(guestWebPushAbortError());
     const remainingMs = deadline - Date.now();
-    if (remainingMs <= 0) return Promise.reject(new GuestWebPushTimeoutError('operation'));
+    if (remainingMs <= 0)
+      return Promise.reject(new GuestWebPushTimeoutError("operation"));
     return boundedGuestWebPushStage(
       stage,
       work,
