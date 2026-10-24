@@ -2,15 +2,15 @@
 
 Date: 2026-10-24 (Asia/Amman)
 
-**Latest classification (2026-10-24, Asia/Amman): META_HTTP_ACCEPTED;
-HANDSET_RECEIPT_OWNER_CONFIRMED; GUEST_SESSION_DEEP_LINK_PARTIALLY_VERIFIED.**
+**Latest classification (2026-10-24, Asia/Amman):
+WHATSAPP_SANDBOX_SEND_AND_RECEIPT_PASS.**
 One authenticated Native Check-In generated
 one accepted Meta Sandbox API message, with SQL attempt count exactly 1/1.
 Both environments' issue/send controls are OFF. The temporary local token
 file was removed after sender unmount. The owner confirmed handset WhatsApp
-receipt and a visible Guest session in the embedded browser. Exact session-ID
-correlation, fragment removal, signed callback, and Meta-side token
-invalidation remain unverified.
+receipt. Guest Access/browser behavior is outside this WhatsApp-only closure;
+signed webhook callback and Meta-side token invalidation are not independently
+verified.
 
 **Current, authoritative evidence:**
 [`ISSUE_310_LIVE_SANDBOX_EVIDENCE_20261024.md`](./ISSUE_310_LIVE_SANDBOX_EVIDENCE_20261024.md).

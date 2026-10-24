@@ -3,14 +3,12 @@
 Observed on 2026-10-24 (Asia/Amman). This is the current status; earlier setup
 snapshots in `ISSUE_310_NEW_ISOLATED_SANDBOX_HANDOFF.md` are historical.
 
-**Classification: META_HTTP_ACCEPTED; HANDSET_RECEIPT_OWNER_CONFIRMED;
-GUEST_SESSION_DEEP_LINK_PARTIALLY_VERIFIED.** Exactly
+**Classification: WHATSAPP_SANDBOX_SEND_AND_RECEIPT_PASS.** Exactly
 one authenticated Native Check-In and one SQL-authorized outbound Meta attempt
 were made. Meta returned acceptance with an opaque message identifier. On
 2026-10-24, the owner explicitly confirmed the WhatsApp message reached the
-authorized physical handset. The owner separately reported that the Guest
-session displays in WhatsApp's embedded browser; an independently correlated
-session-ID check and URL-fragment removal were not captured.
+authorized physical handset. Guest Access/browser behavior is a separately
+owned issue and is not evaluated as part of this WhatsApp-only closure.
 
 ## Exact isolated scope
 
@@ -81,13 +79,12 @@ phone; this confirms root reachability **only**, not Guest fragment exchange.
    delivery, or SQL attempt exists. The final counts are exactly 1 intent,
    1 delivery, 1 attempt, 0 retained envelopes.
 
-**Meta HTTP acceptance and handset receipt are distinct evidence.** The owner
-confirmed WhatsApp receipt on the test phone (owner-attested PASS); separately,
-the owner described the Guest session visibly loaded inside the WhatsApp
-embedded browser. Opening that link in the device's external browser did not
-show the session until a manual refresh, which is a separate Guest Access bug.
-Exact backend session-ID correlation, URL-fragment removal, and signed webhook
-delivery callbacks remain **UNVERIFIED**. No second send is authorized.
+**Meta HTTP acceptance and handset receipt are distinct evidence.** Both now
+have positive evidence: Meta persisted `ACCEPTED`, and the owner confirmed
+physical receipt (owner-attested PASS). Signed Meta webhook callbacks were not
+observed because no public ingress was exposed. This does not change the
+verified WhatsApp delivery result. Guest Access/session behavior is explicitly
+outside this WhatsApp-only closeout. No second send is authorized.
 
 ## Final controls and token disposition
 
@@ -124,7 +121,6 @@ delivery callbacks remain **UNVERIFIED**. No second send is authorized.
 | Tailscale Service status and HTTPS Customer root | PASS: tailnet-only, HTTP 200 |
 | Owner's physical phone HTTPS root | Confirmed by owner; Guest token/session not proven |
 | Authorized physical phone WhatsApp receipt | **PASS, explicitly confirmed by owner on 2026-10-24** |
-| WhatsApp embedded-browser Guest page | Visible session reported by owner; external-browser handoff requires refresh; exact session correlation unverified |
 | Signed Meta webhook delivery event | NOT VERIFIED |
 | Full exact-SHA CI | NOT RUN |
 
@@ -135,11 +131,9 @@ unrelated PostgreSQL fixture or old VAYLET Test database.
 
 ## Operator handoff and remaining evidence
 
-- Handset receipt is now owner-confirmed. To complete the strict Guest E2E
-  audit, correlate the visible car session with the original test Check-In,
-  confirm `#guestToken` removal, and record only non-secret PASS/FAIL evidence.
-  The separately reported external-browser refresh and notification-permission
-  spinner issues require their own Guest Access fix/QA, not another Meta send.
+- Handset receipt is owner-confirmed. This closes the authorized WhatsApp-only
+  send/receipt test. Any Guest Access/browser QA belongs to a separate issue;
+  do not initiate another Meta send to test it.
 - Meta-side token invalidation is a separate owner-side account operation if
   the credential is still valid. The private local copy is already removed.
 - No PR or merge is authorized. Do not use old VAYLET Test, production Meta
