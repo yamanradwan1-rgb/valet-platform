@@ -3,10 +3,14 @@
 Observed on 2026-10-24 (Asia/Amman). This is the current status; earlier setup
 snapshots in `ISSUE_310_NEW_ISOLATED_SANDBOX_HANDOFF.md` are historical.
 
-**Classification: META_HTTP_ACCEPTED; HANDSET_GUEST_E2E_UNVERIFIED.** Exactly
+**Classification: META_HTTP_ACCEPTED; HANDSET_RECEIPT_OWNER_CONFIRMED;
+GUEST_SESSION_DEEP_LINK_PARTIALLY_VERIFIED.** Exactly
 one authenticated Native Check-In and one SQL-authorized outbound Meta attempt
-were made. Meta returned acceptance with an opaque message identifier. Neither
-handset delivery nor the Guest fragment exchange is independently observed.
+were made. Meta returned acceptance with an opaque message identifier. On
+2026-10-24, the owner explicitly confirmed the WhatsApp message reached the
+authorized physical handset. The owner separately reported that the Guest
+session displays in WhatsApp's embedded browser; an independently correlated
+session-ID check and URL-fragment removal were not captured.
 
 ## Exact isolated scope
 
@@ -77,10 +81,13 @@ phone; this confirms root reachability **only**, not Guest fragment exchange.
    delivery, or SQL attempt exists. The final counts are exactly 1 intent,
    1 delivery, 1 attempt, 0 retained envelopes.
 
-**Meta HTTP acceptance is not proof of delivery to the handset.** Physical
-WhatsApp receipt, opening the actual session-specific Guest link, fragment
-removal, correct Guest session and authenticated signed webhook receipt remain
-**UNVERIFIED**. Do not initiate another send for this intent.
+**Meta HTTP acceptance and handset receipt are distinct evidence.** The owner
+confirmed WhatsApp receipt on the test phone (owner-attested PASS); separately,
+the owner described the Guest session visibly loaded inside the WhatsApp
+embedded browser. Opening that link in the device's external browser did not
+show the session until a manual refresh, which is a separate Guest Access bug.
+Exact backend session-ID correlation, URL-fragment removal, and signed webhook
+delivery callbacks remain **UNVERIFIED**. No second send is authorized.
 
 ## Final controls and token disposition
 
@@ -116,6 +123,8 @@ removal, correct Guest session and authenticated signed webhook receipt remain
 | Real PostgreSQL SQL permit and one actual Meta API request | PASS: 1/1 attempt, `ACCEPTED`, provider ID persisted |
 | Tailscale Service status and HTTPS Customer root | PASS: tailnet-only, HTTP 200 |
 | Owner's physical phone HTTPS root | Confirmed by owner; Guest token/session not proven |
+| Authorized physical phone WhatsApp receipt | **PASS, explicitly confirmed by owner on 2026-10-24** |
+| WhatsApp embedded-browser Guest page | Visible session reported by owner; external-browser handoff requires refresh; exact session correlation unverified |
 | Signed Meta webhook delivery event | NOT VERIFIED |
 | Full exact-SHA CI | NOT RUN |
 
@@ -126,14 +135,11 @@ unrelated PostgreSQL fixture or old VAYLET Test database.
 
 ## Operator handoff and remaining evidence
 
-- To finish handset acceptance, inspect the **already accepted** message on
-  the explicitly authorized test phone. Open its Guest link, confirm the
-  correct session, and check whether the `#guestToken` fragment disappears.
-  Record only PASS/FAIL with a timestamp; do not copy the URL/token into chat,
-  screenshots, Markdown, or application logs.
-- If the message never arrives, mark delivery **UNVERIFIED/FAILED** and
-  inspect official Meta delivery diagnostics or signed webhook evidence in an
-  appropriately authorized follow-up. Do not send another message automatically.
+- Handset receipt is now owner-confirmed. To complete the strict Guest E2E
+  audit, correlate the visible car session with the original test Check-In,
+  confirm `#guestToken` removal, and record only non-secret PASS/FAIL evidence.
+  The separately reported external-browser refresh and notification-permission
+  spinner issues require their own Guest Access fix/QA, not another Meta send.
 - Meta-side token invalidation is a separate owner-side account operation if
   the credential is still valid. The private local copy is already removed.
 - No PR or merge is authorized. Do not use old VAYLET Test, production Meta
