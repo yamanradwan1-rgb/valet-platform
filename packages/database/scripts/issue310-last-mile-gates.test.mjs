@@ -12,7 +12,8 @@ const safe = {
     { environment: "test", issueEnabled: false, sendEnabled: false },
   ],
   localActivationOff: true, bindingCount: 1, verifiedBindingCount: 1,
-  companyPolicyReady: true, locationPolicyReady: true, currentConsentCount: 1,
+  companyPolicyReady: true, locationPolicyReady: true,
+  dispatchBudgetConfigured: true, currentConsentCount: 1,
   templateRegistryComplete: true, cleanHttpsOrigin: true,
 };
 
@@ -38,4 +39,10 @@ test("unverified binding, missing grant or portful origin cannot be waved throug
   assert.equal(result.gates.providerBinding, "BLOCKED");
   assert.equal(result.gates.currentConsentGrant, "BLOCKED");
   assert.equal(result.gates.portlessCustomerHttps, "BLOCKED");
+});
+
+test("missing verified-binding dispatch budget blocks pre-send readiness", () => {
+  const result = issue310LastMileGates({ ...safe, dispatchBudgetConfigured: false });
+  assert.equal(result.gates.dispatchBudgetConfigured, "BLOCKED");
+  assert.equal(result.classification, "CONFIG_BLOCKED");
 });

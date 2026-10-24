@@ -1,0 +1,9 @@
+# Only for the one authorized test delivery, with an independent short local deadline.
+# Requires both the sender-only token overlay and the durable SQL send permit.
+services:
+  sender:
+    environment:
+      OUTBOUND_MESSAGING_SEND_ENABLED: "true"
+      OUTBOUND_META_SANDBOX_ACTIVATION_ENABLED: "true"
+      META_WHATSAPP_TEST_TOKEN_REVOKED: "false"
+      META_WHATSAPP_TEST_TOKEN_EXPIRES_AT: "${WA310_SEND_DEADLINE:?one-send local deadline required}"

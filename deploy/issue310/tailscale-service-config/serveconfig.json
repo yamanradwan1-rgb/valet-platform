@@ -3,7 +3,7 @@
   "services": {
     "svc:vaylet-wa310-customer": {
       "endpoints": {
-        "tcp:443": "http://127.0.0.1:3002"
+        "tcp:443": "http://api:3002"
       }
     }
   }

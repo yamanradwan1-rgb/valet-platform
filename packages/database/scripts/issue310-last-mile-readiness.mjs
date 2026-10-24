@@ -76,6 +76,14 @@ async function main() {
         AND environment='test' AND waba_id='3491682417667249'
         AND phone_number_id='1426684017189271')::int AS verified
       FROM outbound_provider_bindings WHERE organization_id=$1`,[operator.organization]);
+    const budget = await one(`SELECT count(*)::int AS total
+      FROM outbound_message_budgets mb
+      JOIN outbound_provider_bindings b ON b.id=mb.provider_binding_id
+      WHERE b.organization_id=$1 AND b.environment='test'
+        AND b.waba_id='3491682417667249'
+        AND b.phone_number_id='1426684017189271'
+        AND b.enabled AND b.provider_verified_at IS NOT NULL
+        AND mb.capacity>=1 AND mb.refill_per_second>0`,[operator.organization]);
     const policies = await client.query(`SELECT location_id,enabled,language,
       provider_binding_id,template_catalog_version FROM outbound_messaging_policies
       WHERE organization_id=$1 AND purpose='INITIAL_GUEST_ACCESS'`,[operator.organization]);
@@ -118,6 +126,7 @@ async function main() {
       companyPolicyReady: binding?.enabled === true &&
         binding?.provider_binding_id !== null && Boolean(binding?.template_catalog_version),
       locationPolicyReady: location?.enabled !== false && binding?.enabled === true,
+      dispatchBudgetConfigured: budget.total === 1,
       currentConsentCount: grants, templateRegistryComplete: registry,
       cleanHttpsOrigin: isHttps(sender.GUEST_ACCESS_MESSAGE_ORIGIN),
       localActivationOff: off(api.GUEST_ACCESS_AUTO_ISSUE_ENABLED) &&

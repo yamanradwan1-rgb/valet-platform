@@ -15,6 +15,7 @@ export function issue310LastMileGates(facts) {
     localActivationOff: passed(facts.localActivationOff),
     providerBinding: passed(facts.bindingCount === 1 && facts.verifiedBindingCount === 1),
     companyAndLocationPolicy: passed(facts.companyPolicyReady && facts.locationPolicyReady),
+    dispatchBudgetConfigured: passed(facts.dispatchBudgetConfigured),
     currentConsentGrant: passed(facts.currentConsentCount === 1),
     templateRegistry: passed(facts.templateRegistryComplete),
     portlessCustomerHttps: passed(facts.cleanHttpsOrigin),

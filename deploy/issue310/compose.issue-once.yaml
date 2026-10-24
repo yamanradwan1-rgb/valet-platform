@@ -1,0 +1,6 @@
+# Only for the single previously authorized Issue310 Native Check-In.
+# SQL issue control is still a separate, durable requirement.
+services:
+  api:
+    environment:
+      GUEST_ACCESS_AUTO_ISSUE_ENABLED: "true"

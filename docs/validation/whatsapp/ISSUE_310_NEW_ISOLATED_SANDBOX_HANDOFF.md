@@ -2,8 +2,19 @@
 
 Date: 2026-10-24 (Asia/Amman)
 
-Classification: **CONFIG_BLOCKED**
-No real WhatsApp message sent; no Meta access token installed. This is not production or full E2E acceptance.
+**Latest classification (21:57 Asia/Amman): META_HTTP_ACCEPTED;
+HANDSET_GUEST_E2E_UNVERIFIED.** One authenticated Native Check-In generated
+one accepted Meta Sandbox API message, with SQL attempt count exactly 1/1.
+Both environments' issue/send controls are OFF. The temporary local token
+file was removed after sender unmount. Signed callback and actual handset
+Guest-session acceptance are still unverified; Meta-side token invalidation
+is not independently confirmed.
+
+**Current, authoritative evidence:**
+[`ISSUE_310_LIVE_SANDBOX_EVIDENCE_20261024.md`](./ISSUE_310_LIVE_SANDBOX_EVIDENCE_20261024.md).
+The sections below are chronological setup snapshots. Earlier descriptions
+such as “CONFIG_BLOCKED”, “not installed”, or “not sent” refer to states
+**before** the final authorized test; they do not override the current report.
 
 ## Scope and code identity
 
