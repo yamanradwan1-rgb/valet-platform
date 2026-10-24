@@ -1,6 +1,7 @@
 import { GuestApiError } from '../../lib/api/api-error';
 import { GuestApiClient } from '../../lib/api/guest-api-client';
 import { guestPresentationContext } from '../../lib/guest-presentation-context';
+import { guestAuthRetryNotBefore } from './guest-auth-rate-limit';
 
 export type GuestContextConflictScope = 'ACTIVE' | 'POST_VISIT';
 export type GuestAuthBootstrapStage = 'PREPARE' | 'EXCHANGE' | 'RECONCILE_SWITCH';
@@ -14,6 +15,7 @@ export interface GuestTokenBootstrapState {
   readonly isSwitchOutcomeAmbiguous: boolean;
   readonly isTemporarilyUnavailable: boolean;
   readonly retryStage: GuestAuthBootstrapStage | null;
+  readonly retryNotBefore?: number | undefined;
 }
 
 export interface GuestAuthBootstrapResult {
@@ -25,12 +27,18 @@ export interface GuestAuthBootstrapResult {
 export function isRetryableGuestAuthBootstrapFailure(error: unknown): boolean {
   return (
     error instanceof GuestApiError &&
-    (error.isNetworkError || (error.status >= 500 && error.status <= 599))
+    (error.status === 429 || error.isNetworkError || (error.status >= 500 && error.status <= 599))
   );
 }
 
+function isAmbiguousGuestAuthMutationFailure(error: unknown): boolean {
+  return error instanceof GuestApiError &&
+    (error.isNetworkError || (error.status >= 500 && error.status <= 599));
+}
+
 function isTerminalGuestAuthBootstrapFailure(error: unknown): boolean {
-  return error instanceof GuestApiError && error.code === 'GUEST_ACCESS_INVALID';
+  return error instanceof GuestApiError &&
+    error.status !== 429 && error.code === 'GUEST_ACCESS_INVALID';
 }
 
 async function exchangeBrowserSessionWithRecovery(
@@ -39,7 +47,7 @@ async function exchangeBrowserSessionWithRecovery(
   try {
     await bootstrapClient.exchangeBrowserSession();
   } catch (error) {
-    if (!isRetryableGuestAuthBootstrapFailure(error)) throw error;
+    if (!isAmbiguousGuestAuthMutationFailure(error)) throw error;
     await bootstrapClient.exchangeBrowserSession();
   }
   // A fresh successful exchange adopts a new credential context. SAME_VISIT
@@ -53,7 +61,7 @@ export async function switchGuestBrowserContextTransport(
   try {
     await bootstrapClient.switchBrowserContext();
   } catch (error) {
-    if (!isRetryableGuestAuthBootstrapFailure(error)) throw error;
+    if (!isAmbiguousGuestAuthMutationFailure(error)) throw error;
     await bootstrapClient.switchBrowserContext();
   }
 }
@@ -182,7 +190,15 @@ export function failedGuestContextSwitchState(
   current: GuestTokenBootstrapState,
   error: unknown,
 ): GuestTokenBootstrapState {
-  if (isRetryableGuestAuthBootstrapFailure(error)) {
+  if (error instanceof GuestApiError && error.status === 429) {
+    return {
+      ...current,
+      isContextSwitching: false,
+      isSwitchOutcomeAmbiguous: false,
+      retryNotBefore: guestAuthRetryNotBefore(error) ?? undefined,
+    };
+  }
+  if (isAmbiguousGuestAuthMutationFailure(error)) {
     return {
       ...current,
       isContextSwitching: false,
@@ -215,6 +231,7 @@ export function failedBootstrapState(
       isSwitchOutcomeAmbiguous: false,
       isTemporarilyUnavailable: true,
       retryStage,
+      retryNotBefore: guestAuthRetryNotBefore(error) ?? undefined,
     };
   }
   if (enrollmentEnabled && isTerminalGuestAuthBootstrapFailure(error)) {

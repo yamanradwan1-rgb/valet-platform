@@ -6,6 +6,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -26,6 +27,10 @@ import {
   type GuestContextConflictScope,
   type GuestTokenBootstrapState,
 } from './guest-auth-bootstrap';
+import {
+  recoverGuestAuth429Once,
+  waitForScheduledGuestAuthRetry,
+} from './guest-auth-rate-limit';
 import { extractGuestFragmentToken } from './guest-token-adapter';
 
 export {
@@ -75,30 +80,40 @@ export function GuestAuthProvider({
     isTemporarilyUnavailable: false,
     retryStage: null,
   }));
+  const authorityEpoch = useRef(0);
+
+  useEffect(() => () => {
+    authorityEpoch.current += 1;
+  }, []);
 
   useEffect(() => {
     if (initialToken !== undefined) return;
 
     let isActive = true;
+    const epoch = ++authorityEpoch.current;
+    const isCurrent = () => isActive && authorityEpoch.current === epoch;
     queueMicrotask(async () => {
-      if (!isActive) return;
+      if (!isCurrent()) return;
       const fragmentToken = extractGuestFragmentToken();
       const enrollmentEnabled =
         process.env.NEXT_PUBLIC_GUEST_BROWSER_SESSION_ENROLLMENT_ENABLED === 'true';
       let retryStage: GuestAuthBootstrapStage =
         fragmentToken === null ? 'RECONCILE_SWITCH' : 'PREPARE';
       try {
-        const result = await runGuestAuthBootstrap(
-          fragmentToken,
-          enrollmentEnabled,
-          (stage) => {
-            retryStage = stage;
-          },
+        const attempt = () => retryGuestAuthBootstrapTransport(
+          fragmentToken, enrollmentEnabled, retryStage, (stage) => { retryStage = stage; },
         );
-        if (!isActive) return;
+        const result = await recoverGuestAuth429Once(
+          () => runGuestAuthBootstrap(
+            fragmentToken, enrollmentEnabled, (stage) => { retryStage = stage; },
+          ),
+          attempt,
+          isCurrent,
+        );
+        if (!isCurrent()) return;
         setBootstrap(completedBootstrapState(result));
       } catch (error) {
-        if (!isActive) return;
+        if (!isCurrent()) return;
         setBootstrap(
           failedBootstrapState(
             fragmentToken,
@@ -118,6 +133,7 @@ export function GuestAuthProvider({
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
     const onContextChanged = () => {
+      authorityEpoch.current += 1;
       setBootstrap((current) => ({
         ...current,
         token: null,
@@ -137,23 +153,27 @@ export function GuestAuthProvider({
   const retryBootstrap = useCallback(async () => {
     if (!bootstrap.isTemporarilyUnavailable || bootstrap.retryStage === null) return;
 
+    const epoch = ++authorityEpoch.current;
+    const isCurrent = () => authorityEpoch.current === epoch;
     const fragmentToken = bootstrap.token;
     const enrollmentEnabled =
       process.env.NEXT_PUBLIC_GUEST_BROWSER_SESSION_ENROLLMENT_ENABLED === 'true';
     let retryStage = bootstrap.retryStage;
+    if (bootstrap.retryNotBefore !== undefined &&
+        !await waitForScheduledGuestAuthRetry(bootstrap.retryNotBefore, isCurrent)) return;
     setBootstrap({ ...bootstrap, isComplete: false });
 
     try {
-      const result = await retryGuestAuthBootstrapTransport(
-        fragmentToken,
-        enrollmentEnabled,
-        retryStage,
-        (stage) => {
-          retryStage = stage;
-        },
+      const attempt = () => retryGuestAuthBootstrapTransport(
+        fragmentToken, enrollmentEnabled, retryStage, (stage) => { retryStage = stage; },
       );
+      const result = await recoverGuestAuth429Once(
+        attempt, attempt, isCurrent,
+      );
+      if (!isCurrent()) return;
       setBootstrap(completedBootstrapState(result));
     } catch (error) {
+      if (!isCurrent()) return;
       setBootstrap(
         failedBootstrapState(
           fragmentToken,
@@ -166,6 +186,7 @@ export function GuestAuthProvider({
   }, [bootstrap]);
 
   const continueCurrentVisit = useCallback(() => {
+    authorityEpoch.current += 1;
     setBootstrap(continueCurrentGuestVisitState);
   }, []);
 
@@ -178,9 +199,15 @@ export function GuestAuthProvider({
       return;
     }
     const fragmentToken = bootstrap.token;
+    const epoch = ++authorityEpoch.current;
+    const isCurrent = () => authorityEpoch.current === epoch;
+    if (bootstrap.retryNotBefore !== undefined &&
+        !await waitForScheduledGuestAuthRetry(bootstrap.retryNotBefore, isCurrent)) return;
     setBootstrap(beginGuestContextSwitchState(bootstrap));
     try {
-      await switchGuestBrowserContextTransport(new GuestApiClient(fragmentToken));
+      const attempt = () => switchGuestBrowserContextTransport(new GuestApiClient(fragmentToken));
+      await recoverGuestAuth429Once(attempt, attempt, isCurrent);
+      if (!isCurrent()) return;
       setBootstrap(
         completedBootstrapState({
           token: null,
@@ -189,11 +216,13 @@ export function GuestAuthProvider({
         }),
       );
     } catch (error) {
+      if (!isCurrent()) return;
       setBootstrap(failedGuestContextSwitchState(bootstrap, error));
     }
   }, [bootstrap]);
 
   const setToken = useCallback((token: string | null) => {
+    authorityEpoch.current += 1;
     setBootstrap({
       token,
       client: token === null ? null : new GuestApiClient(token),
