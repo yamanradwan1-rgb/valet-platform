@@ -122,6 +122,20 @@ export function stopLocationIntake(
   );
 }
 
+export function resumeLocationIntake(
+  transaction: PostgresTransaction,
+  actorMembershipId: string,
+  organizationId: string,
+  locationId: string,
+  command: ManagementLocationLifecycleCommand,
+) {
+  return mutation(
+    transaction,
+    `SELECT * FROM management_location_resume_intake($1::uuid,$2::uuid,$3::uuid,$4::timestamptz)`,
+    [actorMembershipId, organizationId, locationId, command.expectedUpdatedAt],
+  );
+}
+
 export function deactivateLocation(
   transaction: PostgresTransaction,
   actorMembershipId: string,
