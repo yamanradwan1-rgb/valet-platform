@@ -64,6 +64,29 @@ describe("#340 lifecycle explanation", () => {
         },
         "en",
       ),
-    ).toContain("readiness");
+    ).toContain("shift-presence zone");
+    expect(
+      locationLifecycleExplanation(
+        {
+          ...location,
+          status: "INACTIVE",
+          readiness: { ...location.readiness, readyForActivation: false },
+        },
+        "ar",
+      ),
+    ).toContain("نطاق حضور نشط");
+    expect(
+      locationLifecycleExplanation(
+        {
+          ...location,
+          status: "INACTIVE",
+          readiness: {
+            readyForActivation: false,
+            checks: { currencySupported: false, timezoneValid: true },
+          },
+        },
+        "en",
+      ),
+    ).toContain("readiness requirements");
   });
 });

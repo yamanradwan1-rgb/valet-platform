@@ -7,6 +7,14 @@ export function locationLifecycleExplanation(
   const ar = locale === "ar";
   if (location.status === "INACTIVE") {
     if (!location.readiness.readyForActivation) {
+      if (
+        location.readiness.checks.currencySupported &&
+        location.readiness.checks.timezoneValid
+      ) {
+        return ar
+          ? "يتطلب التفعيل وجود نطاق حضور نشط عند تفعيل سياسة الحضور الصارمة."
+          : "Activation requires an active shift-presence zone for the configured strict presence policy.";
+      }
       return ar
         ? "التفعيل غير متاح حتى اكتمال متطلبات الجاهزية."
         : "Activation is unavailable until readiness requirements are complete.";

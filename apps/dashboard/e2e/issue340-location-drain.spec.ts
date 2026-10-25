@@ -54,3 +54,23 @@ for (const blocker of Object.keys(labels) as (keyof typeof labels)[]) {
     ).toBeDisabled();
   });
 }
+
+test("#340 explains missing strict shift-presence zone before activation", async ({ page }) => {
+  const inactive = locationLifecycle({
+    status: "INACTIVE",
+    readiness: {
+      readyForActivation: false,
+      checks: { currencySupported: true, timezoneValid: true },
+    },
+  });
+  await new DashboardApiFixture({
+    companyOrganizations: [ORG_A],
+    companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
+    override: (path) =>
+      path === lifecyclePath ? { body: inactive } : undefined,
+  }).install(page);
+  await enterLocations(page);
+  await selectLocation(page);
+  await expect(page.getByRole("button", { name: "Activate", exact: true })).toBeDisabled();
+  await expect(page.getByText(/active shift-presence zone/)).toBeVisible();
+});
