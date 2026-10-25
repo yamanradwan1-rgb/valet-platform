@@ -10,6 +10,7 @@ import {
   type ContactField, type GuestLanguage, type LocationContact,
 } from "./guest-information-model";
 import { useRevisionedDraft } from "./use-revisioned-draft";
+import { contactFieldError } from "./guest-contact-input";
 
 export function LocationContactCard({
   locale, locationName, defaults, contact, onSave, announce, onDirtyChange,
@@ -40,6 +41,7 @@ export function LocationContactCard({
   const current = fields[field];
   const chosen = effectiveContact(defaults, draft, field);
   const update = (next: LocationContact["fields"][ContactField]) => {
+    setInvalid(null);
     setFields((prev) => ({ ...prev, [field]: next }));
     if (field === "hours" && next.mode !== "OVERRIDE") setHoursConfirmed(false);
   };
@@ -56,8 +58,7 @@ export function LocationContactCard({
     if (wrong) {
       setField(wrong);
       setInvalid(wrong);
-      announce(translate(locale, "Enter a valid value for the location override.",
-        "أدخل قيمة صالحة لتجاوز الموقع."), "error");
+      announce(contactFieldError(wrong, locale), "error");
       queueMicrotask(() =>
         document.getElementById(guestContactFieldId("override", wrong))?.focus());
       return;
@@ -205,7 +206,7 @@ export function LocationContactCard({
         </div>
       ) : null}
       {invalid ? <span className="v-small" role="alert">
-        {translate(locale, "Invalid value", "قيمة غير صالحة")}
+        {contactFieldError(invalid, locale)}
       </span> : null}
     </GuestCard>
   );
