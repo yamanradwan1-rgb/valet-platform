@@ -10,13 +10,13 @@ describe("#299 Tasks historical assignee projection", () => {
   it("shows the persisted, granted assignee for a completed Task without claiming a completion actor", () => {
     const join = dashboardTasksHistoricalAssigneeJoins();
     expect(join).toContain(
-      "task.status IN ('ASSIGNED', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED')",
+      "task.status IN ('ASSIGNED', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')",
     );
     expect(join).toContain(
       "assignee_member.id = task.current_assignee_membership_id",
     );
     expect(join).not.toContain("'QUEUED'");
-    expect(join).not.toContain("'CANCELLED'");
+    expect(join).toContain("'CANCELLED'");
     expect(join).not.toContain("dispatch_events");
     expect(join).not.toContain("completed_by");
   });
@@ -32,9 +32,7 @@ describe("#299 Tasks historical assignee projection", () => {
     expect(join).toContain(
       "assignee_access.membership_id = assignee_member.id",
     );
-    expect(join).toContain(
-      "assignee_access.location_id = task.location_id",
-    );
+    expect(join).toContain("assignee_access.location_id = task.location_id");
     expect(operationalAssigneeColumn).toContain(
       "CASE WHEN assignee_user.id IS NULL THEN NULL",
     );

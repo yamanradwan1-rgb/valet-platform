@@ -54,13 +54,29 @@ export function LocationLifecycleFacts({
           <h3 className={styles.sectionTitle}>{t.drain}</h3>
           <p className={styles.sectionText}>
             {location.drain.blocked ? t.blocked : t.clear} · {t.activeShift}:{" "}
-            {location.drain.activeShiftPresent ? t.enabled : t.disabled} ·{" "}
-            {t.nonCompletedSession}:{" "}
+            {location.drain.activeShiftPresent
+              ? locale === "ar"
+                ? "موجود"
+                : "Present"
+              : locale === "ar"
+                ? "لا يوجد"
+                : "None"}{" "}
+            · {t.nonCompletedSession}:{" "}
             {location.drain.nonCompletedValetSessionPresent
-              ? t.enabled
-              : t.disabled}{" "}
+              ? locale === "ar"
+                ? "موجود"
+                : "Present"
+              : locale === "ar"
+                ? "لا يوجد"
+                : "None"}{" "}
             · {t.nonTerminalTask}:{" "}
-            {location.drain.nonTerminalTaskPresent ? t.enabled : t.disabled}
+            {location.drain.nonTerminalTaskPresent
+              ? locale === "ar"
+                ? "موجود"
+                : "Present"
+              : locale === "ar"
+                ? "لا يوجد"
+                : "None"}
           </p>
         </div>
       </div>

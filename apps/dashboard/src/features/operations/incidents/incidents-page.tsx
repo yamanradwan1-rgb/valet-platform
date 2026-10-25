@@ -1,7 +1,10 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { IncidentOverviewEntry } from "@valet/contracts";
+import type {
+  IncidentListFilter,
+  IncidentOverviewEntry,
+} from "@valet/contracts";
 
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { ScopedContextHelp } from "../../help/scoped-context-help";
@@ -9,20 +12,17 @@ import { readIncidents } from "../operations-api";
 import { selectedOperationsLocation } from "../operations-location";
 import { formatOperationsTime } from "../operations-presentation";
 import {
-  incidentCopy,
   incidentTypeLabel,
   incidentStatusLabel,
   incidentSeverityLabel,
 } from "./incident-presentation";
-import incidentDrawerStyles from "./incident-drawer.module.css";
+import { IncidentDrawer } from "./incident-drawer";
+import incidentControls from "./incident-drawer.module.css";
 import localStyles from "../accountability.module.css";
 import { operationsCopy } from "../operations-copy";
 import { incidentTone, severityTone } from "../operations-labels";
 import {
   DetailAction,
-  Fact,
-  FactList,
-  OperationsDrawer,
   OperationsPage,
   ReferenceCursorControls,
   ReadState,
@@ -42,10 +42,10 @@ function IncidentsContent() {
   const { dashboard, exactLocation, scope, scopeKey } = useOperationsContext();
   const { locale } = useDashboardLocale();
   const t = operationsCopy(locale);
-  const copy = incidentCopy(locale);
   const location = selectedOperationsLocation(dashboard.selectedScope);
   const timezone = location?.timezone ?? "UTC";
   const page = useCursorPage();
+  const [filter, setFilter] = useState<IncidentListFilter>("ALL");
   const [selected, setSelected] = useState<IncidentOverviewEntry | null>(null);
   const locationId = scope.locationId ?? "";
   const enabled =
@@ -54,11 +54,11 @@ function IncidentsContent() {
       scope.authority === "LOCATION_MANAGER");
   const load = useCallback(
     (signal: AbortSignal) =>
-      readIncidents(dashboard.api, locationId, page.cursor, signal),
-    [dashboard.api, locationId, page.cursor],
+      readIncidents(dashboard.api, locationId, page.cursor, signal, filter),
+    [dashboard.api, locationId, page.cursor, filter],
   );
   const read = useOperationsRead(
-    `${scopeKey}:incidents:${page.cursor ?? "first"}`,
+    `${scopeKey}:incidents:${filter}:${page.cursor ?? "first"}`,
     load,
     enabled,
   );
@@ -72,10 +72,12 @@ function IncidentsContent() {
     );
   return (
     <OperationsPage
-      help={<span className={styles.incidentPageHelpPair}>
-        <ScopedContextHelp helpKey="incidents.page" />
-        <ScopedContextHelp helpKey="incidents.list" />
-      </span>}
+      help={
+        <span className={styles.incidentPageHelpPair}>
+          <ScopedContextHelp helpKey="incidents.page" />
+          <ScopedContextHelp helpKey="incidents.list" />
+        </span>
+      }
       pairedHelp
       referenceHeader
       subtitle={t.incidentsSubtitle}
@@ -86,14 +88,40 @@ function IncidentsContent() {
         <span>
           <bdi>{location?.name}</bdi>
         </span>
-        <span>{copy.cohort}</span>
+        <span>
+          <select
+            id="incident-status-filter"
+            className={`${styles.filterPlaceholder} ${incidentControls.statusFilter}`}
+            aria-label={locale === "ar" ? "حالة الحادث" : "Incident status"}
+            value={filter}
+            onChange={(event) => {
+              setFilter(event.target.value as IncidentListFilter);
+              page.reset();
+              setSelected(null);
+            }}
+          >
+            <option value="ALL">
+              {locale === "ar" ? "الكل" : "All incidents"}
+            </option>
+            <option value="ACTIVE">
+              {locale === "ar" ? "نشطة" : "Active"}
+            </option>
+            <option value="RESOLVED">
+              {locale === "ar" ? "محلولة" : "Resolved"}
+            </option>
+          </select>
+        </span>
         <span>
           <bdi dir="ltr">{timezone}</bdi>
         </span>
       </div>
       <ReadState
         empty={read.data?.items.length === 0}
-        emptyText={t.noOpenIncidents}
+        emptyText={
+          locale === "ar"
+            ? "لا توجد حوادث لهذا الفلتر."
+            : "No incidents in this view."
+        }
         error={read.error}
         loading={read.loading}
         onRetry={read.refresh}
@@ -123,6 +151,7 @@ function IncidentsContent() {
                   <tr
                     className={`${styles.row} ${localStyles.row}`}
                     key={item.incidentId}
+                    data-incident-id={item.incidentId}
                   >
                     <td>
                       <time dateTime={item.createdAt}>
@@ -172,86 +201,45 @@ function IncidentsContent() {
           />
         </div>
       </ReadState>
-      {selected && !read.error && !read.loading ? (
+      {selected && !read.error ? (
         <IncidentDrawer
-          item={selected}
+          api={dashboard.api}
+          locationId={locationId}
+          onRefresh={() => {
+            setSelected(null);
+            read.refresh();
+          }}
+          onResolved={(item) => {
+            setSelected(item);
+            if (filter !== "ALL") {
+              setFilter("ALL");
+              page.reset();
+            }
+            read.refresh();
+          }}
+          item={
+            selected.status === "RESOLVED"
+              ? selected
+              : (read.data?.items.find(
+                  (item) => item.incidentId === selected.incidentId,
+                ) ?? selected)
+          }
           locationName={location?.name ?? ""}
           timezone={timezone}
-          onClose={() => setSelected(null)}
+          onClose={() => {
+            const incidentId = selected.incidentId;
+            setSelected(null);
+            requestAnimationFrame(() => {
+              const opener = document.querySelector<HTMLButtonElement>(
+                `[data-incident-id="${incidentId}"] button`,
+              );
+              (
+                opener ?? document.getElementById("incident-status-filter")
+              )?.focus();
+            });
+          }}
         />
       ) : null}
     </OperationsPage>
-  );
-}
-
-function IncidentDrawer({
-  item,
-  locationName,
-  timezone,
-  onClose,
-}: {
-  readonly item: IncidentOverviewEntry;
-  readonly locationName: string;
-  readonly timezone: string;
-  readonly onClose: () => void;
-}) {
-  const { locale } = useDashboardLocale();
-  const t = operationsCopy(locale);
-  const copy = incidentCopy(locale);
-  return (
-    <OperationsDrawer
-      className={incidentDrawerStyles.drawer}
-      help={<ScopedContextHelp helpKey="incidents.detail" />}
-      label={`${t.details}: ${incidentTypeLabel(item.type, locale)}`}
-      onClose={onClose}
-    >
-      <FactList className={incidentDrawerStyles.facts}>
-        <Fact label={t.type} value={incidentTypeLabel(item.type, locale)} />
-        <Fact label={t.description} value={<bdi>{item.description}</bdi>} />
-        <Fact
-          label={t.state}
-          value={
-            <StatusBadge tone={incidentTone(item.status)}>
-              {incidentStatusLabel(item.status, locale)}
-            </StatusBadge>
-          }
-        />
-        <Fact
-          label={t.severity}
-          value={
-            <StatusBadge tone={severityTone(item.severity)}>
-              {incidentSeverityLabel(item.severity, locale)}
-            </StatusBadge>
-          }
-        />
-        <Fact label={copy.location} value={<bdi>{locationName}</bdi>} />
-        <Fact
-          label={copy.reportedBy}
-          value={<bdi>{item.reporterDisplayName ?? copy.reporterUnavailable}</bdi>}
-        />
-        <Fact
-          label={t.created}
-          value={`${formatOperationsTime(item.createdAt, timezone, locale)} (${timezone})`}
-        />
-        {item.resolvedAt ? (
-          <Fact
-            label={copy.resolved}
-            value={`${formatOperationsTime(item.resolvedAt, timezone, locale)} (${timezone})`}
-          />
-        ) : null}
-        <Fact
-          label={copy.incidentId}
-          value={<bdi dir="ltr">{item.incidentId}</bdi>}
-        />
-        <Fact
-          label={t.session}
-          value={<bdi dir="ltr">{item.valetSessionId}</bdi>}
-        />
-        <Fact
-          label={copy.technicalType}
-          value={<bdi dir="ltr">{item.type}</bdi>}
-        />
-      </FactList>
-    </OperationsDrawer>
   );
 }

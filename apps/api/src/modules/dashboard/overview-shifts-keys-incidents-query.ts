@@ -1,6 +1,6 @@
+import { listIncidents } from "./incidents-query";
 import type {
   ActiveShiftOverviewEntry,
-  IncidentOverviewEntry,
   KeySlotOverviewEntry,
 } from "@valet/contracts";
 
@@ -9,12 +9,10 @@ import { inPostgresTransaction } from "../../common/database/postgres-transactio
 import type { StaffSessionContext } from "../auth/staff-session-context";
 import { authorizeDashboardReadLocation } from "./dashboard-read-authorization";
 import { assertAuthorized } from "./dashboard-overview-error";
-import { canonicalHistoryName } from "./operational-history-identity-projection";
 import { createOverviewCursorCodec } from "./overview-cursor";
 
 const shiftCursorCodec = createOverviewCursorCodec("active-shifts");
 const keyCursorCodec = createOverviewCursorCodec("keys");
-const incidentCursorCodec = createOverviewCursorCodec("incidents");
 
 interface ShiftRow {
   readonly membershipId: string;
@@ -173,101 +171,10 @@ export async function listKeyAccountability(
   });
 }
 
-interface IncidentRow {
-  readonly createdAt: Date;
-  readonly description: string;
-  readonly reporterFirstName: string | null;
-  readonly reporterLastName: string | null;
-  readonly incidentId: string;
-  readonly resolvedAt: Date | null;
-  readonly severity: string;
-  readonly status: string;
-  readonly type: string;
-  readonly valetSessionId: string;
-}
-
-export async function listOpenIncidents(
+// Compatibility for existing active-only overview consumers. Dashboard's list uses All.
+export function listOpenIncidents(
   pool: PostgresPool,
-  input: {
-    authenticatedUserId: string;
-    staffSessionContext?: StaffSessionContext;
-    cursor?: string;
-    limit: number;
-    locationId: string;
-  },
-): Promise<{ items: IncidentOverviewEntry[]; nextCursor: string | null }> {
-  const cursor = incidentCursorCodec.decode(input.cursor);
-  return inPostgresTransaction(pool, async (transaction) => {
-    const scope = await authorizeDashboardReadLocation(transaction, {
-      authenticatedUserId: input.authenticatedUserId,
-      capability: "LOCATION_DASHBOARD_READ",
-      ...(input.staffSessionContext === undefined
-        ? {}
-        : { staffSessionContext: input.staffSessionContext }),
-      targetLocationId: input.locationId,
-    });
-    assertAuthorized(scope);
-    const predicates = [
-      "incident.organization_id = $1",
-      "incident.location_id = $2",
-      "incident.status IN ('OPEN', 'INVESTIGATING')",
-    ];
-    const parameters: unknown[] = [scope.organizationId, input.locationId];
-    if (cursor !== null) {
-      parameters.push(cursor.sortKey, cursor.tiebreakerId);
-      predicates.push(
-        `(incident.created_at, incident.id) < ($${parameters.length - 1}::timestamptz, $${parameters.length}::uuid)`,
-      );
-    }
-    parameters.push(input.limit + 1);
-    const rows = await transaction.query<IncidentRow>(
-      `SELECT incident.id::text AS "incidentId",
-              incident.valet_session_id::text AS "valetSessionId",
-              incident.status::text AS status,
-              incident.severity::text AS severity,
-              incident.type,
-              incident.description,
-              reporter.first_name AS "reporterFirstName",
-              reporter.last_name AS "reporterLastName",
-              incident.created_at AS "createdAt",
-              incident.resolved_at AS "resolvedAt"
-       FROM incidents AS incident
-       LEFT JOIN organization_memberships AS reporter
-         ON reporter.organization_id = incident.organization_id
-        AND reporter.id = incident.reported_by_membership_id
-       WHERE ${predicates.join(" AND ")}
-       ORDER BY incident.created_at DESC, incident.id DESC
-       LIMIT $${parameters.length}`,
-      parameters,
-    );
-    const items = rows.rows
-      .slice(0, input.limit)
-      .map((row): IncidentOverviewEntry => ({
-        createdAt: row.createdAt.toISOString(),
-        description: row.description,
-        incidentId: row.incidentId,
-        reporterDisplayName: (() => {
-          const name = canonicalHistoryName({
-            firstName: row.reporterFirstName,
-            lastName: row.reporterLastName,
-          });
-          return name === null ? null : `${name.firstName} ${name.lastName}`;
-        })(),
-        resolvedAt:
-          row.resolvedAt === null ? null : row.resolvedAt.toISOString(),
-        severity: row.severity as IncidentOverviewEntry["severity"],
-        status: row.status as IncidentOverviewEntry["status"],
-        type: row.type,
-        valetSessionId: row.valetSessionId,
-      }));
-    const last = rows.rows[input.limit - 1];
-    const nextCursor =
-      rows.rows.length > input.limit && last !== undefined
-        ? incidentCursorCodec.encode({
-            sortKey: last.createdAt.toISOString(),
-            tiebreakerId: last.incidentId,
-          })
-        : null;
-    return { items, nextCursor };
-  });
+  input: Parameters<typeof listIncidents>[1],
+) {
+  return listIncidents(pool, { ...input, filter: "ACTIVE" });
 }

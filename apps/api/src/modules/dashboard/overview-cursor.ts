@@ -3,6 +3,7 @@ import { ApiTransportValidationError } from "../../common/http/api-errors";
 export type OverviewCursorDomain =
   | "active-shifts"
   | "incidents"
+  | `incidents:${string}:${"ALL" | "ACTIVE" | "RESOLVED"}`
   | "keys"
   | "retrieval-queue"
   | "sessions"
@@ -16,12 +17,14 @@ export interface OverviewCursor {
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function encode(
-  domain: OverviewCursorDomain,
-  cursor: OverviewCursor,
-): string {
+function encode(domain: OverviewCursorDomain, cursor: OverviewCursor): string {
   return Buffer.from(
-    JSON.stringify({ v: 1, d: domain, a: cursor.sortKey, b: cursor.tiebreakerId }),
+    JSON.stringify({
+      v: 1,
+      d: domain,
+      a: cursor.sortKey,
+      b: cursor.tiebreakerId,
+    }),
     "utf8",
   ).toString("base64url");
 }

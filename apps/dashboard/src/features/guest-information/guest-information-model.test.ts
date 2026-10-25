@@ -78,7 +78,7 @@ describe("guest-information customer-visible projection", () => {
     expect(validHttps("javascript:alert(1)")).toBe(false);
     expect(validHttps("https://example.com/support")).toBe(true);
     expect(validPhone("+962799000000")).toBe(true);
-    expect(validPhone("0799000000")).toBe(false);
+    expect(validPhone("0790000000")).toBe(true);
   });
 
   it("derives LM inherited values from the scoped response without company-wide reads", () => {

@@ -1,6 +1,10 @@
 /* The Incident drawer keeps its approved desktop/mobile geometry. At effective
    widths below the 320 CSS px reflow boundary, release flex min-content widths. */
-@media (max-width: 18rem) {
+.drawer {
+  container: incident-drawer / inline-size;
+}
+
+@container incident-drawer (max-width: 18rem) {
   .drawer > :first-child {
     padding: .5rem;
     gap: .375rem;
@@ -44,4 +48,14 @@
     text-align: start;
     overflow-wrap: anywhere;
   }
+}
+.statusFilter {
+  min-height: 2rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.resolutionNote {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }

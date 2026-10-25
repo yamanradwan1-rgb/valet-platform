@@ -172,6 +172,7 @@ describe("VAL-009C overview domain projections", () => {
     expect(Object.keys(page.items[0]!).sort()).toEqual(
       [
         "assignee",
+        "cancellation",
         "createdAt",
         "currentAssigneeMembershipId",
         "status",
@@ -189,7 +190,7 @@ describe("VAL-009C overview domain projections", () => {
     });
   });
 
-  it("retains granted historical Task assignees but leaves queued and cancelled tasks unassigned", async () => {
+  it("retains granted historical Task assignees, including cancelled work, but leaves queued work unassigned", async () => {
     const fixture = await manager();
     const completedParkingSessionId = await context.seedSession({ state: "PARKED" });
     const completedParkingId = await context.seedTask({
@@ -244,7 +245,9 @@ describe("VAL-009C overview domain projections", () => {
       taskType: "RETRIEVAL",
     });
     expect(rows.get(queuedRetrievalId)?.assignee).toBeNull();
-    expect(rows.get(cancelledParkingId)?.assignee).toBeNull();
+    expect(rows.get(cancelledParkingId)?.assignee).toMatchObject({
+      membershipId: fixture.membershipId,
+    });
     expect(rows.get(ungrantedParkingId)?.assignee).toBeNull();
     expect(rows.get(ungrantedParkingId)?.currentAssigneeMembershipId).toBe(
       ungrantedStaff.membershipId,

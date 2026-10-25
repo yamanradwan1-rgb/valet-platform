@@ -94,7 +94,7 @@ test("#299 mounted Tasks table and drawer preserve authorized completed staff in
   await expect(completed.getByRole("cell").nth(1)).toContainText("Nora Parker");
   await expect(active.getByRole("cell").nth(1)).toContainText("Sami Retriever");
   await expect(queued.getByRole("cell").nth(1)).toHaveText("Unassigned");
-  await expect(cancelled.getByRole("cell").nth(1)).toHaveText("Unassigned");
+  await expect(cancelled.getByRole("cell").nth(1)).toHaveText("Unknown employee");
   await expect(unproven.getByRole("cell").nth(1)).toHaveText("Unassigned");
   await expect(table).not.toContainText(parker.membershipId);
 
@@ -114,7 +114,7 @@ test("#299 mounted Tasks table and drawer preserve authorized completed staff in
   await expect(completed).toContainText("مكتملة");
   await expect(completed.getByRole("cell").nth(1)).toContainText("Nora Parker");
   await expect(queued.getByRole("cell").nth(1)).toHaveText("غير مسندة");
-  await expect(cancelled.getByRole("cell").nth(1)).toHaveText("غير مسندة");
+  await expect(cancelled.getByRole("cell").nth(1)).toHaveText("موظف غير معروف");
   await expect(unproven.getByRole("cell").nth(1)).toHaveText("غير مسندة");
   await completed.getByRole("button", { name: "التفاصيل: اصطفاف" }).click();
   const arabicDrawer = page.getByRole("dialog", { name: "التفاصيل" });

@@ -21,6 +21,7 @@ import {
 } from "./locations-api";
 
 import { LocationLifecycleFacts } from "./location-lifecycle-facts";
+import { locationLifecycleExplanation } from "./location-lifecycle-explanation";
 
 export function LocationLifecyclePanel(props: {
   readonly api: DashboardApiClient;
@@ -31,6 +32,7 @@ export function LocationLifecyclePanel(props: {
 }) {
   const { locale } = useDashboardLocale();
   const t = administrationCopy(locale);
+  const explanation = locationLifecycleExplanation(props.location, locale);
   const [currency, setCurrency] = useState(props.location.currency);
   const [timezone, setTimezone] = useState(props.location.timezone);
   const [reason, setReason] = useState("");
@@ -96,6 +98,10 @@ export function LocationLifecyclePanel(props: {
         {props.location.status === "INACTIVE" ? (
           <button
             className={styles.primary}
+            aria-describedby={
+              explanation ? "location-lifecycle-explanation" : undefined
+            }
+            title={explanation ?? undefined}
             disabled={
               mutation.busy || !props.location.readiness.readyForActivation
             }
@@ -143,6 +149,10 @@ export function LocationLifecyclePanel(props: {
         !props.location.acceptingIntake ? (
           <button
             className={styles.danger}
+            aria-describedby={
+              explanation ? "location-lifecycle-explanation" : undefined
+            }
+            title={explanation ?? undefined}
             disabled={mutation.busy || props.location.drain.blocked}
             onClick={() =>
               void mutation.run(
@@ -243,6 +253,11 @@ export function LocationLifecyclePanel(props: {
           <b>{t.historicalImpact}</b>
           <p className={styles.sectionText}>{t.historyUnchanged}</p>
         </div>
+      ) : null}
+      {explanation ? (
+        <p id="location-lifecycle-explanation" className={styles.sectionText}>
+          {explanation}
+        </p>
       ) : null}
       {mutation.error ? (
         <div className={styles.error} role="alert">

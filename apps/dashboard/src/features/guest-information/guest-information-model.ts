@@ -1,4 +1,5 @@
 import type { DashboardLocale } from "../../lib/i18n/locale";
+import { normalizePublicPhone } from "./guest-contact-input";
 
 export type GuestLanguage = DashboardLocale;
 export type ContactField = "displayName" | "phone" | "supportUrl" | "hours";
@@ -127,7 +128,10 @@ export function validHttps(value: string): boolean {
 }
 
 export function validPhone(value: string): boolean {
-  if (!value.trim()) return true;
-  if (!/^\+[1-9][\d\s()-]*$/.test(value)) return false;
-  return /^\+[1-9]\d{6,14}$/.test(value.replace(/[\s()-]/g, ""));
+  try {
+    normalizePublicPhone(value);
+    return true;
+  } catch {
+    return false;
+  }
 }

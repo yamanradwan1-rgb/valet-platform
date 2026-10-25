@@ -10,6 +10,7 @@ import {
 } from "@valet/contracts";
 
 import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
+import { normalizePublicPhone } from "./guest-contact-input";
 import type {
   ContactDefaults, GuestInformationOverview, LocationContact, LocationPrivacy,
 } from "./guest-information-model";
@@ -18,8 +19,7 @@ const root = (organizationId: string) =>
   `/v1/staff/management/organizations/${encodeURIComponent(organizationId)}`;
 const location = (organizationId: string, locationId: string) =>
   `${root(organizationId)}/locations/${encodeURIComponent(locationId)}/guest-information`;
-const canonicalPhone = (value: string | null) =>
-  value === null ? null : value.replace(/[\s()-]/g, "");
+const canonicalPhone = normalizePublicPhone;
 const nullableValue = (value: string | null) => value?.trim() || null;
 
 export function readOverview(

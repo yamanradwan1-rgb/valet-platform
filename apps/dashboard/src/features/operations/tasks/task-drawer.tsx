@@ -6,7 +6,7 @@ import {
   operationsTaskStatusLabel,
   operationsTaskTypeLabel,
 } from "../operations-presentation";
-import { operationalStaffName } from "../operational-staff";
+import { taskAssigneeName, taskCancellerName } from "./task-attribution";
 import { taskTone } from "../operations-labels";
 import {
   Fact,
@@ -47,8 +47,14 @@ export function TaskDrawer(props: {
         />
         <Fact
           label={t.assignee}
-          value={operationalStaffName(props.item.assignee, props.locale)}
+          value={taskAssigneeName(props.item, props.locale)}
         />
+        {props.item.status === "CANCELLED" ? (
+          <Fact
+            label={props.locale === "ar" ? "أُلغي بواسطة" : "Cancelled by"}
+            value={<bdi>{taskCancellerName(props.item, props.locale)}</bdi>}
+          />
+        ) : null}
         <Fact label={t.location} value={props.location.name} />
         <Fact
           label={t.taskId}

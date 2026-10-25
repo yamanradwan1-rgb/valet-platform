@@ -8,6 +8,7 @@ import {
   sessionStateCountsResponseSchema,
   taskOverviewListResponseSchema,
   type IncidentOverviewEntry,
+  type IncidentListFilter,
   type KeySlotOverviewEntry,
   type LiveSessionOverviewEntry,
   type LiveOperationsMapResponse,
@@ -146,14 +147,16 @@ export function readIncidents(
   locationId: string,
   cursor: string | null,
   signal?: AbortSignal,
+  filter: IncidentListFilter = "ALL",
 ): Promise<CursorPage<IncidentOverviewEntry>> {
-  return list(
-    api,
-    locationId,
-    "incidents",
+  return api.request(
+    overviewPath(locationId, "incidents"),
     incidentOverviewResponseSchema,
-    cursor,
-    signal,
+    {
+      method: "GET",
+      query: { limit: 50, filter, ...(cursor ? { cursor } : {}) },
+      signal,
+    },
   );
 }
 

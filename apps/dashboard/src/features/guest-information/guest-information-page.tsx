@@ -11,6 +11,7 @@ import { resolveCompanyAdminContext } from "../../lib/scope/dashboard-scope";
 import { administrationScope, administrationScopeKey } from "../administration/administration-scope";
 import { useAuthoritativeRead } from "../administration/use-authoritative-read";
 import { translate } from "./approved-elements";
+import { guestInformationSaveError } from "./guest-contact-input";
 import {
   changePublication, contactView, defaultsView, privacyView, readCompanyContact,
   readLocationContact, readOverview, readPreview, readPrivacy,
@@ -150,7 +151,7 @@ function GuestInformationContent() {
       });
     }
   }
-  async function commit(task: () => Promise<unknown>, confirmation: string) {
+  async function commit(task: () => Promise<unknown>, confirmation: string, contactSave = false) {
     setNotice(null);
     try {
       await task();
@@ -173,8 +174,8 @@ function GuestInformationContent() {
             "جارٍ تحميل آخر إعدادات محفوظة."), "error");
         return;
       }
-      show(reason instanceof Error ? reason.message :
-        translate(locale, "Save failed.", "تعذّر الحفظ."), "error");
+      show(contactSave ? guestInformationSaveError(reason, locale) :
+        reason instanceof Error ? reason.message : translate(locale, "Save failed.", "تعذّر الحفظ."), "error");
     }
   }
   const loaded = privacy.data && contact.data && validLocation && locationId &&
@@ -259,10 +260,10 @@ function GuestInformationContent() {
                     onCompanyDirty={setCompanyDirty} onLocationDirty={setLocationDirty}
                     onSaveCompany={async (value: ContactDefaults) => commit(
                       () => saveCompanyContact(dashboard.api, organizationId, value),
-                      translate(locale, "Contact saved.", "تم حفظ التواصل."))}
+                        translate(locale, "Contact saved.", "تم حفظ التواصل."), true)}
                     onSaveLocation={async (value: LocationContact) => commit(
                       () => saveLocationContact(dashboard.api, organizationId, locationId, value),
-                      translate(locale, "Contact saved.", "تم حفظ التواصل."))} />
+                        translate(locale, "Contact saved.", "تم حفظ التواصل."), true)} />
               </>
             ) : <div className="v-empty">
               {translate(locale, "Select a Location to view this information.",

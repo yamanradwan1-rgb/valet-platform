@@ -9,6 +9,7 @@ import {
   type ContactField, type GuestLanguage,
 } from "./guest-information-model";
 import { useRevisionedDraft } from "./use-revisioned-draft";
+import { contactFieldError } from "./guest-contact-input";
 
 export function CompanyDefaultsCard({
   locale, companyName, defaults, onSave, announce, canEdit, onDirtyChange,
@@ -42,8 +43,7 @@ export function CompanyDefaultsCard({
       });
     if (wrong) {
       setInvalid(wrong);
-      announce(translate(locale, "Enter a valid contact value.",
-        "أدخل قيمة تواصل صالحة."), "error");
+      announce(contactFieldError(wrong, locale), "error");
       document.getElementById(guestContactFieldId("company", wrong))?.focus();
       return;
     }
@@ -123,7 +123,7 @@ export function CompanyDefaultsCard({
             </GuestButton>
           </div>
           {invalid ? <span className="v-small" role="alert">
-            {translate(locale, "Invalid value", "قيمة غير صالحة")}
+            {contactFieldError(invalid, locale)}
           </span> : null}
         </div>
       ) : null}

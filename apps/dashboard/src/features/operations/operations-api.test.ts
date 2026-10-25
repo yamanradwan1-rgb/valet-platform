@@ -22,6 +22,7 @@ describe("MD-03 read APIs", () => {
     await readTasks(client, locationId, null);
     await readKeys(client, locationId, null);
     await readIncidents(client, locationId, null);
+    expect(request.mock.calls[4]?.[2]?.query.filter).toBe("ALL");
     expect(request.mock.calls.map((call) => call[0])).toEqual([
       `/v1/staff/dashboard/locations/${locationId}/overview/sessions`,
       `/v1/staff/dashboard/locations/${locationId}/overview/retrieval-queue`,

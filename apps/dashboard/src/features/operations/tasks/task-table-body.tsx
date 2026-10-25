@@ -6,6 +6,7 @@ import {
   operationsTaskTypeLabel,
 } from "../operations-presentation";
 import { OperationalStaff } from "../operational-staff";
+import { taskAssigneeName } from "./task-attribution";
 import { taskTone } from "../operations-labels";
 import { DetailAction, StatusBadge, styles } from "../operations-ui";
 import listStyles from "../reference-list.module.css";
@@ -53,7 +54,16 @@ export function TaskTableBody(props: {
             {operationsTaskTypeLabel(item.taskType, props.locale)}
           </td>
           <td>
-            <OperationalStaff assignee={item.assignee} locale={props.locale} />
+            {item.status === "CANCELLED" &&
+            item.assignee === null &&
+            item.currentAssigneeMembershipId !== null ? (
+              <span>{taskAssigneeName(item, props.locale)}</span>
+            ) : (
+              <OperationalStaff
+                assignee={item.assignee}
+                locale={props.locale}
+              />
+            )}
           </td>
           <td>
             <div className={listStyles.primary}>{props.location.name}</div>
