@@ -178,10 +178,16 @@ export const incidentOverviewEntrySchema = z
     severity: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
     type: z.string(),
     description: z.string(),
-    reporterDisplayName: z.string().min(3).max(401)
-      .refine((name) => Array.from(name).length <= 201).nullable(),
+    reporterDisplayName: z
+      .string()
+      .min(3)
+      .max(401)
+      .refine((name) => Array.from(name).length <= 201)
+      .nullable(),
     createdAt: timestampSchema,
     resolvedAt: timestampSchema.nullable(),
+    resolvedByDisplayName: z.string().min(3).max(401).nullable().optional(),
+    resolutionNotes: z.string().nullable().optional(),
   })
   .strict();
 export type IncidentOverviewEntry = z.infer<typeof incidentOverviewEntrySchema>;

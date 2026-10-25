@@ -11,7 +11,6 @@ import {
 import {
   activeShiftOverviewResponseSchema,
   financialOverviewResponseSchema,
-  incidentOverviewResponseSchema,
   keySlotOverviewResponseSchema,
   sessionOverviewQuerySchema,
   retrievalQueueOverviewResponseSchema,
@@ -39,7 +38,6 @@ import {
 import {
   listActiveShifts,
   listKeyAccountability,
-  listOpenIncidents,
 } from "./overview-shifts-keys-incidents-query";
 import { financialOperationalOverview } from "./overview-financial-query";
 
@@ -230,37 +228,6 @@ export class DashboardOverviewController {
       });
       return keySlotOverviewResponseSchema.parse(result);
     });
-  }
-
-  @Get("incidents")
-  incidents(
-    @Req() request: ApiRequest,
-    @Headers("authorization") authorization: string | undefined,
-    @Param("locationId") locationId: string,
-    @Query() query: unknown,
-  ) {
-    return this.runner.run(
-      "DASHBOARD_OVERVIEW_INCIDENTS",
-      request,
-      async () => {
-        const scope = await this.scope(
-          request,
-          authorization,
-          locationId,
-          query,
-        );
-        const result = await listOpenIncidents(this.pool, {
-          authenticatedUserId: scope.authenticatedUserId,
-          staffSessionContext: scope.staffSessionContext,
-          ...(scope.list!.cursor === undefined
-            ? {}
-            : { cursor: scope.list!.cursor }),
-          limit: scope.list!.limit,
-          locationId: scope.locationId,
-        });
-        return incidentOverviewResponseSchema.parse(result);
-      },
-    );
   }
 
   @Get("financial")

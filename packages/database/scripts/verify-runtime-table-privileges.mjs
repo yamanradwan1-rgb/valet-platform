@@ -18,6 +18,7 @@ import {
   tablePrivilegeMatches,
 } from "./runtime-privilege-verification-helpers.mjs";
 import { verifyRuntimeFeaturePrivileges } from "./runtime-feature-privilege-verification.mjs";
+import { verifyIncidentResolutionPrivileges } from "./incident-resolution-runtime-privileges.mjs";
 
 const tablePrivileges = [
   ...incidentRecoveryPrivileges.table,
@@ -187,6 +188,7 @@ const anyColumnPrivileges = [
   ["public.shifts", "UPDATE", true],
 ];
 export async function verifyRuntimeTablePrivileges(client, runtimeRole) {
+  await verifyIncidentResolutionPrivileges(client, runtimeRole);
   await verifyIncidentRecoveryPrivileges(client, runtimeRole);
   for (const policy of tablePrivileges) {
     if (

@@ -121,6 +121,7 @@ const events = {
     "اكتمال جلسة صف المركبة",
   ],
   INCIDENT_OPENED: ["Incident opened", "فتح حادث"],
+  INCIDENT_RESOLVED: ["Incident resolved", "تمت معالجة الحادث"],
   PAYMENT_INITIALIZED: ["Payment initialized", "تهيئة الدفع"],
   PAYMENT_TIP_UPDATED: ["Tip updated", "تحديث الإكرامية"],
   PAYMENT_PAYER_CORRECTED: ["Payer corrected", "تصحيح الجهة الدافعة"],

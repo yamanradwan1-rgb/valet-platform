@@ -1969,6 +1969,16 @@ Financial tenant/location ownership:
 
 ## incidents
 
+Issue #337 (Owner-approved DEC-059 amendment, 2026-10-25) uses the existing
+status/resolved_at/resolved_by_membership_id/resolution_notes columns for
+OPEN/INVESTIGATING -> RESOLVED. Expected active status under an exact row lock
+is the monotonic CAS; the operation UUID is the immutable INCIDENT_RESOLVED
+AuditEvent identity and retry proof. Resolver/time are server-authored; notes
+are trimmed, bounded to 1000 characters and excluded from audit metadata.
+Runtime provisioning grants UPDATE only on those four columns and verifies
+all other Incident columns remain non-writable. No schema migration or
+historical-record rewrite is introduced. CLOSED remains a separate workflow.
+
 ```text
 id
 organization_id

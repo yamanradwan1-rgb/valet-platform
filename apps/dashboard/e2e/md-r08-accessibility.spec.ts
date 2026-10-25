@@ -16,7 +16,11 @@ for (const route of ["keys", "incidents", "audit-log"] as const) {
     const close = dialog.getByRole("button", { name: "Close", exact: true });
     await expect(close).toBeFocused();
     await page.keyboard.press("Tab");
-    await expect(close).toBeFocused();
+    if (route === "incidents") {
+      await expect(
+        dialog.getByRole("button", { name: "Mark Resolved", exact: true }),
+      ).toBeFocused();
+    } else await expect(close).toBeFocused();
     await page.keyboard.press("Shift+Tab");
     await expect(close).toBeFocused();
     await page.keyboard.press("Escape");

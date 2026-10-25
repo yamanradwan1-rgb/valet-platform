@@ -15,7 +15,8 @@ export function taskStatusLabel(status: DashboardTaskStatus): string {
 export function sessionTone(state: DashboardSessionState) {
   if (state === "PARKED" || state === "READY") return "good" as const;
   if (state === "PARKING" || state === "RETRIEVING") return "info" as const;
-  if (state === "REQUESTED" || state === "HANDOFF_PENDING") return "warn" as const;
+  if (state === "REQUESTED" || state === "HANDOFF_PENDING")
+    return "warn" as const;
   return "neutral" as const;
 }
 
@@ -28,6 +29,7 @@ export function taskTone(status: DashboardTaskStatus) {
 }
 
 export function incidentTone(status: IncidentOverviewEntry["status"]) {
+  if (status === "RESOLVED") return "good" as const;
   if (status === "OPEN") return "bad" as const;
   if (status === "INVESTIGATING") return "warn" as const;
   return "neutral" as const;

@@ -1,3 +1,4 @@
+import { DashboardIncidentsController } from "./incidents.controller";
 import { MiddlewareConsumer, Module, type NestModule } from "@nestjs/common";
 import { RuntimeDatabaseModule } from "../../common/database/runtime-database.module";
 import { HttpInfrastructureModule } from "../../common/http/http-infrastructure.module";
@@ -33,6 +34,7 @@ import {
 
 @Module({
   controllers: [
+    DashboardIncidentsController,
     PresenceLmPolicyController,
     PresenceLmZoneController,
     PresenceLmExceptionController,
@@ -50,7 +52,12 @@ import {
     PhysicalResourceWriteController,
     DashboardSessionPhotoController,
   ],
-  imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule, AntiAbuseModule],
+  imports: [
+    AuthModule,
+    RuntimeDatabaseModule,
+    HttpInfrastructureModule,
+    AntiAbuseModule,
+  ],
   providers: [
     PresenceManagementService,
     DashboardConfigurationService,
@@ -67,6 +74,7 @@ export class DashboardModule implements NestModule {
     consumer
       .apply(RequestIdMiddleware)
       .forRoutes(
+        DashboardIncidentsController,
         PresenceLmPolicyController,
         PresenceLmZoneController,
         PresenceLmExceptionController,

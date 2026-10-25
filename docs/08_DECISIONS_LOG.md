@@ -3059,6 +3059,14 @@ Full binding contract:
 Status: Accepted
 Date: 2026-08-22
 
+Accepted amendment (Owner, 2026-10-25, #337): the focused DEC now permits only
+the explicit exact-Location administrative Resolve command, monotonic status
+CAS and operation-bound retries, atomic INCIDENT_RESOLVED audit and UPDATE on
+the four existing resolution columns. Dashboard defaults to All with Active /
+Resolved filters. This narrowly supersedes the read-only/no-UPDATE statements
+below; CLOSED, other editing, deletion and field-operation authority stay out
+of scope. See the focused DEC for the full amended contract.
+
 Decision:
 VAL-009C keeps the incidents overview in scope. The API runtime role retains
 `SELECT` on `public.incidents` for server-authorized exact-Location Dashboard

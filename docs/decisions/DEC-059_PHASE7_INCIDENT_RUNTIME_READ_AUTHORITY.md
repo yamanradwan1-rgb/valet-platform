@@ -32,3 +32,43 @@ The Project Owner approved this reconciliation after Employee Incident Reporting
 ## Non-goals
 
 DEC-059 does not introduce Dashboard Incident create/update/close APIs, Incident workflow changes, new persistence, new indexes, Company-wide access, MFA, Dashboard UI, analytics/KPIs, reports/export, or privilege widening beyond the already accepted Employee INSERT and Dashboard SELECT requirements.
+
+## Accepted amendment — Issue #337 (2026-10-25)
+
+The Owner explicitly approved amending the read-only restriction for this one
+command. This amendment supersedes clauses 4, 8 and 11 only as stated below.
+
+An authenticated Company Admin (DEC-078 five-minute sensitive MFA assurance) or Location
+Manager may resolve an OPEN/INVESTIGATING Incident at an exact currently active
+authorized Location. Employee/Supervisor/Guest authority is unchanged. Derive
+scope, actor and timestamp on the server. Revalidate session, membership, role,
+Organization, Location, grants and commercial Dashboard access through commit.
+
+`POST /v1/staff/dashboard/locations/:locationId/overview/incidents/:incidentId/resolve`
+accepts only `operationId` (UUID), `expectedStatus` (OPEN/INVESTIGATING), and
+`resolutionNotes` (trimmed, 1–1000 characters). Expected active status is the
+monotonic CAS token: this slice has only the outgoing RESOLVED transition.
+Lock the exact Incident, reject a changed active state or different terminal
+operation with VERSION_CONFLICT, and never overwrite another resolution.
+An identical operation retries only for the same actor, Incident, expected
+status and normalized note; reauthorize first. Changed payload/actor/scope is
+IDEMPOTENCY_CONFLICT. CLOSED is never resolved by this command.
+
+Update only existing `status`, `resolved_at`, `resolved_by_membership_id` and
+`resolution_notes`. Runtime receives column-scoped UPDATE on these four fields,
+not table UPDATE. All other Incident mutation privileges remain denied; PUBLIC
+gets none. Provisioning verifies every Incident column. No schema migration is
+needed. Session/Task/custody/payment/severity/reporter/evidence stay unchanged.
+
+Append exactly one `INCIDENT_RESOLVED` AuditEvent with entity INCIDENT, exact
+persisted Organization/Location/Session and authenticated membership, using the
+operation UUID as event identity. Database time supplies both resolution and
+event time. Metadata contains incidentId, fromStatus and toStatus only; notes
+remain solely in resolution_notes, never audit metadata or diagnostic logs.
+The locked Incident and audit insert share one transaction and rollback boundary.
+
+Dashboard Incidents defaults to All and offers Active/Resolved filters with
+server pagination. Resolved rows retain original severity/reporter, remain
+accessible after refresh and show server resolver/time/note. Only confirmation,
+required note, restrained success badge and a small filter are new UI surfaces.
+Final CLOSED workflow, deletion and broad Incident editing remain excluded.
