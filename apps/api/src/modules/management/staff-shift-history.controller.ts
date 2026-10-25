@@ -12,6 +12,7 @@ import {
   staffShiftHistoryQuerySchema,
   staffShiftHistoryResponseSchema,
   staffShiftHistoryDetailSchema,
+  staffShiftHistoryDetailQuerySchema,
   staffShiftEmployeeQuerySchema,
   staffShiftEmployeePageSchema,
 } from "@valet/contracts";
@@ -103,17 +104,14 @@ export class StaffShiftHistoryController {
     setNoStoreResponseHeaders(response);
     return this.runner.run("STAFF_SHIFT_HISTORY_DETAIL", request, async () => {
       requireSingleManagementAuthorization(request);
-      if (
-        typeof query !== "object" ||
-        query === null ||
-        Object.keys(query).length !== 0
-      )
-        throw new ApiTransportValidationError();
+      const parsed = staffShiftHistoryDetailQuerySchema.safeParse(query ?? {});
+      if (!parsed.success) throw new ApiTransportValidationError();
       return staffShiftHistoryDetailSchema.parse(
         await this.history.detail(
           await this.sessions.resolve(authorization),
           requireManagementUuid(organizationId).toLowerCase(),
           requireManagementUuid(shiftId).toLowerCase(),
+          parsed.data.includeCashReconciliation === "true",
         ),
       );
     });

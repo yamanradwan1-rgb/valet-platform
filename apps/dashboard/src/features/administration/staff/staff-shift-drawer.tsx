@@ -1,7 +1,7 @@
 "use client";
 import {
   staffManagementDisplayName,
-  type StaffShiftHistoryEntry,
+  type StaffShiftHistoryDetail,
 } from "@valet/contracts";
 import type { ReactNode } from "react";
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
@@ -13,9 +13,10 @@ import { formatStaffTime } from "./staff-presentation";
 import { staffRoleLabel } from "./staff-labels";
 import { staffShiftHistoryCopy } from "./staff-shift-history-copy";
 import { shiftDuration } from "./staff-shift-time";
+import { StaffShiftCashFacts } from "./staff-shift-cash-facts";
 import { ScopedContextHelp } from "../../help/scoped-context-help";
 export function StaffShiftDrawer(props: {
-  readonly item: StaffShiftHistoryEntry | null;
+  readonly item: StaffShiftHistoryDetail | null;
   readonly loading: boolean;
   readonly error: Error | null;
   readonly now: number;
@@ -88,6 +89,7 @@ export function StaffShiftDrawer(props: {
               label={h.duration}
               value={shiftDuration(item, props.now, locale)}
             />
+            <StaffShiftCashFacts item={item} locale={locale} />
             <div className={styles.actions}>
               {props.action}
               <ScopedContextHelp helpKey="staff.details" />

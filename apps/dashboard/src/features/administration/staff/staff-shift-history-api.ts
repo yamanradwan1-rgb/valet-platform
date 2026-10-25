@@ -27,6 +27,7 @@ export function readShiftDetail(
 ) {
   return api.request(`${base(org)}/${shiftId}`, staffShiftHistoryDetailSchema, {
     signal,
+    query: { includeCashReconciliation: "true" },
   });
 }
 export function readShiftEmployees(
