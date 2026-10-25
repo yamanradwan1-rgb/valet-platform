@@ -126,6 +126,15 @@ export const taskOverviewEntrySchema = z
     valetSessionId: uuidSchema,
     currentAssigneeMembershipId: nullableUuidSchema,
     assignee: operationalAssigneeSchema.nullable(),
+    cancellation: z
+      .object({
+        kind: z.enum(["STAFF", "GUEST", "UNKNOWN"]),
+        displayName: z.string().min(3).max(401).nullable(),
+        occurredAt: timestampSchema.nullable(),
+      })
+      .strict()
+      .nullable()
+      .optional(),
     createdAt: timestampSchema,
     updatedAt: timestampSchema,
   })

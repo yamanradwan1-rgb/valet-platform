@@ -1,3 +1,7 @@
+import {
+  taskCancellationColumn,
+  taskCancellationProjection,
+} from "./task-cancellation-projection";
 import type { RetrievalQueueEntry, TaskOverviewEntry } from "@valet/contracts";
 
 import type { PostgresPool } from "../../common/database/postgres";
@@ -128,6 +132,8 @@ export async function listRetrievalQueue(
 }
 
 interface TaskRow {
+  readonly cancellationEvidence:
+    import("./task-cancellation-projection").CancellationEvidence | null;
   readonly assignee: TaskOverviewEntry["assignee"];
   readonly createdAt: Date;
   readonly currentAssigneeMembershipId: string | null;
@@ -177,6 +183,7 @@ export async function listDashboardTasks(
                 AS "currentAssigneeMembershipId",
               task.created_at AS "createdAt",
               task.updated_at AS "updatedAt",
+              ${taskCancellationColumn},
               ${operationalAssigneeColumn}
        FROM tasks AS task
        ${dashboardTasksHistoricalAssigneeJoins()}
@@ -191,6 +198,7 @@ export async function listDashboardTasks(
         createdAt: row.createdAt.toISOString(),
         currentAssigneeMembershipId: row.currentAssigneeMembershipId,
         assignee: row.assignee,
+        cancellation: taskCancellationProjection(row.cancellationEvidence),
         status: row.status as TaskOverviewEntry["status"],
         taskId: row.taskId,
         taskType: row.taskType as TaskOverviewEntry["taskType"],

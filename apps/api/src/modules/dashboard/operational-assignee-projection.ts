@@ -13,7 +13,10 @@ export function operationalAssigneeJoins(taskAlias: "task" | "current_task") {
 // The Tasks history page retains an authorized assignment after completion.
 // This is attribution to the task's persisted assignee, not its completion actor.
 export function dashboardTasksHistoricalAssigneeJoins() {
-  return assigneeJoins("task", "'ASSIGNED', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED'");
+  return assigneeJoins(
+    "task",
+    "'ASSIGNED', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'",
+  );
 }
 
 function assigneeJoins(taskAlias: "task" | "current_task", statuses: string) {
