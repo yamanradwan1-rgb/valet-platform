@@ -1,6 +1,19 @@
 import { DashboardApiError } from "../../../lib/api/dashboard-api-error";
 import type { PresenceCopyKey } from "./shift-presence-copy";
 
+export class LastAttendanceZoneError extends DashboardApiError {
+  constructor(error: DashboardApiError) {
+    super({
+      kind: error.kind,
+      code: error.code,
+      status: error.status,
+      message: error.message,
+      requestId: error.requestId ?? undefined,
+      cause: error,
+    });
+  }
+}
+
 export function isPresenceDenied(error: unknown) {
   return (
     error instanceof DashboardApiError &&
@@ -11,6 +24,7 @@ export function isPresenceDenied(error: unknown) {
 export function presenceErrorKey(error: unknown): PresenceCopyKey {
   if (!(error instanceof DashboardApiError)) return "genericError";
   if (error.code === "PRESENCE_AUTHORITY_BUSY") return "busyError";
+  if (error instanceof LastAttendanceZoneError) return "lastZoneError";
   if (error.code === "PRESENCE_NOT_READY") return "notReadyError";
   if (error.code === "PRESENCE_STRICT_ROLLOUT_CLOSED")
     return "STRICT_ROLLOUT_CLOSED";

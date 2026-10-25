@@ -1,4 +1,5 @@
 "use client";
+import { saveZoneWithReadinessFeedback } from "./shift-presence-zone-readiness";
 import { presenceId } from "./shift-presence-id";
 
 import { useLayoutEffect, useRef, useState } from "react";
@@ -119,7 +120,7 @@ export function ShiftPresenceZoneForm(props: {
       { mutationId, create, query: { kind: "ZONE", entityId: props.zoneId } },
       async () => ({
         kind: "ZONE",
-        value: await props.api.saveZone(props.zoneId, body, create),
+        value: await saveZoneWithReadinessFeedback(props.api, props.zoneId, body, create),
       }),
     );
     if (committed) props.onClose();
