@@ -42,12 +42,20 @@ export interface EmployeeShiftEndSnapshot {
   readonly result: EndShiftResponse | null;
 }
 
+export type EmployeeShiftEndOutcome = Pick<
+  EmployeeShiftEndSnapshot,
+  "phase" | "result" | "failure"
+> & {
+  readonly checkStatus?: import("./employee-shift-presence-types").PresenceCheckStatus;
+};
+
 export interface EmployeeShiftEndTransport {
   endShift(shiftId: string, cashReported: string): Promise<EndShiftResponse>;
 }
 
 export interface EmployeeShiftEndSessionOptions {
   readonly presence?: EmployeeShiftPresenceSession;
+  readonly loadOperationalContext?: () => Promise<StaffOperationalContextResponse>;
   readonly initialOnline?: boolean | undefined;
   readonly onEnded?: ((result: EndShiftResponse) => void) | undefined;
   readonly onStateChange?:

@@ -13,5 +13,5 @@ export async function revalidateNativeShiftPresence(
     runtime.shiftEnd.presence?.snapshot().phase === "uncertain" &&
     runtime.shiftEnd.current().phase === "uncertain"
   )
-    await runtime.shiftEnd.retry();
+    await runtime.shiftEnd.checkPresenceStatus();
 }

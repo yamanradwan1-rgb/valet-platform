@@ -1,0 +1,170 @@
+Issue #345 — successful verification evidence, 2026-10-26 UTC
+Base: a33717b197580d0ba48a9b3d56068841140c28ad
+Package manager: corepack pnpm 10.34.5
+
+
+$ corepack pnpm --filter @valet/employee-client test
+exit: 0
+
+> @valet/employee-client@0.0.0 test /workspace/valet-platform/packages/employee-client
+> vitest run src
+
+
+ RUN  v4.1.10 /workspace/valet-platform/packages/employee-client
+
+
+ Test Files  103 passed (103)
+      Tests  897 passed (897)
+   Start at  09:58:41
+   Duration  28.78s (transform 1.45s, setup 0ms, import 16.11s, tests 1.12s, environment 8ms)
+
+
+
+$ corepack pnpm --filter @valet/valet-native test
+exit: 0
+
+> @valet/valet-native@0.0.0 test /workspace/valet-platform/apps/valet-native
+> vitest run test
+
+
+ RUN  v4.1.10 /workspace/valet-platform/apps/valet-native
+
+
+ Test Files  241 passed (241)
+      Tests  1700 passed (1700)
+   Start at  09:52:43
+   Duration  156.04s (transform 7.42s, setup 3.92s, import 89.26s, tests 12.00s, environment 28ms)
+
+
+
+$ corepack pnpm --filter @valet/valet-native exec vitest run test/native-shift-recovery-freeze.test.ts test/native-shift-presence-status.test.tsx
+exit: 0
+
+ RUN  v4.1.10 /workspace/valet-platform/apps/valet-native
+
+
+ Test Files  2 passed (2)
+      Tests  11 passed (11)
+   Start at  09:55:19
+   Duration  4.23s (transform 1.71s, setup 74ms, import 2.79s, tests 991ms, environment 0ms)
+
+
+
+$ corepack pnpm test:platform
+exit: 0
+
+> valet-platform@0.0.0 test:platform /workspace/valet-platform
+> pnpm --filter @valet/api exec node ../../scripts/test-harness/run-owned-tests.mjs api vitest.config.mjs test/architecture-repository-files.test.ts test/architecture-check.test.ts test/architecture-line-policy.test.ts test/capacity-harness.test.ts test/capacity-process-sampler.test.ts
+
+
+ RUN  v4.1.10 /workspace/valet-platform/apps/api
+
+
+ Test Files  5 passed (5)
+      Tests  61 passed | 1 skipped (62)
+   Start at  09:48:29
+   Duration  9.66s (transform 906ms, setup 1.07s, import 967ms, tests 4.64s, environment 1ms)
+
+[test-harness] api-non-postgres:test/architecture-repository-files.test.ts,test/architecture-check.test.ts,test/architecture-line-policy.test.ts,test/capacity-harness.test.ts,test/capacity-process-sampler.test.ts passed wallMs=14852
+
+
+$ corepack pnpm architecture:check
+exit: 0
+
+> valet-platform@0.0.0 architecture:check /workspace/valet-platform
+> node scripts/architecture-check.mjs
+
+WARNING apps/api/src/modules/check-in-api/check-in-api.controller.ts: grandfathered 304 lines (limit 300, baseline maximum 317)
+WARNING apps/api/src/modules/valet-sessions/check-in-condition-command.ts: grandfathered 717 lines (limit 300, baseline maximum 876)
+WARNING apps/api/src/modules/valet-sessions/complete-check-in-command.ts: grandfathered 337 lines (limit 300, baseline maximum 351)
+WARNING apps/api/src/modules/valet-sessions/guest-access-command.ts: grandfathered 433 lines (limit 300, baseline maximum 526)
+WARNING apps/api/src/modules/vehicles/vehicle-identity-command.ts: grandfathered 502 lines (limit 300, baseline maximum 504)
+WARNING apps/api/test/check-in-api.integration.test.ts: grandfathered 1572 lines (limit 300, baseline maximum 1574)
+WARNING apps/api/test/check-in-condition-command.integration.test.ts: grandfathered 1201 lines (limit 300, baseline maximum 1232)
+WARNING apps/api/test/complete-check-in-command.integration.test.ts: grandfathered 1027 lines (limit 300, baseline maximum 1058)
+WARNING apps/api/test/guest-access-command.integration.test.ts: grandfathered 932 lines (limit 300, baseline maximum 932)
+WARNING apps/api/test/protected-custody-command.integration.test.ts: grandfathered 538 lines (limit 300, baseline maximum 538)
+WARNING apps/api/test/staff-auth.integration.test.ts: grandfathered 1302 lines (limit 300, baseline maximum 1302)
+WARNING apps/api/test/vehicle-identity-command.integration.test.ts: grandfathered 1099 lines (limit 300, baseline maximum 1099)
+WARNING packages/database/prisma/seed.mjs: grandfathered 741 lines (limit 300, baseline maximum 792)
+WARNING packages/database/scripts/provision-runtime-role.mjs: grandfathered 328 lines (limit 300, baseline maximum 364)
+WARNING packages/database/src/runtime-role.integration.test.ts: grandfathered 946 lines (limit 300, baseline maximum 949)
+WARNING packages/database/src/schema.integration.test.ts: grandfathered 7484 lines (limit 300, baseline maximum 7598)
+WARNING packages/database/src/seed.integration.test.ts: grandfathered 640 lines (limit 300, baseline maximum 646)
+
+
+$ corepack pnpm --filter @valet/employee-client typecheck
+exit: 0
+
+> @valet/employee-client@0.0.0 typecheck /workspace/valet-platform/packages/employee-client
+> tsc -p tsconfig.json --noEmit
+
+
+
+$ corepack pnpm --filter @valet/valet-native typecheck
+exit: 0
+
+> @valet/valet-native@0.0.0 typecheck /workspace/valet-platform/apps/valet-native
+> tsc -p tsconfig.json --noEmit
+
+
+
+$ corepack pnpm --filter @valet/employee-client lint
+exit: 0
+
+> @valet/employee-client@0.0.0 lint /workspace/valet-platform/packages/employee-client
+> eslint src --max-warnings=0
+
+
+
+$ corepack pnpm --filter @valet/valet-native lint
+exit: 0
+
+> @valet/valet-native@0.0.0 lint /workspace/valet-platform/apps/valet-native
+> eslint app.config.ts app src test --max-warnings=0
+
+
+
+$ corepack pnpm --filter @valet/contracts build
+exit: 0
+
+> @valet/contracts@0.0.0 build /workspace/valet-platform/packages/contracts
+> tsc -p tsconfig.json
+
+
+
+$ corepack pnpm --filter @valet/employee-client build
+exit: 0
+
+> @valet/employee-client@0.0.0 build /workspace/valet-platform/packages/employee-client
+> tsc -p tsconfig.json
+
+
+
+$ EXPO_NO_DOTENV=1 EXPO_PUBLIC_API_ORIGIN=http://127.0.0.1:3001 EXPO_PUBLIC_CUSTOMER_APP_ORIGIN=https://customer.example.invalid CI=1 corepack pnpm --filter @valet/valet-native exec expo export --platform android --max-workers 2 --output-dir /tmp/issue345-android-hermes-final
+exit: 0
+[tail of export output]
+../../node_modules/.pnpm/expo-router@57.0.18_e771b802d7b89dc782fa04ab40c70634/node_modules/expo-router/assets/sitemap.png (465B)
+../../node_modules/.pnpm/expo-router@57.0.18_e771b802d7b89dc782fa04ab40c70634/node_modules/expo-router/assets/unmatched.png (4.8KB)
+assets/brand/VAYLET_Logo_Dark_Background.png (37KB)
+assets/brand/VAYLET_Logo_Light_Background.png (14KB)
+
+› android bundles (1):
+_expo/static/js/android/entry-0db1aa51bc2f2b81614586fedca983c9.hbc (6.1MB)
+
+› Files (1):
+metadata.json (2KB)
+
+Exported: /tmp/issue345-android-hermes-final
+
+Hermes output: /tmp/issue345-android-hermes-final/_expo/static/js/android/entry-0db1aa51bc2f2b81614586fedca983c9.hbc
+SHA256: 4a97ba605b62c9df0cf2bbc601ce5a4c17e4de781473d6c43c68f996bb88f3ac
+
+$ git diff --check
+exit: 0
+No whitespace errors.
+
+Native Active Shift stylesheet: byte-identical to base.
+All changed authored files: <=300 physical lines.
+144 deterministic host-tree comparisons; no Android layout engine.
+Android device/emulator/TalkBack: NOT RUN (adb, emulator, SDK and /dev/kvm unavailable).

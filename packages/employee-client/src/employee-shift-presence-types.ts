@@ -82,6 +82,30 @@ export interface PresenceTransport {
   ): Promise<PresenceResult>;
 }
 
+export type PresenceCheckStatus =
+  | "not-sent"
+  | "checking"
+  | "committed"
+  | "denied"
+  | "expired"
+  | "pending"
+  | "approved"
+  | "unresolved"
+  | "no-attempt"
+  | "blocked"
+  | "rate-limited"
+  | "offline"
+  | "error"
+  | "context-required";
+
+/** Exact read outcome, never authority to replay a mutation. */
+export interface PresenceCheckOutcome {
+  readonly status: PresenceCheckStatus;
+  readonly descriptor: PresenceDescriptor | undefined;
+  readonly result?: PresenceResult;
+  readonly denialReason?: string | null;
+}
+
 export type PresencePhase =
   | "idle"
   | "discovering"
@@ -98,6 +122,7 @@ export type PresencePhase =
 
 export interface PresenceSnapshot {
   readonly phase: PresencePhase;
+  readonly checkStatus?: PresenceCheckStatus | undefined;
   readonly mode: PresenceChallenge["presence"]["mode"] | null;
   readonly reason: string | null;
   readonly summary: PresenceSummary | null;

@@ -1,3 +1,4 @@
+import { checkPresenceStatus } from "./employee-shift-presence-check";
 import { dispatchPresenceShift } from "./employee-shift-presence-dispatch";
 import {
   classifyPresenceSubmissionFailure,
@@ -6,6 +7,7 @@ import {
 import { acquirePresenceEvidence } from "./employee-shift-presence-evidence";
 import { EmployeeApiError } from "./api-error";
 import type {
+  PresenceCheckOutcome,
   PresenceAcquisition,
   PresenceDescriptor,
   PresenceResult,
@@ -102,6 +104,7 @@ export class EmployeeShiftPresenceSession implements PresenceWorkflow {
       generation: this.generation,
       controller: new AbortController(),
     };
+    this.publish({ checkStatus: undefined });
     if (!old.terminal || this.state.phase === "submitting")
       this.publish({
         phase: old.sent || old.exceptionSent ? "uncertain" : "unavailable",
@@ -182,16 +185,29 @@ export class EmployeeShiftPresenceSession implements PresenceWorkflow {
     }
   }
 
-  async checkStatus(): Promise<void> {
-    if ((this.options.now ?? Date.now)() < this.notBefore) return;
+  recoveryOutcome(): PresenceCheckOutcome | undefined {
+    return this.attempt?.recovery;
+  }
+
+  async checkStatus(): Promise<PresenceCheckOutcome> {
+    const descriptor = this.attempt?.descriptor;
+    const blocked = (status: PresenceCheckOutcome["status"]) => {
+      if (this.state.checkStatus !== "checking")
+        this.publish({ checkStatus: status });
+      return { status, descriptor };
+    };
+    if (this.active !== undefined) return blocked("blocked");
+    if ((this.options.now ?? Date.now)() < this.notBefore)
+      return blocked("rate-limited");
+    if (!this.available()) return blocked("offline");
     const attempt = this.attempt;
-    if (attempt === undefined || this.active !== undefined) return;
-    const operation = recoverPresence(this, attempt);
+    if (attempt === undefined) return blocked("no-attempt");
+    const operation = checkPresenceStatus(this, attempt, (error) =>
+      this.handleFailure(error),
+    );
     this.active = operation;
     try {
-      await operation;
-    } catch (error) {
-      if (this.current(attempt)) this.handleFailure(error);
+      return await operation;
     } finally {
       if (this.active === operation) this.active = undefined;
     }

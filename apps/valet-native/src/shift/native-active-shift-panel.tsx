@@ -24,7 +24,10 @@ import type { FoundationLocale } from "../foundation/foundation-locale";
 import { NativeShiftDiagnosticsCard } from "./native-shift-diagnostics-card";
 import { NativePhysicalDiagnosticsCard } from "../diagnostics/native-physical-diagnostics-card";
 import { getNativeShiftCopy } from "./native-shift-copy";
-import { NativeShiftPresenceStatus } from "./native-shift-presence-status";
+import {
+  NativeShiftPresenceStatus,
+  useNativeEndPresenceState,
+} from "./native-shift-presence-status";
 import {
   NativeShiftInfoRow,
   NativeShiftSummaryDetails,
@@ -48,8 +51,10 @@ export function NativeActiveShiftPanel({
 
   const copy = getNativeShiftCopy(locale);
   const authority = snapshot.authority;
-  if (authority === null) return null;
+  const { checking, inputLocked, confirmationLocked } =
+    useNativeEndPresenceState(session.presence);
   const locked = snapshot.phase === "submitting";
+  if (authority === null) return null;
 
   return (
     <ScrollView
@@ -119,9 +124,10 @@ export function NativeActiveShiftPanel({
             {copy.cashReportedHelper}
           </Text>
           <TextInput
-            editable={["active", "blocked-open-work", "error"].includes(
-              snapshot.phase,
-            )}
+            editable={
+              !inputLocked &&
+              ["active", "blocked-open-work", "error"].includes(snapshot.phase)
+            }
             accessibilityHint={copy.cashReportedHelper}
             accessibilityLabel={`${copy.cashReported} ${authority.currency}`}
             inputMode="decimal"
@@ -159,6 +165,7 @@ export function NativeActiveShiftPanel({
                 {copy.endShiftUncertain}
               </Text>
               <EmployeeButton
+                busy={checking}
                 disabled={!snapshot.online}
                 label={copy.retryEnd}
                 onPress={() => void session.retry()}
@@ -191,11 +198,13 @@ export function NativeActiveShiftPanel({
           ) : null}
           <NativeShiftPresenceStatus
             session={session.presence}
+            recoveryPending={snapshot.phase === "uncertain"}
+            onCheck={() => void session.checkPresenceStatus()}
             locale={locale}
             onCancel={() => session.suspendForBackground()}
             onContinue={() =>
               snapshot.phase === "uncertain"
-                ? void session.retry()
+                ? void session.continuePresence()
                 : session.requestConfirmation()
             }
           />
@@ -223,7 +232,11 @@ export function NativeActiveShiftPanel({
           ) : (
             <EmployeeButton
               busy={locked}
-              disabled={!snapshot.online || snapshot.phase === "uncertain"}
+              disabled={
+                !snapshot.online ||
+                snapshot.phase === "uncertain" ||
+                confirmationLocked
+              }
               label={locked ? copy.endingShift : copy.endShift}
               onPress={() => session.requestConfirmation()}
               variant="danger"

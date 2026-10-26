@@ -8,6 +8,7 @@ import type {
   PresenceStore,
   PresenceTarget,
   PresenceResult,
+  PresenceCheckOutcome,
 } from "./employee-shift-presence-types";
 
 export interface PresenceAttempt {
@@ -20,6 +21,7 @@ export interface PresenceAttempt {
   exceptionSent: boolean;
   terminal: boolean;
   result?: PresenceResult;
+  recovery?: PresenceCheckOutcome;
 }
 
 export interface PresenceWorkflow {

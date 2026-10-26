@@ -6,6 +6,7 @@ import {
   type NativeAuthSession,
 } from "@valet/employee-client";
 import {
+  createNativeOperationalTransport,
   createNativeShiftEndTransport,
   createNativeShiftStartTransport,
 } from "../tasks/native-operational-http";
@@ -37,6 +38,11 @@ export function createNativeShiftRuntime(
   });
   const shiftEnd = new EmployeeShiftEndSession({
     presence: presence.end,
+    loadOperationalContext: () =>
+      createNativeOperationalTransport(
+        apiOrigin,
+        auth,
+      ).loadOperationalContext(),
     initialOnline: connectivity.current() !== "offline",
     onEnded: () => {
       const identity = auth.current();
