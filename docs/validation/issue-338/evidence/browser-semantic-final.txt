@@ -1,0 +1,10 @@
+Compared 100 renders
+Compared 200 renders
+{
+  "zoom": false,
+  "cases": 240,
+  "geometryFailures": [],
+  "styleFailures": [],
+  "screenshots": 0,
+  "errors": []
+}

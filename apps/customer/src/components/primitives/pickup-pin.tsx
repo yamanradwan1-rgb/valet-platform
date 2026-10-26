@@ -115,6 +115,7 @@ export function PickupPIN({
         {onRotate && (
           <button
             type="button"
+            className="guest-brand-link"
             onClick={onRotate}
             disabled={isRotating}
             style={{

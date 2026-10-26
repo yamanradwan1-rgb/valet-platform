@@ -1,0 +1,22 @@
+[
+  {
+    "name": "390-en-dark-00FF00-confirm",
+    "changed_pixels": 43475,
+    "pixels_outside_color_consumers": 0
+  },
+  {
+    "name": "390-en-dark-00FF00-demo-parked",
+    "changed_pixels": 10973,
+    "pixels_outside_color_consumers": 0
+  },
+  {
+    "name": "390-en-light-00FF00-confirm",
+    "changed_pixels": 74730,
+    "pixels_outside_color_consumers": 0
+  },
+  {
+    "name": "390-en-light-00FF00-demo-parked",
+    "changed_pixels": 11576,
+    "pixels_outside_color_consumers": 0
+  }
+]

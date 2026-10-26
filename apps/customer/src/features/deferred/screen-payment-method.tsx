@@ -79,7 +79,7 @@ export function ScreenPaymentMethod({
                 padding: '16px 18px',
                 borderRadius: 12,
                 border: `2px solid ${isSelected ? C.selectedBorder : C.borderSemantic}`,
-                backgroundColor: isSelected ? C.iceSemantic : C.surface,
+                backgroundColor: isSelected ? C.accentSurface : C.surface,
                 color: C.text,
                 cursor: 'pointer',
                 textAlign: 'start',
@@ -98,7 +98,7 @@ export function ScreenPaymentMethod({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: isSelected ? C.accent : 'transparent',
+                  backgroundColor: isSelected ? C.primary : 'transparent',
                 }}
               >
                 {isSelected && (
@@ -107,7 +107,7 @@ export function ScreenPaymentMethod({
                       width: 8,
                       height: 8,
                       borderRadius: '50%',
-                      backgroundColor: '#FFFFFF',
+                      backgroundColor: C.onPrimary,
                     }}
                   />
                 )}

@@ -1,0 +1,1782 @@
+{
+  "zoom": true,
+  "cases": [
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "light",
+      "color": "#00FF00",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "hover": {
+          "background": "rgb(1, 231, 3)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "pressed": {
+          "background": "rgb(1, 207, 6)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "focus": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(0, 130, 0)",
+          "outlineStyle": "solid",
+          "primary": "#00FF00"
+        }
+      }
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "light",
+      "color": "#8000FF",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "hover": {
+          "background": "rgb(141, 26, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "pressed": {
+          "background": "rgb(153, 51, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "focus": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(128, 0, 255)",
+          "outlineStyle": "solid",
+          "primary": "#8000FF"
+        }
+      }
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "light",
+      "color": "fallback",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "hover": {
+          "background": "rgb(15, 94, 234)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "pressed": {
+          "background": "rgb(15, 94, 234)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "focus": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(23, 107, 255)",
+          "outlineStyle": "solid",
+          "primary": ""
+        }
+      }
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "dark",
+      "color": "#00FF00",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "hover": {
+          "background": "rgb(1, 231, 3)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "pressed": {
+          "background": "rgb(1, 207, 6)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "focus": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(0, 255, 0)",
+          "outlineStyle": "solid",
+          "primary": "#00FF00"
+        }
+      }
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "dark",
+      "color": "#8000FF",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "hover": {
+          "background": "rgb(141, 26, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "pressed": {
+          "background": "rgb(153, 51, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "focus": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(185, 115, 255)",
+          "outlineStyle": "solid",
+          "primary": "#8000FF"
+        }
+      }
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "dark",
+      "color": "fallback",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(37, 117, 252)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "hover": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "pressed": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "focus": {
+          "background": "rgb(37, 117, 252)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(37, 117, 252)",
+          "outlineStyle": "solid",
+          "primary": ""
+        }
+      }
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "light",
+      "color": "#00FF00",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "hover": {
+          "background": "rgb(1, 231, 3)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "pressed": {
+          "background": "rgb(1, 207, 6)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "focus": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(0, 130, 0)",
+          "outlineStyle": "solid",
+          "primary": "#00FF00"
+        }
+      }
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "light",
+      "color": "#8000FF",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "hover": {
+          "background": "rgb(141, 26, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "pressed": {
+          "background": "rgb(153, 51, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "focus": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(128, 0, 255)",
+          "outlineStyle": "solid",
+          "primary": "#8000FF"
+        }
+      }
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "light",
+      "color": "fallback",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "hover": {
+          "background": "rgb(15, 94, 234)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "pressed": {
+          "background": "rgb(15, 94, 234)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "focus": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(23, 107, 255)",
+          "outlineStyle": "solid",
+          "primary": ""
+        }
+      }
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "dark",
+      "color": "#00FF00",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "hover": {
+          "background": "rgb(1, 231, 3)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "pressed": {
+          "background": "rgb(1, 207, 6)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "focus": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(0, 255, 0)",
+          "outlineStyle": "solid",
+          "primary": "#00FF00"
+        }
+      }
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "dark",
+      "color": "#8000FF",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "hover": {
+          "background": "rgb(141, 26, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "pressed": {
+          "background": "rgb(153, 51, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "focus": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(185, 115, 255)",
+          "outlineStyle": "solid",
+          "primary": "#8000FF"
+        }
+      }
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "dark",
+      "color": "fallback",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(37, 117, 252)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "hover": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "pressed": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "focus": {
+          "background": "rgb(37, 117, 252)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(37, 117, 252)",
+          "outlineStyle": "solid",
+          "primary": ""
+        }
+      }
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "light",
+      "color": "#00FF00",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "hover": {
+          "background": "rgb(1, 231, 3)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "pressed": {
+          "background": "rgb(1, 207, 6)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "focus": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(0, 130, 0)",
+          "outlineStyle": "solid",
+          "primary": "#00FF00"
+        }
+      }
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "light",
+      "color": "#8000FF",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "hover": {
+          "background": "rgb(141, 26, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "pressed": {
+          "background": "rgb(153, 51, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "focus": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(128, 0, 255)",
+          "outlineStyle": "solid",
+          "primary": "#8000FF"
+        }
+      }
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "light",
+      "color": "fallback",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "hover": {
+          "background": "rgb(15, 94, 234)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "pressed": {
+          "background": "rgb(15, 94, 234)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "focus": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(23, 107, 255)",
+          "outlineStyle": "solid",
+          "primary": ""
+        }
+      }
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "dark",
+      "color": "#00FF00",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "hover": {
+          "background": "rgb(1, 231, 3)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "pressed": {
+          "background": "rgb(1, 207, 6)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "focus": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(0, 255, 0)",
+          "outlineStyle": "solid",
+          "primary": "#00FF00"
+        }
+      }
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "dark",
+      "color": "#8000FF",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "hover": {
+          "background": "rgb(141, 26, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "pressed": {
+          "background": "rgb(153, 51, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "focus": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(185, 115, 255)",
+          "outlineStyle": "solid",
+          "primary": "#8000FF"
+        }
+      }
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "dark",
+      "color": "fallback",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(37, 117, 252)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "hover": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "pressed": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "focus": {
+          "background": "rgb(37, 117, 252)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(37, 117, 252)",
+          "outlineStyle": "solid",
+          "primary": ""
+        }
+      }
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "light",
+      "color": "#00FF00",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "hover": {
+          "background": "rgb(1, 231, 3)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "pressed": {
+          "background": "rgb(1, 207, 6)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "focus": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(0, 130, 0)",
+          "outlineStyle": "solid",
+          "primary": "#00FF00"
+        }
+      }
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "light",
+      "color": "#8000FF",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "hover": {
+          "background": "rgb(141, 26, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "pressed": {
+          "background": "rgb(153, 51, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "focus": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(128, 0, 255)",
+          "outlineStyle": "solid",
+          "primary": "#8000FF"
+        }
+      }
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "light",
+      "color": "fallback",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "hover": {
+          "background": "rgb(15, 94, 234)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "pressed": {
+          "background": "rgb(15, 94, 234)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "focus": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(23, 107, 255)",
+          "outlineStyle": "solid",
+          "primary": ""
+        }
+      }
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "dark",
+      "color": "#00FF00",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "hover": {
+          "background": "rgb(1, 231, 3)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "pressed": {
+          "background": "rgb(1, 207, 6)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "focus": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(0, 255, 0)",
+          "outlineStyle": "solid",
+          "primary": "#00FF00"
+        }
+      }
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "dark",
+      "color": "#8000FF",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "hover": {
+          "background": "rgb(141, 26, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "pressed": {
+          "background": "rgb(153, 51, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "focus": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(185, 115, 255)",
+          "outlineStyle": "solid",
+          "primary": "#8000FF"
+        }
+      }
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "dark",
+      "color": "fallback",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(37, 117, 252)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "hover": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "pressed": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "focus": {
+          "background": "rgb(37, 117, 252)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(37, 117, 252)",
+          "outlineStyle": "solid",
+          "primary": ""
+        }
+      }
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "light",
+      "color": "#00FF00",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "hover": {
+          "background": "rgb(1, 231, 3)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "pressed": {
+          "background": "rgb(1, 207, 6)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "focus": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(0, 130, 0)",
+          "outlineStyle": "solid",
+          "primary": "#00FF00"
+        }
+      }
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "light",
+      "color": "#8000FF",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "hover": {
+          "background": "rgb(141, 26, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "pressed": {
+          "background": "rgb(153, 51, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "focus": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(128, 0, 255)",
+          "outlineStyle": "solid",
+          "primary": "#8000FF"
+        }
+      }
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "light",
+      "color": "fallback",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "hover": {
+          "background": "rgb(15, 94, 234)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "pressed": {
+          "background": "rgb(15, 94, 234)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "focus": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(23, 107, 255)",
+          "outlineStyle": "solid",
+          "primary": ""
+        }
+      }
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "dark",
+      "color": "#00FF00",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "hover": {
+          "background": "rgb(1, 231, 3)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "pressed": {
+          "background": "rgb(1, 207, 6)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "focus": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(0, 255, 0)",
+          "outlineStyle": "solid",
+          "primary": "#00FF00"
+        }
+      }
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "dark",
+      "color": "#8000FF",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "hover": {
+          "background": "rgb(141, 26, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "pressed": {
+          "background": "rgb(153, 51, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "focus": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(185, 115, 255)",
+          "outlineStyle": "solid",
+          "primary": "#8000FF"
+        }
+      }
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "dark",
+      "color": "fallback",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(37, 117, 252)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "hover": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "pressed": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "focus": {
+          "background": "rgb(37, 117, 252)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(37, 117, 252)",
+          "outlineStyle": "solid",
+          "primary": ""
+        }
+      }
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "light",
+      "color": "#00FF00",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "hover": {
+          "background": "rgb(1, 231, 3)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "pressed": {
+          "background": "rgb(1, 207, 6)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "focus": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(0, 130, 0)",
+          "outlineStyle": "solid",
+          "primary": "#00FF00"
+        }
+      }
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "light",
+      "color": "#8000FF",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "hover": {
+          "background": "rgb(141, 26, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "pressed": {
+          "background": "rgb(153, 51, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "focus": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(128, 0, 255)",
+          "outlineStyle": "solid",
+          "primary": "#8000FF"
+        }
+      }
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "light",
+      "color": "fallback",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "hover": {
+          "background": "rgb(15, 94, 234)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "pressed": {
+          "background": "rgb(15, 94, 234)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "focus": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(23, 107, 255)",
+          "outlineStyle": "solid",
+          "primary": ""
+        }
+      }
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "dark",
+      "color": "#00FF00",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "hover": {
+          "background": "rgb(1, 231, 3)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "pressed": {
+          "background": "rgb(1, 207, 6)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "focus": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(0, 255, 0)",
+          "outlineStyle": "solid",
+          "primary": "#00FF00"
+        }
+      }
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "dark",
+      "color": "#8000FF",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "hover": {
+          "background": "rgb(141, 26, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "pressed": {
+          "background": "rgb(153, 51, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "focus": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(185, 115, 255)",
+          "outlineStyle": "solid",
+          "primary": "#8000FF"
+        }
+      }
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "dark",
+      "color": "fallback",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(37, 117, 252)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "hover": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "pressed": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "focus": {
+          "background": "rgb(37, 117, 252)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(37, 117, 252)",
+          "outlineStyle": "solid",
+          "primary": ""
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "light",
+      "color": "#00FF00",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "hover": {
+          "background": "rgb(1, 231, 3)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "pressed": {
+          "background": "rgb(1, 207, 6)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "focus": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(0, 130, 0)",
+          "outlineStyle": "solid",
+          "primary": "#00FF00"
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "light",
+      "color": "#8000FF",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "hover": {
+          "background": "rgb(141, 26, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "pressed": {
+          "background": "rgb(153, 51, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "focus": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(128, 0, 255)",
+          "outlineStyle": "solid",
+          "primary": "#8000FF"
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "light",
+      "color": "fallback",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "hover": {
+          "background": "rgb(15, 94, 234)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "pressed": {
+          "background": "rgb(15, 94, 234)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "focus": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(23, 107, 255)",
+          "outlineStyle": "solid",
+          "primary": ""
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "dark",
+      "color": "#00FF00",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "hover": {
+          "background": "rgb(1, 231, 3)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "pressed": {
+          "background": "rgb(1, 207, 6)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "focus": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(0, 255, 0)",
+          "outlineStyle": "solid",
+          "primary": "#00FF00"
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "dark",
+      "color": "#8000FF",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "hover": {
+          "background": "rgb(141, 26, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "pressed": {
+          "background": "rgb(153, 51, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "focus": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(185, 115, 255)",
+          "outlineStyle": "solid",
+          "primary": "#8000FF"
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "dark",
+      "color": "fallback",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(37, 117, 252)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "hover": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "pressed": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "focus": {
+          "background": "rgb(37, 117, 252)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(37, 117, 252)",
+          "outlineStyle": "solid",
+          "primary": ""
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "light",
+      "color": "#00FF00",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "hover": {
+          "background": "rgb(1, 231, 3)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "pressed": {
+          "background": "rgb(1, 207, 6)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "focus": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(0, 130, 0)",
+          "outlineStyle": "solid",
+          "primary": "#00FF00"
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "light",
+      "color": "#8000FF",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "hover": {
+          "background": "rgb(141, 26, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "pressed": {
+          "background": "rgb(153, 51, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "focus": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(128, 0, 255)",
+          "outlineStyle": "solid",
+          "primary": "#8000FF"
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "light",
+      "color": "fallback",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "hover": {
+          "background": "rgb(15, 94, 234)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "pressed": {
+          "background": "rgb(15, 94, 234)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "focus": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(23, 107, 255)",
+          "outlineStyle": "solid",
+          "primary": ""
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "dark",
+      "color": "#00FF00",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "hover": {
+          "background": "rgb(1, 231, 3)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "pressed": {
+          "background": "rgb(1, 207, 6)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(7, 17, 31)",
+          "outlineStyle": "none",
+          "primary": "#00FF00"
+        },
+        "focus": {
+          "background": "rgb(0, 255, 0)",
+          "color": "rgb(7, 17, 31)",
+          "outline": "rgb(0, 255, 0)",
+          "outlineStyle": "solid",
+          "primary": "#00FF00"
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "dark",
+      "color": "#8000FF",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "hover": {
+          "background": "rgb(141, 26, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "pressed": {
+          "background": "rgb(153, 51, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": "#8000FF"
+        },
+        "focus": {
+          "background": "rgb(128, 0, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(185, 115, 255)",
+          "outlineStyle": "solid",
+          "primary": "#8000FF"
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "dark",
+      "color": "fallback",
+      "devicePixelRatio": 2,
+      "states": {
+        "default": {
+          "background": "rgb(37, 117, 252)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "hover": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "pressed": {
+          "background": "rgb(23, 107, 255)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(255, 255, 255)",
+          "outlineStyle": "none",
+          "primary": ""
+        },
+        "focus": {
+          "background": "rgb(37, 117, 252)",
+          "color": "rgb(255, 255, 255)",
+          "outline": "rgb(37, 117, 252)",
+          "outlineStyle": "solid",
+          "primary": ""
+        }
+      }
+    }
+  ],
+  "errors": []
+}

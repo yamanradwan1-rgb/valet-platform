@@ -1,0 +1,12 @@
+
+> @valet/customer@0.0.0 test /workspace/work/issue338/apps/customer
+> vitest run src
+
+
+ RUN  v4.1.10 /workspace/work/issue338/apps/customer
+
+
+ Test Files  67 passed (67)
+      Tests  481 passed (481)
+   Start at  21:33:30
+   Duration  58.88s (transform 5.11s, setup 0ms, import 28.64s, tests 6.88s, environment 8ms)

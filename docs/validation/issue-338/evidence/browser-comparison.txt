@@ -1,0 +1,19 @@
+Compared 100 renders
+Compared 200 renders
+Compared 300 renders
+Compared 400 renders
+Compared 500 renders
+Compared 600 renders
+Compared 700 renders
+Compared 800 renders
+Compared 900 renders
+Compared 1000 renders
+Compared 1100 renders
+Compared 1200 renders
+{
+  "cases": 1296,
+  "geometryFailures": [],
+  "styleFailures": [],
+  "screenshots": 24,
+  "errors": []
+}

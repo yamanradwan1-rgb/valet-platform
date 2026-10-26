@@ -24,7 +24,7 @@ function InformationField({
     <div style={{ padding: '12px 0', borderBottom: `1px solid ${C.borderSubtle}` }}>
       <div style={{ fontSize: 12, color: C.textSecondary, marginBottom: 6 }}>{label}</div>
       {href ? (
-        <a href={href} target={href.startsWith('https:') ? '_blank' : undefined}
+        <a className="guest-brand-link" href={href} target={href.startsWith('https:') ? '_blank' : undefined}
           rel={href.startsWith('https:') ? 'noopener noreferrer' : undefined}
           style={linkStyle}>{value}</a>
       ) : (
@@ -55,7 +55,7 @@ export function GuestInformationContent({
         )}
         {privacy.url && (
           <div style={{ marginTop: privacy.text ? 16 : 0 }}>
-            <a href={privacy.url} target="_blank" rel="noopener noreferrer"
+            <a className="guest-brand-link" href={privacy.url} target="_blank" rel="noopener noreferrer"
               style={linkStyle}>{t('information.fullPrivacyPolicy')}</a>
           </div>
         )}

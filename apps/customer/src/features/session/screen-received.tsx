@@ -52,7 +52,7 @@ export function ScreenReceived({
         style={{
           borderRadius: 14,
           padding: 20,
-          backgroundColor: C.iceSemantic,
+          backgroundColor: C.accentSurface,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>

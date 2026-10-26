@@ -1,0 +1,8 @@
+{
+  "zoom": true,
+  "cases": 4,
+  "geometryFailures": [],
+  "styleFailures": [],
+  "screenshots": 8,
+  "errors": []
+}

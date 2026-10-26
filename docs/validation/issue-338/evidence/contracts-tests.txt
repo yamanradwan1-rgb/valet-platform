@@ -1,0 +1,8 @@
+
+ RUN  v4.1.10 /workspace/work/issue338/packages/contracts
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  21:34:31
+   Duration  3.03s (transform 1.65s, setup 0ms, import 2.48s, tests 16ms, environment 0ms)
