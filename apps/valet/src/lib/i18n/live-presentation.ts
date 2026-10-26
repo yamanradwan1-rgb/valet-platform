@@ -36,6 +36,7 @@ export function formatEmployeeDateTime(
  * raw server text and never resource-existence detail.
  */
 const LOCALIZED_ERROR_CODE_KEYS = {
+  LOCATION_INTAKE_STOPPED: "locationIntakeStopped",
   KEY_CUSTODY_NOT_READY: "keySlotUnavailableRetry",
 } as const;
 

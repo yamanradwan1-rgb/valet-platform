@@ -71,6 +71,8 @@ export function checkInFailureMessage(
       return copy.enterPlate;
     case "TEMPORARY_DESCRIPTOR_REQUIRED":
       return copy.noPlateExample;
+    case "LOCATION_INTAKE_STOPPED":
+      return copy.locationIntakeStopped;
     case "CUSTOMER_PHONE_AMBIGUOUS":
       return copy.phoneAmbiguous;
     case "RETURNING_CUSTOMER_INTENT_INVALID":

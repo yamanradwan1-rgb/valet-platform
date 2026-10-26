@@ -43,6 +43,7 @@ export interface UseCheckInResult {
   readonly createParkingTask: () => Promise<void>;
   readonly drafts: StaffCheckInDraftSummary[];
   readonly error: string | null;
+  readonly errorCode?: string | null | undefined;
   readonly correctionConflict: boolean;
   readonly customerOrigin: CheckInCustomerOrigin;
   readonly customerResolved: boolean;
@@ -242,6 +243,7 @@ export function useCheckIn(options: UseCheckInOptions): UseCheckInResult {
     createParkingTask,
     drafts: controllerState.drafts,
     error: controllerState.error,
+    errorCode: controllerState.errorCode,
     correctionConflict: controllerState.correctionConflict,
     customerOrigin: controllerState.customerOrigin,
     customerResolved: controllerState.customerResolved,

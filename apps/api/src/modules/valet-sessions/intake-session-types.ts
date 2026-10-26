@@ -8,6 +8,7 @@ export type IntakeSessionCommandErrorCode =
   | "IDEMPOTENCY_CONFLICT"
   | "INTAKE_CONCURRENCY_CONFLICT"
   | "INTAKE_INPUT_INVALID"
+  | "LOCATION_INTAKE_STOPPED"
   | "RETURNING_CUSTOMER_INTENT_INVALID";
 
 const errorMessages: Record<IntakeSessionCommandErrorCode, string> = {
@@ -20,6 +21,7 @@ const errorMessages: Record<IntakeSessionCommandErrorCode, string> = {
   INTAKE_CONCURRENCY_CONFLICT:
     "The intake facts changed during the operation. Retry with current data.",
   INTAKE_INPUT_INVALID: "The intake session input is invalid.",
+  LOCATION_INTAKE_STOPPED: "New vehicle intake is unavailable at this location.",
   RETURNING_CUSTOMER_INTENT_INVALID:
     "The saved customer suggestion is no longer available.",
 };

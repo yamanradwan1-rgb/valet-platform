@@ -9,6 +9,7 @@ import {
 } from "../staff/custody-staff-authorizer";
 
 export interface AuthorizedCheckInLocation {
+  readonly acceptingIntake: boolean;
   readonly actor: AuthorizedCustodyActor;
   readonly locationId: string;
   readonly organizationId: string;
@@ -19,6 +20,7 @@ export async function authorizeCheckInLocation(
   authenticatedUserId: string,
   locationId: string,
   lockSettingsPolicy = false,
+  options: { readonly authorizeBeforeIntakeState?: boolean } = {},
 ): Promise<AuthorizedCheckInLocation> {
   await requireActiveCustodyUser(transaction, authenticatedUserId);
   await lockLocationLifecycle(transaction, locationId, "SHARED");
@@ -37,7 +39,10 @@ export async function authorizeCheckInLocation(
     throw new CustodyStaffAuthorizationError("TENANT_ACCESS_DENIED");
   }
   const organizationId = locationRow.organization_id;
-  if (locationRow.status !== "ACTIVE" || !locationRow.accepting_intake) {
+  if (
+    locationRow.status !== "ACTIVE" ||
+    (!options.authorizeBeforeIntakeState && !locationRow.accepting_intake)
+  ) {
     throw new CustodyStaffAuthorizationError("AUTHORIZATION_DENIED");
   }
   if (lockSettingsPolicy) {
@@ -52,5 +57,11 @@ export async function authorizeCheckInLocation(
     authenticatedUserId,
     resourceScope: { locationId, organizationId },
   });
-  return { actor, locationId, organizationId };
+  // The lifecycle lock and persisted authority locks remain held by the caller.
+  return {
+    acceptingIntake: locationRow.accepting_intake,
+    actor,
+    locationId,
+    organizationId,
+  };
 }

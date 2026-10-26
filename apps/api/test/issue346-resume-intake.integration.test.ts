@@ -70,7 +70,7 @@ it.each([true, false])(
             employeeUserId: s.employee.id,
             locationId: s.locationId,
           }),
-        ).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
+        ).rejects.toMatchObject({ code: "LOCATION_INTAKE_STOPPED" });
       }
       const resumed = await s.post("resume-intake");
       expect(resumed.status).toBe(201);
