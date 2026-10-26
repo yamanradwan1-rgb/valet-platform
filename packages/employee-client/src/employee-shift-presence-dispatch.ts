@@ -1,10 +1,10 @@
+import { validatePresenceResult } from "./employee-shift-presence-result";
 import type { ShiftPresenceEvidence } from "@valet/contracts";
 import type { PresenceTarget } from "./employee-shift-presence-types";
 import {
   assertAvailable,
   assertCurrent,
   persistPresenceDispatch,
-  presenceFailure,
   type PresenceAttempt,
   type PresenceWorkflow,
 } from "./employee-shift-presence-workflow";
@@ -28,11 +28,7 @@ export async function dispatchPresenceShift(
   const result = await sent;
   assertCurrent(workflow, attempt);
   assertAvailable(workflow);
-  if (
-    result.locationId !== target.locationId ||
-    (target.action === "END" && result.shiftId !== target.shiftId)
-  )
-    throw presenceFailure("PRESENCE_RESPONSE_MISMATCH");
+  validatePresenceResult(target, result);
   attempt.terminal = true;
   attempt.result = result;
   await workflow.store.delete();

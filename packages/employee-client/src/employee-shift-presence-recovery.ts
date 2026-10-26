@@ -1,3 +1,4 @@
+import { validatePresenceResult } from "./employee-shift-presence-result";
 import { shiftPresenceMeasuredDenialExceptionReason } from "@valet/contracts";
 import type {
   PresenceResult,
@@ -23,27 +24,32 @@ export async function recoverPresence(
   const { operationId, target } = attempt.descriptor;
   const status = await workflow.transport.recover(operationId);
   assertCurrent(workflow, attempt);
+  assertAvailable(workflow);
   if (status.operationId !== operationId)
     throw presenceFailure("PRESENCE_RESPONSE_MISMATCH");
   if (status.state === "RECOVERABLE") {
     if (
       status.action !== target.action ||
-      (target.action === "END" && status.shiftId !== target.shiftId)
+      (target.action === "END" &&
+        status.shiftId !== target.shiftId &&
+        (status.status === "COMMITTED" || status.shiftId !== null))
     )
       throw presenceFailure("PRESENCE_RESPONSE_MISMATCH");
-    if (status.status === "COMMITTED" && status.result !== null) {
-      if (
-        status.result.locationId !== target.locationId ||
-        (target.action === "END" && status.result.shiftId !== target.shiftId) ||
-        (target.action === "START"
-          ? status.result.status !== "ACTIVE"
-          : status.result.status !== "ENDED")
-      )
+    // DENIED/EXPIRED have no result Shift. Their owned immutable operation ID
+    // is bound to the exact local target; shiftId here is a result selector.
+    if (status.status === "COMMITTED") {
+      if (status.result === null)
         throw presenceFailure("PRESENCE_RESPONSE_MISMATCH");
+      validatePresenceResult(target, status.result);
       attempt.terminal = true;
       attempt.result = status.result;
       await workflow.store.delete();
       assertCurrent(workflow, attempt);
+      attempt.recovery = {
+        status: "committed",
+        descriptor: attempt.descriptor,
+        result: status.result,
+      };
       workflow.publish({
         phase: "confirmed",
         reason: null,
@@ -52,6 +58,11 @@ export async function recoverPresence(
       return status.result;
     }
     attempt.terminal = true;
+    attempt.recovery = {
+      status: status.status === "DENIED" ? "denied" : "expired",
+      descriptor: attempt.descriptor,
+      denialReason: status.denialReason,
+    };
     workflow.publish({
       phase: status.status === "DENIED" ? "denied" : "expired",
       mode: null, // A's historical policy cannot authorize a new manager operation B.
@@ -72,6 +83,7 @@ export async function recoverPresence(
   }
   if (status.state === "EXPIRED") {
     attempt.terminal = true;
+    attempt.recovery = { status: "expired", descriptor: attempt.descriptor };
     workflow.publish({ phase: "expired", overrideReason: null });
     assertCurrent(workflow, attempt);
     await workflow.store.delete();
@@ -86,6 +98,8 @@ export async function recoverPresence(
     verifyException(exception, target);
     if (exception.exceptionId !== status.exceptionId)
       throw presenceFailure("PRESENCE_RESPONSE_MISMATCH");
+    if (exception.status === "CONSUMED")
+      throw presenceFailure("PRESENCE_RESPONSE_MISMATCH");
     attempt.exception = exception;
     if (attempt.challenge === undefined) {
       const challenge = await workflow.transport.readChallenge(operationId);
@@ -98,11 +112,16 @@ export async function recoverPresence(
         ? "approved"
         : exception.status === "REJECTED"
           ? "rejected"
-          : exception.status === "EXPIRED" || exception.status === "CONSUMED"
+          : exception.status === "EXPIRED"
             ? "expired"
             : "pending";
     if (phase === "rejected" || phase === "expired") {
       attempt.terminal = true;
+      attempt.recovery = {
+        status: phase === "rejected" ? "denied" : "expired",
+        descriptor: attempt.descriptor,
+        denialReason: exception.status,
+      };
       await workflow.store.delete();
       assertCurrent(workflow, attempt);
     }
@@ -127,7 +146,10 @@ export async function recoverPresence(
           : null,
     });
     throw presenceFailure("EXPLICIT_RETRY_REQUIRED", 422);
-  } else workflow.publish({ phase: "uncertain" });
+  } else {
+    workflow.publish({ phase: "uncertain" });
+    throw presenceFailure("PRESENCE_OPERATION_PENDING");
+  }
   throw presenceFailure();
 }
 

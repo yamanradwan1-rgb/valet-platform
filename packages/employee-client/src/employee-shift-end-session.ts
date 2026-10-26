@@ -1,16 +1,18 @@
+import { changeEndCash, confirmEnd } from "./employee-shift-end-form";
+import { recoverEmployeeEndAttempt } from "./employee-shift-end-recovery";
 import {
   suspendedEndAttempt,
   suspendedEndSnapshot,
 } from "./employee-shift-presence-parent-fence";
 import {
   executeEmployeeEndAttempt,
+  confirmedEndAttempt,
+  isCurrentEndAttempt,
   type EndAttempt,
 } from "./employee-shift-end-attempt";
 import {
   employeeShiftEndAuthorityKey,
   emptyEmployeeShiftEndSnapshot,
-  isEmployeeShiftCashValid,
-  normalizeEmployeeShiftCash,
   resolveEmployeeShiftEndAuthority,
 } from "./employee-shift-end-state";
 import type {
@@ -74,11 +76,14 @@ export class EmployeeShiftEndSession {
       phase: "uncertain",
     });
     restore();
-    return this.send({
-      authority,
-      cashReported,
-      workflowGeneration: this.workflowGeneration,
-    });
+    return this.send(
+      {
+        authority,
+        cashReported,
+        workflowGeneration: this.workflowGeneration,
+      },
+      true,
+    );
   }
 
   observeOperationalContext(
@@ -131,39 +136,15 @@ export class EmployeeShiftEndSession {
   }
 
   setCashInput(cashInput: string): void {
-    if (this.options.presence?.snapshot().phase === "uncertain") return;
-    if (!["active", "blocked-open-work", "error"].includes(this.snapshot.phase))
-      return;
+    const next = changeEndCash(this, cashInput);
+    if (next === undefined) return;
     if (cashInput !== this.snapshot.cashInput) this.options.presence?.clear();
-    this.publish({
-      ...this.snapshot,
-      cashInput,
-      cashValidationVisible:
-        this.snapshot.cashValidationVisible &&
-        !isEmployeeShiftCashValid(cashInput),
-      failure: null,
-      phase: "active",
-    });
+    this.publish(next);
   }
 
   requestConfirmation(): void {
-    if (
-      !this.snapshot.online ||
-      this.options.presence?.snapshot().phase === "uncertain" ||
-      this.snapshot.authority === null ||
-      !["active", "blocked-open-work", "error"].includes(this.snapshot.phase)
-    )
-      return;
-    if (!isEmployeeShiftCashValid(this.snapshot.cashInput)) {
-      this.publish({ ...this.snapshot, cashValidationVisible: true });
-      return;
-    }
-    this.publish({
-      ...this.snapshot,
-      cashValidationVisible: false,
-      failure: null,
-      phase: "confirming",
-    });
+    const next = confirmEnd(this);
+    if (next !== undefined) this.publish(next);
   }
 
   cancelConfirmation(): void {
@@ -174,18 +155,8 @@ export class EmployeeShiftEndSession {
 
   endShift(): Promise<void> {
     if (this.activeSend !== undefined) return this.activeSend;
-    const authority = this.snapshot.authority;
-    if (
-      authority === null ||
-      !this.snapshot.online ||
-      this.snapshot.phase !== "confirming"
-    )
-      return Promise.resolve();
-    const attempt: EndAttempt = {
-      authority,
-      cashReported: normalizeEmployeeShiftCash(this.snapshot.cashInput),
-      workflowGeneration: this.workflowGeneration,
-    };
+    const attempt = confirmedEndAttempt(this.snapshot, this.workflowGeneration);
+    if (attempt === undefined) return Promise.resolve();
     return this.send(attempt);
   }
 
@@ -198,7 +169,31 @@ export class EmployeeShiftEndSession {
       !this.isCurrent(this.attempt)
     )
       return Promise.resolve();
+    return this.options.presence === undefined
+      ? this.send(this.attempt)
+      : this.checkPresenceStatus();
+  }
+
+  continuePresence(): Promise<void> {
+    if (this.activeSend !== undefined) return this.activeSend;
+    if (
+      this.attempt === undefined ||
+      !this.isCurrent(this.attempt) ||
+      !this.snapshot.online ||
+      this.options.presence?.snapshot().phase !== "approved"
+    )
+      return Promise.resolve();
     return this.send(this.attempt);
+  }
+
+  checkPresenceStatus(): Promise<void> {
+    if (this.activeSend !== undefined) return this.activeSend;
+    if (this.attempt === undefined)
+      return (
+        this.options.presence?.checkStatus().then(() => undefined) ??
+        Promise.resolve()
+      );
+    return this.send(this.attempt, true);
   }
 
   suspendForBackground(): void {
@@ -236,19 +231,27 @@ export class EmployeeShiftEndSession {
     this.finishEndedReconciliation();
   }
 
-  private send(attempt: EndAttempt): Promise<void> {
+  private send(attempt: EndAttempt, recoveryOnly = false): Promise<void> {
     this.attempt = attempt;
-    this.publish({ ...this.snapshot, failure: null, phase: "submitting" });
-    const operation = this.execute(attempt).finally(() => {
+    if (!recoveryOnly)
+      this.publish({ ...this.snapshot, failure: null, phase: "submitting" });
+    const operation = this.execute(attempt, recoveryOnly).finally(() => {
       if (this.activeSend === operation) this.activeSend = undefined;
     });
     this.activeSend = operation;
     return operation;
   }
 
-  private async execute(attempt: EndAttempt): Promise<void> {
-    const outcome = await executeEmployeeEndAttempt(this.options, attempt);
+  private async execute(
+    attempt: EndAttempt,
+    recoveryOnly: boolean,
+  ): Promise<void> {
+    const outcome = recoveryOnly
+      ? await recoverEmployeeEndAttempt(this.options, attempt)
+      : await executeEmployeeEndAttempt(this.options, attempt);
     if (!this.isCurrent(attempt)) return;
+    if (outcome.checkStatus !== undefined)
+      this.options.presence?.publish({ checkStatus: outcome.checkStatus });
     if (outcome.phase !== "uncertain") this.attempt = undefined;
     if (outcome.result !== null) {
       this.endedPresentationAcknowledged = false;
@@ -258,12 +261,11 @@ export class EmployeeShiftEndSession {
     if (outcome.result !== null) this.options.onEnded?.(outcome.result);
   }
   private isCurrent(attempt: EndAttempt): boolean {
-    return (
-      this.attempt === attempt &&
-      this.workflowGeneration === attempt.workflowGeneration &&
-      this.snapshot.authority !== null &&
-      employeeShiftEndAuthorityKey(this.snapshot.authority) ===
-        employeeShiftEndAuthorityKey(attempt.authority)
+    return isCurrentEndAttempt(
+      attempt,
+      this.attempt,
+      this.snapshot,
+      this.workflowGeneration,
     );
   }
 

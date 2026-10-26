@@ -3,7 +3,11 @@ import type { EmployeeShiftStartAuthority } from "./employee-shift-start-context
 import type { EmployeeShiftStartSnapshot } from "./employee-shift-start-types";
 import type { EmployeeShiftEndSnapshot } from "./employee-shift-end-types";
 import type { EndAttempt } from "./employee-shift-end-attempt";
-import { matchesStartPresenceTarget } from "./employee-shift-presence-target";
+import { presenceTargetKey } from "./employee-shift-presence-types";
+import {
+  endPresenceTarget,
+  matchesStartPresenceTarget,
+} from "./employee-shift-presence-target";
 
 /** Exception dispatch can occur while the parent still presents a local failure. */
 export function suspendedStartAttempt(
@@ -29,7 +33,10 @@ export function suspendedEndAttempt(
   snapshot: EmployeeShiftEndSnapshot,
   workflowGeneration: number,
 ): EndAttempt | undefined {
-  if (attempt !== undefined && snapshot.phase === "submitting")
+  if (
+    attempt !== undefined &&
+    ["submitting", "uncertain"].includes(snapshot.phase)
+  )
     return { ...attempt, workflowGeneration };
   if (presence?.snapshot().phase !== "uncertain") return;
   const target = presence.descriptor()?.target;
@@ -38,10 +45,17 @@ export function suspendedEndAttempt(
     target === undefined ||
     authority === null ||
     target.shiftId !== authority.shiftId ||
-    target.cashReported === null
+    target.cashReported === null ||
+    presenceTargetKey(target) !==
+      presenceTargetKey(endPresenceTarget(authority, target.cashReported))
   )
     return;
-  return { authority, cashReported: target.cashReported, workflowGeneration };
+  return {
+    authority,
+    cashReported: target.cashReported,
+    workflowGeneration,
+    operationId: presence?.descriptor()?.operationId,
+  };
 }
 
 export function suspendedEndSnapshot(

@@ -42,7 +42,9 @@ export function createNativeShiftPresenceRuntime(
         authority.membershipId === target.membershipId &&
         authority.organizationId === target.organizationId &&
         authority.locationId === target.locationId &&
-        authority.shiftId === target.shiftId
+        authority.shiftId === target.shiftId &&
+        authority.shiftStartedAt === target.shiftStartedAt &&
+        authority.currency === target.currency
       );
     }
     return sessions.start?.ownsPresenceTarget(target) === true;

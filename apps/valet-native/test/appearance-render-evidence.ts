@@ -19,25 +19,21 @@ const baselineSources = new Map<string, string>();
 const compiledSources = new Map<string, string>();
 export const appearanceBaseline = "bc4fdb453fcae61e740c08941cff018257941468";
 
-function readBaselineSources() {
-  if (baselineSources.size) return;
+let loadedBaselineRef = "";
+function readBaselineSources(ref: string) {
+  if (baselineSources.size && loadedBaselineRef === ref) return;
+  baselineSources.clear();
+  loadedBaselineRef = ref;
   const names = execFileSync(
     "git",
-    [
-      "ls-tree",
-      "-r",
-      "--name-only",
-      appearanceBaseline,
-      "--",
-      "apps/valet-native/src",
-    ],
+    ["ls-tree", "-r", "--name-only", ref, "--", "apps/valet-native/src"],
     { encoding: "utf8", cwd: path.resolve(sourceRoot, "../../..") },
   )
     .trim()
     .split(/\r?\n/)
     .filter((name) => /\.(tsx?|mjs)$/.test(name));
   const data = execFileSync("git", ["cat-file", "--batch"], {
-    input: names.map((name) => `${appearanceBaseline}:${name}\n`).join(""),
+    input: names.map((name) => `${ref}:${name}\n`).join(""),
     maxBuffer: 16 * 1024 * 1024,
   });
   let offset = 0;
@@ -63,6 +59,11 @@ export function appearanceRenderer(
   appearance?: {
     current(): { mode: EmployeeAppearanceMode };
     select: (mode: EmployeeAppearanceMode) => void;
+  },
+  evidence?: {
+    readonly baselineRef?: string;
+    readonly width?: number;
+    readonly fontScale?: number;
   },
 ) {
   const cache = new Map<string, Module>();
@@ -96,7 +97,8 @@ export function appearanceRenderer(
     if (cache.has(file)) return cache.get(file)!;
     const module = { exports: {} as Module };
     cache.set(file, module.exports);
-    if (baseline) readBaselineSources();
+    if (baseline)
+      readBaselineSources(evidence?.baselineRef ?? appearanceBaseline);
     const source = baseline
       ? baselineSources.get(file)!
       : fs.readFileSync(file, "utf8");
@@ -152,9 +154,9 @@ export function appearanceRenderer(
             Platform: { OS: "android" },
             Animated: { Value: class {}, View: "AnimatedView" },
             useWindowDimensions: () => ({
-              width: 320,
+              width: evidence?.width ?? 320,
               height: 640,
-              fontScale: 1,
+              fontScale: evidence?.fontScale ?? 1,
               scale: 1,
             }),
             AppState: {

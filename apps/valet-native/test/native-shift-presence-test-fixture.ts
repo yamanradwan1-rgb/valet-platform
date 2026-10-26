@@ -150,6 +150,7 @@ export function setup(
   });
   const end = new EmployeeShiftEndSession({
     presence: runtime.end,
+    loadOperationalContext: async () => response,
     transport: { endShift: vi.fn() },
   });
   runtime.sessions.start = start;

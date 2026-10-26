@@ -5,6 +5,12 @@ import type {
 } from "@valet/employee-client";
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("react", async (original) => ({
+  ...(await original<typeof import("react")>()),
+  useSyncExternalStore: (_subscribe: unknown, current: () => unknown) =>
+    current(),
+}));
+
 vi.mock("react-native", () => ({
   ActivityIndicator: "ActivityIndicator",
   ScrollView: "ScrollView",

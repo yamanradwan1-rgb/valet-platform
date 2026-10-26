@@ -1,6 +1,31 @@
 import type { FoundationLocale } from "../foundation/foundation-locale";
 
 const en = {
+  requestUnusable:
+    "This request is no longer usable. Verify the current Shift before a new attempt.",
+  checkPending:
+    "The previous request is still pending. Check again before trying a new request.",
+  approverRevoked:
+    "The manager approval is no longer authorized. A new explicit attempt is required.",
+  checkedDenied:
+    "The previous request was rejected. Your Shift was not ended by that request.",
+  checkedExpired:
+    "This request is no longer usable. The same active Shift was verified; you can start a new explicit attempt.",
+  contextRequired:
+    "Current Shift authority could not be verified. Check again before a new attempt.",
+  checkFeedback: {
+    checking: "Checking the exact previous request…",
+    committed: "The previous request was confirmed.",
+    unresolved:
+      "The server could not confirm the result. Check again; do not submit another request.",
+    "no-attempt":
+      "No recoverable request is available. The Shift result remains unconfirmed.",
+    blocked: "Another operation is already running. Wait for it to finish.",
+    "rate-limited": "Please wait before checking again.",
+    offline: "Cannot check while offline. Reconnect and check again.",
+    error: "The server could not confirm the result. Check again.",
+  },
+
   pointInTime:
     "Location is checked for this Shift action only. It is not continuous tracking.",
   discovering: "Checking Shift presence policy…",
@@ -34,6 +59,29 @@ const en = {
   continue: "Continue Shift action",
 };
 const ar: typeof en = {
+  requestUnusable:
+    "لم يعد هذا الطلب صالحًا. تحقق من الوردية الحالية قبل محاولة جديدة.",
+  checkPending:
+    "لا يزال الطلب السابق قيد الانتظار. تحقق مجددًا قبل إرسال طلب جديد.",
+  approverRevoked: "لم تعد موافقة المدير مخولة. يلزم بدء محاولة جديدة صراحةً.",
+  checkedDenied: "رُفض الطلب السابق. لم يُنهِ ذلك الطلب ورديتك.",
+  checkedExpired:
+    "لم يعد هذا الطلب صالحًا. تم التحقق من الوردية النشطة نفسها؛ يمكنك بدء محاولة جديدة صراحةً.",
+  contextRequired:
+    "تعذر التحقق من صلاحية إجراء الوردية الحالية. تحقق مجددًا قبل محاولة جديدة.",
+  checkFeedback: {
+    checking: "جارٍ التحقق من الطلب السابق نفسه…",
+    committed: "تم تأكيد الطلب السابق.",
+    unresolved:
+      "تعذر على الخادم تأكيد النتيجة. تحقق مجددًا ولا ترسل طلبًا آخر.",
+    "no-attempt":
+      "لا يتوفر طلب قابل للاسترداد. لا تزال نتيجة الوردية غير مؤكدة.",
+    blocked: "هناك عملية أخرى قيد التنفيذ. انتظر حتى تنتهي.",
+    "rate-limited": "يرجى الانتظار قبل التحقق مجددًا.",
+    offline: "لا يمكن التحقق دون اتصال. أعد الاتصال ثم تحقق مجددًا.",
+    error: "تعذر على الخادم تأكيد النتيجة. تحقق مجددًا.",
+  },
+
   pointInTime:
     "يُفحص الموقع لهذا الإجراء فقط، ولا يتم التتبع المستمر طوال الوردية.",
   discovering: "جارٍ التحقق من سياسة الحضور…",

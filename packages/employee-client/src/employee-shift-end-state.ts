@@ -70,6 +70,8 @@ export function employeeShiftEndAuthorityKey(
     authority.membershipId,
     authority.locationId,
     authority.shiftId,
+    authority.shiftStartedAt,
+    authority.currency,
   ].join(":");
 }
 
@@ -87,7 +89,10 @@ function moneyThousandths(value: string): bigint {
 }
 
 export function validateEmployeeShiftEndResult(
-  authority: EmployeeShiftEndAuthority,
+  authority: Pick<
+    EmployeeShiftEndAuthority,
+    "shiftId" | "locationId" | "shiftStartedAt" | "currency"
+  >,
   cashReported: string,
   result: EndShiftResponse,
 ): void {
