@@ -1,0 +1,21 @@
+
+> valet-platform@0.0.0 architecture:check /workspace/work/issue338
+> node scripts/architecture-check.mjs
+
+WARNING apps/api/src/modules/check-in-api/check-in-api.controller.ts: grandfathered 304 lines (limit 300, baseline maximum 317)
+WARNING apps/api/src/modules/valet-sessions/check-in-condition-command.ts: grandfathered 717 lines (limit 300, baseline maximum 876)
+WARNING apps/api/src/modules/valet-sessions/complete-check-in-command.ts: grandfathered 337 lines (limit 300, baseline maximum 351)
+WARNING apps/api/src/modules/valet-sessions/guest-access-command.ts: grandfathered 433 lines (limit 300, baseline maximum 526)
+WARNING apps/api/src/modules/vehicles/vehicle-identity-command.ts: grandfathered 502 lines (limit 300, baseline maximum 504)
+WARNING apps/api/test/check-in-api.integration.test.ts: grandfathered 1572 lines (limit 300, baseline maximum 1574)
+WARNING apps/api/test/check-in-condition-command.integration.test.ts: grandfathered 1201 lines (limit 300, baseline maximum 1232)
+WARNING apps/api/test/complete-check-in-command.integration.test.ts: grandfathered 1027 lines (limit 300, baseline maximum 1058)
+WARNING apps/api/test/guest-access-command.integration.test.ts: grandfathered 932 lines (limit 300, baseline maximum 932)
+WARNING apps/api/test/protected-custody-command.integration.test.ts: grandfathered 538 lines (limit 300, baseline maximum 538)
+WARNING apps/api/test/staff-auth.integration.test.ts: grandfathered 1302 lines (limit 300, baseline maximum 1302)
+WARNING apps/api/test/vehicle-identity-command.integration.test.ts: grandfathered 1099 lines (limit 300, baseline maximum 1099)
+WARNING packages/database/prisma/seed.mjs: grandfathered 741 lines (limit 300, baseline maximum 792)
+WARNING packages/database/scripts/provision-runtime-role.mjs: grandfathered 328 lines (limit 300, baseline maximum 364)
+WARNING packages/database/src/runtime-role.integration.test.ts: grandfathered 946 lines (limit 300, baseline maximum 949)
+WARNING packages/database/src/schema.integration.test.ts: grandfathered 7484 lines (limit 300, baseline maximum 7598)
+WARNING packages/database/src/seed.integration.test.ts: grandfathered 640 lines (limit 300, baseline maximum 646)

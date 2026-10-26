@@ -18,7 +18,7 @@ export function TrustStrip() {
         backgroundColor: C.iceSemantic,
       }}
     >
-      <div style={{ color: C.accent, display: 'flex', flexShrink: 0 }}>
+      <div style={{ color: C.trustAccent, display: 'flex', flexShrink: 0 }}>
         <IcShieldCheck />
       </div>
       <div>

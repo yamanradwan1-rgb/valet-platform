@@ -99,7 +99,7 @@ export function ScreenAddTip({
               padding: '16px 0',
               borderRadius: 12,
               border: `2px solid ${selectedTip === amount ? C.selectedBorder : C.borderSemantic}`,
-              backgroundColor: selectedTip === amount ? C.iceSemantic : C.surface,
+              backgroundColor: selectedTip === amount ? C.accentSurface : C.surface,
               fontWeight: 600,
               fontSize: 16,
               color: C.text,

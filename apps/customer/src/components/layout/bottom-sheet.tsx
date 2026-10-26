@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useRef } from 'react';
 
 import { useTranslation } from '../../i18n/use-translation';
+import { useGuestBrandStyle } from '../../features/session/use-guest-brand-style';
 import { C } from '../../lib/theme/colors';
 import { IcX } from '../icons/action-icons';
 
@@ -20,6 +21,7 @@ export function BottomSheet({
   readonly title?: string;
 }) {
   const { t } = useTranslation();
+  const brandStyle = useGuestBrandStyle();
   const sheetRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const titleId = useId();
@@ -85,6 +87,7 @@ export function BottomSheet({
       className="fade-in"
       onClick={onClose}
       style={{
+        ...brandStyle,
         position: 'fixed',
         inset: 0,
         zIndex: 150,

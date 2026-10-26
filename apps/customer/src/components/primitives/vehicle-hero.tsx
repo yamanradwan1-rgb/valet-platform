@@ -66,7 +66,7 @@ export function VehicleHero({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: C.iceSemantic,
+          backgroundColor: C.accentSurface,
           width: 56,
           height: 56,
           flexShrink: 0,

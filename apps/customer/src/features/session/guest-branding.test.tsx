@@ -113,8 +113,8 @@ describe("effective Guest branding consumption", () => {
       expect(override).toContain("هوية الموقع");
       expect(cleared).toBe(company);
       expect(company).toContain("--brand-primary:#0057B8");
-      expect(company).toContain("--v-blue:var(--brand-primary)");
-      expect(company).toContain("background-color:var(--v-blue)");
+      expect(company).toContain("--v-blue:#0057B8");
+      expect(company).toContain("background-color:var(--brand-button-fill, var(--brand-primary, var(--v-blue)))");
       expect(company).toContain("vaylet-logo-light");
       expect(override.replace("هوية الموقع", "Company default")).toBe(company);
     },
@@ -201,7 +201,7 @@ describe("effective Guest branding consumption", () => {
     ["dark", "#2575FC"],
     ["light", "#176BFF"],
   ] as const)(
-    "preserves the existing %s accent %s without safe branding",
+    "preserves the existing %s accent %s without valid branding",
     (theme, accent) => {
       const css = readFileSync(
         new URL("../../app/globals.css", import.meta.url),
@@ -220,7 +220,6 @@ describe("effective Guest branding consumption", () => {
         null,
         withoutBranding,
         session("Venue", "invalid"),
-        session("Venue", "#808080"),
       ]) {
         const style = guestBrandStyle(value, theme === "dark");
         expect(style).toEqual({});
@@ -244,9 +243,12 @@ describe("effective Guest branding consumption", () => {
     },
   );
 
-  it("falls back for missing/invalid/unsafe colors and keeps contrast-safe dark branding", () => {
-    for (const color of ["invalid", "#FFFFFF", "#FFFF00"]) {
+  it("falls back for invalid colors and accepts valid bright and dark branding", () => {
+    for (const color of ["invalid", "#fff", "#00ff00", "#00FF00; color:red"]) {
       expect(guestBrandStyle(session("Venue", color), false)).toEqual({});
+    }
+    for (const color of ["#FFFFFF", "#FFFF00", "#00FF00", "#808080"]) {
+      expect(guestBrandStyle(session("Venue", color), false)).toHaveProperty("--brand-primary", color);
     }
     expect(guestBrandStyle(null, false)).toEqual({});
     const dark = guestBrandStyle(session("Venue", "#AADDFF"), true);

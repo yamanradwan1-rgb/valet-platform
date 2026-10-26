@@ -1,0 +1,8 @@
+
+ RUN  v4.1.10 /workspace/work/issue338/apps/customer
+
+
+ Test Files  3 passed (3)
+      Tests  36 passed (36)
+   Start at  21:19:48
+   Duration  2.14s (transform 1.75s, setup 0ms, import 3.13s, tests 260ms, environment 0ms)

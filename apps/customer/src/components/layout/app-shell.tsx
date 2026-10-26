@@ -1,9 +1,7 @@
-import React, { useContext } from "react";
+import React from "react";
 
 import { C } from "../../lib/theme/colors";
-import { GuestSessionContext } from "../../features/session/use-guest-session";
-import { guestBrandStyle } from "../../features/session/guest-branding";
-import { ThemeContext } from "../../theme/theme-provider";
+import { useGuestBrandStyle } from "../../features/session/use-guest-brand-style";
 import { AppHeader } from "./app-header";
 
 export function AppShell({
@@ -25,17 +23,12 @@ export function AppShell({
 }) {
   const containerBg =
     dark === true ? C.brandNavy : dark === false ? C.warm : C.bg;
-  const guest = useContext(GuestSessionContext);
-  const theme = useContext(ThemeContext);
-  const session =
-    guest && !guest.isExpired && !guest.isNetworkError && !guest.error
-      ? guest.session
-      : null;
+  const brandStyle = useGuestBrandStyle(dark);
 
   return (
     <div
       style={{
-        ...guestBrandStyle(session, dark ?? theme?.isDark ?? false),
+        ...brandStyle,
         minHeight: "100dvh",
         display: "flex",
         justifyContent: "center",

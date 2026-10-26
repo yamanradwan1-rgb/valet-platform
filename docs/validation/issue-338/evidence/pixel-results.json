@@ -1,0 +1,62 @@
+[
+  {
+    "name": "390-en-dark-00FF00-confirm",
+    "changed_pixels": 19869,
+    "pixels_outside_color_consumers": 0
+  },
+  {
+    "name": "390-en-dark-00FF00-controls",
+    "changed_pixels": 354,
+    "pixels_outside_color_consumers": 0
+  },
+  {
+    "name": "390-en-dark-00FF00-demo-parked",
+    "changed_pixels": 3139,
+    "pixels_outside_color_consumers": 0
+  },
+  {
+    "name": "390-en-dark-8000FF-confirm",
+    "changed_pixels": 37108,
+    "pixels_outside_color_consumers": 0
+  },
+  {
+    "name": "390-en-dark-8000FF-controls",
+    "changed_pixels": 57945,
+    "pixels_outside_color_consumers": 0
+  },
+  {
+    "name": "390-en-dark-8000FF-demo-parked",
+    "changed_pixels": 20796,
+    "pixels_outside_color_consumers": 0
+  },
+  {
+    "name": "390-en-light-00FF00-confirm",
+    "changed_pixels": 37261,
+    "pixels_outside_color_consumers": 0
+  },
+  {
+    "name": "390-en-light-00FF00-controls",
+    "changed_pixels": 58182,
+    "pixels_outside_color_consumers": 0
+  },
+  {
+    "name": "390-en-light-00FF00-demo-parked",
+    "changed_pixels": 21003,
+    "pixels_outside_color_consumers": 0
+  },
+  {
+    "name": "390-en-light-8000FF-confirm",
+    "changed_pixels": 19852,
+    "pixels_outside_color_consumers": 0
+  },
+  {
+    "name": "390-en-light-8000FF-controls",
+    "changed_pixels": 6905,
+    "pixels_outside_color_consumers": 0
+  },
+  {
+    "name": "390-en-light-8000FF-demo-parked",
+    "changed_pixels": 3131,
+    "pixels_outside_color_consumers": 0
+  }
+]

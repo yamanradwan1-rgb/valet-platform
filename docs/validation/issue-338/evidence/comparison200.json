@@ -1,0 +1,17 @@
+{
+  "zoom": true,
+  "cases": 4,
+  "geometryFailures": [],
+  "styleFailures": [],
+  "screenshots": [
+    "390-en-dark-00FF00-confirm-before.png",
+    "390-en-dark-00FF00-confirm-after.png",
+    "390-en-dark-00FF00-demo-parked-before.png",
+    "390-en-dark-00FF00-demo-parked-after.png",
+    "390-en-light-00FF00-confirm-before.png",
+    "390-en-light-00FF00-confirm-after.png",
+    "390-en-light-00FF00-demo-parked-before.png",
+    "390-en-light-00FF00-demo-parked-after.png"
+  ],
+  "errors": []
+}

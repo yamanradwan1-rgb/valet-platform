@@ -37,7 +37,7 @@ export function OverlayConfirmRequest({
             gap: 12,
             padding: '12px 16px',
             borderRadius: 12,
-            backgroundColor: C.iceSemantic,
+            backgroundColor: C.accentSurface,
           }}
         >
           <div style={{ color: C.accent, display: 'flex' }}>

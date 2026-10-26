@@ -48,7 +48,7 @@ export function ScreenRequested({
         style={{
           borderRadius: 14,
           padding: 20,
-          backgroundColor: C.iceSemantic,
+          backgroundColor: C.accentSurface,
         }}
       >
         <p style={{ fontSize: 14, fontWeight: 500, color: C.text, margin: 0 }}>

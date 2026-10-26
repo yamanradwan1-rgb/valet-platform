@@ -1,0 +1,5 @@
+{
+  "zoom": false,
+  "cases": 48,
+  "errors": []
+}

@@ -36,13 +36,14 @@ export function Btn({
     opacity: disabled || loading ? 0.5 : 1,
     transition: "all 150ms ease",
     border: "none",
-    outline: "none",
+    outline: variant === "primary" || variant === "ghost" ? undefined : "none",
     userSelect: "none",
   };
 
   const variantStyles: Record<string, React.CSSProperties> = {
     primary: {
-      backgroundColor: C.accent,
+      backgroundColor: "var(--brand-button-fill, var(--brand-primary, var(--v-blue)))",
+      boxShadow: "inset 0 0 0 1px var(--brand-boundary, transparent)",
       color: "var(--brand-on-primary, #FFFFFF)",
     },
     secondary: {
@@ -62,6 +63,7 @@ export function Btn({
 
   return (
     <button
+      className={variant === "primary" ? "guest-brand-primary" : variant === "ghost" ? "guest-brand-link" : undefined}
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
