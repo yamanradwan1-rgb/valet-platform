@@ -3218,3 +3218,16 @@ database connection. This is the existing DEC-058 Management settings trust
 boundary. Future defense against a compromised SQL execution context would
 require a separately accepted session-proof or per-principal database
 identity design; it is not silently introduced in Issue #316.
+
+### Owner-authorized #346: Resume Location Intake
+
+Forward migration `20261026010300_issue346_resume_location_intake` adds
+`management_location_resume_intake(actor, organization, location, expected_updated_at)`.
+It retains existing exclusive lifecycle locking and Company Admin reauthorization,
+requires ACTIVE, applies CAS when changing closed intake, updates only
+`accepting_intake`/`updated_at`, and atomically appends `LOCATION_INTAKE_RESUMED`.
+Already-open requests are no-ops without duplicate audit. Existing Shifts and
+operational/financial records are untouched; the Check-In intake guard is unchanged.
+The existing lifecycle audit trigger protects the new event from direct runtime
+insertion. Runtime provisioning grants only function EXECUTE, with PUBLIC denied;
+no table privileges, columns, indexes or constraints are added.

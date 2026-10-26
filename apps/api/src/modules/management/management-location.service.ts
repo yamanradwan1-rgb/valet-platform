@@ -20,7 +20,7 @@ import { inPostgresTransaction } from "../../common/database/postgres-transactio
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
 import { recordAdminActivityInTransaction } from "../auth/mfa/mfa-assurance-policy";
 import type { StaffSessionContext } from "../auth/staff-session-context";
-import { authorizeCompanyAdminManagement } from "./management-authorization";
+import { authorizeLocationLifecycle } from "./management-location-authorization";
 import { ManagementLocationError } from "./management-location-errors";
 import {
   requirePresenceCompanyCreationReady,
@@ -38,9 +38,10 @@ import {
   createLocation,
   deactivateLocation,
   stopLocationIntake,
+  resumeLocationIntake,
 } from "./management-location-repository";
 
-type Actor = Awaited<ReturnType<typeof authorizeCompanyAdminManagement>>;
+type Actor = Awaited<ReturnType<typeof authorizeLocationLifecycle>>;
 
 @Injectable()
 export class ManagementLocationService {
@@ -59,7 +60,11 @@ export class ManagementLocationService {
         organizationId,
         "EXCLUSIVE",
       );
-      const actor = await this.authorize(transaction, context, organizationId);
+      const actor = await authorizeLocationLifecycle(
+        transaction,
+        context,
+        organizationId,
+      );
       await requirePresenceCompanyCreationReady(transaction, organizationId);
       if (
         !isValidLocationTimezone(request.timezone) ||
@@ -127,6 +132,21 @@ export class ManagementLocationService {
       locationId,
       command,
       stopLocationIntake,
+    );
+  }
+
+  resumeIntake(
+    context: StaffSessionContext,
+    organizationId: string,
+    locationId: string,
+    command: ManagementLocationLifecycleCommand,
+  ) {
+    return this.locationMutation(
+      context,
+      organizationId,
+      locationId,
+      command,
+      resumeLocationIntake,
     );
   }
 
@@ -209,25 +229,6 @@ export class ManagementLocationService {
     );
   }
 
-  private authorize(
-    transaction: PostgresTransaction,
-    context: StaffSessionContext,
-    organizationId: string,
-    locationId?: string,
-  ) {
-    return authorizeCompanyAdminManagement(transaction, context, {
-      assurance: "SENSITIVE",
-      capability: "LOCATION_LIFECYCLE_MANAGE_ELIGIBLE",
-      organizationId,
-      ...(locationId === undefined
-        ? {}
-        : {
-            requireActiveLocation: false,
-            targetLocationId: locationId,
-          }),
-    });
-  }
-
   private locationMutation<T extends ManagementLocationLifecycleCommand>(
     context: StaffSessionContext,
     organizationId: string,
@@ -282,7 +283,7 @@ export class ManagementLocationService {
         );
       }
       await lockLocationLifecycle(transaction, locationId, mode);
-      const actor = await this.authorize(
+      const actor = await authorizeLocationLifecycle(
         transaction,
         context,
         organizationId,

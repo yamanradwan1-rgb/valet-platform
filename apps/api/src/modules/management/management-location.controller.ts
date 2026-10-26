@@ -99,6 +99,28 @@ export class ManagementLocationController {
         this.locations.stopIntake(context, organization, location, command));
   }
 
+  @Post(":locationId/resume-intake")
+  resumeIntake(
+    @Req() request: ApiRequest,
+    @Headers("authorization") authorization: string | undefined,
+    @Param("organizationId") organizationId: string,
+    @Param("locationId") locationId: string,
+    @Body() body: unknown,
+    @Res({ passthrough: true }) response: HeaderResponse,
+  ) {
+    return this.lifecycleCommand(
+      "MANAGEMENT_LOCATION_RESUME_INTAKE",
+      request,
+      authorization,
+      organizationId,
+      locationId,
+      body,
+      response,
+      (context, organization, location, command) =>
+        this.locations.resumeIntake(context, organization, location, command),
+    );
+  }
+
   @Post(":locationId/deactivate")
   deactivate(@Req() request: ApiRequest,@Headers("authorization") authorization: string | undefined,
     @Param("organizationId") organizationId: string,@Param("locationId") locationId: string,

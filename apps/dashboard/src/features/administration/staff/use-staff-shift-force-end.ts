@@ -2,6 +2,7 @@
 import {
   staffShiftForceEndReasonSchema,
   type StaffShiftHistoryEntry,
+  type StaffShiftHistoryDetail,
 } from "@valet/contracts";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useProtectedDashboard } from "../../../components/foundation/protected-dashboard-context";
@@ -30,7 +31,7 @@ type State =
   | { phase: Phase }
   | { phase: "reconciling"; expectedRevision: number; confirmed: boolean };
 export interface ForceEndRead {
-  readonly item: StaffShiftHistoryEntry | null;
+  readonly item: StaffShiftHistoryDetail | null;
   readonly loading: boolean;
   readonly error: Error | null;
   readonly revision: number;

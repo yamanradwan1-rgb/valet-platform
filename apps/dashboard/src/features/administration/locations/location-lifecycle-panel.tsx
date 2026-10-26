@@ -20,6 +20,7 @@ import {
   correctLocationTimezone,
 } from "./locations-api";
 
+import { LocationResumeIntake } from "./location-resume-intake";
 import { LocationLifecycleFacts } from "./location-lifecycle-facts";
 import { locationLifecycleExplanation } from "./location-lifecycle-explanation";
 
@@ -145,6 +146,7 @@ export function LocationLifecyclePanel(props: {
             {t.stopIntake}
           </button>
         ) : null}
+        <LocationResumeIntake {...props} />
         {props.location.status === "ACTIVE" &&
         !props.location.acceptingIntake ? (
           <button

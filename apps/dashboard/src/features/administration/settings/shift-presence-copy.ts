@@ -271,8 +271,12 @@ const messages = {
     "الصلاحيات مشغولة. حدّث قبل إعادة المحاولة.",
   ],
   notReadyError: [
-    "Server readiness blocks this configuration.",
-    "تمنع جاهزية الخادم هذه الإعدادات.",
+    "This change cannot be applied with the current presence configuration. Review Readiness, active attendance zones, and the saved Start/End Shift policies.",
+    "لا يمكن تطبيق هذا التغيير مع إعدادات الحضور الحالية. راجع الجاهزية ومناطق الحضور المفعّلة وسياسات بداية ونهاية الشفت المحفوظة.",
+  ],
+  lastZoneError: [
+    "You can't disable the last active attendance zone while strict shift presence verification is enabled. Add another active zone, or change the applicable Start/End Shift presence policy first.",
+    "لا يمكن تعطيل آخر منطقة حضور مفعّلة لأن التحقق الإلزامي من الموقع مستخدم عند بداية أو نهاية الشفت. أضف منطقة مفعّلة أخرى أو غيّر سياسة الحضور المعنية أولًا.",
   ],
   securityError: [
     "Presence security is unavailable. Try again later.",

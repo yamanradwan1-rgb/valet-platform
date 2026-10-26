@@ -2,6 +2,7 @@ export const runtimeLocationLifecycleFunctions = [
   "public.management_location_create(uuid,uuid,uuid,uuid,text,text,text,text,text,text)",
   "public.management_location_activate(uuid,uuid,uuid,timestamp with time zone)",
   "public.management_location_stop_intake(uuid,uuid,uuid,timestamp with time zone)",
+  "public.management_location_resume_intake(uuid,uuid,uuid,timestamp with time zone)",
   "public.management_location_deactivate(uuid,uuid,uuid,timestamp with time zone)",
   "public.management_location_correct_currency(uuid,uuid,uuid,text,timestamp with time zone)",
   "public.management_location_correct_timezone(uuid,uuid,uuid,text,text,timestamp with time zone)",

@@ -3,7 +3,7 @@ import type {
   StaffShiftEmployee,
   StaffShiftEmployeeQuery,
   StaffShiftEmployeePage,
-  StaffShiftHistoryEntry,
+  StaffShiftHistoryDetail,
   StaffShiftHistoryQuery,
   StaffShiftHistoryResponse,
 } from "@valet/contracts";
@@ -33,6 +33,9 @@ import {
   shiftHistoryEntry,
   type StaffShiftHistoryRow,
 } from "./staff-shift-history-query";
+import { lockStaffUserSecurityBoundary } from "../auth/staff-user-security-lock";
+import { lockAndRecheckMfaSession } from "../auth/mfa/mfa-session-repository";
+import { readShiftCashReconciliation } from "./staff-shift-cash-read";
 import { staffShiftEmployeeSql } from "./staff-shift-employee-query";
 
 @Injectable()
@@ -86,26 +89,53 @@ export class StaffShiftHistoryService {
     context: StaffSessionContext,
     organizationId: string,
     shiftId: string,
-  ): Promise<StaffShiftHistoryEntry> {
-    return this.read(
-      context,
-      organizationId,
-      undefined,
-      async (transaction, authority) => {
-        const sql = staffShiftHistorySql(
-          authority,
-          { limit: 1 },
-          null,
-          shiftId,
-        );
-        const result = await transaction.query<StaffShiftHistoryRow>(
-          sql.text,
-          sql.values,
-        );
-        if (!result.rows[0]) throw new ManagementAccessDeniedError();
-        return shiftHistoryEntry(result.rows[0]);
-      },
-    );
+    includeCashReconciliation = false,
+  ): Promise<StaffShiftHistoryDetail> {
+    if (!includeCashReconciliation) {
+      return this.read(
+        context,
+        organizationId,
+        undefined,
+        async (transaction, authority) => {
+          const sql = staffShiftHistorySql(
+            authority,
+            { limit: 1 },
+            null,
+            shiftId,
+          );
+          const result = await transaction.query<StaffShiftHistoryRow>(
+            sql.text,
+            sql.values,
+          );
+          if (!result.rows[0]) throw new ManagementAccessDeniedError();
+          return shiftHistoryEntry(result.rows[0]);
+        },
+      );
+    }
+    return inPostgresTransaction(this.pool, async (transaction) => {
+      await lockStaffUserSecurityBoundary(transaction, context.userId);
+      await lockAndRecheckMfaSession(transaction, context);
+      const authority = await authorizeStaffManagement(transaction, context, {
+        organizationId,
+        assurance: "STANDARD",
+      });
+      const sql = staffShiftHistorySql(authority, { limit: 1 }, null, shiftId);
+      const result = await transaction.query<StaffShiftHistoryRow>(
+        sql.text,
+        sql.values,
+      );
+      if (!result.rows[0]) throw new ManagementAccessDeniedError();
+      const shift = shiftHistoryEntry(result.rows[0]);
+      const cashReconciliation = await readShiftCashReconciliation(
+        transaction,
+        context,
+        authority,
+        shift,
+      );
+      if (authority.kind === "COMPANY_ADMIN")
+        await recordAdminActivityInTransaction(transaction, context);
+      return { ...shift, cashReconciliation };
+    });
   }
 
   employees(

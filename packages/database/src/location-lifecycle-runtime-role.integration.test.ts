@@ -110,6 +110,7 @@ describe("MGT-BE-07 Location lifecycle runtime privileges", () => {
       ["management_location_guard_audit_event", false],
       ["management_location_has_blockers", false],
       ["management_location_lock", false],
+      ["management_location_resume_intake", true],
       ["management_location_stop_intake", true],
     ]);
     for (const row of rows.rows) {
@@ -169,7 +170,7 @@ describe("MGT-BE-07 Location lifecycle runtime privileges", () => {
     await expectDenied(runtimePool.query(`DELETE FROM locations WHERE FALSE`));
   });
 
-  it("denies forged lifecycle audit events while retaining ordinary audit append authority", async () => {
+  it.each(["LOCATION_CREATED", "LOCATION_INTAKE_RESUMED"])("denies forged %s audit while retaining ordinary append authority", async (eventType) => {
     const organizationId = randomUUID();
     await adminPool.query(
       `INSERT INTO organizations(id,name,status,timezone,updated_at)
@@ -181,9 +182,9 @@ describe("MGT-BE-07 Location lifecycle runtime privileges", () => {
         `INSERT INTO audit_events(
            id,organization_id,actor_type,event_type,entity_type,entity_id,
            metadata_json,idempotency_key,occurred_at)
-         VALUES($1,$2,'SYSTEM','LOCATION_CREATED','Location',$3,
+         VALUES($1,$2,'SYSTEM',$5,'Location',$3,
                 '{}'::jsonb,$4,clock_timestamp())`,
-        [randomUUID(), organizationId, randomUUID(), randomUUID()],
+        [randomUUID(), organizationId, randomUUID(), randomUUID(), eventType],
       ),
     );
     await expect(

@@ -250,6 +250,7 @@ const events = {
     "Location intake stopped",
     "إيقاف استقبال المركبات بالموقع",
   ],
+  LOCATION_INTAKE_RESUMED: ["Location intake resumed", "إعادة فتح استقبال السيارات بالموقع"],
   LOCATION_DEACTIVATED: ["Location deactivated", "تعطيل الموقع"],
   LOCATION_CURRENCY_CORRECTED: [
     "Location currency corrected",

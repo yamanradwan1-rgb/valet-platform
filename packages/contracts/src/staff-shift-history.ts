@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { staffShiftCashReconciliationSchema } from "./staff-shift-cash-reconciliation.js";
 import {
   staffDirectoryQuerySchema,
   staffManagementIdentitySchema,
@@ -83,7 +84,19 @@ export const staffShiftHistoryResponseSchema = z
     nextCursor: cursor.nullable(),
   })
   .strict();
-export const staffShiftHistoryDetailSchema = staffShiftHistoryEntrySchema;
+/** Opt-in keeps the previous strict detail response compatible with older clients. */
+export const staffShiftHistoryDetailQuerySchema = z
+  .object({
+    includeCashReconciliation: z.literal("true").optional(),
+  })
+  .strict();
+export const staffShiftHistoryDetailSchema =
+  staffShiftHistoryEntrySchema.safeExtend({
+    cashReconciliation: staffShiftCashReconciliationSchema.optional(),
+  });
+export type StaffShiftHistoryDetail = z.infer<
+  typeof staffShiftHistoryDetailSchema
+>;
 
 /** Candidates must have persisted history inside the actor's current Location authority. */
 export const staffShiftEmployeeQuerySchema = z

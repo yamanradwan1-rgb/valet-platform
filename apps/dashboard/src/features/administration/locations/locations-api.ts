@@ -48,7 +48,7 @@ export function commandLocationLifecycle(
   api: DashboardApiClient,
   organizationId: string,
   locationId: string,
-  action: "activate" | "stop-intake" | "deactivate",
+  action: "activate" | "stop-intake" | "resume-intake" | "deactivate",
   expectedUpdatedAt: string,
 ) {
   const body: ManagementLocationLifecycleCommand = { expectedUpdatedAt };
