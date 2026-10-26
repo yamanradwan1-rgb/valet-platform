@@ -59,7 +59,7 @@ describe("MGT-BE-07 Location lifecycle serialization", () => {
           locationId: current.locationId,
         }),
       ).rejects.toMatchObject({
-        code: "AUTHORIZATION_DENIED",
+        code: "LOCATION_INTAKE_STOPPED",
       });
     } catch (error) {
       await barrier.query("ROLLBACK").catch(() => undefined);
@@ -94,7 +94,7 @@ describe("MGT-BE-07 Location lifecycle serialization", () => {
       await releaseLocationRaceBarrier(barrier);
       expect((await stop).status).toBe(201);
       await expect(rejected).rejects.toMatchObject({
-        code: "AUTHORIZATION_DENIED",
+        code: "LOCATION_INTAKE_STOPPED",
       });
       const rows = await fixture.query(
         `SELECT 1 FROM valet_sessions WHERE location_id=$1`,

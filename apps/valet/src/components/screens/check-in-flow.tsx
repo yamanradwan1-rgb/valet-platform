@@ -79,7 +79,7 @@ export function CheckInFlow({
   const displayModel = activeVehicle?.model ?? null;
   const displayColor = activeVehicle?.color ?? null;
   const localizedError = checkIn.error
-    ? presentLiveError(new Error(checkIn.error), locale, t)
+    ? presentLiveError(new Error(checkIn.error), locale, t, checkIn.errorCode)
     : null;
 
   if (checkIn.isHydrating && checkIn.step === "discovery") {
@@ -236,6 +236,7 @@ export function CheckInFlow({
   if (checkIn.step === "customer-phone") {
     return (
       <CheckInCustomerPhoneStep
+        errorCode={checkIn.errorCode}
         phone={phone}
         make={displayMake}
         model={displayModel}

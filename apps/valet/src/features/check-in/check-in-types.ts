@@ -59,6 +59,7 @@ export interface CheckInState {
   readonly continuations: StaffCheckInContinuationSummary[];
   readonly drafts: StaffCheckInDraftSummary[];
   readonly error: string | null;
+  readonly errorCode?: string | null;
   readonly correctionConflict: boolean;
   readonly customerOrigin: CheckInCustomerOrigin;
   readonly customerResolved: boolean;

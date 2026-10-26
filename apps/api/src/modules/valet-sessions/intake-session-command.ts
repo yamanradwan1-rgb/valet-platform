@@ -71,7 +71,12 @@ async function executeOnce(
       transaction,
       normalized.authenticatedUserId,
       normalized.targetLocationId,
+      false,
+      { authorizeBeforeIntakeState: true },
     );
+    if (!scope.acceptingIntake) {
+      throw new IntakeSessionCommandError("LOCATION_INTAKE_STOPPED");
+    }
     const fingerprint = intakeRequestFingerprint(
       normalized,
       scope.organizationId,

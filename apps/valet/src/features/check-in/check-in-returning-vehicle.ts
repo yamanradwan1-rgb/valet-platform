@@ -1,3 +1,4 @@
+import { EmployeeApiError } from "@valet/employee-client";
 import type { IntakeCustomerIntent } from "@valet/contracts";
 
 import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
@@ -230,6 +231,10 @@ export async function createPreIntakeSession(
   } catch (error: unknown) {
     context.update({
       error: errorMessage(error, "Failed to create vehicle intake."),
+      errorCode:
+        error instanceof EmployeeApiError && error.code === "LOCATION_INTAKE_STOPPED"
+          ? error.code
+          : null,
       isSubmitting: false,
     });
   }

@@ -78,7 +78,11 @@ export class CheckInController {
   }
 
   private update(patch: Partial<CheckInState>): void {
-    this.state = { ...this.state, ...patch };
+    this.state = {
+      ...this.state,
+      ...("error" in patch ? { errorCode: null } : {}),
+      ...patch,
+    };
     this.onStateChange(this.state);
   }
 

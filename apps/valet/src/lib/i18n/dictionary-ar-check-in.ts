@@ -4,6 +4,7 @@ export const employeeArabicCheckInDictionary = {
   continueWithoutRecognition: "متابعة بدون التحقق من المركبة",
   correctVehicleDetails: "تصحيح بيانات المركبة",
   differentCustomer: "عميل مختلف",
+  locationIntakeStopped: "هذا الفرع لا يستقبل سيارات جديدة حاليًا. تواصل مع إدارة الفرع.",
   make: "الشركة المصنّعة",
   model: "الطراز",
   phoneEnding: "رقم الهاتف ينتهي بـ",

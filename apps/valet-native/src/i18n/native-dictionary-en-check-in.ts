@@ -4,6 +4,7 @@ export const nativeEmployeeEnglishCheckInDictionary = {
   continueWithoutRecognition: "Continue without recognition",
   correctVehicleDetails: "Correct vehicle details",
   differentCustomer: "Different customer",
+  locationIntakeStopped: "This location is not accepting new vehicles right now. Contact the location manager.",
   make: "Make",
   model: "Model",
   phoneEnding: "Phone ending",

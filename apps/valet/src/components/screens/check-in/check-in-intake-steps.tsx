@@ -12,6 +12,7 @@ export function CheckInCustomerPhoneStep({
   plate,
   isSubmitting,
   error,
+  errorCode,
   onChangePhone,
   onContinue,
   onNoPhone,
@@ -19,6 +20,7 @@ export function CheckInCustomerPhoneStep({
 }: {
   readonly color?: string | null | undefined;
   readonly error?: string | null | undefined;
+  readonly errorCode?: string | null | undefined;
   readonly isSubmitting?: boolean | undefined;
   readonly make?: string | null | undefined;
   readonly model?: string | null | undefined;
@@ -31,6 +33,15 @@ export function CheckInCustomerPhoneStep({
 }): JSX.Element {
   const { t } = useEmployeeI18n();
   const displayModel = make && model ? `${make} ${model}` : (make || model || t.vehicle);
+  const intakeStopped = errorCode === "LOCATION_INTAKE_STOPPED";
+  const feedback = error && (
+    <div
+      className="p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs"
+      role={intakeStopped ? "alert" : undefined}
+    >
+      {error}
+    </div>
+  );
   return (
     <div>
       <BackHeader
@@ -39,11 +50,7 @@ export function CheckInCustomerPhoneStep({
         onBack={onBack}
       />
       <div className="p-5 space-y-5">
-        {error && (
-          <div className="p-3 bg-red-50 border border-vdanger/20 rounded-xl text-vdanger text-xs">
-            {error}
-          </div>
-        )}
+        {!intakeStopped && feedback}
         <div className="bg-white rounded-2xl border border-vborder p-4">
           <VehicleIdentity
             color={color ?? t.notSpecified}
@@ -73,6 +80,7 @@ export function CheckInCustomerPhoneStep({
             {t.smsNotice}
           </p>
         </div>
+        {intakeStopped && feedback}
         <Btn
           label={isSubmitting ? t.creatingIntake : t.continueLabel}
           onClick={onContinue}

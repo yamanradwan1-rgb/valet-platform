@@ -1,0 +1,174 @@
+{
+  "baselineComparison": [
+    {
+      "case": "en-light-320-none",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "en-light-320-generic",
+      "maximumChannelDifference": 1
+    },
+    {
+      "case": "en-light-390-none",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "en-light-390-generic",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "en-light-768-none",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "en-light-768-generic",
+      "maximumChannelDifference": 1
+    },
+    {
+      "case": "en-dark-320-none",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "en-dark-320-generic",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "en-dark-390-none",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "en-dark-390-generic",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "en-dark-768-none",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "en-dark-768-generic",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "ar-light-320-none",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "ar-light-320-generic",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "ar-light-390-none",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "ar-light-390-generic",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "ar-light-768-none",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "ar-light-768-generic",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "ar-dark-320-none",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "ar-dark-320-generic",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "ar-dark-390-none",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "ar-dark-390-generic",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "ar-dark-768-none",
+      "maximumChannelDifference": 0
+    },
+    {
+      "case": "ar-dark-768-generic",
+      "maximumChannelDifference": 0
+    }
+  ],
+  "stopped": [
+    {
+      "case": "en-light-320-stopped",
+      "errorFits": true,
+      "controlDimensionsUnchanged": true,
+      "phoneValueRetained": true
+    },
+    {
+      "case": "en-light-390-stopped",
+      "errorFits": true,
+      "controlDimensionsUnchanged": true,
+      "phoneValueRetained": true
+    },
+    {
+      "case": "en-light-768-stopped",
+      "errorFits": true,
+      "controlDimensionsUnchanged": true,
+      "phoneValueRetained": true
+    },
+    {
+      "case": "en-dark-320-stopped",
+      "errorFits": true,
+      "controlDimensionsUnchanged": true,
+      "phoneValueRetained": true
+    },
+    {
+      "case": "en-dark-390-stopped",
+      "errorFits": true,
+      "controlDimensionsUnchanged": true,
+      "phoneValueRetained": true
+    },
+    {
+      "case": "en-dark-768-stopped",
+      "errorFits": true,
+      "controlDimensionsUnchanged": true,
+      "phoneValueRetained": true
+    },
+    {
+      "case": "ar-light-320-stopped",
+      "errorFits": true,
+      "controlDimensionsUnchanged": true,
+      "phoneValueRetained": true
+    },
+    {
+      "case": "ar-light-390-stopped",
+      "errorFits": true,
+      "controlDimensionsUnchanged": true,
+      "phoneValueRetained": true
+    },
+    {
+      "case": "ar-light-768-stopped",
+      "errorFits": true,
+      "controlDimensionsUnchanged": true,
+      "phoneValueRetained": true
+    },
+    {
+      "case": "ar-dark-320-stopped",
+      "errorFits": true,
+      "controlDimensionsUnchanged": true,
+      "phoneValueRetained": true
+    },
+    {
+      "case": "ar-dark-390-stopped",
+      "errorFits": true,
+      "controlDimensionsUnchanged": true,
+      "phoneValueRetained": true
+    },
+    {
+      "case": "ar-dark-768-stopped",
+      "errorFits": true,
+      "controlDimensionsUnchanged": true,
+      "phoneValueRetained": true
+    }
+  ]
+}
