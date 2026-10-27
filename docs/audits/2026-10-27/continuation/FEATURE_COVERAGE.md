@@ -13,3 +13,9 @@ This describes incremental file-level work; no major feature is newly declared f
 |Infrastructure/QA/runtime DB|test discovery → resource budgets → lease/journal → bounded child/SQL instrumentation → ownership cleanup; runtime pool/query/lease/TLS-role safety helpers|complete cross-feature lock order, live PG/Windows/container/ingress/provider qualification|
 
 No UI or application source changed. No whole-system state-transition or historical-data-preservation guarantee follows from helper-file completion.
+
+## C002 extensions
+
+- Payments and handoff: 35 additional backend files cover policy resolution, canonical money projections, guest/staff mutations, authenticated provider callback correlation, refund exposure/idempotency and transactional release effects. Default digital provider remains unconfigured; real callback/provider qualification absent.
+- Native and portable employee: 40 additional files cover strict transport schemas, task/release/retrieval state fencing, presence/shift recovery, protected-command loss/ambiguity, incident state, auth serialization and Check-In continuation. Source-level lifecycle checks do not establish physical Android/iOS testing.
+- The other four C001 ownership sets remain pending; no end-to-end feature is certified merely by these file counts.

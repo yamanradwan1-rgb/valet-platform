@@ -1,0 +1,186 @@
+{
+  "reviewer": "worker-7-evidence-qa",
+  "task": "Independent evidence-quality challenge of worker-native-results.json and worker-backend_operations-results.json",
+  "baseline": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+  "coverage_credit": false,
+  "assignment_ownership_changed": false,
+  "tests_run": false,
+  "github_writes": false,
+  "drafts": {
+    "worker-native-results.json": {
+      "records": 24,
+      "assignment_owner_hash_range_mismatches": 0,
+      "filesystem_sha256_mismatches": 0,
+      "finding_refs": 0
+    },
+    "worker-backend_operations-results.json": {
+      "records": 20,
+      "assignment_owner_hash_range_mismatches": 0,
+      "filesystem_sha256_mismatches": 0,
+      "finding_refs": 0
+    }
+  },
+  "spot_checks": [
+    {
+      "id": "NATIVE-QA-01",
+      "draft_path": "packages/employee-client/src/employee-parking-start-recovery.ts",
+      "verdict": "CORRECTION",
+      "claim": "Canonical state requires target location, own assignee or genuinely claimable QUEUED/unassigned task, and matching session/task version.",
+      "source_evidence": [
+        "employee-parking-start-recovery.ts:54-63 filters PARKING + target session + optional known task",
+        "employee-parking-start-recovery.ts:66-96 treats QUEUED + null assignee as local claimable candidate and requires session.locationId target plus session.version == task.valetSessionVersion",
+        "employee-parking-start-recovery.ts:99-109 separately fences identity/org/membership/location/shift"
+      ],
+      "assessment": "The control flow is correctly summarized, but 'genuinely claimable' overstates client authority. This helper only classifies QUEUED/unassigned as a local candidate; it does not prove backend eligibility or claim authority.",
+      "recommended_text": "Canonical classification accepts the current assignee or a locally candidate QUEUED/unassigned task; backend authority remains decisive."
+    },
+    {
+      "id": "NATIVE-QA-02",
+      "draft_path": "packages/employee-client/src/employee-release-flow-command.ts",
+      "verdict": "CORRECTION",
+      "claim": "Release result ... end physical session and task as COMPLETED ... before publishing released state.",
+      "source_evidence": [
+        "employee-release-flow-command.ts:6-27 validates exact session/task IDs, +1 versions, session state COMPLETED, taskStatus COMPLETED, retrievalRequestStatus COMPLETED",
+        "employee-release-flow-command.ts:30-50 publishes phase released and clears local task"
+      ],
+      "assessment": "The file validates server response fields only. 'End physical session' can be read as proof of physical handover/custody completion, which this client reducer cannot establish.",
+      "recommended_text": "Requires the authoritative response to report session/task/retrieval request COMPLETED before publishing local released state."
+    },
+    {
+      "id": "NATIVE-QA-03",
+      "draft_path": "packages/employee-client/src/employee-shift-end-recovery.ts",
+      "verdict": "PASS",
+      "claim": "Recovery binds operationId and exact END presence target including authority/cash; committed output is revalidated; denied/expired/not-sent requires fresh exact authority context before a new attempt.",
+      "source_evidence": [
+        "employee-shift-end-recovery.ts:30-45 checks operationId and presenceTargetKey(endPresenceTarget(authority,cashReported))",
+        "employee-shift-end-recovery.ts:46-57 calls validateEmployeeShiftEndResult before ended",
+        "employee-shift-end-recovery.ts:59-85 reloads operational context and compares employeeShiftEndAuthorityKey before returning active/error"
+      ],
+      "assessment": "Claim is bounded and source-supported. The draft correctly preserves runtime/server limitations."
+    },
+    {
+      "id": "NATIVE-QA-04",
+      "draft_path": "packages/employee-client/src/employee-shift-presence-recovery.ts",
+      "verdict": "CORRECTION",
+      "claim": "Pending exceptions are read and verified against target/challenge.",
+      "source_evidence": [
+        "employee-shift-presence-recovery.ts:93-109 reads exception, verifies exception against target, then reads/verifies challenge only if not already present",
+        "employee-shift-presence-workflow.ts:90-100 verifyException checks action/locationId/shiftId only",
+        "shift-presence-public.ts:153-167 exception response has no challengeId field"
+      ],
+      "assessment": "Target binding and challenge verification both exist, but the exception response is not directly correlated to a challenge ID by this client code. 'Verified against target/challenge' is too strong.",
+      "recommended_text": "Pending exceptions are verified against the exact target; challenge guidance is separately read/verified against the operation descriptor."
+    },
+    {
+      "id": "NATIVE-QA-05",
+      "draft_path": "packages/employee-client/src/incident-recovery-state.ts",
+      "verdict": "CORRECTION",
+      "claim": "Storage mutation queue prevents stale delete/purge from overwriting a fresh prepared marker.",
+      "source_evidence": [
+        "incident-recovery-state.ts:42-43 owns a per-instance storageTail",
+        "incident-recovery-state.ts:154-173 serializes clearResolved/purge/prepare operations through that instance tail",
+        "incident-recovery-state.ts:200-210 binds restored marker context",
+        "native-incident-session.ts:144-150 confirms prepare completes before reserve in the production Native caller"
+      ],
+      "assessment": "The serialization guarantee is real only within one IncidentRecoveryState instance. The draft wording sounds store-global and should be bounded; cross-instance/store races are not excluded by storageTail itself.",
+      "recommended_text": "The per-instance storage queue serializes marker mutations within one IncidentRecoveryState; caller generation/store behavior remains relevant to cross-instance races."
+    },
+    {
+      "id": "NATIVE-QA-06",
+      "draft_path": "packages/employee-client/src/incident-recovery-id.ts",
+      "verdict": "PASS",
+      "claim": "Uses crypto.getRandomValues only, preserves 122 random bits, forces UUIDv8 version/RFC variant, lower-case formats, and has no insecure entropy fallback.",
+      "source_evidence": [
+        "incident-recovery-id.ts:3-10 requires getRandomValues and throws if unavailable",
+        "incident-recovery-id.ts:10-12 starts with 128 random bits and overwrites exactly 6 version/variant bits",
+        "incident-recovery-id.ts:13-21 lower-case hex formats and schema-validates UUIDv8"
+      ],
+      "assessment": "Claim is precise and source-supported."
+    },
+    {
+      "id": "BACKEND-QA-01",
+      "draft_path": "apps/api/src/modules/payments/financial-policy-resolver.ts",
+      "verdict": "PASS_WITH_CLARIFICATION",
+      "claim": "FOR SHARE on organizations/locations is compatible with restricted runtime because provisioning grants SELECT plus UPDATE(updated_at).",
+      "source_evidence": [
+        "financial-policy-resolver.ts:22-50 uses FOR SHARE OF organization, location and requires exactly one scope row",
+        "runtime-table-privileges.mjs:19-32 includes organizations/locations in read-only SELECT set",
+        "runtime-table-privileges.mjs:117-127 and 221-226 grant column-level UPDATE(updated_at) as lock privilege",
+        "basic-branding-runtime-privilege.integration.test.ts:113-126 expects generic table-level UPDATE to remain false"
+      ],
+      "assessment": "The draft is materially correct. Clarify that UPDATE is column-level only; generic table UPDATE is deliberately denied. This makes the lock-compatibility explanation stronger and avoids implying broader write authority.",
+      "recommended_text": "Provisioning grants SELECT plus narrow column-level UPDATE(updated_at) needed for row locking while generic table UPDATE remains denied."
+    },
+    {
+      "id": "BACKEND-QA-02",
+      "draft_path": "apps/api/src/modules/payments/payment-mutation-repository.ts",
+      "verdict": "PASS",
+      "claim": "Any cash entry, provider event, or durable collection operation counts as collection evidence, so even incomplete/failed collection attempts freeze mutable financial terms.",
+      "source_evidence": [
+        "payment-mutation-repository.ts:109-127 checks EXISTS across cash_entries, payment_provider_events, payment_collection_operations without terminal-state filtering",
+        "payment-mutation-guards.ts:7-19 treats that evidence as COLLECTION_ALREADY_STARTED"
+      ],
+      "assessment": "Source supports the conservative freeze claim. No finding is implied."
+    },
+    {
+      "id": "BACKEND-QA-03",
+      "draft_path": "apps/api/src/modules/payments/payment-mutation.service.ts",
+      "verdict": "PASS",
+      "claim": "Guest tip re-resolves/locks guest credential in transaction; invalid access is counted, valid domain rejection/success ignored for anti-abuse; cancelled/revoked legacy guest access is denied by resolver.",
+      "source_evidence": [
+        "payment-mutation.service.ts:153-187 resolves/locks credential, COUNTED on undefined, IGNORED on success or FinancialMutationError",
+        "guest-access.service.ts:74-100 delegates legacy credential to resolveAndLockGuestAccessSession and converts GuestAccessError to undefined",
+        "guest-access-session-resolution.ts:58-75 rejects CANCELLED, consumed, revoked, expired and stale completed access"
+      ],
+      "assessment": "Claim is supported, with the draft already disclosing that GuestAccessService is a separate ownership dependency."
+    },
+    {
+      "id": "BACKEND-QA-04",
+      "draft_path": "apps/api/src/modules/payments/payment-projection-query.ts",
+      "verdict": "PASS_WITH_LIMIT",
+      "claim": "Authorized projection locks session/payment for stable read and computes fail-closed release satisfaction; with no payment, release is satisfied only when policy does not require payment.",
+      "source_evidence": [
+        "payment-projection-query.ts:50-81 takes session FOR SHARE, resolves policy, and no-payment returns releaseSatisfied=!releaseRequiresPayment",
+        "payment-projection-query.ts:63-130 payment is exact org/location/session scoped and internal provider/reference only feed isPaymentReleaseSatisfied",
+        "payment-release-satisfaction.ts:19-55 fails closed for malformed/incoherent NOT_REQUIRED/PAID states"
+      ],
+      "assessment": "Claim is supported. Preserve the draft limit that the initial session FOR SHARE row count is not checked in this helper and relies on prior authorization/resolution in the same transaction."
+    },
+    {
+      "id": "BACKEND-QA-05",
+      "draft_path": "apps/api/src/modules/payments/payment-recompute.ts",
+      "verdict": "CORRECTION",
+      "claim": "A positive DIGITAL_ONLY policy fails because this baseline has no configured digital initiation path.",
+      "source_evidence": [
+        "payment-recompute.ts:30-40 unconditionally throws DIGITAL_PAYMENT_PROVIDER_UNAVAILABLE for positive DIGITAL_ONLY without consulting a provider registry",
+        "payments.module.ts:31-37 separately binds DigitalPaymentProviderRegistry to UnconfiguredDigitalPaymentProviderRegistry",
+        "digital-payment-provider.ts:42-50 confirms that registry returns null for provider selection"
+      ],
+      "assessment": "The baseline fact about an unconfigured registry is true, but the causal statement is too strong for this function: recompute rejects DIGITAL_ONLY directly regardless of registry state.",
+      "recommended_text": "For positive due, recomputePayment directly rejects DIGITAL_ONLY; separately, this baseline wires an unconfigured digital provider registry."
+    },
+    {
+      "id": "BACKEND-QA-06",
+      "draft_path": "apps/api/src/modules/payments/provider-event-collection.ts",
+      "verdict": "PASS_WITH_DEPENDENCIES",
+      "claim": "Collection reconciliation is scoped/provider/reference/amount/state fenced, transitions operation/payment atomically, prevents reordered failure downgrade, and reference uniqueness/collision retry handles races.",
+      "source_evidence": [
+        "provider-event-collection.ts:60-136 resolves within authenticated organization, locks related rows, checks state/provider/reference/currency/amount/payment compatibility and reference ownership",
+        "provider-event-collection.ts:137-179 CASes operation to RESOLVED then guarded payment to PAID/FAILED; failed payment update throws inside transaction",
+        "provider-event-ingress.ts:104-132 retries recognized provider-reference unique collisions once and 150-159 handles duplicate event-id uniqueness",
+        "migrations 010/011/028 define the named payment/provider-event/collection-operation unique indexes"
+      ],
+      "assessment": "Core record is correct. The race-handling sentence depends on provider-event-ingress plus DB uniqueness rather than this file alone; keep those dependencies explicit. The separate claim that a definitive FAILED payment permits a fresh collection is also supported by digital-collection-command.ts:68-86, which allows UNPAID or FAILED subject to fresh evidence/policy guards."
+    }
+  ],
+  "summary": {
+    "spot_checks": 12,
+    "pass": 4,
+    "pass_with_clarification_or_limit": 3,
+    "corrections": 5,
+    "incorrect_hash_or_range_records": 0,
+    "duplicate_findings_detected": 0,
+    "new_findings_created": 0,
+    "overall": "Evidence drafts are structurally sound and source-hash accurate. Most semantic claims are supported, but five wording corrections are recommended to avoid overstating client authority, physical proof, exception-to-challenge correlation, storage-global serialization, or DIGITAL_ONLY causality."
+  }
+}

@@ -1,0 +1,145 @@
+[
+  {
+    "record_type": "cross_feature_risk",
+    "risk_id": "XINT-OPS-001",
+    "coverage_credit": false,
+    "issues": [352],
+    "severity": "P1",
+    "baseline": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "evidence": [
+      {"path":"apps/api/src/modules/dispatch/reassign-task-command.ts","sha256":"7919bfc2c08a72f066790df300207b36221c985ba9fd29f82d971a59d0df03b4","ranges":["1-73"],"note":"Supervisor reassign requires ASSIGNED or ACCEPTED at lines 39-40."},
+      {"path":"apps/api/src/modules/retrieval/complete-handoff-locks.ts","sha256":"d3e3a34250a954fcafa7c7b7b7bbb6f01c0aecc272329ece45fc7a44d4aa271","ranges":["1-138"],"note":"Final handoff requires active operational eligibility and exact current assignee at lines 72-87."},
+      {"path":"apps/api/src/modules/retrieval/override-handoff-command.ts","ranges":["1-106"],"note":"Supervisor proof override verifies proof but leaves task IN_PROGRESS and does not transfer assignee."},
+      {"path":"apps/api/src/modules/retrieval/abort-handoff-command.ts","ranges":["1-88"],"note":"Abort returns session to READY while task remains IN_PROGRESS."},
+      {"path":"apps/api/src/modules/shifts/end-shift-command.ts","ranges":["84-99"],"note":"End Shift rejects any canonical ASSIGNED/ACCEPTED/IN_PROGRESS task owned by the membership."}
+    ],
+    "semantic_review": "Existing #352 is a cross-feature custody dead-end, not only a Dispatch defect: unavailable IN_PROGRESS owner cannot be ordinarily reassigned, non-owner cannot complete release, proof override does not transfer ownership, abort preserves the IN_PROGRESS task, and the same task blocks ordinary End Shift.",
+    "invariants_error_checks": ["exact task version before reassign","supervisor-only ordinary reassign","active shift eligibility for handoff owner","OPEN_TASK_HANDOFF_REQUIRED on shift close"],
+    "pilot_gate": "Blocks real-customer sign-off until an owner-approved exceptional custody takeover contract and two-actor/physical qualification exist.",
+    "tests": "Historical source/audit evidence only; no PostgreSQL, device, or physical handover test rerun by worker-7.",
+    "limits": "No new issue proposed; this is integration impact of existing #352."
+  },
+  {
+    "record_type": "cross_feature_risk",
+    "risk_id": "XINT-SEC-011",
+    "coverage_credit": false,
+    "issues": [363],
+    "severity": "P1",
+    "baseline": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "evidence": [
+      {"path":"apps/api/src/modules/auth/mfa/mfa-recovery.service.ts","sha256":"b8ca693f40be5f71c2f1234f3748fa240d7ebb7329586bbc926a4d8ad0a7ad11","ranges":["1-244"],"note":"Recovery consumes a code, retires active factor, creates ordinary PENDING factor keyed to user, and returns new TOTP secret; no recovery-session capability is persisted."},
+      {"path":"apps/api/src/modules/auth/mfa/mfa-enrollment.service.ts","sha256":"7249bc8d5c5cee6e34b222369d3552bf16b08b1982af0d958d7929822b2164ad","ranges":["1-198"],"note":"Generic enrollment begin returns the current PENDING factor secret to another valid same-user management-eligible session; confirm establishes MFA on the caller session."},
+      {"path":"apps/api/src/modules/auth/mfa/mfa-factor-repository.ts","ranges":["1-86"],"note":"Pending factor ownership is user-scoped, with no initiating session/recovery ceremony binding."},
+      {"path":"apps/api/src/modules/auth/mfa/mfa-session-repository.ts","ranges":["1-92"],"note":"Session recheck is exact, but the recovery-created factor itself is not ceremony-bound; established assurance is session-specific only at activation."},
+      {"path":"apps/api/src/modules/management/presence-management-policy-command.ts","sha256":"3adc96a16ea48710946840e2703108ac121288b53a79c9cf54ce133cd7f7b495","ranges":["46-85"],"note":"Sensitive Shift Presence policy mutations rely on current session MFA assurance, illustrating downstream impact if SEC-011 yields MFA on a second session."}
+    ],
+    "semantic_review": "Existing SEC-011 propagates beyond MFA setup: a second still-valid same-user management session can reuse the replacement pending factor, activate it, and obtain session MFA assurance. Any downstream command correctly trusting that assurance inherits the impact according to the user's existing role/scope; no cross-user or cross-tenant exposure was found in these paths.",
+    "pilot_gate": "Security blocker for management-capable pilot accounts until session/capability-bound recovery design plus isolated two-session PostgreSQL/HTTP regression is accepted.",
+    "tests": "Five model tests are historical issue evidence; worker-7 did not rerun them and did not execute PostgreSQL/HTTP.",
+    "limits": "No claim of cross-user takeover or production exploit; scope is same-user concurrent-session recovery window."
+  },
+  {
+    "record_type": "cross_feature_risk",
+    "risk_id": "XINT-PUSH",
+    "coverage_credit": false,
+    "issues": [357,273],
+    "severity": "P2",
+    "baseline": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "evidence": [
+      {"path":"apps/api/src/modules/staff-push/staff-push-delivery-worker.ts","sha256":"e540e882ad38aa636980a0e30a0184e0088a29631aa71810b130efccad1d1bfd","ranges":["1-158"],"note":"After eligibility, beforeProviderCall may pause; transport rebuilds only remaining intent lifetime and does not recheck lease ownership before provider POST."},
+      {"path":"apps/api/src/modules/staff-push/staff-push-eligibility-repository.ts","ranges":["1-150"],"note":"Eligibility strongly rechecks leased token plus active registration/session/user/membership/org/location/access/shift and queued unassigned Retrieval task at read time."},
+      {"path":"apps/api/src/modules/staff-push/staff-push-claim-repository.ts","ranges":["1-112"],"note":"Expired LEASED work is reclaimable with a new lease token."},
+      {"path":"apps/api/src/modules/staff-push/staff-push-finalization-repository.ts","ranges":["1-121"],"note":"Finalization is token-fenced, so stale worker DB mutation is rejected even though an already-started remote send cannot be undone."}
+    ],
+    "semantic_review": "#357 remains a bounded duplicate-attention risk rather than an authorization leak: eligibility is strong when read, but lease ownership is not revalidated after a pre-provider pause. #273 separately leaves account-transition U-001 and physical Android FCM QA open. Together they mean Staff Push should remain assistive/non-authoritative during pilot; canonical queue state must drive operations.",
+    "pilot_gate": "Does not alone block a tightly controlled pilot if Push is non-authoritative and queue polling is canonical; blocks treating FCM attention as fully qualified/reliable at scale or across account-transition scenarios.",
+    "tests": "Historical fake-DB/PG issue evidence only; no provider, PostgreSQL race, or physical Android test rerun by worker-7.",
+    "limits": "At-least-once notification delivery is accepted; no exactly-once promise or cross-account data disclosure is asserted."
+  },
+  {
+    "record_type": "cross_feature_risk",
+    "risk_id": "XINT-WEB-SCOPE",
+    "coverage_credit": false,
+    "issues": [358],
+    "severity": "P2",
+    "baseline": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "evidence": [
+      {"path":"apps/valet/src/components/employee-app.tsx","sha256":"9f7ca8b2776c69d2ed95fcc265f68942ed6a15607a0d35e5c77f2fb4bb7d41ce","ranges":["1-294"],"note":"Workspace target stamp uses identityGeneration only; active shell key includes membership/location/shift while parent targets are forwarded unchanged."},
+      {"path":"apps/valet/src/components/shell/employee-workspace.ts","ranges":["1-107"],"note":"Workspace stamp contains authenticated identity epoch only, not operational membership/location/shift."},
+      {"path":"apps/valet/src/components/shell/employee-live-router.tsx","ranges":["1-225"],"note":"New activeScope is combined with retained parking/retrieval/guest/incident targets when routing workflows."}
+    ],
+    "semantic_review": "Existing #358 is confirmed as a presentation/workflow-context mismatch in source: same-user authority changes can remount the active shell for B while retaining A targets above it. API authorization remains the security boundary; no backend bypass was found by this review.",
+    "pilot_gate": "Single-scope pilot can mitigate with fresh load/logout when scope changes; multi-location Employee Web pilot should not rely on seamless same-login switching until fixed and mounted A→B regression exists.",
+    "tests": "Historical pure probe only; no mounted browser scope-transition test rerun by worker-7.",
+    "limits": "Employee Web only; Native has separate retirement logic and is not implicated by this evidence."
+  },
+  {
+    "record_type": "cross_feature_risk",
+    "risk_id": "XINT-VALIDATION",
+    "coverage_credit": false,
+    "issues": [353,355,361,362],
+    "severity": "P2/P3/process",
+    "baseline": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "evidence": [
+      {"path":"packages/database/src/issue304-migration-source-appendix.ts","ranges":["1-25"],"note":"Current appendix ends at migration 102."},
+      {"path":"packages/database/src/issue304-migration-source-appendix.test.ts","ranges":["1-33"],"note":"Test asserts exactly 102 while frozen checkout has 103 migration directories."},
+      {"path":"packages/contracts/src/management-audit.test.ts","ranges":["1-175"],"note":"Catalog test asserts exactly 102 while accepted LOCATION_INTAKE_RESUMED makes the runtime catalog 103 per #355."},
+      {"path":"apps/api/vitest.config.mjs","sha256":"7be7568865d97f7bf0abb7d4239e19252391f4b6714dc741f2b468706f6c2b5f","ranges":["1-65"],"note":"API Vitest discovery root is apps/api/test only."},
+      {"path":"scripts/test-harness/test-classification.mjs","sha256":"3355d6170812f5b64d130fe369441e60abf7243c54a555a838c392666b41ca78","ranges":["1-250"],"note":"Exactly-one ownership is enforced only across tests discovered under the supplied root; source-adjacent tracking tests are outside that universe."}
+    ],
+    "observations": {"migration_directory_count":103,"source_adjacent_unowned_tracking_tests":["apps/api/src/modules/tracking/live-map-cursor.test.ts","apps/api/src/modules/tracking/route-history-cursor.test.ts","apps/api/src/modules/tracking/point-in-polygon.test.ts"],"c001_original_pending_for_all_owners":219,"worker7_c001_owned_pending":0},
+    "semantic_review": "#353 and #355 are deterministic release-validation expectation drift, while #361 is a test-universe ownership blind spot. They do not prove runtime failure, but a green subset cannot honestly be promoted to an all-green release gate until these are repaired. #362 remains the explicit exhaustive-audit tracker; C001 itself still has 219 pending paths across other owners at this checkpoint.",
+    "pilot_gate": "Blocks claiming complete green validation/security coverage; runtime can still be internally qualified in isolation with stated limitations.",
+    "tests": "No tests rerun by worker-7. Historical direct tracking run reported 3 files/10 tests passing; that historical result is not re-execution evidence.",
+    "limits": "No claim migration #103 or audit persistence itself fails at runtime."
+  },
+  {
+    "record_type": "cross_feature_risk",
+    "risk_id": "XINT-UX-TRUTH",
+    "coverage_credit": false,
+    "issues": [354,356,359,360],
+    "severity": "P2/P3",
+    "baseline": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "evidence": [
+      {"path":"apps/dashboard/src/features/operations/live-operations/live-operations-page.tsx","sha256":"092a3c3773b3fec4af2b07601d88921674c7065a904128765d42e1ceaee03059","ranges":["45-150"],"note":"Session/retrieval keys include listRevision; state-count key is stable and does not refresh when listRevision changes."},
+      {"path":"apps/dashboard/src/features/administration/use-authoritative-read.ts","ranges":["1-128"],"note":"Read reruns on request key/load/enabled or explicit refresh; no timer/invalidation exists inside the hook."},
+      {"path":"apps/dashboard/src/features/guest-information/guest-information-page.tsx","ranges":["75-93","250-266"],"note":"Preview has independent read/error state but top-level error excludes preview and ContactSection receives only preview.data."},
+      {"path":"apps/dashboard/src/features/guest-information/contact-section.tsx","ranges":["45-65"],"note":"Any null preview renders Loading indefinitely, including failed read."},
+      {"path":"apps/customer/src/i18n/locale.ts","ranges":["1-63"],"note":"Restricted storage failure makes snapshots return default en while commit still changes DOM and dispatches event."},
+      {"path":"apps/customer/src/i18n/locale-provider.tsx","ranges":["25-110"],"note":"useSyncExternalStore snapshot is persisted-storage-derived, so thrown storage can keep React state at default despite event."},
+      {"path":"apps/customer/src/theme/theme.ts","ranges":["1-74"],"note":"Same persisted-storage fallback pattern for theme."},
+      {"path":"apps/customer/src/components/primitives/btn.tsx","sha256":"78c12d06796c0643802ccc605fdbc4346d95e9fe3288071080c3c70489280547","ranges":["1-89"],"note":"loading removes button children, leaves spinner only, and provides no retained accessible name or aria-busy."}
+    ],
+    "semantic_review": "The four existing UI findings affect operational truth/recovery/accessibility rather than authorization: stale Live KPI counters can disagree with refreshed rows; Guest Preview failure collapses to endless Loading; blocked localStorage can desynchronize Arabic/theme React state from DOM; shared loading buttons lose their accessible action name.",
+    "pilot_gate": "Not equivalent to P1 custody/security blockers, but supported Arabic/restricted-browser and accessibility acceptance should include these before external pilot sign-off; #354 should be corrected before operators rely on KPI cards for live decisions.",
+    "tests": "No mounted browser, restricted-device, or assistive-technology run by worker-7.",
+    "limits": "UI freeze remains compatible with behavioral fixes; no redesign recommendation."
+  },
+  {
+    "record_type": "pilot_gate_state",
+    "risk_id": "XINT-PILOT-CURRENT",
+    "coverage_credit": false,
+    "baseline": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "current_issue_state_checked_2026_10_27": {
+      "267":"closed; strict rollout activation code is present on baseline",
+      "270":"closed",
+      "273":"open; U-001 and physical Android FCM QA remain",
+      "279":"open; Guest T6 is explicitly the deferred final release qualification gate",
+      "309":"closed",
+      "324":"open; merged remediation but four owner security/operator gates remain",
+      "337":"closed",
+      "345":"closed",
+      "220":"closed but body says DEFERRED and requires explicit reactivation",
+      "222":"closed but body says DEFERRED and controlled pilot was not executed"
+    },
+    "evidence": [
+      {"path":"apps/api/src/modules/management/presence-management-policy-command.ts","sha256":"3adc96a16ea48710946840e2703108ac121288b53a79c9cf54ce133cd7f7b495","ranges":["33-44","87-172"],"note":"Strict modes are accepted when resulting configuration is usable; otherwise PRESENCE_NOT_READY. strictActivationAllowed is true."},
+      {"path":"apps/api/src/modules/management/presence-management-projection.ts","ranges":["85-117"],"note":"Readiness projection reports strictActivationAllowed true and fails configuration usability when active zones are absent/invalid."},
+      {"path":"packages/database/prisma/migrations/20261007006900_shift_presence_strict_rollout_activation/migration.sql","sha256":"119512f3ba283c8eca6e5da4068bd3e42dbdd63c54302cdce3ef3ca56858e3d9","ranges":["1-98"],"note":"Migration 069 removes old strict-release-closed constraints and SQL function allows OFF/WARN_ONLY/REQUIRE/REQUIRE_OR_OVERRIDE while preserving session/role/subscription/location/MFA/CAS/audit checks."}
+    ],
+    "semantic_review": "Pilot accounting must distinguish code activation, issue closure, and executed qualification. Strict Presence persistence is no longer hard-closed in this baseline; remaining concern is physical/device/operational qualification if strict policy is used. Conversely, closed #220/#222 are explicitly deferred, so their closed state is not evidence that release ownership or a controlled Native pilot was executed. Open #279 remains the clearest final Guest production-readiness gate. Open #324 remains current operator/security disposition work despite its remediation PR being merged.",
+    "pilot_gate": "Real-customer GO remains unsupported while #352/#363, Guest T6 #279, open security/operator dispositions #324, Staff Push physical/account-transition #273, and honest green validation/audit coverage remain unresolved. A narrow internal qualification can proceed only with these limitations explicitly preserved.",
+    "tests": "No live provider, production ingress, deployment, load, physical device, or strict-presence physical test executed by worker-7.",
+    "limits": "GitHub issue state was read live; no issue was edited. Closed deferred issues are treated according to their bodies, not as completed qualification."
+  }
+]

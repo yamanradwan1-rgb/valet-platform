@@ -1,0 +1,2077 @@
+[
+  {
+    "path": "apps/api/src/modules/payments/digital-collection.service.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "55f78b489bd52225d59d5a57f80128807a5f50bfb8f402c97fe05e436806b63d",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Internal digital collection service facade",
+    "review_notes": "The injectable constructs one createDigitalCollectionExecutor from the restricted runtime pool plus DigitalPaymentProviderRegistry and initiate() delegates the typed request without rewriting identity, amount, provider or state. PaymentsModule exports the service and provider registry but exposes no DigitalCollection controller route; the default provider registry remains unconfigured. Authorization/state/retry/transaction semantics therefore remain in the already-reviewed digital-collection-command path.",
+    "read_ranges": [
+      [
+        1,
+        28
+      ]
+    ],
+    "callers_consumers": [
+      "PaymentsModule provider/export wiring",
+      "Internal consumers may inject DigitalCollectionService; no public HTTP controller caller located at this baseline"
+    ],
+    "error_authorization_state_checks": "No independent auth grant, transaction boundary or catch/translation is introduced here; executor rejections propagate unchanged and one executor instance preserves the command's durable retry identity/state machine.",
+    "test_evidence": [
+      "apps/api/test/feature-module-ownership.test.ts verifies module provider/export ownership",
+      "Digital collection initiation/outcomes/concurrency integration suites cover the delegated command path; historical only, not run in this audit"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Real provider adapter/network qualification was not available or executed",
+      "No application tests were rerun"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/financial-policy-resolver.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "96d148a8fc347eb1ba625250f29596a17a151ed570c69e6c8b985841ec4d6f8a",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Effective company/location financial policy resolution",
+    "review_notes": "The query binds organization and location together, applies Company default -> Location override with COALESCE for fee, payer, methods, tips, validation and release-payment policy, and returns Location currency. It takes FOR SHARE on both rows so a financial command sees a stable policy during its transaction. Runtime privilege provisioning grants SELECT plus UPDATE(updated_at) on organizations and locations, so this lock shape is compatible with the restricted runtime role and is not the SELECT-only lock failure seen on unrelated subscription data.",
+    "read_ranges": [
+      [
+        1,
+        63
+      ]
+    ],
+    "callers_consumers": [
+      "initialize-payment-command.ts",
+      "digital-collection-command.ts",
+      "payment-mutation.service.ts",
+      "payment-projection-query.ts",
+      "financial-release-guard.ts"
+    ],
+    "error_authorization_state_checks": "Organization/location pairing is enforced in the JOIN and WHERE predicates. Exactly one row is required; missing/mismatched scope throws before a policy object is returned. Callers supply canonical authorized scope and execute inside transactions where policy stability matters.",
+    "test_evidence": [
+      "apps/api/test/financial-policy-resolver.integration.test.ts",
+      "apps/api/test/dashboard-configuration-mutation.integration.test.ts",
+      "apps/api/test/financial-mutation-test-context.ts uses the resolver under guest/staff mutation flows",
+      "Historical tests inspected/referenced; not run in this audit"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "PostgreSQL integration tests were not rerun",
+      "Current deployment grants were inferred from frozen provisioning source, not probed against production"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/guest-payment.controller.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "982de2b7421074424e53b669bf836ccd1cd133a87c7934830553a37b8755a3f9",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Guest payment tip mutation and safe payment projection HTTP routes",
+    "review_notes": "Both routes set no-store headers and run through ApiOperationRunner guest operation classes. PATCH rejects nonempty query input, validates the body with paymentTipMutationRequestSchema, and delegates only through GuestCredentialAuthorizer with mutation=true before calling guestTip. GET validates an empty query and UUID-shaped session path, then authorizes a read credential before projecting the requested session. The controller never accepts organization/location/payment identifiers for the tip mutation and the response paths use explicit guest-safe projections.",
+    "read_ranges": [
+      [
+        1,
+        100
+      ]
+    ],
+    "callers_consumers": [
+      "PaymentsModule registers GuestPaymentController and RequestIdMiddleware",
+      "GuestCredentialAuthorizer fences guest bearer/cookie scope before PaymentMutationService or PaymentProjectionService"
+    ],
+    "error_authorization_state_checks": "Invalid query/body/path fails transport validation; guest credential failures remain inside the authorizer/runner error contract. Historical API tests cover invalid/foreign scope, missing/malformed/duplicate Authorization, anti-abuse rate limiting, no-store headers, disabled-tip no-mutation behavior and guest response field minimization.",
+    "test_evidence": [
+      "apps/api/test/payment-guest-api.integration.test.ts",
+      "apps/api/test/feature-module-ownership.test.ts",
+      "Historical tests inspected/referenced; not run in this audit"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "GuestCredentialAuthorizer internals belong to another ownership area; this review relied on the controller contract plus existing integration assertions",
+      "No live browser/HTTP execution"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-audit.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2a8a8808a6771bf34f9d8004285708c6776f3166bcdc0969fe778515a8290984",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Canonical payment initialization audit append",
+    "review_notes": "The helper writes one fixed PAYMENT_INITIALIZED Payment event with SYSTEM actor and canonical payment organization/location/session/entity identifiers. Metadata is limited to financial projection fields and contains no credential, provider secret or client-supplied raw payload. initialize-payment-command awaits this insert in the same transaction as canonical payment creation, so audit failure rolls the payment creation back.",
+    "read_ranges": [
+      [
+        1,
+        41
+      ]
+    ],
+    "callers_consumers": [
+      "initialize-payment-command.ts:createInitializePaymentExecutor"
+    ],
+    "error_authorization_state_checks": "Actor membership is NULL with SYSTEM actor type, event/entity types are fixed literals, SQL is parameterized, and audit ID factory injection is limited to caller/test determinism.",
+    "test_evidence": [
+      "apps/api/test/payment-initialization.integration.test.ts checks one safe SYSTEM PAYMENT_INITIALIZED event and atomic effects",
+      "Historical test inspected; not run in this audit"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Append-only audit trigger/DB policy is covered by database ownership and was not rerun here"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-errors.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d2f00b1287045beaecc9549c5a2c3ac67a82d5c909a6ac490f67a002b83c70e3",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Payment initialization error contract",
+    "review_notes": "The closed four-code union distinguishes unavailable digital policy, creation-key conflict, invalid initialization and missing scope. Every code maps to a fixed safe message; the class preserves only the typed code/name and cannot leak SQL rows, policy internals or provider data.",
+    "read_ranges": [
+      [
+        1,
+        21
+      ]
+    ],
+    "callers_consumers": [
+      "initialize-payment-command.ts",
+      "payment-repository.ts",
+      "API exception/error translation path"
+    ],
+    "error_authorization_state_checks": "Definition-only module with no mutable state or authorization side effect. Missing scope uses a generic message and idempotency conflict does not disclose the conflicting payment.",
+    "test_evidence": [
+      "apps/api/test/payment-initialization.integration.test.ts exercises provider-unavailable and idempotency conflict outcomes",
+      "Historical tests inspected/referenced; not run in this audit"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-http.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a5aa6f84a7c34512a00820d05c3207ad6d4d34c08d68e9d3762e585ddafae3a7",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Payment transport parsing, staff principal resolution and response minimization",
+    "review_notes": "parsePaymentBody delegates runtime validation to the supplied contract schema and parsePaymentUuid rejects non-UUID-shaped path values before storage access. Staff principal resolution requires a structurally valid rawHeaders array with exactly one Authorization header before resolving the bearer, preventing duplicate-header ambiguity. Response helpers serialize dates and project explicit contract-safe fields: guest mutation excludes payment IDs/internal timestamps, while shared projections include only the SafePaymentProjection contract; staff-only wrappers add payment/refund IDs.",
+    "read_ranges": [
+      [
+        1,
+        152
+      ]
+    ],
+    "callers_consumers": [
+      "guest-payment.controller.ts",
+      "staff-payment.controller.ts",
+      "refund/staff/guest payment API projection paths"
+    ],
+    "error_authorization_state_checks": "Transport validation produces ApiTransportValidationError, malformed/duplicate staff Authorization produces UnauthorizedException, and response contract .parse calls fail closed if an internal projection violates the declared wire schema.",
+    "test_evidence": [
+      "apps/api/test/payment-staff-api.integration.test.ts covers missing/malformed/duplicate Authorization",
+      "apps/api/test/payment-guest-api.integration.test.ts covers guest response minimization and auth failure paths",
+      "apps/api/test/payment-projection-staff-api.integration.test.ts and refund-api.integration.test.ts cover projection wrappers",
+      "Historical tests inspected/referenced; not run in this audit"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "SafePaymentProjection field construction is reviewed separately in the pending projection files"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-money.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "87cca52c36c70ad6ab60e7481f9e1a2282eedf3da86fac4ea5aca4fdef3cc858",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Exact monetary parsing and formatting in thousandths",
+    "review_notes": "Input parsing accepts nonnegative canonical decimal strings with at most three fractional digits, converts exactly to bigint mills, and rejects values above the fixed maximum. Persisted parsing is intentionally more permissive about leading zeros but still bounded. parseCurrencyMoney adds currency minor-unit representability. formatMoney enforces nonnegative/bounded output and emits exactly three decimals. addMoney itself is a pure bigint sum; its only production consumer is payment-recompute, which immediately formats the derived amount and therefore re-applies the bound.",
+    "read_ranges": [
+      [
+        1,
+        37
+      ]
+    ],
+    "callers_consumers": [
+      "initialize-payment-command.ts",
+      "digital-collection-command.ts",
+      "provider-event-collection.ts",
+      "payment-recompute.ts",
+      "payment-term-command.ts",
+      "validation-command.ts",
+      "payment-mutation-guards.ts"
+    ],
+    "error_authorization_state_checks": "No floating-point arithmetic is used. Invalid syntax, negative values through formatMoney, overflow beyond maximum mills, or nonrepresentable currency precision fail with PAYMENT_AMOUNT_INVALID.",
+    "test_evidence": [
+      "Payment guest/staff/correction/validation/provider-event integration suites exercise currency precision and mutation calculations",
+      "apps/api/test/payment-guest-api.integration.test.ts includes USD 1.201 reject / 1.200 accept behavior",
+      "Historical tests inspected/referenced; not run in this audit"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-mutation-audit.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a9ffa4cdd7dcd5d683d5de0408cbf731e1ef0ddfbbef87e335c0b500c27f9b8e",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Financial mutation audit append for tip/validation/corrections",
+    "review_notes": "The helper derives organization/location/session/payment identity from the locked MutablePayment and actor type from the trusted FinancialActor. Guest events deliberately store NULL membership plus actor_class=GUEST; staff events use MEMBERSHIP with the authorized membership ID. Currency/payment_id are always added to metadata and the insert is awaited by command callers inside their transaction. eventType/entityType/metadata are internal call parameters; inspected production callers use fixed event kinds and structured mutation metadata.",
+    "read_ranges": [
+      [
+        1,
+        48
+      ]
+    ],
+    "callers_consumers": [
+      "payment-term-command.ts tip/payer/service corrections",
+      "validation-command.ts validation mutations"
+    ],
+    "error_authorization_state_checks": "SQL is parameterized and canonical scope cannot be replaced by request-supplied tenant IDs. Audit insertion failure aborts the caller transaction. Dynamic eventType is not exposed directly to HTTP input in inspected callers.",
+    "test_evidence": [
+      "Payment correction/mutation integration suites and validation flows assert financial audit effects",
+      "Historical tests referenced; not run in this audit"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full append-only DB trigger policy belongs to database audit scope"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-mutation-errors.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6441c8b79757782ecb6270c8340cebb0d879f0265ee54589c1034f9887db5600",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Financial mutation domain error contract",
+    "review_notes": "The ten-code closed union covers authorization denial, collection freeze, provider availability, amount/payment/tip/validation failures and precollection correction denial. All messages are fixed and resource authorization denial deliberately uses the generic requested-resource-not-available wording. The class carries no raw SQL/provider/request content.",
+    "read_ranges": [
+      [
+        1,
+        34
+      ]
+    ],
+    "callers_consumers": [
+      "payment-authorization.ts",
+      "payment-projection-authorization.ts",
+      "payment-mutation-repository.ts",
+      "payment-mutation.service.ts",
+      "payment-money.ts",
+      "payment-recompute.ts",
+      "payment-term-command.ts",
+      "validation-command.ts"
+    ],
+    "error_authorization_state_checks": "Definition-only module; no state mutation. Unknown codes cannot be constructed through the typed interface without bypassing TypeScript.",
+    "test_evidence": [
+      "Payment mutation authorization/correction/guest/staff/concurrency integration suites assert these safe codes",
+      "Historical tests referenced; not run in this audit"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-mutation-guards.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "43a79f6e3fea7cbe8d8176ae439d1c0b44b49132d229f4812647ae5f462dc175",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Freeze financial terms once collection evidence exists",
+    "review_notes": "assertCollectionNotStarted fails closed when canonical payment shows any paid amount, PENDING/PAID status, provider or provider reference, or repository-level collection evidence. It is invoked before guest/staff tip and precollection financial corrections/validation paths, preventing terms from changing after collection has begun even if the current payment row alone has not reached PAID.",
+    "read_ranges": [
+      [
+        1,
+        19
+      ]
+    ],
+    "callers_consumers": [
+      "payment-term-command.ts",
+      "validation-command.ts"
+    ],
+    "error_authorization_state_checks": "Persisted amountPaid is parsed exactly and malformed persisted money fails rather than bypassing the guard. COLLECTION_ALREADY_STARTED is thrown on any positive signal. Repository evidence semantics are reviewed separately in payment-mutation-repository.ts.",
+    "test_evidence": [
+      "apps/api/test/payment-correction.integration.test.ts",
+      "apps/api/test/payment-mutation-concurrency.integration.test.ts",
+      "apps/api/test/payment-concurrency-atomicity.integration.test.ts",
+      "Historical tests referenced; not run in this audit"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "hasCollectionEvidence implementation is part of the next owned pending file and is not double-counted here"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-mutation-repository.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d74cfaaad7b56c46e52ec27c7c79ea012732ca475cd3db025d8fd4d121d76e20",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Canonical payment mutation locking, validation history and persistence",
+    "review_notes": "The repository locks the canonical payment by organization/location/session FOR UPDATE and validation history by organization/payment FOR UPDATE, serializing same-payment mutations. Collection evidence checks any cash entry, provider event or durable collection operation, so even an incomplete/failed collection attempt freezes mutable financial terms. Validation replacement clears only the currently locked prior row before inserting the new current row. updatePaymentTerms rewrites precollection terms and clears provider/reference/paidAt from a trusted locked payment; callers first enforce collection-not-started and recompute exact money. projectMutation returns the bounded mutation view.",
+    "read_ranges": [
+      [
+        1,
+        237
+      ]
+    ],
+    "callers_consumers": [
+      "payment-mutation.service.ts",
+      "payment-term-command.ts",
+      "validation-command.ts",
+      "cash-command.ts",
+      "refund-command.ts",
+      "payment-mutation-guards.ts"
+    ],
+    "error_authorization_state_checks": "Missing canonical payment fails PAYMENT_NOT_AVAILABLE. Tenant/location/session predicates precede the lock. SQL is parameterized. The payment update predicates only by canonical payment id, but that id came from the same locked row and runtime cannot delete/rekey payments; transaction rollback covers insert/update/audit failure.",
+    "test_evidence": [
+      "apps/api/test/payment-correction.integration.test.ts",
+      "apps/api/test/payment-mutation-concurrency.integration.test.ts",
+      "apps/api/test/payment-concurrency-atomicity.integration.test.ts",
+      "Historical tests inspected/referenced; not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "DB uniqueness/current-validation constraints were not rerun in PostgreSQL"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-mutation-types.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c0f2976724685e174f3e6533b228f351282f781373c7bf2f685ce9dec6b73730",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Typed financial mutation scope, actor and projection contracts",
+    "review_notes": "Types separate trusted PaymentScope, canonical MutablePayment, validation history, recomputed state and public-service mutation projection. FinancialActor is limited to GUEST or LOCATION_MANAGER; guest membership is nullable while manager callers supply a membership. The declarations do not themselves enforce runtime coherence, so authority and state correctness remain with the reviewed service/repository/commands.",
+    "read_ranges": [
+      [
+        1,
+        71
+      ]
+    ],
+    "callers_consumers": [
+      "payment-mutation.service.ts",
+      "payment-mutation-repository.ts",
+      "payment-term-command.ts",
+      "validation-command.ts",
+      "payment-mutation-audit.ts",
+      "payment-recompute.ts"
+    ],
+    "error_authorization_state_checks": "No executable branch or side effect. Controlled payment/status/method types are imported rather than free-form duplicates.",
+    "test_evidence": [
+      "Covered through payment mutation/correction API and concurrency suites; historical only, not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Type-only contract cannot prove persisted row coherence"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-mutation.service.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "677b20e35bd7e2f02826dc79cc7ac4963758ccf4e7b73beb7e41975b63ebb53e",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Manager and guest financial mutation transaction orchestration",
+    "review_notes": "Every manager mutation opens one payment transaction, authorizes an active LOCATION_MANAGER against the exact session/location and then locks the canonical payment, resolves effective policy and server operation time before invoking validation/tip/correction commands. Guest tip re-resolves and locks the guest credential/session inside the same transaction; invalid access is counted for anti-abuse, valid domain rejection/success finalizes as ignored, and unexpected failures roll back. Guest callers cannot select organization/location/payment identity.",
+    "read_ranges": [
+      [
+        1,
+        206
+      ]
+    ],
+    "callers_consumers": [
+      "staff-payment.controller.ts",
+      "guest-payment.controller.ts",
+      "PaymentsModule exports PaymentMutationService"
+    ],
+    "error_authorization_state_checks": "Manager authorization checks active organization/location/user/membership plus location access. Guest access is revalidated at mutation time, including cancelled/revoked state through GuestAccessService. Anti-abuse rate-limit errors propagate; infrastructure failures map to AntiAbuseUnavailableError. FinancialMutationError is propagated only after its reservation finalization.",
+    "test_evidence": [
+      "apps/api/test/payment-mutation-authorization.integration.test.ts",
+      "apps/api/test/payment-staff-api.integration.test.ts",
+      "apps/api/test/payment-guest-api.integration.test.ts",
+      "apps/api/test/payment-mutation-concurrency.integration.test.ts",
+      "apps/api/test/cancelled-guest-compatibility.integration.test.ts",
+      "apps/api/test/cancel-before-parking-consumers.integration.test.ts",
+      "Historical tests inspected/referenced; not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "GuestAccessService internals belong to separate ownership; existing source consumers/tests were inspected, not executed"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-projection-query.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "135915e8fdaa6386c7231a6cf4af2ad11aa6c38e575239cfdc5b48ad2c538bf5",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Safe payment/refund projection and release-payment status",
+    "review_notes": "The query operates on an already-authorized ProjectionScope, locks the session and payment scope for a stable read, resolves the current release-payment policy, then loads only the current validation and ordered refund history for that canonical payment. Internal provider/reference fields are read solely to compute fail-closed release satisfaction and are not included in SafeProjectionPayment. With no payment, release is satisfied only when policy does not require payment.",
+    "read_ranges": [
+      [
+        1,
+        132
+      ]
+    ],
+    "callers_consumers": [
+      "payment-projection.service.ts -> staff/guest read APIs",
+      "payment-http.ts -> guest/staff wire minimization"
+    ],
+    "error_authorization_state_checks": "Payment lookup is scoped by organization/location/session; validation/refunds are scoped by organization/payment. isPaymentReleaseSatisfied requires exact coherent NOT_REQUIRED or PAID state, including provider/reference coherence for DIGITAL. It fails closed on malformed money or incomplete payment evidence.",
+    "test_evidence": [
+      "apps/api/test/payment-projection-api.integration.test.ts",
+      "apps/api/test/payment-projection-staff-api.integration.test.ts",
+      "apps/api/test/payment-release-satisfaction.test.ts",
+      "Historical tests inspected/referenced; not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "The initial session FOR SHARE result is not explicitly row-count checked here; service authorization/guest resolution establishes canonical scope before this helper"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-projection-types.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "967be27758face137adb1f3af3a65afed8ae2e271daf18a51369f52618f1d6fb",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Safe payment/refund projection type contract",
+    "review_notes": "The service-level projection deliberately omits provider/reference, refund reason/provider/idempotency and tenant identifiers. It includes payment/refund IDs and internal Dates for staff-capable consumers, while guest HTTP projection separately strips those IDs and internal timestamps. Current validation exposes only amount and controlled mode.",
+    "read_ranges": [
+      [
+        1,
+        45
+      ]
+    ],
+    "callers_consumers": [
+      "payment-projection-query.ts",
+      "payment-http.ts",
+      "payment-projection.service.ts"
+    ],
+    "error_authorization_state_checks": "Controlled payment/refund/status types are reused; runtime wire schema parsing in payment-http remains the final output boundary.",
+    "test_evidence": [
+      "apps/api/test/payment-projection-api.integration.test.ts asserts guest field minimization",
+      "apps/api/test/payment-projection-staff-api.integration.test.ts asserts staff projection",
+      "Historical tests inspected/referenced; not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Type declarations do not sanitize values by themselves"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-projection.service.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "31c4b1b041a5efc965cf53d29d610acccd5ba2a20b35f3346ba0456a2b94dc42",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Authorized staff/guest payment projection service",
+    "review_notes": "Staff reads authorize the exact session against active staff membership/location access; non-manager employee/supervisor reads additionally require current shift operational eligibility. Guest reads re-resolve and lock the credential, require its canonical session id to equal the requested path session, then load the safe projection in the same transaction. Invalid/cross-session guest reads consume anti-abuse budget and return the same GuestAccessError shape.",
+    "read_ranges": [
+      [
+        1,
+        86
+      ]
+    ],
+    "callers_consumers": [
+      "staff-payment.controller.ts",
+      "guest-payment.controller.ts"
+    ],
+    "error_authorization_state_checks": "Cross-session guest selection fails before payment lookup. Cancelled/revoked/expired guest credentials are denied by the credential resolver, as historical cancellation compatibility tests assert. Anti-abuse failure handling mirrors guest mutation.",
+    "test_evidence": [
+      "apps/api/test/payment-projection-api.integration.test.ts",
+      "apps/api/test/payment-projection-staff-api.integration.test.ts",
+      "apps/api/test/cancelled-guest-compatibility.integration.test.ts",
+      "apps/api/test/cancel-before-parking-consumers.integration.test.ts",
+      "Historical tests inspected/referenced; not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "No live HTTP/database run in this continuation"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-recompute.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2496738996bd7c8dc9e13149de64616b421383961418dd1722abd6e69823b4cd",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Precollection amount-due/method/status recomputation",
+    "review_notes": "The function parses persisted service/tip/validation as exact mills, rejects validation greater than service, subtracts validation only when the customer pays service, and always adds the tip. Zero due converges to NONE/NOT_REQUIRED. For positive due, recomputePayment directly rejects DIGITAL_ONLY; separately, this baseline wires an UnconfiguredDigitalPaymentProviderRegistry. Other positive policies converge to CASH/UNPAID. Mutation callers invoke collection-freeze guards before persisting this recomputation.",
+    "read_ranges": [
+      [
+        1,
+        41
+      ]
+    ],
+    "callers_consumers": [
+      "payment-term-command.ts",
+      "validation-command.ts"
+    ],
+    "error_authorization_state_checks": "Exact bigint math prevents rounding drift; formatMoney reapplies global nonnegative/max bounds. Invalid validation or unavailable digital policy throws a typed FinancialMutationError before persistence.",
+    "test_evidence": [
+      "apps/api/test/payment-correction.integration.test.ts",
+      "apps/api/test/payment-guest-api.integration.test.ts",
+      "Validation/payment mutation integration suites; historical only, not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-types.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2679fc9c13497fdaaa588ec68eb8a0eedebd9fadb8833ce6558fc59cdce88db3",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Canonical payment policy/state/projection types",
+    "review_notes": "Closed unions define payer, methods, collection method and five payment statuses. EffectiveFinancialPolicy mirrors the authoritative configuration fields. PaymentProjection is intentionally internal and includes creation idempotency, provider/reference and tenant/session identity; public controllers consume narrower projection functions rather than serializing it directly.",
+    "read_ranges": [
+      [
+        1,
+        46
+      ]
+    ],
+    "callers_consumers": [
+      "payment initialization, mutation, projection, cash, digital collection, provider reconciliation and release guard modules"
+    ],
+    "error_authorization_state_checks": "No executable behavior; state values are controlled at compile time and backed by DB enums/constraints outside this file.",
+    "test_evidence": [
+      "Broad payment integration suites exercise the type-backed state matrix; historical only, not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Compile-time type safety does not replace DB/runtime validation"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/provider-event-audit.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "548ff5c6db91694f3f5abca454976717c987bf8eb0c3c402201f501b61afc413",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Authoritative external-provider reconciliation audit",
+    "review_notes": "The audit event binds canonical payment organization/location/session to an EXTERNAL_PROVIDER actor and records only provider, normalized result kind, payment id, operation/refund id and optional normalized safe result code. Entity/event type are selected from the closed authenticated event subject/kind. provider-event-ingress appends this only after an authoritative reconciliation and event persistence inside the same transaction.",
+    "read_ranges": [
+      [
+        1,
+        51
+      ]
+    ],
+    "callers_consumers": [
+      "provider-event-ingress.ts after authoritative collection/refund reconciliation"
+    ],
+    "error_authorization_state_checks": "No raw callback payload, signature, secret or free-form provider message reaches audit metadata. Audit failure rolls back event and financial reconciliation because the caller awaits it in the transaction.",
+    "test_evidence": [
+      "apps/api/test/provider-event-collection.integration.test.ts",
+      "apps/api/test/provider-event-refund.integration.test.ts",
+      "apps/api/test/provider-event-concurrency.integration.test.ts",
+      "Historical tests inspected/referenced; not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Authenticator/provider-specific transport is outside this file"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/provider-event-collection.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "46045e16278fc5455815b3b1be7bbc60c149eb800f911ec7510fccd5b1bd1db6",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Authenticated digital collection callback reconciliation",
+    "review_notes": "Reconciliation first resolves the operation only within the authenticated provider binding organization, locks the related session/payment/operation, and requires an unresolved dispatched state, matching provider, compatible stable reference, exact currency/amount snapshot, zero paid amount, null paidAt and UNPAID/FAILED payment. A provider reference must be present and unowned elsewhere. The operation CAS to RESOLVED and guarded payment projection to PAID/FAILED occur in one transaction; a failed payment update throws so the operation transition rolls back. Reordered failures cannot downgrade PAID, PREPARED/REJECTED/RESOLVED operations cannot revive, and a definitive failure permits a later fresh guarded collection attempt.",
+    "read_ranges": [
+      [
+        1,
+        180
+      ]
+    ],
+    "callers_consumers": [
+      "provider-event-ingress.ts",
+      "provider-event-repository.ts lock/lookup helpers",
+      "digital collection operation lifecycle"
+    ],
+    "error_authorization_state_checks": "Foreign-tenant/missing correlations return non-authoritative with no payment identity for persistence. Provider/reference/amount/state checks fail closed. Unique reference ownership is checked before CAS and DB uniqueness plus ingress collision retry handle races. Payment status update is constrained to DIGITAL, same provider, UNPAID/FAILED, zero paid and null paidAt.",
+    "test_evidence": [
+      "apps/api/test/provider-event-authentication.integration.test.ts",
+      "apps/api/test/provider-event-collection.integration.test.ts",
+      "apps/api/test/provider-event-concurrency.integration.test.ts",
+      "Historical tests cover wrong provider/reference, foreign tenant, PREPARED/REJECTED, reordered failure, duplicate delivery and atomicity; not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Real provider callback transport/signature verification was not exercised",
+      "Database race tests were not rerun in this continuation"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/provider-event-errors.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5b883a760e5ecc1e8a25671d550c828adaf4d5edf85bd0b287d50135889afeb8",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Provider callback safe error contract",
+    "review_notes": "The callback boundary exposes only rejected versus processing-failed outcomes with fixed messages. Provider transport/authenticator exceptions are collapsed to REJECTED and post-auth reconciliation/storage failures are collapsed to PROCESSING_FAILED by provider-event-ingress, preventing SQL/provider internals from leaking through this domain error.",
+    "read_ranges": [
+      [
+        1,
+        17
+      ]
+    ],
+    "callers_consumers": [
+      "provider-event-ingress.ts",
+      "provider-event-validation.ts"
+    ],
+    "error_authorization_state_checks": "Closed two-code error type; no raw provider payload or nested cause is retained in the public error object.",
+    "test_evidence": [
+      "Provider event authentication/collection/refund/concurrency integration suites; historical only, not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "apps/api/src/modules/payments/provider-event-refund.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5bb3b38283f12a638026cf69e296154c9f8b16eaa1348a4f5e9c954b4bc3e4db",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Authenticated digital refund callback reconciliation",
+    "review_notes": "Refund callback authority begins from the authenticated binding organization, resolves only that tenant's refund/payment, locks the session/payment/refund, and accepts transitions only from PENDING with null completedAt and matching provider/reference. Success requires a provider reference; a non-null reference must not belong to another refund. The guarded UPDATE moves the refund once to SUCCEEDED with completedAt or FAILED without completedAt and never rewrites the canonical payment collection facts.",
+    "read_ranges": [
+      [
+        1,
+        123
+      ]
+    ],
+    "callers_consumers": [
+      "provider-event-ingress.ts",
+      "provider-event-repository.ts"
+    ],
+    "error_authorization_state_checks": "Missing/foreign refund correlation returns no payment identity for event persistence. Terminal refunds cannot be revived or reversed. Provider mismatch/reference collision is non-authoritative. Row-count CAS determines authority; the enclosing ingress transaction persists callback event/audit atomically with the refund transition.",
+    "test_evidence": [
+      "apps/api/test/provider-event-refund.integration.test.ts",
+      "apps/api/test/provider-event-concurrency.integration.test.ts",
+      "apps/api/test/refund-core.integration.test.ts",
+      "Historical tests inspected/referenced; not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "The callback model carries refund identity/outcome rather than provider-reported amount; amount authority was fixed when the pending refund was created"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/provider-event-repository.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7a59601b0400841e83cc1ffb73273721073553693e1c03666afa879fa54f9720",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Provider event deduplication, tenant correlation and reconciliation locks",
+    "review_notes": "Committed-event dedup is keyed by authenticated organization/provider/providerEventId. Collection/refund correlation lookup is tenant scoped before identities are exposed. Reconciliation locks the related ValetSession, then payment FOR UPDATE and the operation/refund FOR UPDATE, while reference-ownership queries prevent reusing a provider reference across same-tenant collection/payment or refunds. Event persistence stores only normalized provider identity/event id/reference/status/safe result code and canonical payment/refund linkage.",
+    "read_ranges": [
+      [
+        1,
+        290
+      ]
+    ],
+    "callers_consumers": [
+      "provider-event-ingress.ts",
+      "provider-event-collection.ts",
+      "provider-event-refund.ts"
+    ],
+    "error_authorization_state_checks": "All lookups and writes are parameterized and organization scoped. Runtime provisioning grants payment_provider_events SELECT/INSERT only, narrow refund INSERT columns and only status/provider_reference/completed_at refund UPDATE authority; broad UPDATE/DELETE/TRUNCATE are denied. Uniqueness constraints back dedup/reference race handling.",
+    "test_evidence": [
+      "apps/api/test/provider-event-concurrency.integration.test.ts",
+      "apps/api/test/provider-event-authentication.integration.test.ts",
+      "packages/database/src/provider-event-runtime-role.integration.test.ts",
+      "Historical tests inspected/referenced; not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Runtime privilege tests were inspected but not rerun"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/provider-event-types.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "26b7b1d3c77d1332b671e39219ecde6c2c4f3a741e7601361f8e81213cc5b7d6",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Authenticated normalized provider-event contracts",
+    "review_notes": "The discriminated union separates collection and refund subjects and constrains financial outcomes to collection success/failure/no-change or refund success/failure. Authority is explicitly split into an authenticator-supplied organization/provider binding and a normalized event; raw callback fields are not themselves an authority type. Processing results expose only dedup/persistence/status identifiers.",
+    "read_ranges": [
+      [
+        1,
+        57
+      ]
+    ],
+    "callers_consumers": [
+      "provider-event-ingress.ts",
+      "provider-event-validation.ts",
+      "provider-event-collection.ts",
+      "provider-event-refund.ts",
+      "provider-event-audit.ts"
+    ],
+    "error_authorization_state_checks": "Compile-time subject/kind coupling prevents a refund kind from carrying an operation id or collection kind from carrying a refund id in trusted code; runtime validation enforces the same after authentication.",
+    "test_evidence": [
+      "Provider event authentication/validation/collection/refund suites; historical only, not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Provider-specific authenticator implementation is intentionally abstracted behind ProviderEventAuthenticator"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/provider-event-validation.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "402655dc8bd3ee8f0cac5c856815bff9adac099962d6b2b7079373e2b6e34fc8",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Post-authentication provider-event normalization/validation",
+    "review_notes": "The validator accepts only a canonical UUID organization binding, bounded trimmed provider/event/reference text, a closed event kind, bounded provider event id, restricted safeResultCode and canonical UUID subject id. Refund success and financial collection success/failure require a provider reference; only NO_FINANCIAL_CHANGE and refund failure may omit it. It reconstructs a fresh normalized object, dropping unrelated authenticator/raw fields.",
+    "read_ranges": [
+      [
+        1,
+        113
+      ]
+    ],
+    "callers_consumers": [
+      "provider-event-ingress.ts immediately after authenticateAndNormalize"
+    ],
+    "error_authorization_state_checks": "Malformed shape, control characters, overlong values, unsupported kinds and invalid IDs fail uniformly with PROVIDER_EVENT_REJECTED. Authority still depends on the authenticator being the component that establishes binding; later reconciliation never trusts raw tenant/provider fields.",
+    "test_evidence": [
+      "apps/api/test/provider-event-authentication.integration.test.ts verifies raw tenant/provider/amount/currency cannot choose authority",
+      "Provider event collection/refund validation cases; historical only, not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "No concrete external provider authenticator/network signature was exercised"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/refund-audit.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8232da9f066c8723ce60e080a107d9ef7af31573c75791890433a545949b13df",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Refund creation audit append",
+    "review_notes": "The audit binds canonical payment organization/location/session and the authorized manager membership to a fixed PAYMENT_REFUND_CREATED Refund entity. Metadata is limited to amount, currency, collection method, payment/refund ids and initial refund status; free-form refund reason and idempotency key are deliberately omitted. The insert omits actor_type because the audit foundation BEFORE INSERT trigger normalizes a non-null actor_membership_id with null actor_type to MEMBERSHIP.",
+    "read_ranges": [
+      [
+        1,
+        40
+      ]
+    ],
+    "callers_consumers": [
+      "refund-command.ts after successful new refund insert"
+    ],
+    "error_authorization_state_checks": "Audit is awaited in the same transaction, so audit failure rolls back the refund. Existing refund tests assert membership/entity/event linkage and absence of reason metadata; audit foundation migration enforces actor provenance.",
+    "test_evidence": [
+      "apps/api/test/refund-core.integration.test.ts",
+      "apps/api/test/refund-concurrency.integration.test.ts rollback case",
+      "packages/database/src/audit-foundation-runtime-role.integration.test.ts foundation coverage; historical only, not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Audit foundation DB trigger was source-inspected, not rerun"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/refund-errors.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1ad621fd9c3987fc90968cd8f80d25a79619dc4e585ac5147b46619d479a1b6e",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Refund safe domain error contract",
+    "review_notes": "The closed error contract exposes only invalid amount, idempotency conflict and refund-not-allowed with fixed messages. Authorization denial is intentionally supplied by the shared financial authorization error before refund-specific processing.",
+    "read_ranges": [
+      [
+        1,
+        18
+      ]
+    ],
+    "callers_consumers": [
+      "refund-command.ts",
+      "refund-validation.ts",
+      "staff payment/refund API error translation"
+    ],
+    "error_authorization_state_checks": "No raw SQL, tenant, payment, provider or refund detail is retained in the public domain error.",
+    "test_evidence": [
+      "apps/api/test/refund-core.integration.test.ts",
+      "apps/api/test/refund-api.integration.test.ts",
+      "Historical tests inspected/referenced; not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "apps/api/src/modules/payments/refund-repository.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f9ecf91c3ba0a70dda0c9b1d3a85ea1f0c1d44c155b9beff2f092c758be8cf86",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Refund idempotency lookup, exposure accounting and insert/projection",
+    "review_notes": "Idempotency lookup is tenant scoped and returns immutable refund identity for exact-retry comparison. Refundable exposure sums only PENDING and SUCCEEDED rows, so definitive failures release balance while still retaining history. New rows persist canonical payment/tenant, authorized membership, opaque idempotency key, normalized amount/reason/provider and server operation time. Public RefundProjection excludes membership, tenant/payment ids, idempotency, provider/reference and reason.",
+    "read_ranges": [
+      [
+        1,
+        123
+      ]
+    ],
+    "callers_consumers": [
+      "refund-command.ts",
+      "payment-projection-query.ts reads safe refund history independently"
+    ],
+    "error_authorization_state_checks": "The refund command holds the canonical payment FOR UPDATE while reading exposure and inserting, serializing different-key refunds on one payment. Same-tenant key races across different payments are resolved by the DB unique constraint/savepoint path in refund-command.",
+    "test_evidence": [
+      "apps/api/test/refund-core.integration.test.ts",
+      "apps/api/test/refund-concurrency.integration.test.ts",
+      "Historical tests cover exposure, failed-history release, same-key convergence and cross-payment key conflict; not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "DB unique constraint behavior was not rerun"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/refund-types.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "992b1b3ea9fe696cdcfc6d9a09f316b5ba597f0a635f398b4c60058ef7c305c8",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Refund lifecycle and safe projection types",
+    "review_notes": "Refund state is intentionally independent from ValetSession custody: PENDING/SUCCEEDED/FAILED records persist as financial history, while the safe service projection exposes only amount/currency/id/timestamps/status. PersistedRefund carries authority/idempotency/provider/reason fields for internal comparison/reconciliation.",
+    "read_ranges": [
+      [
+        1,
+        27
+      ]
+    ],
+    "callers_consumers": [
+      "refund-command.ts",
+      "refund-repository.ts",
+      "provider-event refund reconciliation",
+      "payment HTTP projection"
+    ],
+    "error_authorization_state_checks": "Type-only module with a closed refund lifecycle; runtime transition guards reside in refund-command/provider-event-refund.",
+    "test_evidence": [
+      "Refund core/API/provider-event suites; historical only, not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "apps/api/src/modules/payments/refund-validation.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "afa85bfab192534175c8b9ca3e7ad4f3f19822be99f21e903688ad12a6f0f316",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Refund request identity, exact money and reason validation",
+    "review_notes": "Refund money uses exact bigint mills with canonical external syntax, a persisted-money mode and a fixed maximum. requireRepresentableRefund requires positive amount and currency minor-unit compatibility. Request validation requires canonical UUID actor/session ids, bounded nonblank/control-free idempotency key, and normalizeRefundReason trims then bounds the reason to 500 code points without controls. The idempotency key is intentionally treated as opaque rather than trimmed/canonicalized.",
+    "read_ranges": [
+      [
+        1,
+        73
+      ]
+    ],
+    "callers_consumers": [
+      "refund-command.ts"
+    ],
+    "error_authorization_state_checks": "Negative, zero, overprecision, overflow and nonrepresentable amounts fail before persistence. Blank/control/overlong reason or submission identity fails closed.",
+    "test_evidence": [
+      "apps/api/test/refund-core.integration.test.ts exact precision/balance cases",
+      "apps/api/test/refund-api.integration.test.ts transport validation",
+      "Historical tests inspected/referenced; not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "apps/api/src/modules/payments/refund.service.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e98335ad7888f0e1c5720c2b7cd8a635858591573925c941b6d55d860218446a",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Refund service facade over restricted runtime executor",
+    "review_notes": "The injectable constructs one createRefundExecutor from the restricted runtime pool and forwards only authenticated staff user/session scope plus the validated RefundRequest. Authorization, payment locking, collected-state proof, exposure accounting, idempotency and atomic audit semantics all remain in refund-command.",
+    "read_ranges": [
+      [
+        1,
+        24
+      ]
+    ],
+    "callers_consumers": [
+      "staff-payment.controller.ts",
+      "PaymentsModule provider wiring"
+    ],
+    "error_authorization_state_checks": "No alternate persistence, authority or retry path is introduced by the service. Executor errors propagate to the normal API operation/error translation path.",
+    "test_evidence": [
+      "apps/api/test/refund-api.integration.test.ts",
+      "apps/api/test/refund-core.integration.test.ts",
+      "apps/api/test/refund-concurrency.integration.test.ts",
+      "Historical tests inspected/referenced; not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Facade depends on the separately source-inspected refund-command.ts"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/staff-payment.controller.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f56850ae64687019910cac24851937182b023ce5e48401dd4508cdf35385d6a3",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Staff payment projection, refund, cash and financial mutation HTTP routes",
+    "review_notes": "Every route runs through a named ApiOperationRunner operation, resolves the authenticated principal with duplicate-Authorization protection, parses the path session as UUID and validates each request body against its contract before entering payment/refund/cash services. The controller supplies only authenticated user plus path session scope; deeper services re-authorize location/role/state. Responses pass explicit payment/cash/refund/staff projection functions rather than serializing internal rows.",
+    "read_ranges": [
+      [
+        1,
+        222
+      ]
+    ],
+    "callers_consumers": [
+      "PaymentsModule registers StaffPaymentController and RequestIdMiddleware",
+      "PaymentMutationService",
+      "PaymentProjectionService",
+      "CashMutationService",
+      "RefundService"
+    ],
+    "error_authorization_state_checks": "GET projection rejects nonempty query input. Mutation bodies cannot inject tenant/location/payment authority through the contract parse. Staff principal resolution rejects malformed or duplicate Authorization headers before service calls. Refund/cash/tip/validation/correction services retain their own transaction authorization.",
+    "test_evidence": [
+      "apps/api/test/payment-staff-api.integration.test.ts",
+      "apps/api/test/payment-projection-staff-api.integration.test.ts",
+      "apps/api/test/refund-api.integration.test.ts",
+      "Cash payment API integration suites; historical only, not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "ApiOperationRunner and staff principal resolver are shared infrastructure outside this owner scope"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/validation-command.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "49220dc19353b883bea80bd5bfd62d9c368460e118db59ef3fb41bd9582435f8",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Precollection validation application/replacement/removal",
+    "review_notes": "Validation mutation requires the effective policy to enable validation and the customer to be the service payer. It locks validation history, normalizes FULL/NONE/PARTIAL with exact currency math, treats an identical current validation as an idempotent no-op, rejects NONE without a current row, then enforces collection-not-started before inserting/superseding validation, recomputing payment terms and appending audit in the same transaction. Historical rows remain immutable while is_current moves to the new record.",
+    "read_ranges": [
+      [
+        1,
+        129
+      ]
+    ],
+    "callers_consumers": [
+      "PaymentMutationService.validation after manager authorization and canonical payment lock"
+    ],
+    "error_authorization_state_checks": "FULL cannot validate zero service; PARTIAL must be >0 and <service; policy/payer/collection guards fail before persistence. The non-null membership assertion is safe on the only production caller because validation is exposed only through managerMutation, which produces LOCATION_MANAGER with a membership id.",
+    "test_evidence": [
+      "apps/api/test/payment-validation.integration.test.ts",
+      "apps/api/test/payment-mutation-concurrency.integration.test.ts",
+      "apps/api/test/payment-correction.integration.test.ts",
+      "apps/api/test/payment-staff-api.integration.test.ts",
+      "Historical tests inspected/referenced; not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "mutateValidation is exported and relies on its trusted internal caller to supply a staff membership; no guest production caller was located"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/complete-handoff-audit.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "617ea48fe02d0e3a65812339d8dee9bcacea125fb7edb4543352f23f6adb814a",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Final vehicle release and session completion custody audit",
+    "review_notes": "The helper writes two custody audit events from canonical locked session/task/request and the release-eligible verification: VALET_SESSION_VEHICLE_RELEASED records only handoff method, key slot and task; VALET_SESSION_COMPLETED records explicit before/after session/task states and versions plus retrieval request/task ids. It never records pickup code, QR payload, verifier secret or bearer material. complete-handoff-command calls it only after financial release, valid verification/key custody and successful terminal mutations, inside the same dispatch transaction.",
+    "read_ranges": [
+      [
+        1,
+        70
+      ]
+    ],
+    "callers_consumers": [
+      "complete-handoff-command.ts after verification consumption, request/task completion, key RELEASED, dispatch completion and session completion",
+      "management audit projection/catalog consumers"
+    ],
+    "error_authorization_state_checks": "Both events share the authorized task-owner membership, canonical organization/location/session and single operationTime. Audit failure rolls back all release effects. The source command checks HANDOFF_PENDING lifecycle/version, financial release, unconsumed release-eligible verification and checked-out key custody before terminal effects.",
+    "test_evidence": [
+      "apps/api/test/complete-handoff-command.integration.test.ts asserts exact safe metadata and no secrets",
+      "apps/api/test/complete-handoff-atomicity.integration.test.ts asserts audit failure rolls back all effects",
+      "apps/api/test/complete-handoff-financial-release.integration.test.ts",
+      "Historical tests inspected/referenced; not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Custody audit writer internals are shared audit infrastructure; command/writer contract and historical integration coverage were inspected"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/complete-handoff-errors.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "500e63c14eaed88d99f2d01ba63e35ce6b2c5e22bbbc61bc0b661546b7b89ce0",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Complete-handoff lifecycle/concurrency safe error contract",
+    "review_notes": "The closed error set separates verification failure, lifecycle/version/task/request/key-custody failures and uses a deliberately non-disclosing TASK_NOT_FOUND_OR_FORBIDDEN message for inaccessible tasks. The final financial-release failure remains a separate FinancialReleaseError from the payment release guard, keeping custody lifecycle errors distinct from financial state.",
+    "read_ranges": [
+      [
+        1,
+        25
+      ]
+    ],
+    "callers_consumers": [
+      "complete-handoff-command.ts",
+      "complete-handoff-guards.ts",
+      "complete-handoff-locks.ts",
+      "complete-handoff-mutations.ts",
+      "complete-handoff API error translation"
+    ],
+    "error_authorization_state_checks": "No underlying row, tenant, task owner, verification secret or key-slot detail is embedded in fixed error messages. VERSION_CONFLICT and state errors support fail-closed retry behavior without mutating history.",
+    "test_evidence": [
+      "apps/api/test/complete-handoff-authorization.integration.test.ts",
+      "apps/api/test/complete-handoff-guards.integration.test.ts",
+      "apps/api/test/complete-handoff-concurrency.integration.test.ts",
+      "apps/api/test/complete-handoff-command.integration.test.ts",
+      "Historical tests inspected/referenced; not run in C001"
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/employee-client/src/employee-operational-test-fixture.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ad41b36e84f715fe3630c4c6c00a39eb16d97516d8aa4cb7809eb3f865a89305",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Operational test fixtures and stub transport",
+    "review_notes": "Full semantic read: deterministic authority/task fixtures, active/inactive context projection, deferred helper, and a queued-result StubOperationalTransport that records exact calls and rejects unexpected calls. Test support only; no runtime authorization or state transition.",
+    "read_ranges": [
+      [
+        1,
+        138
+      ]
+    ],
+    "callers_consumers": [
+      "Operational, shift, task-queue and protected workflow tests import these fixtures."
+    ],
+    "error_authorization_state_checks": "No runtime authority. Stub fails closed for missing queued results and does not fabricate transport success.",
+    "test_evidence": "Fixture source fully read; consuming test suites identified. Historical/source evidence only; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "No product behavior claim from this test-only file."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-operational-types.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ac87e9f9476b02be963af949504f07bbf246c77de6679a3474a43a87085dde3f",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Portable operational authority, state and transport contracts",
+    "review_notes": "Scope carries organization, membership, location, shift and role; mutation attempts carry generation, location, shift, task and expected version; snapshot separates context, queue, tracking and mutation state.",
+    "read_ranges": [
+      [
+        1,
+        115
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeOperationalSession/state/recovery/task-action/task-queue owners and protected workflows."
+    ],
+    "error_authorization_state_checks": "Compile-time contracts only. Runtime scope equality and authority fencing are performed by consumers previously reviewed in C001.",
+    "test_evidence": "Broad operational lifecycle/action/background tests reference these contracts; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Runtime behavior belongs to consumers, not this declarations file."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-parking-cancellation-transport.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "811f13a002666a0ac5cf6bc4bed780b54269a6a18b7ded62c4ff7b8741ac709b",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Pre-parking cancellation HTTP transport",
+    "review_notes": "Cancel POST sends only taskId, expectedShiftId, expectedSessionVersion and expectedTaskVersion; status GET sends taskId and expectedShiftId. A fresh client is resolved per call and both responses are strict-schema parsed.",
+    "read_ranges": [
+      [
+        1,
+        53
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeParkingCancellationSession validates current target/identity and reconciles uncertain POST outcomes through status GET."
+    ],
+    "error_authorization_state_checks": "Malformed success becomes PARKING_CANCELLATION_RESPONSE_INVALID/502. Transport does not authorize identity by itself; caller checks exact IDs/current target. EmployeeClient test evidence forbids 401 mutation refresh replay.",
+    "test_evidence": "employee-parking-cancellation-transport.test.ts inspected for exact selectors, polluted-response rejection and no mutation replay; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend authorization and physical-device behavior are outside this transport review."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-parking-start-recovery.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a69043cc2b812a0bf5fe64d2a054bb9e2cf9edef8f5fbf99e6919ca7b5767791",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Parking-start canonical recovery and classification",
+    "review_notes": "Finds only PARKING task for the target session and optional known task; local canonical classification requires target location, current assignee or a locally candidate QUEUED/unassigned task, and session.version equal to task.valetSessionVersion. Backend authority remains decisive. Distinguishes started, accepted, assigned and conflict.",
+    "read_ranges": [
+      [
+        1,
+        123
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeParkingStartSession full caller inspected; it performs reads, current-request fencing and conservative reconciliation."
+    ],
+    "error_authorization_state_checks": "Current-target check binds identityGeneration plus organization/membership/location/shift. Wrong command session/task yields PARKING_START_RESPONSE_MISMATCH/502. Read failures preserve ambiguous/conflict conservatively.",
+    "test_evidence": "Parking-start session/transport/process-death/background suites identified; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend transition enforcement remains authoritative."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-parking-start-transport.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6dcb85767b7d9e092d4ba015a711440c6e14c82d4bf8f270004e28457c707f3b",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Parking bootstrap and start HTTP transport",
+    "review_notes": "GET session/queue, POST parking-task queue, and POST start-parking with expected session/task versions. Every success response is strict-schema parsed and no local retry or success synthesis is present.",
+    "read_ranges": [
+      [
+        1,
+        73
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeParkingStartSession."
+    ],
+    "error_authorization_state_checks": "Malformed success becomes PARKING_START_RESPONSE_INVALID/502. Caller performs scope, task/session and current-request validation.",
+    "test_evidence": "employee-parking-start-transport.test.ts source inspected for exact routes/bodies/schema rejection; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Server authorization/state transition enforcement outside this file."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-release-flow-command.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b6ddeb5a00681268e33f122c6859911ef6fe32c8bd539266dad1e2d18d28de0d",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Final vehicle release result validation and reducer",
+    "review_notes": "Release result must match session/task, advance session and task versions by exactly one, and require the authoritative response to report session/task/retrieval request COMPLETED before publishing local released state and clearing task. This is response validation, not proof of physical handover.",
+    "read_ranges": [
+      [
+        1,
+        51
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeReleaseSession full caller inspected; release additionally requires ready phase, financial satisfaction, HANDOFF_PENDING, VERIFIED handoff and current assignee."
+    ],
+    "error_authorization_state_checks": "Mismatch throws RELEASE_RESPONSE_MISMATCH/502. Caller reconciles ambiguous results through canonical reads before adopting terminal state.",
+    "test_evidence": "Release transport/session/lifecycle/process-death test sources identified; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend financial and handoff enforcement remains authoritative."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-release-flow-transport.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "89aa3c5a4762493bb10791dedb74905bf8baa63000e2c08feb8993eddecaee83",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Final release canonical/payment/queue HTTP transport",
+    "review_notes": "complete-handoff sends only expectedSessionVersion; payment/session/queue are GETs; all responses are strict-schema parsed.",
+    "read_ranges": [
+      [
+        1,
+        74
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeReleaseSession and loadReleaseCanonical."
+    ],
+    "error_authorization_state_checks": "Malformed success becomes RELEASE_RESPONSE_INVALID/502. No transport-side replay or identity synthesis; caller enforces task/session/scope and progression.",
+    "test_evidence": "employee-release-flow-transport.test.ts inspected for exact complete body and malformed terminal response rejection; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend release authority outside this file."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-retrieval-flow-command.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d79f2971f8d9d63455efb9fcdf6d7fabae964fa8003386386291cdb5379ac5b1",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Retrieval start and mark-ready result reducers",
+    "review_notes": "Start requires same session/task and both versions +1, clears parking zone/spot, and adopts schema-validated retrieval state. Mark-ready requires same IDs, session +1 and unchanged task version.",
+    "read_ranges": [
+      [
+        1,
+        94
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeRetrievalSession full caller inspected; request/scope fences and canonical reconciliation wrap both commands."
+    ],
+    "error_authorization_state_checks": "Mismatch throws RETRIEVAL_RESPONSE_MISMATCH/502. Caller reconciles ambiguous/conflict responses rather than assuming success.",
+    "test_evidence": "Retrieval session/fence/process-death/transport sources identified; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend transition and device behavior outside reducer."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-retrieval-flow-transport.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "98b0e0a080dbfa97578d9aefb4395c1b66ea47f827234c04885650e76375bb35",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Retrieval workflow HTTP transport",
+    "review_notes": "Loads session/queue, starts retrieval with expected session/task versions plus caller-produced scanned-key selector when present, and marks ready with expected session version. All responses are strict-schema parsed.",
+    "read_ranges": [
+      [
+        1,
+        82
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeRetrievalSession."
+    ],
+    "error_authorization_state_checks": "Malformed success becomes RETRIEVAL_RESPONSE_INVALID/502. Caller validates canonical task/session/current scope; scanned-key input is produced by workflow state rather than arbitrary transport parsing.",
+    "test_evidence": "employee-retrieval-flow-transport.test.ts fully inspected for exact routes/bodies and invalid command response rejection; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend key-custody and task authority outside transport."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-shift-end-recovery-fixture.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "efd150446fbff369820c897bef221906681efb920d8b945626daf9c5d31eb29b",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Shift-end recovery test fixture",
+    "review_notes": "Builds a parent shift-end session over the presence fixture, aligns exact authority/start time, seeds 1.000 cash, simulates lost response and measured denial, and exposes mocks used by recovery/fence tests.",
+    "read_ranges": [
+      [
+        1,
+        75
+      ]
+    ],
+    "callers_consumers": [
+      "employee-shift-end-reconciliation.test.ts and employee-shift-end-recovery-fences.test.ts."
+    ],
+    "error_authorization_state_checks": "Test-only. Lost-response helper preserves child descriptor and does not itself authorize a second POST.",
+    "test_evidence": "Consuming reconciliation/fence test sources inspected; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "No runtime behavior claim from fixture."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-shift-end-recovery.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1aa7b4dda2f659895e5f1832d4e06bcd723efe99d02805e86d5ac46dca13dbe2",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Shift-end lost-response recovery",
+    "review_notes": "Recovery requires exact operationId and exact presence target (including authority/cash). COMMITTED result is accepted only after validateEmployeeShiftEndResult. DENIED/EXPIRED/NOT-SENT can return to a new attempt only after a fresh operational-context read resolves the exact same authority key.",
+    "read_ranges": [
+      [
+        1,
+        117
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeShiftEndSession and employee-shift-end-attempt; reconciliation and lifecycle fence tests inspected."
+    ],
+    "error_authorization_state_checks": "Missing/mismatched descriptor, malformed committed result, context failure or foreign/ambiguous authority remains uncertain/context-required. Recovery never treats manager-exception state itself as shift success.",
+    "test_evidence": "employee-shift-end-reconciliation.test.ts and employee-shift-end-recovery-fences.test.ts inspected for no replay, exact authority, malformed result, background/A-B-A fencing; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Server operation ownership and actual network/runtime behavior not reexecuted."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-shift-end-transport.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "cca9183564c37d1d119c133614af5a86a5d78e7275cb0fd4124fed13333b03e9",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Legacy shift-end HTTP transport",
+    "review_notes": "POSTs to exact shift end route with endShiftRequestSchema cash payload and strict endShiftResponseSchema parsing.",
+    "read_ranges": [
+      [
+        1,
+        33
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeShiftEndSession legacy transport path; presence workflow is the richer operation-aware path."
+    ],
+    "error_authorization_state_checks": "Malformed success becomes SHIFT_END_RESPONSE_INVALID/502. No client-side authorization or retry is invented.",
+    "test_evidence": "Shift-end session/state/recovery test sources identified; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend shift ownership/cash enforcement outside transport."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-shift-presence-recovery.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3534ff37a546dcaa922e1032ae282df52d3c8ed1eeec4d35129a4aca1a87e620",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Shift-presence recovery and manager-exception continuation",
+    "review_notes": "Recovery is keyed by durable operationId and exact local target. COMMITTED results are revalidated before adoption; denied/expired terminal outcomes clear historical mode so they cannot authorize a new manager operation. Pending exceptions are verified against the exact target; challenge guidance is separately read and verified against the operation descriptor. Exception creation re-reads challenge immediately before explicit manager choice and requires current REQUIRE_OR_OVERRIDE mode.",
+    "read_ranges": [
+      [
+        1,
+        195
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeShiftPresenceSession/check-status and shift start/end parent flows."
+    ],
+    "error_authorization_state_checks": "assertCurrent/assertAvailable fence lifecycle changes around awaits; wrong operation/action/shift/exception/challenge fails closed. Unsent recovery requires explicit retry; pending sent operations do not replay.",
+    "test_evidence": "employee-shift-presence-recovery.test.ts fully inspected for lost-response exact-O recovery, A-B-A, foreground/background, process restart and logout fences; exception/recovery suites identified. Not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Physical GPS provider and server-side policy enforcement not established here."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-shift-presence-transport.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3e37d4490777ec648988b7d1b4914cf4fb2f1f9887b0d6d5e2fe36ec60d882f5",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Shift-presence challenge/recovery/exception/submit HTTP transport",
+    "review_notes": "Exact presence routes for challenge, operation recovery, exception creation/read, and START/END submission. START/END payloads use operationId plus optional schema-validated presence evidence; all responses are strict parsed.",
+    "read_ranges": [
+      [
+        1,
+        104
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeShiftPresenceSession and start/end parent workflows."
+    ],
+    "error_authorization_state_checks": "Malformed success becomes PRESENCE_RESPONSE_INVALID/502. Client factory is resolved per request. Challenge/status/exception requests carry no raw measurement; submission sends evidence only when supplied.",
+    "test_evidence": "employee-shift-presence-transport.test.ts fully inspected for exact selectors, mocked true/false/absent preservation and privacy of status/challenge/exception requests; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend presence policy/operation ownership and physical GPS behavior outside transport."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-vehicle-directory-transport.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "829f5c738d39c86cc0a0c1e7b6ec97175d31fa53662779f5bae8ed7c39148b17",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Vehicle directory visibility/actions transport",
+    "review_notes": "GETs directory by locationId with explicit capability header selecting visibility-only or check-in-actions contract. AbortSignal is passed into the client factory; response schema changes with capability.",
+    "read_ranges": [
+      [
+        1,
+        35
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeVehicleDirectorySession; session validates returned page.locationId and fences identity/scope/role plus aborts stale reads."
+    ],
+    "error_authorization_state_checks": "Schema parse rejects malformed/capability-incompatible rows. Zod failure is surfaced as an error and consumer remains conservative; transport does not authorize location itself.",
+    "test_evidence": "employee-vehicle-directory-session.test.ts and actions transport tests identified; session caller fully inspected. Not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend capability authorization remains authoritative."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/incident-recovery-id.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "838532164c157f4470c82ddad61c39875c43ef6a76e8828737cee447af696b10",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Secure incident recovery UUIDv8 generation",
+    "review_notes": "Uses only crypto.getRandomValues, preserves 122 random bits, forces RFC 9562 UUIDv8 version and variant, formats lower-case hex and validates against incidentRecoveryIdSchema. No insecure entropy fallback.",
+    "read_ranges": [
+      [
+        1,
+        22
+      ]
+    ],
+    "callers_consumers": [
+      "IncidentRecoveryState uses it when preparing actor-bound recovery marker/reservation."
+    ],
+    "error_authorization_state_checks": "Missing provider or provider exception fails closed before marker/reservation. Contract schema requires UUIDv8 exact shape.",
+    "test_evidence": "incident-recovery-provider.test.ts fully inspected for missing crypto, provider exception, exact random-bit preservation and no write/reserve on entropy failure; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Native crypto provider availability on physical devices not revalidated."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/incident-recovery-preflight.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "09e9efda12fa9ffd8066b73185f291a00c7e7719f250eae608405d0c8423d827",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Content-free incident recovery preflight diagnostics",
+    "review_notes": "Closed stage/outcome vocabulary intentionally contains no IDs or payloads. Sync and async wrappers emit start/success/error around an operation and rethrow the operation failure; observer exceptions are swallowed so diagnostics cannot alter the transaction.",
+    "read_ranges": [
+      [
+        1,
+        68
+      ]
+    ],
+    "callers_consumers": [
+      "IncidentRecoveryState, incident-recovery-store and incident-recovery-transport; native telemetry maps only fixed stage/outcome."
+    ],
+    "error_authorization_state_checks": "Observer callbacks fail open without changing secure preparation or reservation. Diagnostic data cannot carry arbitrary exception text through this API.",
+    "test_evidence": "incident-recovery-preflight.test.ts fully inspected for secure-UUID/readback/corrupt-marker failures, invalid injected ID and observer exceptions; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Telemetry sink behavior is outside this portable helper."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/incident-recovery-state.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2c10b3f98e414257d9eab3a1a9b9f3764a471a87a52b8b54c7ead922ed17c842",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Durable actor-bound incident recovery state",
+    "review_notes": "Serializes local marker mutations. prepare rejects corrupt/existing markers, creates a UUIDv8 marker bound to installation/member/org/location/session and confirms durable write before reserve. restore invalidates mismatched local context without network, otherwise performs canonical GET and binds every authoritative response to the durable marker; transport/binding failure remains UNAVAILABLE with marker retained. Local 24h deadline is informational, not authority. retire also verifies binding.",
+    "read_ranges": [
+      [
+        1,
+        210
+      ]
+    ],
+    "callers_consumers": [
+      "NativeIncidentSession via createNativeIncidentRecoveryState; native session generation-fences restore results before applying them. Native recovery context independently binds marker to installation and operational membership/org/location."
+    ],
+    "error_authorization_state_checks": "FOUND additionally requires reportedByMembershipId to match marker. Other non-UNAVAILABLE results require exact incidentId/sessionId. The per-instance storage queue serializes marker mutations within one IncidentRecoveryState; cross-instance/store races remain caller/store dependent. No local actor claims are treated as server authority.",
+    "test_evidence": "incident-recovery.test.ts, incident-recovery-identity-race.test.ts, incident-recovery-preflight.test.ts and native recovery boundary/context sources inspected; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Physical SecureStore/network behavior not exercised. Native consumer has its own generation fence around restore adoption."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/incident-recovery-store.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1f0e489a2a2ca57cd3edba018567bbd1f7ec47627b7a6f1cc518f03e0e09860b",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Incident recovery marker durability helpers",
+    "review_notes": "Strictly parses the contract marker. Writes are followed by readback and exact key/value-count verification; deletions are followed by readback requiring null. Deadline calculation is a pure 24-hour local threshold.",
+    "read_ranges": [
+      [
+        1,
+        65
+      ]
+    ],
+    "callers_consumers": [
+      "IncidentRecoveryState prepare/restore/clear/purge."
+    ],
+    "error_authorization_state_checks": "Unconfirmed durability or deletion throws instead of permitting network progression/cleanup assumptions. Marker schema is strict.",
+    "test_evidence": "Incident recovery portable/preflight/identity-race tests inspected for write/readback/delete sequencing; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Concrete native SecureStore implementation reviewed only as caller support, not physically exercised."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/incident-recovery-transport.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e35cb1467479a2e363d035f7dcd242ca9ebd86c880ae39647747b92f8d9f6766",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Incident recovery canonical HTTP transport",
+    "review_notes": "Read/reserve/retire paths contain only sessionId and incidentId from the durable marker. Reserve and retire use empty bodies plus the fixed recovery protocol header; responses are strict contract parsed and client is resolved per request.",
+    "read_ranges": [
+      [
+        1,
+        61
+      ]
+    ],
+    "callers_consumers": [
+      "IncidentRecoveryState through native recovery runtime."
+    ],
+    "error_authorization_state_checks": "Locally stored membership, organization, location and installation generation are deliberately not sent as server authority. Reserve response has stage-specific transport/schema diagnostics.",
+    "test_evidence": "incident-recovery.test.ts inspected for exact no-local-authority request serialization and response binding; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Server-side actor/session authorization remains authoritative."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/incident-recovery-types.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5efa2583a4a9f7d75b4926945814b1a75c9fd30aff4bc06ed82295a69a71fbae",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Incident recovery portable store/transport/result contracts",
+    "review_notes": "Declares the 24-hour local deadline, durable store interface, canonical read/reserve/retire transport and UNAVAILABLE local resolution in addition to strict contract responses.",
+    "read_ranges": [
+      [
+        1,
+        29
+      ]
+    ],
+    "callers_consumers": [
+      "IncidentRecoveryState, native SecureStore/runtime and recovery tests."
+    ],
+    "error_authorization_state_checks": "Declarations only; no runtime authority. UNAVAILABLE is explicitly distinct from authoritative server outcomes.",
+    "test_evidence": "Consumers and recovery tests inspected; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Runtime behavior resides in state/store/transport implementations."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/native-auth-state.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "520e5d8ee6b0318b3c6949b780a49148158d99a4cc624d0e9041e0f054ca4ceb",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Native authentication durable-state parsers",
+    "review_notes": "Installation state requires version 1, a bounded installation generation and boolean restoreBlocked. Secure refresh envelope requires version 1, valid installation generation and a refresh token accepted by the Staff native refresh request schema; returned objects are normalized to known fields.",
+    "read_ranges": [
+      [
+        1,
+        72
+      ]
+    ],
+    "callers_consumers": [
+      "NativeAuthStorage and NativeAuthSession restoration/login/refresh/logout pipeline."
+    ],
+    "error_authorization_state_checks": "Corrupt/unknown-version/generation-mismatched durable state cannot restore authority. installationState refuses invalid generated values.",
+    "test_evidence": "native-auth-restore.test.ts and native-auth-storage-matrix.test.ts fully inspected for corrupt state, generation mismatch, restore block and storage failure behavior; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Concrete native secure-storage provider behavior not physically exercised."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/native-auth-test-fixture.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f406b4abe7f18df03d55859ee9deb155d1ca50e36267fee06785cd35186db77b",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Native auth race/storage test fixtures",
+    "review_notes": "Provides synthetic access/refresh tokens, in-memory secure and installation stores with explicit gates/failures, a recording auth transport, authenticated-storage setup and deferred helpers. Test-only values are synthetic and no production credential material is present.",
+    "read_ranges": [
+      [
+        1,
+        189
+      ]
+    ],
+    "callers_consumers": [
+      "Native auth login/restore/logout/account-switch/storage/concurrency tests."
+    ],
+    "error_authorization_state_checks": "Test fixture models read/write/delete failures and async races but contains no runtime authorization logic.",
+    "test_evidence": "Consuming native-auth test suites inspected; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "No product behavior claim from fixture."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/native-auth-types.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f7ab11e7720b3f32ef6c111947f3f2b782e0bbc0a44680901606c3faabd2db7b",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Native authentication durable/runtime contracts",
+    "review_notes": "Secure refresh envelope binds a refresh token to installationGeneration; installation state carries durable restoreBlocked; auth snapshot exposes phase/reason/expiry/authGeneration without tokens; logout result separates local completion, secure purge and server revocation.",
+    "read_ranges": [
+      [
+        1,
+        76
+      ]
+    ],
+    "callers_consumers": [
+      "NativeAuthSession, storage/generation/local-state implementations and native auth tests."
+    ],
+    "error_authorization_state_checks": "Identity-scoped purge is an explicit boundary in session options. Types preserve truthful distinction between local logout and remote revocation.",
+    "test_evidence": "native-auth-restore/storage-matrix/account-switch-truth/logout tests fully inspected; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Declarations only; enforcement resides in session/storage/generation consumers."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/protected-command-process-death-test-fixture.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "52e28ea8639314a2e5b44c016839d578d7179303c33d1f083ece61e8fa404258",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Protected-command process-death fault fixture",
+    "review_notes": "Test-only server boundary clones authoritative state and models before-commit, committed-response-lost, rollback, and disconnect with or without commit. The process-death cut withholds the failed response forever after the fake server decides the outcome, preventing Process A from publishing or reconciling.",
+    "read_ranges": [
+      [
+        1,
+        98
+      ]
+    ],
+    "callers_consumers": [
+      "Process-death parking, retrieval, release, handoff and shift/task journey tests."
+    ],
+    "error_authorization_state_checks": "Rollback does not publish draft state; committed faults do. Canonical reads are server-owned in the fixture. No runtime authorization logic.",
+    "test_evidence": "Consuming process-death suites identified from source; historical/source evidence only, not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Test fixture only; no product-runtime claim."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/recovery-policy.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "dd16ac52c2cf38f6bf603708c02d12cfea2dab71ec1f19b250fe5bc8b6d63cef",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Employee authorization refresh/retry policy",
+    "review_notes": "Only one GET/HEAD retry is permitted after a 401 and successful explicit authorization refresh. Mutation methods are never automatically replayed. Refresh failure is definitive only for a 401 or the accepted staff-authentication codes; other failures remain transient.",
+    "read_ranges": [
+      [
+        1,
+        39
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeClient full caller inspected; safe read recursively retries once, transient refresh becomes session-service unavailable, definitive loss invokes authorization-loss handling."
+    ],
+    "error_authorization_state_checks": "All 401 responses report authorization loss when refresh is not successfully completed. Mutation 401 never triggers refresh/replay.",
+    "test_evidence": "employee-client.test.ts fully inspected for safe read retry, mutation no-replay and transient-vs-definitive classification; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Concrete native auth refresh implementation was inspected as supporting context earlier; no live auth execution."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/api-error.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a490f2ff9a8cf74be117371798b4fdba1805d8972f78b9929bf9260a786e18cc",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Employee HTTP/network error normalization",
+    "review_notes": "Preserves status/code/message/requestId/retryAfter/network marker. Normalization prefers the shared strict API-error schema, then a bounded legacy object with a string code, otherwise derives a stable code from HTTP status. Dedicated network, session-service-unavailable and authentication-required constructors keep failure classes distinct.",
+    "read_ranges": [
+      [
+        1,
+        130
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeClient, native auth HTTP and portable operational workflows."
+    ],
+    "error_authorization_state_checks": "Legacy code strings remain data, while authorization/retry decisions separately key on HTTP status or explicit accepted codes. Network errors do not retain arbitrary underlying causes.",
+    "test_evidence": "api-error.test.ts fully inspected for strict/legacy/status fallback and network behavior; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Presentation of arbitrary legacy messages belongs to individual UI consumers."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-cancel-check-in-session.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "89a82ce1485cfe4963b43b91a9349127e0deaeb044b7e413a716eb744c0ad58b",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Incomplete Check-In cancellation lifecycle",
+    "review_notes": "Binding captures auth generation plus exact operational scope/role. Prepare accepts only the requested session at the current location in CHECKING_IN and captures shift/version. Confirm dispatches one POST and requires exact session/location/version+1. Ambiguous outcomes stay unknown and use one canonical status read; only CANCELLED version+1 succeeds, while unchanged CHECKING_IN enables an explicit user-confirmed retry.",
+    "read_ranges": [
+      [
+        1,
+        214
+      ]
+    ],
+    "callers_consumers": [
+      "NativeCheckInActions/native-check-in-runtime; successful cancellation clears the same active check-in and refreshes the directory."
+    ],
+    "error_authorization_state_checks": "Sequence fences A-B-A/auth/shift/role changes. Background turns dispatched/reconciling work unknown and discards pre-dispatch intent; no duplicate POST is automatic.",
+    "test_evidence": "employee-cancel-check-in-session.test.ts and issue-255-native-cancel-lifecycle.test.ts fully inspected for exact POST budget, canonical recovery, scope/background fences and foreground authority loss; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend cancellation authority remains authoritative; no physical-device run."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-condition-note-fence.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1c9157ab206b0b414debcc47732c7710c44cd59d7bbc071fd9a471977308033c",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "In-memory Check-In condition-note replay fence",
+    "review_notes": "Protected note identity is the exact tuple identityGeneration/locationId/workflowOwner/sessionId/selection. Protection is in-memory and can be cleared at authority/session boundaries. Check-In conflict classification is limited to VERSION_CONFLICT and INVALID_STATE_TRANSITION.",
+    "read_ranges": [
+      [
+        1,
+        52
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeCheckInConditionSession."
+    ],
+    "error_authorization_state_checks": "An ambiguous append is protected from duplicate replay only for the exact current attempt tuple; different selection or authority scope is independent.",
+    "test_evidence": "Condition replay/recovery suites fully inspected from source; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Fence is intentionally not durable across process death under DEC-063."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-condition-session.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a55518dee989fb846f264ea5fea317e6a277f43e08023dd8c95f56efc7bcccf5",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Check-In condition evidence and completion recovery",
+    "review_notes": "A condition attempt binds expected session version plus identity generation, location, workflow owner, session and selection. It appends a note once, completes the condition marker, then completes Check-In with the authoritative version. Ambiguous or accepted conflict outcomes rehydrate the exact session/location; AWAITING_PARKING proves completion, CHECKING_IN returns to selection, and failed canonical reads remain ambiguous. Every asynchronous result is fenced before adoption.",
+    "read_ranges": [
+      [
+        1,
+        299
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeCheckInContinuationSession and Native condition UI; server condition completion command was inspected as supporting context and is idempotent after the marker is committed."
+    ],
+    "error_authorization_state_checks": "Replay fence clears across identity/location/owner/session boundaries and final success. An ambiguous createConditionNote protects the append from duplicate retry before commit can be proven; this accepted DEC-063 REHYDRATE_BEFORE_RETRY tradeoff can omit a non-authoritative note after a pre-commit transport failure, but does not fabricate Check-In completion.",
+    "test_evidence": "employee-check-in-condition.test.ts, condition-replay.test.ts and condition-recovery.test.ts inspected for duplicate suppression, required-photo conflict, stale version, canonical recovery and late-result fences; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "The append ambiguity tradeoff is an accepted replay-avoidance behavior, not proof that the optional note committed."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-continuation-session.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5b83939841f58e8a6d9c05589c303c9938c4a6adf9171ef304b52e41a44f3fa8",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Check-In post-intake continuation editing",
+    "review_notes": "Vehicle detail/identity edits are available only for a mutable authoritative CHECKING_IN session. Confirmed-plate edits require explicit review before correction, while temporary descriptors can submit from edit mode after validation. Cancelling an edit sequence-fences outstanding work and rebuilds drafts from the current active session. Continue-to-condition preselects the accepted low-friction value.",
+    "read_ranges": [
+      [
+        1,
+        164
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeCheckInSession and native continuation/condition steps."
+    ],
+    "error_authorization_state_checks": "No mutable action proceeds outside phase created + state CHECKING_IN; busy continuation states block cancellation/advance.",
+    "test_evidence": "employee-check-in-continuation.test.ts inspected for versioned details, NO_CHANGE truth, explicit human plate confirmation, temporary-descriptor correction and definitive conflicts; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Mutation fencing/reconciliation is implemented in the correction parent reviewed separately."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-continuation.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1a8c163359e8ea5db6c2bc0473dc9a5b9925c496ade8f2c3534fb8b493be9616",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Check-In continuation validation and correction reducers",
+    "review_notes": "Drafts derive from authoritative active vehicle state. Details are trimmed/NFKC-normalized with null-empty semantics and an 80-character bound. Temporary descriptions are trimmed/nonempty with a 160-character bound; plate country is trimmed/NFKC/uppercased to exactly two letters, raw plate is required/bounded, and human confirmation is mandatory. Response reducers update only returned authoritative fields; reconciliation compares requested values exactly.",
+    "read_ranges": [
+      [
+        1,
+        216
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeCheckInContinuationSession and EmployeeCheckInCorrectionSession."
+    ],
+    "error_authorization_state_checks": "Vehicle version conflicts are explicitly recognized for both details and identity. Contract/backend validation remains the final input authority.",
+    "test_evidence": "Continuation and correction-recovery suites inspected from source; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Server vehicle identity/custody authorization remains authoritative."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-correction-session.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a064474c36a3002843c573fc1f3af67d58eaf089dbece79811dd0e37646f180a",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Check-In vehicle correction mutation and canonical recovery",
+    "review_notes": "Details and identity corrections are built from the authoritative vehicleUpdatedAt precondition. Each attempt binds auth generation, location, workflow owner, session, vehicle and request sequence; successful responses must match session and vehicle. Ambiguous mutation failure performs canonical rehydrate and accepts success only when current server fields prove the requested intent; version conflicts always adopt canonical state as a conflict. No correction POST is replayed by recovery.",
+    "read_ranges": [
+      [
+        1,
+        296
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeCheckInConditionSession/EmployeeCheckInSession; canonical reads use hydrateCheckInSession."
+    ],
+    "error_authorization_state_checks": "Late direct results use the full attempt fence. Post-canonical adoption uses the sequence fence plus exact hydrated session/location and vehicleId; authority/session changes increment the same sequence. Canonical read failure retains only in-memory pending intent.",
+    "test_evidence": "employee-check-in-correction-recovery.test.ts fully inspected for canonical proof, conflict adoption, read-only retry, auth/location/session-switch late-result fences; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend vehicle/custody authorization remains authoritative."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-discovery.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bcd30141aff18a640028f6b725685f75ac6a2991bc91a93ec533b6839c856c2c",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Authoritative Check-In discovery and hydration",
+    "review_notes": "Loads server drafts and continuations concurrently for one location. Exact hydration rejects a different session, different location, or any state outside CHECKING_IN/AWAITING_PARKING before returning condition marker, vehicle and version.",
+    "read_ranges": [
+      [
+        1,
+        44
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeCheckInSessionCore discovery/resume, correction recovery and condition recovery."
+    ],
+    "error_authorization_state_checks": "This helper does not infer authority from summary rows; detail hydration is the canonical gate. Transport schemas and backend staff/location authorization remain upstream.",
+    "test_evidence": "Check-In recovery, targeted-entry, correction-recovery and condition-recovery suites inspected; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Server draft-list authorization and response schema were previously reviewed in C001 transport work."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-domain.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "121baa113e014bc1bfee0b90df5c84a47e476b5e51d74f80e9c354a61bfc139b",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Check-In vehicle validation and intake-to-session projection",
+    "review_notes": "Confirmed plates require nonempty country and raw plate and normalize country to uppercase; no-plate identity intentionally defers its required descriptor to the Vehicle Details step. Intake identity sets confirmedByHuman only for the reviewed plate path. A successful intake is projected into a CHECKING_IN active session with server IDs/version/timestamps and the reviewed local identity fields.",
+    "read_ranges": [
+      [
+        1,
+        71
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeCheckInSession and checkInIntakeSnapshot."
+    ],
+    "error_authorization_state_checks": "The local projection does not create success until an IntakeResponse exists. Contract validation/server normalization remain authoritative for accepted identity formats.",
+    "test_evidence": "EmployeeCheckInSession, phone, returning-correction and intake-stop suites inspected; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Server-side normalization of accepted plate raw text is outside this helper."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-hydrated-snapshot.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "996903592443bee498cd97c95efedd3e6304b8fd520b45da01c4357f2600955f",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Canonical Check-In snapshot adoption",
+    "review_notes": "Adopts a hydrated authoritative active session, clears recovery candidates/errors, and maps CHECKING_IN to the created/select-condition UI with the established low-friction default; AWAITING_PARKING maps to continuation state.",
+    "read_ranges": [
+      [
+        1,
+        25
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeCheckInSessionCore hydrate/openExisting/resume."
+    ],
+    "error_authorization_state_checks": "Input is already gated by hydrateCheckInSession; this reducer does not independently authorize a session.",
+    "test_evidence": "Authoritative recovery and targeted-entry suites inspected; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Correctness depends on the canonical hydrate gate reviewed separately."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-intake-snapshot.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bb7bdc81cd2cdce348c8776c4de0b1f36a583e3231d0f6d2a4d228511a44f78b",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Check-In intake outcome projection",
+    "review_notes": "SUCCESS adopts the returned authoritative IDs/version into a created session and clears recoverables. AMBIGUOUS preserves pending recovery state without claiming success. Definite failure returns to customer input; RETURNING_CUSTOMER_INTENT_INVALID additionally removes the stale saved-customer suggestion.",
+    "read_ranges": [
+      [
+        1,
+        42
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeCheckInSessionCore applyIntakeOutcome."
+    ],
+    "error_authorization_state_checks": "Ambiguous outcome explicitly requires recoveryChecked=false before retry. Definite denial releases the old intent rather than making it retryable as an unknown commit.",
+    "test_evidence": "employee-check-in-session.test.ts and employee-check-in-intake-stopped.test.ts inspected for exact ambiguity/definite-failure behavior; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Classification comes from runEmployeeCheckInIntake/shared ambiguity taxonomy."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-intake.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "281188cd9a95669d5e1e058549d15274b6007053c033fceb7e0d8af158870acc",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Check-In intake execution and stable operation identity",
+    "review_notes": "Executes exactly one transport intake attempt and classifies failures through the shared ambiguity taxonomy. Retry identity reuses the pending request intakeOperationId; otherwise a new injected secure operation ID is created. This implements manual retry of the same accepted idempotency identity rather than generic replay.",
+    "read_ranges": [
+      [
+        1,
+        56
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeCheckInSession submit and EmployeeCheckInSessionCore explicit retry path."
+    ],
+    "error_authorization_state_checks": "Network/408/5xx remain ambiguous; structured definitive 409 denials remain FAILURE and do not enter automatic recovery. Secure-ID generation is handled fail-closed by the caller.",
+    "test_evidence": "employee-check-in-session.test.ts covers rehydrate-before-exact-retry with identical request/operation ID; intake-stopped and secure-id suites inspected; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Server intake idempotency implementation was not reexecuted in this worker."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-session-core.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f01f32753ffd9a59091c1b4e85acd6264803d007eef3774592b46e025f5d13f4",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Check-In authority, discovery, foreground/background and ambiguity lifecycle",
+    "review_notes": "Activation preserves state only for the exact auth generation/location/workflow owner; any boundary change invalidates sequence, clears pending intake and rediscovers. Clear purges transient state. Background converts dispatched intake and continuation mutation/reconciliation into truthful ambiguity and invalidates late results; recognizing/discovery are likewise fenced. Ambiguous intake must first rediscover canonical server state, and only a zero-result recovery check enables an explicit retry using the same pending request. Multiple recoverables require user selection. Exact-target entry hydrates only the requested current CHECKING_IN session.",
+    "read_ranges": [
+      [
+        1,
+        270
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeCheckInSession hierarchy; NativeProductionLifecycleOwner calls checkIn.suspendForBackground on app background. Native plate camera separately binds eligibility to exact Check-In phase/auth/location."
+    ],
+    "error_authorization_state_checks": "A monotonically incremented sequence fences all asynchronous loads/mutations across clear, owner/location/generation changes and background. Hydration validates exact session/location/state before adoption.",
+    "test_evidence": "recovery, lifecycle-fence, revalidation, targeted-entry, correction-recovery and Native plate-camera lifecycle test sources inspected. No tests rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Same-authority foreground does not force a Check-In reread by itself; protected mutations still rehydrate/fail closed under their command-specific recovery contracts."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-session.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5941659b4109f2b64dcee76df71da1cd46ceb0fe99110bb846b614c85aeb5507",
+    "batch": "C002",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Employee Check-In intake state machine",
+    "review_notes": "Returning-customer corrections are transient and cleared on identity/location/owner boundary, clear and start-new. Plate recognition occurs only after explicit human confirmation and is sequence-fenced; no-plate flow never invokes recognition and requires a descriptor before intake. Phone input is normalized by the shared Jordan contract. Intake submit reuses a pending ambiguous operation ID or creates a secure new ID, fails pre-dispatch if CSPRNG identity is unavailable, binds targetLocationId, and ignores stale async outcomes. Returning-vehicle detail correction waits for intake success and then uses the existing versioned correction command.",
+    "read_ranges": [
+      [
+        1,
+        268
+      ]
+    ],
+    "callers_consumers": [
+      "Native check-in runtime/workflow, plate OCR/camera steps and EmployeeCheckInSession test suites."
+    ],
+    "error_authorization_state_checks": "Recognition, intake and follow-up correction are all sequence/current-state gated. Definite intake rejection releases the pending operation so a later deliberate Continue gets a new ID; ambiguous intake cannot replay until authoritative discovery completes. Secure UUID failure is reported without leaking the underlying entropy error or dispatching POST.",
+    "test_evidence": "employee-check-in-session.test.ts, phone.test.ts, secure-id.test.ts, intake-stopped.test.ts, returning-correction.test.ts, lifecycle/recovery/revalidation suites and Native plate-camera lifecycle tests inspected; not rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "No physical camera/device execution; Native camera tests are historical source evidence only. Backend recognition/intake authority remains authoritative."
+    ]
+  }
+]

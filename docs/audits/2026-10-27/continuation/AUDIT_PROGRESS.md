@@ -1,25 +1,15 @@
-# VAYLET continuation progress — C001 preservation checkpoint
+# VAYLET continuation progress — C002 preservation checkpoint
 
-Source baseline: `66968655b8bd90c6681daf53fb9d8da9b9ab9f79`. Original publication: `38dd20039c051de39d172a2e3f440c68f3d60515`. Branch: `audit/vaylet-full-audit-2026-10-27`. Remote main was fetched and still equals the source baseline; no source drift or rebase.
+Frozen source: `66968655b8bd90c6681daf53fb9d8da9b9ab9f79`. C001 published at `5ffc044d3eba50fa41d6bcf166b6499c5b2207d6`; C002 is a documentation-only continuation on the same baseline.
 
-The exhaustive review remains **incomplete**. This checkpoint preserves completed semantic work after independent workers were interrupted; it does not certify the entire 305-file batch.
+The exhaustive audit remains **incomplete**. Verified 75 newly fully reviewed files (35 Backend Operations, 40 Native/portable), 7,427 candidate lines, bringing total to **652/4,705 files (13.86%)** and **67,806/610,400 lines (11.11%)**. **4,053 files remain**.
 
-| Candidate metric | Starting | C001 checkpoint |
-|---|---:|---:|
-| Fully reviewed files |491|577|
-| Fully reviewed candidate lines |51,676|60,379|
-| Remaining without full review |4,214|4,128|
-| File coverage |10.4%|12.26%|
-| Line coverage |8.5%|9.89%|
+The exact original C001 assigned set was 305 files. C001 recorded 86 as completed; C002 records another 75, leaving **144 pending** (security 32, database 29, dashboard 43, customer 40). The same C001 ownership remains unchanged and review-credit is unique. Original report/ledger and C001 files are preserved as historical records.
 
-New full reviews: **86 files /8,703 candidate lines**, or 2.04% of the original remaining inventory. Correction to an interim verbal count: saved worker completions were 51, not 53; coordinator completions 35 produce 86 total. The ledger is authoritative.
+Progress ledger: [coverage-ledger-progress.csv](coverage-ledger-progress.csv). Exact global remainder: [remaining-files.txt](remaining-files.txt). Incremental evidence: [C002](checkpoints/C002.md), [C002-review-records.json](checkpoints/C002-review-records.json). Cross-feature and QA reports receive **no file coverage credit**.
 
-Status totals: `{"fully_reviewed": 577, "not_reviewed": 12, "partial": 50, "tool_only": 4066}`. Candidate scope remains 4,705 files/610,400 lines; tracked inventory remains 7,502. Original coverage-ledger.csv is unchanged, including original 491 full/55 partial/4,145 tool-only/14 not-reviewed candidate statuses and original 51,676 reviewed lines. No exclusion or reclassification was made. Previously reviewed files retain historical status, not a claim of fresh independent rereview.
+No new tests were executed. Previous Codex 2026-10-27 tests remain historical, including their failures/limitations. The independently completed cross-feature read reiterates existing #352/#363 P1 boundaries and known #353–361 issues, with no new distinct confirmed issue. Corrections to source-scope wording were applied to draft evidence before publication.
 
-New finding: [SEC-011](FINDINGS_REGISTER.md), P1 HIGH-CONFIDENCE / RUNTIME UNVERIFIED. Zero new confirmed runtime exploits. The ten original findings and issue references retain their original dispositions.
+Seven reviewers were requested: three original COS workers began, four original COS browser chats failed startup; separate replacement reviewers were dispatched for those four areas. Only the two owner batches with independently verified completed records are credited at C002. The remaining reviewers are in progress; not credited until evidence is received and reviewed.
 
-[Per-file progress](coverage-ledger-progress.csv), [remaining 4,128 paths](remaining-files.txt), [C001 records](checkpoints/C001-review-records.json), [pending 219 assigned paths](checkpoints/C001-pending-files.txt), [tests](TEST_EVIDENCE.md), [evidence hashes](evidence-manifest.md).
-
-Four workers explicitly returned an execution/usage-limit error; other workers also ceased before final reports. Their incremental records survived. No final worker report is invented. The coordinator completed its 35 files and challenged the security candidate. No worker is currently active. The coordinator will continue bounded read-only work after this checkpoint; the full batch is still partial.
-
-Resume: verify remote refs and ancestry; read this progress, CHECKPOINTS, finding validation and latest per-file ledger; use the frozen source worktree and isolated audit worktree. Resume only exact outstanding files, retain non-overlapping ownership, and do not rerun package wrappers, install dependencies or edit source. Recalculate totals before a documentation-only commit/push. Current priority is the 219 pending C001 paths; supplementary security validation may receive an explicit small ownership amendment.
+No source/UI/config/migration/test files were edited. No production test, device, provider, PostgreSQL qualification, PR, issue mutation, deployment, or merge occurred. Pilot/production readiness remain **NO-GO for sign-off** under the earlier open gates.
