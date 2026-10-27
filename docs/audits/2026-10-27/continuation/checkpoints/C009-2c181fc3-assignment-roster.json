@@ -1,0 +1,1491 @@
+{
+  "checkpoint": "C009",
+  "source_commit": "2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8",
+  "historical_roster_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+  "assignments": [
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/foundation/foundation-styles.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "71c649008222a56444c290181f870a863b358bdca724e071f5e5757c4e012419",
+      "lines": 160
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/guest-access/native-customer-app-origin-rules.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "0473e8bd76e999ab0e51c2879c24dac33f06f8c9c7332a2892e86c37cf09f253",
+      "lines": 44
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/guest-access/native-customer-app-origin.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2575cf53f61372075928e5850666feef515e60055ec65a3513ee8da9d93d13c3",
+      "lines": 60
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/guest-access/native-guest-access-confirm-sheet.tsx",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4421cc42bb5d02a33b2fbf5c797db3dea4736752bffbf1f4ca9ab7d4900e07c7",
+      "lines": 66
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/guest-access/native-guest-access-copy.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "968ab2a29e9019f0f738521bdc519f38fb25b2bb8b04357f026a86381b7094b0",
+      "lines": 48
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/guest-access/native-guest-access-credential-memory.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "5f52ab3f1df2d9c7f2c2b6305df95def630f2fcbb6303367e486508e7b384cf8",
+      "lines": 35
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/guest-access/native-guest-access-qr.tsx",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "095fd61c8469c63a2670ee1aca8a1feae3a6a3d50b5d9d77e2deed891ca1f5d6",
+      "lines": 75
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/guest-access/native-guest-access-status-card.tsx",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "de1e424eaad7c9deeb80dbc7721e3eb27ff5662eceffaf9bcf39a9070b4ae003",
+      "lines": 168
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/guest-access/native-guest-access-styles.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "e38e2bbb4ba4e9be59ec89d64c45d19fe95d194f7f0a162fc2035c0c1af84c47",
+      "lines": 78
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/guest-access/native-guest-access-transport.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "45fa3e49c7c7ce41536f4baec6a83059f83ebbef729f60fc64ed347fae6e9d05",
+      "lines": 49
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/guest-access/native-guest-access-types.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "50f4a266dc27d4a90d1d36798144dbdf14c4443819f9d83041d692ecb0165594",
+      "lines": 77
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/handoff/native-handoff-copy.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ea954646c26036c1efa3fe494cf1d5fa0958aa215347377f259cad5fe8ff67f8",
+      "lines": 113
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/handoff/native-handoff-guest-access-recovery.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "42f7d34140d9c32bae563fa67da9580b9d61b6867206c07a6d7cc425b12b770d",
+      "lines": 38
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/handoff/native-handoff-panel.tsx",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2d73c38f28e5c4c28dddce16357a3acf3c811b8a8c56fe8cc0c73bbcdbdafa33",
+      "lines": 218
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/handoff/native-handoff-pending.tsx",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "8cf0403fdecf833a46f2c85ce5ceb3f7e9b50955a4a03a11251f1436241b2728",
+      "lines": 188
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/handoff/native-handoff-privacy.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7e0d5549266cdbd5806c82a9602bd55f152ed434c7cff77238af1189cb2f47c2",
+      "lines": 51
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/handoff/native-handoff-protection.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "fc3d4d9a669c65bcfd66fed9e7d1a4941b3029fec024da56f8fd030dffd8ff40",
+      "lines": 11
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/handoff/native-handoff-reason-action.tsx",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "5f4c607fb78bc28f04b58d411e5881639fdf2eb29749d1dd21dd1969b6770eda",
+      "lines": 64
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/handoff/native-handoff-route-presentation.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "50eef0bbecf4d295333196936e077463f54688b96b7331570cdaf8b35fa234ab",
+      "lines": 27
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/handoff/native-handoff-scanner.tsx",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "3f6aa50b1b782ebd3181a033de4bc9452be591164f64c9228fa1472979d770ad",
+      "lines": 142
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/handoff/native-handoff-styles.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7b334e18f34cf759ae648b14a8d23f8c8ab9afd0139a27b0ef0a28686d6e7266",
+      "lines": 64
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/handoff/native-handoff-vehicle.tsx",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "fc487885decc0d27e5c5582842e780aadf1cae6bbd0f3a6e9ed1cb32f3e5a88a",
+      "lines": 56
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/handoff/native-release-copy.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6ea373fa2cc29412b1a1929c7e8c1aa3a3a8447acd72b8944922670b307d6145",
+      "lines": 59
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/handoff/native-release-panel.tsx",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "3b682dc73e23b68997bed8ff2d809124e73c80ebccee7aa02a5b7a07627e1f4f",
+      "lines": 173
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/handoff/native-release-protection.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "5087b07b13988beb5674491152a31684d6fbb57aa28ab656c44c9f3d7f378258",
+      "lines": 7
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/i18n/native-dictionary-ar-check-in-actions.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b8a0e57e59a3fd3bedf7769f2872e6ff1b6518ad5ba5db7b7692a8c9303bcaf2",
+      "lines": 21
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/i18n/native-dictionary-ar-check-in.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "e7cac6d128185e56d4ff86836102a528e09368f53116d300ac3bbc4be75ede90",
+      "lines": 40
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/i18n/native-dictionary-ar-parking.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ada9e3642a4c99d9e652893a1d7b4066f36f93df75de9afb38a2290bf65daeb5",
+      "lines": 7
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/i18n/native-dictionary-ar-scan-hub.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "9111582bcaa547b1c12c123e386e1b204091741a079fa22f2603f773d177f10b",
+      "lines": 15
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/i18n/native-dictionary-ar-scanner.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "733bc3b55d9c9efa9ead620ace044af1c104bbc71ffe124dba52b1704dbeaadf",
+      "lines": 30
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/i18n/native-dictionary-ar-shift.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "46669e20ddde534eff8b532491fc05463b2724b5a615996dd34fb32c7aa0bd44",
+      "lines": 44
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/i18n/native-dictionary-ar-vehicles.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4adf4d13126a67a975939665d3333b884846c424037e4cb398e1a34ef6600693",
+      "lines": 22
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/i18n/native-dictionary-ar.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "d722b719e98f110b120ee2f603a4a1f57ca0a075014a38a0ccb03cd46f16ca33",
+      "lines": 295
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/i18n/native-dictionary-en-check-in-actions.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "a54eb6934d9c4c4b5215d9868a8c0617ac4d8f0b6bf1ba2643105cc670ed27a9",
+      "lines": 21
+    },
+    {
+      "worker": "native",
+      "path": "apps/valet-native/src/i18n/native-dictionary-en-check-in.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "3182e141c6128df74f5bdb74119e937d417e6bd3d088c7e84c1b0b752a4bd1d5",
+      "lines": 43
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/prisma/migrations/20261022010200_issue316_guest_information_authority/migration.sql",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ed3b95e80b18a67019f83f32d2af41de6e5aaa6aae9ec1885c5d0648726a0e71",
+      "lines": 263
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/prisma/phase3-resource-seed.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6564d0232786bb78ffe85775a9ea2f70b3e48aad878b4f36f3c3f041956ec354",
+      "lines": 92
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/prisma/seed.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "8c2e0992687b9d5eda11fc524ddf4796661979ae736d3036b79079b428da3745",
+      "lines": 741
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/scripts/condition-photo-management-lock-owner.test.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "a0a7dcd63347b79931200612239827d86dfc68caf09b947c18394088423fca20",
+      "lines": 154
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/scripts/physical-resource-runtime-privileges.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b4fbf86b4481f36e68b5646679683722d45e52738fcf530b775871f3bd4293c1",
+      "lines": 113
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/scripts/provider-event-runtime-privileges.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "f537500a279bc207c48b9f0207645bc258953efff377a4175e160e93ccdd380f",
+      "lines": 121
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/scripts/provision-condition-photo-maintenance-role.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4f473d8219391731f3753575540193aa7e10283b47adb8204137d6f56599b8b3",
+      "lines": 99
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/scripts/provision-guest-push-worker-role.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "eb3dabbc74d7834226dc5b2caaa8ddc6970cf03eaa68d9835075815edcefc537",
+      "lines": 134
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/scripts/provision-outbound-principals.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "d8eeb4fd2fbe00badb2a1c25601286dfe159076934af2281b724b010d1f1442f",
+      "lines": 43
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/scripts/runtime-feature-privilege-verification.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "47bfd75f29f7d4db87b56b15cb161a7e02ab77b81c9b25b663d5141b8a0ea893",
+      "lines": 25
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/scripts/runtime-privilege-verification-helpers.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "bf13ff0e4610c99160e87c643154998be605351e7e4502320d01cbe71b271a91",
+      "lines": 36
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/scripts/runtime-staff-authority-revokes.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "fe7e6d4fea9eded6d27b622a1b3d70d54ff510750af6ff149c81e08e2e28cc03",
+      "lines": 38
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/scripts/runtime-table-privileges.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "af331b8383286d9050e83e68ba1b513808e6608e3009b4585b4051969c6d4119",
+      "lines": 289
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/scripts/shift-force-end-runtime-privileges.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2424fb421975041eb8a3cbbc7de8758c38eeee52eb0dad9b2ed989893381dfaf",
+      "lines": 78
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/scripts/shift-presence-runtime-privileges.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b4857e8b2f864ace1f61afcecc40de55b77d32419c41101cd63309e135c956f7",
+      "lines": 192
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/scripts/staff-management-runtime-privileges.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "f359009ea97779dbf27e4f2454b5e650bcfbd5fc9f2849d460a46c98468d6b70",
+      "lines": 90
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/scripts/staff-onboarding-runtime-privileges.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "a58a7b4c9b7674de49966b183943d2855c736cc3a1feebfbce2829cf2bf45de8",
+      "lines": 105
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/scripts/staff-push-runtime-privileges.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "8886248e9c71047ac89bc6f0c9a20d8ac85d32d6df6bb8e8e153ae65224e2679",
+      "lines": 94
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/scripts/verify-issue215-p5-local.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ac054f15783dc2f42287b3e8848c31fb81556ff6b4e324da4d088532a74ee3ca",
+      "lines": 283
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/scripts/verify-issue215-p5-photo-fact.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "9e521d8e9314466f0ef1d7b5a25f550719cc69dd1fb57985eec6495068e14c10",
+      "lines": 51
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/scripts/verify-issue309-management-photo-lock-pg17.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6cd5f0efb246c39ce9853443f202273d86f457128f6dee93a9d8d1b3d7aaf171",
+      "lines": 189
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/scripts/verify-runtime-table-privileges.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "76c0cb759d8a81f80856092032cf53be731624886b5da63d9cf529654c11195a",
+      "lines": 288
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/scripts/visit-contact-runtime-privileges.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "aab1a9349e5cd9baabcaccbc6cfdd36003262264a8b1bff45c244afa490a625e",
+      "lines": 82
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/src/audit-foundation-constraints.integration.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b201c1014f9a8c1700d4ef6048dce2fea946acf84395d80296831695f4321259",
+      "lines": 293
+    },
+    {
+      "worker": "database",
+      "path": "packages/database/src/audit-foundation-migration.integration.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "243ea71afae1ca4c7c6628512f7809a64332460e924729ce8c572daf9cf5d9d5",
+      "lines": 241
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/incidents/incident-operation-lock.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ce562f12311f3f3dd6e58ba9786df904ab6dccc68f39f2330e09b26d161bc0fa",
+      "lines": 12
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/incidents/incident-recovery-records.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "77b2d1a9c5c5b74df7cbf04388277fb9b6850f2ecbf038806d58ed1dc45318be",
+      "lines": 68
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/incidents/incident-recovery.controller.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "034eddeef181e422216729f20cd925fc89241c99a8141c3d50190e28a183bc29",
+      "lines": 167
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/incidents/incident-reporting.controller.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "1c451363cf3691bd46e6f2cd0019d08cd0e10e10a2bca4d98d6822b31836c40f",
+      "lines": 87
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/incidents/incident-reporting.service.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ec026a6cf123b1e35a9ec0720088f60747f168bee548f2907119f20d6705def1",
+      "lines": 32
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/keys/assign-key-slot-command.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "8a53fe4222a9a248fc5f9c8e5ae46652d880465ac1e65f4560ab905808eac4ec",
+      "lines": 164
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/keys/clear-key-slot-command.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7290b468fa114405de02c807ae0011166695c9a56caf3b39f50204219251a482",
+      "lines": 85
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/keys/key-audit-event-writer.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "169844093d3add6bc3bb152ac6b5b9e5bccce7827e300ff1b249297f235c3270",
+      "lines": 51
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/keys/key-command-guards.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4f560bf3a60d2721a0acc86ad9a6a1c66ee63f1ee9bac0ba3fc295799f135fd3",
+      "lines": 53
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/keys/key-custody.controller.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "145b784054f5e79bcab2fa1d082da6e1a668443ea380311c8307996136186ba2",
+      "lines": 118
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/keys/key-custody.module.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "bd2d04d05d7b136609724115b0bd7c66bc98b7d141e99267b236a1dcdb1d9b5a",
+      "lines": 19
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/keys/key-custody.service.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c56dbf4874183df26897d20f07b383d9dc1e2dc8840fe43ab2fa53c0a3ff2dab",
+      "lines": 34
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/keys/key-errors.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "905277a0a4e87e9d83ec4c374b67c470eb99c8dd3bfa2660d21cab0cd99b0d9d",
+      "lines": 8
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/keys/key-session-authorization.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b3580ee203afc16775f9ab0b7829ec51fc06fa2cd143885cf29e2d4c41c2e33a",
+      "lines": 51
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/keys/key-transaction.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4c353d9194f6d38dd64adff0cd561a81560289175d84f16264452605f582a437",
+      "lines": 39
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/keys/key-types.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ae099a947ff6fe9cafe23ff565a032a14062c8e06bd08bf567749a5001df5a57",
+      "lines": 19
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-cursor.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4f5d052ba36818c54b257834386241fe3e63e586b8f47d0dc8ccff09d8f15d4c",
+      "lines": 157
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-u05-build-digest.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "905b708b93714b9e08aeb8992daab23035c53b1dea790a913bbb8081f9b4a84a",
+      "lines": 37
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-u05-indirect-guard.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7db7a342eb7672f1107781043c8594a573108a938d988d6c2d663e9ba855f8f3",
+      "lines": 223
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-u05-ledger-runtime.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "1956b996718af603111ab45deed8e5fe3f0254d1bc48315b8b79f9be075e6877",
+      "lines": 72
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-u05-policy.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "fbad027c26977b09fa72045b54d1f49d68dff133bfde55a462daf6f107340a73",
+      "lines": 23
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-u05-proof-attestation.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "e8d4b476250791628f7d2b97d2e85f7008e81d5b082b21f458a22194452420da",
+      "lines": 271
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-u05-proof-files.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ebc3d85c80c113a1752888ba7dcce8425efebdaa14406ed470345a7bf2e77520",
+      "lines": 87
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/management/audit-investigation/search/audit-investigation-search.controller.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c8c7142c317b8c35f9f559600b1604e592681ea1df4972a37c6fd2fb423fa17c",
+      "lines": 76
+    },
+    {
+      "worker": "backend",
+      "path": "apps/api/src/modules/management/audit-investigation/search/audit-investigation-search.service.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7418826101e37a96b7db8ffdf97013256c8a57658969c09013728358d2696b66",
+      "lines": 208
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue278-help-zoom.spec.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "eb7a4423610e8e94173e3450df91513e88bd64aae2aaf0e72cd93b778dbbefc7",
+      "lines": 165
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue278-historical-geometry-compare.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "3957036455a1b79d1e98416ccf3c57913aa9981aea1a5bd9028fa7f1a797157b",
+      "lines": 152
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue278-historical-visual.spec.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "0a7c9a96206a24bd6f5ad3b51728af9b5c88dc9465b5531c276e0ac57dd6f69a",
+      "lines": 145
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue278-intelligence-help.spec.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "bef25e0c83c6edbb67d5950591ade8dacd8649f4c8f7ef727fd89e8182a55c08",
+      "lines": 152
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue278-operations-help.spec.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "da181bb8d275f55ae186841ae7cbb1ef401e3709e69060a82e64ec2690de5ea9",
+      "lines": 176
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue278-u004-evidence-compare.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "86acc856a973846188b181da36c2562f73869ddc97a0f32d758aadab0d8cf95e",
+      "lines": 139
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue278-u004-geometry.spec.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "8620bd4c9bb00e738631832b9f78cf80fcf0bcbc2ab5128abb1770b62ca33051",
+      "lines": 172
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue278-visual-help.spec.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2913a0cd22039acbbed3f697bd56e8d7eb9ce6eb2fc8bbca8b2ae085d27e0671",
+      "lines": 131
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue280-exceptions-help-a11y.spec.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c35d4449277b0f449a01056831818ca54ab16c36b4c148f2eed170c66c0ae586",
+      "lines": 138
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue280-guided-review-apply.spec.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "471e67768b8ca81d6897347e57f866fe7960b06c77b085849ed74d509e0e22f9",
+      "lines": 286
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue280-guided-review-focus.spec.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "8114a458f19ae8f2e7d889eab3d86815e77b248583e715358fa54bd735208ee2",
+      "lines": 39
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue280-guided-review-zoom-fixture.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "78f67bc835ded5c73e0a718c433dae8f31e70f8cb57c1f90a9e74478bb4e8ffa",
+      "lines": 117
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue280-map-first-flow.spec.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "f90468d5a54ea16d69e451f47346c74805a15420be2c290575d195529a31c4b5",
+      "lines": 258
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue280-map-first-map-mock.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b936028b68310080e7be846252518dcec0977e3b922ede8e49afb9b7cc19805d",
+      "lines": 86
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue280-map-first-receipts.spec.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "5e97a0a00185498674a474fe37d7f367dab28cc4e0f7ecadcbea51a5ec056608",
+      "lines": 130
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue280-map-first-visual.spec.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "f96f7463570fd2231b64d41a6cd7210fbe508575285da6dc1135190d1dec3d50",
+      "lines": 179
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue280-map-first-zoom.spec.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "55d427452ed1ff103977babb4240bbd7d933e8d7f87555d1d840a9ad4ff9e0a9",
+      "lines": 142
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue299-task-staff-attribution.spec.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "1214e8a1be3f4a8b69229e6b6b0cb4a86b34cb5d4c7530aceb8008ce8aa26ed2",
+      "lines": 126
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue300-concept-a-role-guard.spec.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "695c958aa517826f4d5e6bad123333a5a439ff3f566e691a99dd61bba086b67b",
+      "lines": 131
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue300-concept-a-ui-integration.spec.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c05fc2bbf0a67598e3b28d699bd05bf88b54655db31ee8ec0b473f591088aefb",
+      "lines": 152
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue300-g2-live-browser.mjs",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "d2e6936893cd81af9dddb99c43207910a8b4a152c0d74bb6c48aafbd20717532",
+      "lines": 249
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue300-live-disclosure.spec.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "5c7b76eb8244b1ed879677fef986937ce034bc26d24eb38ec46daa545b5477ec",
+      "lines": 55
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue300-original-shell-zoom-baseline.spec.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "508fedd5c331186c12097bdbbd446bab5c7eb3e474b794f4cf46961f40432f75",
+      "lines": 46
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue300-real-source-identity.spec.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "55e69fedc4183a847838d928898f089ac368ba0286afa96d8a6dab7790e4f7d5",
+      "lines": 81
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue304-header-geometry.spec.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "9c7f25164b2b7e149b37a2aaabe91cad037f1d0060cb223bb87599b70270c9bd",
+      "lines": 120
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/management-settings.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "511c1f08755a9507fa4954d5c9014f8e14ceae5bbab19420094d590e4aa1f873",
+      "lines": 138
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/management-settings.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "9f9f6054a97d54fa9c6c9f9d6eec13fbabf44f85ba928d8fcd3d8da5bde1fe97",
+      "lines": 227
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/management-visit-contacts.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "122d273a27345e8f1a75928274a6b4a1e62236aa18687e9f288d874b37fb8d4a",
+      "lines": 86
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/management-visit-contacts.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "71229d3944de24b106b7e6df5566d374ece2590fae8623b7ddbda356c92e5642",
+      "lines": 135
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/map-setup.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "782b7a55ba073baba308108c56c4edd843581240d5944005c377f05320b2a941",
+      "lines": 158
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/map-setup.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "9bcc1cc85f7b55eecac187f5512608b831c3fad0dc8dae5fb6e5f500eb33a7e4",
+      "lines": 145
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/mark-ready.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "bcbbda1b37148ecf0ce3582308b32885893a8ab2f0cf43022d4dc5e2a83aef52",
+      "lines": 53
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/mark-ready.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "142003f1418cee15023f6c793f879615d121b7951616c995f9fe312cb75531b3",
+      "lines": 21
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/parking-spot-validation.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "3f9e91bc498a101630021a26a9a7697a159d80e335fa75b5db4f9e7eae545e25",
+      "lines": 83
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/parking-spot-validation.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b594948d8c5301674014b9fc4b634564388f6fbd68d273d82103aadec0a29f78",
+      "lines": 46
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/parking-zone-creation.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "a78dca134e39026be9dd1622b46a48309e375e1dd8f66ff0759858a84daf25d1",
+      "lines": 60
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/payment-projections.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "0e9731ef680cdc23c851adca4d2ce8ebceb706b07e991224dc3688eda9df010c",
+      "lines": 119
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/payments.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4d606866c57b5565cf8330146f4e3bd94a47dafc637038842ddcb53fe7eab1ab",
+      "lines": 235
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/payments.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "5ca00de3ef00c40fc6d2143ec5b90993405bfa74e482178c30bed54c0d21a5bd",
+      "lines": 209
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/physical-resource-configuration.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "1f307c6900d91507b21edbafee9369b2e55d130a5e0e5ebf6c4bb623d181d3c6",
+      "lines": 49
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/physical-resource-configuration.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2e6b34ba6bbc472d4f1d891bd69bca180b0cc56fb220f5e38b7bec320039fb7c",
+      "lines": 147
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/physical-resource-overview.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "cf5332cb1468a88be97a7e68eaf2d9efb2ecaaab012adf3c549b791e456dde42",
+      "lines": 145
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/physical-resource-overview.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "f5ba2a0e6ceed3788c8669c6901919d94587507f9dc83a4df50dd3d1d497cccb",
+      "lines": 140
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/plate-ocr.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2aacc718ce15b47c72b7079a68dbe0831fddfa782be4e297a9314ff5ad928cc6",
+      "lines": 66
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/plate-ocr.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "572a86c8f891c697e79b94100d0bbc80941725fec717d5e8216a4b5c3009b0cd",
+      "lines": 29
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/resource-occupancy.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7f05636aa1cc1ca4d0845ea0f200d655104b9308ef4ac580594425d359646ff0",
+      "lines": 80
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/resource-vehicle-identity.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "5c4318220aa37248ee55323a14a5ff1b9149ec10ae92d7a03c2a0bdba44b76c7",
+      "lines": 12
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/returning-check-in.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "04e2af2685a5f4c844eddedbf932ded04bc1388b60033d64d787d459cda7e8c3",
+      "lines": 147
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/returning-check-in.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b3c8893fde4793d336b433c746b02cefada042355e98913925f242f397454756",
+      "lines": 88
+    },
+    {
+      "worker": "contracts",
+      "path": "packages/contracts/src/route-history.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "609680b33343f53868f42469a5dcd881fa4525827e2fe7be545b255c8b637bf3",
+      "lines": 32
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-parking-start-test-fixture.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "d39d08b3a54365e668845f489e6bba131233bcba96fd8c94a6f2cb2e2d1ebeb3",
+      "lines": 132
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-parking-start-transport.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2f4e0d74c48c62f44642fa07d63cb480c7554ea46d6d668c5ba9c591aa1cdf62",
+      "lines": 92
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-parking-start-types.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "03921caf9017e94c59a9ac31e58dca495d1cd7839a2e8148ce10052f905cbe9d",
+      "lines": 50
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-process-death-handoff-test-fixture.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "0c70e8a5c1d1cadee893b578915cced387336c2102530fc7948a00a8babc2948",
+      "lines": 165
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-process-death-handoff.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6f166b5118be820740a830926bbc59c222aeb5b7b0392c8bedecd38a5508bfe3",
+      "lines": 182
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-process-death-journey-test-fixture.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "0410449cbdcf9bb01b5085a31007d58408b82c40b81b8678c4a975648f8200e4",
+      "lines": 72
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-process-death-parking.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "40c82725a0e63941dbc5d6e3764427f63074eb9ccc41545ae51bf2ac878ebcc1",
+      "lines": 227
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-process-death-release.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "a96846967e76d4bb0140947c832ee51564f174d91ed91536e313f029c319ad75",
+      "lines": 105
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-process-death-retrieval.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c7dda876cfc03065f0418a023d0f34fc19528ded2a272d777fb1b82d6b20a26d",
+      "lines": 173
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-process-death-shift-task.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "fd38874c240cc9f22dfc6b00ff280a21c7f4183e43258d6e8526c00100330c8a",
+      "lines": 212
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-release-flow-lifecycle.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ead4c8622040ca43514a9200affe6dd5b2403f75413b96b3a5327e02a37af9da",
+      "lines": 128
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-release-flow-session.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b638ce03d18fbbb63396ce580550a40f27e30979006ccca8f887d60e19ab67e2",
+      "lines": 258
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-release-flow-session.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "3030fce45277a48400185f6ed02280cdbfd650afc8aa1e6f29656fa710756602",
+      "lines": 277
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-release-flow-state.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "75fa34c413a9542fdf2fff1388c739631e121654140c325dfa3f6f1fdd7ef80c",
+      "lines": 133
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-release-flow-test-fixture.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "f0b372348b7b2b4d751e64e681f4d4b47441397dbb39b1ffc4193969277f56b8",
+      "lines": 113
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-release-flow-transport.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "065c5c3e2de95b046424a7ec88f394df67793674ddd2b1e76da9f921bec7761d",
+      "lines": 45
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-release-flow-types.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "87f9ecf0474d71d2b1df2615b72f82f1052cff90b0fe257c9d1fbee589f33690",
+      "lines": 55
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-retrieval-attention.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ad4d3dc97d0c9cc2513d83a3fab28860cef0b858c6da67991bac7eb1caa36bb9",
+      "lines": 169
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-retrieval-attention.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "65512894a9c1f521a944ec178a322333646e1149225944ee4afc4f48a11c9b18",
+      "lines": 125
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-retrieval-flow-fences.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "64c597dfb747e13e1255ed1ff449a436559edf229e738c0b11c70fbeeb924531",
+      "lines": 159
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-retrieval-flow-session.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "30284238131e85545e55288b6898abf0eb85001d5925366a71c0d03da0fbcd0f",
+      "lines": 296
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-retrieval-flow-session.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7b73ed285befbc66fcff686c22ca5abab0baee29ab5a890e951e8da6c80ef68f",
+      "lines": 298
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-retrieval-flow-state.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c0818430f587eeee9837201be037552b207d2f4bb8cc79a7c7099c2508c5df2d",
+      "lines": 280
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-retrieval-flow-test-fixture.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "5d94f8b89bab7d5a143d5169ce711dba246a5d1b89d89f5771aa72709591f9e6",
+      "lines": 176
+    },
+    {
+      "worker": "employee",
+      "path": "packages/employee-client/src/employee-retrieval-flow-transport.test.ts",
+      "batch": "C009",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "135ded8e8546238109807e92edb484c4ea8f4487971223ff7103041f96bd1ece",
+      "lines": 72
+    },
+    {
+      "worker": "prime",
+      "batch": "C009",
+      "path": "apps/api/src/modules/management/audit-investigation/search/search-integrity.ts",
+      "lines": 107,
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "655498dfd08896a09a2c7b132b7fd3d30dda96681887884776f0ed9edcc09abb"
+    },
+    {
+      "worker": "prime",
+      "batch": "C009",
+      "path": "apps/api/src/modules/management/audit-investigation/search/search-page-query.ts",
+      "lines": 204,
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "9c07fa405d2c9a49fae239bf82a3e3cf46c9498c66082d143dfbc46d102fc45c"
+    },
+    {
+      "worker": "prime",
+      "batch": "C009",
+      "path": "apps/api/src/modules/management/audit-investigation/search/search-selector-authorization.ts",
+      "lines": 37,
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "366a01eaec0317b714103b6dbb628a6638ff3fb2363a3a8fd0d86ce36e316355"
+    },
+    {
+      "worker": "prime",
+      "batch": "C009",
+      "path": "apps/api/src/modules/management/audit-investigation/search/search-selector-cursor.ts",
+      "lines": 97,
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6411ff1fd70bd84a78ddca7b1fe2053892746b5aa5c9e5d9b3846257b5297bdc"
+    },
+    {
+      "worker": "prime",
+      "batch": "C009",
+      "path": "apps/api/src/modules/management/audit-investigation/search/search-selector-query.ts",
+      "lines": 156,
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b54cc0ffbb3ed785eac81d445a44c769b0b68770d9d68aa3530c19ecc2faad78"
+    },
+    {
+      "worker": "prime",
+      "batch": "C009",
+      "path": "apps/api/src/modules/management/audit-investigation/search/search-witness-sql.ts",
+      "lines": 180,
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "57e84e5ababb715084e50f722b900c7b7ceecd153b635b550a78d8bb1691058d"
+    },
+    {
+      "worker": "prime",
+      "batch": "C009",
+      "path": "apps/api/src/modules/management/audit-investigation/security/audit-investigation-authorization.ts",
+      "lines": 56,
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "5cfaf00bd06d7128f3f516716f99a7141f59588cf73536774632702795c31813"
+    },
+    {
+      "worker": "prime",
+      "batch": "C009",
+      "path": "apps/api/src/modules/management/audit-investigation/security/audit-investigation-source-boundary.ts",
+      "lines": 85,
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "aa03fed29268038137de0c2087206c919cfe833c44f04e14e52d06fc412537fa"
+    },
+    {
+      "worker": "prime",
+      "batch": "C009",
+      "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline-indirect-audit.ts",
+      "lines": 126,
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "fe0af48c20762d476f28611c088701efc4a10750a3c4c4a768310271b7584c7b"
+    },
+    {
+      "worker": "prime",
+      "batch": "C009",
+      "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline-read-service.ts",
+      "lines": 273,
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "455181997a5afaec7d71d152f3758a717e0006e942b7360c8b6a867d631b207d"
+    },
+    {
+      "worker": "prime",
+      "batch": "C009",
+      "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline-safe-projection.ts",
+      "lines": 228,
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "bd10f2f482f1f527920e8a9a3a13239e3a4e626af6b4f0f59c1af10be76f4669"
+    },
+    {
+      "worker": "prime",
+      "batch": "C009",
+      "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline-session-query.ts",
+      "lines": 77,
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "17435b08b00963682d03a91e36ab0fb585da404170fe1461373182cddce9bc9c"
+    },
+    {
+      "worker": "prime",
+      "batch": "C009",
+      "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline-source-query.ts",
+      "lines": 263,
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2707daa61e89da4a4dd0879b4ebfd084809efffc7bf56258b394a76f43381050"
+    },
+    {
+      "worker": "prime",
+      "batch": "C009",
+      "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline.controller.ts",
+      "lines": 166,
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6a1a67a1f613d42e565d2d98451b7f135beccba6bb6ab048afceaa9bd3521e34"
+    },
+    {
+      "worker": "prime",
+      "batch": "C009",
+      "path": "apps/api/src/modules/management/company-admin-rr-snapshot.ts",
+      "lines": 43,
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "46584f7d7705ee9ca3cc1ff01c0629dd9a37aed4e6030fe0d11840328562d891"
+    },
+    {
+      "worker": "prime",
+      "batch": "C009",
+      "path": "apps/api/src/modules/management/company-analytics-coverage-query.ts",
+      "lines": 84,
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "23b962066b4af9054ee3e1255f8b02b14b3cccb7b39b35d8197bb91c5b72a0ce"
+    },
+    {
+      "worker": "prime",
+      "batch": "C009",
+      "path": "apps/api/src/modules/management/company-analytics-financial-query.ts",
+      "lines": 147,
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b0007de7d6cef9a7fdbb1d0c7d6957c8edc633231bc935ae0f3272b8fbf9530e"
+    },
+    {
+      "worker": "prime",
+      "batch": "C009",
+      "path": "apps/api/src/modules/management/company-analytics-incidents-query.ts",
+      "lines": 76,
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c21fde45a5338f537458fb56014a07c67acc335d8e373383b04dcc333ddd0a10"
+    },
+    {
+      "worker": "prime",
+      "batch": "C009",
+      "path": "apps/api/src/modules/management/company-analytics-kpi-query.ts",
+      "lines": 177,
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4ec446d269e366e78bc57083f851df5579fd313abff420494fd25ac99c445e8b"
+    },
+    {
+      "worker": "prime",
+      "batch": "C009",
+      "path": "apps/api/src/modules/management/company-analytics-operations-query.ts",
+      "lines": 112,
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4bf24727eafe3775024e4d6b880e4692ab753b11f6e0def90879073c638e9d5b"
+    }
+  ],
+  "reviewer_attribution": [
+    {
+      "area": "native",
+      "filename": "C009-native-results.json",
+      "count": 35,
+      "reviewer": "worker-18"
+    },
+    {
+      "area": "prime",
+      "filename": "C009-prime-results.json",
+      "count": 20,
+      "reviewer": "prime"
+    },
+    {
+      "area": "dashboard",
+      "filename": "C009-RB001-dashboard-results.json",
+      "count": 25,
+      "reviewer": "worker-4"
+    },
+    {
+      "area": "database",
+      "filename": "C009-RB001-database-results.json",
+      "count": 25,
+      "reviewer": "c009_database_replacement"
+    },
+    {
+      "area": "backend",
+      "filename": "C009-RB001-backend-results.json",
+      "count": 25,
+      "reviewer": "c009_backend_review"
+    },
+    {
+      "area": "contracts",
+      "filename": "C009-RB001-contracts-results.json",
+      "count": 25,
+      "reviewer": "c008_contracts_review"
+    },
+    {
+      "area": "employee",
+      "filename": "C009-RB001-employee-results.json",
+      "count": 25,
+      "reviewer": "prime"
+    }
+  ]
+}

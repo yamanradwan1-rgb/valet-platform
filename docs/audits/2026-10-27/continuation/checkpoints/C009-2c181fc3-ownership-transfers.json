@@ -1,0 +1,702 @@
+[
+  {
+    "path": "packages/database/scripts/staff-management-runtime-privileges.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/scripts/staff-onboarding-runtime-privileges.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/scripts/staff-push-runtime-privileges.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/scripts/verify-issue215-p5-local.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/scripts/verify-issue215-p5-photo-fact.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261022010200_issue316_guest_information_authority/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/prisma/phase3-resource-seed.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/prisma/seed.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/scripts/condition-photo-management-lock-owner.test.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/scripts/physical-resource-runtime-privileges.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/scripts/provider-event-runtime-privileges.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/scripts/provision-condition-photo-maintenance-role.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/scripts/provision-guest-push-worker-role.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/scripts/provision-outbound-principals.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/scripts/runtime-feature-privilege-verification.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/scripts/runtime-privilege-verification-helpers.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/scripts/runtime-staff-authority-revokes.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/scripts/runtime-table-privileges.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/scripts/shift-force-end-runtime-privileges.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/scripts/shift-presence-runtime-privileges.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/scripts/verify-issue309-management-photo-lock-pg17.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/scripts/verify-runtime-table-privileges.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/scripts/visit-contact-runtime-privileges.mjs",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/src/audit-foundation-constraints.integration.test.ts",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/database/src/audit-foundation-migration.integration.test.ts",
+    "original_worker": "database",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/incidents/incident-operation-lock.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/incidents/incident-recovery-records.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/incidents/incident-recovery.controller.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/incidents/incident-reporting.controller.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/incidents/incident-reporting.service.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/keys/assign-key-slot-command.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/keys/clear-key-slot-command.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/keys/key-audit-event-writer.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/keys/key-command-guards.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/keys/key-custody.controller.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/keys/key-custody.module.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/keys/key-custody.service.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/keys/key-errors.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/keys/key-session-authorization.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/keys/key-transaction.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/keys/key-types.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-cursor.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-u05-build-digest.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-u05-indirect-guard.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-u05-ledger-runtime.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-u05-policy.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-u05-proof-attestation.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-u05-proof-files.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/search/audit-investigation-search.controller.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/search/audit-investigation-search.service.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "c009_backend_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/management-settings.test.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/management-settings.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/management-visit-contacts.test.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/management-visit-contacts.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/map-setup.test.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/map-setup.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/mark-ready.test.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/mark-ready.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/parking-spot-validation.test.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/parking-spot-validation.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/parking-zone-creation.test.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/payment-projections.test.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/payments.test.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/payments.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/physical-resource-configuration.test.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/physical-resource-configuration.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/physical-resource-overview.test.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/physical-resource-overview.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/plate-ocr.test.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/plate-ocr.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/resource-occupancy.test.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/resource-vehicle-identity.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/returning-check-in.test.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/returning-check-in.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/contracts/src/route-history.test.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-parking-start-test-fixture.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-parking-start-transport.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-parking-start-types.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-process-death-handoff-test-fixture.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-process-death-handoff.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-process-death-journey-test-fixture.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-process-death-parking.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-process-death-release.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-process-death-retrieval.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-process-death-shift-task.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-release-flow-lifecycle.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-release-flow-session.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-release-flow-session.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-release-flow-state.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-release-flow-test-fixture.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-release-flow-transport.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-release-flow-types.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-retrieval-attention.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-retrieval-attention.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-retrieval-flow-fences.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-retrieval-flow-session.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-retrieval-flow-session.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-retrieval-flow-state.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-retrieval-flow-test-fixture.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  },
+  {
+    "path": "packages/employee-client/src/employee-retrieval-flow-transport.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "prime",
+    "batch": "C009",
+    "reason": "authorized full semantic reviewer replacement/reassignment"
+  }
+]

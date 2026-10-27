@@ -19,3 +19,5 @@ The commit containing this file is the checkpoint publication identifier; inspec
 |D001|15 new/stale new-main semantic reviews and P2 monitoring candidate|1312/4,711 files;148631/611038 lines|[checkpoint](checkpoints/D001-2c181fc3.md), [summary](checkpoints/D001-2c181fc3-coverage-summary.json)|
 
 |C008|Complete 180 disjoint semantic reviews at current main|1492/4,711 files;171431/611038 lines|[checkpoint](checkpoints/C008-2c181fc3.md), [summary](checkpoints/C008-2c181fc3-coverage-summary.json)|
+
+|C009|Complete 180 disjoint semantic reviews at current main|1672/4,711 files;193240/611038 lines|[checkpoint](checkpoints/C009-2c181fc3.md), [summary](checkpoints/C009-2c181fc3-coverage-summary.json)|
