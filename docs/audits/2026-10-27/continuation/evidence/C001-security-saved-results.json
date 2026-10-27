@@ -1,0 +1,310 @@
+[
+  {
+    "path": "apps/api/src/modules/auth/mfa/local-mfa-bypass.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "15b67130d2e9486a25cdc8a52ce257df8bdc38415e155f60e664a54959609670",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "Local MFA development bypass",
+    "review_notes": "Only exact true enables; NODE_ENV must be development and database hostname loopback postgres. Policy is process-cached after bootstrap. Request inputs cannot enable it; localhost port forwarding/incorrect deployment configuration not treated as remote exploit.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 68
+      }
+    ],
+    "callers_consumers": "main.ts configureLocalMfaBypassPolicy; mfa assurance/state/RR fence localMfaBypassEnabled",
+    "error_authorization_state_checks": "No auth/session skip before transactional require; environment-only opt-in; invalid mode/remote URL throws.",
+    "test_evidence": "local-mfa-bypass.test.ts discovered, not rerun",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-anti-abuse.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2c2b51c1d5110db93e62527c1ca7ea5281e8db04621223f78d71e166048f028c",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "MFA attempt accounting",
+    "review_notes": "TOTP and recovery attempts have distinct user-scoped reservations, threshold 5, counted only on verification failure. Success finalization may share factor transaction; outage exceptions propagate. Pending reservation semantics deferred to anti-abuse implementation.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 53
+      }
+    ],
+    "callers_consumers": "Enrollment/StepUp/Recovery services",
+    "error_authorization_state_checks": "User ID comes from resolved session; reserve denies with bounded retry; finalization never receives raw code.",
+    "test_evidence": "Call sites reviewed; anti-abuse internals outside assignment",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-assurance-policy.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a6fea75b75f7e5f47016d5621eb94387dce02c74a12939ea3990a7310b14d0fb",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "Session-bound MFA assurance",
+    "review_notes": "Assurance requires current factor, exact staff session/token, max8h, inactivity30m and sensitive5m; negative clock age denied. Transactional path locks/rechecks session/user before factor lookup; activity updates require live session/current factor and cannot refresh mfa_authenticated_at. Nontransaction require/assess is advisory until protected caller rechecks.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 222
+      }
+    ],
+    "callers_consumers": "management authorization, dashboard read, tracking read; MfaStateService",
+    "error_authorization_state_checks": "No client assurance flag accepted; SQL matches token hash/user/session and role handled by callers. RR factor-fence dependency checked separately.",
+    "test_evidence": "DEC078 examined; multiple revocation-fence test paths discovered, not executed",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-crypto-config.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "eb3f38e0313466c50ebf0ed6112bdab6f0737e96af1b9815bef1dea031bbb27a",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "MFA key configuration",
+    "review_notes": "Requires canonical 43-character base64url encoding decoding to32bytes, separate encryption and recovery HMAC env names; malformed/missing values fail generic MFA_SECURITY_UNAVAILABLE. Read functions inspected without accessing environment values.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 32
+      }
+    ],
+    "callers_consumers": "mfa-secret-protection; mfa-recovery-code",
+    "error_authorization_state_checks": "Deployment config is trusted, no user-selected key path/algorithm.",
+    "test_evidence": "Source only; secret-protection test path discovered",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-enrollment.service.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7249bc8d5c5cee6e34b222369d3552bf16b08b1982af0d958d7929822b2164ad",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "MFA initial/pending enrollment",
+    "review_notes": "begin resolves current session, locks session/user and user advisory, requires management eligibility, rejects ACTIVE, re-discloses existing PENDING seed for same user. confirm locks factor by user/id, validates TOTP, activates factor/recovery rows/assurance/security audit atomically; verification failures count. Candidate: re-disclosure also applies PENDING created during self-recovery, with no original ceremony/session binding.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 198
+      }
+    ],
+    "callers_consumers": "StaffMfaController -> begin/confirm; recovery inserts pending via shared repository",
+    "error_authorization_state_checks": "Membership eligibility is user-global not tenant-scoped intentionally for user factor. Cross-user factor id rejected. Recovery pending capture hypothesis pending validation.",
+    "test_evidence": "mfa enrollment/recovery test inventory pending; no runtime execution",
+    "related_finding_ids": [
+      "SEC-011"
+    ],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ],
+    "coordinator_disposition": "SEC-C001-H01 promoted to SEC-011 HIGH-CONFIDENCE / RUNTIME UNVERIFIED after independent coordinator challenge and synthetic service-model reproduction."
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-errors.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "549634c356b5a7ecdf0c0577b569f6c052a8a073831f4f7d0a1ad09ab84dfdeb",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "MFA safe errors",
+    "review_notes": "Four error classes contain fixed messages/codes; rate-limited stores retryAfter only. No TOTP seed/code/factor verifier embedded in exception text.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 35
+      }
+    ],
+    "callers_consumers": "MFA services; common exception filter",
+    "error_authorization_state_checks": "MFA enrollment unavailable, verify failure and step-up classified distinctly; fixed strings only.",
+    "test_evidence": "Source only",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-factor-repository.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "74e1d4928d6120a1c5440758849ebbc8c72024bd3d8804dc58c9d6fd77b5c4d4",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "MFA factor persistence",
+    "review_notes": "Current factor restricted to user and PENDING/ACTIVE with FOR UPDATE; multiple current rows throw. Specific factor lookup also user-bound. insert pending has no session/ceremony binding fields; retire only current state, verifies exactly one row.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 86
+      }
+    ],
+    "callers_consumers": "Enrollment/Recovery/StepUp/State services",
+    "error_authorization_state_checks": "Current-user binding prevents cross-user factor replay; same-user pending recovery capture hypothesis depends on service semantics. DB uniqueness pending dependency.",
+    "test_evidence": "Source only; migration constraints not yet read",
+    "related_finding_ids": [
+      "SEC-011"
+    ],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ],
+    "coordinator_disposition": "SEC-C001-H01 promoted to SEC-011 HIGH-CONFIDENCE / RUNTIME UNVERIFIED after independent coordinator challenge and synthetic service-model reproduction."
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-recovery-code.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3493cc6a6ede15360c7859523b8223779b857f420dddcb6790049be92647d7a9",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "One-time recovery verifiers",
+    "review_notes": "Ten codes use64-bit random selector and160-bit random secret; HMACSHA256 binds user/factor/generation/selector/full code with separators. Equality timingSafeEqual over32bytes. Raw values returned only by authorized services; generation invalidates old rows semantically.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 106
+      }
+    ],
+    "callers_consumers": "Enrollment generates; Recovery looks up selector and verifies",
+    "error_authorization_state_checks": "Selector not sufficient to authenticate; known format alone cannot forge verifier without deployment HMAC key.",
+    "test_evidence": "Source only; no entropy probe or real values",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-recovery.service.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b8ca693f40be5f71c2f1234f3748fa240d7ebb7329586bbc926a4d8ad0a7ad11",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "MFA recovery and code reissue",
+    "review_notes": "Self-recovery requires active management session plus one unconsumed exact current-factor recovery code, atomically consumes/retire/inserts pending/audits. Existing assurance loses current-factor eligibility. Reissue requires fresh nonreplayed TOTP, increments generation and establishes assurance atomically. Candidate: replacement pending seed subsequently retrievable through generic enrollment.begin by another password-only same-user session.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 244
+      }
+    ],
+    "callers_consumers": "StaffMfaController recover/reissue; EnrollmentService pending branch",
+    "error_authorization_state_checks": "Factor/session/user locks serialize competing recovery and code reuse. No session binding persisted for replacement PENDING; candidate retained for disproof.",
+    "test_evidence": "Source only; no DB/provider operations",
+    "related_finding_ids": [
+      "SEC-011"
+    ],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ],
+    "coordinator_disposition": "SEC-C001-H01 promoted to SEC-011 HIGH-CONFIDENCE / RUNTIME UNVERIFIED after independent coordinator challenge and synthetic service-model reproduction."
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-rr-factor-fence.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "553c352fc414fa0f9853c02ed1c1d27c028732b5d46bfe3843c724309585bcfd",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "Repeatable-read MFA revocation fence",
+    "review_notes": "Explicit FOR SHARE factor joins exact session,user,token and ACTIVE state; after canonical locks RR concurrent recovery update yields40001 instead of stale factor acceptance; bypass is restricted local config. Requires caller lock order/transaction retry.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 32
+      }
+    ],
+    "callers_consumers": "company-admin-rr-snapshot and physical-resource-overview transaction references to verify",
+    "error_authorization_state_checks": "Helper only checks factor current; session/user/expiry are documented caller prerequisites, not standalone authorization.",
+    "test_evidence": "Source only; RR integration test paths referenced in inventory",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-secret-protection.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "06c577ee20230b2a9259b7a29cd2aab22cd0495edec07264b6800d890e32b0d8",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "TOTP secret encryption",
+    "review_notes": "AES256GCM random96-bit nonce,16-byte tag and AAD userId+factorId protect secret substitution; canonical base64url and exact32 base32 seed checked before use. All decrypt/parse errors normalize to unavailable. No real key/seed inspected.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 101
+      }
+    ],
+    "callers_consumers": "Enrollment/Recovery/StepUp through mfa-totp re-export",
+    "error_authorization_state_checks": "Attacker cannot choose arbitrary algorithm/key; DB ciphertext tamper rejected by AEAD. Seed strings remain in process memory as expected, not logged.",
+    "test_evidence": "mfa-secret-protection.test.ts discovered; not executed",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-session-repository.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e59eeb5a60a62c0b7080226cd786f1475436be328b37586bbb027540a0bf03c2",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "MFA session lock and eligibility",
+    "review_notes": "Session/token/user/revocation/access+absolute expiry checked with FOR UPDATE session,user. User advisory serializes factor ceremony. Eligibility accepts active ORG_ADMIN or LOCATION_MANAGER in active organization; establish assurance updates exact session and checks supplied DB time. Potential pre-lock wallclock sample delay noted, not demonstrated exploit.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 92
+      }
+    ],
+    "callers_consumers": "All MFA services and assurance helper",
+    "error_authorization_state_checks": "Management roles derived from persisted membership, not request. Session.now reused through ceremony; test/runtime long-lock semantics unverified.",
+    "test_evidence": "DEC078 contract inspected; no real DB race",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-state.service.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e802eb19593abd3024b9a39f302199de96e8e6c4e1cb012fb47050940a6d63d8",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "MFA public state projection",
+    "review_notes": "Returns only enrollment-required/pending/step-up/assured, after session and management-eligibility checks. Factor state snapshot released before fresh assurance.assess; therefore display can change but grants no authority. Local bypass reports assured after auth.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 52
+      }
+    ],
+    "callers_consumers": "StaffMfaController state -> management UI",
+    "error_authorization_state_checks": "No secret projected; retirement/recovery between reads may cause advisory stale state, protected mutations still use transactional assurance.",
+    "test_evidence": "Source only",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ]
+  }
+]

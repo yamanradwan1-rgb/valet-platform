@@ -1,0 +1,29 @@
+{
+  "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+  "original_publication_checkpoint": "38dd20039c051de39d172a2e3f440c68f3d60515",
+  "origin_main_at_resume": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+  "tracked_files": 7502,
+  "candidate_files": 4705,
+  "candidate_lines": 610400,
+  "starting_fully_reviewed": 491,
+  "starting_fully_reviewed_lines": 51676,
+  "new_fully_reviewed": 86,
+  "new_fully_reviewed_lines": 8703,
+  "status_totals": {
+    "tool_only": 4066,
+    "fully_reviewed": 577,
+    "partial": 50,
+    "not_reviewed": 12
+  },
+  "fully_reviewed_lines": 60379,
+  "remaining": 4128,
+  "file_percent": 12.26354941551541,
+  "line_percent": 9.891710353866317,
+  "duplicate_paths": 0,
+  "source_hash_mismatches": 0,
+  "scope_reclassifications": 0,
+  "C001_assigned": 305,
+  "C001_completed": 86,
+  "C001_pending": 219,
+  "worker_final_reports_available": false
+}

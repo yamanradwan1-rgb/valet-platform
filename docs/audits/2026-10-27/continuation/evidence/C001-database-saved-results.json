@@ -1,0 +1,670 @@
+[
+  {
+    "path": "packages/database/prisma/schema.prisma",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "31b368cfb2c3a2b7e9b47c7bdf4f33f614d1dfde3f730d52869350582d3439fc",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/audit-foundation-runtime-privilege-verification.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6e47a9fb10799b5a601130c46febd1f28cbd49e9851c74b81e689230f39ebab9",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "database",
+    "feature": "Account/tenant audit ACL verification",
+    "review_notes": [
+      "All table rights SELECT/INSERT/UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER checked; tenant insert allowed only12 named columns while table-level INSERT false;15-column schema cardinality explicit.",
+      "Account audit denies direct table/column read/write;8-column contract fixed. Public table+column ACLs inspected independently, append funcs exact signatures require safe owner/search_path/definer/ACL and runtime allow/deny; missing rows short-circuit false and top-level throws. Parallel catalog reads are independent; parent provisioning transaction controls atomicity."
+    ],
+    "read_ranges": [
+      [
+        1,
+        230
+      ]
+    ],
+    "callers_consumers": [
+      "runtime-feature-privilege-verification.mjs:verifyRuntimeFeaturePrivileges",
+      "verify-runtime-table-privileges.mjs"
+    ],
+    "error_authorization_state_checks": [
+      "Evaluated all exported functions and loops/optional-row branches; grants are static parameterized commands; current request authority lives in SQL functions/application caller, not this administrative helper."
+    ],
+    "test_evidence": [
+      "audit-foundation-runtime-role.integration.test.ts",
+      "audit-foundation-constraints.integration.test.ts",
+      "No tests executed in C001; existing original results retained separately."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full relevant SQL function bodies/latest replacements and current production role/catalog state not certified by this file review."
+    ]
+  },
+  {
+    "path": "packages/database/scripts/audit-foundation-runtime-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b9d1850a6d8c5701aab9256442378335bc1227d25774f6676e06778318abc7cb",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "database",
+    "feature": "Account audit function-only append",
+    "review_notes": [
+      "Explicitly clears PUBLIC/runtime table and known-column ACLs including REFERENCES; no direct account audit privileges are granted.",
+      "Controlled append function and runtime wrapper both revoked before only runtime wrapper execute granted; quoted runtime identifier via executeFormatted; signatures static. Caller provision-append-only-tables runs inside owning provisioning transaction; no internal commit/DB URL/provider side effect."
+    ],
+    "read_ranges": [
+      [
+        1,
+        71
+      ]
+    ],
+    "callers_consumers": [
+      "provision-append-only-tables.mjs:96",
+      "provision-runtime-role.mjs"
+    ],
+    "error_authorization_state_checks": [
+      "Evaluated all exported functions and loops/optional-row branches; grants are static parameterized commands; current request authority lives in SQL functions/application caller, not this administrative helper."
+    ],
+    "test_evidence": [
+      "audit-foundation-runtime-role.integration.test.ts",
+      "No tests executed in C001; existing original results retained separately."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full relevant SQL function bodies/latest replacements and current production role/catalog state not certified by this file review."
+    ]
+  },
+  {
+    "path": "packages/database/scripts/basic-branding-runtime-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "506ceb8625e1a65500215e9aba22df11c750810efe496d1924905e8d257008ca",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "database",
+    "feature": "Branding commands/read-only subscription",
+    "review_notes": [
+      "Subscription table reset to SELECT-only; exactly4 branding mutation signatures regranted and3 helpers denied by verification. No plan/status-derived authority invented.",
+      "Verifier checks table privileges7 ways and mutation definer/search_path/non-runtime owner/PUBLIC-denied; helper inherited execute fails. Column ACL drift not independently enumerated by this helper; global provisioning/verifier and migrations remain dependencies. No concrete harmful drift path established."
+    ],
+    "read_ranges": [
+      [
+        1,
+        126
+      ]
+    ],
+    "callers_consumers": [
+      "runtime-table-privileges.mjs:259",
+      "runtime-feature-privilege-verification.mjs:15"
+    ],
+    "error_authorization_state_checks": [
+      "Evaluated all exported functions and loops/optional-row branches; grants are static parameterized commands; current request authority lives in SQL functions/application caller, not this administrative helper."
+    ],
+    "test_evidence": [
+      "basic-branding-runtime-privilege.integration.test.ts",
+      "basic-branding-hardening.integration.test.ts",
+      "No tests executed in C001; existing original results retained separately."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full relevant SQL function bodies/latest replacements and current production role/catalog state not certified by this file review."
+    ]
+  },
+  {
+    "path": "packages/database/scripts/condition-photo-maintenance-policy.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c23373e266c098bf64a82b50623357fdbba9feb69006df2d439ced3a9fac31a2",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "database",
+    "feature": "Photo maintenance identity configuration",
+    "review_notes": [
+      "Parses migration with production TLS policy, separate API/maintenance URL identities, safe role regex and exact maintenance URL username; maintenance cannot equal API/migration role.",
+      "Requires same decoded database/host/port for all3 credentials; mismatch errors reveal no values; role preexistence/attributes enforced by caller not this pure parser. No calls/network/data mutations. Password equality not asserted as authorization guarantee."
+    ],
+    "read_ranges": [
+      [
+        1,
+        40
+      ]
+    ],
+    "callers_consumers": [
+      "provision-condition-photo-maintenance-role.mjs:26"
+    ],
+    "error_authorization_state_checks": [
+      "Evaluated all exported functions and loops/optional-row branches; grants are static parameterized commands; current request authority lives in SQL functions/application caller, not this administrative helper."
+    ],
+    "test_evidence": [
+      "condition-photo-privilege-policy.test.ts read supporting source; not rerun",
+      "No tests executed in C001; existing original results retained separately."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full relevant SQL function bodies/latest replacements and current production role/catalog state not certified by this file review."
+    ]
+  },
+  {
+    "path": "packages/database/scripts/condition-photo-maintenance-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e266ebaa3f9d235e8eb9015377d2b07526a527b57744d8064cb934d9d5d04968",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "database",
+    "feature": "Photo maintenance function-only ACL",
+    "review_notes": [
+      "Revokes table and every catalog column privilege for photo private and legacy tables; enumerates and revokes PUBLIC/runtime execute across condition_photo prefix; grants only8 maintenance signatures.",
+      "Verifier checks absence of any direct column/table permissions plus catalog function allowlist, PUBLIC/grant-option denial, allowed definer/safe path/non-maintenance owner. Missing required functions fail before privilege assumptions; parent transaction owns rollback. No transport call or deletion occurs in helper itself."
+    ],
+    "read_ranges": [
+      [
+        1,
+        72
+      ]
+    ],
+    "callers_consumers": [
+      "provision-condition-photo-maintenance-role.mjs:87-88"
+    ],
+    "error_authorization_state_checks": [
+      "Evaluated all exported functions and loops/optional-row branches; grants are static parameterized commands; current request authority lives in SQL functions/application caller, not this administrative helper."
+    ],
+    "test_evidence": [
+      "condition-photo-privilege-policy.test.ts read supporting mock boundary; condition-photo-runtime-privileges.integration.test.ts:138,179,207 referenced not executed",
+      "No tests executed in C001; existing original results retained separately."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full relevant SQL function bodies/latest replacements and current production role/catalog state not certified by this file review."
+    ]
+  },
+  {
+    "path": "packages/database/scripts/condition-photo-privilege-policy.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "479b2f178525eb2c7074964f5e384691a85e50a67608343c019b847d3490de1c",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "database",
+    "feature": "Shared photo ACL signatures/catalog",
+    "review_notes": [
+      "Four read tables +2 private admission/cleanup tables,7 runtime and8 maintenance function signatures; management evidence owner fixed NOLOGIN-role identity is separately provisioned.",
+      "Catalog restricts namespace public and exact prefix; tracks definer/path/owner/PUBLIC ACL/any grant option. photoFunctionIds resolves each requested signature and throws missing null OID; no SQL text interpolation from env/user; literal signature passed parametrically. Helpers include discovery of unexpected extra photo functions for deny-by-default."
+    ],
+    "read_ranges": [
+      [
+        1,
+        76
+      ]
+    ],
+    "callers_consumers": [
+      "condition-photo-runtime-privileges.mjs",
+      "condition-photo-maintenance-privileges.mjs"
+    ],
+    "error_authorization_state_checks": [
+      "Evaluated all exported functions and loops/optional-row branches; grants are static parameterized commands; current request authority lives in SQL functions/application caller, not this administrative helper."
+    ],
+    "test_evidence": [
+      "condition-photo-privilege-policy.test.ts read supporting source",
+      "No tests executed in C001; existing original results retained separately."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full relevant SQL function bodies/latest replacements and current production role/catalog state not certified by this file review."
+    ]
+  },
+  {
+    "path": "packages/database/scripts/dec103-online-index-rollout.sql",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ef2694ea131c84e91b8045555198f0561084a3442df1e0ae4d87082ca6e86d50",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/guest-browser-session-runtime-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0e70083154983d6c945f4f430e9280d0e07c18f5759b8e8880a687fa826a0d63",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/guest-information-runtime-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "46f45323a3bbb281adf0a54d2c01eb84016efb9a1a7c21b145a6490edcf3d1cf",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/guest-push-runtime-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a771bf2da380a48c81f4ad227dbab6d633fa245af4ef8646092c783a3863e4c0",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/guest-push-worker-provisioning-policy.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7fabec8987abf60744ccc462613ac27c6021f5385b24b49b23961e8a77ed6952",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/guest-push-worker-runtime-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "68cac98c4ca3d2ebd9c8a23750edf2197eb3f0afae4a1e8a69e9fb9614e2b14e",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/guest-rating-runtime-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b92552b1247d91fd2d555b613b87b59486ccf79aa8c2cba9cfa1a98116b7611b",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/guest-runtime-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "404e227720f32fe9b4d8cc9a4e1415609cb495c8dbd7e752269eff4a6d9f9a78",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/incident-recovery-runtime-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9677b11ee5803f398dcf3521ed6774130f3385305add53f3e73b0044dee89490",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/incident-resolution-runtime-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "58a4cc14221bd44dcd44f34c3517b439fd2e347e63b9e267fb8d66fa5b88bc52",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/location-configuration-runtime-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1b960f00b592cf43381b10c4e40747840e2df302dfc26f92e2bdfc891f9c879c",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/management-runtime-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2bd9b8d132def49b180a48e2560d5c81f8a8267a95ce1d983dd05480dedea087",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/management-settings-runtime-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2e28db7c6422196ee1372ec22ba07e04868a4745d2c39ec9501d3462a4b0d3fc",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/mfa-runtime-privilege-verification.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "713693939b32fbba7c6b69d189de67f2bcf062a2dc770cd6d3357970c843b6c6",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/mfa-runtime-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "425fdc89ade4a1d07768742c8cfba390685e45c884abdcc95121469e79433a42",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/outbound-binding-insert-smoke.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "80b3ded7b91a2612f169def9405941b924dadd5e21d9011cb1e7739bfeca261e",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/outbound-callback-crash-smoke.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3e6e73c8167c875d5cd9a3e8f085879cd1567d458c2538215031d8b91763081b",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/outbound-constraint-smoke.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4370f388310aeac1cda78c2af79e1a1618c7418db6166ad4b415047f21b202d5",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/outbound-late-callback-smoke.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e4cdee3e173808defc8ab6135bf0404d5380237a124bbac816c3fc9061d3399a",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/outbound-late-override-smoke.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d8f4f12ad2751f88ab06e22fb7feeafd3ef76304fd2eb1bf88ba5e74024fe46e",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/outbound-migration-smoke.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6f74d130f014e088edcc3d65e915791b397abbefe84fc57fea5771c4ed3b23aa",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/outbound-optout-smoke.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2a2726033c560fed3d93cd558b7a90ed63388bfcc35caa121a41998830b368df",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/outbound-phone-change-smoke.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "dd46088fa14f7802271347cc48a659e97f7550629ac0b51c35b2eca2d74ae5ea",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/outbound-principal-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3087eb5f0c200d7f8edbc70591b81667b062c077788625bb594ae87cb6564ba8",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/outbound-recovery-smoke.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "92c7294b50830a6f85cc2977f00621475eb9771f4463d0662fcda4a1c6c80bde",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/outbound-role-smoke.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9b649dfbd1a82ab8fe833dffe6a77b6125fd7bff3bf3e2aa89d7d665fa8d46aa",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/outbound-runtime-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "935e6ad5b82e3ffc6f2c3ba45a309e931faa17fdc1f659aaadb4426b8c221c54",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "packages/database/scripts/payment-collection-runtime-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fa497037fd33859e720c6a1a4f616a8143eedfa304cc6dedac92a811aa093df7",
+    "batch": "C001",
+    "status": "not_reviewed",
+    "reviewer": "database",
+    "feature": "",
+    "review_notes": [],
+    "read_ranges": [],
+    "callers_consumers": [],
+    "error_authorization_state_checks": [],
+    "test_evidence": [],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  }
+]

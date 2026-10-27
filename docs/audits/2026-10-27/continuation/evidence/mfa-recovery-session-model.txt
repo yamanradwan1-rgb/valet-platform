@@ -1,0 +1,49 @@
+PASS control: active factor blocks seed disclosure to password-only session
+PASS control: recovery replaces factor without assuring second session
+PASS reproduction: second session receives recovery-created replacement seed without recovery code
+PASS reproduction: second session activates replacement and establishes exact-session assurance
+PASS control: different user receives a separate factor
+{
+  "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+  "qualification": "synthetic-service-model-only",
+  "checks": 5,
+  "failed": 0,
+  "loaded_sources": [
+    {
+      "path": "apps/api/src/modules/auth/mfa/mfa-enrollment.service.ts",
+      "sha256": "7249bc8d5c5cee6e34b222369d3552bf16b08b1982af0d958d7929822b2164ad"
+    },
+    {
+      "path": "apps/api/src/modules/auth/mfa/mfa-errors.ts",
+      "sha256": "549634c356b5a7ecdf0c0577b569f6c052a8a073831f4f7d0a1ad09ab84dfdeb"
+    },
+    {
+      "path": "apps/api/src/modules/auth/mfa/mfa-factor-repository.ts",
+      "sha256": "74e1d4928d6120a1c5440758849ebbc8c72024bd3d8804dc58c9d6fd77b5c4d4"
+    },
+    {
+      "path": "apps/api/src/modules/auth/mfa/mfa-session-repository.ts",
+      "sha256": "e59eeb5a60a62c0b7080226cd786f1475436be328b37586bbb027540a0bf03c2"
+    },
+    {
+      "path": "apps/api/src/modules/auth/mfa/mfa-secret-protection.ts",
+      "sha256": "06c577ee20230b2a9259b7a29cd2aab22cd0495edec07264b6800d890e32b0d8"
+    },
+    {
+      "path": "apps/api/src/modules/auth/mfa/mfa-crypto-config.ts",
+      "sha256": "eb3f38e0313466c50ebf0ed6112bdab6f0737e96af1b9815bef1dea031bbb27a"
+    },
+    {
+      "path": "apps/api/src/modules/auth/mfa/mfa-totp.ts",
+      "sha256": "4c070a97a4420bfdedc1d50fd2efc07234d9f2fae9e4434c0693687ffcbfe03d"
+    },
+    {
+      "path": "apps/api/src/modules/auth/mfa/mfa-recovery-code.ts",
+      "sha256": "3493cc6a6ede15360c7859523b8223779b857f420dddcb6790049be92647d7a9"
+    },
+    {
+      "path": "apps/api/src/modules/auth/mfa/mfa-recovery.service.ts",
+      "sha256": "b8ca693f40be5f71c2f1234f3748fa240d7ebb7329586bbc926a4d8ad0a7ad11"
+    }
+  ]
+}

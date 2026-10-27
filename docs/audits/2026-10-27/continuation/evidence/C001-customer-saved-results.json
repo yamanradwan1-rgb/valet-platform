@@ -1,0 +1,136 @@
+[
+  {
+    "path": "apps/customer/next-env.d.ts",
+    "status": "fully_reviewed",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7b550dda9686c16f36a17bf9051d5dbf31e98555b30d114ac49fc49a1e712651",
+    "batch": "C001",
+    "reviewer": "/root/customer",
+    "feature": "Next generated type declarations",
+    "review_notes": "References Next and image globals plus generated .next route types; no executable export or branching. Missing generated route file on an unbuilt checkout is a build/type-generation prerequisite, not confirmed runtime defect. Honored assignment despite original generated declaration exclusion.",
+    "read_ranges": [
+      [
+        1,
+        6
+      ]
+    ],
+    "callers_consumers": [
+      "apps/customer/tsconfig.json via Next default inclusion"
+    ],
+    "error_authorization_state_checks": "No inputs, runtime auth, state or retry; generated declaration should not be edited.",
+    "test_evidence": "Source review only during C001; no execution. Existing 481/481 src test pass is historical evidence, not this file's semantic proof.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Next generated .next/types/routes.d.ts not part of immutable tracked source"
+    ]
+  },
+  {
+    "path": "apps/customer/qa/issue-316-b/visual.mjs",
+    "status": "fully_reviewed",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "15139287937b12f3b75ea9e01abcb5385b97f9572e5e7a1aee1f06c3c22b022d",
+    "batch": "C001",
+    "reviewer": "/root/customer",
+    "feature": "More-menu UI Freeze QA",
+    "review_notes": "Before/after-only CLI validation, four explicit viewport/locale/theme cases, localStorage initialization before navigation, row geometry/style/icon capture and exact survivor parity after removing photo row. Throws on parity or pageerror; browser finally cleanup exists. It cannot establish live feature correctness because there are no API/business assertions; controlled historical QA script, no new product defect.",
+    "read_ranges": [
+      [
+        1,
+        69
+      ]
+    ],
+    "callers_consumers": [
+      "manual QA command for issue316B",
+      "More menu header action and dialog"
+    ],
+    "error_authorization_state_checks": "TARGET_URL and evidence directory are trusted QA inputs; writes screenshots/json, launches browser; not executed. Context closes on success, browser finally handles failure. No source/DB auth mutation.",
+    "test_evidence": "Source review only during C001; no execution. Existing 481/481 src test pass is historical evidence, not this file's semantic proof.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "@playwright/test runtime",
+      "target app/provider state",
+      "historical before evidence files"
+    ]
+  },
+  {
+    "path": "apps/customer/qa/issue-335/browser-freeze-capture.mjs",
+    "status": "fully_reviewed",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1cc1d6fa46ffd33dd0cdcf45b3021ab526e72c03f53bfabe696505135b2d5824",
+    "batch": "C001",
+    "reviewer": "/root/customer",
+    "feature": "Browser frozen-presentation capture",
+    "review_notes": "Export returns capture callback that waits for finite animations/fonts and pauses infinite animations at time0, captures header-parent DOM/styles/bounds and page PNG. After phase compares exact baseline bytes and appends results. Captures do not themselves enforce pass/fail; matrix consumer does. Exact byte sensitivity is a historical baseline tool limit, not runtime bug.",
+    "read_ranges": [
+      [
+        1,
+        77
+      ]
+    ],
+    "callers_consumers": [
+      "qa/issue-335/browser-freeze-matrix.mjs screenshot callback"
+    ],
+    "error_authorization_state_checks": "Awaited read/write failures propagate to matrix catch; requires existing baseline after-phase files; no guest authorization state claim. Infinite animation freezing affects test page only.",
+    "test_evidence": "Source review only during C001; no execution. Existing 481/481 src test pass is historical evidence, not this file's semantic proof.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Playwright page browser implementation",
+      "baseline PNG/JSON evidence"
+    ]
+  },
+  {
+    "path": "apps/customer/qa/issue-335/browser-freeze-matrix.mjs",
+    "status": "fully_reviewed",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "53138caa8c66e9202b45ba14646bb33592f1ba03c5338c1a7fcd7cc2143e69e9",
+    "batch": "C001",
+    "reviewer": "/root/customer",
+    "feature": "5-state browser freeze matrix and zoom QA",
+    "review_notes": "Traces fixture server plus frozen capture helper across widths/locales/themes, PARKED/READY/unavailable/network/push-card. Native zoom uses isolated extension/persistent profile; mocked push key supports presentation only. Aggregates errors/differences and enforces five captures per combination with exit1; caught failure still cleanup/writes summary. No new product defect; no actual provider permission/delivery proof.",
+    "read_ranges": [
+      [
+        1,
+        250
+      ]
+    ],
+    "callers_consumers": [
+      "manual issue335 QA invocation",
+      "fixture.mjs",
+      "browser-freeze-capture.mjs"
+    ],
+    "error_authorization_state_checks": "Browser pageerror tracking, capture completeness and optional forward/reverse keyboard checks reviewed. SERVICE_UNAVAILABLE/GUEST_ACCESS_INVALID are injected fixture states, not real access tests. Phase/target overrides assume trusted QA operator; script not executed.",
+    "test_evidence": "Source review only during C001; no execution. Existing 481/481 src test pass is historical evidence, not this file's semantic proof.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "real browser native zoom and extension support",
+      "target dev server configuration",
+      "fixture.mjs until subsequent C001 review"
+    ]
+  },
+  {
+    "path": "apps/customer/qa/issue-335/ui-freeze-compare.mjs",
+    "status": "fully_reviewed",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8f51a4568699af36fab289feb2a755d48c971ff828added6dc1c87284fb13f88",
+    "batch": "C001",
+    "reviewer": "/root/customer",
+    "feature": "Static UI Freeze fingerprint guard",
+    "review_notes": "CLI compares changed/untracked customer files against baseline, rejects style/copy/public paths, parses TSX and compares JSX roots while normalizing handlers. Own self-test checks handlers/newlines allowed and direct JSX label/style rejected. Deliberately cannot prove computed-style parity when imported or local non-JSX constants change; reported limitation is explicit and browser QA supplements it. Deleted TSX may throw readFile rather than structured violations but still fails closed; no new product defect.",
+    "read_ranges": [
+      [
+        1,
+        185
+      ]
+    ],
+    "callers_consumers": [
+      "manual issue335 freeze validation invocation"
+    ],
+    "error_authorization_state_checks": "git uses execFileSync argv without shell; no commit/write operations. Parse diagnostics throw. Arbitrary baseline and candidate are trusted operator inputs; no runtime auth/state or retries.",
+    "test_evidence": "Source review only during C001; no execution. Existing 481/481 src test pass is historical evidence, not this file's semantic proof.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "TypeScript AST parser version",
+      "browser visual/behavior QA for non-JSX effects"
+    ]
+  }
+]

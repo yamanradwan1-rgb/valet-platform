@@ -1,0 +1,2191 @@
+[
+  {
+    "path": "apps/api/src/modules/payments/cash-audit.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6c12b90656204402ba8cd174fb617f9bfe6c9c9dd0fb62be6c8ca56f104b0db8",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Cash receipt/adjustment audit",
+    "review_notes": "Inspected all receipt/increase/decrease selection branches and nine INSERT parameters. The event binds trusted canonical payment organization/location/session, actor membership and cash-entry ID; metadata records amounts/currency/status but excludes adjustment reason or external payload. Awaited SQL runs in the cash command transaction, so audit failure rolls the receipt/projection back.",
+    "read_ranges": [
+      [
+        1,
+        50
+      ]
+    ],
+    "callers_consumers": [
+      "cash-command.ts:createCashReceiptExecutor/createCashAdjustmentExecutor → appendCashMutationAudit; cash-entry/audit projections consume events"
+    ],
+    "error_authorization_state_checks": "No local auth decision: caller authorizeCashMutation and canonical payment lock establish scope. Three controlled entry types map to three events; no dynamic SQL fields. Optional ID factory is test-only injection.",
+    "test_evidence": [
+      "Existing cash-api/collection integration suites discovered; not executed in C001. Caller cash command was reviewed previously."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Complete audit catalog/read projections not rereviewed in C001"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/cash-errors.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4d218b71ad93452a9bdd2804ba1b34f2c2fb5fcab11ade076e497519bc4f574c",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Cash domain error contract",
+    "review_notes": "Read every seven-code union member and matching safe message; class retains typed code/name and no raw SQL/provider payload. The authorization message conceals resource existence. This module is definition-only and cannot authorize a receipt.",
+    "read_ranges": [
+      [
+        1,
+        23
+      ]
+    ],
+    "callers_consumers": [
+      "cash-command.ts/cash-authorization.ts/cash-money.ts throw; payment-http.ts:throwPaymentHttp translates"
+    ],
+    "error_authorization_state_checks": "Closed code/message map; no mutable global or side effects. HTTP mapping checked in this batch separately.",
+    "test_evidence": [
+      "cash integration error assertions identified; no new runtime execution."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "apps/api/src/modules/payments/cash-mutation.service.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a2f59a87245db849ea8432e1d2dc9a7750ccc90f1dacbd83dcfe8a671ac44ec6",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Cash HTTP-to-command wiring",
+    "review_notes": "Both executors are created once from the injected runtime pool; receipt forwards StaffCashScope plus receipt key, adjustment forwards the typed amount/type/reason. No request field substitution, second commit or swallowed errors exists.",
+    "read_ranges": [
+      [
+        1,
+        36
+      ]
+    ],
+    "callers_consumers": [
+      "staff-payment.controller.ts:receiveCash/adjustCash → receipt/adjustment → cash-command.ts"
+    ],
+    "error_authorization_state_checks": "Service does not independently grant authority; trusted authenticatedUserId/session and schema-valid body come from controller, domain revalidates persisted actor/shift/payment. Rejections propagate.",
+    "test_evidence": [
+      "Cash API integration suite is relevant, not run in C001."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Runtime request credential fencing is owned by shared auth review"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-audit.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fe3355a71bbbc3fecb659441fe12ec0a0b58e60f73b5f3f1faffbb5e0cca5359",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Digital initiation event trail",
+    "review_notes": "Read four allowed event kinds and fixed SYSTEM actor INSERT. Only operation/payment/provider/state/optional normalized safe result code enter metadata. PREPARED, dispatch-guard and result audit calls all execute inside their owning payment transaction; financial success is not asserted by these events.",
+    "read_ranges": [
+      [
+        1,
+        52
+      ]
+    ],
+    "callers_consumers": [
+      "digital-collection-command.ts prepareOperation/fenceDispatch/persistResult → appendDigitalCollectionAudit"
+    ],
+    "error_authorization_state_checks": "No token/reference/raw adapter body is inserted. Trust in normalized provider/safeCode is explicit dependency; identity comes from persisted operation/payment, not public input.",
+    "test_evidence": [
+      "Digital collection outcomes/atomicity test files identified; not executed in C001."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-command.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3342eada77cc6c969789c8adaeb6cd638101f10349e205f62c76a3cb9e212f4b",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Durable outbound digital collection",
+    "review_notes": "Traced all 297 lines: validate → lock payment → resolve same-key retry before fresh guards → reject incompatible immutable facts → fresh policy/positive representable amount/no prior cash or processed external collection evidence → reject unresolved operation → snapshot configured provider → conflict-safe PREPARED insert/projection/audit. A separate committed PREPARED→OUTCOME_UNKNOWN CAS picks one dispatcher; I/O occurs without a DB transaction, with persisted operationId. Throws/malformed/ambiguous provider results retain OUTCOME_UNKNOWN; reference/rejection updates and audit commit together. Existing non-PREPARED operations return without redispatch; an unavailable historical adapter leaves PREPARED. 23505 on result persistence becomes safe state conflict. Default real registry is unconfigured and no public HTTP route consumes service, per DEC054; no missing public auth bug established.",
+    "read_ranges": [
+      [
+        1,
+        297
+      ]
+    ],
+    "callers_consumers": [
+      "DigitalCollectionService.initiate internal export; no app controller caller located",
+      "digital-collection-test-context.ts builds executor with fake registry; outcomes/concurrency suites consume it"
+    ],
+    "error_authorization_state_checks": "Request validates UUID/key; tenant/amount/provider derive from canonical payment. Internal caller is trusted (explicit DEC054 no public route). Payment row lock plus DB unresolved uniqueness serialize prepare. Dispatch CAS prevents blind duplicate calls; unknown outcome intentionally nonreplayed. Full callback-first/settlement result schedules still need DB proof.",
+    "test_evidence": [
+      "Read DEC054 lifecycle/retry/freeze/non-goals. Existing digital-collection-{initiation,outcomes,concurrency}.integration.test.ts discovered; not executed here."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full runtime-role column ACL and adapter-specific callback authentication not reviewed in this batch"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-errors.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "455067e32164c5c52cedacf497318c74f8846f1c0d0559ec67054d4bdd79fde3",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Internal collection errors",
+    "review_notes": "Four exhaustive typed codes distinguish provider unavailable, submission mismatch, unresolved work and current state conflict; safe human strings carry no provider body or row details. Kept internal per DEC054, no invented HTTP route/mapping.",
+    "read_ranges": [
+      [
+        1,
+        23
+      ]
+    ],
+    "callers_consumers": [
+      "digital-collection-command.ts, transitions.ts, validation.ts throw; internal service consumer receives code"
+    ],
+    "error_authorization_state_checks": "No independent authentication or state mutation; internal class preserves code/name.",
+    "test_evidence": [
+      "Existing digital collection integration negative paths discovered; not executed."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-repository.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3164d4caeb160f008a48986b3d3c32e63b3096383af88bf8e3989e94e5a7747a",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Canonical payment and collection persistence",
+    "review_notes": "Inspected all SQL and row projections. Payment join enforces matching org/location/session and locks payment row; submission/operation lookups bind organization. External evidence excludes FAILED processed events to permit approved reattempts, but always excludes cash history. Unresolved set exactly PREPARED/OUTCOME_UNKNOWN/REFERENCE_ATTACHED. Conflict-safe insert returns null for caller reclassification, never invents a winner. Prepared payment projection requires UNPAID/FAILED, zero paid and positive due; caller owns current policy/provider checks and transaction.",
+    "read_ranges": [
+      [
+        1,
+        218
+      ]
+    ],
+    "callers_consumers": [
+      "digital-collection-command.ts prepare/retry",
+      "digital-collection-transitions.ts operationColumns/operationFromRow/findOperationById",
+      "provider-event-repository.ts later resolves collection row"
+    ],
+    "error_authorization_state_checks": "Parameterized SQL; no client-controlled table/column interpolation (operationColumns is module constant). Does not itself authenticate trusted internal caller. FOR UPDATE payment serializes same-payment preparation; unique indexes needed for org-key collision across payments.",
+    "test_evidence": [
+      "DEC054 invariant comparison; digital concurrency suite identified but no DB schedules executed."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Migration028 uniqueness/state matrix and current runtime privileges not fully semantically rereviewed here"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-transitions.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bf0a1e187ac24b5bce7f9b2119201aa3294689e518ba8171eb6ee42f23b01903",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Collection CAS and result projection",
+    "review_notes": "Read PREPARED→OUTCOME_UNKNOWN guarded update and canonical loser reread. Reference attachment requires OUTCOME_UNKNOWN then conditionally updates only UNPAID DIGITAL payment with same provider/zero paid/null paidAt; failed second write throws and caller transaction rolls back operation state. REJECTED is terminal with resolvedAt. No PAID write exists. Parent transaction/audit are required; transient provider response is normalized before this helper.",
+    "read_ranges": [
+      [
+        1,
+        116
+      ]
+    ],
+    "callers_consumers": [
+      "digital-collection-command.ts:fenceDispatch/persistResult"
+    ],
+    "error_authorization_state_checks": "Organization/id/state predicates fence writes; no unconditional replay. A callback-first transition to RESOLVED makes stale response attachment conflict rather than overwrite finance. That fail-closed outcome is not a duplicate-charge defect.",
+    "test_evidence": [
+      "DEC054 state matrix reviewed; outcome/concurrency tests identified, not executed."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Real callback/provider protocol unavailable"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-types.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a4c6c28f275ec46bf22dcbf15b584e3c5429bc6611a9fce79895c905fc510ae7",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Collection immutable snapshot/type contract",
+    "review_notes": "All five operation states and optional lifecycle fields read against command/repository mappings. Internal request intentionally contains only session UUID and submission key; persisted payment owns tenant/location/amount/currency/provider. Operation snapshot carries retry identity distinct from provider reference. Date fields stay server-side Dates, not public JSON.",
+    "read_ranges": [
+      [
+        1,
+        42
+      ]
+    ],
+    "callers_consumers": [
+      "command.ts/repository.ts/transitions.ts/audit.ts and DigitalCollectionService"
+    ],
+    "error_authorization_state_checks": "Type declarations do not validate runtime null/state coherence; command normalizers and SQL state constraints own that boundary. No overclaim of type-only enforcement.",
+    "test_evidence": [
+      "No isolated type-mirroring test needed; checked consumers in same batch."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "SQL row matrix enforcement delegated to DB review"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-validation.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "98aeda0ee5c5231c2b2a6c8745daf94a9f88fe44d87f6ea9253f3ca08ea3e918",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Internal collection request/provider normalization",
+    "review_notes": "Inspected UUID/key validation, bounded printable provider identifiers/references, safe-code regex and all normalize-result branches. Registry exceptions become unavailable. Invalid/missing safeResultCode, unknown result kind, malformed reference or nonobject becomes OUTCOME_UNKNOWN, never REJECTED. Reference strings trim then forbid C0/DEL with400-char bound; provider IDs capped100 and safe code100. This is an internal trusted-adapter boundary; malformed request object null itself lacks a guard, but no public route calls it and no relevant exploit path established.",
+    "read_ranges": [
+      [
+        1,
+        108
+      ]
+    ],
+    "callers_consumers": [
+      "digital-collection-command.ts request, configured adapter resolution and post-I/O result normalization"
+    ],
+    "error_authorization_state_checks": "Fails ambiguous output conservatively; safe code allowlist limits audit text. Submission key rejects blank/NUL/>200; UUID validated before SQL. No adapter network/credential handling in this file.",
+    "test_evidence": [
+      "DEC054 exact input limits and ambiguous-result requirements compared. Existing provider-neutral outcomes tests identified; not run."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Future real provider adapter must provide independent authenticated normalized results"
+    ]
+  },
+  {
+    "path": "scripts/test-harness/child-postgres-hook.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ff31d189be8a970918f3e7354c4029f580e5b9a901cdf609785d546d0743b111",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "PostgreSQL test subprocess ownership",
+    "review_notes": "An import hook activates only with a test run/cluster ID. It derives the test DB URL in documented priority order, writes self-tracked child start/exit events when requested, and resolves pg from the child working package. Missing pg is tolerated because non-DB children still need process tracking; ownership installation happens only when pg resolves. No database connect/cleanup occurs in this module itself. Ambient IDs/URL are inputs, not proof the selected DB is disposable; the ownership/preflight callers must enforce that boundary.",
+    "read_ranges": [
+      [
+        1,
+        49
+      ]
+    ],
+    "callers_consumers": "postgres-runtime.mjs injects this hook into bounded subprocesses; ownership-state append and postgres-ownership-hooks consume selected identity.",
+    "error_authorization_state_checks": "Run ID gate prevents ordinary application import behavior; exit handler records identity; missing dependency caught. Need continued review of URL/lease ownership and child process hooks before asserting cleanup safety.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "scripts/test-harness/postgres-ownership-hooks.mjs",
+      "scripts/test-harness/ownership-state.mjs"
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/command-runner.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fb10be682967ba0877b96a06f2e50c77f4fe2aa2dda29d432c2d107af0562b0f",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Bounded test command execution",
+    "review_notes": "runHarnessCommand chooses inherited package manager executable, adjacent corepack, then platform pnpm fallback; spawns with inherited environment and forwards both streams while retaining last512k characters for failure classification. It records coordinator child PID/Linux identity on start/exit when a cluster run exists and maps null exit to failure. Classifier prioritizes connection pressure, memory exhaustion, worker failure, migration failure, generic tests. There is no install guard: package-manager side effects are possible, consistent with the earlier disclosed wrapper incidents, so this command will not be executed.",
+    "read_ranges": [
+      [
+        1,
+        140
+      ]
+    ],
+    "callers_consumers": "Root/package/postgres runners dispatch through this helper; testDatabaseUrl and appendOwnershipEvent establish ledger context.",
+    "error_authorization_state_checks": "No shell on Unix; Windows fallback uses shell for pnpm.cmd. Output retention is bounded but forwarding is not a privacy filter. Spawn occurs before ledger append; a write failure could leave a child alive, requiring dependency review rather than a new confirmed finding. Errors propagate; normal completion appends exit metadata.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "scripts/test-harness/invocation-lease.mjs",
+      "scripts/test-harness/ownership-state.mjs"
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/invocation-lease.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "293f5995cbef09b600f7ab3f3d3897811b6ec06bacdb9caf8300e1c57e9bcbed",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Invocation lease and stale-run recovery",
+    "review_notes": "Traced inherited and newly acquired lease paths, protected-project tagging, stale ancestry recovery, parked preflight failure, cleanup preservation and final release. Inherited calls assert ownership and cannot release parent lease. Environment run ID is assigned only after recovery. Admin adapter selection follows database versus API package label.",
+    "read_ranges": [
+      [
+        1,
+        135
+      ]
+    ],
+    "callers_consumers": "Root/package/owned/project runners acquire this lease; ownership-state, preflight, owned-cleanup and cleanup adapter supply resource controls.",
+    "error_authorization_state_checks": "Protected selected projects are preflighted before acquisition/cleanup; stale Issue215 ancestry is preflighted again. Throws propagate; a failure after new acquisition can leave metadata for later stale recovery, not proof of permanent resource corruption.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Actual disposable target attestation implementation and PostgreSQL runtime behavior not exercised."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/issue215-target-preflight.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3d9d210c97190172b2e347e6110c5fc53883b78e93323c00a4db374ae56159d5",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Protected test target attestation",
+    "review_notes": "Reviewed exact selected-project membership and stale-owner compatibility rules. Explicit recovery requirement wins; ambiguous ancestry and legacy database/root labels require preflight. Explicit false for a known newer owner is honored. Attestation resolves pg from database package and invokes the condition-photo target helper.",
+    "read_ranges": [
+      [
+        1,
+        40
+      ]
+    ],
+    "callers_consumers": "invocation-lease, owned-cleanup and PostgreSQL global setup call this module.",
+    "error_authorization_state_checks": "No cleanup SQL occurs here. A thrown attestation prevents caller cleanup; project names are exact manifest strings rather than substring CLI detection.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "packages/database/scripts/condition-photo-p1-test-target.mjs remains separately owned and unreviewed in this batch."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/issue215-test-manifest.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f2cb6aff29acf0e5a5fa808cdf47d1a0a9b294a31ff98fb5d84604d169be63ab",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Protected fixture inventory",
+    "review_notes": "Reviewed all three project names, browser test basename and every API/database fixture basename. Frozen explicit lists distinguish mutation-sensitive projects from other test groups. No runtime DB or provider operation.",
+    "read_ranges": [
+      [
+        1,
+        44
+      ]
+    ],
+    "callers_consumers": "test-classification and protected preflight consume exact lists.",
+    "error_authorization_state_checks": "Exact inclusion prevents unrelated project match; completeness depends on updating manifest when new protected fixture tests are added.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Inventory-to-every-future-test equivalence not established."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/process-identity.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0719c7bea3c4922d76600ee88567ea3e7134df09cf57ea7f0c74cf16f7184563",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Owned child PID identity",
+    "review_notes": "Read Linux /proc stat parsing through final right parenthesis to tolerate spaces/parentheses in command name; field22 start ticks form process identity. Unsupported platform, malformed numeric field and disappeared proc entry return undefined.",
+    "read_ranges": [
+      [
+        1,
+        23
+      ]
+    ],
+    "callers_consumers": "Runtime child hooks, command runner and cleanup adapter capture/compare PID start identity.",
+    "error_authorization_state_checks": "No signal sent here. Missing identity is not treated as ownership; cleanup adapter rejects live Linux children without comparable identity. Caller supplies process IDs.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/park-cluster-lease.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9a43824719f4520f7f966d24a1ed92889e6d18cab6a205616807bf14f370f192",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Failed attestation lease parking",
+    "review_notes": "Verified same-run owner check before stopping heartbeat. Owner and recovery ancestry deliberately remain for expiry-driven recovery; no resource deletion or ownership handoff occurs here.",
+    "read_ranges": [
+      [
+        1,
+        21
+      ]
+    ],
+    "callers_consumers": "invocation-lease parks a newly claimed stale run when protected target preflight fails.",
+    "error_authorization_state_checks": "Foreign run ID throws; filesystem/JSON errors propagate; expiry and later target attestation remain necessary before cleanup.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/ownership-state.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "67ad9c508547ad278e882b6f45dce5113c3e573730c53c7327fbef96048e9881",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Cluster lease and ownership journal",
+    "review_notes": "Reviewed all 291 lines: cluster identity normalizes loopback/port and ignores database/user to serialize cluster-wide resources; random owned-resource names, hard-link exclusive claim, heartbeat+liveness ownership check, stale ancestry, release ownership check, append-only per-worker event journals and truncated-tail parsing. Run IDs are filename-sanitized.",
+    "read_ranges": [
+      [
+        1,
+        291
+      ]
+    ],
+    "callers_consumers": "Invocation/global setup claim leases; runtime hooks journal resources; cleanup reads journals. Process identity helper complements liveness checks.",
+    "error_authorization_state_checks": "Malformed owner data throws. Stale claims remove owner without compare-and-swap, so simultaneous stale reclaim deserves targeted contention proof before cleanup safety is certified. This is an unresolved hypothesis, not a reproduced race. Journal parsing stops at first incomplete line and does not certify external tampering resistance.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Concurrent stale-owner reclaim behavior needs safe filesystem-only validation."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/lease-heartbeat.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "52c87f16db1149d9f1150eebe71d09bdef948199d1cac5bc0329ad253015cafa",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Harness lease freshness",
+    "review_notes": "Reviewed immediate atomic-temp heartbeat publication, unref one-second refresh, thirty-second freshness/startup grace and prefix cleanup. Stop clears own timer and run heartbeat files; latest timestamp is inferred from filename.",
+    "read_ranges": [
+      [
+        1,
+        86
+      ]
+    ],
+    "callers_consumers": "ownership-state uses heartbeat freshness for cluster claim/assert; park stops refresh without deleting owner.",
+    "error_authorization_state_checks": "Process-local run-ID timer map assumes globally distinct run IDs. Future timestamps and filesystem failures are not an authenticated authority; trusted local harness state is assumed. Event-loop stalls longer than expiry can permit reclaim and need coordination with owner liveness.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Contended stale lease behavior remains unvalidated."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/owned-cleanup.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2476c96cc52bcedce95dd4384fda5b67614dacacdec439804eec8bd8e68a7807",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Owned PostgreSQL fixture cleanup",
+    "review_notes": "Reviewed event reduction including absent-before-create plans, dropped markers, child/coordinator tracking; protected-resource preflight runs before quiescence and again after journal reread. Children are quiesced up to five rounds, databases dropped before roles, existence checked before optional state removal.",
+    "read_ranges": [
+      [
+        1,
+        153
+      ]
+    ],
+    "callers_consumers": "Invocation lease and Vitest global teardown call cleanupOwnedRun; cleanup adapter provides process/DB effects.",
+    "error_authorization_state_checks": "Reused child identities are excluded only after adapter says false; missing identity throws. No broad database enumeration/drop. Cleanup resource names are trusted journal inputs, not re-attested ownership at SQL time; requires exclusive lease and trusted local journal.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Real PostgreSQL cleanup not executed; simultaneous stale reclaim is an unresolved harness dependency."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/postgres-cleanup-adapter.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "052ed82366c5420dc1ffb9fc7cf7426987ae1295f18c8541b5cf58510ded68ec",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Owned process and DB deletion adapter",
+    "review_notes": "Read database/role DROP and parameterized existence checks, admin client finally-close, server budget query, Linux start-tick and Windows process-start ownership checks, bounded termination polling. SQL identifiers are quoted; no wildcard drop. Non-Windows/non-Linux live PID deletion fails closed.",
+    "read_ranges": [
+      [
+        1,
+        179
+      ]
+    ],
+    "callers_consumers": "owned-cleanup supplies exact journal names; invocation/global setup supply admin URL and pg.",
+    "error_authorization_state_checks": "Live Linux identity absence throws and mismatch returns false; Windows missing start time throws. Database DROP FORCE is destructive but test-owned caller only; no code executed. Local process kill check has unavoidable check-to-signal timing, no demonstrated violation in caller context.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Disposable admin-target enforcement relies on higher-level attestation; Windows and PostgreSQL execution not performed."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/postgres-ownership-hooks.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2074f467a15fb0281418153aa6340ebe087712b1c050c538a7d49878579e9bc9",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Test SQL ownership instrumentation",
+    "review_notes": "Reviewed Pool/Client prototype wrapping, text/query-object and callback/promise forms, existence precheck plus planned journal before CREATE, successful creation/drop events, connection-limit rewriting and resource extraction. Existing names reject creation; partial failed creation remains recoverable from absent-before-create plan.",
+    "read_ranges": [
+      [
+        1,
+        188
+      ]
+    ],
+    "callers_consumers": "Child hook installs once; postgres-runtime also patches with connection budget; cleanup consumes events.",
+    "error_authorization_state_checks": "SQL resource extraction is regex, not a full SQL parser: quoted doubled quotes/comments/multi-statement database creates need explicit future tests. Ordinary fixture names are generated safe tokens. Append failures propagate, but SQL side effects may already exist; planned journal supports recovery.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full repository SQL creation forms and mocked callback edge cases not yet independently enumerated."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/postgres-runtime.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7d6fd77c0ff3f35430cd36bbe7612e49f1854cf5e7b05ff6c7fd155c8c1d4d41",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Bounded test DB and child runtime",
+    "review_notes": "Read complete 300 lines: bounded Pool constructor/count release, direct-client connect failure/end release, process-global install guard, non-DB connect/query and known setup-command guards, child concurrency and spawn error/exit release, sync child self-ledger hook injection and ESM synchronization. PostgreSQL URLs are redacted in journal command text.",
+    "read_ranges": [
+      [
+        1,
+        300
+      ]
+    ],
+    "callers_consumers": "Vitest postgres/non-postgres setup loads this module; ownership hooks journal CREATE/DROP and child hook propagates tracking.",
+    "error_authorization_state_checks": "Budget is per-process; inherited run lease is separate. Non-DB command regex is a guard for known wrappers, not a sandbox or installation prevention. A package-manager wrapper may install dependencies without matching it; audit therefore executes no package wrapper. Pool count release does not validate DB disposal.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Actual concurrency budgets/child ownership under Windows and PG remain unexecuted."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/test-classification.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3355d6170812f5b64d130fe369441e60abf7243c54a555a838c392666b41ca78",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Test discovery and resource ownership",
+    "review_notes": "Read full recursive discovery, spec rejection, explicit protected inventories, dependency traversal and API/database project choice. Local relative imports are followed only inside test root with support-like filenames; lazy postgres tests are exceptions. Exactly-one ownership is asserted per discovered path.",
+    "read_ranges": [
+      [
+        1,
+        250
+      ]
+    ],
+    "callers_consumers": "Vitest package configs and focused runner consume grouped tests; non-PG runtime invokes access guard.",
+    "error_authorization_state_checks": "Classification regexes are heuristic and support-file boundary excludes arbitrary imported runtime code. This is resource scheduling, not semantic test coverage or a security sandbox. Protected fixture signals/inventory omissions throw; duplicate groups fail.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full test graph and dynamic/import-alias forms remain separate review."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/resource-budget.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2d1bf7945939ecc873a512126da381b3a2f3d6382c4b9f3bc910ae42b428dfd3",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "PostgreSQL test resource budgets",
+    "review_notes": "Inspected six immutable pool/direct/subprocess/worker profiles, eight project mappings, connection-envelope arithmetic and integer/nonnegative admission checks. Available slots subtract reserved and non-test allowance; negative headroom and zero workers fail.",
+    "read_ranges": [
+      [
+        1,
+        131
+      ]
+    ],
+    "callers_consumers": "Global setup reads cluster capacity and asserts selected profile; per-worker setup enforces profile caps.",
+    "error_authorization_state_checks": "Envelope admission is per invocation and assumes exclusive lease; supportedWorkerCount reports theoretical cap rather than changing configured worker concurrency. No DB connection here.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/vitest-postgres-global.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "18d00465980ab905c54c437e61ea28a93544000abd021ffe75ce73008efb15b6",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "PostgreSQL global fixture lifecycle",
+    "review_notes": "Traced preflight before claim/recovery, inherited lease verification, new-run protected marker, package pg resolution, stale run ancestry cleanup, server capacity assertion, worker environment propagation and finally cleanup/release callback.",
+    "read_ranges": [
+      [
+        1,
+        134
+      ]
+    ],
+    "callers_consumers": "Vitest globalSetup for every PostgreSQL project; invocation runners own parent lease when present.",
+    "error_authorization_state_checks": "Unknown project fails. Protected stale preflight failure parks lease. Startup errors after acquisition leave recoverable owner metadata rather than returning teardown; no test or cleanup executed in audit.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Actual PG capacity and fixture teardown not run."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/vitest-postgres-setup.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c9c5932c71713a8654961377f25b1c4f164a2a0d506cb4ecdf9261394b99b752",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Per-worker PostgreSQL harness setup",
+    "review_notes": "All project/profile/run-ID inputs required before pg/runtime patching. URL priority agrees with invocation helper (TEST then migration then fixed local default). Appends each event to exact run journal and installs profile-specific bounded runtime.",
+    "read_ranges": [
+      [
+        1,
+        36
+      ]
+    ],
+    "callers_consumers": "PostgreSQL Vitest projects use setupFiles after global setup.",
+    "error_authorization_state_checks": "Input presence does not itself attest disposable target; relies on global/invocation lease and protected preflight. No resource creation in module beyond instrumentation when imported; audit only read it.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/vitest-non-postgres-setup.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3116f21282ca2220bef7128f5fa09a83135a3738db7cc9c6414a88fe002cf4b7",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Non-DB test runtime guard",
+    "review_notes": "Requires project identity, resolves optional pg from current package, skips patch if dependency absent, otherwise installs query/connect and known setup-command guards.",
+    "read_ranges": [
+      [
+        1,
+        25
+      ]
+    ],
+    "callers_consumers": "Non-PostgreSQL Vitest project setup.",
+    "error_authorization_state_checks": "Missing pg is allowed for pure packages. Guard is not universal child-process interception; audit must still inspect any wrapper before running it.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/run-owned-tests.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "442969b26b426de803e1022c9f97f810301ca8e23e574921cabd8084c7914574",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Focused classified test runner",
+    "review_notes": "Reviewed requested-path normalization, test/src prefix resolution, exactly-one project lookup, grouping, PostgreSQL need detection and serial execution. Each DB project cleans in finally and parent lease releases in outer finally; nonzero codes aggregate.",
+    "read_ranges": [
+      [
+        1,
+        70
+      ]
+    ],
+    "callers_consumers": "Package focused test instructions invoke this CLI; command runner starts pnpm exec vitest.",
+    "error_authorization_state_checks": "No setup/installation prevention exists at this level. Invalid requests fail before lease. packageKind is not explicitly restricted to api/database beyond required presence (other strings map to src); trusted developer CLI, not remote input.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/run-package-tests.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7470e2c00a6d31b08aec2bdfa5166947a47eff91c1f8819e17a33e2094ecaa3c",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Package test lane runner",
+    "review_notes": "Only api/database accepted. Acquires parent lease (database explicitly preflights protected project), runs non-PG then PG lanes and releases finally; nonzero results aggregate.",
+    "read_ranges": [
+      [
+        1,
+        28
+      ]
+    ],
+    "callers_consumers": "Package test script consumes runner; command-runner may invoke package-manager scripts.",
+    "error_authorization_state_checks": "API protected preflight occurs in child selected PG projects; stale-protection propagated via marker. Even non-PG first lane runs under lease and can require DB dependencies; do not use to obtain pure audit evidence.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/run-postgres-projects.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b99367c27c90cc0ee50b4412ea48c692ed0517954e1d7f23c4777218a395dd5c",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Serial PostgreSQL project runner",
+    "review_notes": "Requires config and projects, preflights selected groups via invocation lease, executes each project serially, cleans after each even on command failure, always releases parent lease.",
+    "read_ranges": [
+      [
+        1,
+        31
+      ]
+    ],
+    "callers_consumers": "API/database test:postgres scripts select exact projects.",
+    "error_authorization_state_checks": "Trusted CLI can choose arbitrary project name; profile/global setup validates it. Cleanup failure aborts subsequent projects rather than fabricating aggregate success.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/run-root-tests.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a2e9b88ca2ac3b195e527ebfc491dd3731b8f71f52c6620a5350a3fc1345a710",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Root test orchestration",
+    "review_notes": "Mutually exclusive lane flags; default/PG root preflights protected database project and holds cluster lease. Pure turbo is serialized and excludes API/database; then API/database pure and PostgreSQL lanes run sequentially, failures aggregate.",
+    "read_ranges": [
+      [
+        1,
+        58
+      ]
+    ],
+    "callers_consumers": "Root package test commands call runner.",
+    "error_authorization_state_checks": "--non-postgres-only avoids DB lease but still invokes package-manager/turbo commands. No dependency installation guard; do not execute broad wrapper in audit.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/run-issue215-ci-api.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "65f869760cdbf66cb7c11d07fd33737739c7bcbbbb9e4191704abadd71a26da1",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "CI protected API fixture runner",
+    "review_notes": "Read CI job/platform/environment/project checks, exact container-ID shape and temporary versioned local S3 fixture assertions. Disposable S3 credentials flow only to child env; pnpm runs protected API group with test mode. Child spawn failure and null status become failure.",
+    "read_ranges": [
+      [
+        1,
+        47
+      ]
+    ],
+    "callers_consumers": "Postgres CI job after S3 fixture start.",
+    "error_authorization_state_checks": "No actual credential values read during audit. Manifest schema checks do not replace lower-level live Docker/PG attestation; no safe permission to execute this wrapper assumed.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "S3 docker-tools fixture lifecycle is outside this assigned subset."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/guest-t4-staging-read-probe.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "82d33f45720b12169a04b8653e2381ce3d34416cc36f6f407285596566b2e56d",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Optional read-only staging qualification probe",
+    "review_notes": "Reviewed explicit enable gate, two distinct clean origins, shaped Browser Session input, parallel per-replica current authority consistency and optional stale/revoked rejection. Fetch forbids redirects, has five-second abort and parses JSON. Summary explicitly limits proof to read-only partial qualification.",
+    "read_ranges": [
+      [
+        1,
+        138
+      ]
+    ],
+    "callers_consumers": "Manual T4 operator command; guest session endpoint is remote consumer.",
+    "error_authorization_state_checks": "Disabled path exits2 without request. Outside localhost URL requires HTTPS and no credentials/path/query/hash. Only session ID equality tested, not complete projection consistency or topology. Never executed against staging or read real cookie.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Remote topology, mutations/retry/drain and real session evidence remain unverified."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/issue215-pg17-local-smoke.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "217adee43b26ea636e40c684c0fb677242acc63113f134a33c13f911396ba2a7",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Disposable PG17 deadline smoke runner",
+    "review_notes": "Read random container name/password, exact labels/image/tmpfs/mount/loopback checks, bounded readiness polling, tsx child deadline and final exact-ID/name/owner cleanup. Child receives only ephemeral DB environment.",
+    "read_ranges": [
+      [
+        1,
+        95
+      ]
+    ],
+    "callers_consumers": "Manual isolated smoke invokes API issue215-pg17-runtime-smoke.ts.",
+    "error_authorization_state_checks": "No Docker/start/pull/test executed. Finally refuses unprovable cleanup and sets exit failure; actual runtime/image availability unverified.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Smoke child implementation and Docker execution not established by wrapper review."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/issue215-worker9-pg-fixture.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b6c6ffeddd2be6f0a3470045157c34f943f299bda01b79cca884af47810a8873",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Disposable worker9 PG fixture lifecycle",
+    "review_notes": "Reviewed start/stop-only interface, existing manifest/container takeover refusal, random run/password, loopback tmpfs container, exclusive mode0600 manifest, target attestation before readiness and stop, scoped cleanup on start failure.",
+    "read_ranges": [
+      [
+        1,
+        96
+      ]
+    ],
+    "callers_consumers": "Private photo QA PowerShell scripts call start/stop; target module validates matching manifest.",
+    "error_authorization_state_checks": "Failure after manifest write can preserve manifest for inspection; no silent overwrite. Fixed expected target image in companion module may require local matching image. No fixture launched and no credential values captured.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Windows/Docker failure recovery remains runtime qualification."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/issue215-worker9-pg-target.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "95a94b79767e656ee15a6ea24593c32b5378657192be93ef0ea52a4130c858d1",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Worker9 target attestation",
+    "review_notes": "Reviewed strict test/project/run identity, exact manifest-vs-URL agreement, loopback/defaults/credential presence and rejection of ambient PG override variables. Docker inspection requires one owned container, pinned image ID, labels/run/name, actual mapped port, tmpfs and no mounts. SQL identity checks database/user/owner/version/create privileges/nonrecovery.",
+    "read_ranges": [
+      [
+        1,
+        91
+      ]
+    ],
+    "callers_consumers": "Fixture start/stop and protected target helper invoke exports.",
+    "error_authorization_state_checks": "Returns URL only after attestation; generic rejection omits credential details. Pinned image digest versus mutable image tag availability is environment limitation until exercised; hostname alone does not establish disposal.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Live Docker and SQL identity proof not performed."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/run-issue309-private-qa.ps1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "057ecb82ba2ae93c923ec8b72d173a48042e8fe90a1dc7601c8b5ee9107de835",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Private photo acceptance orchestration",
+    "review_notes": "Read mandatory exact two migration basename checks, override/manifest refusal, fixture flags, secret env forwarding, serial selected HTTP/browser suites, per-suite error aggregation and finally both fixture teardowns.",
+    "read_ranges": [
+      [
+        1,
+        134
+      ]
+    ],
+    "callers_consumers": "Manual Windows isolated #309 acceptance runner calls existing fixture scripts and owned test runner.",
+    "error_authorization_state_checks": "Does not apply supplied migrations directly; merely checks required source names exist before normal fixture migration setup. Caller shell process retains env mutations, so do not run in audit environment. No PowerShell/package-manager command executed.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "PowerShell execution and S3 helper internals remain outside current coverage."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/run-issue309-w9-fence-qa.ps1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e98583bde6f131ebf6bd4f55a3f1178c563c280ac46c7dc19f5675cb44a33eb4",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Private photo fence qualification orchestration",
+    "review_notes": "Reviewed fresh-manifest and PG override checks, separate PG/S3 start flags, test/run env setup, exactly one cross-commit test, explicit nonzero checks and finally both scoped teardowns.",
+    "read_ranges": [
+      [
+        1,
+        62
+      ]
+    ],
+    "callers_consumers": "Manual Windows W9 two-lease proof wrapper.",
+    "error_authorization_state_checks": "Credential env values never emitted by this source, but child output is inherited; logs need sanitization before publication. Teardown failure sets failure; no test or real credentials accessed.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Actual Windows fixture/HTTP execution not performed."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "apps/api/src/common/database/bounded-postgres-pool.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2bfe0d606bfc7b5f4694a5938a4646da2c31309de612c68427b494193193877f",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Runtime PostgreSQL admission",
+    "review_notes": "Read all152 lines: bounded max+waiter local admission, closing gate before/after checkout, failure accounting, deadline checks, owned-lease disposal, acquisition budget including configure time, callback/promise compatibility and measurement buckets. end disposes outstanding leases before native end.",
+    "read_ranges": [
+      [
+        1,
+        152
+      ]
+    ],
+    "callers_consumers": "createRuntimePostgresPool wraps pg pool; health/metrics consume snapshot; bound query and lease helpers supply lifecycle.",
+    "error_authorization_state_checks": "Admission count decrements on failure or exact owned disposal. Acquiring after close rejects. Query/protocol errors dispose rather than recycle. No auth/tenant decision delegated to this local budget. Dynamic iteration removal from disposals is valid JS Set behavior.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "runtime-postgres-policy.ts and runtime-database-deadline.ts remain owned later; live pg queue/deadline semantics not newly validated."
+    ]
+  },
+  {
+    "path": "apps/api/src/common/database/bounded-postgres-query.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "84e3602c6367dad4887ca3c8b96c4b8d211b552ff7001368ff582c0b84912bc8",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Runtime query deadlines",
+    "review_notes": "Read all74 lines: text/config overload normalization, guest versus general cap, explicit ROLLBACK deadline exception, tighter caller timeout retention, queued callback failures, protocol timeout disposal and SQLSTATE metric counters. Callback and promise errors share normalization.",
+    "read_ranges": [
+      [
+        1,
+        74
+      ]
+    ],
+    "callers_consumers": "pool connect event binds each client; transaction/lease callers consume query and release.",
+    "error_authorization_state_checks": "Original values/extra args preserved. Query read timeout destroys ambiguous connection. Catch is instanceof Promise, so only pg-native Promise assumption covered; custom query objects need separate proof. Does not parse arbitrary rollback spellings, callers use exact constant.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Actual node-pg callback/query object edge cases and deadline helper implementation not exercised."
+    ]
+  },
+  {
+    "path": "apps/api/src/common/database/postgres-lease.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e061466e1d950410d8e46424866562562e86f7bf492e1563d2fb5c9a400a3567",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Runtime DB lease ownership",
+    "review_notes": "Traced general versus guest settings, transaction version gate, per-lease watchdog, tracked request-client lifetime, idempotent release/destroy and async general reset. Error/end disposes; destroy while reset in flight prevents recycle. Finished flag guards double native release.",
+    "read_ranges": [
+      [
+        1,
+        97
+      ]
+    ],
+    "callers_consumers": "bounded pool owns each checkout; deadline tracker terminates request leases; transaction helper reports outcomes.",
+    "error_authorization_state_checks": "General reset failure destroys. Guest avoids resetting general config and uses request budget; caller deadline setup must establish own settings. Timer removes listeners/untracks before returning admission.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Request deadline tracking and outcome callbacks remain separately reviewed dependencies; PG16/17 runtime qualification incomplete."
+    ]
+  },
+  {
+    "path": "apps/api/src/common/database/postgres.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e035a0dd7d7a7fc646f79944cac64ad7ff88101947a0af04a99767752c2f7ed9",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Runtime DB role and TLS safety",
+    "review_notes": "Reviewed URL protocol/query/fragment/credential/database validation; production migration URL refusal; PEM bundle parsing with X509 CA requirement; verified TLS default; runtime policy and bounded pool construction. Safety query demands one role/database/schema row, denies super/create/bypass/replication, object/database/schema ownership and CREATE grants; TLS must be1.2/1.3 and unique backend record.",
+    "read_ranges": [
+      [
+        1,
+        227
+      ]
+    ],
+    "callers_consumers": "RuntimeDatabaseModule calls production verification; pool admission and health consume pool.",
+    "error_authorization_state_checks": "No environment values read by audit. Validation errors are generic without URLs. Safety errors fail closed; runtime deploy must actually invoke verifier and use role provisioning. Existing certificate behavior and live privilege introspection not rerun.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "runtime-database.module.ts/runtime-postgres-policy.ts caller lifecycle and full role ACL graph remain separate."
+    ],
+    "supporting_test_inspection": "Read all postgres.test.ts URL/TLS/lazy-pool cases; no new execution or additional coverage credit."
+  },
+  {
+    "path": "apps/api/src/common/database/location-lifecycle-lock.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8da8968663562da8e8431b2122f26163d0a95016bccad22da3164120bdb45c74",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Location lifecycle transaction fence",
+    "review_notes": "Read shared versus exclusive advisory transaction lock SQL and parameter binding. Namespaced hash serializes location deactivation with active work; no caller-supplied SQL identifiers.",
+    "read_ranges": [
+      [
+        1,
+        18
+      ]
+    ],
+    "callers_consumers": "Shift authorization/eligibility/presence and check-in authorization use SHARED; management lifecycle uses mode-dependent lock.",
+    "error_authorization_state_checks": "Helper supplies serialization only, no existence/auth/status recheck. Callers must acquire consistent lock order and reread status. Hash collisions cause extra serialization, not tenant authorization.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Complete cross-feature lock order/caller graph remains incompletely reviewed."
+    ]
+  },
+  {
+    "path": "apps/api/src/common/database/management-settings-lock.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1fb04fa0fd030e41ca7cb6e433167847310094c9800c044da3a23f1abaecea14",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Organization policy transaction fence",
+    "review_notes": "Read shared/exclusive organization-scoped advisory transaction locks and bound org ID. Separate namespace avoids accidental reuse of location lock key.",
+    "read_ranges": [
+      [
+        1,
+        18
+      ]
+    ],
+    "callers_consumers": "Parking/retrieval/shift/GPS/photo authorization use SHARED; management setting/zone mutations use EXCLUSIVE.",
+    "error_authorization_state_checks": "Authorization still caller responsibility. Transaction lifetime releases lock; cross-module ordering and policy recheck needed to certify concurrency correctness.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "All consumer transaction isolation and deadlock ordering not established by helper-only review."
+    ]
+  },
+  {
+    "path": "apps/customer/next-env.d.ts",
+    "status": "fully_reviewed",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7b550dda9686c16f36a17bf9051d5dbf31e98555b30d114ac49fc49a1e712651",
+    "batch": "C001",
+    "reviewer": "/root/customer",
+    "feature": "Next generated type declarations",
+    "review_notes": "References Next and image globals plus generated .next route types; no executable export or branching. Missing generated route file on an unbuilt checkout is a build/type-generation prerequisite, not confirmed runtime defect. Honored assignment despite original generated declaration exclusion.",
+    "read_ranges": [
+      [
+        1,
+        6
+      ]
+    ],
+    "callers_consumers": [
+      "apps/customer/tsconfig.json via Next default inclusion"
+    ],
+    "error_authorization_state_checks": "No inputs, runtime auth, state or retry; generated declaration should not be edited.",
+    "test_evidence": "Source review only during C001; no execution. Existing 481/481 src test pass is historical evidence, not this file's semantic proof.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Next generated .next/types/routes.d.ts not part of immutable tracked source"
+    ]
+  },
+  {
+    "path": "apps/customer/qa/issue-316-b/visual.mjs",
+    "status": "fully_reviewed",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "15139287937b12f3b75ea9e01abcb5385b97f9572e5e7a1aee1f06c3c22b022d",
+    "batch": "C001",
+    "reviewer": "/root/customer",
+    "feature": "More-menu UI Freeze QA",
+    "review_notes": "Before/after-only CLI validation, four explicit viewport/locale/theme cases, localStorage initialization before navigation, row geometry/style/icon capture and exact survivor parity after removing photo row. Throws on parity or pageerror; browser finally cleanup exists. It cannot establish live feature correctness because there are no API/business assertions; controlled historical QA script, no new product defect.",
+    "read_ranges": [
+      [
+        1,
+        69
+      ]
+    ],
+    "callers_consumers": [
+      "manual QA command for issue316B",
+      "More menu header action and dialog"
+    ],
+    "error_authorization_state_checks": "TARGET_URL and evidence directory are trusted QA inputs; writes screenshots/json, launches browser; not executed. Context closes on success, browser finally handles failure. No source/DB auth mutation.",
+    "test_evidence": "Source review only during C001; no execution. Existing 481/481 src test pass is historical evidence, not this file's semantic proof.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "@playwright/test runtime",
+      "target app/provider state",
+      "historical before evidence files"
+    ]
+  },
+  {
+    "path": "apps/customer/qa/issue-335/browser-freeze-capture.mjs",
+    "status": "fully_reviewed",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1cc1d6fa46ffd33dd0cdcf45b3021ab526e72c03f53bfabe696505135b2d5824",
+    "batch": "C001",
+    "reviewer": "/root/customer",
+    "feature": "Browser frozen-presentation capture",
+    "review_notes": "Export returns capture callback that waits for finite animations/fonts and pauses infinite animations at time0, captures header-parent DOM/styles/bounds and page PNG. After phase compares exact baseline bytes and appends results. Captures do not themselves enforce pass/fail; matrix consumer does. Exact byte sensitivity is a historical baseline tool limit, not runtime bug.",
+    "read_ranges": [
+      [
+        1,
+        77
+      ]
+    ],
+    "callers_consumers": [
+      "qa/issue-335/browser-freeze-matrix.mjs screenshot callback"
+    ],
+    "error_authorization_state_checks": "Awaited read/write failures propagate to matrix catch; requires existing baseline after-phase files; no guest authorization state claim. Infinite animation freezing affects test page only.",
+    "test_evidence": "Source review only during C001; no execution. Existing 481/481 src test pass is historical evidence, not this file's semantic proof.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Playwright page browser implementation",
+      "baseline PNG/JSON evidence"
+    ]
+  },
+  {
+    "path": "apps/customer/qa/issue-335/browser-freeze-matrix.mjs",
+    "status": "fully_reviewed",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "53138caa8c66e9202b45ba14646bb33592f1ba03c5338c1a7fcd7cc2143e69e9",
+    "batch": "C001",
+    "reviewer": "/root/customer",
+    "feature": "5-state browser freeze matrix and zoom QA",
+    "review_notes": "Traces fixture server plus frozen capture helper across widths/locales/themes, PARKED/READY/unavailable/network/push-card. Native zoom uses isolated extension/persistent profile; mocked push key supports presentation only. Aggregates errors/differences and enforces five captures per combination with exit1; caught failure still cleanup/writes summary. No new product defect; no actual provider permission/delivery proof.",
+    "read_ranges": [
+      [
+        1,
+        250
+      ]
+    ],
+    "callers_consumers": [
+      "manual issue335 QA invocation",
+      "fixture.mjs",
+      "browser-freeze-capture.mjs"
+    ],
+    "error_authorization_state_checks": "Browser pageerror tracking, capture completeness and optional forward/reverse keyboard checks reviewed. SERVICE_UNAVAILABLE/GUEST_ACCESS_INVALID are injected fixture states, not real access tests. Phase/target overrides assume trusted QA operator; script not executed.",
+    "test_evidence": "Source review only during C001; no execution. Existing 481/481 src test pass is historical evidence, not this file's semantic proof.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "real browser native zoom and extension support",
+      "target dev server configuration",
+      "fixture.mjs until subsequent C001 review"
+    ]
+  },
+  {
+    "path": "apps/customer/qa/issue-335/ui-freeze-compare.mjs",
+    "status": "fully_reviewed",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8f51a4568699af36fab289feb2a755d48c971ff828added6dc1c87284fb13f88",
+    "batch": "C001",
+    "reviewer": "/root/customer",
+    "feature": "Static UI Freeze fingerprint guard",
+    "review_notes": "CLI compares changed/untracked customer files against baseline, rejects style/copy/public paths, parses TSX and compares JSX roots while normalizing handlers. Own self-test checks handlers/newlines allowed and direct JSX label/style rejected. Deliberately cannot prove computed-style parity when imported or local non-JSX constants change; reported limitation is explicit and browser QA supplements it. Deleted TSX may throw readFile rather than structured violations but still fails closed; no new product defect.",
+    "read_ranges": [
+      [
+        1,
+        185
+      ]
+    ],
+    "callers_consumers": [
+      "manual issue335 freeze validation invocation"
+    ],
+    "error_authorization_state_checks": "git uses execFileSync argv without shell; no commit/write operations. Parse diagnostics throw. Arbitrary baseline and candidate are trusted operator inputs; no runtime auth/state or retries.",
+    "test_evidence": "Source review only during C001; no execution. Existing 481/481 src test pass is historical evidence, not this file's semantic proof.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "TypeScript AST parser version",
+      "browser visual/behavior QA for non-JSX effects"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/account-security-route.tsx",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "156d393c6591c64dbe9b56c52b88a7deef19a39437e52a10b50b0fff42cf1269",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "dashboard",
+    "feature": "Account security entry",
+    "review_notes": "Seven-line client route delegates accountSecurity=true to common foundation rather than inventing Organization-specific MFA authority. No state or asynchronous branch.",
+    "read_ranges": [
+      [
+        1,
+        7
+      ]
+    ],
+    "callers_consumers": [
+      "app/security/page.tsx",
+      "ManagementFoundationApp"
+    ],
+    "error_authorization_state_checks": "Account-security eligibility is deferred to shared provider; this route itself has no role grant or network action.",
+    "test_evidence": [
+      "Inspected authority-separation.test.ts; it covers ordinary route/nav independence, not this wrapper directly."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "AccountSecurityWorkspace full ceremony behavior"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/account-security-shell.tsx",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bb8fe4a81a44f90319ed10182f4520f7fe68666b0f3179b5334deea34e809186",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "dashboard",
+    "feature": "Account security shell",
+    "review_notes": "Traced generation-bound entryReady, exact presentation binding, independent security navigation eligibility, location-switch proof commit/presentation capture, retry MFA and logout. refreshState resolves an error snapshot instead of rejection, so .then has no unhandled ordinary-network rejection; provider was read as support. Switching locations preserves independent /security route and stores navigation only under incremented selectionRevision.",
+    "read_ranges": [
+      [
+        1,
+        180
+      ]
+    ],
+    "callers_consumers": [
+      "ManagementFoundationApp",
+      "DashboardShell",
+      "LocationSwitchControl",
+      "AccountSecurityWorkspace",
+      "AccountSecurityAccessProvider"
+    ],
+    "error_authorization_state_checks": "Security link appears only after eligible fresh state; carried navigation IDs are presentation, not route authority. Generation key retires prior workspace. Invalid current scope clears with epoch before root navigation. Server/API remains final authority.",
+    "test_evidence": [
+      "Inspected AccountSecurityAccessProvider implementation and authority-separation.test.ts; no browser/runtime cases executed."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "LocationSwitchControl complete implementation and proof lifecycle",
+      "AccountSecurityWorkspace ceremony internals"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/dashboard-feature-target.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "53820158ae57c6bccd0979ee8f1ce72e0258fa484120a7f57ad46fe53e4bf877",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "dashboard",
+    "feature": "Feature authority target correlation",
+    "review_notes": "Enumerated Visit Contacts CA-all-locations and LM-grant-set targets, Audit CA org/exact-location, LM active/inactive compatibility and Supervisor exact-location targets. Exact feature/org/role/scope/location response correlation; assertNever fails unknown feature instead of broad fallback.",
+    "read_ranges": [
+      [
+        1,
+        126
+      ]
+    ],
+    "callers_consumers": [
+      "md04-feature-route-access.ts",
+      "resolve-navigation-authority.ts",
+      "dashboard-feature-target.test.ts"
+    ],
+    "error_authorization_state_checks": "Incompatible scopes return null; inactive LM can produce purpose-specific Audit target but compatibleBase=false. No cross-purpose response accepted. No finding established.",
+    "test_evidence": [
+      "Read dashboard-feature-target.test.ts including accepted scope matrix, incompatible target nulls, wrong feature/org/role/scope/location negatives; not rerun."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Server feature-authority authorizer not reviewed in this batch"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/dashboard-shell-labels.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "adf336067edae44077aab7376b0b8649a849890eaeb8c17841765fe12d41af32",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "dashboard",
+    "feature": "Shell translated labels",
+    "review_notes": "Pure eight-label mapping consumes typed TranslationKey translator and returns complete shell-label contract; no duplicate policy or async state.",
+    "read_ranges": [
+      [
+        1,
+        17
+      ]
+    ],
+    "callers_consumers": [
+      "AccountSecurityShell",
+      "SelectedManagementShell",
+      "DashboardShell"
+    ],
+    "error_authorization_state_checks": "No auth/data mutation. Shell vocabulary selected by current locale translator.",
+    "test_evidence": [
+      "Header preference test reviewed only; no direct label-map runtime test executed."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full shell responsive CSS and screen-reader matrix"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/dashboard-shell-presentation-provider.tsx",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8af0ba300ad8e8c93d436f929d378f938d61b743853c79480675a2bbecffe86d",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "dashboard",
+    "feature": "Shell presentation retention",
+    "review_notes": "Store retains one binding-key snapshot of destination IDs, deliberately omits security ID, deduplicates equal arrays and exposes only exact key matches. Capture effect updates presentation while valid nav is mounted; read throws outside provider rather than silently sharing globals.",
+    "read_ranges": [
+      [
+        1,
+        104
+      ]
+    ],
+    "callers_consumers": [
+      "AccountSecurityShell",
+      "DashboardNavigationPresentationCapture in SelectedManagementShell",
+      "AppProviders"
+    ],
+    "error_authorization_state_checks": "Key contains identity/session/selection revision and scope authority key. Presentation can preserve labels/links but does not authorize protected route access. A-to-B-to-A selection revisions prevent stale remembered presentation.",
+    "test_evidence": [
+      "Inspected authority-separation.test.ts route-vs-nav probes; store-specific mounted behavior not executed."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "AppProviders mount lifecycle",
+      "Navigation list rendering"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/foundation-state.tsx",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4aaf21597f54d196451932f92e1a941518b928de3cfdcd1cf267753d2fcbda15",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "dashboard",
+    "feature": "Foundation status UI",
+    "review_notes": "Pure Panel status view exposes role=status, title and explanatory text for initialization/retry/logout states. No dynamic HTML sink or implicit success rendering; caller supplies interpretation.",
+    "read_ranges": [
+      [
+        1,
+        21
+      ]
+    ],
+    "callers_consumers": [
+      "ManagementFoundationApp",
+      "Panel"
+    ],
+    "error_authorization_state_checks": "No auth grant or persistence. Heading/status content is plain escaped React text.",
+    "test_evidence": [
+      "No new execution; Foundation wrapper behavior considered against caller state branches inspected in C001."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Panel implementation was prior-review support; actual assistive technology timing unverified"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/header-preferences.tsx",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "356bdd4f19028a03a59a8927fad2c4d41d29ed8122c3992ef11fddd2193904e3",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "dashboard",
+    "feature": "Header locale/theme controls",
+    "review_notes": "Language control computes opposite supported locale; theme group has two explicit aria-pressed buttons and accessible labels independent of CSS-hidden visible captions. No async work or duplicated preference storage in controls.",
+    "read_ranges": [
+      [
+        1,
+        51
+      ]
+    ],
+    "callers_consumers": [
+      "AccountSecurityShell",
+      "SelectedManagementShell",
+      "DashboardLocaleProvider",
+      "DashboardThemeProvider"
+    ],
+    "error_authorization_state_checks": "Client-only preference updates do not affect business auth. Theme icon aria-hidden plus explicit button label preserves mobile names; no customer spinner finding duplicated here.",
+    "test_evidence": [
+      "Read header-preferences.test.tsx SSR accessible-name assertions for Light/Dark; not rerun."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "DashboardThemeProvider persistence and browser storage-denial behavior",
+      "Real responsive/keyboard/AT execution"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/audit-foundation-runtime-privilege-verification.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6e47a9fb10799b5a601130c46febd1f28cbd49e9851c74b81e689230f39ebab9",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "database",
+    "feature": "Account/tenant audit ACL verification",
+    "review_notes": [
+      "All table rights SELECT/INSERT/UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER checked; tenant insert allowed only12 named columns while table-level INSERT false;15-column schema cardinality explicit.",
+      "Account audit denies direct table/column read/write;8-column contract fixed. Public table+column ACLs inspected independently, append funcs exact signatures require safe owner/search_path/definer/ACL and runtime allow/deny; missing rows short-circuit false and top-level throws. Parallel catalog reads are independent; parent provisioning transaction controls atomicity."
+    ],
+    "read_ranges": [
+      [
+        1,
+        230
+      ]
+    ],
+    "callers_consumers": [
+      "runtime-feature-privilege-verification.mjs:verifyRuntimeFeaturePrivileges",
+      "verify-runtime-table-privileges.mjs"
+    ],
+    "error_authorization_state_checks": [
+      "Evaluated all exported functions and loops/optional-row branches; grants are static parameterized commands; current request authority lives in SQL functions/application caller, not this administrative helper."
+    ],
+    "test_evidence": [
+      "audit-foundation-runtime-role.integration.test.ts",
+      "audit-foundation-constraints.integration.test.ts",
+      "No tests executed in C001; existing original results retained separately."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full relevant SQL function bodies/latest replacements and current production role/catalog state not certified by this file review."
+    ]
+  },
+  {
+    "path": "packages/database/scripts/audit-foundation-runtime-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b9d1850a6d8c5701aab9256442378335bc1227d25774f6676e06778318abc7cb",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "database",
+    "feature": "Account audit function-only append",
+    "review_notes": [
+      "Explicitly clears PUBLIC/runtime table and known-column ACLs including REFERENCES; no direct account audit privileges are granted.",
+      "Controlled append function and runtime wrapper both revoked before only runtime wrapper execute granted; quoted runtime identifier via executeFormatted; signatures static. Caller provision-append-only-tables runs inside owning provisioning transaction; no internal commit/DB URL/provider side effect."
+    ],
+    "read_ranges": [
+      [
+        1,
+        71
+      ]
+    ],
+    "callers_consumers": [
+      "provision-append-only-tables.mjs:96",
+      "provision-runtime-role.mjs"
+    ],
+    "error_authorization_state_checks": [
+      "Evaluated all exported functions and loops/optional-row branches; grants are static parameterized commands; current request authority lives in SQL functions/application caller, not this administrative helper."
+    ],
+    "test_evidence": [
+      "audit-foundation-runtime-role.integration.test.ts",
+      "No tests executed in C001; existing original results retained separately."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full relevant SQL function bodies/latest replacements and current production role/catalog state not certified by this file review."
+    ]
+  },
+  {
+    "path": "packages/database/scripts/basic-branding-runtime-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "506ceb8625e1a65500215e9aba22df11c750810efe496d1924905e8d257008ca",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "database",
+    "feature": "Branding commands/read-only subscription",
+    "review_notes": [
+      "Subscription table reset to SELECT-only; exactly4 branding mutation signatures regranted and3 helpers denied by verification. No plan/status-derived authority invented.",
+      "Verifier checks table privileges7 ways and mutation definer/search_path/non-runtime owner/PUBLIC-denied; helper inherited execute fails. Column ACL drift not independently enumerated by this helper; global provisioning/verifier and migrations remain dependencies. No concrete harmful drift path established."
+    ],
+    "read_ranges": [
+      [
+        1,
+        126
+      ]
+    ],
+    "callers_consumers": [
+      "runtime-table-privileges.mjs:259",
+      "runtime-feature-privilege-verification.mjs:15"
+    ],
+    "error_authorization_state_checks": [
+      "Evaluated all exported functions and loops/optional-row branches; grants are static parameterized commands; current request authority lives in SQL functions/application caller, not this administrative helper."
+    ],
+    "test_evidence": [
+      "basic-branding-runtime-privilege.integration.test.ts",
+      "basic-branding-hardening.integration.test.ts",
+      "No tests executed in C001; existing original results retained separately."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full relevant SQL function bodies/latest replacements and current production role/catalog state not certified by this file review."
+    ]
+  },
+  {
+    "path": "packages/database/scripts/condition-photo-maintenance-policy.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c23373e266c098bf64a82b50623357fdbba9feb69006df2d439ced3a9fac31a2",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "database",
+    "feature": "Photo maintenance identity configuration",
+    "review_notes": [
+      "Parses migration with production TLS policy, separate API/maintenance URL identities, safe role regex and exact maintenance URL username; maintenance cannot equal API/migration role.",
+      "Requires same decoded database/host/port for all3 credentials; mismatch errors reveal no values; role preexistence/attributes enforced by caller not this pure parser. No calls/network/data mutations. Password equality not asserted as authorization guarantee."
+    ],
+    "read_ranges": [
+      [
+        1,
+        40
+      ]
+    ],
+    "callers_consumers": [
+      "provision-condition-photo-maintenance-role.mjs:26"
+    ],
+    "error_authorization_state_checks": [
+      "Evaluated all exported functions and loops/optional-row branches; grants are static parameterized commands; current request authority lives in SQL functions/application caller, not this administrative helper."
+    ],
+    "test_evidence": [
+      "condition-photo-privilege-policy.test.ts read supporting source; not rerun",
+      "No tests executed in C001; existing original results retained separately."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full relevant SQL function bodies/latest replacements and current production role/catalog state not certified by this file review."
+    ]
+  },
+  {
+    "path": "packages/database/scripts/condition-photo-maintenance-privileges.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e266ebaa3f9d235e8eb9015377d2b07526a527b57744d8064cb934d9d5d04968",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "database",
+    "feature": "Photo maintenance function-only ACL",
+    "review_notes": [
+      "Revokes table and every catalog column privilege for photo private and legacy tables; enumerates and revokes PUBLIC/runtime execute across condition_photo prefix; grants only8 maintenance signatures.",
+      "Verifier checks absence of any direct column/table permissions plus catalog function allowlist, PUBLIC/grant-option denial, allowed definer/safe path/non-maintenance owner. Missing required functions fail before privilege assumptions; parent transaction owns rollback. No transport call or deletion occurs in helper itself."
+    ],
+    "read_ranges": [
+      [
+        1,
+        72
+      ]
+    ],
+    "callers_consumers": [
+      "provision-condition-photo-maintenance-role.mjs:87-88"
+    ],
+    "error_authorization_state_checks": [
+      "Evaluated all exported functions and loops/optional-row branches; grants are static parameterized commands; current request authority lives in SQL functions/application caller, not this administrative helper."
+    ],
+    "test_evidence": [
+      "condition-photo-privilege-policy.test.ts read supporting mock boundary; condition-photo-runtime-privileges.integration.test.ts:138,179,207 referenced not executed",
+      "No tests executed in C001; existing original results retained separately."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full relevant SQL function bodies/latest replacements and current production role/catalog state not certified by this file review."
+    ]
+  },
+  {
+    "path": "packages/database/scripts/condition-photo-privilege-policy.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "479b2f178525eb2c7074964f5e384691a85e50a67608343c019b847d3490de1c",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "database",
+    "feature": "Shared photo ACL signatures/catalog",
+    "review_notes": [
+      "Four read tables +2 private admission/cleanup tables,7 runtime and8 maintenance function signatures; management evidence owner fixed NOLOGIN-role identity is separately provisioned.",
+      "Catalog restricts namespace public and exact prefix; tracks definer/path/owner/PUBLIC ACL/any grant option. photoFunctionIds resolves each requested signature and throws missing null OID; no SQL text interpolation from env/user; literal signature passed parametrically. Helpers include discovery of unexpected extra photo functions for deny-by-default."
+    ],
+    "read_ranges": [
+      [
+        1,
+        76
+      ]
+    ],
+    "callers_consumers": [
+      "condition-photo-runtime-privileges.mjs",
+      "condition-photo-maintenance-privileges.mjs"
+    ],
+    "error_authorization_state_checks": [
+      "Evaluated all exported functions and loops/optional-row branches; grants are static parameterized commands; current request authority lives in SQL functions/application caller, not this administrative helper."
+    ],
+    "test_evidence": [
+      "condition-photo-privilege-policy.test.ts read supporting source",
+      "No tests executed in C001; existing original results retained separately."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full relevant SQL function bodies/latest replacements and current production role/catalog state not certified by this file review."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-cancel-check-in-transport.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6e3dce1e5eef7ac1f1f5c76373a0a5397f5ff2e3912f20b1fea49ae8820a727b",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Check-in cancellation HTTP",
+    "review_notes": "Reviewed prepare GET, strict cancel request/response parse and narrow cancellation-status GET with expectedShiftId; no generic state setter or mutation replay in transport.",
+    "read_ranges": [
+      [
+        1,
+        44
+      ]
+    ],
+    "callers_consumers": [
+      "Native createNativeCheckInRuntime constructs this transport for EmployeeCancelCheckInSession; prepare/cancel/status consumed there."
+    ],
+    "error_authorization_state_checks": "Client factory resolves credentials per request. Transport schemas validate shape; session/location/version identity must be checked by session caller (scheduled later in C001). Malformed success throws ZodError, requiring caller conservative unknown handling.",
+    "test_evidence": "Read complete transport test: exact routes/bodies, malformed extra credential/state/version rejection; prior recorded portable suite green, no rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend enforcement and physical-device behavior not established by this portable-source review."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-condition-recovery.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "786fc245bc26a4b0fee11647ccdd099b1473b5dc59edfe9bb25862bd61cea8fe",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Condition-completion reconciliation",
+    "review_notes": "Reviewed all outcome variants; canonical hydrate uses attempt location/session and concludes completion only for AWAITING_PARKING; CHECKING_IN does not invent completion. Catch returns typed READ_FAILED operational failure.",
+    "read_ranges": [
+      [
+        1,
+        59
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeCheckInConditionSession.recoverConditionOutcome calls helper then fences current request/attempt."
+    ],
+    "error_authorization_state_checks": "Helper deliberately does not enforce auth/request/workflow generation itself; caller must apply those guards after await. Backend and hydrate determine ownership; no append-note mutation from this helper.",
+    "test_evidence": "Inspected condition-recovery test declarations for lost response/no replay, read-unavailable, same-selection note reuse, stale version and late identity/location result fencing; not reexecuted.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend enforcement and physical-device behavior not established by this portable-source review."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-transport.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "aed5b3fd4a33bfbd5b509babc7c16e59eb826db5e5bad805ffa49e2ac2157d57",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Check-in API contracts",
+    "review_notes": "Reviewed all 11 transport methods: completion, condition-completion, detail/identity correction, note, intake, continuations, drafts, detail and recognition. Success schemas reject malformed responses with CHECK_IN_RESPONSE_INVALID/502.",
+    "read_ranges": [
+      [
+        1,
+        126
+      ]
+    ],
+    "callers_consumers": [
+      "Native createNativeCheckInRuntime passes a fresh client factory into EmployeeCheckInSession."
+    ],
+    "error_authorization_state_checks": "Request schemas checked on protected complete/correction/note commands; intake and recognition rely on typed upstream constructors/server validation. Shape parse alone does not match resource identity; caller hydration/command validation required. No transport retry or local success synthesis.",
+    "test_evidence": "Inspected transport test declarations covering exact endpoints, fresh client per identity, authoritative identity preservation, parsed correction routes and condition routes. Historical suite evidence only; no rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend enforcement and physical-device behavior not established by this portable-source review."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-confirm-parked-transport.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c7cda96ce669439667f2ea36875e6170417443666727f67625440f86f88c516b",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Parking validation/confirmation HTTP",
+    "review_notes": "Reviewed validated spot query conversion, schema-checked confirm command, parsed session detail and queue reads; malformed successes become 502 CONFIRM_PARKED_RESPONSE_INVALID.",
+    "read_ranges": [
+      [
+        1,
+        72
+      ]
+    ],
+    "callers_consumers": [
+      "createNativeEmployeeRuntime injects transport into EmployeeConfirmParkedSession."
+    ],
+    "error_authorization_state_checks": "Client factory avoids retaining an old bearer client; ID, version and authority matching belong to caller. Validation stringifies parsed query values; no client-side occupancy claim or bypass.",
+    "test_evidence": "No new execution; tests/confirm session are dependencies outside current completed subset.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend enforcement and physical-device behavior not established by this portable-source review."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-handoff-flow-command.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "16ee8666e4d450eb928c7a4ebeed7e62f669d1e7a73b4965961c9b123f1b44fa",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Protected handoff result reducer",
+    "review_notes": "Reviewed initiate/abort/verify/override result contract: exact session/task IDs, session version+1, state READY only on abort, unchanged task version/status and matching verified method. Reducer updates physical state and handoff verification without changing task lifecycle version.",
+    "read_ranges": [
+      [
+        1,
+        87
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeHandoffSession.execute calls validateHandoffResult before applyHandoffResult, after request/target fence."
+    ],
+    "error_authorization_state_checks": "Non-null assertions depend on execute captured session/task and validated transport output. verifiedAt/method are response-schema checked; reducer itself is not public authorization enforcement. Abort explicitly clears previous verification.",
+    "test_evidence": "Read caller execute/reconcile path, inspected handoff transport test declarations malformed-success test; no rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend enforcement and physical-device behavior not established by this portable-source review."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-handoff-flow-transport.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "010249e9e63c0b9d3317dc3c2b6cf2c092f6fcc487250c825d2f3ccedb6a0e10",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Handoff HTTP contract",
+    "review_notes": "Reviewed every endpoint/method and exact schema for initiate/abort/override/pickup-code/dynamic-QR. Generic internal post helper always response-parses; queue and session are read-only recovery inputs.",
+    "read_ranges": [
+      [
+        1,
+        103
+      ]
+    ],
+    "callers_consumers": [
+      "Native runtime creates EmployeeHandoffSession with this transport; session execute dispatches narrow commands."
+    ],
+    "error_authorization_state_checks": "No raw code/token logging; request reason/version/proof validation before dispatch. New client from factory per call; response malformed 502 drives ambiguity/reconciliation at caller, not success.",
+    "test_evidence": "Inspected handoff transport test declarations: accepted MOB014A routes/exact bodies and malformed success rejection; prior recorded suite green, no rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend enforcement and physical-device behavior not established by this portable-source review."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-operational-recovery.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "88c631b4c484ec0dae80c0d3b12b8f2ac2b05b4d6b1404de210ab32e77fa2a1e",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Task claim/accept recovery",
+    "review_notes": "Reviewed action eligibility QUEUED+unassigned vs ASSIGNED+self; attempt captures generation/membership/location/shift/version; reconciliation requires exact accepted version increment (+2 claim-and-accept), otherwise conservative retry/conflict.",
+    "read_ranges": [
+      [
+        1,
+        130
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeTaskActionOwner builds attempts and reconciles queue; EmployeeOperationalSession uses operationalFailure and isEmployeeAttemptScope."
+    ],
+    "error_authorization_state_checks": "Failure normalization keeps typed status/retryAfter. Ambiguity classifier recognizes EmployeeApiError network/408/5xx only; malformed untyped exceptions require caller behavior review. No replay on foreign task owner or arbitrary version.",
+    "test_evidence": "Read operational-load suite fully and background-action-fence test declarations; no rerun. Attempt-scope includes membership/location/shift and generation; organization follows membership identity.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend enforcement and physical-device behavior not established by this portable-source review."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-operational-scope.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "32ed5f1b0e0e76ee530bb1f8b4ff2c953b9e968109025633ed6ddb3fa276c881",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Operational authority selection",
+    "review_notes": "Reviewed empty-context denial, zero-active distinction by eligible locations, multiple-active fail-closed with count, and exact-one active scope projection. Scope equality uses organization/membership/location/shift, intentionally not display labels.",
+    "read_ranges": [
+      [
+        1,
+        65
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeOperationalSession.executeContextLoad and native lifecycle/command sessions consume scope resolution/equality."
+    ],
+    "error_authorization_state_checks": "Schema-validated upstream transport provides activeShift/currentLocation; resolver assumes their correspondence (backend contract). Role changes are not scope-key changes and need explicit caller role-authority handling; NativeProductionLifecycleOwner separately compares role as previously reviewed.",
+    "test_evidence": "Read operational-load tests for no shift/no usable location/ambiguous/empty contexts; no fresh execution.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend enforcement and physical-device behavior not established by this portable-source review."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-operational-session.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4f07203717132d2ca975662cb7a2764ee073e2a37ab4ded854f73edfd9e0876f",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Native operational context/queue lifecycle",
+    "review_notes": "Reviewed activation, foreground/background invalidation, single-flight context load, captured generation+sequence guards, authoritative scope reset, action retirement, queue propagation and terminal-task removal. Background clears tracking projection and suspends action/queue; resume reloads context before queue.",
+    "read_ranges": [
+      [
+        1,
+        234
+      ]
+    ],
+    "callers_consumers": [
+      "Native runtime constructs; NativeProductionShell activates by auth generation; NativeProductionLifecycleOwner foreground/reconnect refreshes; task UI invokes action/queue reads."
+    ],
+    "error_authorization_state_checks": "Context responses gate by generation/sequence; nonready authority clears action+queue; error suspends queue and resets authority while retaining unresolved mutation metadata. Queue events are accepted only for matching scope; queue owner additionally keys by generation (supporting source read 1–105). Callback onOperationalContext executes before scope resolution; exceptions enter conservative context-error path.",
+    "test_evidence": "Read full operational-load tests (8 cases) and inspected background-action-fence declarations. Historical 897 portable passing tests only; no redundant execution.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend enforcement and physical-device behavior not established by this portable-source review."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-operational-state.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a7c6279185b232c9d8ba90fd0e54a092c31205d6199f4a03d2ffd3d65f6f3a77",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Operational snapshot transitions",
+    "review_notes": "Reviewed complete initial snapshot, unresolved mutation preservation on temporary context reset, hard-stop clearing, queue error versus retained rows/loading presentation, tracking invalidation on failure and retained/new authority projection.",
+    "read_ranges": [
+      [
+        1,
+        128
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeOperationalSession applies context and queue reducers; EmployeeTaskActionOwner applies submitting/reconciling reducer."
+    ],
+    "error_authorization_state_checks": "Only unresolved submitting/reconciling/recovery-unavailable mutation survives temporary reset; hard stop clears task rows/tracking. Successful queue count is event-authoritative. New scope explicitly resets mutation; retained scope updates role/name data.",
+    "test_evidence": "Operational-load test source and caller flow inspected; no tests executed this continuation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend enforcement and physical-device behavior not established by this portable-source review."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/local-mfa-bypass.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "15b67130d2e9486a25cdc8a52ce257df8bdc38415e155f60e664a54959609670",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "Local MFA development bypass",
+    "review_notes": "Only exact true enables; NODE_ENV must be development and database hostname loopback postgres. Policy is process-cached after bootstrap. Request inputs cannot enable it; localhost port forwarding/incorrect deployment configuration not treated as remote exploit.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 68
+      }
+    ],
+    "callers_consumers": "main.ts configureLocalMfaBypassPolicy; mfa assurance/state/RR fence localMfaBypassEnabled",
+    "error_authorization_state_checks": "No auth/session skip before transactional require; environment-only opt-in; invalid mode/remote URL throws.",
+    "test_evidence": "local-mfa-bypass.test.ts discovered, not rerun",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-anti-abuse.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2c2b51c1d5110db93e62527c1ca7ea5281e8db04621223f78d71e166048f028c",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "MFA attempt accounting",
+    "review_notes": "TOTP and recovery attempts have distinct user-scoped reservations, threshold 5, counted only on verification failure. Success finalization may share factor transaction; outage exceptions propagate. Pending reservation semantics deferred to anti-abuse implementation.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 53
+      }
+    ],
+    "callers_consumers": "Enrollment/StepUp/Recovery services",
+    "error_authorization_state_checks": "User ID comes from resolved session; reserve denies with bounded retry; finalization never receives raw code.",
+    "test_evidence": "Call sites reviewed; anti-abuse internals outside assignment",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-assurance-policy.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a6fea75b75f7e5f47016d5621eb94387dce02c74a12939ea3990a7310b14d0fb",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "Session-bound MFA assurance",
+    "review_notes": "Assurance requires current factor, exact staff session/token, max8h, inactivity30m and sensitive5m; negative clock age denied. Transactional path locks/rechecks session/user before factor lookup; activity updates require live session/current factor and cannot refresh mfa_authenticated_at. Nontransaction require/assess is advisory until protected caller rechecks.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 222
+      }
+    ],
+    "callers_consumers": "management authorization, dashboard read, tracking read; MfaStateService",
+    "error_authorization_state_checks": "No client assurance flag accepted; SQL matches token hash/user/session and role handled by callers. RR factor-fence dependency checked separately.",
+    "test_evidence": "DEC078 examined; multiple revocation-fence test paths discovered, not executed",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-crypto-config.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "eb3f38e0313466c50ebf0ed6112bdab6f0737e96af1b9815bef1dea031bbb27a",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "MFA key configuration",
+    "review_notes": "Requires canonical 43-character base64url encoding decoding to32bytes, separate encryption and recovery HMAC env names; malformed/missing values fail generic MFA_SECURITY_UNAVAILABLE. Read functions inspected without accessing environment values.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 32
+      }
+    ],
+    "callers_consumers": "mfa-secret-protection; mfa-recovery-code",
+    "error_authorization_state_checks": "Deployment config is trusted, no user-selected key path/algorithm.",
+    "test_evidence": "Source only; secret-protection test path discovered",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-enrollment.service.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7249bc8d5c5cee6e34b222369d3552bf16b08b1982af0d958d7929822b2164ad",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "MFA initial/pending enrollment",
+    "review_notes": "begin resolves current session, locks session/user and user advisory, requires management eligibility, rejects ACTIVE, re-discloses existing PENDING seed for same user. confirm locks factor by user/id, validates TOTP, activates factor/recovery rows/assurance/security audit atomically; verification failures count. Candidate: re-disclosure also applies PENDING created during self-recovery, with no original ceremony/session binding.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 198
+      }
+    ],
+    "callers_consumers": "StaffMfaController -> begin/confirm; recovery inserts pending via shared repository",
+    "error_authorization_state_checks": "Membership eligibility is user-global not tenant-scoped intentionally for user factor. Cross-user factor id rejected. Recovery pending capture hypothesis pending validation.",
+    "test_evidence": "mfa enrollment/recovery test inventory pending; no runtime execution",
+    "related_finding_ids": [
+      "SEC-011"
+    ],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ],
+    "coordinator_disposition": "SEC-C001-H01 promoted to SEC-011 HIGH-CONFIDENCE / RUNTIME UNVERIFIED after independent coordinator challenge and synthetic service-model reproduction."
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-errors.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "549634c356b5a7ecdf0c0577b569f6c052a8a073831f4f7d0a1ad09ab84dfdeb",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "MFA safe errors",
+    "review_notes": "Four error classes contain fixed messages/codes; rate-limited stores retryAfter only. No TOTP seed/code/factor verifier embedded in exception text.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 35
+      }
+    ],
+    "callers_consumers": "MFA services; common exception filter",
+    "error_authorization_state_checks": "MFA enrollment unavailable, verify failure and step-up classified distinctly; fixed strings only.",
+    "test_evidence": "Source only",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-factor-repository.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "74e1d4928d6120a1c5440758849ebbc8c72024bd3d8804dc58c9d6fd77b5c4d4",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "MFA factor persistence",
+    "review_notes": "Current factor restricted to user and PENDING/ACTIVE with FOR UPDATE; multiple current rows throw. Specific factor lookup also user-bound. insert pending has no session/ceremony binding fields; retire only current state, verifies exactly one row.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 86
+      }
+    ],
+    "callers_consumers": "Enrollment/Recovery/StepUp/State services",
+    "error_authorization_state_checks": "Current-user binding prevents cross-user factor replay; same-user pending recovery capture hypothesis depends on service semantics. DB uniqueness pending dependency.",
+    "test_evidence": "Source only; migration constraints not yet read",
+    "related_finding_ids": [
+      "SEC-011"
+    ],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ],
+    "coordinator_disposition": "SEC-C001-H01 promoted to SEC-011 HIGH-CONFIDENCE / RUNTIME UNVERIFIED after independent coordinator challenge and synthetic service-model reproduction."
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-recovery-code.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3493cc6a6ede15360c7859523b8223779b857f420dddcb6790049be92647d7a9",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "One-time recovery verifiers",
+    "review_notes": "Ten codes use64-bit random selector and160-bit random secret; HMACSHA256 binds user/factor/generation/selector/full code with separators. Equality timingSafeEqual over32bytes. Raw values returned only by authorized services; generation invalidates old rows semantically.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 106
+      }
+    ],
+    "callers_consumers": "Enrollment generates; Recovery looks up selector and verifies",
+    "error_authorization_state_checks": "Selector not sufficient to authenticate; known format alone cannot forge verifier without deployment HMAC key.",
+    "test_evidence": "Source only; no entropy probe or real values",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-recovery.service.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b8ca693f40be5f71c2f1234f3748fa240d7ebb7329586bbc926a4d8ad0a7ad11",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "MFA recovery and code reissue",
+    "review_notes": "Self-recovery requires active management session plus one unconsumed exact current-factor recovery code, atomically consumes/retire/inserts pending/audits. Existing assurance loses current-factor eligibility. Reissue requires fresh nonreplayed TOTP, increments generation and establishes assurance atomically. Candidate: replacement pending seed subsequently retrievable through generic enrollment.begin by another password-only same-user session.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 244
+      }
+    ],
+    "callers_consumers": "StaffMfaController recover/reissue; EnrollmentService pending branch",
+    "error_authorization_state_checks": "Factor/session/user locks serialize competing recovery and code reuse. No session binding persisted for replacement PENDING; candidate retained for disproof.",
+    "test_evidence": "Source only; no DB/provider operations",
+    "related_finding_ids": [
+      "SEC-011"
+    ],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ],
+    "coordinator_disposition": "SEC-C001-H01 promoted to SEC-011 HIGH-CONFIDENCE / RUNTIME UNVERIFIED after independent coordinator challenge and synthetic service-model reproduction."
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-rr-factor-fence.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "553c352fc414fa0f9853c02ed1c1d27c028732b5d46bfe3843c724309585bcfd",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "Repeatable-read MFA revocation fence",
+    "review_notes": "Explicit FOR SHARE factor joins exact session,user,token and ACTIVE state; after canonical locks RR concurrent recovery update yields40001 instead of stale factor acceptance; bypass is restricted local config. Requires caller lock order/transaction retry.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 32
+      }
+    ],
+    "callers_consumers": "company-admin-rr-snapshot and physical-resource-overview transaction references to verify",
+    "error_authorization_state_checks": "Helper only checks factor current; session/user/expiry are documented caller prerequisites, not standalone authorization.",
+    "test_evidence": "Source only; RR integration test paths referenced in inventory",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-secret-protection.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "06c577ee20230b2a9259b7a29cd2aab22cd0495edec07264b6800d890e32b0d8",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "TOTP secret encryption",
+    "review_notes": "AES256GCM random96-bit nonce,16-byte tag and AAD userId+factorId protect secret substitution; canonical base64url and exact32 base32 seed checked before use. All decrypt/parse errors normalize to unavailable. No real key/seed inspected.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 101
+      }
+    ],
+    "callers_consumers": "Enrollment/Recovery/StepUp through mfa-totp re-export",
+    "error_authorization_state_checks": "Attacker cannot choose arbitrary algorithm/key; DB ciphertext tamper rejected by AEAD. Seed strings remain in process memory as expected, not logged.",
+    "test_evidence": "mfa-secret-protection.test.ts discovered; not executed",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-session-repository.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e59eeb5a60a62c0b7080226cd786f1475436be328b37586bbb027540a0bf03c2",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "MFA session lock and eligibility",
+    "review_notes": "Session/token/user/revocation/access+absolute expiry checked with FOR UPDATE session,user. User advisory serializes factor ceremony. Eligibility accepts active ORG_ADMIN or LOCATION_MANAGER in active organization; establish assurance updates exact session and checks supplied DB time. Potential pre-lock wallclock sample delay noted, not demonstrated exploit.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 92
+      }
+    ],
+    "callers_consumers": "All MFA services and assurance helper",
+    "error_authorization_state_checks": "Management roles derived from persisted membership, not request. Session.now reused through ceremony; test/runtime long-lock semantics unverified.",
+    "test_evidence": "DEC078 contract inspected; no real DB race",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-state.service.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e802eb19593abd3024b9a39f302199de96e8e6c4e1cb012fb47050940a6d63d8",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "security",
+    "feature": "MFA public state projection",
+    "review_notes": "Returns only enrollment-required/pending/step-up/assured, after session and management-eligibility checks. Factor state snapshot released before fresh assurance.assess; therefore display can change but grants no authority. Local bypass reports assured after auth.",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 52
+      }
+    ],
+    "callers_consumers": "StaffMfaController state -> management UI",
+    "error_authorization_state_checks": "No secret projected; retirement/recovery between reads may cause advisory stale state, protected mutations still use transactional assurance.",
+    "test_evidence": "Source only",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Protected consumer and SQL privilege/migration coverage not certified by file review; batch report enumerates limitations"
+    ]
+  }
+]

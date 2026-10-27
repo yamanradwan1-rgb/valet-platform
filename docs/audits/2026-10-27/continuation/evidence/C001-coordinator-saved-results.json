@@ -1,0 +1,821 @@
+[
+  {
+    "path": "scripts/test-harness/child-postgres-hook.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ff31d189be8a970918f3e7354c4029f580e5b9a901cdf609785d546d0743b111",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "PostgreSQL test subprocess ownership",
+    "review_notes": "An import hook activates only with a test run/cluster ID. It derives the test DB URL in documented priority order, writes self-tracked child start/exit events when requested, and resolves pg from the child working package. Missing pg is tolerated because non-DB children still need process tracking; ownership installation happens only when pg resolves. No database connect/cleanup occurs in this module itself. Ambient IDs/URL are inputs, not proof the selected DB is disposable; the ownership/preflight callers must enforce that boundary.",
+    "read_ranges": [
+      [
+        1,
+        49
+      ]
+    ],
+    "callers_consumers": "postgres-runtime.mjs injects this hook into bounded subprocesses; ownership-state append and postgres-ownership-hooks consume selected identity.",
+    "error_authorization_state_checks": "Run ID gate prevents ordinary application import behavior; exit handler records identity; missing dependency caught. Need continued review of URL/lease ownership and child process hooks before asserting cleanup safety.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "scripts/test-harness/postgres-ownership-hooks.mjs",
+      "scripts/test-harness/ownership-state.mjs"
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/command-runner.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fb10be682967ba0877b96a06f2e50c77f4fe2aa2dda29d432c2d107af0562b0f",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Bounded test command execution",
+    "review_notes": "runHarnessCommand chooses inherited package manager executable, adjacent corepack, then platform pnpm fallback; spawns with inherited environment and forwards both streams while retaining last512k characters for failure classification. It records coordinator child PID/Linux identity on start/exit when a cluster run exists and maps null exit to failure. Classifier prioritizes connection pressure, memory exhaustion, worker failure, migration failure, generic tests. There is no install guard: package-manager side effects are possible, consistent with the earlier disclosed wrapper incidents, so this command will not be executed.",
+    "read_ranges": [
+      [
+        1,
+        140
+      ]
+    ],
+    "callers_consumers": "Root/package/postgres runners dispatch through this helper; testDatabaseUrl and appendOwnershipEvent establish ledger context.",
+    "error_authorization_state_checks": "No shell on Unix; Windows fallback uses shell for pnpm.cmd. Output retention is bounded but forwarding is not a privacy filter. Spawn occurs before ledger append; a write failure could leave a child alive, requiring dependency review rather than a new confirmed finding. Errors propagate; normal completion appends exit metadata.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "scripts/test-harness/invocation-lease.mjs",
+      "scripts/test-harness/ownership-state.mjs"
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/invocation-lease.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "293f5995cbef09b600f7ab3f3d3897811b6ec06bacdb9caf8300e1c57e9bcbed",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Invocation lease and stale-run recovery",
+    "review_notes": "Traced inherited and newly acquired lease paths, protected-project tagging, stale ancestry recovery, parked preflight failure, cleanup preservation and final release. Inherited calls assert ownership and cannot release parent lease. Environment run ID is assigned only after recovery. Admin adapter selection follows database versus API package label.",
+    "read_ranges": [
+      [
+        1,
+        135
+      ]
+    ],
+    "callers_consumers": "Root/package/owned/project runners acquire this lease; ownership-state, preflight, owned-cleanup and cleanup adapter supply resource controls.",
+    "error_authorization_state_checks": "Protected selected projects are preflighted before acquisition/cleanup; stale Issue215 ancestry is preflighted again. Throws propagate; a failure after new acquisition can leave metadata for later stale recovery, not proof of permanent resource corruption.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Actual disposable target attestation implementation and PostgreSQL runtime behavior not exercised."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/issue215-target-preflight.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3d9d210c97190172b2e347e6110c5fc53883b78e93323c00a4db374ae56159d5",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Protected test target attestation",
+    "review_notes": "Reviewed exact selected-project membership and stale-owner compatibility rules. Explicit recovery requirement wins; ambiguous ancestry and legacy database/root labels require preflight. Explicit false for a known newer owner is honored. Attestation resolves pg from database package and invokes the condition-photo target helper.",
+    "read_ranges": [
+      [
+        1,
+        40
+      ]
+    ],
+    "callers_consumers": "invocation-lease, owned-cleanup and PostgreSQL global setup call this module.",
+    "error_authorization_state_checks": "No cleanup SQL occurs here. A thrown attestation prevents caller cleanup; project names are exact manifest strings rather than substring CLI detection.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "packages/database/scripts/condition-photo-p1-test-target.mjs remains separately owned and unreviewed in this batch."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/issue215-test-manifest.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f2cb6aff29acf0e5a5fa808cdf47d1a0a9b294a31ff98fb5d84604d169be63ab",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Protected fixture inventory",
+    "review_notes": "Reviewed all three project names, browser test basename and every API/database fixture basename. Frozen explicit lists distinguish mutation-sensitive projects from other test groups. No runtime DB or provider operation.",
+    "read_ranges": [
+      [
+        1,
+        44
+      ]
+    ],
+    "callers_consumers": "test-classification and protected preflight consume exact lists.",
+    "error_authorization_state_checks": "Exact inclusion prevents unrelated project match; completeness depends on updating manifest when new protected fixture tests are added.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Inventory-to-every-future-test equivalence not established."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/process-identity.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0719c7bea3c4922d76600ee88567ea3e7134df09cf57ea7f0c74cf16f7184563",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Owned child PID identity",
+    "review_notes": "Read Linux /proc stat parsing through final right parenthesis to tolerate spaces/parentheses in command name; field22 start ticks form process identity. Unsupported platform, malformed numeric field and disappeared proc entry return undefined.",
+    "read_ranges": [
+      [
+        1,
+        23
+      ]
+    ],
+    "callers_consumers": "Runtime child hooks, command runner and cleanup adapter capture/compare PID start identity.",
+    "error_authorization_state_checks": "No signal sent here. Missing identity is not treated as ownership; cleanup adapter rejects live Linux children without comparable identity. Caller supplies process IDs.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/park-cluster-lease.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9a43824719f4520f7f966d24a1ed92889e6d18cab6a205616807bf14f370f192",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Failed attestation lease parking",
+    "review_notes": "Verified same-run owner check before stopping heartbeat. Owner and recovery ancestry deliberately remain for expiry-driven recovery; no resource deletion or ownership handoff occurs here.",
+    "read_ranges": [
+      [
+        1,
+        21
+      ]
+    ],
+    "callers_consumers": "invocation-lease parks a newly claimed stale run when protected target preflight fails.",
+    "error_authorization_state_checks": "Foreign run ID throws; filesystem/JSON errors propagate; expiry and later target attestation remain necessary before cleanup.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/ownership-state.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "67ad9c508547ad278e882b6f45dce5113c3e573730c53c7327fbef96048e9881",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Cluster lease and ownership journal",
+    "review_notes": "Reviewed all 291 lines: cluster identity normalizes loopback/port and ignores database/user to serialize cluster-wide resources; random owned-resource names, hard-link exclusive claim, heartbeat+liveness ownership check, stale ancestry, release ownership check, append-only per-worker event journals and truncated-tail parsing. Run IDs are filename-sanitized.",
+    "read_ranges": [
+      [
+        1,
+        291
+      ]
+    ],
+    "callers_consumers": "Invocation/global setup claim leases; runtime hooks journal resources; cleanup reads journals. Process identity helper complements liveness checks.",
+    "error_authorization_state_checks": "Malformed owner data throws. Stale claims remove owner without compare-and-swap, so simultaneous stale reclaim deserves targeted contention proof before cleanup safety is certified. This is an unresolved hypothesis, not a reproduced race. Journal parsing stops at first incomplete line and does not certify external tampering resistance.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Concurrent stale-owner reclaim behavior needs safe filesystem-only validation."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/lease-heartbeat.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "52c87f16db1149d9f1150eebe71d09bdef948199d1cac5bc0329ad253015cafa",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Harness lease freshness",
+    "review_notes": "Reviewed immediate atomic-temp heartbeat publication, unref one-second refresh, thirty-second freshness/startup grace and prefix cleanup. Stop clears own timer and run heartbeat files; latest timestamp is inferred from filename.",
+    "read_ranges": [
+      [
+        1,
+        86
+      ]
+    ],
+    "callers_consumers": "ownership-state uses heartbeat freshness for cluster claim/assert; park stops refresh without deleting owner.",
+    "error_authorization_state_checks": "Process-local run-ID timer map assumes globally distinct run IDs. Future timestamps and filesystem failures are not an authenticated authority; trusted local harness state is assumed. Event-loop stalls longer than expiry can permit reclaim and need coordination with owner liveness.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Contended stale lease behavior remains unvalidated."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/owned-cleanup.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2476c96cc52bcedce95dd4384fda5b67614dacacdec439804eec8bd8e68a7807",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Owned PostgreSQL fixture cleanup",
+    "review_notes": "Reviewed event reduction including absent-before-create plans, dropped markers, child/coordinator tracking; protected-resource preflight runs before quiescence and again after journal reread. Children are quiesced up to five rounds, databases dropped before roles, existence checked before optional state removal.",
+    "read_ranges": [
+      [
+        1,
+        153
+      ]
+    ],
+    "callers_consumers": "Invocation lease and Vitest global teardown call cleanupOwnedRun; cleanup adapter provides process/DB effects.",
+    "error_authorization_state_checks": "Reused child identities are excluded only after adapter says false; missing identity throws. No broad database enumeration/drop. Cleanup resource names are trusted journal inputs, not re-attested ownership at SQL time; requires exclusive lease and trusted local journal.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Real PostgreSQL cleanup not executed; simultaneous stale reclaim is an unresolved harness dependency."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/postgres-cleanup-adapter.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "052ed82366c5420dc1ffb9fc7cf7426987ae1295f18c8541b5cf58510ded68ec",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Owned process and DB deletion adapter",
+    "review_notes": "Read database/role DROP and parameterized existence checks, admin client finally-close, server budget query, Linux start-tick and Windows process-start ownership checks, bounded termination polling. SQL identifiers are quoted; no wildcard drop. Non-Windows/non-Linux live PID deletion fails closed.",
+    "read_ranges": [
+      [
+        1,
+        179
+      ]
+    ],
+    "callers_consumers": "owned-cleanup supplies exact journal names; invocation/global setup supply admin URL and pg.",
+    "error_authorization_state_checks": "Live Linux identity absence throws and mismatch returns false; Windows missing start time throws. Database DROP FORCE is destructive but test-owned caller only; no code executed. Local process kill check has unavoidable check-to-signal timing, no demonstrated violation in caller context.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Disposable admin-target enforcement relies on higher-level attestation; Windows and PostgreSQL execution not performed."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/postgres-ownership-hooks.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2074f467a15fb0281418153aa6340ebe087712b1c050c538a7d49878579e9bc9",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Test SQL ownership instrumentation",
+    "review_notes": "Reviewed Pool/Client prototype wrapping, text/query-object and callback/promise forms, existence precheck plus planned journal before CREATE, successful creation/drop events, connection-limit rewriting and resource extraction. Existing names reject creation; partial failed creation remains recoverable from absent-before-create plan.",
+    "read_ranges": [
+      [
+        1,
+        188
+      ]
+    ],
+    "callers_consumers": "Child hook installs once; postgres-runtime also patches with connection budget; cleanup consumes events.",
+    "error_authorization_state_checks": "SQL resource extraction is regex, not a full SQL parser: quoted doubled quotes/comments/multi-statement database creates need explicit future tests. Ordinary fixture names are generated safe tokens. Append failures propagate, but SQL side effects may already exist; planned journal supports recovery.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full repository SQL creation forms and mocked callback edge cases not yet independently enumerated."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/postgres-runtime.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7d6fd77c0ff3f35430cd36bbe7612e49f1854cf5e7b05ff6c7fd155c8c1d4d41",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Bounded test DB and child runtime",
+    "review_notes": "Read complete 300 lines: bounded Pool constructor/count release, direct-client connect failure/end release, process-global install guard, non-DB connect/query and known setup-command guards, child concurrency and spawn error/exit release, sync child self-ledger hook injection and ESM synchronization. PostgreSQL URLs are redacted in journal command text.",
+    "read_ranges": [
+      [
+        1,
+        300
+      ]
+    ],
+    "callers_consumers": "Vitest postgres/non-postgres setup loads this module; ownership hooks journal CREATE/DROP and child hook propagates tracking.",
+    "error_authorization_state_checks": "Budget is per-process; inherited run lease is separate. Non-DB command regex is a guard for known wrappers, not a sandbox or installation prevention. A package-manager wrapper may install dependencies without matching it; audit therefore executes no package wrapper. Pool count release does not validate DB disposal.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Actual concurrency budgets/child ownership under Windows and PG remain unexecuted."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/test-classification.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3355d6170812f5b64d130fe369441e60abf7243c54a555a838c392666b41ca78",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Test discovery and resource ownership",
+    "review_notes": "Read full recursive discovery, spec rejection, explicit protected inventories, dependency traversal and API/database project choice. Local relative imports are followed only inside test root with support-like filenames; lazy postgres tests are exceptions. Exactly-one ownership is asserted per discovered path.",
+    "read_ranges": [
+      [
+        1,
+        250
+      ]
+    ],
+    "callers_consumers": "Vitest package configs and focused runner consume grouped tests; non-PG runtime invokes access guard.",
+    "error_authorization_state_checks": "Classification regexes are heuristic and support-file boundary excludes arbitrary imported runtime code. This is resource scheduling, not semantic test coverage or a security sandbox. Protected fixture signals/inventory omissions throw; duplicate groups fail.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full test graph and dynamic/import-alias forms remain separate review."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/resource-budget.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2d1bf7945939ecc873a512126da381b3a2f3d6382c4b9f3bc910ae42b428dfd3",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "PostgreSQL test resource budgets",
+    "review_notes": "Inspected six immutable pool/direct/subprocess/worker profiles, eight project mappings, connection-envelope arithmetic and integer/nonnegative admission checks. Available slots subtract reserved and non-test allowance; negative headroom and zero workers fail.",
+    "read_ranges": [
+      [
+        1,
+        131
+      ]
+    ],
+    "callers_consumers": "Global setup reads cluster capacity and asserts selected profile; per-worker setup enforces profile caps.",
+    "error_authorization_state_checks": "Envelope admission is per invocation and assumes exclusive lease; supportedWorkerCount reports theoretical cap rather than changing configured worker concurrency. No DB connection here.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/vitest-postgres-global.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "18d00465980ab905c54c437e61ea28a93544000abd021ffe75ce73008efb15b6",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "PostgreSQL global fixture lifecycle",
+    "review_notes": "Traced preflight before claim/recovery, inherited lease verification, new-run protected marker, package pg resolution, stale run ancestry cleanup, server capacity assertion, worker environment propagation and finally cleanup/release callback.",
+    "read_ranges": [
+      [
+        1,
+        134
+      ]
+    ],
+    "callers_consumers": "Vitest globalSetup for every PostgreSQL project; invocation runners own parent lease when present.",
+    "error_authorization_state_checks": "Unknown project fails. Protected stale preflight failure parks lease. Startup errors after acquisition leave recoverable owner metadata rather than returning teardown; no test or cleanup executed in audit.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Actual PG capacity and fixture teardown not run."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/vitest-postgres-setup.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c9c5932c71713a8654961377f25b1c4f164a2a0d506cb4ecdf9261394b99b752",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Per-worker PostgreSQL harness setup",
+    "review_notes": "All project/profile/run-ID inputs required before pg/runtime patching. URL priority agrees with invocation helper (TEST then migration then fixed local default). Appends each event to exact run journal and installs profile-specific bounded runtime.",
+    "read_ranges": [
+      [
+        1,
+        36
+      ]
+    ],
+    "callers_consumers": "PostgreSQL Vitest projects use setupFiles after global setup.",
+    "error_authorization_state_checks": "Input presence does not itself attest disposable target; relies on global/invocation lease and protected preflight. No resource creation in module beyond instrumentation when imported; audit only read it.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/vitest-non-postgres-setup.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3116f21282ca2220bef7128f5fa09a83135a3738db7cc9c6414a88fe002cf4b7",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Non-DB test runtime guard",
+    "review_notes": "Requires project identity, resolves optional pg from current package, skips patch if dependency absent, otherwise installs query/connect and known setup-command guards.",
+    "read_ranges": [
+      [
+        1,
+        25
+      ]
+    ],
+    "callers_consumers": "Non-PostgreSQL Vitest project setup.",
+    "error_authorization_state_checks": "Missing pg is allowed for pure packages. Guard is not universal child-process interception; audit must still inspect any wrapper before running it.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/run-owned-tests.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "442969b26b426de803e1022c9f97f810301ca8e23e574921cabd8084c7914574",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Focused classified test runner",
+    "review_notes": "Reviewed requested-path normalization, test/src prefix resolution, exactly-one project lookup, grouping, PostgreSQL need detection and serial execution. Each DB project cleans in finally and parent lease releases in outer finally; nonzero codes aggregate.",
+    "read_ranges": [
+      [
+        1,
+        70
+      ]
+    ],
+    "callers_consumers": "Package focused test instructions invoke this CLI; command runner starts pnpm exec vitest.",
+    "error_authorization_state_checks": "No setup/installation prevention exists at this level. Invalid requests fail before lease. packageKind is not explicitly restricted to api/database beyond required presence (other strings map to src); trusted developer CLI, not remote input.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/run-package-tests.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7470e2c00a6d31b08aec2bdfa5166947a47eff91c1f8819e17a33e2094ecaa3c",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Package test lane runner",
+    "review_notes": "Only api/database accepted. Acquires parent lease (database explicitly preflights protected project), runs non-PG then PG lanes and releases finally; nonzero results aggregate.",
+    "read_ranges": [
+      [
+        1,
+        28
+      ]
+    ],
+    "callers_consumers": "Package test script consumes runner; command-runner may invoke package-manager scripts.",
+    "error_authorization_state_checks": "API protected preflight occurs in child selected PG projects; stale-protection propagated via marker. Even non-PG first lane runs under lease and can require DB dependencies; do not use to obtain pure audit evidence.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/run-postgres-projects.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b99367c27c90cc0ee50b4412ea48c692ed0517954e1d7f23c4777218a395dd5c",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Serial PostgreSQL project runner",
+    "review_notes": "Requires config and projects, preflights selected groups via invocation lease, executes each project serially, cleans after each even on command failure, always releases parent lease.",
+    "read_ranges": [
+      [
+        1,
+        31
+      ]
+    ],
+    "callers_consumers": "API/database test:postgres scripts select exact projects.",
+    "error_authorization_state_checks": "Trusted CLI can choose arbitrary project name; profile/global setup validates it. Cleanup failure aborts subsequent projects rather than fabricating aggregate success.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/run-root-tests.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a2e9b88ca2ac3b195e527ebfc491dd3731b8f71f52c6620a5350a3fc1345a710",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Root test orchestration",
+    "review_notes": "Mutually exclusive lane flags; default/PG root preflights protected database project and holds cluster lease. Pure turbo is serialized and excludes API/database; then API/database pure and PostgreSQL lanes run sequentially, failures aggregate.",
+    "read_ranges": [
+      [
+        1,
+        58
+      ]
+    ],
+    "callers_consumers": "Root package test commands call runner.",
+    "error_authorization_state_checks": "--non-postgres-only avoids DB lease but still invokes package-manager/turbo commands. No dependency installation guard; do not execute broad wrapper in audit.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/run-issue215-ci-api.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "65f869760cdbf66cb7c11d07fd33737739c7bcbbbb9e4191704abadd71a26da1",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "CI protected API fixture runner",
+    "review_notes": "Read CI job/platform/environment/project checks, exact container-ID shape and temporary versioned local S3 fixture assertions. Disposable S3 credentials flow only to child env; pnpm runs protected API group with test mode. Child spawn failure and null status become failure.",
+    "read_ranges": [
+      [
+        1,
+        47
+      ]
+    ],
+    "callers_consumers": "Postgres CI job after S3 fixture start.",
+    "error_authorization_state_checks": "No actual credential values read during audit. Manifest schema checks do not replace lower-level live Docker/PG attestation; no safe permission to execute this wrapper assumed.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "S3 docker-tools fixture lifecycle is outside this assigned subset."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/guest-t4-staging-read-probe.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "82d33f45720b12169a04b8653e2381ce3d34416cc36f6f407285596566b2e56d",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Optional read-only staging qualification probe",
+    "review_notes": "Reviewed explicit enable gate, two distinct clean origins, shaped Browser Session input, parallel per-replica current authority consistency and optional stale/revoked rejection. Fetch forbids redirects, has five-second abort and parses JSON. Summary explicitly limits proof to read-only partial qualification.",
+    "read_ranges": [
+      [
+        1,
+        138
+      ]
+    ],
+    "callers_consumers": "Manual T4 operator command; guest session endpoint is remote consumer.",
+    "error_authorization_state_checks": "Disabled path exits2 without request. Outside localhost URL requires HTTPS and no credentials/path/query/hash. Only session ID equality tested, not complete projection consistency or topology. Never executed against staging or read real cookie.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Remote topology, mutations/retry/drain and real session evidence remain unverified."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/issue215-pg17-local-smoke.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "217adee43b26ea636e40c684c0fb677242acc63113f134a33c13f911396ba2a7",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Disposable PG17 deadline smoke runner",
+    "review_notes": "Read random container name/password, exact labels/image/tmpfs/mount/loopback checks, bounded readiness polling, tsx child deadline and final exact-ID/name/owner cleanup. Child receives only ephemeral DB environment.",
+    "read_ranges": [
+      [
+        1,
+        95
+      ]
+    ],
+    "callers_consumers": "Manual isolated smoke invokes API issue215-pg17-runtime-smoke.ts.",
+    "error_authorization_state_checks": "No Docker/start/pull/test executed. Finally refuses unprovable cleanup and sets exit failure; actual runtime/image availability unverified.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Smoke child implementation and Docker execution not established by wrapper review."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/issue215-worker9-pg-fixture.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b6c6ffeddd2be6f0a3470045157c34f943f299bda01b79cca884af47810a8873",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Disposable worker9 PG fixture lifecycle",
+    "review_notes": "Reviewed start/stop-only interface, existing manifest/container takeover refusal, random run/password, loopback tmpfs container, exclusive mode0600 manifest, target attestation before readiness and stop, scoped cleanup on start failure.",
+    "read_ranges": [
+      [
+        1,
+        96
+      ]
+    ],
+    "callers_consumers": "Private photo QA PowerShell scripts call start/stop; target module validates matching manifest.",
+    "error_authorization_state_checks": "Failure after manifest write can preserve manifest for inspection; no silent overwrite. Fixed expected target image in companion module may require local matching image. No fixture launched and no credential values captured.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Windows/Docker failure recovery remains runtime qualification."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/issue215-worker9-pg-target.mjs",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "95a94b79767e656ee15a6ea24593c32b5378657192be93ef0ea52a4130c858d1",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Worker9 target attestation",
+    "review_notes": "Reviewed strict test/project/run identity, exact manifest-vs-URL agreement, loopback/defaults/credential presence and rejection of ambient PG override variables. Docker inspection requires one owned container, pinned image ID, labels/run/name, actual mapped port, tmpfs and no mounts. SQL identity checks database/user/owner/version/create privileges/nonrecovery.",
+    "read_ranges": [
+      [
+        1,
+        91
+      ]
+    ],
+    "callers_consumers": "Fixture start/stop and protected target helper invoke exports.",
+    "error_authorization_state_checks": "Returns URL only after attestation; generic rejection omits credential details. Pinned image digest versus mutable image tag availability is environment limitation until exercised; hostname alone does not establish disposal.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Live Docker and SQL identity proof not performed."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/run-issue309-private-qa.ps1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "057ecb82ba2ae93c923ec8b72d173a48042e8fe90a1dc7601c8b5ee9107de835",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Private photo acceptance orchestration",
+    "review_notes": "Read mandatory exact two migration basename checks, override/manifest refusal, fixture flags, secret env forwarding, serial selected HTTP/browser suites, per-suite error aggregation and finally both fixture teardowns.",
+    "read_ranges": [
+      [
+        1,
+        134
+      ]
+    ],
+    "callers_consumers": "Manual Windows isolated #309 acceptance runner calls existing fixture scripts and owned test runner.",
+    "error_authorization_state_checks": "Does not apply supplied migrations directly; merely checks required source names exist before normal fixture migration setup. Caller shell process retains env mutations, so do not run in audit environment. No PowerShell/package-manager command executed.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "PowerShell execution and S3 helper internals remain outside current coverage."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "scripts/test-harness/run-issue309-w9-fence-qa.ps1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e98583bde6f131ebf6bd4f55a3f1178c563c280ac46c7dc19f5675cb44a33eb4",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Private photo fence qualification orchestration",
+    "review_notes": "Reviewed fresh-manifest and PG override checks, separate PG/S3 start flags, test/run env setup, exactly one cross-commit test, explicit nonzero checks and finally both scoped teardowns.",
+    "read_ranges": [
+      [
+        1,
+        62
+      ]
+    ],
+    "callers_consumers": "Manual Windows W9 two-lease proof wrapper.",
+    "error_authorization_state_checks": "Credential env values never emitted by this source, but child output is inherited; logs need sanitization before publication. Teardown failure sets failure; no test or real credentials accessed.",
+    "test_evidence": "No test executed for this file. Existing related test sources/commands inventoried; their green history is not new validation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Actual Windows fixture/HTTP execution not performed."
+    ],
+    "supporting_test_inspection": "Supporting owned-cleanup.test.mjs and postgres-runtime.test.mjs were fully read; ownership-state test cases inventoried, no fresh execution. Support reads receive no additional coverage credit."
+  },
+  {
+    "path": "apps/api/src/common/database/bounded-postgres-pool.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2bfe0d606bfc7b5f4694a5938a4646da2c31309de612c68427b494193193877f",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Runtime PostgreSQL admission",
+    "review_notes": "Read all152 lines: bounded max+waiter local admission, closing gate before/after checkout, failure accounting, deadline checks, owned-lease disposal, acquisition budget including configure time, callback/promise compatibility and measurement buckets. end disposes outstanding leases before native end.",
+    "read_ranges": [
+      [
+        1,
+        152
+      ]
+    ],
+    "callers_consumers": "createRuntimePostgresPool wraps pg pool; health/metrics consume snapshot; bound query and lease helpers supply lifecycle.",
+    "error_authorization_state_checks": "Admission count decrements on failure or exact owned disposal. Acquiring after close rejects. Query/protocol errors dispose rather than recycle. No auth/tenant decision delegated to this local budget. Dynamic iteration removal from disposals is valid JS Set behavior.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "runtime-postgres-policy.ts and runtime-database-deadline.ts remain owned later; live pg queue/deadline semantics not newly validated."
+    ]
+  },
+  {
+    "path": "apps/api/src/common/database/bounded-postgres-query.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "84e3602c6367dad4887ca3c8b96c4b8d211b552ff7001368ff582c0b84912bc8",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Runtime query deadlines",
+    "review_notes": "Read all74 lines: text/config overload normalization, guest versus general cap, explicit ROLLBACK deadline exception, tighter caller timeout retention, queued callback failures, protocol timeout disposal and SQLSTATE metric counters. Callback and promise errors share normalization.",
+    "read_ranges": [
+      [
+        1,
+        74
+      ]
+    ],
+    "callers_consumers": "pool connect event binds each client; transaction/lease callers consume query and release.",
+    "error_authorization_state_checks": "Original values/extra args preserved. Query read timeout destroys ambiguous connection. Catch is instanceof Promise, so only pg-native Promise assumption covered; custom query objects need separate proof. Does not parse arbitrary rollback spellings, callers use exact constant.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Actual node-pg callback/query object edge cases and deadline helper implementation not exercised."
+    ]
+  },
+  {
+    "path": "apps/api/src/common/database/postgres-lease.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e061466e1d950410d8e46424866562562e86f7bf492e1563d2fb5c9a400a3567",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Runtime DB lease ownership",
+    "review_notes": "Traced general versus guest settings, transaction version gate, per-lease watchdog, tracked request-client lifetime, idempotent release/destroy and async general reset. Error/end disposes; destroy while reset in flight prevents recycle. Finished flag guards double native release.",
+    "read_ranges": [
+      [
+        1,
+        97
+      ]
+    ],
+    "callers_consumers": "bounded pool owns each checkout; deadline tracker terminates request leases; transaction helper reports outcomes.",
+    "error_authorization_state_checks": "General reset failure destroys. Guest avoids resetting general config and uses request budget; caller deadline setup must establish own settings. Timer removes listeners/untracks before returning admission.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Request deadline tracking and outcome callbacks remain separately reviewed dependencies; PG16/17 runtime qualification incomplete."
+    ]
+  },
+  {
+    "path": "apps/api/src/common/database/postgres.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e035a0dd7d7a7fc646f79944cac64ad7ff88101947a0af04a99767752c2f7ed9",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Runtime DB role and TLS safety",
+    "review_notes": "Reviewed URL protocol/query/fragment/credential/database validation; production migration URL refusal; PEM bundle parsing with X509 CA requirement; verified TLS default; runtime policy and bounded pool construction. Safety query demands one role/database/schema row, denies super/create/bypass/replication, object/database/schema ownership and CREATE grants; TLS must be1.2/1.3 and unique backend record.",
+    "read_ranges": [
+      [
+        1,
+        227
+      ]
+    ],
+    "callers_consumers": "RuntimeDatabaseModule calls production verification; pool admission and health consume pool.",
+    "error_authorization_state_checks": "No environment values read by audit. Validation errors are generic without URLs. Safety errors fail closed; runtime deploy must actually invoke verifier and use role provisioning. Existing certificate behavior and live privilege introspection not rerun.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "runtime-database.module.ts/runtime-postgres-policy.ts caller lifecycle and full role ACL graph remain separate."
+    ],
+    "supporting_test_inspection": "Read all postgres.test.ts URL/TLS/lazy-pool cases; no new execution or additional coverage credit."
+  },
+  {
+    "path": "apps/api/src/common/database/location-lifecycle-lock.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8da8968663562da8e8431b2122f26163d0a95016bccad22da3164120bdb45c74",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Location lifecycle transaction fence",
+    "review_notes": "Read shared versus exclusive advisory transaction lock SQL and parameter binding. Namespaced hash serializes location deactivation with active work; no caller-supplied SQL identifiers.",
+    "read_ranges": [
+      [
+        1,
+        18
+      ]
+    ],
+    "callers_consumers": "Shift authorization/eligibility/presence and check-in authorization use SHARED; management lifecycle uses mode-dependent lock.",
+    "error_authorization_state_checks": "Helper supplies serialization only, no existence/auth/status recheck. Callers must acquire consistent lock order and reread status. Hash collisions cause extra serialization, not tenant authorization.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Complete cross-feature lock order/caller graph remains incompletely reviewed."
+    ]
+  },
+  {
+    "path": "apps/api/src/common/database/management-settings-lock.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1fb04fa0fd030e41ca7cb6e433167847310094c9800c044da3a23f1abaecea14",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "coordinator",
+    "feature": "Organization policy transaction fence",
+    "review_notes": "Read shared/exclusive organization-scoped advisory transaction locks and bound org ID. Separate namespace avoids accidental reuse of location lock key.",
+    "read_ranges": [
+      [
+        1,
+        18
+      ]
+    ],
+    "callers_consumers": "Parking/retrieval/shift/GPS/photo authorization use SHARED; management setting/zone mutations use EXCLUSIVE.",
+    "error_authorization_state_checks": "Authorization still caller responsibility. Transaction lifetime releases lock; cross-module ordering and policy recheck needed to certify concurrency correctness.",
+    "test_evidence": "No test executed; source-level review only.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "All consumer transaction isolation and deadlock ordering not established by helper-only review."
+    ]
+  }
+]

@@ -1,0 +1,209 @@
+[
+  {
+    "path": "apps/dashboard/src/components/foundation/account-security-route.tsx",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "156d393c6591c64dbe9b56c52b88a7deef19a39437e52a10b50b0fff42cf1269",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "dashboard",
+    "feature": "Account security entry",
+    "review_notes": "Seven-line client route delegates accountSecurity=true to common foundation rather than inventing Organization-specific MFA authority. No state or asynchronous branch.",
+    "read_ranges": [
+      [
+        1,
+        7
+      ]
+    ],
+    "callers_consumers": [
+      "app/security/page.tsx",
+      "ManagementFoundationApp"
+    ],
+    "error_authorization_state_checks": "Account-security eligibility is deferred to shared provider; this route itself has no role grant or network action.",
+    "test_evidence": [
+      "Inspected authority-separation.test.ts; it covers ordinary route/nav independence, not this wrapper directly."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "AccountSecurityWorkspace full ceremony behavior"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/account-security-shell.tsx",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bb8fe4a81a44f90319ed10182f4520f7fe68666b0f3179b5334deea34e809186",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "dashboard",
+    "feature": "Account security shell",
+    "review_notes": "Traced generation-bound entryReady, exact presentation binding, independent security navigation eligibility, location-switch proof commit/presentation capture, retry MFA and logout. refreshState resolves an error snapshot instead of rejection, so .then has no unhandled ordinary-network rejection; provider was read as support. Switching locations preserves independent /security route and stores navigation only under incremented selectionRevision.",
+    "read_ranges": [
+      [
+        1,
+        180
+      ]
+    ],
+    "callers_consumers": [
+      "ManagementFoundationApp",
+      "DashboardShell",
+      "LocationSwitchControl",
+      "AccountSecurityWorkspace",
+      "AccountSecurityAccessProvider"
+    ],
+    "error_authorization_state_checks": "Security link appears only after eligible fresh state; carried navigation IDs are presentation, not route authority. Generation key retires prior workspace. Invalid current scope clears with epoch before root navigation. Server/API remains final authority.",
+    "test_evidence": [
+      "Inspected AccountSecurityAccessProvider implementation and authority-separation.test.ts; no browser/runtime cases executed."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "LocationSwitchControl complete implementation and proof lifecycle",
+      "AccountSecurityWorkspace ceremony internals"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/dashboard-feature-target.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "53820158ae57c6bccd0979ee8f1ce72e0258fa484120a7f57ad46fe53e4bf877",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "dashboard",
+    "feature": "Feature authority target correlation",
+    "review_notes": "Enumerated Visit Contacts CA-all-locations and LM-grant-set targets, Audit CA org/exact-location, LM active/inactive compatibility and Supervisor exact-location targets. Exact feature/org/role/scope/location response correlation; assertNever fails unknown feature instead of broad fallback.",
+    "read_ranges": [
+      [
+        1,
+        126
+      ]
+    ],
+    "callers_consumers": [
+      "md04-feature-route-access.ts",
+      "resolve-navigation-authority.ts",
+      "dashboard-feature-target.test.ts"
+    ],
+    "error_authorization_state_checks": "Incompatible scopes return null; inactive LM can produce purpose-specific Audit target but compatibleBase=false. No cross-purpose response accepted. No finding established.",
+    "test_evidence": [
+      "Read dashboard-feature-target.test.ts including accepted scope matrix, incompatible target nulls, wrong feature/org/role/scope/location negatives; not rerun."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Server feature-authority authorizer not reviewed in this batch"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/dashboard-shell-labels.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "adf336067edae44077aab7376b0b8649a849890eaeb8c17841765fe12d41af32",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "dashboard",
+    "feature": "Shell translated labels",
+    "review_notes": "Pure eight-label mapping consumes typed TranslationKey translator and returns complete shell-label contract; no duplicate policy or async state.",
+    "read_ranges": [
+      [
+        1,
+        17
+      ]
+    ],
+    "callers_consumers": [
+      "AccountSecurityShell",
+      "SelectedManagementShell",
+      "DashboardShell"
+    ],
+    "error_authorization_state_checks": "No auth/data mutation. Shell vocabulary selected by current locale translator.",
+    "test_evidence": [
+      "Header preference test reviewed only; no direct label-map runtime test executed."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full shell responsive CSS and screen-reader matrix"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/dashboard-shell-presentation-provider.tsx",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8af0ba300ad8e8c93d436f929d378f938d61b743853c79480675a2bbecffe86d",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "dashboard",
+    "feature": "Shell presentation retention",
+    "review_notes": "Store retains one binding-key snapshot of destination IDs, deliberately omits security ID, deduplicates equal arrays and exposes only exact key matches. Capture effect updates presentation while valid nav is mounted; read throws outside provider rather than silently sharing globals.",
+    "read_ranges": [
+      [
+        1,
+        104
+      ]
+    ],
+    "callers_consumers": [
+      "AccountSecurityShell",
+      "DashboardNavigationPresentationCapture in SelectedManagementShell",
+      "AppProviders"
+    ],
+    "error_authorization_state_checks": "Key contains identity/session/selection revision and scope authority key. Presentation can preserve labels/links but does not authorize protected route access. A-to-B-to-A selection revisions prevent stale remembered presentation.",
+    "test_evidence": [
+      "Inspected authority-separation.test.ts route-vs-nav probes; store-specific mounted behavior not executed."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "AppProviders mount lifecycle",
+      "Navigation list rendering"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/foundation-state.tsx",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4aaf21597f54d196451932f92e1a941518b928de3cfdcd1cf267753d2fcbda15",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "dashboard",
+    "feature": "Foundation status UI",
+    "review_notes": "Pure Panel status view exposes role=status, title and explanatory text for initialization/retry/logout states. No dynamic HTML sink or implicit success rendering; caller supplies interpretation.",
+    "read_ranges": [
+      [
+        1,
+        21
+      ]
+    ],
+    "callers_consumers": [
+      "ManagementFoundationApp",
+      "Panel"
+    ],
+    "error_authorization_state_checks": "No auth grant or persistence. Heading/status content is plain escaped React text.",
+    "test_evidence": [
+      "No new execution; Foundation wrapper behavior considered against caller state branches inspected in C001."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Panel implementation was prior-review support; actual assistive technology timing unverified"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/header-preferences.tsx",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "356bdd4f19028a03a59a8927fad2c4d41d29ed8122c3992ef11fddd2193904e3",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "dashboard",
+    "feature": "Header locale/theme controls",
+    "review_notes": "Language control computes opposite supported locale; theme group has two explicit aria-pressed buttons and accessible labels independent of CSS-hidden visible captions. No async work or duplicated preference storage in controls.",
+    "read_ranges": [
+      [
+        1,
+        51
+      ]
+    ],
+    "callers_consumers": [
+      "AccountSecurityShell",
+      "SelectedManagementShell",
+      "DashboardLocaleProvider",
+      "DashboardThemeProvider"
+    ],
+    "error_authorization_state_checks": "Client-only preference updates do not affect business auth. Theme icon aria-hidden plus explicit button label preserves mobile names; no customer spinner finding duplicated here.",
+    "test_evidence": [
+      "Read header-preferences.test.tsx SSR accessible-name assertions for Light/Dark; not rerun."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "DashboardThemeProvider persistence and browser storage-denial behavior",
+      "Real responsive/keyboard/AT execution"
+    ]
+  }
+]

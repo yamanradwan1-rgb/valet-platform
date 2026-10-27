@@ -1,0 +1,252 @@
+[
+  {
+    "path": "packages/employee-client/src/employee-cancel-check-in-transport.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6e3dce1e5eef7ac1f1f5c76373a0a5397f5ff2e3912f20b1fea49ae8820a727b",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Check-in cancellation HTTP",
+    "review_notes": "Reviewed prepare GET, strict cancel request/response parse and narrow cancellation-status GET with expectedShiftId; no generic state setter or mutation replay in transport.",
+    "read_ranges": [
+      [
+        1,
+        44
+      ]
+    ],
+    "callers_consumers": [
+      "Native createNativeCheckInRuntime constructs this transport for EmployeeCancelCheckInSession; prepare/cancel/status consumed there."
+    ],
+    "error_authorization_state_checks": "Client factory resolves credentials per request. Transport schemas validate shape; session/location/version identity must be checked by session caller (scheduled later in C001). Malformed success throws ZodError, requiring caller conservative unknown handling.",
+    "test_evidence": "Read complete transport test: exact routes/bodies, malformed extra credential/state/version rejection; prior recorded portable suite green, no rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend enforcement and physical-device behavior not established by this portable-source review."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-condition-recovery.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "786fc245bc26a4b0fee11647ccdd099b1473b5dc59edfe9bb25862bd61cea8fe",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Condition-completion reconciliation",
+    "review_notes": "Reviewed all outcome variants; canonical hydrate uses attempt location/session and concludes completion only for AWAITING_PARKING; CHECKING_IN does not invent completion. Catch returns typed READ_FAILED operational failure.",
+    "read_ranges": [
+      [
+        1,
+        59
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeCheckInConditionSession.recoverConditionOutcome calls helper then fences current request/attempt."
+    ],
+    "error_authorization_state_checks": "Helper deliberately does not enforce auth/request/workflow generation itself; caller must apply those guards after await. Backend and hydrate determine ownership; no append-note mutation from this helper.",
+    "test_evidence": "Inspected condition-recovery test declarations for lost response/no replay, read-unavailable, same-selection note reuse, stale version and late identity/location result fencing; not reexecuted.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend enforcement and physical-device behavior not established by this portable-source review."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-transport.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "aed5b3fd4a33bfbd5b509babc7c16e59eb826db5e5bad805ffa49e2ac2157d57",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Check-in API contracts",
+    "review_notes": "Reviewed all 11 transport methods: completion, condition-completion, detail/identity correction, note, intake, continuations, drafts, detail and recognition. Success schemas reject malformed responses with CHECK_IN_RESPONSE_INVALID/502.",
+    "read_ranges": [
+      [
+        1,
+        126
+      ]
+    ],
+    "callers_consumers": [
+      "Native createNativeCheckInRuntime passes a fresh client factory into EmployeeCheckInSession."
+    ],
+    "error_authorization_state_checks": "Request schemas checked on protected complete/correction/note commands; intake and recognition rely on typed upstream constructors/server validation. Shape parse alone does not match resource identity; caller hydration/command validation required. No transport retry or local success synthesis.",
+    "test_evidence": "Inspected transport test declarations covering exact endpoints, fresh client per identity, authoritative identity preservation, parsed correction routes and condition routes. Historical suite evidence only; no rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend enforcement and physical-device behavior not established by this portable-source review."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-confirm-parked-transport.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c7cda96ce669439667f2ea36875e6170417443666727f67625440f86f88c516b",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Parking validation/confirmation HTTP",
+    "review_notes": "Reviewed validated spot query conversion, schema-checked confirm command, parsed session detail and queue reads; malformed successes become 502 CONFIRM_PARKED_RESPONSE_INVALID.",
+    "read_ranges": [
+      [
+        1,
+        72
+      ]
+    ],
+    "callers_consumers": [
+      "createNativeEmployeeRuntime injects transport into EmployeeConfirmParkedSession."
+    ],
+    "error_authorization_state_checks": "Client factory avoids retaining an old bearer client; ID, version and authority matching belong to caller. Validation stringifies parsed query values; no client-side occupancy claim or bypass.",
+    "test_evidence": "No new execution; tests/confirm session are dependencies outside current completed subset.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend enforcement and physical-device behavior not established by this portable-source review."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-handoff-flow-command.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "16ee8666e4d450eb928c7a4ebeed7e62f669d1e7a73b4965961c9b123f1b44fa",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Protected handoff result reducer",
+    "review_notes": "Reviewed initiate/abort/verify/override result contract: exact session/task IDs, session version+1, state READY only on abort, unchanged task version/status and matching verified method. Reducer updates physical state and handoff verification without changing task lifecycle version.",
+    "read_ranges": [
+      [
+        1,
+        87
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeHandoffSession.execute calls validateHandoffResult before applyHandoffResult, after request/target fence."
+    ],
+    "error_authorization_state_checks": "Non-null assertions depend on execute captured session/task and validated transport output. verifiedAt/method are response-schema checked; reducer itself is not public authorization enforcement. Abort explicitly clears previous verification.",
+    "test_evidence": "Read caller execute/reconcile path, inspected handoff transport test declarations malformed-success test; no rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend enforcement and physical-device behavior not established by this portable-source review."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-handoff-flow-transport.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "010249e9e63c0b9d3317dc3c2b6cf2c092f6fcc487250c825d2f3ccedb6a0e10",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Handoff HTTP contract",
+    "review_notes": "Reviewed every endpoint/method and exact schema for initiate/abort/override/pickup-code/dynamic-QR. Generic internal post helper always response-parses; queue and session are read-only recovery inputs.",
+    "read_ranges": [
+      [
+        1,
+        103
+      ]
+    ],
+    "callers_consumers": [
+      "Native runtime creates EmployeeHandoffSession with this transport; session execute dispatches narrow commands."
+    ],
+    "error_authorization_state_checks": "No raw code/token logging; request reason/version/proof validation before dispatch. New client from factory per call; response malformed 502 drives ambiguity/reconciliation at caller, not success.",
+    "test_evidence": "Inspected handoff transport test declarations: accepted MOB014A routes/exact bodies and malformed success rejection; prior recorded suite green, no rerun.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend enforcement and physical-device behavior not established by this portable-source review."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-operational-recovery.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "88c631b4c484ec0dae80c0d3b12b8f2ac2b05b4d6b1404de210ab32e77fa2a1e",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Task claim/accept recovery",
+    "review_notes": "Reviewed action eligibility QUEUED+unassigned vs ASSIGNED+self; attempt captures generation/membership/location/shift/version; reconciliation requires exact accepted version increment (+2 claim-and-accept), otherwise conservative retry/conflict.",
+    "read_ranges": [
+      [
+        1,
+        130
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeTaskActionOwner builds attempts and reconciles queue; EmployeeOperationalSession uses operationalFailure and isEmployeeAttemptScope."
+    ],
+    "error_authorization_state_checks": "Failure normalization keeps typed status/retryAfter. Ambiguity classifier recognizes EmployeeApiError network/408/5xx only; malformed untyped exceptions require caller behavior review. No replay on foreign task owner or arbitrary version.",
+    "test_evidence": "Read operational-load suite fully and background-action-fence test declarations; no rerun. Attempt-scope includes membership/location/shift and generation; organization follows membership identity.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend enforcement and physical-device behavior not established by this portable-source review."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-operational-scope.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "32ed5f1b0e0e76ee530bb1f8b4ff2c953b9e968109025633ed6ddb3fa276c881",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Operational authority selection",
+    "review_notes": "Reviewed empty-context denial, zero-active distinction by eligible locations, multiple-active fail-closed with count, and exact-one active scope projection. Scope equality uses organization/membership/location/shift, intentionally not display labels.",
+    "read_ranges": [
+      [
+        1,
+        65
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeOperationalSession.executeContextLoad and native lifecycle/command sessions consume scope resolution/equality."
+    ],
+    "error_authorization_state_checks": "Schema-validated upstream transport provides activeShift/currentLocation; resolver assumes their correspondence (backend contract). Role changes are not scope-key changes and need explicit caller role-authority handling; NativeProductionLifecycleOwner separately compares role as previously reviewed.",
+    "test_evidence": "Read operational-load tests for no shift/no usable location/ambiguous/empty contexts; no fresh execution.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend enforcement and physical-device behavior not established by this portable-source review."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-operational-session.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4f07203717132d2ca975662cb7a2764ee073e2a37ab4ded854f73edfd9e0876f",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Native operational context/queue lifecycle",
+    "review_notes": "Reviewed activation, foreground/background invalidation, single-flight context load, captured generation+sequence guards, authoritative scope reset, action retirement, queue propagation and terminal-task removal. Background clears tracking projection and suspends action/queue; resume reloads context before queue.",
+    "read_ranges": [
+      [
+        1,
+        234
+      ]
+    ],
+    "callers_consumers": [
+      "Native runtime constructs; NativeProductionShell activates by auth generation; NativeProductionLifecycleOwner foreground/reconnect refreshes; task UI invokes action/queue reads."
+    ],
+    "error_authorization_state_checks": "Context responses gate by generation/sequence; nonready authority clears action+queue; error suspends queue and resets authority while retaining unresolved mutation metadata. Queue events are accepted only for matching scope; queue owner additionally keys by generation (supporting source read 1–105). Callback onOperationalContext executes before scope resolution; exceptions enter conservative context-error path.",
+    "test_evidence": "Read full operational-load tests (8 cases) and inspected background-action-fence declarations. Historical 897 portable passing tests only; no redundant execution.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend enforcement and physical-device behavior not established by this portable-source review."
+    ]
+  },
+  {
+    "path": "packages/employee-client/src/employee-operational-state.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a7c6279185b232c9d8ba90fd0e54a092c31205d6199f4a03d2ffd3d65f6f3a77",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "native",
+    "feature": "Operational snapshot transitions",
+    "review_notes": "Reviewed complete initial snapshot, unresolved mutation preservation on temporary context reset, hard-stop clearing, queue error versus retained rows/loading presentation, tracking invalidation on failure and retained/new authority projection.",
+    "read_ranges": [
+      [
+        1,
+        128
+      ]
+    ],
+    "callers_consumers": [
+      "EmployeeOperationalSession applies context and queue reducers; EmployeeTaskActionOwner applies submitting/reconciling reducer."
+    ],
+    "error_authorization_state_checks": "Only unresolved submitting/reconciling/recovery-unavailable mutation survives temporary reset; hard stop clears task rows/tracking. Successful queue count is event-authoritative. New scope explicitly resets mutation; retained scope updates role/name data.",
+    "test_evidence": "Operational-load test source and caller flow inspected; no tests executed this continuation.",
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Backend enforcement and physical-device behavior not established by this portable-source review."
+    ]
+  }
+]

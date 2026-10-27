@@ -1,0 +1,7 @@
+# VAYLET audit continuation
+
+Continues the [published original audit](../README.md) without replacing its reports, evidence or 491-file coverage. Frozen source `66968655b8bd90c6681daf53fb9d8da9b9ab9f79`; original checkpoint38dd20039c051de39d172a2e3f440c68f3d60515. Documentation-only branch audit/vaylet-full-audit-2026-10-27.
+
+Start with [progress](AUDIT_PROGRESS.md), [checkpoints](CHECKPOINTS.md), [ledger](coverage-ledger-progress.csv), [new finding](FINDINGS_REGISTER.md), [validation](FINDING_VALIDATION.md), [feature depth](FEATURE_COVERAGE.md), [security limits](SECURITY_COVERAGE.md), and [hash inventory](evidence-manifest.md). Every newly credited file has immutable-source hash, owner, batch, ranges and semantic notes; ownership lists include exact pending files. Hash/range checks ensure consistency, not semantic proof by themselves.
+
+To review independently: check Git ancestry to the baseline, compare only documentation paths, preserve original ledger SHA256, reconcile candidate totals from authored_code_candidate=True, inspect each claimed source at the frozen SHA, challenge source-to-sink findings and model substitutions, and run only approved disposable tests after inspecting wrappers. A new session must fetch refs/read latest checkpoint before assigning any remaining path. Four workers reported execution limits; no final worker report is fabricated. Review remains incomplete; file coverage does not imply runtime correctness or production readiness.

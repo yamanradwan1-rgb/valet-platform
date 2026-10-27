@@ -1,0 +1,37 @@
+{
+  "backend_operations": {
+    "files": 45,
+    "lines": 3954,
+    "owned_remaining": 1168
+  },
+  "coordinator": {
+    "files": 35,
+    "lines": 3661,
+    "owned_remaining": 478
+  },
+  "customer": {
+    "files": 45,
+    "lines": 4268,
+    "owned_remaining": 125
+  },
+  "dashboard": {
+    "files": 50,
+    "lines": 4475,
+    "owned_remaining": 923
+  },
+  "database": {
+    "files": 35,
+    "lines": 6159,
+    "owned_remaining": 275
+  },
+  "native": {
+    "files": 50,
+    "lines": 5486,
+    "owned_remaining": 1096
+  },
+  "security": {
+    "files": 45,
+    "lines": 4072,
+    "owned_remaining": 149
+  }
+}

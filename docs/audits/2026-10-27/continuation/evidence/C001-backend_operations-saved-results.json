@@ -1,0 +1,269 @@
+[
+  {
+    "path": "apps/api/src/modules/payments/cash-audit.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6c12b90656204402ba8cd174fb617f9bfe6c9c9dd0fb62be6c8ca56f104b0db8",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Cash receipt/adjustment audit",
+    "review_notes": "Inspected all receipt/increase/decrease selection branches and nine INSERT parameters. The event binds trusted canonical payment organization/location/session, actor membership and cash-entry ID; metadata records amounts/currency/status but excludes adjustment reason or external payload. Awaited SQL runs in the cash command transaction, so audit failure rolls the receipt/projection back.",
+    "read_ranges": [
+      [
+        1,
+        50
+      ]
+    ],
+    "callers_consumers": [
+      "cash-command.ts:createCashReceiptExecutor/createCashAdjustmentExecutor → appendCashMutationAudit; cash-entry/audit projections consume events"
+    ],
+    "error_authorization_state_checks": "No local auth decision: caller authorizeCashMutation and canonical payment lock establish scope. Three controlled entry types map to three events; no dynamic SQL fields. Optional ID factory is test-only injection.",
+    "test_evidence": [
+      "Existing cash-api/collection integration suites discovered; not executed in C001. Caller cash command was reviewed previously."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Complete audit catalog/read projections not rereviewed in C001"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/cash-errors.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4d218b71ad93452a9bdd2804ba1b34f2c2fb5fcab11ade076e497519bc4f574c",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Cash domain error contract",
+    "review_notes": "Read every seven-code union member and matching safe message; class retains typed code/name and no raw SQL/provider payload. The authorization message conceals resource existence. This module is definition-only and cannot authorize a receipt.",
+    "read_ranges": [
+      [
+        1,
+        23
+      ]
+    ],
+    "callers_consumers": [
+      "cash-command.ts/cash-authorization.ts/cash-money.ts throw; payment-http.ts:throwPaymentHttp translates"
+    ],
+    "error_authorization_state_checks": "Closed code/message map; no mutable global or side effects. HTTP mapping checked in this batch separately.",
+    "test_evidence": [
+      "cash integration error assertions identified; no new runtime execution."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "apps/api/src/modules/payments/cash-mutation.service.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a2f59a87245db849ea8432e1d2dc9a7750ccc90f1dacbd83dcfe8a671ac44ec6",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Cash HTTP-to-command wiring",
+    "review_notes": "Both executors are created once from the injected runtime pool; receipt forwards StaffCashScope plus receipt key, adjustment forwards the typed amount/type/reason. No request field substitution, second commit or swallowed errors exists.",
+    "read_ranges": [
+      [
+        1,
+        36
+      ]
+    ],
+    "callers_consumers": [
+      "staff-payment.controller.ts:receiveCash/adjustCash → receipt/adjustment → cash-command.ts"
+    ],
+    "error_authorization_state_checks": "Service does not independently grant authority; trusted authenticatedUserId/session and schema-valid body come from controller, domain revalidates persisted actor/shift/payment. Rejections propagate.",
+    "test_evidence": [
+      "Cash API integration suite is relevant, not run in C001."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Runtime request credential fencing is owned by shared auth review"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-audit.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fe3355a71bbbc3fecb659441fe12ec0a0b58e60f73b5f3f1faffbb5e0cca5359",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Digital initiation event trail",
+    "review_notes": "Read four allowed event kinds and fixed SYSTEM actor INSERT. Only operation/payment/provider/state/optional normalized safe result code enter metadata. PREPARED, dispatch-guard and result audit calls all execute inside their owning payment transaction; financial success is not asserted by these events.",
+    "read_ranges": [
+      [
+        1,
+        52
+      ]
+    ],
+    "callers_consumers": [
+      "digital-collection-command.ts prepareOperation/fenceDispatch/persistResult → appendDigitalCollectionAudit"
+    ],
+    "error_authorization_state_checks": "No token/reference/raw adapter body is inserted. Trust in normalized provider/safeCode is explicit dependency; identity comes from persisted operation/payment, not public input.",
+    "test_evidence": [
+      "Digital collection outcomes/atomicity test files identified; not executed in C001."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-command.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3342eada77cc6c969789c8adaeb6cd638101f10349e205f62c76a3cb9e212f4b",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Durable outbound digital collection",
+    "review_notes": "Traced all 297 lines: validate → lock payment → resolve same-key retry before fresh guards → reject incompatible immutable facts → fresh policy/positive representable amount/no prior cash or processed external collection evidence → reject unresolved operation → snapshot configured provider → conflict-safe PREPARED insert/projection/audit. A separate committed PREPARED→OUTCOME_UNKNOWN CAS picks one dispatcher; I/O occurs without a DB transaction, with persisted operationId. Throws/malformed/ambiguous provider results retain OUTCOME_UNKNOWN; reference/rejection updates and audit commit together. Existing non-PREPARED operations return without redispatch; an unavailable historical adapter leaves PREPARED. 23505 on result persistence becomes safe state conflict. Default real registry is unconfigured and no public HTTP route consumes service, per DEC054; no missing public auth bug established.",
+    "read_ranges": [
+      [
+        1,
+        297
+      ]
+    ],
+    "callers_consumers": [
+      "DigitalCollectionService.initiate internal export; no app controller caller located",
+      "digital-collection-test-context.ts builds executor with fake registry; outcomes/concurrency suites consume it"
+    ],
+    "error_authorization_state_checks": "Request validates UUID/key; tenant/amount/provider derive from canonical payment. Internal caller is trusted (explicit DEC054 no public route). Payment row lock plus DB unresolved uniqueness serialize prepare. Dispatch CAS prevents blind duplicate calls; unknown outcome intentionally nonreplayed. Full callback-first/settlement result schedules still need DB proof.",
+    "test_evidence": [
+      "Read DEC054 lifecycle/retry/freeze/non-goals. Existing digital-collection-{initiation,outcomes,concurrency}.integration.test.ts discovered; not executed here."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Full runtime-role column ACL and adapter-specific callback authentication not reviewed in this batch"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-errors.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "455067e32164c5c52cedacf497318c74f8846f1c0d0559ec67054d4bdd79fde3",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Internal collection errors",
+    "review_notes": "Four exhaustive typed codes distinguish provider unavailable, submission mismatch, unresolved work and current state conflict; safe human strings carry no provider body or row details. Kept internal per DEC054, no invented HTTP route/mapping.",
+    "read_ranges": [
+      [
+        1,
+        23
+      ]
+    ],
+    "callers_consumers": [
+      "digital-collection-command.ts, transitions.ts, validation.ts throw; internal service consumer receives code"
+    ],
+    "error_authorization_state_checks": "No independent authentication or state mutation; internal class preserves code/name.",
+    "test_evidence": [
+      "Existing digital collection integration negative paths discovered; not executed."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": []
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-repository.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3164d4caeb160f008a48986b3d3c32e63b3096383af88bf8e3989e94e5a7747a",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Canonical payment and collection persistence",
+    "review_notes": "Inspected all SQL and row projections. Payment join enforces matching org/location/session and locks payment row; submission/operation lookups bind organization. External evidence excludes FAILED processed events to permit approved reattempts, but always excludes cash history. Unresolved set exactly PREPARED/OUTCOME_UNKNOWN/REFERENCE_ATTACHED. Conflict-safe insert returns null for caller reclassification, never invents a winner. Prepared payment projection requires UNPAID/FAILED, zero paid and positive due; caller owns current policy/provider checks and transaction.",
+    "read_ranges": [
+      [
+        1,
+        218
+      ]
+    ],
+    "callers_consumers": [
+      "digital-collection-command.ts prepare/retry",
+      "digital-collection-transitions.ts operationColumns/operationFromRow/findOperationById",
+      "provider-event-repository.ts later resolves collection row"
+    ],
+    "error_authorization_state_checks": "Parameterized SQL; no client-controlled table/column interpolation (operationColumns is module constant). Does not itself authenticate trusted internal caller. FOR UPDATE payment serializes same-payment preparation; unique indexes needed for org-key collision across payments.",
+    "test_evidence": [
+      "DEC054 invariant comparison; digital concurrency suite identified but no DB schedules executed."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Migration028 uniqueness/state matrix and current runtime privileges not fully semantically rereviewed here"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-transitions.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bf0a1e187ac24b5bce7f9b2119201aa3294689e518ba8171eb6ee42f23b01903",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Collection CAS and result projection",
+    "review_notes": "Read PREPARED→OUTCOME_UNKNOWN guarded update and canonical loser reread. Reference attachment requires OUTCOME_UNKNOWN then conditionally updates only UNPAID DIGITAL payment with same provider/zero paid/null paidAt; failed second write throws and caller transaction rolls back operation state. REJECTED is terminal with resolvedAt. No PAID write exists. Parent transaction/audit are required; transient provider response is normalized before this helper.",
+    "read_ranges": [
+      [
+        1,
+        116
+      ]
+    ],
+    "callers_consumers": [
+      "digital-collection-command.ts:fenceDispatch/persistResult"
+    ],
+    "error_authorization_state_checks": "Organization/id/state predicates fence writes; no unconditional replay. A callback-first transition to RESOLVED makes stale response attachment conflict rather than overwrite finance. That fail-closed outcome is not a duplicate-charge defect.",
+    "test_evidence": [
+      "DEC054 state matrix reviewed; outcome/concurrency tests identified, not executed."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Real callback/provider protocol unavailable"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-types.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a4c6c28f275ec46bf22dcbf15b584e3c5429bc6611a9fce79895c905fc510ae7",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Collection immutable snapshot/type contract",
+    "review_notes": "All five operation states and optional lifecycle fields read against command/repository mappings. Internal request intentionally contains only session UUID and submission key; persisted payment owns tenant/location/amount/currency/provider. Operation snapshot carries retry identity distinct from provider reference. Date fields stay server-side Dates, not public JSON.",
+    "read_ranges": [
+      [
+        1,
+        42
+      ]
+    ],
+    "callers_consumers": [
+      "command.ts/repository.ts/transitions.ts/audit.ts and DigitalCollectionService"
+    ],
+    "error_authorization_state_checks": "Type declarations do not validate runtime null/state coherence; command normalizers and SQL state constraints own that boundary. No overclaim of type-only enforcement.",
+    "test_evidence": [
+      "No isolated type-mirroring test needed; checked consumers in same batch."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "SQL row matrix enforcement delegated to DB review"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-validation.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "98aeda0ee5c5231c2b2a6c8745daf94a9f88fe44d87f6ea9253f3ca08ea3e918",
+    "batch": "C001",
+    "status": "fully_reviewed",
+    "reviewer": "/root/backend_operations",
+    "feature": "Internal collection request/provider normalization",
+    "review_notes": "Inspected UUID/key validation, bounded printable provider identifiers/references, safe-code regex and all normalize-result branches. Registry exceptions become unavailable. Invalid/missing safeResultCode, unknown result kind, malformed reference or nonobject becomes OUTCOME_UNKNOWN, never REJECTED. Reference strings trim then forbid C0/DEL with400-char bound; provider IDs capped100 and safe code100. This is an internal trusted-adapter boundary; malformed request object null itself lacks a guard, but no public route calls it and no relevant exploit path established.",
+    "read_ranges": [
+      [
+        1,
+        108
+      ]
+    ],
+    "callers_consumers": [
+      "digital-collection-command.ts request, configured adapter resolution and post-I/O result normalization"
+    ],
+    "error_authorization_state_checks": "Fails ambiguous output conservatively; safe code allowlist limits audit text. Submission key rejects blank/NUL/>200; UUID validated before SQL. No adapter network/credential handling in this file.",
+    "test_evidence": [
+      "DEC054 exact input limits and ambiguous-result requirements compared. Existing provider-neutral outcomes tests identified; not run."
+    ],
+    "related_finding_ids": [],
+    "unreviewed_dependencies": [
+      "Future real provider adapter must provide independent authenticated normalized results"
+    ]
+  }
+]
