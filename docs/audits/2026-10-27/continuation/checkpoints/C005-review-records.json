@@ -1,0 +1,3862 @@
+[
+  {
+    "path": "apps/customer/src/features/demo/demo-screen-renderer.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "63970835c40ec53866682933af06a9b57df98c262111a9adcda48c3cb34c670b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 192
+      }
+    ],
+    "semantic_review_notes": "Demo renderer coverage proves every registered preview screen renders, restored payment previews use explicit illustrative content, Report Issue exposes guest-safe vehicle data without custody/staff/internal identifiers, report references and monetary values are bidi-isolated in RTL, shared request-error UI is reused, and DemoNavigator renders nothing in production.",
+    "callers_consumers": [
+      "DemoScreenRenderer",
+      "DemoNavigator",
+      "payment/report preview screens",
+      "demoSessions"
+    ],
+    "invariants_error_checks": [
+      "all registered screens render",
+      "no slot/spot/staff/audit internals in Report Issue",
+      "synthetic PREVIEW reference is isolated",
+      "money/reference LTR isolation in Arabic",
+      "production navigator output empty"
+    ],
+    "test_refs": [
+      "src/features/demo/demo-registry.ts",
+      "src/features/demo/demo-screen-renderer.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Preview-only surface; static rendering does not exercise live guest mutation authority.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/demo/demo-visual-matrix.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c2dc5d636818a7d527d8f60ad02ca4344303a63c8e8a6f84bf239b2224705768",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 104
+      }
+    ],
+    "semantic_review_notes": "Presentation matrix renders the complete demo screen registry and all three overlays across English/Arabic and light/dark combinations, exercising direction/theme composition without invoking production mutations.",
+    "callers_consumers": [
+      "DemoNavigator",
+      "DemoScreenRenderer",
+      "OverlayConfirmRequest",
+      "OverlayVehicleDetails",
+      "OverlayMoreMenu"
+    ],
+    "invariants_error_checks": [
+      "all screen states render in 2 locales x 2 themes",
+      "all approved overlays render",
+      "Arabic and dark composition do not crash"
+    ],
+    "test_refs": [
+      "src/features/demo/demo-registry.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Render-to-static-markup matrix checks survivability/content, not pixel geometry or live browser interaction.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/handoff/qr-code.test.ts",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6fdd2d0145aef87253f561a800ea44f58e47e88665b7b8447e5f005b75d2f9b3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 45
+      }
+    ],
+    "semantic_review_notes": "QR matrix contract verifies the standards-required four-module quiet zone around the encoded core and a safe null result for payloads too large to encode.",
+    "callers_consumers": [
+      "qr-matrix.ts",
+      "DynamicQRCode"
+    ],
+    "invariants_error_checks": [
+      "quietZone exactly 4",
+      "matrix dimensions include 8 quiet-zone modules",
+      "quiet top/bottom rows empty",
+      "unencodable input returns null"
+    ],
+    "test_refs": [
+      "src/features/handoff/qr-code.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Matrix structure is asserted; physical camera/scanner interoperability is outside this unit test.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/handoff/use-handoff.mounted.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "94fe7c116335cc168dd5fc30f07db5ab6f963847800bd6cf0c855c81e92d2494",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 294
+      }
+    ],
+    "semantic_review_notes": "Mounted handoff trust-fence tests prove plaintext pickup/QR proof disappears immediately on freshness/offline loss and is not silently reissued on reconnect, accepts a proof only through the expected mutation reconciliation gap, drops late ISSUE results after trust loss, rejects old-client/old-visit results after replacement, and clears expired proof without automatic issue/rotation.",
+    "callers_consumers": [
+      "src/features/handoff/use-handoff.ts",
+      "GuestSession mutation coordinator",
+      "GuestApiClient issue/rotate handoff"
+    ],
+    "invariants_error_checks": [
+      "proof visible only while current visit is HANDOFF_PENDING and fresh",
+      "offline/identity change revokes cached proof",
+      "late old generation cannot overwrite new proof",
+      "expiry hides proof without mutation"
+    ],
+    "test_refs": [
+      "src/features/handoff/use-handoff.ts lines 81-215"
+    ],
+    "finding_ids": [],
+    "limits": "Mounted fake DOM; server-side proof issuance uniqueness/expiry remains API responsibility.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/handoff/use-handoff.reconcile-failure.mounted.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4972c82a67bebadce7ed529c95e19395070830f3f3901157e2c046d0b23848a7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 140
+      }
+    ],
+    "semantic_review_notes": "Integration-style mounted test covers successful handoff POST followed by failed canonical GET reconciliation. The coordinator becomes untrusted, the returned plaintext proof is never displayed, and a later successful GET restores session trust without resurrecting or reissuing that proof.",
+    "callers_consumers": [
+      "useHandoff",
+      "GuestRequestCoordinator",
+      "GuestSessionContext"
+    ],
+    "invariants_error_checks": [
+      "POST result alone cannot become trusted after reconciliation failure",
+      "proof remains null through later GET recovery",
+      "issue is not replayed",
+      "rotate is not invoked"
+    ],
+    "test_refs": [
+      "src/features/handoff/use-handoff.ts",
+      "src/features/session/guest-request-coordinator.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Uses mocked API responses around the real coordinator/hook composition.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/handoff/use-handoff.recovery.mounted.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b3f332b06b494ab140cb26d885bc5980fc932a87391e8709a8d2c101dd6c00fd",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 298
+      }
+    ],
+    "semantic_review_notes": "Handoff recovery tests verify PIN-to-QR rotations are single-flight, completed lifecycle discards cached secrets, ALREADY_ISSUED requires explicit rotation while ALREADY_VERIFIED blocks it, and network/503/429 issue failures are surfaced without automatic replay on rerender.",
+    "callers_consumers": [
+      "src/features/handoff/use-handoff.ts",
+      "GuestApiClient.issueHandoff",
+      "GuestApiClient.rotateHandoff"
+    ],
+    "invariants_error_checks": [
+      "duplicate rotate produces one API call",
+      "completed visit has no retained proof",
+      "already-issued never auto-rotates",
+      "already-verified cannot rotate",
+      "ambiguous/transient/rate-limit failure not replayed"
+    ],
+    "test_refs": [
+      "src/features/handoff/use-handoff.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Mock transport; recovery codes are assumed to be server-authoritative.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/handoff/use-handoff.test.ts",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "26bf773c033e2d0591aa0b72040ed1160a7a7ce2518cbcace36b68b801bbbbab",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 125
+      }
+    ],
+    "semantic_review_notes": "Unit tests for handoff mutation fencing prove synchronous single-flight admission, stale-result classification after visit generation replacement, distinct already-issued/already-verified recovery states, and wall-clock expiry that never yields negative countdown.",
+    "callers_consumers": [
+      "runHandoffMutation",
+      "handoff-ui-state classification/expiry helpers"
+    ],
+    "invariants_error_checks": [
+      "second concurrent mutation returns BUSY",
+      "old generation resolves STALE",
+      "recovery codes kept distinct",
+      "seconds remaining clamps at zero"
+    ],
+    "test_refs": [
+      "src/features/handoff/use-handoff.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Coordinator fixture models generation semantics without live browser/session transport.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/post-visit/guest-auto-rating.mounted.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4a38f0dd859851e67cb25019fb69cb8fcee04958af1a89c3e6d3b7fb16da7420",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 252
+      }
+    ],
+    "semantic_review_notes": "Mounted post-visit policy tests prove automatic rating entry requires independent latest COMPLETED authorization, never submits a rating, respects exact-context dismissal across rerenders/remount, does not override explicit payment selection, fails closed for invalid/ambiguous/network/non-completed authority, fences late authorization after dismissal or visit/client replacement, and does not carry Visit A dismissal into Visit B.",
+    "callers_consumers": [
+      "src/features/post-visit/use-guest-post-visit.ts",
+      "GuestPostVisitScreen",
+      "RatingPresentationPolicy"
+    ],
+    "invariants_error_checks": [
+      "loadSession authorizes before automatic rating",
+      "no automatic submitRating",
+      "dismissal scoped to browser context+visit",
+      "late/different-visit response cannot mount rating",
+      "explicit manual reentry remains possible"
+    ],
+    "test_refs": [
+      "src/features/post-visit/use-guest-post-visit.ts"
+    ],
+    "finding_ids": [],
+    "limits": "SessionStorage is represented by a test Map; production key also incorporates browser presentation context marker/nonce.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/post-visit/guest-post-visit.mounted.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "176bf0b538fb0604debc27e507b466eb323ebdc3c0ac0a782ec8ebe5ed6ad1f2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 150
+      }
+    ],
+    "semantic_review_notes": "Production post-visit surfaces are mounted across EN/AR light/dark. Payment view uses canonical projection without overstating a receipt, post-visit authority is revalidated before loading payment data and fails closed when unavailable, and rating starts with zero preselection plus disabled submit.",
+    "callers_consumers": [
+      "GuestPostVisitScreen",
+      "ScreenCompleted",
+      "GuestApiClient.loadSession/loadPaymentProjection/submitRating"
+    ],
+    "invariants_error_checks": [
+      "authority failure exposes only Back and performs no payment read",
+      "canonical payment facts rendered",
+      "no Receipt claim",
+      "no star preselected",
+      "submit disabled until explicit rating"
+    ],
+    "test_refs": [
+      "src/features/post-visit/guest-post-visit-screen.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "API methods are mocked; 24-hour post-visit eligibility enforcement remains server-side.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/rating/guest-rating-submission.test.ts",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "293b40197e861e68fc9ceceaf0a1d72cbd403b12758f1774f436213d08a0f06d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 93
+      }
+    ],
+    "semantic_review_notes": "Rating mutation coordinator tests prove duplicate presses serialize to one POST, visit/client replacement or explicit invalidation suppresses stale success, a response for another visit is never accepted as saved, and ambiguous/conflict/unavailable/rate-limit outcomes are classified without automatic retry.",
+    "callers_consumers": [
+      "src/features/rating/guest-rating-submission.ts",
+      "GuestLiveRating",
+      "RatingPresentationPolicy outcome binding"
+    ],
+    "invariants_error_checks": [
+      "one in-flight POST per exact client+visit",
+      "stale response produces no success callback",
+      "different response visit => unknown",
+      "network/5xx => unknown",
+      "revoked/not-available => unavailable",
+      "no automatic POST retry"
+    ],
+    "test_refs": [
+      "src/features/rating/guest-rating-submission.ts",
+      "src/features/rating/guest-live-rating.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Server idempotency/immutability is not exercised by this unit test.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/rating/rating-presentation-outcome.test.ts",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9371b8786138398c844d37ab94b53328c500a5793be8acd22176c4f07a3c95a2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 53
+      }
+    ],
+    "semantic_review_notes": "Presentation-outcome binding records saved/conflict/unknown only after an explicit submit, treats unknown as dismissed rather than submitted, and refuses to update another visit or a disposed/invalidated presentation policy.",
+    "callers_consumers": [
+      "GuestRatingSubmission",
+      "bindRatingPresentation",
+      "RatingPresentationPolicy"
+    ],
+    "invariants_error_checks": [
+      "policy begin causes no POST",
+      "only explicit submit outcome changes presentation memory",
+      "binding requires exact client+visit",
+      "disposed policy cannot be revived"
+    ],
+    "test_refs": [
+      "src/features/rating/rating-presentation-policy.ts",
+      "guest-rating-submission.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Presentation memory is explicitly non-authoritative and is tested separately from server rating state.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/rating/rating-presentation-policy.test.ts",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7160919391cca127b23b25d6f23aa16058205942a3d39b1b693647e57ae71ca9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 92
+      }
+    ],
+    "semantic_review_notes": "Rating presentation policy is exact-context UI memory only: duplicate effects get one pending attempt, intentional dismissal/submitted state persists only for the exact key, unknown suppresses repeat prompts without claiming success, transient failed outcome stays pending, invalidation blocks late callbacks, unavailable storage falls back to in-memory suppression, and invalid persisted values are ignored.",
+    "callers_consumers": [
+      "src/features/rating/rating-presentation-policy.ts",
+      "useGuestPostVisit"
+    ],
+    "invariants_error_checks": [
+      "exact context+visit key isolation",
+      "failed is not treated as submitted",
+      "unknown does not claim server success",
+      "invalidated state immutable",
+      "storage failure grants no authority"
+    ],
+    "test_refs": [
+      "src/features/post-visit/use-guest-post-visit.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Storage controls prompt presentation only; it is not evidence of server rating or authorization.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/ready-alert/guest-ready-alert-audio.test.ts",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b7729d26fd8116d5327658a597abfc8ca3665cc43c43dd4533fde77aa4876efc",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 46
+      }
+    ],
+    "semantic_review_notes": "Foreground audio helper attempts the Customer-owned vehicle-ready sound once only while visible and contains both synchronous and rejected playback failures without retry or impact on canonical session state.",
+    "callers_consumers": [
+      "src/features/ready-alert/guest-ready-alert-audio.ts",
+      "GuestSessionProvider ready transition callback"
+    ],
+    "invariants_error_checks": [
+      "no audio in background",
+      "one play attempt",
+      "playback failure swallowed",
+      "no retry loop"
+    ],
+    "test_refs": [
+      "src/features/session/guest-session-provider.tsx lines 69-77"
+    ],
+    "finding_ids": [],
+    "limits": "Browser autoplay/device behavior is intentionally best-effort.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/ready-alert/guest-ready-alert-tracker.test.ts",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2e96ff8810a0479d7e823e4e19fe75942d8dd925b7b355caad8534b99fc4b416",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 122
+      }
+    ],
+    "semantic_review_notes": "Ready-alert tracker baselines the first authorized snapshot without presentation, presents one later ready identity composed from valetSessionId plus readyAt exactly once including skipped READY-to-HANDOFF_PENDING observation, records/suppresses COMPLETED and policy-disabled identities, never replays the same identity, and resets/baselines on a different valet session.",
+    "callers_consumers": [
+      "src/features/ready-alert/guest-ready-alert-tracker.ts",
+      "GuestSessionProvider per-client coordinator ownership"
+    ],
+    "invariants_error_checks": [
+      "initial snapshot never alerts",
+      "identity presented once",
+      "policy-disabled identity consumed without later replay",
+      "completed identity suppressed",
+      "session replacement clears tracker and baselines new session"
+    ],
+    "test_refs": [
+      "src/features/session/guest-session-provider.tsx lines 56-94"
+    ],
+    "finding_ids": [],
+    "limits": "Tracker lifetime is in-memory; provider recreation on client replacement supplies authority separation.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/ready-alert/guest-vehicle-ready-alert.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0cf4acb61774a05abc3e7e7a8f93dde8fc9101cc43691c7ca0c47da9987d0fdc",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 55
+      }
+    ],
+    "semantic_review_notes": "Vehicle-ready alert presentation renders localized LTR/RTL accessible status copy with polite live-region semantics, contains no session identifiers/timestamps, and dismisses only through a local callback. Provider composition additionally scopes visibility to the current client, fresh/non-expired authority.",
+    "callers_consumers": [
+      "src/features/ready-alert/guest-vehicle-ready-alert.tsx",
+      "GuestSessionProvider"
+    ],
+    "invariants_error_checks": [
+      "no valetSessionId/readyAt in presentation",
+      "role=status and aria-live=polite",
+      "dismiss has no API side effect",
+      "provider renders only for current client and fresh authority"
+    ],
+    "test_refs": [
+      "src/features/session/guest-session-provider.tsx lines 152-166"
+    ],
+    "finding_ids": [],
+    "limits": "Static rendering test; provider authority composition was inspected separately.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/api-errors.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b5035b6ee25b4a44dce83f0a2854a860005fc8c0d5e87832aed2ac332d693248",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 11
+      }
+    ],
+    "semantic_review_notes": "Shared API error envelope is strict and requires non-empty code/message plus a bounded 1-128 character requestId limited to safe token characters, preventing arbitrary response metadata from crossing the common error boundary.",
+    "callers_consumers": [
+      "API/dashboard/client shared error parsing"
+    ],
+    "invariants_error_checks": [
+      "strict object",
+      "non-empty code/message",
+      "requestId /^[A-Za-z0-9._-]{1,128}$/"
+    ],
+    "test_refs": [],
+    "finding_ids": [],
+    "limits": "This schema defines transport shape only; individual endpoint error-code allowlists are separate contracts.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/audit-investigation-common.test.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "21eb8de4478218201237970ad68d1ee523fe5af2f4cca553dda114f413825339",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 126
+      }
+    ],
+    "semantic_review_notes": "Common investigation tests reject invalid/offset/local timestamps, contradictory current labels, person email leakage, source-coverage metadata widening, client-injected role authority, raw plate in cursor payload, wrong cursor purpose/precision, and cursor lifetime beyond 15 minutes.",
+    "callers_consumers": [
+      "audit-investigation-common.ts",
+      "Issue #300 server/dashboard investigation paths"
+    ],
+    "invariants_error_checks": [
+      "UTC time is real and bounded precision",
+      "safe person excludes email",
+      "read scope role server-derived",
+      "cursor binds purpose/session/scope/filter/snapshot",
+      "cursor contains no raw PII"
+    ],
+    "test_refs": [
+      "audit-investigation-common.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Cryptographic HMAC verification itself lives in API cursor implementation, not this contract test.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/audit-investigation-common.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "633032da3221a35422d045716a0a1427bd912636b9b0808aae2939c965a573c8",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 204
+      }
+    ],
+    "semantic_review_notes": "Issue #300 common contracts separate public safe labels/persons/references/coverage from server-only read scope and signed cursor payload. Cursors are purpose-discriminated, session/scope/filter/snapshot bound, microsecond-keyset precise, strict, and limited to 15 minutes while comments explicitly forbid PII/filter text/credentials/raw metadata.",
+    "callers_consumers": [
+      "API audit-investigation cursor/search/timeline services",
+      "Dashboard investigation clients/projections"
+    ],
+    "invariants_error_checks": [
+      "read scope only ORG_ADMIN/LOCATION_MANAGER",
+      "exact source catalog",
+      "safe current labels cannot contradict unavailable flag",
+      "cursor purpose SEARCH_SESSIONS or SESSION_TIMELINE",
+      "snapshotAt clock equals snapshotCutoff millisecond prefix",
+      "HMAC payload fields digest-only for viewer/filter"
+    ],
+    "test_refs": [
+      "audit-investigation-common.test.ts",
+      "apps/api/src/modules/management/audit-investigation/audit-investigation-cursor.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Schema cannot prove the caller actually derives read scope from the active session; API consumers were inspected and perform server-side authorization.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/audit-investigation-detail.test.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4cae2d6398a2da694edaf8cfb039fc42992783338df50d0f30c7568ee9e1eddd",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 70
+      }
+    ],
+    "semantic_review_notes": "Detail tests constrain path source to the known catalog, reject free-form routing/raw incident description/private dispatch reason, require source/key agreement, and permit null key slot only for the authentic RELEASED custody event rather than slot-required custody kinds.",
+    "callers_consumers": [
+      "audit-investigation-detail.ts",
+      "timeline detail API/client"
+    ],
+    "invariants_error_checks": [
+      "source/path IDs typed",
+      "incident raw description rejected",
+      "source discriminant matches key.source",
+      "non-RELEASED custody requires slot"
+    ],
+    "test_refs": [
+      "audit-investigation-detail.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Tests contract projection, not underlying database evidence provenance.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/audit-investigation-detail.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0bd81894e2cf1406942c3f346b0acfb256d0679979bf9d46dff2fb942bdb7d63",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 76
+      }
+    ],
+    "semantic_review_notes": "Strict source-discriminated detail projection exposes only bounded common evidence plus approved source-specific facts. Audit unknown kinds remain metadata-free, incidents expose current status/type/severity only, and super-refinement prevents source/key mismatch and invalid slot-less custody facts.",
+    "callers_consumers": [
+      "API timeline detail controller/read service",
+      "Dashboard timeline API"
+    ],
+    "invariants_error_checks": [
+      "strict per-source object",
+      "participants max 4/references max 6/related evidence max 8",
+      "incident resolution body absent",
+      "dispatch override reason absent",
+      "custody slot rule enforced"
+    ],
+    "test_refs": [
+      "audit-investigation-detail.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Kind string for AUDIT is intentionally extensible but still metadata-free.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/audit-investigation-filters.test.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7b8c9ffba6f23cd74e7924e3cb3828633333b6567a73f0ced64a38b6accc5cc1",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 33
+      }
+    ],
+    "semantic_review_notes": "Selector-directory tests enforce purpose-limited MEMBER/KEY_SLOT searches, text <=80, page <=20, no email-query flag, and response items containing only exact ID plus current safe label with no contact fields.",
+    "callers_consumers": [
+      "audit-investigation-filters.ts",
+      "investigation selector controller/client"
+    ],
+    "invariants_error_checks": [
+      "no contact-detail selector",
+      "20-item page bound",
+      "strict response rejects email",
+      "short bounded search text"
+    ],
+    "test_refs": [
+      "audit-investigation-filters.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Authorization of inactive historical resources is server-side; contract only limits the selector wire shape.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/audit-investigation-filters.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "026e2feb9cacc3cd45ede57f37cd9e82636358a8d91a24cde427b8b389e9404f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 32
+      }
+    ],
+    "semantic_review_notes": "Filter contract allows only MEMBER/KEY_SLOT kind, bounded optional text, opaque cursor and max-20 page. Exact Location is deliberately absent from client overrides; responses expose only ID/current label and enforce continuation consistency.",
+    "callers_consumers": [
+      "API audit investigation search service/controller",
+      "Dashboard investigation search client/member options"
+    ],
+    "invariants_error_checks": [
+      "strict query",
+      "no organization/location/email/phone fields",
+      "response max 20",
+      "nextCursor implies hasMore"
+    ],
+    "test_refs": [
+      "audit-investigation-filters.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Opaque cursor authenticity is enforced by API cursor layer rather than this public string schema.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/audit-investigation-search.test.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "db66bea219a45f10de331d1fc4a856f720d20bfbbc4ceb63f44de0a188162671",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 95
+      }
+    ],
+    "semantic_review_notes": "Search tests reject organization/client-authority and metadata query fields, cap limit at 100 and window at positive <=31 elapsed days, reject fabricated total counts, and preserve the semantic distinction between current vehicle/state labels and typed historical match witnesses.",
+    "callers_consumers": [
+      "audit-investigation-search.ts",
+      "API search service",
+      "Dashboard live search"
+    ],
+    "invariants_error_checks": [
+      "half-open bounded UTC window",
+      "no organizationId query override",
+      "response page max 100",
+      "employee participation role only on employee match",
+      "current state must use staff session catalog"
+    ],
+    "test_refs": [
+      "audit-investigation-search.ts"
+    ],
+    "finding_ids": [],
+    "limits": "The contract accepts plate/make/model search text within bounds; search normalization and tenant scoping are performed server-side.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/audit-investigation-search.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6d62474062c6391e9a57f8d387ca6653d6854e57f4ce27f1abaac7cc2cbe2096",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 87
+      }
+    ],
+    "semantic_review_notes": "Search contract supports bounded AND-style discovery filters over a 31-day UTC window while excluding scope/authority fields. Results separate current vehicle/key-slot/session facts from historical match reasons, bound counts/reasons/pages, and expose explicit per-source coverage instead of implying completeness.",
+    "callers_consumers": [
+      "API audit investigation search controller/service",
+      "Dashboard investigation search query/client/live projection"
+    ],
+    "invariants_error_checks": [
+      "strict query with max 100 limit",
+      "plateCountry restricted",
+      "firstMatchedAt <= lastMatchedAt",
+      "participation role only for EMPLOYEE",
+      "response strict and coverage explicit"
+    ],
+    "test_refs": [
+      "audit-investigation-search.test.ts",
+      "apps/api/test/issue300-search/search-query.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "matchingRecordCount and incident counts are bounded to 100000 but not cross-reconciled with matchReasons because reasons are a capped evidence projection.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/audit-investigation-timeline.test.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4fa7cb9d9a3c647d269466631c163b402d57a15598d50742c7d9fd8063ff250f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 68
+      }
+    ],
+    "semantic_review_notes": "Timeline tests keep the canonical full timeline distinct from discovery-window filters, cap pages at 100, require canonical source/event IDs, reject raw evidence metadata and unsafe references, force ASC ordering, and expose current actor/vehicle labels only through approved safe projections.",
+    "callers_consumers": [
+      "audit-investigation-timeline.ts",
+      "API timeline read service",
+      "Dashboard timeline projection"
+    ],
+    "invariants_error_checks": [
+      "timeline query has no from/to",
+      "page <=100",
+      "unknown source rejected",
+      "raw metadata rejected",
+      "response order must ASC"
+    ],
+    "test_refs": [
+      "audit-investigation-timeline.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Chronological ordering is explicitly not a causal/completeness assertion.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/audit-investigation-timeline.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f7eb24248cacafc0b911a78cbd31db38fbf3a3a5fdf3dc3053205ee0fd701b77",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 68
+      }
+    ],
+    "semantic_review_notes": "Timeline contract deliberately has no discovery from/to filters: it reads one canonical session timeline with opaque cursor and max-100 page. Events are source-discriminated, expose only approved actor/current vehicle/reference/coverage facts, and the response is strict with ASC order plus continuation consistency.",
+    "callers_consumers": [
+      "API audit investigation timeline controller/read service",
+      "Dashboard timeline API/projection"
+    ],
+    "invariants_error_checks": [
+      "sessionId required",
+      "limit <=100",
+      "no organization/location authority override",
+      "strict safe event projection",
+      "order fixed ASC",
+      "nextCursor implies hasMore"
+    ],
+    "test_refs": [
+      "audit-investigation-timeline.test.ts",
+      "apps/api/test/issue300-timeline/timeline-boundaries.test.mjs"
+    ],
+    "finding_ids": [],
+    "limits": "Timeline sequence is observational evidence; contract does not claim causality or completeness beyond explicit coverage.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/cancel-before-parking.test.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "64b2cfb155471e3d44454841779fbca2f540ace2d108edfb7c34c8129c68aa5c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 72
+      }
+    ],
+    "semantic_review_notes": "Pre-custody cancellation tests require exact task/shift IDs and positive session/task versions, reject client-supplied organization/state/actor authority, and require canonical status evidence rather than treating a missing task as successful cancellation. Response widening with PII is rejected.",
+    "callers_consumers": [
+      "cancel-before-parking.ts",
+      "API parking cancellation controller",
+      "employee parking cancellation transport"
+    ],
+    "invariants_error_checks": [
+      "positive integer versions",
+      "exact UUID task/shift",
+      "strict request excludes authority fields",
+      "CANCELLED outcome requires full terminal evidence",
+      "status response excludes plate/PII"
+    ],
+    "test_refs": [
+      "cancel-before-parking.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Server command/history logic determines whether custody has advanced and whether the exact shift/task remains authorized.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/cancel-before-parking.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7ffda524357a3f33ede90b98389ee6b169bb346c11589a4eeffef142dc8084b1",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 57
+      }
+    ],
+    "semantic_review_notes": "Cancellation wire contract carries only task identity, expected session/task versions and expected shift. Status projection distinguishes CANCELLED from NOT_CANCELLED with PRE_CUSTODY/ADVANCED classification and minimal versioned session/task evidence, with strict objects throughout.",
+    "callers_consumers": [
+      "apps/api/src/modules/parking/cancel-before-parking.controller.ts",
+      "packages/employee-client/src/employee-parking-cancellation-transport.ts"
+    ],
+    "invariants_error_checks": [
+      "no client org/location/actor/state",
+      "CAS versions positive",
+      "terminal state/taskStatus both CANCELLED",
+      "NOT_CANCELLED cannot masquerade as terminal success"
+    ],
+    "test_refs": [
+      "cancel-before-parking.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Exact authorization and custody classification are enforced in the server controller/command history, not encoded in the public request.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/cancel-check-in.test.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bb66a8c411ba591d7be2b1cf27b6d9b8db32b5260d881f8f68b1c60f02ed7a24",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 91
+      }
+    ],
+    "semantic_review_notes": "Incomplete Check-In cancellation tests enforce exact expected lifecycle version/shift and reject actor/state/reason/org/timestamp authority fields. Terminal response is minimal, and the tests explicitly prove CANCELLED is not widened into guest-safe or active staff-directory contracts.",
+    "callers_consumers": [
+      "cancel-check-in.ts",
+      "API cancel-check-in controller",
+      "employee cancel-check-in transport"
+    ],
+    "invariants_error_checks": [
+      "expectedVersion positive integer",
+      "expectedShiftId UUID",
+      "strict request",
+      "terminal response state only CANCELLED",
+      "guest-safe and active directory remain closed to CANCELLED"
+    ],
+    "test_refs": [
+      "cancel-check-in.ts",
+      "check-in.ts guestSafeSessionResponseSchema",
+      "staff-vehicle-directory state schema"
+    ],
+    "finding_ids": [],
+    "limits": "The server determines whether the current lifecycle is still incomplete and whether the shift has authority.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/cancel-check-in.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1eb0a7f3f16361bc4802869cbe38fae34b4e1120401a1cb3d31f292a717b0442",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 36
+      }
+    ],
+    "semantic_review_notes": "Strict Check-In cancellation request carries only expected version and expected shift; terminal response returns session/location/version with literal CANCELLED, while the reconciliation status response uses the canonical staff valet-session state catalog without extra evidence or secrets.",
+    "callers_consumers": [
+      "apps/api/src/modules/check-in-api/cancel-check-in.controller.ts",
+      "packages/employee-client/src/employee-cancel-check-in-transport.ts"
+    ],
+    "invariants_error_checks": [
+      "strict request/response",
+      "positive CAS version",
+      "UUID shift/session/location",
+      "terminal mutation cannot claim another state"
+    ],
+    "test_refs": [
+      "cancel-check-in.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Status response can represent nonterminal canonical states for reconciliation; authorization and transition validity remain server responsibilities.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/check-in-common.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3ef60df1330f3b693e16cfe34c558ed574049ff8e4e7faef3774879e38ca6cc9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 69
+      }
+    ],
+    "semantic_review_notes": "Shared Check-In identity contracts distinguish human-confirmed plate from temporary descriptor and make vehicle details strict. Detail strings are trimmed/NFKC-normalized and bounded to 80 Unicode code points; deeper identity normalization/bounds are also revalidated by server vehicle-identity logic before persistence.",
+    "callers_consumers": [
+      "check-in.ts",
+      "API intake/vehicle-identity services",
+      "employee check-in client"
+    ],
+    "invariants_error_checks": [
+      "vehicle identity discriminated by mode",
+      "confirmed plate carries explicit confirmedByHuman field",
+      "vehicle details strict and <=80 code points",
+      "UUID/timestamp canonical schemas reused"
+    ],
+    "test_refs": [
+      "apps/api/src/modules/vehicles/vehicle-identity-command.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Raw plate/temporary-descriptor fields are intentionally normalized and bounded at the server domain layer in addition to the public contract.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/check-in-guest-access.test.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "68c570dbfcf53bb1a9b7f5efca64158814d3bfe01f898f9103870ab48004cef5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 85
+      }
+    ],
+    "semantic_review_notes": "Guest-access tests pin raw guest credentials to exactly 32 CSPRNG bytes encoded as 43 unpadded base64url characters and reject padding/non-base64url/non-string material. Guest-safe session readiness accepts canonical UTC timestamps and strict projection rejects organization scope leakage.",
+    "callers_consumers": [
+      "check-in.ts guest access/session schemas",
+      "guest issuance and customer session clients"
+    ],
+    "invariants_error_checks": [
+      "rawToken exactly 43 base64url chars",
+      "no padded token",
+      "guest session strict safe projection",
+      "readyAt canonical UTC or null"
+    ],
+    "test_refs": [
+      "check-in.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Token entropy/generation and one-time issuance semantics are implemented server-side; this test verifies the public wire boundary.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/check-in-phone.test.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2eed822ba1a1df9566776fb57f9f25a3632ab6cbf635826b85c28321f64208bd",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 51
+      }
+    ],
+    "semantic_review_notes": "Phone tests accept employee presentation variants for Jordan mobiles and normalize them to one canonical +9627xxxxxxxx wire value, while malformed lengths/prefixes/text are rejected. DIFFERENT_CUSTOMER accepts only the canonical wire form.",
+    "callers_consumers": [
+      "check-in.ts normalizeJordanCheckInPhone",
+      "API intake customer normalization",
+      "employee check-in flow"
+    ],
+    "invariants_error_checks": [
+      "NFKC/spacing/dash presentation normalization",
+      "wire regex /^+9627[0-9]{8}$/ semantics",
+      "malformed/short/long forms rejected"
+    ],
+    "test_refs": [
+      "check-in.ts",
+      "apps/api/src/modules/valet-sessions/intake-session-normalization.ts"
+    ],
+    "finding_ids": [],
+    "limits": "This is intentionally Jordan-specific validation and does not claim international phone support.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/check-in.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a5de61e6a4433a412d13069c2495dd328631c1d5c5f29d6441bf2a80108b5832",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 266
+      }
+    ],
+    "semantic_review_notes": "Check-In transport contracts are strict across intake/customer intent, vehicle identity/details, condition evidence, guest-access issue/revoke, completion and guest-safe session/branding projections. Although several raw wire strings are intentionally broad, caller inspection confirms the server re-normalizes before persistence: intake operation IDs are constrained to 8-128 safe characters, display name to 120 code points, vehicle identity/details to domain limits, and condition notes to bounded non-control text.",
+    "callers_consumers": [
+      "apps/api/src/modules/check-in-api/check-in-api.controller.ts",
+      "CheckInApiService",
+      "intake-session-normalization.ts",
+      "vehicle-identity-command.ts",
+      "check-in-condition-command.ts",
+      "employee-client check-in transports",
+      "customer guest session"
+    ],
+    "invariants_error_checks": [
+      "strict request/response objects",
+      "guest raw token exact 43 base64url",
+      "guest-safe response excludes org/custody/staff details",
+      "guest branding displayName bounded/no control chars and uppercase hex color",
+      "complete check-in version positive",
+      "server domain layer revalidates broad raw fields before DB"
+    ],
+    "test_refs": [
+      "check-in-guest-access.test.ts",
+      "check-in-phone.test.ts",
+      "cancel-check-in.test.ts",
+      "server normalization files inspected"
+    ],
+    "finding_ids": [],
+    "limits": "Contract alone is not the complete validation boundary for raw intake/condition strings; no issue is claimed because authoritative server consumers apply stricter normalization before persistence.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/company-analytics.test.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a03907dc0f2a0a9dd9b53fb4223fc97f18235e690d374a515856696d06e20918",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 226
+      }
+    ],
+    "semantic_review_notes": "Company analytics tests require truthful null metrics for empty samples, explicit coverage, weighted aggregate counts without per-employee disclosure, deterministic timezone ordering, bounded grouping arrays, and reject guest-rating/returning-contact/byEmployee or malformed numeric widening.",
+    "callers_consumers": [
+      "company-analytics.ts",
+      "management company analytics controller",
+      "Dashboard intelligence API"
+    ],
+    "invariants_error_checks": [
+      "no byEmployee/raw staff breakdown",
+      "no guest contact/rating widening",
+      "timezone boundaries deterministic and max500",
+      "duration ratios fixed precision",
+      "empty sample average null"
+    ],
+    "test_refs": [
+      "company-analytics.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Contract validates aggregate shape/coherence; SQL aggregation correctness and entitlement are server-service concerns.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/company-analytics.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "949966253a67c00e24ae91b76f5810658e3f81ca1962bbf5bf0445aa4d496d06",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 160
+      }
+    ],
+    "semantic_review_notes": "Company analytics response is an aggregate-only strict projection with explicit location/timezone coverage, bounded operational/financial/incident groups, fixed-precision ratios, and KPI evidence counts. It deliberately omits staff-level breakdown and contact/guest identity data while reusing controlled location analytics schemas.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/management-company-analytics.controller.ts",
+      "apps/dashboard/src/features/intelligence/intelligence-api.ts",
+      "company-report.ts"
+    ],
+    "invariants_error_checks": [
+      "timezone boundary array max500 and strictly ordered",
+      "cars handled max31",
+      "severity max4/type max500",
+      "key exception catalog length4",
+      "strict aggregate-only response"
+    ],
+    "test_refs": [
+      "company-analytics.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Cross-field arithmetic beyond explicitly modeled ratios/count semantics is computed and validated by the server query layer.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/company-report.test.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9bb9caf050b06b8cd9acc27c7f105656707c670e537a6d86db0d05e753504142",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 187
+      }
+    ],
+    "semantic_review_notes": "Company report tests require DAILY reports to include only controlled dispatch/key-custody aggregate activity, keep WEEKLY/MONTHLY free of daily activity, bound event groups to their catalogs, reuse the company analytics summary, and allow only existing CSV/PDF export requests while rejecting XLSX or contact inclusion.",
+    "callers_consumers": [
+      "company-report.ts",
+      "management company report controller/export path"
+    ],
+    "invariants_error_checks": [
+      "daily dispatch max16",
+      "daily key custody max5",
+      "periodic reports reject dailyActivity",
+      "export kinds DAILY/WEEKLY/MONTHLY only",
+      "formats CSV/PDF only",
+      "includeContacts rejected"
+    ],
+    "test_refs": [
+      "company-report.ts",
+      "company-analytics.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Report file generation/content is server-side; contract constrains request and structured report projection.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/company-report.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4b1b463f743fa379945c0bde0e66b3f96386369b1c152a28494adbf1ec91739a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 82
+      }
+    ],
+    "semantic_review_notes": "Company report contracts reuse existing bounded period/export schemas and company aggregate summary. DAILY adds only aggregate retrieval, dispatch and key-custody counts; WEEKLY/MONTHLY carry no raw daily activity, with strict envelopes and organization/date fields.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/company-report.controller.ts",
+      "management reporting/export consumers"
+    ],
+    "invariants_error_checks": [
+      "strict report envelopes",
+      "daily controlled event catalogs only",
+      "no staff/contact detail",
+      "periodic kind restricted to WEEKLY/MONTHLY",
+      "organizationId UUID"
+    ],
+    "test_refs": [
+      "company-report.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Authorization for the organization and exact period derivation are server-side management concerns.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/complete-handoff.test.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1a2215992bb7701fb624847cae31859faaec8c9c4d3b2314711e48174e52a04e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 40
+      }
+    ],
+    "semantic_review_notes": "Complete-handoff tests limit the mutation request to expected session version only and require a minimal terminal projection where retrieval request, task and session all agree on COMPLETED. Extra verification/internal identifiers are rejected.",
+    "callers_consumers": [
+      "complete-handoff.ts",
+      "retrieval complete-handoff controller",
+      "valet/employee release-flow clients"
+    ],
+    "invariants_error_checks": [
+      "request contains only positive expectedSessionVersion",
+      "terminal session/task/retrieval statuses all COMPLETED",
+      "response versions positive",
+      "verificationId/internal widening rejected"
+    ],
+    "test_refs": [
+      "complete-handoff.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Proof verification, custody release and authority checks occur in the server command before this terminal response.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/complete-handoff.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "924f85f93c24e56d97cacca865faa422e151988db1f4a0d1c8087aea825e46e9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 26
+      }
+    ],
+    "semantic_review_notes": "Strict handoff completion contract uses only optimistic session version input and returns the exact terminal session/task projection without custody secret, proof, actor or scope material.",
+    "callers_consumers": [
+      "apps/api/src/modules/retrieval/complete-handoff.controller.ts",
+      "apps/valet/src/features/handoff/handoff-api.ts",
+      "employee release-flow transport"
+    ],
+    "invariants_error_checks": [
+      "positive version",
+      "strict request",
+      "session state/task status/retrieval status literals COMPLETED",
+      "UUID identities only"
+    ],
+    "test_refs": [
+      "complete-handoff.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "The request intentionally does not carry task/actor authority; server derives and locks authoritative state.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/condition-photo-upload.test.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fe6a7a3a4d1c7665afc22c1f16f48aedceeaf673c4b221dcb3c6ca3a76cef254",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 170
+      }
+    ],
+    "semantic_review_notes": "Condition-photo tests validate the complete PENDING/VERIFIED/EXPIRED/REJECTED state machine, byte/retry/timestamp bounds, exact-session state discovery, multipart metadata restricted to operationId, empty reconciliation/query contracts, and explicit rejection of storage URLs/keys/hashes/lease/auth/scope/user metadata from public responses.",
+    "callers_consumers": [
+      "condition-photo-upload.ts",
+      "API condition-photo multipart/controller/backend",
+      "employee condition-photo client"
+    ],
+    "invariants_error_checks": [
+      "JPEG max8MiB",
+      "retry 1-900s",
+      "verified contentType image/jpeg",
+      "state-specific fields cannot cross variants",
+      "public result excludes provider/storage/auth/scope internals",
+      "pending/latest operation must match requested session"
+    ],
+    "test_refs": [
+      "condition-photo-upload.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Actual JPEG decoding and multipart single-file/stream byte enforcement are implemented in API condition-photo parsing/backend layers.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/condition-photo-upload.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "23a0fce5ee1e9d37f2575cb42e5ce5312b2402c8a50d64f520d53fa2d97d65a9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 160
+      }
+    ],
+    "semantic_review_notes": "Verified-photo wire v1 is intentionally provider-neutral and strict: 8MiB JPEG cap, bounded retry advice, safe public error catalog, state-discriminated operation results, operationId-only multipart metadata, empty reconcile/query bodies, policy source limited to organization default/location override, and state discovery binds operation evidence to the exact valet session.",
+    "callers_consumers": [
+      "apps/api/src/modules/check-in-api/condition-photo-multipart.ts",
+      "condition-photo controller/backend",
+      "employee photo upload/reconcile flow"
+    ],
+    "invariants_error_checks": [
+      "no storage/hash/credential fields in public schemas",
+      "verified receipt requires photoId/size/UTC timestamp",
+      "expired/rejected require NEW_CAPTURE",
+      "pending cannot claim terminal evidence",
+      "cross-session operation rejected"
+    ],
+    "test_refs": [
+      "condition-photo-upload.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "The multipart parser enforces image count/bytes and backend qualification; this contract constrains metadata/result transport.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/confirm-parked.test.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4835db79d9d98034d01c8aa1b3967080dde1d122bfc07ea175bb6924e5fa7bf2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 107
+      }
+    ],
+    "semantic_review_notes": "Confirm Parked tests require session/task CAS versions, trimmed nonempty key-slot code and exactly one parking resource code, with optional spot ID only alongside spot code. Success projection is terminal/minimal and deliberately excludes key-slot detail.",
+    "callers_consumers": [
+      "confirm-parked.ts",
+      "API confirm-parked controller/command/resources",
+      "employee confirm-parked transport/flow"
+    ],
+    "invariants_error_checks": [
+      "positive session/task versions",
+      "exactly one spot or zone code",
+      "spot ID requires spot code",
+      "strict request rejects authority/extra fields",
+      "success omits key-slot evidence"
+    ],
+    "test_refs": [
+      "confirm-parked.ts",
+      "server confirm-parked resource lock files inspected"
+    ],
+    "finding_ids": [],
+    "limits": "Resource codes have no public max length, but server uses trimmed values only in parameterized, tenant/location-scoped exact resource queries and compatibility/occupancy locks; no injection/authority defect was found.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/confirm-parked.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b9f2cae7a035fb2ca768e13afaa4edf4ea069dcc33f0861fd39409b2423a31c9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 45
+      }
+    ],
+    "semantic_review_notes": "Confirm Parked contract carries only optimistic versions plus key-slot and one parking resource identity, with refinements preventing contradictory resource shapes. Server consumer inspection confirms codes are resolved under authoritative organization/location, active/compatibility/occupancy locks and parameterized SQL before parking state commits.",
+    "callers_consumers": [
+      "apps/api/src/modules/parking/confirm-parked.controller.ts",
+      "confirm-parked-command.ts",
+      "confirm-parked-resources.ts",
+      "employee-confirm-parked-transport.ts"
+    ],
+    "invariants_error_checks": [
+      "strict request",
+      "spot XOR zone code",
+      "optional spot ID coupled to spot code",
+      "terminal response state PARKED/task COMPLETED",
+      "server exact scoped resource lock"
+    ],
+    "test_refs": [
+      "confirm-parked.test.ts",
+      "server resource/command files inspected"
+    ],
+    "finding_ids": [],
+    "limits": "Contract itself does not carry organization/location/actor authority by design; those are derived server-side.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/customer-feedback-analytics.test.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e32e640386806db5b3ca3ec071327359bcb4c87c9ee01705bc5702cb87c56657",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 61
+      }
+    ],
+    "semantic_review_notes": "Feedback analytics tests enforce truthful completed/rated cohort arithmetic, null semantics, 1-5 rating bounds, participation/average consistency, at most four recent rows, and a pseudonymous VISIT reference while rejecting guest phone/name/internal session identity and unsupported scope.",
+    "callers_consumers": [
+      "customer-feedback-analytics.ts",
+      "management/dashboard rating analytics controllers",
+      "Dashboard customer feedback API"
+    ],
+    "invariants_error_checks": [
+      "rated<=eligible",
+      "distribution sums to rated",
+      "average null iff rated=0",
+      "participation null iff eligible=0 and matches ratio otherwise",
+      "no guest PII",
+      "recent rows max4"
+    ],
+    "test_refs": [
+      "customer-feedback-analytics.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Pseudonymous visit-reference generation and cohort SQL are server-side; the contract prevents raw identity fields in the response.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/customer-feedback-analytics.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b38d2f82ddd356765801390f9981da37e44cbaa9de6dee425f218ad393eff598",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 68
+      }
+    ],
+    "semantic_review_notes": "Customer feedback analytics is a strict COMPANY/LOCATION aggregate projection with nonnegative safe counts, fixed-precision average/participation, bounded 1-5 distribution, and four recent pseudonymous rows carrying only visit reference, rating, timestamps, authorized location label and timezone. Super-refinement enforces cohort arithmetic.",
+    "callers_consumers": [
+      "API dashboard/management rating analytics controllers",
+      "apps/dashboard/src/features/intelligence/customer-feedback-api.ts"
+    ],
+    "invariants_error_checks": [
+      "visit reference pattern VISIT- plus 12 uppercase hex",
+      "no contact identity fields",
+      "rated/distribution/recent counts coherent",
+      "average 1..5",
+      "participation 0..1 and matches cohort"
+    ],
+    "test_refs": [
+      "customer-feedback-analytics.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Authorized location label is current display data; contract does not expose immutable location IDs in recent rows.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/dashboard-feature-authority.test.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0fe86795c3042dbc53074fce16fb34c380d739ac5bc66daa5bfb541b71850c05",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 72
+      }
+    ],
+    "semantic_review_notes": "Feature-authority tests keep Visit Contacts organization-scoped, allow Management Audit organization or exact-location queries, and validate only truthful role/scope projections: org admin organization, location manager grant-set for Visit Contacts, and exact-location authority for Management Audit including permitted supervisor scope.",
+    "callers_consumers": [
+      "dashboard-feature-authority.ts",
+      "API feature-authority controller",
+      "Dashboard dashboard-scope.ts"
+    ],
+    "invariants_error_checks": [
+      "Visit Contacts rejects location query override",
+      "Audit query may include exact location",
+      "role/scope combinations constrained by feature",
+      "Location Manager cannot receive organization-wide Audit authority"
+    ],
+    "test_refs": [
+      "dashboard-feature-authority.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Query organization/location IDs still require server-side session/grant authorization; the API controller/service supplies the authoritative projection.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/dashboard-feature-authority.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d484e2fc7b18dc6f8dce66e9397ec47b52f6100d7fab86ee8fbbd4c6db3d4da6",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 63
+      }
+    ],
+    "semantic_review_notes": "Dashboard feature-authority contract strictly models only VISIT_CONTACTS and MANAGEMENT_AUDIT, validates feature-specific query scope, and constrains server responses to ORG_ADMIN/LOCATION_MANAGER/VALET_SUPERVISOR with ORGANIZATION, ORGANIZATION_GRANT_SET or exact LOCATION combinations that are valid for that feature.",
+    "callers_consumers": [
+      "apps/api/src/modules/dashboard/dashboard-feature-authority.controller.ts",
+      "apps/dashboard/src/lib/scope/dashboard-scope.ts"
+    ],
+    "invariants_error_checks": [
+      "strict query/response",
+      "Visit Contacts no locationId",
+      "Visit Contacts supervisor invalid",
+      "Audit organization scope only org admin",
+      "non-org-admin Audit requires LOCATION scope"
+    ],
+    "test_refs": [
+      "dashboard-feature-authority.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Schema validates projection consistency; server still verifies membership, tenant, grants and entitlement before constructing it.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/dispatch.test.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4c79a773c000bd9c06262abb943f325c5d59ed4248151848e12fc827e1ab0b41",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 198
+      }
+    ],
+    "semantic_review_notes": "Dispatch tests cover self/explicit/automatic assignment shapes, reject client organization/membership query authority and conflicting automatic target, normalize/bound reasons, keep task projections minimal, strictly constrain queue vehicle fields, and require tracking to be explicit opt-in with a privacy-minimal movement projection.",
+    "callers_consumers": [
+      "dispatch.ts",
+      "API dispatch controller/task queue query",
+      "employee operational task clients"
+    ],
+    "invariants_error_checks": [
+      "CAS expectedVersion positive",
+      "automatic assignment cannot carry target",
+      "queue query cannot carry membershipId",
+      "reason <=500",
+      "no key-slot/SLA or extra vehicle metadata in base task",
+      "tracking false rejected and tracking details absent from base response"
+    ],
+    "test_refs": [
+      "dispatch.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Assignment eligibility, exact location authority and task ownership transitions are enforced by dispatch server commands.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/dispatch.ts",
+    "worker": "dashboard",
+    "original_worker": "contracts",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "64ccabb6d4f73bc98f64c385e65baeda50a28c7ef7334d67d5e03c9849b793d0",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 150
+      }
+    ],
+    "semantic_review_notes": "Dispatch contracts use strict versioned task projections, a safe staff queue vehicle descriptor, location-scoped queue query with explicit tracking opt-in, privacy-minimal tracking projection, and strict assign/accept/decline/reassign requests. CANCELLED valet sessions are excluded from active task-queue items.",
+    "callers_consumers": [
+      "apps/api/src/modules/dispatch/dispatch.controller.ts",
+      "task-queue-query.ts",
+      "employee/native task queue consumers"
+    ],
+    "invariants_error_checks": [
+      "task status limited to active queue states",
+      "task type PARKING/RETRIEVAL",
+      "queue query only locationId plus optional true tracking",
+      "tracking movement excludes org/member/coordinates",
+      "assignment authority fields absent",
+      "active queue excludes CANCELLED session"
+    ],
+    "test_refs": [
+      "dispatch.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Queue arrays are not contract-capped here; server query bounds/pagination/load characteristics determine operational response size.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/app.controller.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4d24bd1b4b041e31f95506a0fefcd6feddd1b2edc0ed6a3640d9d679e1dc098a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 27
+      }
+    ],
+    "semantic_review_notes": "Public bootstrap status and incident-recovery capability endpoints return fixed contract data only; no request-derived or tenant data is exposed.",
+    "callers_consumers": [
+      "Nest AppModule controller registration",
+      "packages/contracts incidentRecoveryCapability"
+    ],
+    "invariants_error_checks": [
+      "No source edits; reviewed tenant/auth/error/race/limit behavior appropriate to this utility"
+    ],
+    "test_refs": [
+      "apps/api/test/app.controller.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/database/runtime-database-readiness.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f13ad6ff7e40aeb5de065b8773eee3f079c9fe9c43b588e459588bb73b93964c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 71
+      }
+    ],
+    "semantic_review_notes": "Readiness probes exact anti-abuse table privileges and required guest-browser SECURITY DEFINER functions under a 2.5s deadline; any missing row, privilege, function, or probe error fails closed as database unavailable.",
+    "callers_consumers": [
+      "apps/api/src/health/health-readiness.service.ts"
+    ],
+    "invariants_error_checks": [
+      "Requires SELECT plus narrow INSERT/UPDATE columns and cleanup EXECUTE",
+      "Guest browser function EXECUTE set must all exist",
+      "All failures mapped to generic unavailable"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-t4-health.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/database/runtime-database.module.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "59874037e60f8d234a21c520a5f403ad99bd80fc4e31551892cfb516fa357353",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 76
+      }
+    ],
+    "semantic_review_notes": "Runtime DB lifecycle validates PostgreSQL version and exact session deadlines before serving, performs production safety verification, and closes the pool on shutdown.",
+    "callers_consumers": [
+      "Nest RuntimeDatabaseModule imports across feature modules",
+      "apps/api/test/production-database-safety.integration.test.ts"
+    ],
+    "invariants_error_checks": [
+      "PG16/17 transaction_timeout compatibility",
+      "statement=3s lock=2s idle=2s",
+      "production safety check before serving"
+    ],
+    "test_refs": [
+      "apps/api/test/production-database-safety.integration.test.ts",
+      "apps/api/test/guest-t3-runtime-resilience.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/database/runtime-postgres-policy.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9ef1ec7856d37aff498197eb39c29c641261ee03f89fec7a632befc8428eae27",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 108
+      }
+    ],
+    "semantic_review_notes": "Builds a fail-closed bounded pool/admission policy. Production requires explicit capacity inputs; pool max cannot exceed the supplied connection envelope and all general deadlines must remain ordered within the transaction ceiling.",
+    "callers_consumers": [
+      "apps/api/src/common/database/postgres.ts",
+      "apps/api/src/common/database/bounded-postgres-pool.ts",
+      "apps/api/src/common/database/postgres-lease.ts"
+    ],
+    "invariants_error_checks": [
+      "Production has no implicit pool-capacity defaults",
+      "max <=100 and waiters <=1024",
+      "lock <= statement < transaction and idle <= transaction"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-t3-policy.test.ts",
+      "apps/api/test/guest-t3-runtime-resilience.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/financial/currency-minor-units.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9b88bb6acb4e1c8b71a94d9ae4805fdbf23b4ab0e4653e05da8947b04abb5e55",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 207
+      }
+    ],
+    "semantic_review_notes": "Uses a pinned ISO 4217 maintenance-agency snapshot and rejects unknown, nonnumeric, and exponent>3 currencies; representability is exact in mills with no rounding.",
+    "callers_consumers": [
+      "payments money/refund/cash/digital collection commands",
+      "end-shift cash reconciliation",
+      "dashboard configuration commands"
+    ],
+    "invariants_error_checks": [
+      "JOD exponent 3",
+      "USD exponent 2 requires trailing-zero mills",
+      "zero-exponent currencies require whole major units"
+    ],
+    "test_refs": [
+      "apps/api/test/currency-minor-units.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/http/handoff-operation-routes.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "40fa47fbcdb783d53ad35ef39155e0d413dffd76b30616286ae650106fb0f7e4",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 43
+      }
+    ],
+    "semantic_review_notes": "Defines anchored method/path-to-fixed-operation mappings for safe error observability; the registry does not grant authorization and dynamic identifiers are matched only as one path segment.",
+    "callers_consumers": [
+      "apps/api/src/common/http/api-exception.filter.ts"
+    ],
+    "invariants_error_checks": [
+      "Anchored regexes reject suffix collapse",
+      "Only fixed operation labels reach observer/error path"
+    ],
+    "test_refs": [
+      "apps/api/test/mfa-http-registry.test.ts",
+      "feature-specific HTTP integration tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/http/http-infrastructure.module.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ab32b6ed69c07e419374611025954fc7ab3e2a1815f24897b05c2c4c50d45d5a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 18
+      }
+    ],
+    "semantic_review_notes": "Centralizes the API operation runner, request-id middleware, global exception filter and observability provider so feature modules share one safe HTTP error/measurement boundary.",
+    "callers_consumers": [
+      "Auth/Check-in/Dashboard/Payments/Retrieval/Tracking and other modules"
+    ],
+    "invariants_error_checks": [
+      "No source edits; reviewed tenant/auth/error/race/limit behavior appropriate to this utility"
+    ],
+    "test_refs": [
+      "apps/api/test/http-infrastructure-ownership.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/http/no-store-response.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "da879b188b99ac4c3054c699ac2986006aec6fe02c2550ba88deaf6d627d86a2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 8
+      }
+    ],
+    "semantic_review_notes": "Sets Cache-Control:no-store and Pragma:no-cache for sensitive responses; widely consumed by guest, auth, dashboard, management and photo endpoints.",
+    "callers_consumers": [
+      "apps/api/src/common/http/api-exception.filter.ts",
+      "multiple sensitive controllers"
+    ],
+    "invariants_error_checks": [
+      "No source edits; reviewed tenant/auth/error/race/limit behavior appropriate to this utility"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-no-store.integration.test.ts",
+      "feature HTTP integration tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/http/payment-operation-routes.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "cf13d8cb21bf264a1fe0ae789c49773c2206ec1c3d0a00ada9aafff3bc421272",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 37
+      }
+    ],
+    "semantic_review_notes": "Defines anchored method/path-to-fixed-operation mappings for safe error observability; the registry does not grant authorization and dynamic identifiers are matched only as one path segment.",
+    "callers_consumers": [
+      "apps/api/src/common/http/api-exception.filter.ts"
+    ],
+    "invariants_error_checks": [
+      "Anchored regexes reject suffix collapse",
+      "Only fixed operation labels reach observer/error path"
+    ],
+    "test_refs": [
+      "apps/api/test/mfa-http-registry.test.ts",
+      "feature-specific HTTP integration tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/http/presence-api-errors.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1128e0c959626a9bc433114634279e0e2915d293c6e114260e983d14c0ff270f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 54
+      }
+    ],
+    "semantic_review_notes": "Maps presence domain failures to bounded public statuses/messages, including 404 for scope mismatch, 429 for rate limit, 503 for security dependency failure, and 409/422 for safe conflict/required states.",
+    "callers_consumers": [
+      "apps/api/src/common/http/api-errors.ts / presence HTTP error mapping"
+    ],
+    "invariants_error_checks": [
+      "Scope mismatch is concealed as AUTHORIZATION_DENIED/404",
+      "No internal error message passthrough"
+    ],
+    "test_refs": [
+      "presence API/error mapping tests under apps/api/test"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/http/presence-operation-routes.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "90f275977aef1647bb02d60198e10812524fa791627028080cbdcef37e2af9c1",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 63
+      }
+    ],
+    "semantic_review_notes": "Defines anchored method/path-to-fixed-operation mappings for safe error observability; the registry does not grant authorization and dynamic identifiers are matched only as one path segment.",
+    "callers_consumers": [
+      "apps/api/src/common/http/api-exception.filter.ts"
+    ],
+    "invariants_error_checks": [
+      "Anchored regexes reject suffix collapse",
+      "Only fixed operation labels reach observer/error path"
+    ],
+    "test_refs": [
+      "apps/api/test/mfa-http-registry.test.ts",
+      "feature-specific HTTP integration tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/http/staff-auth-operation-routes.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d33d0db3052eb4627b4a52175ce93cb4991be2ddf3dc33442fe3298f840d0a45",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 71
+      }
+    ],
+    "semantic_review_notes": "Defines anchored method/path-to-fixed-operation mappings for safe error observability; the registry does not grant authorization and dynamic identifiers are matched only as one path segment.",
+    "callers_consumers": [
+      "apps/api/src/common/http/api-exception.filter.ts"
+    ],
+    "invariants_error_checks": [
+      "Anchored regexes reject suffix collapse",
+      "Only fixed operation labels reach observer/error path"
+    ],
+    "test_refs": [
+      "apps/api/test/mfa-http-registry.test.ts",
+      "feature-specific HTTP integration tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/http/staff-onboarding-operation-routes.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "cb0fad6a2c087eaff48d91e2e78276cb7f4611348d8ec177771af5f6fec5db52",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 16
+      }
+    ],
+    "semantic_review_notes": "Defines anchored method/path-to-fixed-operation mappings for safe error observability; the registry does not grant authorization and dynamic identifiers are matched only as one path segment.",
+    "callers_consumers": [
+      "apps/api/src/common/http/api-exception.filter.ts"
+    ],
+    "invariants_error_checks": [
+      "Anchored regexes reject suffix collapse",
+      "Only fixed operation labels reach observer/error path"
+    ],
+    "test_refs": [
+      "apps/api/test/mfa-http-registry.test.ts",
+      "feature-specific HTTP integration tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/http/staff-shift-force-end-operation-routes.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "072f43abffcfe0ac709803491ed2599ec50817e0ca2be408cbc3d115259bf37a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 7
+      }
+    ],
+    "semantic_review_notes": "Defines anchored method/path-to-fixed-operation mappings for safe error observability; the registry does not grant authorization and dynamic identifiers are matched only as one path segment.",
+    "callers_consumers": [
+      "apps/api/src/common/http/api-exception.filter.ts"
+    ],
+    "invariants_error_checks": [
+      "Anchored regexes reject suffix collapse",
+      "Only fixed operation labels reach observer/error path"
+    ],
+    "test_refs": [
+      "apps/api/test/mfa-http-registry.test.ts",
+      "feature-specific HTTP integration tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/observability/console-operation-observer.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "135d0bca4af4e870e04cf34e308e45a5bd8814ac1c7fa0be372b97c0bd65feda",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 61
+      }
+    ],
+    "semantic_review_notes": "Emits only fixed operation measurement fields, strips control characters to prevent log injection, never renders request bodies/headers/tokens, and contains observer failures.",
+    "callers_consumers": [
+      "apps/api/src/common/observability/observability.module.ts"
+    ],
+    "invariants_error_checks": [
+      "Control characters removed",
+      "No request payload/header surface",
+      "Observer exception cannot affect business operation"
+    ],
+    "test_refs": [
+      "apps/api/test/console-operation-observer.test.ts",
+      "apps/api/test/staff-activation-observability.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/observability/guest-operation-metrics.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2278d3a8590f99416803108589b63b146702c0e6e3bb2a5dd7669f362a3d3b9c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 60
+      }
+    ],
+    "semantic_review_notes": "Exports only allowlisted guest operation names and finite error categories; arbitrary error strings and request identifiers never become metric dimensions.",
+    "callers_consumers": [
+      "apps/api/src/common/observability/console-operation-observer.ts"
+    ],
+    "invariants_error_checks": [
+      "No source edits; reviewed tenant/auth/error/race/limit behavior appropriate to this utility"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-t4-observability.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/observability/http-metrics.middleware.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a3f481c1ef9df885c0a767d2cd5be92ea269705df57df136cf8e9e65149372aa",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 54
+      }
+    ],
+    "semantic_review_notes": "Measures every HTTP request from pre-authorization middleware using only a fixed operation class, final status and duration; raw URLs/query strings are never emitted and disconnects are represented as 499.",
+    "callers_consumers": [
+      "apps/api/src/main.ts"
+    ],
+    "invariants_error_checks": [
+      "finish/close emitted once",
+      "No raw request target in output"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-t4-observability.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/observability/http-operation-metrics.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "19177aaa783765417d5590776ff853d42915ce87b7e5fc32337a35a2ea1980a1",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 73
+      }
+    ],
+    "semantic_review_notes": "Classifies raw method/path into six fixed operation classes and five fixed outcome classes, strips query from classification input, bounds status to valid HTTP range and never emits the URL.",
+    "callers_consumers": [
+      "apps/api/src/common/observability/http-metrics.middleware.ts"
+    ],
+    "invariants_error_checks": [
+      "No source edits; reviewed tenant/auth/error/race/limit behavior appropriate to this utility"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-t4-observability.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/observability/limiter-maintenance-metrics.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "132ecfbdb389aa7d8cc30d1107bdc74feb19168da1753abae79dfdbc6c5b9f2f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 33
+      }
+    ],
+    "semantic_review_notes": "Maintains instance-local numeric-only snapshots of limiter cleanup health; values are diagnostic only and never feed authorization or rate-limit decisions.",
+    "callers_consumers": [
+      "apps/api/src/modules/anti-abuse/anti-abuse-maintenance.ts",
+      "apps/api/src/common/observability/runtime-metrics-pulse.ts"
+    ],
+    "invariants_error_checks": [
+      "No source edits; reviewed tenant/auth/error/race/limit behavior appropriate to this utility"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-t3-maintenance.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/observability/observability.module.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4e29bcd7a08de1aa2be5d72732271d118cd2e1ef05dc00305251d2157ad8d78f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 17
+      }
+    ],
+    "semantic_review_notes": "Provides a shared monotonic-clock/operation-observer boundary with a minimal fixed measurement contract; no tenant/request payload fields are part of the interface.",
+    "callers_consumers": [
+      "HttpInfrastructureModule and operation runners"
+    ],
+    "invariants_error_checks": [
+      "No source edits; reviewed tenant/auth/error/race/limit behavior appropriate to this utility"
+    ],
+    "test_refs": [
+      "apps/api/test/console-operation-observer.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/observability/operation-observability.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5e207495b072fcebc31506c35855cbe6639ef75fa638a96c4033d7f12b274a34",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 31
+      }
+    ],
+    "semantic_review_notes": "Provides a shared monotonic-clock/operation-observer boundary with a minimal fixed measurement contract; no tenant/request payload fields are part of the interface.",
+    "callers_consumers": [
+      "HttpInfrastructureModule and operation runners"
+    ],
+    "invariants_error_checks": [
+      "No source edits; reviewed tenant/auth/error/race/limit behavior appropriate to this utility"
+    ],
+    "test_refs": [
+      "apps/api/test/console-operation-observer.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/common/observability/runtime-metrics-pulse.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "21cc7265b554065efb6953f63a0ce44f87f11708b3379f61d09d4b28b21a651d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 89
+      }
+    ],
+    "semantic_review_notes": "Emits fixed-schema numeric pool/process/limiter counters and a validated 40-hex release SHA every 30s; it intentionally excludes SQL, host, tenant and secrets, and sampling failures cannot terminate serving.",
+    "callers_consumers": [
+      "apps/api/src/health/health.module.ts"
+    ],
+    "invariants_error_checks": [
+      "No source edits; reviewed tenant/auth/error/race/limit behavior appropriate to this utility"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-t4-observability.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/condition-photo-maintenance-worker.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "262d8e4b94568f0c5aced336b741dc86a04a44bd1e90bde3091df6922ca6996d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 89
+      }
+    ],
+    "semantic_review_notes": "Dedicated maintenance worker fails closed on missing role/database/storage policy, verifies production DB safety and worker identity, and deliberately supplies a storage implementation that cannot delete object versions. Integrity mode is optional and logging is numeric-only.",
+    "callers_consumers": [
+      "package worker entrypoint / deployment process"
+    ],
+    "invariants_error_checks": [
+      "No delete-capable S3 path in this process",
+      "SIGINT/SIGTERM abort loop and pool closes",
+      "Production DB safety + dedicated identity check"
+    ],
+    "test_refs": [
+      "condition-photo maintenance/integrity tests under apps/api/test and vehicle-photo module tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/guest-push-worker.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "03e09e95da4748422ea87f34e4544820d7e77ca1cde204409b8ad7e243341f7e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 77
+      }
+    ],
+    "semantic_review_notes": "Dedicated guest-push worker validates operational/web-push/database configuration, verifies production DB safety, runs bounded cleanup/maintenance/backlog observation, sends only when provider config exists, handles abort signals and always closes its pool.",
+    "callers_consumers": [
+      "guest-push worker process entrypoint"
+    ],
+    "invariants_error_checks": [
+      "No source edits; reviewed tenant/auth/error/race/limit behavior appropriate to this utility"
+    ],
+    "test_refs": [
+      "guest-push worker/maintenance tests under apps/api/test"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/health/application-drain-middleware.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5da1b0b8ba947ef9b866f67d27548ec2ef90807995c2726e73319cd111aaae79",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 35
+      }
+    ],
+    "semantic_review_notes": "During drain, health probes remain reachable while all new application requests receive a generic no-store 503; accepted requests are counted until finish/close with idempotent completion supplied by drain state.",
+    "callers_consumers": [
+      "apps/api/src/main.ts"
+    ],
+    "invariants_error_checks": [
+      "No source edits; reviewed tenant/auth/error/race/limit behavior appropriate to this utility"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-t4-health.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/health/early-shutdown-withdrawal.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ec1f4daef8279ad2ad4c93e06265828281793a9cc819c4b995466cc1b9e5f4b4",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 37
+      }
+    ],
+    "semantic_review_notes": "Withdraws readiness synchronously before Nest teardown for SIGINT/SIGTERM and before direct app.close; one-shot signal listeners avoid intercepting Nest re-sent termination signals.",
+    "callers_consumers": [
+      "apps/api/src/main.ts"
+    ],
+    "invariants_error_checks": [
+      "No source edits; reviewed tenant/auth/error/race/limit behavior appropriate to this utility"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-t4-health.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/health/graceful-drain.lifecycle.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d011a3e4c80575fcffe7a223b8a037ab9bca042dbe7522b2cf401a961ec7472e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 39
+      }
+    ],
+    "semantic_review_notes": "Begins drain defensively on module destruction and waits at most 10s for active requests before shutdown, logging numeric counts/durations only.",
+    "callers_consumers": [
+      "apps/api/src/health/health.module.ts"
+    ],
+    "invariants_error_checks": [
+      "No source edits; reviewed tenant/auth/error/race/limit behavior appropriate to this utility"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-t4-health.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/health/health-readiness.service.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d87a81686a61e637274cc64a1da6b3ae2457062e09473899ffdbbee566265806",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 88
+      }
+    ],
+    "semantic_review_notes": "Readiness requires non-draining state, valid guest rate/HMAC/origin configuration and DB capability readiness. DB checks are single-flight, waiter count is capped at 128, and drain/config is rechecked after the async dependency probe.",
+    "callers_consumers": [
+      "apps/api/src/health/health.controller.ts"
+    ],
+    "invariants_error_checks": [
+      "Fail closed on config/DB errors",
+      "Single-flight DB probe",
+      "Post-probe drain recheck"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-t4-health.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/health/health.controller.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3beaf5e7b0307301d7a56da997bd45b8c00f6165118eba45ab95d41767814043",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 46
+      }
+    ],
+    "semantic_review_notes": "Exposes dependency-independent liveness and bounded readiness; readiness failures return only generic 503 status and both probes are no-store.",
+    "callers_consumers": [
+      "HealthModule"
+    ],
+    "invariants_error_checks": [
+      "No source edits; reviewed tenant/auth/error/race/limit behavior appropriate to this utility"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-t4-health.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/health/health.module.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4a3bc2164703295c0f34224f515116fc98a69505ec62bf5a6d2a5a3bc72011db",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 23
+      }
+    ],
+    "semantic_review_notes": "Wires runtime DB, anti-abuse, guest-access, drain lifecycle, readiness and fixed-schema metrics so health reflects the dependencies required for serving guest traffic.",
+    "callers_consumers": [
+      "AppModule"
+    ],
+    "invariants_error_checks": [
+      "No source edits; reviewed tenant/auth/error/race/limit behavior appropriate to this utility"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-t4-health.test.ts",
+      "apps/api/test/guest-t4-observability.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/anti-abuse/anti-abuse-key.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8e2e118f54c7e14d63a3bb0963653aee980f947760310195f56ae34b7ea0b213",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 65
+      }
+    ],
+    "semantic_review_notes": "Derives domain-separated versioned HMAC-SHA256 limiter keys from an exactly-32-byte base64url secret and derives advisory-lock halves from the digest; malformed/missing secret fails closed.",
+    "callers_consumers": [
+      "AntiAbuseService and guest/auth/presence/photo admission paths"
+    ],
+    "invariants_error_checks": [
+      "No source edits; reviewed tenant/auth/error/race/limit behavior appropriate to this utility"
+    ],
+    "test_refs": [
+      "apps/api/test/anti-abuse-boundaries.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/anti-abuse/anti-abuse-maintenance.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c0c61b4a1efd14f873667f27e5b11f8dae250dec4c1723bd3e6dcbb3d26cda12",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 84
+      }
+    ],
+    "semantic_review_notes": "Runs single-flight one-second maintenance cycles around a DB transaction, applies a 500ms statement timeout, invokes the bounded SECURITY DEFINER cleanup, samples expired backlog without identifiers, and treats cleanup failure as telemetry rather than authorization state.",
+    "callers_consumers": [
+      "apps/api/src/modules/anti-abuse/anti-abuse.module.ts"
+    ],
+    "invariants_error_checks": [
+      "No source edits; reviewed tenant/auth/error/race/limit behavior appropriate to this utility"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-t3-maintenance.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/anti-abuse/anti-abuse.module.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "eb3f3f49ed3712ed547e1536dd33b9cee55b9ee2ec4c9f9ca750a2907544a42b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 23
+      }
+    ],
+    "semantic_review_notes": "Owns and exports the HMAC key derivation, durable limiter and trusted client-address resolver while keeping maintenance internal.",
+    "callers_consumers": [
+      "Auth, Guest Access, Health and condition-photo admission modules"
+    ],
+    "invariants_error_checks": [
+      "No source edits; reviewed tenant/auth/error/race/limit behavior appropriate to this utility"
+    ],
+    "test_refs": [
+      "apps/api/test/feature-module-ownership.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/anti-abuse/anti-abuse.service.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f8f361913bc3dba27afd441d2355f3d2a65fa6be07143a0e5fa4a0e864b69209",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 300
+      }
+    ],
+    "semantic_review_notes": "Implements durable 15-minute sliding-window limiting with transaction-scoped advisory locks, DB clock, bounded Retry-After and PENDING reservation finalization. Unexpected DB/transaction errors fail closed as ANTI_ABUSE_UNAVAILABLE; reservation identity/scope/hash must match exactly on finalize.",
+    "callers_consumers": [
+      "Auth login/activation/MFA",
+      "Guest admission/credential flows",
+      "handoff/payment/retrieval/photo/presence/onboarding consumers"
+    ],
+    "invariants_error_checks": [
+      "Advisory lock serializes a key",
+      "DB clock avoids application-clock skew",
+      "PENDING and COUNTED both consume quota",
+      "Finalize requires id+scope+hash+PENDING"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-t3-budget.integration.test.ts",
+      "apps/api/test/staff-auth.integration.test.ts",
+      "apps/api/test/guest-t4-mutation-retry.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/anti-abuse/classified-guest-counter.ts",
+    "worker": "database",
+    "original_worker": "api_core",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e4829960128b413527cca6de773be19a22d2a5a727c2689f283edfb60cb5c877",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 118
+      }
+    ],
+    "semantic_review_notes": "Implements class, aggregate and credential guest quotas atomically under sorted advisory locks. Legacy NULL request classes are conservatively included, migration-era events are assigned a group hash under lock, insertion occurs only when all three budgets allow, and transaction-outcome metrics distinguish commit/rollback/unavailable.",
+    "callers_consumers": [
+      "apps/api/src/modules/guest-access/guest-request-admission.ts"
+    ],
+    "invariants_error_checks": [
+      "No source edits; reviewed tenant/auth/error/race/limit behavior appropriate to this utility"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-t3-budget.integration.test.ts",
+      "apps/api/test/guest-t3-maintenance.integration.test.ts",
+      "apps/api/test/guest-t3-transaction-metrics.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/anti-abuse/client-address.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ad2a7aa9407a0de64fb76e5e98cc559fe33f86f1c9dc27059de66f4a0e8ca099",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 205
+      }
+    ],
+    "semantic_review_notes": "Canonicalizes IPv4/IPv6, trusts forwarding data only from explicitly configured proxy CIDRs, reads the unique raw X-Forwarded-For header, walks hops right-to-left and returns the nearest untrusted hop. Missing/duplicate/malformed headers, malformed CIDRs and all-trusted chains fail closed.",
+    "callers_consumers": [
+      "Auth login/activation",
+      "Guest request admission"
+    ],
+    "invariants_error_checks": [
+      "Untrusted peer ignores XFF",
+      "Duplicate raw XFF rejected",
+      "IPv4-mapped IPv6 collapses to IPv4 bucket",
+      "Zone identifiers rejected"
+    ],
+    "test_refs": [
+      "apps/api/test/anti-abuse-boundaries.test.ts",
+      "apps/api/test/guest-t3-cost.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/audit/account-security-audit-writer.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c026328eababac1c1022e3ac6592164325e1491117b793a83b05e590782a4fd9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 117
+      }
+    ],
+    "semantic_review_notes": "Validates account-security event identity, actor, timestamps and metadata before using the narrow runtime append function; exact returned id is required and database uniqueness conflicts are mapped without exposing lower-level details.",
+    "callers_consumers": [
+      "MFA/recovery/staff-auth security event writers",
+      "packages/database audit-foundation SECURITY DEFINER append function"
+    ],
+    "invariants_error_checks": [
+      "UUID/time/event validation",
+      "metadata validated before DB call",
+      "runtime path has no direct table INSERT privilege",
+      "returned event id must exactly match requested id"
+    ],
+    "test_refs": [
+      "apps/api/test/audit-foundation-writers.integration.test.ts",
+      "apps/api/test/audit-foundation-retry-concurrency.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/audit/audit-foundation-validation.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "02af96b7b4a11b8b9b6a5570f5265d4bcd964f86cdbf806b298ebd5467417988",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 161
+      }
+    ],
+    "semantic_review_notes": "Central validation rejects unbounded or privacy-sensitive audit metadata: keys/values are bounded, control characters and non-finite numbers fail, nested objects are disallowed, and sensitive key families such as tokens, auth, MFA, contact, GPS and recovery data are denied.",
+    "callers_consumers": [
+      "account-security-audit-writer.ts",
+      "organization-audit-writer.ts and management audit writers"
+    ],
+    "invariants_error_checks": [
+      "bounded metadata cardinality/key/value size",
+      "sensitive key denylist",
+      "finite numeric-only values",
+      "UUID and timestamp validation"
+    ],
+    "test_refs": [
+      "apps/api/test/audit-foundation-writers.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/audit/custody-audit-event-writer.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0dfcf03f168431055c9b8a6193c84124f0f30d86017380c955433f196cfd35ac",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 107
+      }
+    ],
+    "semantic_review_notes": "Writes custody audit events only after validating tenant/location/session/entity/actor UUIDs and a flat bounded metadata object. Actor shape is explicit membership, guest, or system; composite database FKs and audit constraints provide the authoritative tenant/session binding.",
+    "callers_consumers": [
+      "custody/key/parking/vehicle commands that append audit in their transaction"
+    ],
+    "invariants_error_checks": [
+      "membership actor cannot be combined with guest/system actor type",
+      "session/location ids validated",
+      "metadata key/value size and sensitive fragments blocked"
+    ],
+    "test_refs": [
+      "apps/api/test/audit-foundation-writers.integration.test.ts",
+      "custody command integration tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/audit/organization-audit-writer.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6dbcf5197ba7aa9d908174d3599f9bcaf56ea945e8640e70a9b632f4be922c43",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 109
+      }
+    ],
+    "semantic_review_notes": "Appends typed organization audit facts with full field validation and an allowlisted bounded metadata object; ON CONFLICT retries are accepted only if every persisted fact exactly matches, preventing an idempotency key from masking a different event.",
+    "callers_consumers": [
+      "management settings/staff/location/visit-contact command paths"
+    ],
+    "invariants_error_checks": [
+      "tenant/location/entity/actor UUID validation",
+      "exact persisted-fact replay comparison",
+      "bounded metadata allowlist",
+      "conflicting event id fails"
+    ],
+    "test_refs": [
+      "apps/api/test/audit-foundation-writers.integration.test.ts",
+      "apps/api/test/audit-foundation-retry-concurrency.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/cancel-check-in.controller.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7368d6897900823faef1f833a676016881ed0bb1a37a66d8f3daf0ac474daeb0",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 100
+      }
+    ],
+    "semantic_review_notes": "Validates the cancel/status transport contract, requires the shared staff principal boundary, sets no-store and delegates all domain authority to CancelCheckInService/command; no caller-supplied tenant or membership id is accepted.",
+    "callers_consumers": [
+      "CheckInModule route registration",
+      "CancelCheckInService"
+    ],
+    "invariants_error_checks": [
+      "contract schema for session/query/body",
+      "single authenticated staff principal through support resolver",
+      "no-store response"
+    ],
+    "test_refs": [
+      "apps/api/test/cancel-check-in-http.integration.test.ts",
+      "apps/api/test/cancel-check-in-exact-credential.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/cancel-check-in.service.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "392a5410e9811007b675fb6023436eb5e7d3ba3a66f82e74b7b4236444b3a63e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 45
+      }
+    ],
+    "semantic_review_notes": "Resolves the exact staff session context for the supplied authorization and requires its userId to equal the already-authenticated principal before invoking cancel/status commands, closing credential/principal substitution.",
+    "callers_consumers": [
+      "cancel-check-in.controller.ts",
+      "cancel-check-in command/status query"
+    ],
+    "invariants_error_checks": [
+      "exact StaffSessionContext re-resolution",
+      "principal/context user equality",
+      "command receives server-derived credential context"
+    ],
+    "test_refs": [
+      "apps/api/test/cancel-check-in-exact-credential.integration.test.ts",
+      "apps/api/test/cancel-check-in-concurrency.integration.test.ts",
+      "apps/api/test/cancel-check-in.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/check-in.module.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2f004414badc91f7f84abf2399f3d656d83c2b44ebe25f927c6fa2883d471d01",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 68
+      }
+    ],
+    "semantic_review_notes": "Wires Check-In controllers, guards, operation runner, vehicle/photo/parking dependencies and RequestId middleware under shared runtime/auth infrastructure; no alternate unauthenticated condition-photo or cancellation route is registered.",
+    "callers_consumers": [
+      "AppModule"
+    ],
+    "invariants_error_checks": [
+      "ConditionPhotoAuthGuard is provided and controller uses it",
+      "PlateOcrAuthGuard is provided",
+      "shared HttpInfrastructure/Auth/AntiAbuse dependencies"
+    ],
+    "test_refs": [
+      "apps/api/test/feature-check-in-ownership.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/condition-photo-auth.guard.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "559fcc042533772f308f194fe7be5d37ec04092ea377e877427d9527e9d4fd3b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 91
+      }
+    ],
+    "semantic_review_notes": "Runs before multipart parsing, requires exactly one raw Authorization header, validates session params and empty query, performs backend staff/session authorization, then charges durable read admission and upload/reconcile admission before any image bytes are accepted.",
+    "callers_consumers": [
+      "ConditionPhotoController @UseGuards",
+      "ConditionPhotoBackendService",
+      "ConditionPhotoAdmission"
+    ],
+    "invariants_error_checks": [
+      "duplicate/missing Authorization rejected",
+      "server-authorized credential/session stored on request",
+      "rate-limit failure mapped through shared runner/no-store"
+    ],
+    "test_refs": [
+      "apps/api/test/condition-photo-http.test.ts",
+      "condition-photo authorization/admission tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/condition-photo-ingress.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3cdbebda1bb03d7d15b56f030f0036048847f66c1f6369a07eae41c24fe1d15e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 20
+      }
+    ],
+    "semantic_review_notes": "Adds an independent process-local cap of four simultaneous multipart parsers on top of durable identity/session quotas, with an idempotent release closure so parser memory admission cannot drift on double-finally paths.",
+    "callers_consumers": [
+      "condition-photo.controller.ts"
+    ],
+    "invariants_error_checks": [
+      "maximumConcurrentMultipart=4",
+      "fifth concurrent parser fails before allocation",
+      "release is idempotent"
+    ],
+    "test_refs": [
+      "apps/api/test/condition-photo-ingress.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/condition-photo-multipart.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a7745849039b98a7c5b4f5bcf721a9a153be61f652ddf3e68488fab38b892efb",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 151
+      }
+    ],
+    "semantic_review_notes": "Parses condition photos only after authorization using a strict multipart boundary, 8 MiB image and wire bounds, one field/one JPEG file, header/part limits, a 60s deadline and raw-stream byte counting. Failures stop ingress without draining an unbounded hostile body and force connection close.",
+    "callers_consumers": [
+      "condition-photo.controller.ts"
+    ],
+    "invariants_error_checks": [
+      "content-length and live wire cap",
+      "Busboy fields/files/parts/header limits",
+      "exact operationId + image parts",
+      "JPEG MIME and nonempty image",
+      "timeout/abort/error cleanup"
+    ],
+    "test_refs": [
+      "apps/api/test/condition-photo-multipart.test.ts",
+      "apps/api/test/condition-photo-http.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/condition-photo.controller.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "85cb0177279f0c9e99b2841acd12cc6e0f10bc401a63bd25768813b9ab6c092c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 141
+      }
+    ],
+    "semantic_review_notes": "All condition-photo endpoints run behind the pre-parser auth guard and shared operation runner. Upload acquires/release memory ingress in finally, wipes the image Buffer after backend use, validates operation/session ids and uses no-body checks for GET paths.",
+    "callers_consumers": [
+      "CheckInModule",
+      "ConditionPhotoBackendService"
+    ],
+    "invariants_error_checks": [
+      "imageBytes.fill(0) after upload attempt",
+      "ingress release in outer finally",
+      "typed status/reconcile/discovery paths",
+      "no-store on mutation responses"
+    ],
+    "test_refs": [
+      "apps/api/test/condition-photo-http.test.ts",
+      "apps/api/test/condition-photo-ingress.test.ts",
+      "apps/api/test/condition-photo-multipart.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/plate-ocr-auth.guard.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b514e55c0c0396ba212d5f8c4b4427b286a67239e146dce8391ff115acb1fbcc",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 52
+      }
+    ],
+    "semantic_review_notes": "Authenticates staff before the bounded multipart/OCR cost boundary, stores only the resolved user id on the request and maps failures through the shared Check-In runner; boundary logging carries only a fixed classification label.",
+    "callers_consumers": [
+      "Plate OCR controller/interceptor",
+      "check-in-controller-support.ts"
+    ],
+    "invariants_error_checks": [
+      "authentication precedes multipart/provider cost",
+      "no request-derived diagnostic payload"
+    ],
+    "test_refs": [
+      "apps/api/test/plate-ocr-boundary-diagnostics.integration.test.ts",
+      "apps/api/test/feature-check-in-ownership.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/plate-ocr-boundary-diagnostics.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1aa8aaed432171e554ee45ef902c85815d363a7418c006d15ff9d1fddbce2df9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 31
+      }
+    ],
+    "semantic_review_notes": "Development/test-only diagnostics emit a closed enum of stage labels and are disabled in production; no plate text, image metadata, user/session/tenant identifier or provider payload is logged.",
+    "callers_consumers": [
+      "Plate OCR auth/controller/service boundaries"
+    ],
+    "invariants_error_checks": [
+      "NODE_ENV gate",
+      "closed string union only"
+    ],
+    "test_refs": [
+      "apps/api/test/plate-ocr-boundary-diagnostics.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/analytics-incidents-query.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "46cae67e009580e386fc42f1c359e527530385686b0a8f2828aee893e0f50cf3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 118
+      }
+    ],
+    "semantic_review_notes": "Authorizes ANALYTICS_READ inside the same transaction before projection, resolves the location timezone, and scopes every incident/completed-session aggregate by both organization and location. Per-1000 output uses integer BigInt arithmetic and returns null on zero denominator.",
+    "callers_consumers": [
+      "analytics.controller.ts"
+    ],
+    "invariants_error_checks": [
+      "tenant + location predicates on every aggregate",
+      "half-open timezone period window",
+      "authorization precedes SQL projection"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-analytics-financial.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/analytics-kpi-key-exceptions-query.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5bd7ea995304f218824a7a41b681ccd25b88ac9658026b65aecbc64fbac74053",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 38
+      }
+    ],
+    "semantic_review_notes": "Projects only the four fixed key-exception incident types inside the caller-supplied authorized organization/location/time window and fills absent types with zero without accepting dynamic SQL identifiers.",
+    "callers_consumers": [
+      "analytics KPI query pipeline"
+    ],
+    "invariants_error_checks": [
+      "organization/location predicates",
+      "fixed incident type allowlist",
+      "bounded period CTE"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-issue315-kpi-pg.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/analytics-kpi-snapshot-transaction.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "703b7e64b106e34343dcecb52f5befc10dca6badc5283513b4730d6adb2e6db5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 168
+      }
+    ],
+    "semantic_review_notes": "Pins one connection, fences Location Manager grant writers with a shared session advisory before opening REPEATABLE READ, then reauthorizes from the first fresh RR snapshot and holds the fence through all KPI projections. Company Admin uses the MFA-gated path and an RR factor fence. Ambiguous advisory/commit/rollback state discards the pooled connection.",
+    "callers_consumers": [
+      "locationKpiAnalytics in analytics-kpi-query.ts"
+    ],
+    "invariants_error_checks": [
+      "LM hint is non-authoritative and rechecked after lock",
+      "same membership+organization required",
+      "CA MFA factor fenced in RR",
+      "all KPI subqueries share one RR snapshot",
+      "session advisory explicitly unlocked before reusable release"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-issue315-kpi-pg.integration.test.ts",
+      "apps/api/test/dashboard-issue319-extension-locks.integration.test.ts",
+      "apps/api/test/dashboard-issue319-ca-rr-kpi-gate.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/analytics.controller.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "982559714925f51019e41a7cbb2f621f9e3cdb322f6a9b789b3b3738cfec5960",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 217
+      }
+    ],
+    "semantic_review_notes": "Requires exactly one raw Authorization header, resolves a full StaffSessionContext, validates location UUID and analytics date range, and contract-parses each operations/financial/incidents/KPI/queue response.",
+    "callers_consumers": [
+      "DashboardModule routes"
+    ],
+    "invariants_error_checks": [
+      "duplicate Authorization rejected",
+      "typed period/location input",
+      "all outputs contract-validated"
+    ],
+    "test_refs": [
+      "dashboard analytics HTTP/integration tests",
+      "apps/api/test/dashboard-analytics-financial.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/branding-command.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f0fd96461ed1d4164dc969a60ea703f3ecaf4d21fd9771683223e1b82ba340e2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 234
+      }
+    ],
+    "semantic_review_notes": "Location Manager branding reads use a non-authoritative eligibility hint, shared staff-management organization advisory lock, READ COMMITTED check and exact reauthorization before projection. Mutations call narrow SECURITY DEFINER branding functions with expectedUpdatedAt and project response state in the same transaction.",
+    "callers_consumers": [
+      "branding.controller.ts"
+    ],
+    "invariants_error_checks": [
+      "same organization+membership after shared fence",
+      "no CA promotion while LM shared lock held",
+      "CAS token passed to DB command",
+      "projection before transaction commit"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-branding-commercial.integration.test.ts",
+      "apps/api/test/dashboard-issue319-adjacent-remediation-races.integration.test.ts",
+      "apps/api/test/dashboard-issue319-adjacent-eligibility.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Commercial access is re-read during authorization. organization_subscriptions has no API runtime mutation path in this source; direct privileged control-plane updates do not participate in the staff-management advisory, so C004 does not claim cross-control-plane entitlement linearization for ordinary reads.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/branding.controller.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "29498cfde4fdc414eaf69564aba3c29e1496b094252116d85c30b47b6b009b0c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 136
+      }
+    ],
+    "semantic_review_notes": "Requires exactly one raw Authorization header, resolves staff principal, validates UUID/body contracts and routes read/set/clear through the shared operation runner and branding command layer.",
+    "callers_consumers": [
+      "DashboardModule"
+    ],
+    "invariants_error_checks": [
+      "duplicate Authorization rejected",
+      "strict branding contract schemas",
+      "no direct DB mutation in controller"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-branding-commercial.integration.test.ts",
+      "apps/api/test/dashboard-issue319-adjacent-eligibility.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-configuration-errors.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b6d2347a104f1c4b10762db3a0f637ca2093de9840f801fce557427a8df06417",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 42
+      }
+    ],
+    "semantic_review_notes": "Converts only known PostgreSQL authorization, serialization/CAS and value-domain errors into bounded dashboard contract errors; all unrecognized database failures propagate to the generic infrastructure handler rather than being mislabeled as safe user input.",
+    "callers_consumers": [
+      "branding-command.ts",
+      "dashboard-configuration-command.ts"
+    ],
+    "invariants_error_checks": [
+      "42501 authorization",
+      "40001 conflict",
+      "specific 22xxx value errors only"
+    ],
+    "test_refs": [
+      "dashboard configuration/branding integration tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-configuration-projection.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3fefc3caa2149272ad9a44af92d914c9da4fc9d5c3e7d82691bac7e02dc4a1ab",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 194
+      }
+    ],
+    "semantic_review_notes": "Loads organization defaults and location overrides from one joined row and computes effective values using explicit Company->Location precedence across photo, handoff, tracking, retention and financial settings; callers authorize the location before invoking this projection.",
+    "callers_consumers": [
+      "dashboard-configuration-command.ts",
+      "management/dashboard configuration responses"
+    ],
+    "invariants_error_checks": [
+      "location joined to its organization",
+      "null override means default",
+      "updatedAt/currency/timezone returned with projection"
+    ],
+    "test_refs": [
+      "dashboard configuration projection/integration tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-configuration.controller.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f8a40c6101c9de78929c48303a7c381683519871db2163c7b2ba90d7ef86c0f1",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 144
+      }
+    ],
+    "semantic_review_notes": "Requires exactly one raw Authorization header, resolves the staff principal, validates location UUID and set/clear contracts, then delegates reads/mutations to DashboardConfigurationService with response schema validation.",
+    "callers_consumers": [
+      "DashboardModule"
+    ],
+    "invariants_error_checks": [
+      "duplicate Authorization rejected",
+      "no raw body reaches service without contract parse",
+      "response location/update token contract parsed"
+    ],
+    "test_refs": [
+      "dashboard configuration HTTP/integration tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-feature-authority.controller.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c483ea39ad05a8a0d0d581655e6f61bf0b3e53ae5cb5b458a1b5364eba6081e5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 58
+      }
+    ],
+    "semantic_review_notes": "Returns no-store feature authority only after single-management-Authorization validation, strict feature query parsing and exact StaffSessionContext resolution.",
+    "callers_consumers": [
+      "DashboardFeatureAuthorityService",
+      "DashboardModule"
+    ],
+    "invariants_error_checks": [
+      "single Authorization",
+      "no-store",
+      "contract-validated authority response"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-feature-authority.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-feature-authority.service.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6ecdc437f716583c19e7bb7b6d79d314373bf0639ee294c5aa4787b8ae81fcfd",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 66
+      }
+    ],
+    "semantic_review_notes": "Derives feature scope entirely from existing management audit or visit-contact authorization functions in one transaction; the response exposes only role and authorized organization/location/grant-set scope.",
+    "callers_consumers": [
+      "dashboard-feature-authority.controller.ts"
+    ],
+    "invariants_error_checks": [
+      "VISIT_CONTACTS uses dedicated read authority",
+      "audit features use organization/location management authority",
+      "no caller-provided role trusted"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-feature-authority.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-location-authorization.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "681a4789fbde59bf0d0dde2a4a20b32144a09bcd36e1d64ef4b1588dc900dedb",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 54
+      }
+    ],
+    "semantic_review_notes": "Authorizes only an ACTIVE user with ACTIVE LOCATION_MANAGER membership, ACTIVE organization/location and an explicit membership_location_access row, then rechecks the required commercial entitlement. Cross-tenant scope cannot join through the composite organization/access relationships.",
+    "callers_consumers": [
+      "dashboard-read-authorization.ts",
+      "branding-command.ts",
+      "analytics-kpi-snapshot-transaction.ts and adjacent LM reads"
+    ],
+    "invariants_error_checks": [
+      "role fixed to LOCATION_MANAGER",
+      "target location belongs to membership organization",
+      "commercial requirement fail-closed on missing/disabled subscription"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-issue315-concurrency.integration.test.ts",
+      "apps/api/test/dashboard-branding-commercial.integration.test.ts",
+      "apps/api/test/dashboard-issue319-adjacent-eligibility.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Commercial entitlement is an ordinary SELECT here; production API source has no mutation endpoint for organization_subscriptions. Sensitive write paths that require entitlement-through-commit use dedicated locking helpers (for example #337 incident resolution).",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-location-scope-query.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1045ffcc718350594bdb1a3273dd18060d68486afdaa7a50d6dee67862c4874a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 36
+      }
+    ],
+    "semantic_review_notes": "Lists only active LOCATION_MANAGER scope from active user/membership/organization/location rows joined through explicit membership_location_access, ordered deterministically by location name/id.",
+    "callers_consumers": [
+      "dashboard scope/overview discovery consumers"
+    ],
+    "invariants_error_checks": [
+      "organization/access/location joins bind tenant",
+      "inactive/ungranted locations excluded in this active-scope helper"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-scope-discovery.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-overview-error.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "87c4f9bf2c409f3c8ddc2ccf36f538046d27888a1634c5f5e76cce04deed8744",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 29
+      }
+    ],
+    "semantic_review_notes": "Uses bounded public messages for authorization denial, configuration conflict and oversized export; authorization is deliberately concealed as unavailable resource and no database/internal text is forwarded.",
+    "callers_consumers": [
+      "dashboard read/analytics/report/incident paths"
+    ],
+    "invariants_error_checks": [
+      "assertAuthorized only accepts non-null scope",
+      "export bound failure has fixed code/message"
+    ],
+    "test_refs": [
+      "dashboard HTTP error-mapping tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-presence.controller.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "39d3879ba4d519de6932d12277ecc2d131ba1d74b0e18efcc3d898ad152205ff",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 24
+      }
+    ],
+    "semantic_review_notes": "Reuses the management Shift Presence policy/zone/exception controllers under Dashboard location routes while hardcoding authority to LOCATION_MANAGER, preventing the route alias from inheriting Company Admin authority accidentally.",
+    "callers_consumers": [
+      "DashboardModule"
+    ],
+    "invariants_error_checks": [
+      "all three subclasses set LOCATION_MANAGER authority"
+    ],
+    "test_refs": [
+      "shift-presence dashboard/management authority tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-read-authorization.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4cbd56a928a2f29fbed368422a2eee1f3bdd6d57b36e30847ad7bcb4ccedb6d7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 119
+      }
+    ],
+    "semantic_review_notes": "For LM reads, commercial/location eligibility is only a hint until the function acquires the matching shared staff-management org advisory, requires READ COMMITTED and reauthorizes the exact membership/org while holding the lock through caller projection. REPORT_EXPORT also locks/rechecks the Staff session before the org lock. CA reads require exact session context, active-location eligibility, MFA assurance, capability/commercial authorization and admin-activity recording.",
+    "callers_consumers": [
+      "overview/live sessions/incidents/analytics/reports and other dashboard read services"
+    ],
+    "invariants_error_checks": [
+      "grant/role/location writers fenced by shared/exclusive org advisory",
+      "stale RR snapshot fails closed",
+      "no LM->CA promotion after a concurrent role change",
+      "export session fence precedes org lock",
+      "CA MFA/commercial capability path remains separate"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-read-revocation-fence.test.ts",
+      "apps/api/test/dashboard-issue315-concurrency.integration.test.ts",
+      "apps/api/test/dashboard-issue319-extension-locks.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "The staff-management fence serializes managed authority writers. Direct privileged database changes intentionally bypass that advisory and are documented as such in #315 tests; no production API subscription writer was found.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-scope-discovery-cursor.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "410583a10a259c37d5b6c6203858db596ff7bd84db0e79c22a3440d2cc0d2c51",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 68
+      }
+    ],
+    "semantic_review_notes": "Encodes and decodes signed management cursors bound to cursor kind, current user, optional organization and UUID boundary. Decoder requires the exact five-key/version schema so cross-user, cross-kind, cross-organization or tampered cursors fail as transport errors.",
+    "callers_consumers": [
+      "dashboard-scope-discovery.service.ts"
+    ],
+    "invariants_error_checks": [
+      "signed cursor",
+      "exact key set/version/kind/user/org binding",
+      "UUID boundary"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-scope-discovery.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-scope-discovery.controller.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "48329074913a7ff0ce13b414639ad96dd0daea1c68120701fcc67b7fcfd03001",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 102
+      }
+    ],
+    "semantic_review_notes": "Scope discovery is no-store and requires exactly one Authorization header, strict pagination query and full StaffSessionContext. Organization id is UUID-validated before service use.",
+    "callers_consumers": [
+      "DashboardModule"
+    ],
+    "invariants_error_checks": [
+      "duplicate auth rejected",
+      "bounded list query contract",
+      "no-store"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-scope-discovery.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-scope-discovery.service.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3368714f85cb8b684e42f52c793e421384d983c47830c91d1f7b9b164a9dbafe",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 158
+      }
+    ],
+    "semantic_review_notes": "Locks/rechecks the exact staff session before every page. Organization discovery returns only active LM memberships in active organizations; location discovery first proves one active LM membership for the requested organization then joins only that membership access set. Signed cursors are rebound to user/org on every page. Discovery intentionally remains available when dashboard commercial access is disabled so the subscription recovery surface can be reached.",
+    "callers_consumers": [
+      "dashboard-scope-discovery.controller.ts"
+    ],
+    "invariants_error_checks": [
+      "session revalidation before query",
+      "no ORG_ADMIN fallback",
+      "tenant-bound access join",
+      "limit+1 pagination with signed cursor",
+      "inactive Locations may be listed only when explicitly granted, matching recovery/history UX contract"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-scope-discovery.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard.module.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c51156ad207bc67ab2f1de26a091133039eb3941565df457437bcdce5501db81",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 96
+      }
+    ],
+    "semantic_review_notes": "Registers Dashboard controllers and services under shared Auth, RuntimeDatabase, HTTP infrastructure and AntiAbuse modules, and applies RequestIdMiddleware to every listed Dashboard controller including presence, photos and physical-resource writes.",
+    "callers_consumers": [
+      "AppModule"
+    ],
+    "invariants_error_checks": [
+      "controller/provider ownership is explicit",
+      "RequestId middleware list covers all registered controllers"
+    ],
+    "test_refs": [
+      "dashboard feature/module ownership tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/incidents-query.ts",
+    "worker": "database",
+    "original_worker": "api_modules",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9faa3bd615319807bbe3f039e45cc8aeaffe02c1d01c2408ccf78a9c9ac93eff",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 145
+      }
+    ],
+    "semantic_review_notes": "Builds incident lists with mandatory organization+location predicates, tenant-bound reporter/resolver joins, fixed state filters and a signed cursor namespace containing location+filter. Public list wrapper authorizes LOCATION_DASHBOARD_READ before projection in the same transaction.",
+    "callers_consumers": [
+      "incidents.controller.ts and incident detail/list flows"
+    ],
+    "invariants_error_checks": [
+      "organization + location required in SQL",
+      "cursor filter/location binding",
+      "limit+1 deterministic created_at/id order",
+      "authorization before list query"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-incident-resolution-integrity.integration.test.ts",
+      "dashboard incident list/integrity tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no expensive tests or runtime mutations were run in C004.",
+    "reviewer": "database"
+  }
+]

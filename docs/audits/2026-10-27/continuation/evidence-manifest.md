@@ -10,16 +10,16 @@ No evidence archive, Git LFS, dependency installation or size-limit bypass. New 
 
 | Path | SHA-256 |
 |---|---|
-|[AUDIT_PROGRESS.md](AUDIT_PROGRESS.md)|`34c1d183bcbc2468e142a72ad728dda1f2c2a4e0fe2a89d7a8991b1ad7088cad`|
-|[CHECKPOINTS.md](CHECKPOINTS.md)|`805d84af9ac9e2dc0b3debd05f4e6b13c1718a21785dccd6a289edc98aa2005f`|
+|[AUDIT_PROGRESS.md](AUDIT_PROGRESS.md)|`41d30660a006f62b3819311f344a9b4b8a983b051f47b7803446b3598405bd17`|
+|[CHECKPOINTS.md](CHECKPOINTS.md)|`42fed74d33e11063fb8b8fa61d61809a39221988ba1ecdef29d8d061eb62dc9a`|
 |[CROSS_FEATURE_RISKS.md](CROSS_FEATURE_RISKS.md)|`c18c0e6a56fa15e4f7889539cf2d4664d73b80b4f371d234f273c201b1a24872`|
 |[FALSE_POSITIVE_DISPOSITIONS.md](FALSE_POSITIVE_DISPOSITIONS.md)|`c292f9ebb470be6bb36a18c0fcaf5efc7d86920d1bf881ef8e0f7852baff5677`|
-|[FEATURE_COVERAGE.md](FEATURE_COVERAGE.md)|`f795de5fe2bf3d5ac9ea1569c766a8a8c21ac23722e372129a2395ca275413c5`|
+|[FEATURE_COVERAGE.md](FEATURE_COVERAGE.md)|`9ce632874b9357998a31f9a0207fbfb6e188e755f53077c3f5fdee0650e452b5`|
 |[FINDINGS_REGISTER.md](FINDINGS_REGISTER.md)|`9a72c0134529247e9afe1ddca84f57a5ada61ccaea28de2317ccb48d83cffd91`|
 |[FINDING_VALIDATION.md](FINDING_VALIDATION.md)|`0a7524f26c7a50b3046ed7caaad1e1dbc309e070efde98b37701b50cda51ecdc`|
 |[README.md](README.md)|`1e8c1f4f6e6fad421417fd1ee900afc96ab73f34d7fe591d1073bddf88d5f182`|
-|[SECURITY_COVERAGE.md](SECURITY_COVERAGE.md)|`da0a1e8f90a30c5b1981b539327fd62a675c8cb06cfbb12092d5096f480e5dfc`|
-|[TEST_EVIDENCE.md](TEST_EVIDENCE.md)|`c8ecd6c6b6442887e6c882a62ac5a4860bf0fa6b6eb4ec4e4e23aaee7a6bd350`|
+|[SECURITY_COVERAGE.md](SECURITY_COVERAGE.md)|`18ae64043bdd1e4bdd5b5851b270b58073120aff2c75f79d000f4d6116055e3d`|
+|[TEST_EVIDENCE.md](TEST_EVIDENCE.md)|`d7713b8b904a7f1a5fad1603ed4c0d527fc57867925a6d6f395bd03e1af4b0cc`|
 |[checkpoints/C001-assignments.json](checkpoints/C001-assignments.json)|`01b5e193f8ce4d782e3e1080c1548efd554dc66342f54e2c3ebc541d817d9e9a`|
 |[checkpoints/C001-coverage-summary.json](checkpoints/C001-coverage-summary.json)|`2a268b1a55db35335cc1a6d5f6488b66426d397ede4e79f3d2d06278d45cf99b`|
 |[checkpoints/C001-pending-files.txt](checkpoints/C001-pending-files.txt)|`46b8e0c75777785eafecb40b2ace46498dbbbb88b24d6185bf824a273271d2fb`|
@@ -27,7 +27,7 @@ No evidence archive, Git LFS, dependency installation or size-limit bypass. New 
 |[checkpoints/C001-starting-plan.json](checkpoints/C001-starting-plan.json)|`b720e961d38219dc37a824f1544dedf734dc3cf23de5d96f5e89ffc2a9c53be3`|
 |[checkpoints/C001.md](checkpoints/C001.md)|`551fb92ff48dea356b2e3b429572afa1f96ac210ad795d536cd203b521cb7b81`|
 |[checkpoints/initial-remaining-ownership.json](checkpoints/initial-remaining-ownership.json)|`6a074f7595eaee2f81871527096f9bf4e141b1de5d2da2e0124897bb7bf05976`|
-|[coverage-ledger-progress.csv](coverage-ledger-progress.csv)|`ac7e4e5ddbd5bde2c6b45878e99839912bc2087043269deb86ee39584bd1a6c6`|
+|[coverage-ledger-progress.csv](coverage-ledger-progress.csv)|`062648c4026dd728353625b3a3aaa8cbfd222f2ba8a6ae428152c1f23eddeaf7`|
 |[evidence/C001-backend_operations-saved-results.json](evidence/C001-backend_operations-saved-results.json)|`f821e43cd83b2fcd4cd51a29deac4fa17f26d74b4091034c40e4afb8202bf97d`|
 |[evidence/C001-coordinator-saved-results.json](evidence/C001-coordinator-saved-results.json)|`c4e71aa94b824c60ac56db4da66f6aab25b95c75cef7177c5be02a83ae3ca8e3`|
 |[evidence/C001-customer-saved-results.json](evidence/C001-customer-saved-results.json)|`347ff3aa7f1ac540e588b07eed30b33d326d5bd6373cef661f25c4faa0538048`|
@@ -37,7 +37,7 @@ No evidence archive, Git LFS, dependency installation or size-limit bypass. New 
 |[evidence/C001-security-saved-results.json](evidence/C001-security-saved-results.json)|`92f5dbf89fda7a1c1f907119f22a1e61ba6a9b455f7e36e07de0d0e63572c4fe`|
 |[evidence/mfa-recovery-session-model.cjs](evidence/mfa-recovery-session-model.cjs)|`586e58d79509a4dd255d277e217f553c2d4b43f469cca4625d7dc0fd01af44e8`|
 |[evidence/mfa-recovery-session-model.txt](evidence/mfa-recovery-session-model.txt)|`d555d6fec32b0b3641beec480152cab77add08668cbcacfae998409635e20914`|
-|[remaining-files.txt](remaining-files.txt)|`0f4b9b0ad55a77abebe12bece7ddff54b8743f0995ba98d7067a316ad28299b9`|
+|[remaining-files.txt](remaining-files.txt)|`8bcfe267179408020519eb5de0e96c21c4d0cdf9b15207560c4f00c822a76cca`|
 
 ## C002 additions (same frozen source)
 
@@ -81,3 +81,14 @@ No evidence archive, Git LFS, dependency installation or size-limit bypass. New 
 |[evidence/C004-database-results.json](evidence/C004-database-results.json)|`69f0ab9478841edab97d4126a3e588a85e1ebe7afd1ccebded1cf78b2b796c22`|
 |[evidence/C004-dashboard-transfers.json](evidence/C004-dashboard-transfers.json)|`65a9c5c432455d097cd6d4a47ff7c9e7f824e79e6fc3a602a623696ce27fca63`|
 |[evidence/C004-DASH-001.json](evidence/C004-DASH-001.json)|`d3dfb8c2cbab173e040a3288470200fc4cdd2bf4f921e172cc5ab2df7301ccf6`|
+
+## C005 additions
+
+| Path | SHA-256 |
+|---|---|
+|[checkpoints/C005.md](checkpoints/C005.md)|`8c99f3967beca72de8b526b9ddafa49a841d001ca3d1bbf4c95b19661b6388aa`|
+|[checkpoints/C005-coverage-summary.json](checkpoints/C005-coverage-summary.json)|`d41d241c09d1d69a16ee5a6aec11d2e6b93e04fec2c03366ded997c16dfd243f`|
+|[checkpoints/C005-review-records.json](checkpoints/C005-review-records.json)|`0881ef4d907356ba356304e7ba02fad1ff32a575b5147c34f495a73bb919b527`|
+|[checkpoints/C005-pending-files.json](checkpoints/C005-pending-files.json)|`37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570`|
+|[evidence/C005-C004-dashboard-transfers.json](evidence/C005-C004-dashboard-transfers.json)|`6eabadfd1f9b10d8428cd0bf3faff3bd7290c2c2728bd02cbd588de5e969c7aa`|
+|[evidence/C005-C004-database-transfers.json](evidence/C005-C004-database-transfers.json)|`945c3341386cd1a0574ffeb7cda77d4f36e0d96b92917b2cc579db42f238b89f`|
