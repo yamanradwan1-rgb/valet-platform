@@ -1,0 +1,1643 @@
+[
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/qa/issue-338/browser-compare.mjs",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b946d47403366f1319dca2d94e76898cfc5ef2e6182af449dcf36bd4db7db11f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        101
+      ]
+    ],
+    "feature": "Issue 338 before/after browser geometry and style comparison harness",
+    "semantic_review_notes": "QA-only Playwright harness serves captured before/after HTML and brand PNGs from a local evidence root, freezes animations, compares element tag/text/geometry and all non-color computed styles across configured widths, optionally drives real browser zoom, writes screenshots/masks/results, and fails on any geometry/style/error result. Color properties are the intentional comparison exception for the branding-only change.",
+    "callers_consumers": [
+      "docs/validation/issue-338/report.md records historical invocations; imports native-browser-zoom.mjs."
+    ],
+    "invariants_error_checks": "Server is loopback-only and returns 404 on read failures; browser/server cleanup is in finally. Comparison is exact for geometry/non-color styles, with no product mutation or authorization behavior.",
+    "test_refs": [
+      "docs/validation/issue-338/report.md historical runs only; not rerun in C003."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "QA evidence harness only; synthetic/static comparison is not live API authorization proof."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/qa/issue-338/live-browser.mjs",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d560b50452e6e8b13bf84e80119c5ec092991572c0a556d976df85a5b338ca4e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        102
+      ]
+    ],
+    "feature": "Issue 338 live built-app branding/contrast/geometry browser QA",
+    "semantic_review_notes": "Runs 4 widths x 2 locales x 2 themes against a target app with intercepted guest API responses and three branding cases. It checks RTL/LTR, stable button geometry across default/hover/pressed/focus, >=4.5 contrast for explicit brand colors, distinct interaction states, focus outline, disabled/offline styling, and removal of brand style on guest-access invalidation. Optional native zoom requires DPR 2.",
+    "callers_consumers": [
+      "docs/validation/issue-338/report.md historical 100% and native-200% invocations."
+    ],
+    "invariants_error_checks": "Synthetic route failure is explicit; page errors are collected; exactly 48 cases are required. Cleanup and result write happen in finally.",
+    "test_refs": [
+      "docs/validation/issue-338/report.md historical browser runs; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Intercepted API responses prove UI behavior only, not backend authorization or real network behavior."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/qa/issue-338/native-browser-zoom.mjs",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c841f31edf398b16bf5ca9d06c8dd28e82488fe6f65ff1753fb1c74d12906911",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        11
+      ]
+    ],
+    "feature": "QA-only native Chromium zoom driver",
+    "semantic_review_notes": "Uses xdotool (or QA338_XDOTOOL override) to find the visible QA browser window by title, focus it, reset zoom, and send five Ctrl+Plus accelerators. There is no CSS/device-scale emulation fallback.",
+    "callers_consumers": [
+      "browser-compare.mjs",
+      "live-browser.mjs"
+    ],
+    "invariants_error_checks": "execFileSync uses argument arrays rather than a shell and has a five-second window-search timeout; command/path environment override is QA operator input.",
+    "test_refs": [
+      "Historical issue-338 native-zoom validation; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "QA workstation helper only; requires visible X display/xdotool and does not affect product runtime."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/qa/issues-312-317-318/dev.mjs",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "32bcb8cf16ea9e03ba632ac70009f86b527e95e1eb0491efbadc55919c00c38e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        39
+      ]
+    ],
+    "feature": "Development visual-flow smoke for customer issues 312/317/318",
+    "semantic_review_notes": "Opens the development target in headed Chromium and checks expected preview-only interactions: expand/collapse, absence of stale Help and bottom navigation, Payment Overview preview, rating flow completion, and absence of page errors.",
+    "callers_consumers": [
+      "docs/validation/customer-312-317-318/changed-files.txt identifies the harness."
+    ],
+    "invariants_error_checks": "Throws on stale Help, unexpected nav, or browser page errors; browser closes in finally.",
+    "test_refs": [
+      "Historical QA harness only; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Development smoke; no API/security authority evidence."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/qa/issues-312-317-318/fixture.mjs",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c195539c60ae7a3c52034d2173cce4d6dc06791a8b4ab8be90d83c6f3d9be038",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        84
+      ]
+    ],
+    "feature": "Synthetic guest HTTP contract fixture for visual QA",
+    "semantic_review_notes": "Loopback HTTP fixture exposes synthetic guest session, payment, handoff-verification and rating responses with mutable state/failure controls. It explicitly labels itself as non-live authorization evidence and tracks session reads/rating POST count for visual harness assertions.",
+    "callers_consumers": [
+      "visual.mjs",
+      "zoom-matrix.mjs"
+    ],
+    "invariants_error_checks": "All responses are no-store JSON; unknown routes fail as GUEST_ACCESS_INVALID. Handoff/rating bodies are parsed only inside this trusted QA fixture.",
+    "test_refs": [
+      "Used by historical customer 312/317/318 visual harnesses; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Synthetic contract fixture; not production request parsing, auth, or DB proof."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/qa/issues-312-317-318/report.mjs",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f10b55832938fd9551e9e6e66b93ff9669101bd23b0ea31f83449866fbbda745",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        96
+      ]
+    ],
+    "feature": "Pixel/DOM parity report generator",
+    "semantic_review_notes": "Reads before/after PNG and DOM evidence, performs exact byte/pixel comparison through Sharp, computes changed pixel count/max channel delta, and compares HTML, element boxes and computed styles without thresholds or normalization. Any changed pixel or DOM/style inequality fails.",
+    "callers_consumers": [
+      "Historical customer 312/317/318 validation evidence."
+    ],
+    "invariants_error_checks": "Dimension mismatch is a hard failure marker; missing evidence throws. Report records baseline/implementation provenance and explicitly states evidence limits.",
+    "test_refs": [
+      "Historical QA reporting only; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Evidence comparator only; correctness depends on the captured before/after corpus."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/qa/issues-312-317-318/visual.mjs",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "11ea294f03a25abf7e9bab6e01dfde72da1705b770fc598964f552f43541712a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        223
+      ]
+    ],
+    "feature": "Customer production-build visual capture matrix",
+    "semantic_review_notes": "Captures deterministic DOM/computed-style and full-page screenshots across width/locale/theme matrices using the synthetic guest fixture, blocks service workers, reduces motion, waits for fonts/animations, and exercises vehicle/request/retrieval/ready/rating/completed/payment/more plus optional handoff/unavailable/network states. After-phase computes exact prior JSON/PNG parity.",
+    "callers_consumers": [
+      "fixture.mjs",
+      "report.mjs historical evidence pipeline."
+    ],
+    "invariants_error_checks": "Page errors are retained per capture; contexts close on each matrix path and browser/server close in finally. The evidence metadata explicitly says synthetic HTTP fixture.",
+    "test_refs": [
+      "Historical customer 312/317/318 visual evidence; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Synthetic API fixture; visual/UI evidence only."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/qa/issues-312-317-318/zoom-matrix.mjs",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "afa04a10b4e92f106a567be95fd89d4d60c23cc9b836541cbcdc5af96de165b5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        211
+      ]
+    ],
+    "feature": "Native 200% browser zoom visual matrix",
+    "semantic_review_notes": "Creates an isolated MV3 extension that sets zoom=2 only on the configured target origin, launches a persistent Chromium profile, verifies DPR 2, freezes time/fonts/animations, captures exact DOM/styles and screenshots across widths/locales/themes and all major guest states, and compares after screenshots byte-for-byte to before evidence.",
+    "callers_consumers": [
+      "zoom.mjs wrapper; fixture.mjs synthetic server."
+    ],
+    "invariants_error_checks": "Extension scope is constrained by startsWith(target); service workers are blocked; browser context and fixture server close in finally.",
+    "test_refs": [
+      "Historical native-zoom matrix evidence; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "QA-only extension/profile and synthetic API; not a production browser extension."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/qa/issues-312-317-318/zoom.mjs",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "09200cc7ffd48bb75bc7a7dea9c330be926d1b18c175667e42e28226abd81f57",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        1
+      ]
+    ],
+    "feature": "Native zoom QA entrypoint",
+    "semantic_review_notes": "Single-purpose module that executes zoom-matrix.mjs; it adds no branching, data handling, or runtime behavior of its own.",
+    "callers_consumers": [
+      "CLI/validation entrypoint for zoom-matrix.mjs."
+    ],
+    "invariants_error_checks": "All behavior and failure semantics are inherited from zoom-matrix.mjs.",
+    "test_refs": [
+      "Historical zoom validation only; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Wrapper only."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/app/guest-refresh-mounted.test-host.ts",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bd63331770309a30034fcdbb00bf33120d97274993a61d057b4d260083c6c790",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        209
+      ]
+    ],
+    "feature": "Minimal mounted-test DOM host for Customer React tests",
+    "semantic_review_notes": "Implements a deliberately small DOM/event/style/class/attribute tree sufficient for mounted React tests, including connectedness, focus, button queries, synthetic window/navigator/localStorage globals, element lookup and direct React onClick invocation. It is test-only and does not implement browser security or networking semantics.",
+    "callers_consumers": [
+      "guest-refresh-mounted.test.tsx",
+      "guest-auto-rating-eligibility.mounted.test.tsx",
+      "guest-auth-bootstrap.mounted.test.tsx",
+      "guest-branding.mounted.test.tsx",
+      "guest post-visit/handoff/web-push/deferred mounted tests."
+    ],
+    "invariants_error_checks": "Tree mutation repairs parent links; lookup/click helpers throw when expected elements/handlers are missing. Global replacement is intentional test harness behavior.",
+    "test_refs": [
+      "Multiple mounted test sources consume this host; not rerun in C003."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Partial DOM simulation; cannot substitute for real browser accessibility/layout/security evidence."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/components/brand/vaylet-logo.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "686486411a26e28a020803d0bc4dda51ad3ec65a29ef91e43d11a2ee173d8d8e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        52
+      ]
+    ],
+    "feature": "Hydration-stable VAYLET logo rendering",
+    "semantic_review_notes": "Explicit dark/light props select one corresponding static brand image. Theme-reactive mode renders both assets with only the light image carrying accessible alt text and the dark duplicate hidden from assistive technology; CSS owns visibility so hydration does not branch on client theme.",
+    "callers_consumers": [
+      "components/layout/app-header.tsx"
+    ],
+    "invariants_error_checks": "No dynamic URL or HTML injection; asset paths are fixed. Duplicate theme asset is aria-hidden.",
+    "test_refs": [
+      "Issue-338 visual parity/branding coverage indirectly exercises header/logo; historical only, not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Presentation component only; actual asset correctness/CSS visibility was not re-rendered in C003."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/components/icons/action-icons.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "172e30149314e2860996f31a713844b71d87ae8cef1be94f6b89e4be79c1fb0c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        164
+      ]
+    ],
+    "feature": "Shared Customer action icon set",
+    "semantic_review_notes": "Pure SVG path/shape wrappers over SvgIcon for navigation, close, more, download, mail, phone, rating, refresh, camera, language, privacy, QR and theme actions. Inputs are only className/size/filled and are passed through React, with no data parsing or side effects.",
+    "callers_consumers": [
+      "AppHeader, deferred menu, buttons and multiple Customer screens import these icons."
+    ],
+    "invariants_error_checks": "No raw SVG/HTML string injection. CurrentColor inherits caller semantics; button/link callers provide interaction labels where applicable.",
+    "test_refs": [
+      "Historical visual/SSR coverage indirectly renders these icons; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Decorative icon primitives; accessibility names are owned by surrounding controls."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/components/icons/navigation-icons.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e5db3092dad7e70f8eb2e43084063ae3cd37f52ee8be624952eafb42ae2de9be",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        35
+      ]
+    ],
+    "feature": "Shared navigation icon set",
+    "semantic_review_notes": "Pure SVG wrappers for car, wallet and help icons using fixed vector geometry and caller-provided className.",
+    "callers_consumers": [
+      "Customer navigation/presentation components."
+    ],
+    "invariants_error_checks": "No state, external data, mutation, or unsafe markup construction.",
+    "test_refs": [
+      "Historical visual harness coverage only; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Presentation-only primitive."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/components/icons/status-icons.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "156246a569a75648088127a6a85cf265051d643342b8994ecf751ff013a4a04c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        63
+      ]
+    ],
+    "feature": "Shared status icon set",
+    "semantic_review_notes": "Fixed SVG primitives for trust/check/clock/location/alert/offline status. They only accept className and inherit currentColor.",
+    "callers_consumers": [
+      "TrustStrip, retrieval/session/deferred Customer screens."
+    ],
+    "invariants_error_checks": "No branching on authority or user input; no raw markup injection.",
+    "test_refs": [
+      "Branding coverage and historical visual matrices indirectly render status icons; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Presentation-only primitive."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/components/icons/svg-icon.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e840d2501ecf091b2643040556804bde838e285d2cd116857ac48ea9f7e69d74",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        27
+      ]
+    ],
+    "feature": "Base Customer SVG icon primitive",
+    "semantic_review_notes": "Renders caller-supplied React children in a fixed 20x20 SVG with configurable numeric size, fixed stroke geometry and currentColor inheritance.",
+    "callers_consumers": [
+      "action-icons.tsx",
+      "navigation-icons.tsx",
+      "status-icons.tsx"
+    ],
+    "invariants_error_checks": "Children are typed React nodes rather than parsed markup; no dangerouslySetInnerHTML or external URL references.",
+    "test_refs": [
+      "Indirect historical rendering coverage; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Caller owns semantic/accessibility labeling."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/components/primitives/status-badge.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7f9dc8efc47e97ec54273b14e0367b4dbede6f6288c15e45772fa7dc2bf97d87",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        42
+      ]
+    ],
+    "feature": "Semantic Customer status badge",
+    "semantic_review_notes": "Maps a closed status union to semantic theme tokens. Info/active use the brand accent; success/warning remain fixed semantic colors; neutral uses muted/secondary tokens. Active adds the existing pulse class and label text is rendered normally.",
+    "callers_consumers": [
+      "Retrieval, handoff, completed, parked, ready and deferred success screens."
+    ],
+    "invariants_error_checks": "Unknown runtime values fall back to neutral despite the TypeScript union. No status value controls HTML or authority.",
+    "test_refs": [
+      "features/session/guest-branding-coverage.test.tsx asserts brand-vs-semantic token behavior; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Visual semantic mapping only."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/components/primitives/typography-primitives.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "75a1a5a67d01597507ffc9c6c6ee10b902468871deaf0efd5fe95237d9054d7d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        42
+      ]
+    ],
+    "feature": "Shared Customer typography/divider primitives",
+    "semantic_review_notes": "Label and SectionTitle render React children with fixed typography/theme tokens; Divider is a one-pixel semantic border. There is no data transformation or state.",
+    "callers_consumers": [
+      "Deferred payment/report/service, handoff, rating, payment summary and session screens."
+    ],
+    "invariants_error_checks": "React escapes string children; no HTML injection or behavioral authority.",
+    "test_refs": [
+      "Historical visual matrices and SSR branding coverage indirectly exercise these primitives; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Presentation only."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/components/primitives/vehicle-hero.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a991f0eb06748b0e4eae971857337a243d581557136c6095986cb32c83cdb2e8",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        88
+      ]
+    ],
+    "feature": "Guest-safe vehicle hero presentation",
+    "semantic_review_notes": "Renders make/model/color from the already guest-safe session projection, falls back only the make to translated default text, dims visually when requested, and derives a three-character uppercase model monogram or VAL fallback. It does not expose plate, key-slot, customer identity or other protected fields.",
+    "callers_consumers": [
+      "screen-parked.tsx",
+      "screen-on-the-way.tsx",
+      "retrieval/screen-requested.tsx",
+      "screen-received.tsx"
+    ],
+    "invariants_error_checks": "Values are ordinary React text and cannot inject markup. Component is display-only and does not alter session state.",
+    "test_refs": [
+      "Historical Customer visual matrices exercise vehicle states; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Relies on GuestSafeSession producer to enforce safe-field projection."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/auth/guest-context-conflict-gate.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9a1cded724091a3d4845536f5f30db7e808889078f92d045c08e551f5d3611e6",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        56
+      ]
+    ],
+    "feature": "Same-browser guest context conflict visibility gate",
+    "semantic_review_notes": "Displays the conflict overlay only when auth has a conflict scope and an authoritative/current guest snapshot exists. A definitely expired source hides the conflict unless the new-context switch result is ambiguous, in which case the last snapshot remains visible to avoid fabricating which visit currently owns the browser. Continue/open-new actions delegate to GuestAuthProvider.",
+    "callers_consumers": [
+      "app/page.tsx",
+      "overlay-guest-context-conflict.tsx",
+      "GuestAuthProvider and useGuestSession."
+    ],
+    "invariants_error_checks": "No conflict UI is shown before a session snapshot exists. Ambiguous switch preserves the old snapshot rather than declaring success or invalidation.",
+    "test_refs": [
+      "overlay-guest-context-conflict.test.tsx and guest-auth-context-switch.test.tsx inspected; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Authority mutation/retry behavior lives in GuestAuthProvider/bootstrap and server context-switch contract."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/auth/overlay-guest-context-conflict.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f04e2dd19c60085d11d6969896281899a864320faeddcd5076d4abbc4fa31db6",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        62
+      ]
+    ],
+    "feature": "Guest context-conflict decision sheet",
+    "semantic_review_notes": "Renders scope-specific translated conflict copy in the shared BottomSheet. Closing is blocked while a switch is in flight or ambiguous. Continue-current is disabled under either state. Open-new shows loading while switching; after an ambiguous outcome it remains an explicit user action that can retry the same preserved switch intent. Supporting provider/server inspection shows the switch endpoint is recovery-aware/idempotent for the same pending credentials and may return RECOVERED on repeat rather than creating a new authority.",
+    "callers_consumers": [
+      "guest-context-conflict-gate.tsx; GuestAuthProvider.openNewVisit; guest browser context switch service/controller."
+    ],
+    "invariants_error_checks": "No implicit dismissal can choose an authority during ambiguity. Explicit repeated open-new uses the same retained fragment/pending context; the server serializes switch authority and supports RECOVERED. Definite invalid-link failure clears the pending intent in provider state.",
+    "test_refs": [
+      "overlay-guest-context-conflict.test.tsx, guest-auth-context-switch.test.tsx, guest-api-client-context-switch.test.ts inspected; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "No live browser/server race was rerun in C003; conclusion is source-contract based."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/deferred/overlay-more-menu.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "01f393d73a9df05e3c9d37dc66cb2bf81ad4373e7db8c63d2c0d9838f408e3b9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        195
+      ]
+    ],
+    "feature": "Live Guest More menu and information-sheet launcher",
+    "semantic_review_notes": "Live menu exposes theme, locale, privacy and contact actions. Theme is one accessible role=switch control with aria-checked; the visual track is aria-hidden. Privacy/contact swap the parent sheet for a detail sheet and restore focus to the triggering button on return. Locale change closes the menu. The current GuestApiClient is passed to the information sheet rather than captured globally.",
+    "callers_consumers": [
+      "guest-app-root.tsx",
+      "guest-live-overlays.tsx",
+      "guest-post-visit-route.tsx",
+      "dev preview host"
+    ],
+    "invariants_error_checks": "Mounted tests show a changed credential client replaces in-flight information data, stale prior-visit response is not rendered, failures are recoverable, and retries occur only on explicit user action.",
+    "test_refs": [
+      "overlay-guest-information.mounted.test.tsx",
+      "theme-matrix.test.tsx",
+      "pickup-pin.test.tsx",
+      "customer-navigation-removal.test.tsx; source inspected, not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Information-sheet implementation owns request abort/race details; inspected through its mounted consumer tests, not live browser."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/deferred/screen-payment-complimentary.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "234b3136482e088e423acfc796211390325507b737038c2824698b0d7baaaf76",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        113
+      ]
+    ],
+    "feature": "Deferred complimentary-payment preview screen",
+    "semantic_review_notes": "Static preview screen renders an explicit preview banner, synthetic $25 validation/$0 due values with LTR isolation through InfoRow, trust styling and optional local navigation callbacks. It contains no payment client, provider, credential, mutation or fetch path.",
+    "callers_consumers": [
+      "DemoScreenRenderer only for demo payment flow."
+    ],
+    "invariants_error_checks": "Display amounts are fixed illustrative values and callbacks only navigate preview state. Demo safety tests separate previews from production payment behavior.",
+    "test_refs": [
+      "demo-screen-renderer.test.tsx",
+      "demo-safety.test.tsx",
+      "historical visual matrix; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Preview only; no real payment semantics or authorization evidence."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/deferred/screen-payment-error.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f02e39f19cad40b851d2b3ea0d2f08bb310d69f89421fc3db249eb4f24711e49",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        80
+      ]
+    ],
+    "feature": "Deferred payment-error preview screen",
+    "semantic_review_notes": "Static error preview with explicit preview banner, semantic danger styling and optional retry/change-method navigation callbacks. It does not claim an actual card was charged or invoke payment transport.",
+    "callers_consumers": [
+      "DemoScreenRenderer payment preview flow."
+    ],
+    "invariants_error_checks": "Demo safety test explicitly asserts no real payment-attempt claim and preview copy in EN/AR.",
+    "test_refs": [
+      "demo-safety.test.tsx",
+      "demo-screen-renderer.test.tsx; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Preview-only error state."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/deferred/screen-payment-method.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "91c945375db28ec65ce91b927dcfdbe01011bc444199bb3612a6f1fb61232151",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        130
+      ]
+    ],
+    "feature": "Deferred payment-method preview selector",
+    "semantic_review_notes": "Maintains only local selected-method UI state across four illustrative methods and invokes a local onPaySuccess callback. The amount is presentation text isolated with bdi/dir=ltr; there is no payment SDK, card input, tokenization, API call or provider authority.",
+    "callers_consumers": [
+      "DemoScreenRenderer only."
+    ],
+    "invariants_error_checks": "Selection is a closed local union and cannot dispatch a payment. Preview banner is always rendered.",
+    "test_refs": [
+      "demo-screen-renderer.test.tsx checks restored preview methods and RTL money isolation; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Preview only; amount string is caller-provided display text, not a trusted monetary value."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/deferred/screen-payment-success.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "092659cab1c73d5c6fe1aab6475c64e466876f18b20964e5192d081812be030c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        142
+      ]
+    ],
+    "feature": "Deferred payment-success preview screen",
+    "semantic_review_notes": "Renders explicit preview-only success copy, semantic success badge/trust icon, caller-provided illustrative service/tip/total amounts in LTR-isolated rows, and optional preview navigation callbacks. It never derives or asserts server payment status.",
+    "callers_consumers": [
+      "DemoScreenRenderer only."
+    ],
+    "invariants_error_checks": "Demo safety tests require preview wording in EN/AR and an illustrative-summary notice, preventing this component from masquerading as production payment confirmation.",
+    "test_refs": [
+      "demo-safety.test.tsx",
+      "demo-screen-renderer.test.tsx; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Preview-only success; not payment authority."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/deferred/screen-payment.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b2af0960a0a646d5bc029ecf049900f1615f1202e38588df1a205064d1b3e4ef",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        167
+      ]
+    ],
+    "feature": "Deferred payment overview, tip and receipt previews",
+    "semantic_review_notes": "Three presentation-only preview components: overview shows complimentary/zero illustrative totals, Add Tip keeps a transient local $1/$2/$5 selection but does not transmit it, and Receipt shows fixed complimentary status. Actions are caller navigation callbacks and every sub-screen displays preview-specific copy.",
+    "callers_consumers": [
+      "DemoScreenRenderer and theme/visual test matrix."
+    ],
+    "invariants_error_checks": "No API client, payment credential, external SDK or mutation. Local tip selection is not treated as authoritative state.",
+    "test_refs": [
+      "theme-matrix.test.tsx",
+      "demo-screen-renderer.test.tsx",
+      "historical visual QA; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Preview-only payment UX."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/deferred/screen-report-issue.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7dbf15596fd3aa6376d84848a221f877dee3b482945fa381a72cd6b04209522c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        154
+      ]
+    ],
+    "feature": "Deferred report-issue preview form",
+    "semantic_review_notes": "Maintains local category/description/photo-toggle UI state and displays only make/model from optional GuestSafeSession. Submit invokes a zero-argument preview navigation callback; entered description/category/photo state is not sent anywhere. There is no upload, incident/report API, employee data, spot/zone/key/staff field access or persistence.",
+    "callers_consumers": [
+      "DemoScreenRenderer only, using demoSessions.parked."
+    ],
+    "invariants_error_checks": "Demo renderer test asserts guest-safe vehicle data and absence of internal locations, key slots, staff and audit identifiers.",
+    "test_refs": [
+      "demo-screen-renderer.test.tsx",
+      "demo-safety.test.tsx; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Preview form only; local inputs are intentionally non-authoritative and discarded."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/deferred/screen-report-submitted.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "96f26b1176e9accbe665c0fcf9bc73a2c419ee4e133211e7a8101cbcc6bfca35",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        120
+      ]
+    ],
+    "feature": "Deferred report-submitted preview screen",
+    "semantic_review_notes": "Shows success-style preview UI with an explicit Preview only / no report submitted banner and synthetic PREVIEW-1042 reference by default. Reference text is direction-isolated; optional callback only returns within demo navigation.",
+    "callers_consumers": [
+      "DemoScreenRenderer only."
+    ],
+    "invariants_error_checks": "Tests assert preview wording in English/Arabic, synthetic reference and zero API mutation.",
+    "test_refs": [
+      "demo-safety.test.tsx",
+      "demo-screen-renderer.test.tsx; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Preview-only report confirmation."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/deferred/screen-service.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3f7c00b90f07e5b835a220a0b39922666296565c24b372ebe715f4c659cf59e9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        61
+      ]
+    ],
+    "feature": "Deferred service-rating preview",
+    "semantic_review_notes": "Keeps a local 1-5 star selection and renders preview/banner copy; Done is only a caller navigation callback. The chosen stars are never submitted or persisted by this component.",
+    "callers_consumers": [
+      "DemoScreenRenderer only."
+    ],
+    "invariants_error_checks": "No rating client/API or authoritative success state.",
+    "test_refs": [
+      "Demo renderer/safety and historical visual QA; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Preview-only rating state."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/demo/demo-fixtures.ts",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "90d486953b04cd9727ae1df944cdf1e93edc674a5576eb2ceffb5ce128a09385",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        83
+      ]
+    ],
+    "feature": "Deterministic Guest demo session fixtures",
+    "semantic_review_notes": "Defines synthetic GuestSafeSession projections for received/parked/requested/retrieving/ready/handoff-pending/completed with fixed UUIDs, timestamps and only guest-safe vehicle make/model/color. No internal staff, spot, key, customer credential or bearer material is present.",
+    "callers_consumers": [
+      "DemoScreenRenderer",
+      "DevPreviewOverlayHost",
+      "demo visual/safety tests."
+    ],
+    "invariants_error_checks": "Type is GuestSafeSession and fixture contents are deterministic. Demo safety tests assert no employee/key fields leak through preview vehicle details.",
+    "test_refs": [
+      "demo-safety.test.tsx",
+      "demo-screen-renderer.test.tsx",
+      "demo-visual-matrix.test.tsx; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Development/demo data only."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/demo/demo-navigator.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f571912dfeab6c799ae49b64423734e1867e6c4b004f795923670ccaa9a0f6cd",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        196
+      ]
+    ],
+    "feature": "Development-only Customer demo navigation panel",
+    "semantic_review_notes": "The navigator returns null when NODE_ENV is production. In development it renders only typed registry items and invokes caller-provided screen/overlay selectors; it performs no API request, auth mutation, persistence or route change itself.",
+    "callers_consumers": [
+      "DevPreviewControls",
+      "demo visual/safety tests."
+    ],
+    "invariants_error_checks": "Production guard is the first render branch. Registry item kinds constrain live/screen versus overlay actions.",
+    "test_refs": [
+      "demo-screen-renderer.test.tsx proves production returns empty markup; demo-visual-matrix.test.tsx covers collapsed/expanded development rendering; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Development presentation only."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/demo/demo-registry.ts",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "cf567f2c08d30ade42173d618ff55b059b0ac056dd4cddc87639467d8ea9fea3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        107
+      ]
+    ],
+    "feature": "Typed Customer demo screen/overlay registry",
+    "semantic_review_notes": "Defines closed unions for renderable demo screens, the single live item and three preview overlays, then groups them under five typed categories with translation keys. The registry is static data and carries no guest/session authority.",
+    "callers_consumers": [
+      "DemoNavigator",
+      "DemoScreenRenderer tests",
+      "branding coverage",
+      "customer navigation tests."
+    ],
+    "invariants_error_checks": "Screen and overlay namespaces are separated by discriminated kind. Historical tests assert unique IDs, valid EN/AR translation keys, no legacy Arabic duplicate screens and exact overlay IDs.",
+    "test_refs": [
+      "demo-registry.test.ts",
+      "demo-safety.test.tsx",
+      "customer-navigation-removal.test.tsx; source inspected, not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Static development registry only."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/demo/demo-screen-renderer.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5478585618dc29eb9adf6be9d7809b84df73e703c23237cb2c326acf678f45a4",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        160
+      ]
+    ],
+    "feature": "Deterministic Customer demo screen renderer",
+    "semantic_review_notes": "Exhaustively maps the closed DemoRenderableScreenKey union to production presentation components using synthetic demoSessions and local navigation callbacks. Pickup code and QR values are fixed demo strings. Payment/report/rating actions only select another demo screen. GuestAppRoot invokes this renderer only inside its isDev && demoScreen != live branch.",
+    "callers_consumers": [
+      "GuestAppRoot development override",
+      "demo visual/safety/renderer tests",
+      "branding coverage tests."
+    ],
+    "invariants_error_checks": "No GuestApiClient, retrieval hook, payment transport or fetch is imported. The default branch is a never exhaustiveness check. GuestAppRoot's production path cannot enter the demo override because isDev is false.",
+    "test_refs": [
+      "demo-screen-renderer.test.tsx renders every registry screen; demo-safety.test.tsx proves preview actions have zero production mutation wiring; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Development preview content can reuse production visual components but not production mutation hooks."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/demo/dev-preview-controls.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "98982fc41bd436cc491b63462f252c943fe6d0f87cc72752f62941c558359581",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        36
+      ]
+    ],
+    "feature": "Production gate for Customer development preview controls",
+    "semantic_review_notes": "Returns null in production; otherwise composes the development overlay host and demo navigator with caller-owned local selection state.",
+    "callers_consumers": [
+      "GuestAppRoot"
+    ],
+    "invariants_error_checks": "The production guard prevents both navigator and preview overlay host from rendering through the product caller.",
+    "test_refs": [
+      "demo-safety.test.tsx",
+      "demo-screen-renderer.test.tsx production guard evidence; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Direct unit calls can invoke child preview components, but product reachability is gated here and in GuestAppRoot."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/demo/dev-preview-overlays.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f18eb03d8ac6e03b3d85e0c8e697b5b728b1e2fd4cfe9f671211ab680f735bb8",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        44
+      ]
+    ],
+    "feature": "Development preview overlay host",
+    "semantic_review_notes": "Maps the closed demo overlay union to Confirm Request, Vehicle Details and More Menu previews. Confirm Request binds onConfirm directly to local onClose, Vehicle Details receives the synthetic parked fixture, and More Menu is opened without a guest API client. The host itself has no environment branch but its only product caller is DevPreviewControls, which is production-gated.",
+    "callers_consumers": [
+      "DevPreviewControls",
+      "demo-safety.test.tsx direct test invocation."
+    ],
+    "invariants_error_checks": "No retrieval hook, requestVehicle, GuestApiClient or fetch import exists. Confirmation cannot dispatch retrieval from this host.",
+    "test_refs": [
+      "demo-safety.test.tsx source-level invariant verifies zero retrieval/API dependencies and local onClose confirm behavior; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Safety depends on product callers preserving the DevPreviewControls/GuestAppRoot production gates; current callers were inspected."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/session/guest-brand-palette.ts",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c1ae4442a29fda45ff922c5c63f6bd938ab2efdbf24d8a1046558606df189473",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        44
+      ]
+    ],
+    "feature": "Deterministic guest brand contrast palette",
+    "semantic_review_notes": "Computes WCAG relative luminance/contrast from canonical #RRGGBB input, preserves the exact tenant primary fill, derives a high-contrast accent against every existing light/dark surface by monotonically mixing toward black or white, chooses a readable primary foreground, and derives distinct hover/pressed colors. It has no external state or CSS write.",
+    "callers_consumers": [
+      "guest-branding.ts"
+    ],
+    "invariants_error_checks": "Caller and contract both restrict input to canonical uppercase six-digit hex. Historical palette tests cover bright/dark/extreme representative colors, >=4.5 contrast for derived states/surfaces, deterministic output and exact primary preservation.",
+    "test_refs": [
+      "guest-brand-palette.test.ts and issue-338 browser contrast evidence inspected; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "C003 did not brute-force all 16.7M canonical colors; algorithm and representative boundary tests were source-reviewed."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/session/guest-branding.ts",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7a0dd2b63f130f668250d705ba5c1d5f22a61d9db09f4f52ff0bb891e3716852",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        36
+      ]
+    ],
+    "feature": "Guest branding display-name and scoped CSS-variable projection",
+    "semantic_review_notes": "Display names are trimmed and rejected if empty, over 120 Unicode code points or containing control characters. Brand style independently requires uppercase canonical #RRGGBB and writes only fixed CSS variable names for primary/foreground/interaction/boundary/surface/accent; invalid values return an empty style. The upstream guestSessionReadResponseSchema is strict and enforces the same display-name and color contract.",
+    "callers_consumers": [
+      "use-guest-brand-style.ts",
+      "screen-parked.tsx"
+    ],
+    "invariants_error_checks": "No user-controlled CSS property name, declaration, URL or raw style fragment is accepted. Status/warning/danger/trust/background tokens are not overwritten. Tests reject lowercase/short/injected/url color strings and control-character names.",
+    "test_refs": [
+      "guest-brand-palette.test.ts",
+      "guest-branding.test.tsx",
+      "packages/contracts/src/guest-effective-branding.test.ts; source inspected, not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Effective branding authority/provenance is server-owned; this file only validates and presents the guest-safe projection."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/session/use-guest-brand-style.ts",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fac82861cac5dc179102dafc75268e306440a054bb88348dabda75e8ad4d031c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        15
+      ]
+    ],
+    "feature": "Local guest-branding inheritance hook",
+    "semantic_review_notes": "Reads the current GuestSessionContext and theme, applies branding only when the guest session is present and not expired/network-failed/error, and returns a local style object. AppShell and BottomSheet spread the result on their own container boundaries; the hook never writes document/root state.",
+    "callers_consumers": [
+      "components/layout/app-shell.tsx",
+      "components/layout/bottom-sheet.tsx"
+    ],
+    "invariants_error_checks": "Expired, network-unavailable, generic-error or missing session immediately falls back to unbranded defaults, preventing stale tenant branding from surviving authority loss.",
+    "test_refs": [
+      "guest-branding.test.tsx and guest-branding.mounted.test.tsx cover expiry/error/client replacement and sibling sheet application; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Correct client ownership and stale-read fencing are supplied by GuestSessionProvider/GuestRequestCoordinator, inspected as supporting context."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/session/use-guest-session.ts",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "32eeb7ddbb080189f7bebe9c010eef239b088667d978836a161e1945be2dc72d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        34
+      ]
+    ],
+    "feature": "Guest session context contract and consumer hook",
+    "semantic_review_notes": "Defines the guest-safe session/read freshness/error/mutation/cooldown contract consumed by Customer flows and a hook that fails if used outside GuestSessionProvider. It contains no network or mutation implementation itself. Supporting provider inspection shows client-scoped coordinators, disposal of old owners, trusted initial-session gating, visibility/online/freshness mutation gates, and explicit blocking of beginMutation during ambiguous context switch.",
+    "callers_consumers": [
+      "GuestAppRoot",
+      "retrieval/use-retrieval.ts",
+      "handoff/use-handoff.ts",
+      "auth conflict gate",
+      "branding hooks",
+      "mounted tests."
+    ],
+    "invariants_error_checks": "Consumers cannot silently receive a fabricated default context; missing provider throws. GuestSessionProvider supplies beginMutation only while visible, online, fresh and not context-switch ambiguous, and client replacement makes old coordinator callbacks inert.",
+    "test_refs": [
+      "guest-branding.mounted.test.tsx and handoff/retrieval mounted suites use this context; supporting GuestSessionProvider source fully inspected; tests not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Network scheduling/coalescing and mutation ownership are implemented by GuestSessionProvider/GuestRequestCoordinator rather than this 34-line contract file."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/customer/src/features/web-push/guest-web-push-boundary-test-fixtures.ts",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "76bf938150fb60aa46b0b8fa5b399619b0c44577bdf6f8922d3d891659de2f36",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        56
+      ]
+    ],
+    "feature": "Guest Web Push boundary test fixtures",
+    "semantic_review_notes": "Test-only helpers construct a synthetic available capability snapshot, deferred promises, a fake PushSubscription with example.test endpoint and fake keys, overridable transport spies, and browser permission/service-worker adapters. No production subscription or credential material is present.",
+    "callers_consumers": [
+      "guest-web-push-boundaries.test.ts"
+    ],
+    "invariants_error_checks": "Fixtures permit explicit timeout/abort/late-resolution and existing-subscription cases. The consuming boundary suite checks synchronous permission gesture, bounded stages, abort fencing, unknown server commit preservation, no unsafe unsubscribe and changed-context rejection.",
+    "test_refs": [
+      "guest-web-push-boundaries.test.ts fully inspected; historical source evidence only, not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Test fixture only; no browser/service-worker/push-provider execution in C003."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/dashboard/src/components/foundation/help-copy.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9f0ad336d5993960f1049b09343d079023beba5b724dd768f08cb17f65f11d33",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        94
+      ]
+    ],
+    "feature": "Localized Dashboard Help guidance copy",
+    "semantic_review_notes": "Returns fixed EN/AR guidance for scope selection, inherited settings, staff access, read-only surfaces, conflict retry, operating hours and interface preferences. It contains no user data, authorization decision, network call or HTML construction.",
+    "callers_consumers": [
+      "HelpFoundation"
+    ],
+    "invariants_error_checks": "Locale is a closed DashboardLocale branch. Copy describes explicit re-review/re-submit after security verification rather than implying an automatic mutation retry.",
+    "test_refs": [
+      "Help page/foundation rendering is covered indirectly by Dashboard UI suites; no C003 test rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Documentation/presentation copy only; enforcement remains in the referenced route and mutation flows."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/dashboard/src/components/foundation/help-foundation.tsx",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "dc76b33cdfa9c61d317ac8ef3ea78d0398351c882875e1d0381fee40ea9d7ab4",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        67
+      ]
+    ],
+    "feature": "Dashboard Help foundation page",
+    "semantic_review_notes": "Renders fixed localized guidance and account-context help anchors. The Account security section and /security link are rendered only when AccountSecurityAccessProvider reports eligible; otherwise no security navigation is exposed by this page.",
+    "callers_consumers": [
+      "app/help/page.tsx"
+    ],
+    "invariants_error_checks": "Eligibility is consumed rather than inferred from role text or selected scope. This page performs no protected mutation or scope change.",
+    "test_refs": [
+      "Account-security eligibility provider is the authority boundary; no tests rerun in C003."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Hiding the link is presentation gating; /security route retains its own account-security authority."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/dashboard/src/components/foundation/management-foundation-app.tsx",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6e8b614ef6070ec8722141257a540bb32395f9a84b7a47e8b4a1b9d75f6c5c96",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        127
+      ]
+    ],
+    "feature": "Top-level authenticated Dashboard foundation state router",
+    "semantic_review_notes": "Builds a DashboardApiClient from the current Staff auth client and renders mutually exclusive initialization, refresh-unavailable, logout-unconfirmed, unauthenticated login, account-security, restoration-checking, unselected-scope, or selected-management-shell states. Protected children reach SelectedManagementShell only after authenticated state, completed scope restoration and a non-null selected scope.",
+    "callers_consumers": [
+      "ProtectedDashboardRoute",
+      "account-security-route.tsx"
+    ],
+    "invariants_error_checks": "Login errors are reduced to localized generic failure text. Refresh/logout uncertainty gets dedicated blocking panels. Account security is intentionally account-scoped and bypasses workspace selection while still requiring authenticated Staff state.",
+    "test_refs": [
+      "Protected-route and selected-shell authority tests inspect downstream revalidation; no C003 tests rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Final route authority is enforced in SelectedManagementShell/useSelectedScopeRevalidation, reviewed through callers and the transferred policy files."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/dashboard/src/components/foundation/md04-feature-route-access.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2d5cfe1a80d9b74bc4e866dbe1ace276bbed279c9bca51e191157af4b2462434",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        94
+      ]
+    ],
+    "feature": "MD-04 feature-specific protected route authority revalidation",
+    "semantic_review_notes": "Derives an exact feature target from the selected scope, reads server feature authority first, and rejects mismatched feature/role/scope responses. Feature-only scopes receive only the requested feature flag with no commercial/foundation/maps authority. Compatible scopes must additionally pass current base revalidation; base entitlement is preserved and base denial marks selectedScopeInvalid.",
+    "callers_consumers": [
+      "revalidate-selected-scope.ts"
+    ],
+    "invariants_error_checks": "Feature correlation fails closed. Auth/authorization failure while validating a compatible base returns denied + selectedScopeInvalid; unrelated failures are rethrown. The helper never upgrades a failed compatible base into feature-only success.",
+    "test_refs": [
+      "md04-feature-authority-revalidation.test.ts",
+      "authority-separation.test.ts; source inspected, not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Server feature-authority endpoint remains the source of role/scope truth."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/dashboard/src/components/foundation/preference-controls.tsx",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "eeed17a233d10118ca8d8d43d2073a5d08c3e912a563336190bbb319b821d25c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        56
+      ]
+    ],
+    "feature": "Dashboard locale and theme preference controls",
+    "semantic_review_notes": "Renders two accessible button groups for EN/AR locale and light/dark theme, with aria-pressed reflecting current context state. Actions call only the locale/theme providers.",
+    "callers_consumers": [
+      "Dashboard preference/settings presentation surfaces."
+    ],
+    "invariants_error_checks": "Closed preference values only; no organization/location setting, server mutation or authorization change is performed.",
+    "test_refs": [
+      "Theme/locale provider suites are relevant historical evidence; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Interface preference control only; distinct from location default-language configuration."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/dashboard/src/components/foundation/protected-dashboard-context.tsx",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9f60e4634498e5f73fc59a2f703b9c1c76c03cc56c0d933736282ec7fa2e35de",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        39
+      ]
+    ],
+    "feature": "Protected Dashboard route context contract",
+    "semantic_review_notes": "Carries the authenticated DashboardApiClient plus identity generation, session generation, selected scope and selection revision to protected feature consumers. The hook throws outside its provider instead of fabricating a default authority.",
+    "callers_consumers": [
+      "SelectedManagementShell provides it after route revalidation; operations, audit, settings, staff, branding, locations, roles, subscription and visit-contact features consume it."
+    ],
+    "invariants_error_checks": "Context values include the generations/revision needed by mutation and recovery consumers. Presence of context itself is not used as server authority; downstream APIs remain protected.",
+    "test_refs": [
+      "selected-management-shell and feature recovery tests consume this context; no C003 tests rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Provider admission logic is owned by SelectedManagementShell and transferred scope revalidation files."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/dashboard/src/components/foundation/resolve-navigation-authority.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1672804ae57ad497c4c7afcae3674650857f3c8d83c68a8baabdd99c4643942e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        196
+      ]
+    ],
+    "feature": "Dashboard navigation eligibility resolution",
+    "semantic_review_notes": "Settles canonical selected-scope base authority before feature probes, builds only candidate implemented navigation feature targets, deduplicates exact targets, skips incompatible features, then probes independent feature authority in parallel. Wrong feature/role/scope correlation is denied. Auth/MFA/authorization/entitlement failures hide the feature as DENIED; network/unknown failure is UNAVAILABLE without granting it.",
+    "callers_consumers": [
+      "use-navigation-authority.ts",
+      "location-switch-authority.ts"
+    ],
+    "invariants_error_checks": "Navigation eligibility is not protected-route authority. useNavigationAuthority keys results to sessionGeneration + identityGeneration + selectionRevision + exact selected scope and ScopeGenerationGuard discards/aborts stale A-to-B results.",
+    "test_refs": [
+      "resolve-navigation-authority.test.ts",
+      "authority-separation.test.ts",
+      "navigation-authority-demand/special-scopes tests, MD-05 navigation tests; source inspected, not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Navigation can distinguish temporary UNAVAILABLE from DENIED, but route use always revalidates independently."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/dashboard/src/components/foundation/revalidate-selected-scope.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4001be86e3b75d8b0d41b1cb890714bb3a57e2f44ab9ee81ed916e8278f643ea",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        193
+      ]
+    ],
+    "feature": "Requirement-specific selected-scope protected route revalidation",
+    "semantic_review_notes": "Routes MD-04 feature requirements through exact feature revalidation; denies subscription-recovery scope outside SUBSCRIPTION_READ and denies unselected LM grant-set scope. Base authority is freshly resolved with requirement-appropriate company context. Subscription read, location maps, management intelligence, foundation entry and commercial requirements each have explicit role/scope/entitlement branches. Supervisor gets only narrow current-shift Foundation/Maps authority with zero commercial access.",
+    "callers_consumers": [
+      "use-selected-scope-revalidation.ts",
+      "location-switch-recovery.ts"
+    ],
+    "invariants_error_checks": "No previous navigation decision is accepted. Commercial failure yields entitlement rather than success; wrong role/scope/base yields denied. Caller keys each request to session/identity/selection/access requirement and ScopeGenerationGuard discards stale outcomes; MFA alone does not invalidate selected scope.",
+    "test_refs": [
+      "use-selected-scope-revalidation.test.ts",
+      "authority-separation.test.ts",
+      "supervisor-foundation-access.test.ts",
+      "location-maps-revalidation.test.ts",
+      "md04/md05 authority tests; source inspected, not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Correctness of base facts depends on resolveSelectedScopeBaseAuthority, included in the next transferred Dashboard batch."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/dashboard/src/components/foundation/root-product-landing.tsx",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e32671f9612c771a02855a54b37b4a8177cb04193f04bdc1f68ea3d7b37a6e3d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        58
+      ]
+    ],
+    "feature": "Authority-driven Dashboard root landing and redirect",
+    "semantic_review_notes": "Consumes already-resolved navigation authority status and eligible navigation items. Checking waits, an authority error renders the safe unavailable fallback, and valid authority redirects only to the first eligible MAIN navigation destination. Redirect is scheduled on requestAnimationFrame and cancelled on cleanup; authorityKey is an effect dependency so authority changes retire the prior redirect cycle. Workspace help is shown only for a valid utility-only fallback.",
+    "callers_consumers": [
+      "SelectedManagementShell at currentPath=/; resolveRootProductLanding in lib/navigation/navigation-landing.ts."
+    ],
+    "invariants_error_checks": "No fixed privileged destination is assumed. Error/checking states cannot redirect. Help scope identity includes authorityKey plus current Staff identity/session generations.",
+    "test_refs": [
+      "lib/navigation/navigation-landing.test.ts",
+      "components/foundation/root-product-landing-help.test.tsx; source inspected, not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Eligibility of supplied navigation items is owned by resolveNavigationAuthority/resolveNavigation, reviewed separately."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/dashboard/src/components/foundation/scope-presentation.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "29d531521a513a29076b4bd284917ce1b669acb0ef5158b44a7bb609af50da9c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        91
+      ]
+    ],
+    "feature": "Selected-scope presentation projection",
+    "semantic_review_notes": "Maps the closed SelectedDashboardScope union into navigation role plus organization/location display references. Subscription-recovery and Location Manager grant-set scopes deliberately present no selected location; Company Admin uses its exact selected location when present; Location Manager and Supervisor expose their exact selected location. This helper does not authorize or fetch anything.",
+    "callers_consumers": [
+      "SelectedManagementShell",
+      "resolveNavigationAuthority",
+      "AccountSecurityShell",
+      "location-switch-authority",
+      "analytics-page."
+    ],
+    "invariants_error_checks": "Presentation role names are derived from the selected-scope discriminant, not user-controlled strings. Route and feature authority are independently revalidated before protected use.",
+    "test_refs": [
+      "Navigation special-scope/authority tests and selected-shell consumers provide source evidence; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Presentation projection only; selected-scope validity is enforced by lifecycle/revalidation."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/dashboard/src/components/foundation/selected-management-shell-policy.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a1dcf721f15e648d5908cb4d4f62ad0f59f38c71efa48dda78766302e6aff9d3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        32
+      ]
+    ],
+    "feature": "Selected management shell presentation/switch policy helpers",
+    "semantic_review_notes": "Location switching is offered only from Company Admin, Location Manager and Location Manager grant-set scope kinds. Location status presentation reads only the Company Admin selected location or Location Manager location. Dashboard-unavailable copy is reserved for Dashboard, Foundation Entry and Location Maps requirements.",
+    "callers_consumers": [
+      "SelectedManagementShell",
+      "AccountSecurityShell."
+    ],
+    "invariants_error_checks": "Supervisor and subscription-recovery scopes are not accepted as location-switch sources by this helper. No authority is created; it only constrains presentation branches.",
+    "test_refs": [
+      "Selected-management-shell and location-switch authority tests are relevant historical source evidence; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "LocationSwitchControl performs the actual switch authority proof and mutation fencing."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/dashboard/src/components/foundation/selected-management-shell-transition.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "112b840e8004aa5dc516f7b736ddafa19bfb5a266627307f078b59030d0c9eed",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        96
+      ]
+    ],
+    "feature": "Selected-scope route-transition denial fence",
+    "semantic_review_notes": "Records a route transition with exact identity generation, session generation, source path, target path and expected selection revision=current+1. A ROUTE_DENIED callback from the old source route is ignored only when every transition epoch/path field matches; selected-scope-invalid denial still clears. The transition retires on any generation/revision mismatch, arrival at target, or path departure, and transitionActive is true only for the exact expected epoch at the source path.",
+    "callers_consumers": [
+      "SelectedManagementShell beginTransition/onDenied integration."
+    ],
+    "invariants_error_checks": "The suppression window cannot survive identity/session/revision/path changes. It prevents a stale old-route denial from clearing a just-committed destination scope without suppressing definitive selected-scope invalidation.",
+    "test_refs": [
+      "SelectedManagementShell and location-switch authority/revalidation tests provide caller-level evidence; no dedicated transition unit test was found and none was run."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "No dedicated direct unit test for this hook was found in the frozen tree; conclusion is from full source plus caller/epoch policy review."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/dashboard/src/components/foundation/selected-scope-base-authority.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2d5e27e4bf3394c5956dbce92bde445ff69b7c0756aa168d51c09cf642e4a5f1",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        206
+      ]
+    ],
+    "feature": "Canonical selected-scope base authority resolution",
+    "semantic_review_notes": "Builds current base authority from server reads per exact scope kind. Company Admin subscription recovery requires exact organization and yields subscription-only facts. Company Admin requires exact subscription organization and, when Dashboard access/current context are needed, exact current organization/scope context. Location Manager grant-set and inactive Location Manager are feature-only; active Location Manager requires exact location+organization subscription correlation. Supervisor authority requires a current active supervisor candidate matching membership, organization, location, active-shift location and shiftId. Commercial, Foundation and Maps facts are kept distinct.",
+    "callers_consumers": [
+      "revalidateSelectedScope",
+      "resolveNavigationAuthority; optionally shares the in-flight base read through selected-scope-base-request.ts."
+    ],
+    "invariants_error_checks": "Cross-organization/location responses fail closed. Inactive LM never inherits ordinary management/commercial authority. Supervisor receives no commercial authority. Company context is skipped when not required or Dashboard entitlement is absent, but that produces no Foundation/Maps authority. Shared-request key distinguishes Company subscription-only versus Company-context reads.",
+    "test_refs": [
+      "selected-scope-base-authority-sharing.test.ts",
+      "use-selected-scope-revalidation.test.ts",
+      "supervisor-foundation-access.test.ts",
+      "location-maps-revalidation.test.ts; source inspected, not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Server subscription/context/supervisor endpoints remain authoritative and were not executed in C003."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/dashboard/src/components/foundation/selected-scope-base-request.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "538c49dce3e3e8b954f9637d995363dc6c164c9d986d7118bfa9d6b3f1a1b879",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        95
+      ]
+    ],
+    "feature": "In-flight selected-scope base request sharing",
+    "semantic_review_notes": "Shares only an in-flight base-authority request per DashboardApiClient and exact request key using a WeakMap. Settled requests are removed on either fulfillment or rejection, so positive authority is never cached across later cycles. Each subscriber has an independent abort listener; aborting one subscriber rejects only that subscriber, and the underlying request is aborted and removed only when no subscribers remain.",
+    "callers_consumers": [
+      "resolveSelectedScopeBaseAuthority"
+    ],
+    "invariants_error_checks": "Pre-aborted callers cannot start a network read. Removal checks object identity so an old settlement cannot delete a replacement request. Abort listener and subscriber token are released on settle/fail.",
+    "test_refs": [
+      "selected-scope-base-authority-sharing.test.ts fully inspected: pre-abort no-read, in-flight dedupe without settled caching, one-subscriber abort keeps shared request alive; not rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Sharing correctness assumes the caller's key fully identifies the authority cycle; transferred base-authority caller includes generation/scope-derived shared base key."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/dashboard/src/components/foundation/selected-scope-mfa-panel.tsx",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "349a89f052c58bc977f52b9ee8f65879384f15cb42d86e186cf7b41d31c12d92",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        30
+      ]
+    ],
+    "feature": "Selected-scope MFA step-up panel",
+    "semantic_review_notes": "Hosts AccountSecurityStandalone under a caller-supplied generation key and exposes only onAssured plus Change Scope. SelectedManagementShell keys route MFA to identity/session/selection generation; assurance reselects the same scope so the revision advances and current route authority is revalidated. Location-switch MFA likewise clears its local MFA state and reselects current scope rather than applying a previously denied switch.",
+    "callers_consumers": [
+      "SelectedManagementShell",
+      "AccountSecurityShell."
+    ],
+    "invariants_error_checks": "The panel itself does not grant route/scope authority. Remount key binds the assurance UI to the current generation, and caller action after assurance triggers fresh scope/revalidation state.",
+    "test_refs": [
+      "Authority-separation tests establish that MFA denial alone does not invalidate scope; AccountSecurityStandalone owns exact-session MFA tests outside this transferred file. No tests rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "MFA verification protocol and exact-session assurance are implemented in AccountSecurityStandalone/provider modules outside this transferred 8-file tail."
+    ]
+  },
+  {
+    "checkpoint": "C003",
+    "path": "apps/dashboard/src/components/foundation/selected-scope-provider.tsx",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3fc09fd64624726576d147b0488414f02e5d65ce2e99fd996a78556ba1be27e5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        29
+      ]
+    ],
+    "feature": "Selected Dashboard scope lifecycle context",
+    "semantic_review_notes": "Provides exactly one useSelectedScopeLifecycle value to Dashboard descendants and makes the consumer hook throw outside the provider. Supporting lifecycle review shows identity changes invalidate restoration; unauthenticated state clears hints/scope; restoration requires exact Staff auth session continuity and is generation/epoch fenced; select/clear advance selection revision; clearScopeIfEpoch uses live identity/session generations plus the expected epoch.",
+    "callers_consumers": [
+      "app/app-providers.tsx wraps the Dashboard; ManagementFoundationApp, SelectedManagementShell, audit, intelligence and visit-contact flows consume useSelectedScope."
+    ],
+    "invariants_error_checks": "No fabricated default scope exists outside the provider. Restoration hint persistence occurs only after settled state and is removed on identity/session discontinuity or definitive invalid restoration. Transient restoration failure may preserve the hint but does not grant a selected scope.",
+    "test_refs": [
+      "selected-scope-restoration.test.ts",
+      "selected-scope-restoration-hint.test.ts and selected-scope revalidation suites are relevant source evidence; use-selected-scope-lifecycle.ts fully inspected, no tests rerun."
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Provider is a thin context wrapper; lifecycle implementation was inspected as required caller support but is not itself part of the 56 credited transfer paths."
+    ]
+  }
+]

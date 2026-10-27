@@ -1,0 +1,56 @@
+{
+  "id": "C003-DASH-I18N-01",
+  "title": "Dashboard locale selection diverges from React translation state when localStorage is denied",
+  "checkpoint": "C003",
+  "owner_area": "dashboard",
+  "reviewer": "worker-7",
+  "severity": "P3",
+  "confidence": "HIGH_SOURCE_CONFIDENCE",
+  "runtime_status": "RUNTIME_UNVERIFIED",
+  "classification": "i18n/state consistency under restricted browser storage",
+  "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+  "source_to_sink": [
+    {
+      "path": "apps/dashboard/src/lib/i18n/locale.ts",
+      "ranges": [
+        "19-26",
+        "29-39"
+      ],
+      "evidence": "readDashboardLocale returns default en when localStorage.getItem throws. commitDashboardLocale swallows localStorage.setItem failure but still sets document lang/dir to the requested locale and dispatches the locale-change event."
+    },
+    {
+      "path": "apps/dashboard/src/lib/i18n/locale-provider.tsx",
+      "ranges": [
+        "31-39",
+        "45-62"
+      ],
+      "evidence": "useSyncExternalStore uses readDashboardLocale as its client snapshot; translation selection and direction derive from that snapshot. There is no in-memory fallback state. The change event therefore rechecks a store that still returns en when storage throws."
+    },
+    {
+      "path": "apps/dashboard/src/app/document-bootstrap-script.ts",
+      "ranges": [
+        "1-12"
+      ],
+      "evidence": "Startup also reads localStorage inside a catch-all block and supplies no independent persistent/in-memory locale authority when storage is denied."
+    }
+  ],
+  "preconditions": [
+    "Dashboard JavaScript runs but localStorage get/set throws or is denied.",
+    "The user selects Arabic while the provider snapshot is the default English locale."
+  ],
+  "impact": "The commit path can mark the document ar/rtl while React's locale snapshot and translated strings remain English. The user-visible locale preference therefore does not reliably take effect and document direction/language can disagree with rendered text until a storage-capable reload/state change.",
+  "counterevidence_and_bounds": [
+    "Normal storage-capable paths are internally consistent and are exercised by existing E2E/component usage.",
+    "This is not an authorization or data-integrity bypass.",
+    "The exact behavior of a specific private/webview browser mode depends on whether that mode throws for localStorage; the finding is conditional on the explicit restricted-storage precondition."
+  ],
+  "existing_test_cross_check": "Repository search found no Dashboard locale test that makes localStorage get/set throw. Existing Dashboard E2E locale changes write localStorage successfully then dispatch the custom event. Customer CUST-001/#356 already proves the same architectural failure class in the separate Customer implementation, but its recorded paths do not include Dashboard locale.ts/provider.tsx.",
+  "remediation_direction": "Use an in-memory external-store snapshot/fallback so same-window locale commits update React state even when persistence fails, while keeping localStorage as best-effort persistence. Add a Dashboard-specific restricted-storage locale test and preserve current EN/AR DOM direction behavior/UI geometry.",
+  "regression_risks": [
+    "Do not let the in-memory preference become an authorization or server-data source.",
+    "Keep cross-tab storage-event synchronization when storage is available.",
+    "Preserve SSR default/hydration behavior and current UI Freeze geometry."
+  ],
+  "duplicate_status": "Related root-cause pattern to existing CUST-001/#356 but a distinct Dashboard code path and user surface. Prime should choose whether to extend the existing issue or register a Dashboard-specific finding; worker-7 created no GitHub issue.",
+  "coverage_credit": false
+}

@@ -1,0 +1,1333 @@
+[
+  {
+    "path": "apps/api/src/modules/auth/staff-login.service.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "66182b668ecf03a015e21a85d63b214eecd89b310f745bab5abd4d9dfb1a43c6",
+    "checkpoint": "C003",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        72
+      ]
+    ],
+    "feature": "Staff login anti-abuse orchestration",
+    "semantic_review_notes": "Resolves a trusted client address, counts every allowed address attempt at threshold 30, reserves the normalized login identifier at threshold 5, and does not invoke password verification when either limiter is already exhausted. Failed authentication finalizes the identifier reservation as COUNTED; successful authentication delegates the reservation into StaffAuthService, which finalizes it as IGNORED inside the same transaction that creates the session so finalization failure rolls login state back.",
+    "callers": [
+      "staff-auth.controller.ts STAFF_AUTH_LOGIN",
+      "native-staff-auth.controller.ts STAFF_AUTH_NATIVE_LOGIN",
+      "StaffAuthService.login"
+    ],
+    "invariants_error_checks": "Client-address resolution failure maps to anti-abuse unavailable. Both limiter blockers return the maximum retry window. Reservation is never locally treated as success; StaffAuthService performs the authoritative success finalization transactionally. Unexpected auth errors are counted, then rethrown.",
+    "test_refs": [
+      "apps/api/test/staff-auth.integration.test.ts:913-1158 covers normalized identifier blocking, address threshold, successful IGNORED reservations, concurrent reservation serialization and rollback when finalization fails",
+      "Historical/source evidence only; tests not rerun in C003"
+    ],
+    "findings": [],
+    "limits": [
+      "TrustedClientAddressResolver and AntiAbuseService internals are separate files; inspected only as dependencies/callers, not credited here"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-password-hashing.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "34d57cab6405ab70d6b2e12019a3155d55146aac687024ce6b2abbe50f415f6e",
+    "checkpoint": "C003",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        18
+      ]
+    ],
+    "feature": "Canonical staff password hashing",
+    "semantic_review_notes": "Hashes with Argon2id v19, 64 MiB memory, time cost 3, parallelism 4, a fresh 16-byte random salt and 32-byte output, then re-validates the produced encoded hash against the accepted staff-hash policy before returning it.",
+    "callers": [
+      "staff-activation.service.ts password establishment",
+      "staff activation/race test fixtures"
+    ],
+    "invariants_error_checks": "No caller-controlled algorithm or cost parameters. A library/configuration result that does not match the accepted encoded policy fails closed with Password hashing failed rather than persisting a weaker hash.",
+    "test_refs": [
+      "apps/api/test/staff-activation.integration.test.ts:17-40 exercises generated hashes",
+      "apps/api/test/staff-activation-races.integration.test.ts and staff-activation-proof-races.integration.test.ts consume hashStaffPassword",
+      "Historical/source evidence only; tests not rerun"
+    ],
+    "findings": [],
+    "limits": [
+      "No runtime Argon2 performance benchmark or entropy-source probe was executed"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-password-verification.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "24b59ce7752dd2a7e5964be88a0406e159a7f13d41f4cfe54d2d7ec6601cae2b",
+    "checkpoint": "C003",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        53
+      ]
+    ],
+    "feature": "Staff Argon2 hash acceptance and verification",
+    "semantic_review_notes": "Accepted hashes must be Argon2id v19 with exactly m=65536,t=3,p=4, canonical base64 salt decoding to 16 bytes and hash decoding to 32 bytes. The fixed dummy hash uses the same encoded cost profile for unsupported/missing accounts upstream. Runtime verification delegates to argon2.verify and converts parser/library exceptions to false rather than exposing them.",
+    "callers": [
+      "staff-auth.service.ts login supported-hash gate and dummy verification",
+      "staff-activation.service.ts legacy/current password ownership checks",
+      "staff-password-hashing.ts output policy validation"
+    ],
+    "invariants_error_checks": "Duplicate/missing/extra encoded Argon parameters fail policy acceptance because entry count and Map size must both equal three. Invalid base64 or Argon verification errors fail closed. This file does not itself normalize passwords or authorize a user.",
+    "test_refs": [
+      "apps/api/test/staff-auth.integration.test.ts exercises real Argon2 login and dummy/invalid authentication paths",
+      "apps/api/test/staff-activation.integration.test.ts verifies accepted persisted hash",
+      "apps/api/test/provision-staff.test.ts and local-dev/demo-employee-credential-hash.test.ts assert accepted provisioned hashes",
+      "Not rerun in C003"
+    ],
+    "findings": [],
+    "limits": [
+      "Timing equivalence of all failure classes was not measured in this continuation"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-presence-http.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2d7852550bc4cb48dbca3a846beb6e677cbe9a4a864ff27b024db7fd116b0c86",
+    "checkpoint": "C003",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        49
+      ]
+    ],
+    "feature": "Shift-presence management HTTP validation/context boundary",
+    "semantic_review_notes": "Validates UUID-shaped selectors, schema-parses management bodies, sets no-store headers, rejects missing/odd rawHeaders and anything other than exactly one raw Authorization header, then delegates bearer/session validation to StaffSessionContextResolver.",
+    "callers": [
+      "shift-presence.controller.ts challenge/recovery/exception management endpoints"
+    ],
+    "invariants_error_checks": "Duplicate raw Authorization headers fail with Unauthorized before session resolution, preventing normalized-header ambiguity. Invalid UUID/body fails as transport validation. This helper does not grant role/MFA/policy authority; downstream presence commands revalidate those requirements.",
+    "test_refs": [
+      "Shift presence controller/session integration suites exercise management routes and exact-session fencing",
+      "apps/api/test/shift-presence-session-races.integration.test.ts verifies token identity replacement cannot authorize a waiting management command",
+      "Not rerun in C003"
+    ],
+    "findings": [],
+    "limits": [
+      "Raw Node/Nest header behavior was not re-executed over a live socket"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-principal.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "566dce402d7af98c25c48ddbd7d732501fc88930b622744ebb020e9490debbe5",
+    "checkpoint": "C003",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        19
+      ]
+    ],
+    "feature": "Staff principal resolver contract and fail-closed default",
+    "semantic_review_notes": "Defines the minimal userId-only principal contract and injection token. The default concrete resolver intentionally ignores the supplied Authorization value and always throws Unauthorized, so missing/incorrect provider wiring cannot silently authenticate requests.",
+    "callers": [
+      "Numerous operational controllers inject STAFF_PRINCIPAL_RESOLVER",
+      "Auth module/provider wiring replaces the fail-closed default with DatabaseStaffPrincipalResolver"
+    ],
+    "invariants_error_checks": "No token parsing, tenant scope or role is inferred by this declaration/default implementation. Authorization is impossible until an explicit resolver is wired.",
+    "test_refs": [
+      "apps/api/test/feature-module-ownership.test.ts verifies resolver ownership/wiring",
+      "Operational API integration tests inject synthetic resolvers explicitly",
+      "Not rerun in C003"
+    ],
+    "findings": [],
+    "limits": [
+      "Correct module wiring is a caller/module concern rather than this file's runtime behavior"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-session-context.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e694c86ff1559ee93f42e1a6784f01ab4ff77eccc42ff8ea955fb855eb89abaf",
+    "checkpoint": "C003",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        96
+      ]
+    ],
+    "feature": "Database-backed staff access-token session context",
+    "semantic_review_notes": "Requires the exact Bearer/access-token grammar, hashes the credential with the access domain separator, and resolves exactly one live session whose token hash is current, session is not revoked, both rolling access and absolute expiries are in the future, and owning user is ACTIVE. Returns session id, user id, creation time and access-token hash so mutation/read paths can transactionally recheck the exact credential later. DatabaseStaffPrincipalResolver deliberately projects only userId from this stronger context.",
+    "callers": [
+      "MFA, shift presence, tracking, staff push, condition-photo and dashboard-sensitive services via STAFF_SESSION_CONTEXT_RESOLVER",
+      "DatabaseStaffPrincipalResolver"
+    ],
+    "invariants_error_checks": "Malformed/missing bearer and zero/multiple rows are indistinguishable Unauthorized. No membership/location role is derived here. Exact token hash plus createdAt/sessionId are carried for race fencing by staff-session-revalidation.ts.",
+    "test_refs": [
+      "apps/api/test/staff-auth.integration.test.ts:499+ rejects malformed/random/expired/revoked access uniformly and duplicate raw Authorization at controller boundaries",
+      "apps/api/test/cancel-check-in-exact-credential.integration.test.ts and dashboard issue319 suites exercise exact credential behavior",
+      "Not rerun in C003"
+    ],
+    "findings": [],
+    "limits": [
+      "Initial resolve is a read snapshot; privileged transaction consumers must use the separate revalidation helper when race safety matters"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-session-revalidation.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "55e2629ef30f3975c3c2f3ac3d90cc27d9b28784c80be7f195758335ff06296a",
+    "checkpoint": "C003",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        37
+      ]
+    ],
+    "feature": "Transactional exact staff-session revalidation",
+    "semantic_review_notes": "Takes the user-scoped security advisory lock first, then rechecks the exact session id, user id, current access-token hash and createdAt while requiring non-revoked, unexpired session and ACTIVE user, locking the session FOR UPDATE. Returning undefined is the fail-closed signal used by protected commands when refresh/logout/user revocation wins the race.",
+    "callers": [
+      "condition-photo authorization",
+      "shift-presence security/service",
+      "complete check-in and cancellation flows",
+      "staff-push registration",
+      "dashboard sensitive reads"
+    ],
+    "invariants_error_checks": "The advisory lock serializes with login/refresh security-boundary operations; exact token hash prevents an old bearer from surviving rotation. Session FOR UPDATE blocks concurrent session revocation/rotation until the protected transaction settles. It does not itself check membership/location authorization, which remains caller-specific.",
+    "test_refs": [
+      "apps/api/test/issue215-staff-credential-races.test.ts:154-249 verifies refresh/logout races against condition-photo mutation",
+      "apps/api/test/shift-presence-session-races.integration.test.ts:19-82 verifies token replacement fencing",
+      "apps/api/test/dashboard-read-revocation-fence.test.ts and dashboard issue319 integration suites consume this fence",
+      "Not rerun in C003"
+    ],
+    "findings": [],
+    "limits": [
+      "Correct lock ordering with every consumer is not proven by this helper alone"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-session-revocation.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3fbff8e7995c2b67119dae851f3d8ccd3d9b91e9b8bfffcf428668d7e947259a",
+    "checkpoint": "C003",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        28
+      ]
+    ],
+    "feature": "Staff session revocation plus push-registration terminalization",
+    "semantic_review_notes": "Reads one database clock, idempotently sets revoked_at with COALESCE for the target session, and disables all ACTIVE push registrations tied to that session while erasing provider tokens and recording SESSION_LOGOUT terminal metadata at the same timestamp. Caller executes this inside the auth logout transaction.",
+    "callers": [
+      "staff-auth-logout.ts after exact refresh/session ownership locking"
+    ],
+    "invariants_error_checks": "Clock absence fails the transaction. Repeated revocation preserves the original revoked_at while any still-ACTIVE push registration is terminalized. The helper accepts a sessionId only; proof that it belongs to the presented logout credential is a caller prerequisite.",
+    "test_refs": [
+      "apps/api/test/staff-auth.integration.test.ts logout/revocation coverage",
+      "apps/api/test/issue215-staff-credential-races.test.ts:216-249 validates logout ordering against protected mutations",
+      "Staff push account-transition tests cover session-bound registration behavior; not rerun"
+    ],
+    "findings": [],
+    "limits": [
+      "No physical FCM provider behavior is involved or revalidated here"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-user-security-lock.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f812afccc187f697620f45bf0684b64739a3253922f5eb07fc3b1bbc6ef354f4",
+    "checkpoint": "C003",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        49
+      ]
+    ],
+    "feature": "Per-user staff credential race serialization",
+    "semantic_review_notes": "Uses a transaction-scoped PostgreSQL advisory lock derived from the user id to serialize security-sensitive login/refresh/session-revalidation ceremonies. Login rechecks the locked user is ACTIVE and the password hash is exactly the hash verified before entering the transaction. Refresh first resolves the credential owner, acquires the same user lock, and then the refresh path performs its exact credential/session row locks and validation.",
+    "callers": [
+      "StaffAuthService.login",
+      "StaffAuthService.refresh",
+      "staff-session-revalidation.ts",
+      "shift-presence race-sensitive security paths"
+    ],
+    "invariants_error_checks": "An absent refresh credential yields false without granting authority. Login returns false if user state/hash changed. The advisory key is domain-separated with staff-user-security:. This helper does not itself validate refresh expiry/reuse or session state; StaffAuthService performs those checks after the boundary lock.",
+    "test_refs": [
+      "apps/api/test/issue215-staff-credential-races.test.ts:154-249 observes advisory/session lock ordering under refresh/logout races",
+      "apps/api/test/shift-presence-session-races.integration.test.ts:19-82 verifies token replacement waits/fails across the same user boundary",
+      "apps/api/test/staff-auth.integration.test.ts includes bounded advisory-lock failure behavior",
+      "Not rerun in C003"
+    ],
+    "findings": [],
+    "limits": [
+      "The owner lookup before the refresh advisory lock is a selector step; exact refresh/session validation after locking remains required and is implemented in StaffAuthService, not here"
+    ]
+  },
+  {
+    "path": "apps/api/src/common/http/api-errors.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "cd7fcfb86fdfd4e8471869cb662e88801b5b9abdcd93de8127267efdb0ba9888",
+    "checkpoint": "C003",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        279
+      ]
+    ],
+    "feature": "Central API error normalization and safe HTTP exception construction",
+    "semantic_review_notes": "Maps expected database exhaustion to 503 without database detail, transport validation to REQUEST_INVALID/400, UnauthorizedException to a fixed staff-authentication-required response, presence errors through the dedicated presence mapper, and a closed status map for domain codes. Sensitive/resource-hiding classes have fixed safe messages; unknown errors collapse to INTERNAL_ERROR/500. apiHttpException emits only code/message/requestId and carries retryAfter out-of-body for the exception filter/header path.",
+    "callers": [
+      "ApiOperationRunner",
+      "presence error tests",
+      "guest/payment/management/staff controllers indirectly through runner"
+    ],
+    "invariants_error_checks": "No SQL/stack object is serialized for unmapped errors. Known codes without an entry in safeMessages may use the domain error's message, so safety depends on those error classes keeping messages fixed/non-sensitive; this file does not independently sanitize arbitrary strings for every mapped code. retryAfter is included only when numeric.",
+    "test_refs": [
+      "apps/api/test/presence-api-errors.test.ts",
+      "apps/api/test/mfa-http-registry.test.ts",
+      "apps/api/test/guest-t3-policy.test.ts",
+      "apps/api/test/dashboard-session-photo-errors.test.ts",
+      "apps/api/test/issue300-security/investigation-api-error-map.test.ts",
+      "Historical/source evidence only; not rerun"
+    ],
+    "findings": [],
+    "limits": [
+      "Full proof that every statusByCode producer has a safe fixed message spans many domain error classes outside this transferred subset"
+    ]
+  },
+  {
+    "path": "apps/api/src/common/http/api-exception.filter.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8f4ec901e2db9911f7910752254f78aae56ecc4e1324cc1357ee7733ffabbf10",
+    "checkpoint": "C003",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        276
+      ]
+    ],
+    "feature": "Global bounded-operation exception filter and telemetry fallback",
+    "semantic_review_notes": "Classifies only exact method/path patterns into bounded operation names, restores/sets request-id, applies extra no-store controls to staff-auth, guest-access and condition-photo operation classes, and preserves runner-produced HttpException status/body only when the request was already marked measured. For a routed operation that bypasses/fails before the runner, only BAD_REQUEST remains REQUEST_INVALID; every other exception is scrubbed to INTERNAL_ERROR/500. Retry-After is surfaced for numeric 429 metadata. Unexpected 500 logging contains only operation and bounded requestId.",
+    "callers": [
+      "HttpInfrastructureModule global APP_FILTER",
+      "operation route registries including guest/condition photo/payment/handoff/presence/staff auth"
+    ],
+    "invariants_error_checks": "Unclassified routes fall back to Nest BaseExceptionFilter. Observer failures after fallback response are swallowed. The measured flag prevents duplicate observation and lets runner-owned mapped responses pass through. Path classification strips the query string and does not put identifiers into operation names.",
+    "test_refs": [
+      "apps/api/test/http-infrastructure-ownership.test.ts verifies one global filter",
+      "apps/api/test/guest-no-store.integration.test.ts exercises safe/no-store guest error paths",
+      "check-in/guest-information integration suites wire the filter",
+      "Not rerun in C003"
+    ],
+    "findings": [],
+    "limits": [
+      "Operation registry completeness is distributed across route-registry files and controllers; exact physical HTTP behavior was not rerun"
+    ]
+  },
+  {
+    "path": "apps/api/src/common/http/api-operation-runner.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ca94f4a1d09e2cea9b3b06e714a2aa78ada72c4b116742893bf2e138d30385a2",
+    "checkpoint": "C003",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        94
+      ]
+    ],
+    "feature": "Measured API operation execution and error mapping",
+    "semantic_review_notes": "Runs ordinary operations directly and guest T3 operations through the bounded database-deadline wrapper, converts thrown errors through mapApiError/apiHttpException, and always records one bounded measurement in finally. It sets request.operationMeasured before invoking the observer so the global exception filter knows mapped errors were already measured. Optional enrichment is spread before core fields, so it cannot override duration, operation, outcome or requestId. Observer failures cannot change the business result/error.",
+    "callers": [
+      "Staff auth, guest, payment, management, incident and other controllers"
+    ],
+    "invariants_error_checks": "Guest-vs-staff mapping is selected only by an internal policy object/string, not request input. Database deadlines apply only to declared guestOperation policies. request-id fallback is a fixed placeholder if middleware was absent; the runner does not reflect arbitrary error objects.",
+    "test_refs": [
+      "apps/api/test/api-operation-runner.test.ts fully inspected; covers success/error measurement, enrichment core-field precedence and observer failure isolation",
+      "Guest T3 resilience/cost tests exercise deadline policy",
+      "Not rerun in C003"
+    ],
+    "findings": [],
+    "limits": [
+      "Controller correctness still depends on choosing the intended internal operation policy"
+    ]
+  },
+  {
+    "path": "apps/api/src/common/http/api-request.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7b3b376bb48f3712c54fa9557b0ce1bea0e12a24606d687535a52d26c22ab911",
+    "checkpoint": "C003",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        34
+      ]
+    ],
+    "feature": "Bounded request-id resolution middleware",
+    "semantic_review_notes": "Accepts only a single string x-request-id matching 1-128 ASCII alphanumeric/dot/underscore/hyphen characters; missing, array-valued, empty, oversized, Unicode, slash/control/injection-like values are replaced with a generated UUID. Middleware writes the same resolved value to request state and X-Request-Id response header before continuing.",
+    "callers": [
+      "Feature modules register RequestIdMiddleware",
+      "ApiOperationRunner and ApiExceptionFilter consume request.requestId"
+    ],
+    "invariants_error_checks": "Header/log injection characters cannot pass the allowlist. Array-valued duplicate-normalized IDs are not reflected. This middleware is correlation only and grants no authorization.",
+    "test_refs": [
+      "apps/api/test/api-request-id-boundary.test.ts fully inspected; exercises 128-char bound, control/header/path/SQL-like strings, arrays and middleware reflection",
+      "Not rerun in C003"
+    ],
+    "findings": [],
+    "limits": []
+  },
+  {
+    "path": "apps/api/src/common/http/api-security-bootstrap.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "76615d954316b063ed7d99b5b7de9d077b24fc86fa5db2b2bf699b70b6f42abb",
+    "checkpoint": "C003",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        48
+      ]
+    ],
+    "feature": "API browser-security headers and Swagger exposure gate",
+    "semantic_review_notes": "Applies global no-store plus nosniff, DENY/frame-ancestors none, no-referrer and denies browser camera/microphone/geolocation permissions. Swagger UI/document routes are registered only for exact development or test NODE_ENV; production, staging, missing and unknown values fail closed with no documentation registration. main.ts installs both controls globally. The comments intentionally leave HSTS and cross-origin isolation to ingress/application owners rather than falsely asserting them here.",
+    "callers": [
+      "apps/api/src/main.ts global middleware/bootstrap"
+    ],
+    "invariants_error_checks": "Unknown environment never exposes docs. This layer does not claim TLS/HSTS or COEP/COOP ownership. Security headers are response-only and do not replace endpoint authorization.",
+    "test_refs": [
+      "apps/api/test/api-security-bootstrap.test.ts fully inspected",
+      "apps/api/test/api-security-http.test.ts fully inspected and historically verifies real local HTTP docs absence/security headers in production/staging",
+      "Not rerun in C003"
+    ],
+    "findings": [],
+    "limits": [
+      "Actual production TLS/HSTS/ingress configuration remains an external release/security gate and was not probed"
+    ]
+  },
+  {
+    "path": "apps/api/src/common/http/condition-photo-operation-routes.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5f374bcb1370aa1015acb0f87f033ace464a5feff6035c091b9e8717981cc976",
+    "checkpoint": "C003",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        23
+      ]
+    ],
+    "feature": "Condition-photo operation telemetry route registry",
+    "semantic_review_notes": "Defines four exact method/path classifiers for upload, status, reconcile and state operations. Dynamic session/upload identifiers are matched by bounded path segments but never copied into operation names, keeping telemetry classification content-free.",
+    "callers": [
+      "ApiExceptionFilter operationRoutes expansion and condition-photo no-store classification"
+    ],
+    "invariants_error_checks": "Registry has no request parsing or authorization side effect. Matching is anchored at both ends, so suffix/prefix paths do not receive the operation label accidentally.",
+    "test_refs": [
+      "Condition-photo API/qualification tests cover the corresponding routes; ApiExceptionFilter uses this registry for safe fallback/no-store behavior",
+      "Not rerun in C003"
+    ],
+    "findings": [],
+    "limits": [
+      "Completeness against controller route registration was source-inspected, not live-enumerated"
+    ]
+  },
+  {
+    "path": "apps/api/src/common/http/guest-operation-routes.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1bbb8870fd9c6c78c5c9f5374169fbce0338ef0b9c476d7eb2f337e76a1a064c",
+    "checkpoint": "C003",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        73
+      ]
+    ],
+    "feature": "Guest operation telemetry/no-store classification",
+    "semantic_review_notes": "Defines exact anchored method/path classifiers for guest session/information, browser-session lifecycle, rating, push config/registration, payment projection and retrieval request/cancel. guestAccessOperations extends those with staff-issued guest-access issue/revoke, guest payment tip and handoff verification operation names so the exception filter consistently applies guest no-store behavior to both guest-facing and guest-credential lifecycle surfaces.",
+    "callers": [
+      "ApiExceptionFilter routedOperation and no-store classification"
+    ],
+    "invariants_error_checks": "Operation labels are static and never embed path identifiers. This is classification only: it neither authenticates guest credentials nor changes runner deadline policy by itself.",
+    "test_refs": [
+      "apps/api/test/guest-no-store.integration.test.ts exercises no-store across guest success/error surfaces",
+      "Guest browser/payment/retrieval/rating integration suites cover corresponding route families",
+      "Not rerun in C003"
+    ],
+    "findings": [],
+    "limits": [
+      "Registry completeness remains coupled to future controller-route additions; current baseline callers were source-inspected"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-restoration-hint.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "66c88861a88da2dbf0e8accbe6d0ed33264b4b59efc6adfae174747bb813fc92",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        205
+      ]
+    ],
+    "feature": "Strict logical-session-bound selected-scope restoration hint persistence",
+    "semantic_review_notes": "Produces only minimal authority selectors plus organization and validated logical staffAuthSessionId, never access tokens/names/capabilities. Strict parsing requires version 1, UUID-shaped identifiers and exact key sets for each authority. Storage is sessionStorage; reads distinguish missing/invalid/unavailable. Replacement first retires the prior hint, and failed writes attempt removal so an older accepted scope is not silently retained. If removal itself is blocked but writing remains possible, an empty invalid tombstone is used.",
+    "callers": [
+      "use-selected-scope-lifecycle.ts persistence/restore path",
+      "selected-scope-restoration.ts consumes the parsed selectors"
+    ],
+    "invariants_error_checks": "A restorable hint cannot be created without validated staff-auth continuity. Storage exceptions grant no scope; unavailable storage returns unavailable and lifecycle code restores nothing. Exact-key parsing rejects stale extra fields or unknown authority shapes.",
+    "test_refs": [
+      "selected-scope-restoration-hint.test.ts fully inspected: all authority variants, no-sensitive-data serialization, malformed/extra keys, read/write/remove failures, tombstone fallback and missing continuity",
+      "Not rerun in C003"
+    ],
+    "findings": [],
+    "limits": [
+      "SessionStorage is only a restoration hint; server revalidation remains mandatory and is performed by a separate file"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-restoration.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f248fd357471b54a1bf4151bfcec59241d32e92ae85bd2a980c008388e50847c",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        156
+      ]
+    ],
+    "feature": "Server-authoritative reconstruction of a persisted dashboard scope",
+    "semantic_review_notes": "Never trusts the stored presentation object as authority. Company Admin restoration resolves a fresh server context and requires exact organization/scope plus active selected location when location-scoped. Supervisor restoration searches fresh active scopes for exact organization, membership, location and shift. Location Manager and organization-only variants page authoritative organization/location lists and require exact IDs plus ACTIVE location. Pagination is bounded to 100 pages of 100, detects repeated cursors and fails rather than looping indefinitely.",
+    "callers": [
+      "use-selected-scope-lifecycle.ts authenticated restoration cycle"
+    ],
+    "invariants_error_checks": "Auth/authorization DashboardApiError is classified as definitive restoration failure. Mismatch returns null rather than constructing authority from the hint. AbortSignal is threaded to authoritative loaders. Pagination non-advance or bound exhaustion throws, which lifecycle treats as transient/preserve rather than authorizing stale scope.",
+    "test_refs": [
+      "selected-scope-restoration.test.ts fully inspected for exact company/supervisor matching and mismatch denial",
+      "selected-scope-restoration-location-manager.test.ts inspected for LM organization/location restoration/pagination",
+      "Not rerun in C003"
+    ],
+    "findings": [],
+    "limits": [
+      "Authoritative endpoint correctness belongs to dashboard-scope/backend consumers outside this record"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-revalidation-policy.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "135efcefd085016a7d796d7c46f1426ce3910d73f0f2384cccd7aeeb5ec506d0",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        116
+      ]
+    ],
+    "feature": "Selected-scope revalidation correlation keys and failure policy",
+    "semantic_review_notes": "Revalidation keys bind sessionGeneration, identityGeneration, selectionRevision, access requirement and a detailed authority key. Authority keys include exact organization/location and location status for manager/admin location scopes, or exact membership/location/active-shift identity/status for supervisor. Entitlement is separated from auth/MFA/authorization denial; other failures remain error. Helper comparisons require exact management-scope identity and active selected location.",
+    "callers": [
+      "use-selected-scope-revalidation.ts",
+      "use-navigation-authority.ts",
+      "selected-scope-restoration.ts"
+    ],
+    "invariants_error_checks": "Key changes immediately mask prior authority state in consumers. MFA denial is classified denied but higher-level policy decides not to clear the underlying scope solely for MFA. Scope comparison never treats two different location IDs as equal.",
+    "test_refs": [
+      "use-selected-scope-revalidation.test.ts inspects requirement-sensitive keys and failures",
+      "navigation-authority-generation.test.ts verifies identity/session/revision/exact-scope key separation",
+      "authority-separation.test.ts verifies MFA versus invalid-base handling",
+      "Not rerun"
+    ],
+    "findings": [],
+    "limits": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-state.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1da35f2d263182ad14d008dac8d222fbe5f5dad463847bac4441eb7f05fefd35",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        81
+      ]
+    ],
+    "feature": "Selected-scope epoch/revision state machine",
+    "semantic_review_notes": "Every select/reselect/clear advances selectionRevision; identity change resets revision to 1 and publishes settled/sync state. Restoration settlement is accepted only while still checking and only when current identity, current auth session generation, stored identity and selection revision all match the expected epoch. Conditional scope clearing uses the same epoch checks, preventing a stale denial from clearing a newer A→B→A selection.",
+    "callers": [
+      "use-selected-scope-lifecycle.ts",
+      "navigation/revalidation generation tests"
+    ],
+    "invariants_error_checks": "Stale async results return the existing state object unchanged. Initial state grants no scope and uses preserve/checking until restoration settles. State helpers contain no persistence/network authority themselves.",
+    "test_refs": [
+      "selected-scope-restoration-lifecycle.test.ts fully inspected for identity/session/revision fencing and transient preserve semantics",
+      "navigation-authority-generation.test.ts verifies stale clear and revision behavior",
+      "Not rerun"
+    ],
+    "findings": [],
+    "limits": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/standalone-foundation-panel.tsx",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "23690ec1cc68647188a571dc1a39e777da459bef0b8872b43d1cca156621596e",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        19
+      ]
+    ],
+    "feature": "Standalone foundation presentation container",
+    "semantic_review_notes": "Pure client presentation wrapper around Panel and children; no authority, persistence, API call, state transition or unsafe HTML behavior is introduced.",
+    "callers": [
+      "UnselectedScopeFoundation and standalone account/security foundation surfaces"
+    ],
+    "invariants_error_checks": "Children are ordinary React nodes; component contains no branching that can grant or retain access.",
+    "test_refs": [
+      "Presentation coverage occurs through parent foundation/component tests; no direct semantic test needed for this wrapper",
+      "Not rerun"
+    ],
+    "findings": [],
+    "limits": [
+      "Visual geometry/accessibility beyond wrapper structure is a parent/UI concern"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/unselected-scope-foundation.tsx",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4d125f0b32a4219222d0c2d2445906f5e68e99c306f54e986bee09877c06bbbd",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        71
+      ]
+    ],
+    "feature": "No-scope foundation entry with MFA and account-security presentation",
+    "semantic_review_notes": "Renders ScopeEntry with current identity/session generations and route access requirement, raising a standalone MFA ceremony when ScopeEntry reports MFA-required. MFA assurance success closes the ceremony and increments a key generation so ScopeEntry reloads fresh authority. Account Security navigation is shown only when the separate account-security access snapshot is eligible. Scope selection is delegated to SelectedScopeProvider; logout button is disabled while the logout hook is pending.",
+    "callers": [
+      "Foundation shell when authenticated but no selected scope",
+      "ScopeEntry",
+      "AccountSecurityStandalone"
+    ],
+    "invariants_error_checks": "The component does not create scope authority itself. MFA UI visibility is not treated as authority; ScopeEntry is remounted after assurance and must reread server state. Security link is hidden for unknown/denied account eligibility.",
+    "test_refs": [
+      "Scope/foundation and account-security navigation tests exercise the delegated authority paths; no new tests run",
+      "Not rerun in C003"
+    ],
+    "findings": [],
+    "limits": [
+      "Actual MFA backend correctness includes existing SEC-011 and is not established by this presentation component"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/use-foundation-logout.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0aabe78161608886949e3e6d10db0f5d4b6a924d980325c3f20468c7bae8c21a",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        19
+      ]
+    ],
+    "feature": "Foundation logout request UI guard",
+    "semantic_review_notes": "Prevents same-render duplicate logout requests with a pending flag, invokes the auth-provider logout once, intentionally swallows the UI-level rejection because StaffAuthClient/Provider publish logout-unconfirmed fail-closed state, then reenables the button for an explicit retry.",
+    "callers": [
+      "Foundation shell logout controls",
+      "StaffAuthProvider.logout via injected callback"
+    ],
+    "invariants_error_checks": "Catching here does not restore a local session. Correct fail-closed persistence across reload depends on StaffAuthClient.hasUnconfirmedLogout, reviewed separately and found to have a restricted-storage gap.",
+    "test_refs": [
+      "staff-auth-client.test.ts covers successful and failed logout state below this UI hook",
+      "Not rerun"
+    ],
+    "findings": [
+      "C003-DASH-AUTH-01-related"
+    ],
+    "limits": [
+      "The hook itself is not the root cause of the cross-reload logout marker gap"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/use-navigation-authority.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "55850a9cf9c697899dcd9be60418407fca0e9e5af953a58c1cf16160270164d4",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        138
+      ]
+    ],
+    "feature": "Generation-fenced navigation authority loader",
+    "semantic_review_notes": "Builds navigation authority keys from session generation, identity generation, selection revision and exact selected-scope authority key. Each cycle begins a ScopeGenerationGuard ticket, immediately publishes checking/no authority, and accepts success/error only for the current ticket. Cleanup invalidates the generation. When no scope exists it resolves to noNavigationAuthority rather than carrying old eligibility.",
+    "callers": [
+      "Foundation navigation shell",
+      "resolve-navigation-authority.ts"
+    ],
+    "invariants_error_checks": "Old eligible presentation is masked immediately when key changes. Late promises that ignore AbortSignal cannot publish because guard.isCurrent is rechecked. Failures publish null authority/error, never stale authority.",
+    "test_refs": [
+      "navigation-authority-generation.test.ts fully inspected; tests exact key dimensions, A→B→A, late success/failure, immediate revocation masking",
+      "authority-separation.test.ts verifies navigation eligibility cannot authorize protected route use",
+      "Not rerun"
+    ],
+    "findings": [],
+    "limits": [
+      "Navigation is presentation eligibility only; protected routes independently revalidate authority"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/use-selected-scope-lifecycle.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4f79ff5090db116c24c48b85b9ce06a8b6a7ae35121270451422d07210e80aa5",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        239
+      ]
+    ],
+    "feature": "Selected-scope restoration, persistence and identity/session lifecycle",
+    "semantic_review_notes": "Identity changes invalidate restoration work and reset local scope state. Non-authenticated states invalidate restore, remove the hint and clear local selected scope. Authenticated restoration requires a valid hint whose staffAuthSessionId exactly equals current logical-session continuity, then reconstructs authority from fresh server data. Restore adoption is fenced by identity/session/selection epoch. Invalid/missing hints sync-clear; storage-unavailable and transient restore failures settle unselected while preserving any existing hint. Definitive auth/authorization restoration failures sync-clear. Persistence occurs only after settled sync state and uses the current logical session id.",
+    "callers": [
+      "SelectedScopeProvider/foundation shell",
+      "StaffAuthContext",
+      "restoreSelectedDashboardScope"
+    ],
+    "invariants_error_checks": "No old hint is adopted across changed logical auth session. Late restore cannot overwrite manual selection or logout. When storage cannot be read, no scope is granted. clearScopeIfEpoch prevents stale route denial from clearing newer selection.",
+    "test_refs": [
+      "selected-scope-restoration-lifecycle.test.ts fully inspected",
+      "selected-scope-restoration-hint.test.ts and restoration tests inspect storage/server reconstruction",
+      "navigation-authority-generation.test.ts validates stale clears",
+      "Not rerun"
+    ],
+    "findings": [],
+    "limits": [
+      "A transient failure intentionally preserves the hint for a future reload but presents no current selected scope"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/use-selected-scope-revalidation.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "81c4c365b8b11d39b04307b61cda0e87019ebd860248f1ca9a3ca0cf4ecf1b4b",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        235
+      ]
+    ],
+    "feature": "Protected-route selected-scope revalidation and safe invalidation policy",
+    "semantic_review_notes": "Every route cycle is keyed/fenced to session, identity, selection revision, access requirement and exact scope. Null scope is denied. Server revalidation result publishes only on a current guard ticket. Ordinary access denial clears the scope when appropriate, but VISIT_CONTACTS and MANAGEMENT_AUDIT feature-level authorization denial is distinguished from invalid base scope by revalidating FOUNDATION_ENTRY when necessary. MFA denial never by itself proves the selected scope invalid. Auth denial is treated as invalid scope/session boundary.",
+    "callers": [
+      "Protected foundation route shell",
+      "revalidate-selected-scope.ts",
+      "clearScopeIfEpoch callback"
+    ],
+    "invariants_error_checks": "Guard and disposed checks occur before state publication and again after any secondary base revalidation. Denial callback carries the exact epoch so stale route failures cannot clear current scope. Entitlement remains distinct from authorization denial.",
+    "test_refs": [
+      "use-selected-scope-revalidation.test.ts inspected for key/access-requirement behavior",
+      "authority-separation.test.ts fully inspected for feature-vs-base separation and MFA non-invalidation",
+      "navigation-authority-generation.test.ts covers epoch clears",
+      "Not rerun"
+    ],
+    "findings": [],
+    "limits": [
+      "Correctness of server authority projections is outside this client hook"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/workspace-foundation.tsx",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "07266df86e91247054cffd4fea4ee2bd779a183cd47fa0ebb986622464917201",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        19
+      ]
+    ],
+    "feature": "Authorized workspace placeholder presentation",
+    "semantic_review_notes": "Pure localized presentation panel showing workspace title/readiness text. It performs no scope selection, authorization decision, data fetch or mutation and therefore cannot grant access independently of the enclosing protected foundation.",
+    "callers": [
+      "Protected workspace route/foundation after authority selection"
+    ],
+    "invariants_error_checks": "No user data or unsafe HTML is rendered directly; strings come through the typed locale dictionary.",
+    "test_refs": [
+      "Covered indirectly by foundation/presentation route tests; no dedicated behavior requiring runtime execution",
+      "Not rerun"
+    ],
+    "findings": [],
+    "limits": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/api/api-origin.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3bd3042dd20a2a20cea30bc7ce89d59a39df20e2a9051393e316032da78c9cc7",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        60
+      ]
+    ],
+    "feature": "Dashboard API origin/rewrite configuration boundary",
+    "semantic_review_notes": "Production requires an explicit API_ORIGIN. Configured values must parse as absolute HTTP(S) origins with no credentials, path, query, fragment or backslash-normalized contamination. Remote production HTTP is rejected; the only cleartext production exception is literal 127.0.0.1 or [::1] loopback with optional port. Non-production missing configuration falls back to localhost:3001. Staff rewrite keeps /v1/staff/:path* aligned with refresh-cookie routing.",
+    "callers": [
+      "Dashboard Next.js rewrite/configuration path"
+    ],
+    "invariants_error_checks": "localhost hostname is deliberately rejected as a production plaintext exception; only literal loopback addresses qualify. URL normalization is followed by lexical and pathname/search/hash checks to reject normalized-away path contamination.",
+    "test_refs": [
+      "apps/dashboard/src/lib/api/api-origin.test.ts fully inspected; covers missing production origin, credentials, path/query/fragment/backslash, non-HTTP, remote cleartext, loopback and rewrite shape",
+      "Not rerun"
+    ],
+    "findings": [],
+    "limits": [
+      "This validates configured origin shape, not actual production TLS certificate/ingress health"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/api/dashboard-api-types.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "13cc77e911772cabc89497c1daac5cc5ce4f92069055e3eb61e07446863e92ff",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        30
+      ]
+    ],
+    "feature": "Dashboard typed JSON/binary request contracts",
+    "semantic_review_notes": "Declaration-only contracts restrict ordinary methods, query primitive values, optional auth reconciliation callback and binary GET/POST expected content type/response bytes. Runtime validation is explicitly delegated to schemas and DashboardApiClient; these TypeScript declarations create no authority or sanitization by themselves.",
+    "callers": [
+      "dashboard-api-client.ts and feature API clients"
+    ],
+    "invariants_error_checks": "No executable branch or side effect. Type safety is compile-time only and cannot validate hostile wire data.",
+    "test_refs": [
+      "Exercised through dashboard-api-client JSON/binary tests; historical only",
+      "Not rerun"
+    ],
+    "findings": [],
+    "limits": [
+      "Runtime schema enforcement belongs to DashboardApiClient and supplied contract schemas"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/api/dashboard-binary-response.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "350d408d487e3089bf11e6dfc794d16c1d939b59e695b457cf5414b16beb9695",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        23
+      ]
+    ],
+    "feature": "Strict binary response metadata validation",
+    "semantic_review_notes": "Requires exact expected Content-Type. Authenticated JPEG responses are intentionally treated as in-memory protected media and receive no download filename. CSV/PDF artifacts require an exact quoted attachment filename restricted to alphanumeric-leading safe characters plus dot/underscore/hyphen and must end with the expected extension.",
+    "callers": [
+      "DashboardApiClient.requestBinary",
+      "reports export API",
+      "protected session photo client"
+    ],
+    "invariants_error_checks": "Missing/mismatched content type or disposition, inline/unquoted/path-traversal/backslash filename, empty filename and wrong extension all fail as MALFORMED_RESPONSE. Server filename is never accepted for JPEG rendering.",
+    "test_refs": [
+      "dashboard-api-client-binary.test.ts:179-222 fully covers exact CSV/PDF headers and malformed/path filename cases",
+      "Protected JPEG path tested separately in protected-photo-get and jpeg-body tests",
+      "Not rerun"
+    ],
+    "findings": [],
+    "limits": [
+      "Non-JPEG binary body size is not bounded in this helper; export-size enforcement is a separate server/API contract"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/api/dashboard-protected-jpeg-body.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0bbab7c9e09151794c97ef660290ef0eda6cf9998859feeea96edda7c1878212",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        35
+      ]
+    ],
+    "feature": "Streaming size boundary for authenticated protected JPEG bytes",
+    "semantic_review_notes": "Rejects malformed or advertised Content-Length above 8 MiB before reading, requires a response body, streams chunks while enforcing the same cumulative 8 MiB bound, and only allocates the final contiguous Uint8Array after the bounded stream completes. Caller-provided AbortSignal is checked each loop. Reader lock is always released and over-limit/aborted bodies are cancelled best-effort.",
+    "callers": [
+      "DashboardApiClient.requestBinary for expectedContentType image/jpeg",
+      "features/operations/session-photos/photo-client.ts"
+    ],
+    "invariants_error_checks": "An omitted Content-Length does not bypass the streaming cap. This helper bounds bytes but does not decode/verify JPEG magic; exact server Content-Type is checked before it is called.",
+    "test_refs": [
+      "dashboard-protected-jpeg-body.test.ts fully inspected for early Content-Length rejection and unadvertised streaming overflow",
+      "protected-photo-get.test.ts exercises authenticated GET/abort boundary",
+      "Not rerun"
+    ],
+    "findings": [],
+    "limits": [
+      "No image decoder fuzzing/physical browser memory measurement was performed"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/app-info.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8a7f6c7da049def366e56d4ea07ccb3d2c3243cebbb76fb4d31f51fd619375be",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        4
+      ]
+    ],
+    "feature": "Static dashboard application metadata",
+    "semantic_review_notes": "Exports fixed title/description strings only; no request, credential, tenant or environment data is incorporated.",
+    "callers": [
+      "Dashboard metadata/layout presentation"
+    ],
+    "invariants_error_checks": "No executable security/state behavior.",
+    "test_refs": [
+      "Static metadata is trivial and covered through application composition; not rerun"
+    ],
+    "findings": [],
+    "limits": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/auth/staff-auth-abort.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ec2dde425f23f0cfc44c122b5996471807eba4852e0f66b584c2c66939a4d076",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        26
+      ]
+    ],
+    "feature": "Per-waiter abort wrapper for shared auth work",
+    "semantic_review_notes": "Normalizes AbortSignal reason and wraps a promise so one caller can stop waiting without cancelling or mutating the shared underlying work. Abort listener is one-shot and removed on underlying resolve/reject. This is used by single-flight StaffAuthClient.refresh so one request cancellation cannot cancel refresh needed by other callers.",
+    "callers": [
+      "StaffAuthClient.refresh"
+    ],
+    "invariants_error_checks": "Abort rejects only the wrapper; underlying promise may still settle and update auth state according to the identity fence. Listener cleanup prevents accumulation after normal settlement.",
+    "test_refs": [
+      "staff-auth-client/dashboard-api-client tests exercise signal-aware shared refresh indirectly",
+      "Not rerun"
+    ],
+    "findings": [],
+    "limits": [
+      "No direct standalone unit test was found; semantics are simple promise/event behavior"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/auth/staff-auth-client.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4ba50cb3692c65e441cfc2d8a13337a421fbffb6d28c03a76b1d65abb9a169d4",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        292
+      ]
+    ],
+    "feature": "Dashboard in-memory staff auth, refresh continuity and fail-closed logout state",
+    "semantic_review_notes": "Keeps access tokens in memory, uses cookie-inclusive/no-store POSTs for login/refresh/logout, strict-parses access responses, single-flights refresh, and fences late login/refresh results by identityGeneration. sessionGeneration advances on every applied session; identityGeneration advances on login, logout/clear or logical staffAuthSessionId replacement/loss. A definitive refresh rejection clears identity only when the initiating fence is still current; transient refresh failure preserves the prior session. Logout marks unconfirmed and clears local identity before network dispatch so the current runtime stays fail-closed even when logout is uncertain.",
+    "callers": [
+      "StaffAuthProvider",
+      "DashboardApiClient auth provider",
+      "use-selected-scope-lifecycle via continuity/generations"
+    ],
+    "invariants_error_checks": "Malformed successful auth response is never stored. Late refresh after logout cannot resurrect state because identity fence changes. However, logout-unconfirmed persistence is best-effort localStorage: markLogoutUnconfirmed keeps only an in-memory fallback when setItem throws, while hasUnconfirmedLogout returns false when a new runtime's localStorage read throws. If the server logout request failed and the refresh cookie remains valid, a reload in a storage-denied environment can therefore reach StaffAuthProvider's automatic refresh path instead of remaining logout-unconfirmed.",
+    "test_refs": [
+      "staff-auth-client.test.ts fully inspected: in-memory tokens, generation fences, single-flight refresh, late-refresh retirement, failed-logout marker with working storage, malformed success, transient/definitive refresh",
+      "staff-auth-continuity.test.ts fully inspected for logical-session continuity changes",
+      "No test denies localStorage during failed logout then creates a fresh client/provider",
+      "Not rerun"
+    ],
+    "findings": [
+      "C003-DASH-AUTH-01"
+    ],
+    "limits": [
+      "Source-level HIGH confidence; no browser/reload execution allowed in this task. Preconditions: logout did not complete on server, browser retains valid refresh cookie, and localStorage set/get is unavailable across reload"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/auth/staff-auth-continuity.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "036f7126c957264f9da6093e943499fc13c4b7c4f52e229e57268fe29ecf4674",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        12
+      ]
+    ],
+    "feature": "Logical staff-auth session continuity header parser",
+    "semantic_review_notes": "Reads the dedicated continuity response header and accepts it only through the shared UUID continuity schema. Missing, duplicate-normalized/malformed or legacy absence yields null rather than inventing a session identity; valid bearer/cookie auth remains usable for legacy compatibility, while StaffAuthClient treats loss/change from an established continuity value as an identity boundary.",
+    "callers": [
+      "StaffAuthClient login and refresh applySession"
+    ],
+    "invariants_error_checks": "Header value is presentation/fencing metadata, not an authentication credential. Invalid metadata cannot itself authenticate or select a scope.",
+    "test_refs": [
+      "staff-auth-continuity.test.ts fully inspected: missing/malformed compatibility, loss of established continuity, same-session refresh and changed-session identity fence",
+      "Not rerun"
+    ],
+    "findings": [],
+    "limits": [
+      "Legacy null continuity cannot support persisted selected-scope restoration; lifecycle intentionally refuses to create a restorable hint without it"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/auth/staff-auth-status.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "595a188829fb67dfc51a8ad37051ad20d89d01f877f1006653060cde9ae66781",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        14
+      ]
+    ],
+    "feature": "Dashboard auth status classification",
+    "semantic_review_notes": "Defines distinct initializing/authenticated/logout-unconfirmed/refresh-unavailable/unauthenticated states. Only a StaffAuthRefreshError marked definitive becomes unauthenticated; all other refresh failures become refresh-unavailable so transient network/malformed conditions do not incorrectly assert that server authentication ended.",
+    "callers": [
+      "StaffAuthProvider bootstrap/manual refresh"
+    ],
+    "invariants_error_checks": "Classification is conservative: unknown errors do not grant authenticated state and do not mislabel server logout. logout-unconfirmed is set by the provider/client path rather than inferred here.",
+    "test_refs": [
+      "staff-auth-context.test.ts and staff-auth-client.test.ts cover definitive/transient behavior",
+      "Not rerun"
+    ],
+    "findings": [
+      "C003-DASH-AUTH-01-related"
+    ],
+    "limits": [
+      "Cross-reload logout-unconfirmed persistence gap is in StaffAuthClient storage handling, not this classifier"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/i18n/dictionaries.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f502bb5317ed85ba597f052599227efeb336caab02f23091c52bb85786c98ff5",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        194
+      ]
+    ],
+    "feature": "Typed English/Arabic foundation and MFA translation dictionaries",
+    "semantic_review_notes": "English is the source-key dictionary and Arabic is typed as Record<keyof English,string>, giving compile-time key parity for this module. Strings cover foundation scope/auth/logout, MFA enrollment/recovery/step-up and basic navigation preferences. No interpolation or unsafe HTML is present in this file; consumers render ordinary React text.",
+    "callers": [
+      "DashboardLocaleProvider t()",
+      "foundation, account-security and preference components"
+    ],
+    "invariants_error_checks": "A missing/extra Arabic key fails TypeScript shape checking. This does not establish linguistic quality or runtime locale synchronization.",
+    "test_refs": [
+      "header-preferences.test.tsx consumes provider/dictionary in server rendering",
+      "Multiple feature/component tests render translated keys; no dedicated restricted-storage locale test found",
+      "Not rerun"
+    ],
+    "findings": [],
+    "limits": [
+      "Full linguistic translation review was not performed"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/i18n/locale-provider.tsx",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e45b7641b6584139ba32636a027ba843311626300cc8cb8da538894328f4e188",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        69
+      ]
+    ],
+    "feature": "Dashboard locale external-store provider and document direction synchronization",
+    "semantic_review_notes": "Uses useSyncExternalStore with readDashboardLocale as the authoritative client snapshot and subscribes to storage plus a same-window custom locale event. Derived direction and translation function both follow that snapshot; an effect writes snapshot locale/direction to the document element. setLocale delegates to commitDashboardLocale rather than holding an in-memory preference.",
+    "callers": [
+      "AppProviders wraps dashboard UI",
+      "header preferences and all useDashboardLocale consumers",
+      "locale.ts commit/read store"
+    ],
+    "invariants_error_checks": "Provider rejects use outside context. Because the external snapshot is persistence-derived, a storage implementation that throws causes readDashboardLocale to stay default en even after commitDashboardLocale dispatches the change event; there is no in-memory fallback snapshot. That creates a deterministic state/DOM divergence with locale.ts under restricted storage.",
+    "test_refs": [
+      "header-preferences.test.tsx covers normal provider rendering only",
+      "Repo search found no Dashboard test where localStorage get/set throws during locale change",
+      "Customer CUST-001/#356 documents the same architectural failure in the separate Customer locale/theme implementation; Dashboard path was not included there",
+      "Not rerun"
+    ],
+    "findings": [
+      "C003-DASH-I18N-01"
+    ],
+    "limits": [
+      "HIGH source-confidence / runtime-unverified in this C003 task; exact affected browser/privacy modes require controlled browser reproduction"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/i18n/locale.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1184673a37f359368c2e266d30b51022b3af6745016f5d79b5cafd39ef163fcd",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        39
+      ]
+    ],
+    "feature": "Dashboard locale persistence, direction and same-window change event",
+    "semantic_review_notes": "Supports only en/ar and maps Arabic to RTL. readDashboardLocale returns default en when localStorage is unavailable or malformed. commitDashboardLocale best-effort writes localStorage but, even when that write throws, still mutates document lang/dir to the requested locale and dispatches the custom locale event. Since LocaleProvider then re-reads the throwing store and remains en, requested Arabic does not become the React translation snapshot while the document may be marked ar/rtl.",
+    "callers": [
+      "DashboardLocaleProvider",
+      "header locale control",
+      "document bootstrap uses the same storage key"
+    ],
+    "invariants_error_checks": "Unsupported stored values fail to default en safely. The defect is not authorization/security escalation; it is a restricted-storage i18n state-consistency failure, related in root cause to Customer CUST-001 but in a separate Dashboard implementation.",
+    "test_refs": [
+      "No direct dashboard locale.ts unit test found by repository search",
+      "Dashboard E2E locale tests write localStorage successfully and manually dispatch the event",
+      "document-bootstrap-script.ts catches localStorage failure but supplies no runtime in-memory locale state",
+      "Not rerun"
+    ],
+    "findings": [
+      "C003-DASH-I18N-01"
+    ],
+    "limits": [
+      "Source-level HIGH confidence, browser reproduction not performed under C003 constraints"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/maps/google-maps-sdk.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "31992a4fb2bc42d41afed4fc49ca40ec4ed996b2e1e8d7f296be8c4dbaba3066",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        176
+      ]
+    ],
+    "feature": "Shared Google Maps SDK loader, locale pinning and provider-failure bridge",
+    "semantic_review_notes": "Rejects missing API key, installs one gm_authFailure bridge, single-flights SDK loading, uses the official async Google Maps URL with marker-only library, quarterly channel and requested language, preserves an existing script nonce, and bounds loading to 15 seconds. Network/timeout failure cleans script/callback and allows retry; provider authorization failure is sticky and notifies active subscribers. The first successfully loaded SDK language is intentionally process-fixed and exposed through googleMapsLanguage rather than silently pretending a later locale reloaded it.",
+    "callers": [
+      "OperationalGoogleMap",
+      "attendance-zone edit map",
+      "attendance-zones overview map"
+    ],
+    "invariants_error_checks": "Retired callback cannot settle a later retry. Pending load is not bypassed if Google globals appear early. Operational/edit-map callers compare SDK locale to UI locale and show reload guidance; overview map recreates on locale but does not itself expose that mismatch guidance, a caller presentation limitation rather than a loader authority defect.",
+    "test_refs": [
+      "google-maps-sdk.test.ts fully inspected: missing key, fixed first language, single-flight/nonce, early globals, retry, timeout, auth failure and bridge ownership",
+      "shift-presence-map-lifecycle.spec.ts historically verifies Arabic-first SDK remains fixed and edit UI reports language reload",
+      "Not rerun"
+    ],
+    "findings": [],
+    "limits": [
+      "Real Google provider/network/key restrictions were not exercised; first-language pinning requires page reload for provider base-label language change by design"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/mfa/dashboard-mfa-client.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "81bb8ea1dfb99a6b613df61f3ceef26ad9c8b04191718235033e435997ad6b30",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        106
+      ]
+    ],
+    "feature": "Typed Dashboard MFA transport wrapper",
+    "semantic_review_notes": "Uses fixed /v1/staff/auth/mfa routes. State is GET; enrollment begin/confirm, step-up, self-recovery and recovery-code reissue are POSTs. Mutation inputs are parsed by shared contracts before transport and responses are parsed by DashboardApiClient schemas. Provisioning secret and recovery-code material is returned to the immediate caller only; this client class stores no ceremony secret/code fields and contains no automatic mutation replay.",
+    "callers": [
+      "AccountSecurityAccessProvider/account security ceremonies",
+      "SensitiveMfaDialog",
+      "VisitContactSensitiveMfa"
+    ],
+    "invariants_error_checks": "This wrapper does not interpret UI state as assurance; authoritative MFA state/results come from backend. Failed POST promises are returned to caller without local retry. Existing SEC-011 same-user recovery ceremony-binding issue is backend semantics, not introduced or repaired here.",
+    "test_refs": [
+      "dashboard-mfa-client.test.ts fully inspected: real route selection, no retained secret/recovery code in client object, exactly one POST per sensitive ceremony invocation",
+      "Account security/provider callers source-inspected for generation fencing/state rereads",
+      "Not rerun"
+    ],
+    "findings": [
+      "SEC-011-related-existing"
+    ],
+    "limits": [
+      "Backend MFA ceremony correctness remains governed by existing issue #363/SEC-011; no runtime MFA test executed"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/account-security-navigation.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "27669598f053d255a5190760a9bfb9d1e5e41814d173cdf34bc584f07e3a9b95",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        56
+      ]
+    ],
+    "feature": "Account-security navigation presentation reconciliation",
+    "semantic_review_notes": "Converts only IMPLEMENTED registrations whose IDs appear in the server/presentation destination set. Account Security is independently removed from base navigation then re-added only when account-level eligibility is true and an IMPLEMENTED security registration exists. Final ordering follows the canonical registration list rather than caller-controlled destination order.",
+    "callers": [
+      "Dashboard navigation composition with AccountSecurityAccessProvider eligibility"
+    ],
+    "invariants_error_checks": "This is presentation gating, not protected-route authority. Unknown/ineligible security state removes the item rather than retaining stale visibility. Labels are chosen only from typed en/ar registration labels.",
+    "test_refs": [
+      "account-security-navigation.test.ts fully inspected: eligible adds Security independently of selected role; unknown/denied removes it",
+      "Protected security route itself has separate authority checks",
+      "Not rerun"
+    ],
+    "findings": [],
+    "limits": [
+      "Navigation visibility never substitutes for server authorization"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/index.ts",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b119894ee8eaa1a12c6a399d4a9bc0711729ee2a4808d2e311a7664ca8608171",
+    "checkpoint": "C003",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        32
+      ]
+    ],
+    "feature": "Dashboard navigation public module surface",
+    "semantic_review_notes": "Pure re-export barrel for navigation registrations, authority helpers, registry/landing helpers and types. It introduces no alternate implementation, state, permission check or side effect and therefore cannot bypass the exported modules' authority semantics.",
+    "callers": [
+      "Dashboard navigation consumers importing the consolidated navigation module"
+    ],
+    "invariants_error_checks": "No executable branch. Export availability is compile/build-time only.",
+    "test_refs": [
+      "account-security-navigation.test.ts imports dashboardNavigationRegistrations through this barrel",
+      "Navigation registry/authority tests cover exported implementations; not rerun"
+    ],
+    "findings": [],
+    "limits": []
+  }
+]

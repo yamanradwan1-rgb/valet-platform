@@ -1,0 +1,1442 @@
+[
+  {
+    "path": "apps/customer/qa/issue-338/browser-compare.mjs",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b946d47403366f1319dca2d94e76898cfc5ef2e6182af449dcf36bd4db7db11f",
+    "lines": 101,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/qa/issue-338/live-browser.mjs",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d560b50452e6e8b13bf84e80119c5ec092991572c0a556d976df85a5b338ca4e",
+    "lines": 102,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/qa/issue-338/native-browser-zoom.mjs",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c841f31edf398b16bf5ca9d06c8dd28e82488fe6f65ff1753fb1c74d12906911",
+    "lines": 11,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/qa/issues-312-317-318/dev.mjs",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "32bcb8cf16ea9e03ba632ac70009f86b527e95e1eb0491efbadc55919c00c38e",
+    "lines": 39,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/qa/issues-312-317-318/fixture.mjs",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c195539c60ae7a3c52034d2173cce4d6dc06791a8b4ab8be90d83c6f3d9be038",
+    "lines": 84,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/qa/issues-312-317-318/report.mjs",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f10b55832938fd9551e9e6e66b93ff9669101bd23b0ea31f83449866fbbda745",
+    "lines": 96,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/qa/issues-312-317-318/visual.mjs",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "11ea294f03a25abf7e9bab6e01dfde72da1705b770fc598964f552f43541712a",
+    "lines": 223,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/qa/issues-312-317-318/zoom-matrix.mjs",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "afa04a10b4e92f106a567be95fd89d4d60c23cc9b836541cbcdc5af96de165b5",
+    "lines": 211,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/qa/issues-312-317-318/zoom.mjs",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "09200cc7ffd48bb75bc7a7dea9c330be926d1b18c175667e42e28226abd81f57",
+    "lines": 1,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/app/guest-refresh-mounted.test-host.ts",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bd63331770309a30034fcdbb00bf33120d97274993a61d057b4d260083c6c790",
+    "lines": 209,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/components/brand/vaylet-logo.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "686486411a26e28a020803d0bc4dda51ad3ec65a29ef91e43d11a2ee173d8d8e",
+    "lines": 52,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/components/icons/action-icons.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "172e30149314e2860996f31a713844b71d87ae8cef1be94f6b89e4be79c1fb0c",
+    "lines": 164,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/components/icons/navigation-icons.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e5db3092dad7e70f8eb2e43084063ae3cd37f52ee8be624952eafb42ae2de9be",
+    "lines": 35,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/components/icons/status-icons.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "156246a569a75648088127a6a85cf265051d643342b8994ecf751ff013a4a04c",
+    "lines": 63,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/components/icons/svg-icon.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e840d2501ecf091b2643040556804bde838e285d2cd116857ac48ea9f7e69d74",
+    "lines": 27,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/components/primitives/status-badge.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7f9dc8efc47e97ec54273b14e0367b4dbede6f6288c15e45772fa7dc2bf97d87",
+    "lines": 42,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/components/primitives/typography-primitives.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "75a1a5a67d01597507ffc9c6c6ee10b902468871deaf0efd5fe95237d9054d7d",
+    "lines": 42,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/components/primitives/vehicle-hero.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a991f0eb06748b0e4eae971857337a243d581557136c6095986cb32c83cdb2e8",
+    "lines": 88,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/auth/guest-context-conflict-gate.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9a1cded724091a3d4845536f5f30db7e808889078f92d045c08e551f5d3611e6",
+    "lines": 56,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/auth/overlay-guest-context-conflict.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f04e2dd19c60085d11d6969896281899a864320faeddcd5076d4abbc4fa31db6",
+    "lines": 62,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/deferred/overlay-more-menu.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "01f393d73a9df05e3c9d37dc66cb2bf81ad4373e7db8c63d2c0d9838f408e3b9",
+    "lines": 195,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/deferred/screen-payment-complimentary.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "234b3136482e088e423acfc796211390325507b737038c2824698b0d7baaaf76",
+    "lines": 113,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/deferred/screen-payment-error.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f02e39f19cad40b851d2b3ea0d2f08bb310d69f89421fc3db249eb4f24711e49",
+    "lines": 80,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/deferred/screen-payment-method.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "91c945375db28ec65ce91b927dcfdbe01011bc444199bb3612a6f1fb61232151",
+    "lines": 130,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/deferred/screen-payment-success.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "092659cab1c73d5c6fe1aab6475c64e466876f18b20964e5192d081812be030c",
+    "lines": 142,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/deferred/screen-payment.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b2af0960a0a646d5bc029ecf049900f1615f1202e38588df1a205064d1b3e4ef",
+    "lines": 167,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/deferred/screen-report-issue.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7dbf15596fd3aa6376d84848a221f877dee3b482945fa381a72cd6b04209522c",
+    "lines": 154,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/deferred/screen-report-submitted.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "96f26b1176e9accbe665c0fcf9bc73a2c419ee4e133211e7a8101cbcc6bfca35",
+    "lines": 120,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/deferred/screen-service.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3f7c00b90f07e5b835a220a0b39922666296565c24b372ebe715f4c659cf59e9",
+    "lines": 61,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/demo/demo-fixtures.ts",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "90d486953b04cd9727ae1df944cdf1e93edc674a5576eb2ceffb5ce128a09385",
+    "lines": 83,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/demo/demo-navigator.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f571912dfeab6c799ae49b64423734e1867e6c4b004f795923670ccaa9a0f6cd",
+    "lines": 196,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/demo/demo-registry.ts",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "cf567f2c08d30ade42173d618ff55b059b0ac056dd4cddc87639467d8ea9fea3",
+    "lines": 107,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/demo/demo-screen-renderer.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5478585618dc29eb9adf6be9d7809b84df73e703c23237cb2c326acf678f45a4",
+    "lines": 160,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/demo/dev-preview-controls.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "98982fc41bd436cc491b63462f252c943fe6d0f87cc72752f62941c558359581",
+    "lines": 36,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/demo/dev-preview-overlays.tsx",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f18eb03d8ac6e03b3d85e0c8e697b5b728b1e2fd4cfe9f671211ab680f735bb8",
+    "lines": 44,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/session/guest-brand-palette.ts",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c1ae4442a29fda45ff922c5c63f6bd938ab2efdbf24d8a1046558606df189473",
+    "lines": 44,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/session/guest-branding.ts",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7a0dd2b63f130f668250d705ba5c1d5f22a61d9db09f4f52ff0bb891e3716852",
+    "lines": 36,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/session/use-guest-brand-style.ts",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fac82861cac5dc179102dafc75268e306440a054bb88348dabda75e8ad4d031c",
+    "lines": 15,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/session/use-guest-session.ts",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "32eeb7ddbb080189f7bebe9c010eef239b088667d978836a161e1945be2dc72d",
+    "lines": 34,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/customer/src/features/web-push/guest-web-push-boundary-test-fixtures.ts",
+    "original_owner": "customer",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "76bf938150fb60aa46b0b8fa5b399619b0c44577bdf6f8922d3d891659de2f36",
+    "lines": 56,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/help-copy.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9f0ad336d5993960f1049b09343d079023beba5b724dd768f08cb17f65f11d33",
+    "lines": 94,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/help-foundation.tsx",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "dc76b33cdfa9c61d317ac8ef3ea78d0398351c882875e1d0381fee40ea9d7ab4",
+    "lines": 67,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/management-foundation-app.tsx",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6e8b614ef6070ec8722141257a540bb32395f9a84b7a47e8b4a1b9d75f6c5c96",
+    "lines": 127,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/md04-feature-route-access.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2d5cfe1a80d9b74bc4e866dbe1ace276bbed279c9bca51e191157af4b2462434",
+    "lines": 94,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/preference-controls.tsx",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "eeed17a233d10118ca8d8d43d2073a5d08c3e912a563336190bbb319b821d25c",
+    "lines": 56,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/protected-dashboard-context.tsx",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9f60e4634498e5f73fc59a2f703b9c1c76c03cc56c0d933736282ec7fa2e35de",
+    "lines": 39,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/resolve-navigation-authority.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1672804ae57ad497c4c7afcae3674650857f3c8d83c68a8baabdd99c4643942e",
+    "lines": 196,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/revalidate-selected-scope.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4001be86e3b75d8b0d41b1cb890714bb3a57e2f44ab9ee81ed916e8278f643ea",
+    "lines": 193,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/root-product-landing.tsx",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e32671f9612c771a02855a54b37b4a8177cb04193f04bdc1f68ea3d7b37a6e3d",
+    "lines": 58,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/scope-presentation.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "29d531521a513a29076b4bd284917ce1b669acb0ef5158b44a7bb609af50da9c",
+    "lines": 91,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-management-shell-policy.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a1dcf721f15e648d5908cb4d4f62ad0f59f38c71efa48dda78766302e6aff9d3",
+    "lines": 32,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-management-shell-transition.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "112b840e8004aa5dc516f7b736ddafa19bfb5a266627307f078b59030d0c9eed",
+    "lines": 96,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-base-authority.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2d5e27e4bf3394c5956dbce92bde445ff69b7c0756aa168d51c09cf642e4a5f1",
+    "lines": 206,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-base-request.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "538c49dce3e3e8b954f9637d995363dc6c164c9d986d7118bfa9d6b3f1a1b879",
+    "lines": 95,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-mfa-panel.tsx",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "349a89f052c58bc977f52b9ee8f65879384f15cb42d86e186cf7b41d31c12d92",
+    "lines": 30,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-provider.tsx",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-4",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3fc09fd64624726576d147b0488414f02e5d65ce2e99fd996a78556ba1be27e5",
+    "lines": 29,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-restoration-hint.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "66c88861a88da2dbf0e8accbe6d0ed33264b4b59efc6adfae174747bb813fc92",
+    "lines": 205,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-restoration.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f248fd357471b54a1bf4151bfcec59241d32e92ae85bd2a980c008388e50847c",
+    "lines": 156,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-revalidation-policy.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "135efcefd085016a7d796d7c46f1426ce3910d73f0f2384cccd7aeeb5ec506d0",
+    "lines": 116,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-state.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1da35f2d263182ad14d008dac8d222fbe5f5dad463847bac4441eb7f05fefd35",
+    "lines": 81,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/standalone-foundation-panel.tsx",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "23690ec1cc68647188a571dc1a39e777da459bef0b8872b43d1cca156621596e",
+    "lines": 19,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/unselected-scope-foundation.tsx",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4d125f0b32a4219222d0c2d2445906f5e68e99c306f54e986bee09877c06bbbd",
+    "lines": 71,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/use-foundation-logout.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0aabe78161608886949e3e6d10db0f5d4b6a924d980325c3f20468c7bae8c21a",
+    "lines": 19,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/use-navigation-authority.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "55850a9cf9c697899dcd9be60418407fca0e9e5af953a58c1cf16160270164d4",
+    "lines": 138,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/use-selected-scope-lifecycle.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4f79ff5090db116c24c48b85b9ce06a8b6a7ae35121270451422d07210e80aa5",
+    "lines": 239,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/use-selected-scope-revalidation.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "81c4c365b8b11d39b04307b61cda0e87019ebd860248f1ca9a3ca0cf4ecf1b4b",
+    "lines": 235,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/workspace-foundation.tsx",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "07266df86e91247054cffd4fea4ee2bd779a183cd47fa0ebb986622464917201",
+    "lines": 19,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/lib/api/api-origin.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3bd3042dd20a2a20cea30bc7ce89d59a39df20e2a9051393e316032da78c9cc7",
+    "lines": 60,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/lib/api/dashboard-api-types.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "13cc77e911772cabc89497c1daac5cc5ce4f92069055e3eb61e07446863e92ff",
+    "lines": 30,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/lib/api/dashboard-binary-response.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "350d408d487e3089bf11e6dfc794d16c1d939b59e695b457cf5414b16beb9695",
+    "lines": 23,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/lib/api/dashboard-protected-jpeg-body.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0bbab7c9e09151794c97ef660290ef0eda6cf9998859feeea96edda7c1878212",
+    "lines": 35,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/lib/app-info.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8a7f6c7da049def366e56d4ea07ccb3d2c3243cebbb76fb4d31f51fd619375be",
+    "lines": 4,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/lib/auth/staff-auth-abort.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ec2dde425f23f0cfc44c122b5996471807eba4852e0f66b584c2c66939a4d076",
+    "lines": 26,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/lib/auth/staff-auth-client.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4ba50cb3692c65e441cfc2d8a13337a421fbffb6d28c03a76b1d65abb9a169d4",
+    "lines": 292,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/lib/auth/staff-auth-continuity.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "036f7126c957264f9da6093e943499fc13c4b7c4f52e229e57268fe29ecf4674",
+    "lines": 12,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/lib/auth/staff-auth-status.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "595a188829fb67dfc51a8ad37051ad20d89d01f877f1006653060cde9ae66781",
+    "lines": 14,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/lib/i18n/dictionaries.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f502bb5317ed85ba597f052599227efeb336caab02f23091c52bb85786c98ff5",
+    "lines": 194,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/lib/i18n/locale-provider.tsx",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e45b7641b6584139ba32636a027ba843311626300cc8cb8da538894328f4e188",
+    "lines": 69,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/lib/i18n/locale.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1184673a37f359368c2e266d30b51022b3af6745016f5d79b5cafd39ef163fcd",
+    "lines": 39,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/lib/maps/google-maps-sdk.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "31992a4fb2bc42d41afed4fc49ca40ec4ed996b2e1e8d7f296be8c4dbaba3066",
+    "lines": 176,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/lib/mfa/dashboard-mfa-client.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "81bb8ea1dfb99a6b613df61f3ceef26ad9c8b04191718235033e435997ad6b30",
+    "lines": 106,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/account-security-navigation.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "27669598f053d255a5190760a9bfb9d1e5e41814d173cdf34bc584f07e3a9b95",
+    "lines": 56,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/index.ts",
+    "original_owner": "dashboard",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b119894ee8eaa1a12c6a399d4a9bc0711729ee2a4808d2e311a7664ca8608171",
+    "lines": 32,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/prisma/schema.prisma",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "31b368cfb2c3a2b7e9b47c7bdf4f33f614d1dfde3f730d52869350582d3439fc",
+    "lines": 2694,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/dec103-online-index-rollout.sql",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ef2694ea131c84e91b8045555198f0561084a3442df1e0ae4d87082ca6e86d50",
+    "lines": 79,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/guest-browser-session-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0e70083154983d6c945f4f430e9280d0e07c18f5759b8e8880a687fa826a0d63",
+    "lines": 110,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/guest-information-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "46f45323a3bbb281adf0a54d2c01eb84016efb9a1a7c21b145a6490edcf3d1cf",
+    "lines": 116,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/guest-push-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a771bf2da380a48c81f4ad227dbab6d633fa245af4ef8646092c783a3863e4c0",
+    "lines": 141,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/guest-push-worker-provisioning-policy.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7fabec8987abf60744ccc462613ac27c6021f5385b24b49b23961e8a77ed6952",
+    "lines": 70,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/guest-push-worker-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "68cac98c4ca3d2ebd9c8a23750edf2197eb3f0afae4a1e8a69e9fb9614e2b14e",
+    "lines": 200,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/guest-rating-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b92552b1247d91fd2d555b613b87b59486ccf79aa8c2cba9cfa1a98116b7611b",
+    "lines": 96,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/guest-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "404e227720f32fe9b4d8cc9a4e1415609cb495c8dbd7e752269eff4a6d9f9a78",
+    "lines": 31,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/incident-recovery-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9677b11ee5803f398dcf3521ed6774130f3385305add53f3e73b0044dee89490",
+    "lines": 110,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/incident-resolution-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "58a4cc14221bd44dcd44f34c3517b439fd2e347e63b9e267fb8d66fa5b88bc52",
+    "lines": 36,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/location-configuration-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1b960f00b592cf43381b10c4e40747840e2df302dfc26f92e2bdfc891f9c879c",
+    "lines": 98,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/management-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2bd9b8d132def49b180a48e2560d5c81f8a8267a95ce1d983dd05480dedea087",
+    "lines": 34,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/management-settings-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2e28db7c6422196ee1372ec22ba07e04868a4745d2c39ec9501d3462a4b0d3fc",
+    "lines": 133,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/mfa-runtime-privilege-verification.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "713693939b32fbba7c6b69d189de67f2bcf062a2dc770cd6d3357970c843b6c6",
+    "lines": 190,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/mfa-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "425fdc89ade4a1d07768742c8cfba390685e45c884abdcc95121469e79433a42",
+    "lines": 215,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/outbound-binding-insert-smoke.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "80b3ded7b91a2612f169def9405941b924dadd5e21d9011cb1e7739bfeca261e",
+    "lines": 57,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/outbound-callback-crash-smoke.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3e6e73c8167c875d5cd9a3e8f085879cd1567d458c2538215031d8b91763081b",
+    "lines": 111,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/outbound-constraint-smoke.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4370f388310aeac1cda78c2af79e1a1618c7418db6166ad4b415047f21b202d5",
+    "lines": 162,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/outbound-late-callback-smoke.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e4cdee3e173808defc8ab6135bf0404d5380237a124bbac816c3fc9061d3399a",
+    "lines": 51,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/outbound-late-override-smoke.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d8f4f12ad2751f88ab06e22fb7feeafd3ef76304fd2eb1bf88ba5e74024fe46e",
+    "lines": 45,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/outbound-migration-smoke.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6f74d130f014e088edcc3d65e915791b397abbefe84fc57fea5771c4ed3b23aa",
+    "lines": 88,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/outbound-optout-smoke.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2a2726033c560fed3d93cd558b7a90ed63388bfcc35caa121a41998830b368df",
+    "lines": 46,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/outbound-phone-change-smoke.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "dd46088fa14f7802271347cc48a659e97f7550629ac0b51c35b2eca2d74ae5ea",
+    "lines": 180,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/outbound-principal-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3087eb5f0c200d7f8edbc70591b81667b062c077788625bb594ae87cb6564ba8",
+    "lines": 110,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/outbound-recovery-smoke.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "92c7294b50830a6f85cc2977f00621475eb9771f4463d0662fcda4a1c6c80bde",
+    "lines": 54,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/outbound-role-smoke.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9b649dfbd1a82ab8fe833dffe6a77b6125fd7bff3bf3e2aa89d7d665fa8d46aa",
+    "lines": 61,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/outbound-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "935e6ad5b82e3ffc6f2c3ba45a309e931faa17fdc1f659aaadb4426b8c221c54",
+    "lines": 154,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "packages/database/scripts/payment-collection-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fa497037fd33859e720c6a1a4f616a8143eedfa304cc6dedac92a811aa093df7",
+    "lines": 72,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-step-up.service.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "08505127a6f720f43b584f9cebaec00d47cc878a54199d0e20c84b2f75bf6b31",
+    "lines": 96,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-totp.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4c070a97a4420bfdedc1d50fd2efc07234d9f2fae9e4434c0693687ffcbfe03d",
+    "lines": 60,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/staff-mfa.controller.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "be1ccc1a241d67deda48daf14c5e800abb6798916cbf401e4311a89fab916494",
+    "lines": 202,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/auth.module.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7989a1556df3dafa2bf3e2f1624237f948e21150606505c76af4dce662a64c73",
+    "lines": 84,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/native-staff-auth.controller.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bedf0db16212fd4ded72ac5be826ec51b8f32105f5cf2daac421ffe4c34deb29",
+    "lines": 107,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-activation-repository.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f1f3283fff8241c232df01ee39e5c6e72f9be7da815c9612b6e0da10935a2400",
+    "lines": 59,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-activation.controller.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a7f2c0cccea1a74ff5f7220c0da17e362fbc6d58abfdcfbc153254a3b3519e9b",
+    "lines": 54,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-activation.service.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e95b67e287799c5ea5423adb295cf9104f49f4f8cbe718020ab26f45711c4ae8",
+    "lines": 123,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-auth-credential.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3915f42e9a7bf0a8aa72e72c3354b90dc5ce53f92171b246d20fb82357e02011",
+    "lines": 18,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-auth-logout.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4c3db8fff39ee38b7f9b398267748e98e493fef96f91d71404912c6d7f00232c",
+    "lines": 29,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-auth-token-result.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "756960243fd885487fdfde8972c122aee82196c2da09d94077723422f0ee1185",
+    "lines": 16,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-auth-types.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d34fc69d7d355145f81a0a9aad57698bca731bbc70f0d169564c364e14dd2a50",
+    "lines": 49,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-auth.controller.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5b27c9b1e4304311e588f9b3f27d4aa01b6616a4e618d21a0fef0d7a4083adc0",
+    "lines": 187,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-auth.origin.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8528db7bad7a811478f98a3a7f6ee632569d9e094ad7ccaf9d0f0b28b9879f68",
+    "lines": 45,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-auth.service.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f3e03edc4a9b0e4975411293ce7c8577aa82497b319524ab46661284df7258cc",
+    "lines": 298,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-auth.transport.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0a6402db0b30f129fa435f64e98d064e0ee7fad6c4405eb851112155cfc5fb0a",
+    "lines": 76,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-login.service.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "66182b668ecf03a015e21a85d63b214eecd89b310f745bab5abd4d9dfb1a43c6",
+    "lines": 72,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-password-hashing.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "34d57cab6405ab70d6b2e12019a3155d55146aac687024ce6b2abbe50f415f6e",
+    "lines": 18,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-password-verification.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "24b59ce7752dd2a7e5964be88a0406e159a7f13d41f4cfe54d2d7ec6601cae2b",
+    "lines": 53,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-presence-http.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2d7852550bc4cb48dbca3a846beb6e677cbe9a4a864ff27b024db7fd116b0c86",
+    "lines": 49,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-principal.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "566dce402d7af98c25c48ddbd7d732501fc88930b622744ebb020e9490debbe5",
+    "lines": 19,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-session-context.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e694c86ff1559ee93f42e1a6784f01ab4ff77eccc42ff8ea955fb855eb89abaf",
+    "lines": 96,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-session-revalidation.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "55e2629ef30f3975c3c2f3ac3d90cc27d9b28784c80be7f195758335ff06296a",
+    "lines": 37,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-session-revocation.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3fbff8e7995c2b67119dae851f3d8ccd3d9b91e9b8bfffcf428668d7e947259a",
+    "lines": 28,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-user-security-lock.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f812afccc187f697620f45bf0684b64739a3253922f5eb07fc3b1bbc6ef354f4",
+    "lines": 49,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/common/http/api-errors.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "cd7fcfb86fdfd4e8471869cb662e88801b5b9abdcd93de8127267efdb0ba9888",
+    "lines": 279,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/common/http/api-exception.filter.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8f4ec901e2db9911f7910752254f78aae56ecc4e1324cc1357ee7733ffabbf10",
+    "lines": 276,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/common/http/api-operation-runner.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ca94f4a1d09e2cea9b3b06e714a2aa78ada72c4b116742893bf2e138d30385a2",
+    "lines": 94,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/common/http/api-request.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7b3b376bb48f3712c54fa9557b0ce1bea0e12a24606d687535a52d26c22ab911",
+    "lines": 34,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/common/http/api-security-bootstrap.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "76615d954316b063ed7d99b5b7de9d077b24fc86fa5db2b2bf699b70b6f42abb",
+    "lines": 48,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/common/http/condition-photo-operation-routes.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5f374bcb1370aa1015acb0f87f033ace464a5feff6035c091b9e8717981cc976",
+    "lines": 23,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  },
+  {
+    "path": "apps/api/src/common/http/guest-operation-routes.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-7",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1bbb8870fd9c6c78c5c9f5374169fbce0338ef0b9c476d7eb2f337e76a1a064c",
+    "lines": 73,
+    "checkpoint": "C003",
+    "reason": "Original COS startup failure; replacement bridge terminal timeout (0 files credited)"
+  }
+]

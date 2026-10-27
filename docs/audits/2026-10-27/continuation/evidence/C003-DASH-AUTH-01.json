@@ -1,0 +1,84 @@
+{
+  "id": "C003-DASH-AUTH-01",
+  "title": "Restricted localStorage can lose failed-logout fail-closed state across Dashboard reload",
+  "checkpoint": "C003",
+  "owner_area": "dashboard",
+  "reviewer": "worker-7",
+  "severity": "P2",
+  "confidence": "HIGH_SOURCE_CONFIDENCE",
+  "runtime_status": "RUNTIME_UNVERIFIED",
+  "classification": "session/logout recovery correctness; not an authentication bypass exploit",
+  "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+  "preconditions": [
+    "The user initiates Dashboard logout.",
+    "The logout request does not complete server revocation/cookie clearing, for example because the network request fails before reaching the server.",
+    "The browser retains the still-valid HttpOnly refresh cookie.",
+    "localStorage writes and reads are unavailable/throw across the subsequent page reload, while cookies remain usable.",
+    "The page is reloaded before an explicit successful logout retry or explicit credential login."
+  ],
+  "source_to_sink": [
+    {
+      "path": "apps/dashboard/src/lib/auth/staff-auth-client.ts",
+      "ranges": [
+        "141-148",
+        "257-280",
+        "80-89"
+      ],
+      "evidence": "logout() calls markLogoutUnconfirmed(), clears the in-memory identity boundary, then dispatches POST logout. markLogoutUnconfirmed always sets the current instance boolean true but swallows localStorage.setItem failure. A fresh client starts with logoutUnconfirmed=false; hasUnconfirmedLogout catches localStorage.getItem failure and returns false."
+    },
+    {
+      "path": "apps/dashboard/src/lib/auth/staff-auth-context.tsx",
+      "ranges": [
+        "59-63",
+        "65-100"
+      ],
+      "evidence": "On a fresh provider with no in-memory session, hasUnconfirmedLogout=true blocks bootstrap refresh, but false enters the automatic client.refresh() branch. Thus the lost marker is the bootstrap gate."
+    },
+    {
+      "path": "apps/api/src/modules/auth/staff-auth.controller.ts",
+      "ranges": [
+        "38-65",
+        "119-122",
+        "127-163",
+        "166-185"
+      ],
+      "evidence": "Login issues a Secure HttpOnly SameSite=Strict refresh cookie scoped to /v1/staff/auth. Refresh authenticates from that cookie and rotates it. Cookie clearing occurs on definitive refresh authentication failure or successful logout response handling; a client-side network failure before logout reaches/completes the server does not independently clear the browser cookie."
+    },
+    {
+      "path": "apps/api/src/modules/auth/staff-auth-logout.ts",
+      "ranges": [
+        "9-29"
+      ],
+      "evidence": "Server session revocation occurs only when logoutStaffSession executes with a valid refresh credential. There is no independent client-side revocation mechanism."
+    }
+  ],
+  "impact": "The current runtime is fail-closed immediately after logout is pressed, but under the stated restricted-storage/network conditions a reload can forget that logout is unconfirmed and automatically refresh the still-live server session. This violates the Dashboard's stated fail-closed logout continuity guarantee and may restore protected access on the same browser after the user attempted to sign out.",
+  "counterevidence_and_bounds": [
+    "This does not bypass server authentication: automatic refresh still requires a valid refresh cookie and server-valid session.",
+    "If logout reaches the server and revokes the session, subsequent refresh is denied and the server clears the refresh cookie.",
+    "If cookies are unavailable whenever localStorage is unavailable in a given browser mode, the vulnerable precondition is absent because refresh cannot succeed.",
+    "Within the same JavaScript runtime, the in-memory logoutUnconfirmed boolean remains true even when localStorage persistence fails, so the gap is specifically cross-reload/new-client continuity.",
+    "A successful explicit credential login calls clearLogoutUnconfirmed after the server accepts credentials; treating this as an intentional explicit re-authentication is coherent and is not the problematic automatic-refresh path."
+  ],
+  "existing_test_cross_check": {
+    "path": "apps/dashboard/src/lib/auth/staff-auth-client.test.ts",
+    "ranges": [
+      "128-148"
+    ],
+    "evidence": "The existing failed-logout/reload test proves the desired fail-closed behavior when localStorage works: the marker is persisted and a new client reads it. Its storage spies do not throw, so it does not cover the restricted-storage branch. Repository search found no failed-logout test that denies localStorage across a fresh client/provider bootstrap."
+  },
+  "missing_controlled_evidence": "No unit/browser reproduction was executed in C003 because this transfer explicitly forbids tests. Controlled confirmation should simulate localStorage set/get throwing, a failed logout request, a fresh StaffAuthClient/StaffAuthProvider, and a surviving refresh cookie/refresh success, then prove bootstrap does not auto-restore after remediation.",
+  "remediation_options": [
+    "Fail closed on storage-read unavailability during bootstrap instead of treating it as no pending logout. This is simple but intentionally disables automatic cookie-based session restoration for storage-denied browsers until explicit login.",
+    "Alternatively persist a deny-only logout-pending marker in another verified durable browser mechanism that remains available when refresh cookies are available, then require successful server logout or explicit credential login to clear it.",
+    "Whichever design is chosen, add a regression test for failed logout + storage denial + reload/new client and keep the existing successful-storage continuity tests."
+  ],
+  "regression_risks": [
+    "Changing storage read failure to fail-closed can reduce convenience by forcing explicit login after every reload for browsers that block localStorage but permit cookies.",
+    "A second persistence channel must be deny-only, scoped narrowly and must not contain access/refresh credentials or become an authority source.",
+    "Marker clearing on explicit successful login must remain intentional so a user can recover from an unconfirmable prior logout without a permanent lockout.",
+    "Do not weaken identity/session generation fencing or replay a rejected logout/mutation implicitly while fixing bootstrap behavior."
+  ],
+  "duplicate_status": "No existing Dashboard finding covering failed-logout restricted-storage continuity was found in the frozen audit register. Related only by failure class to CUST-001/#356 (restricted preference storage), but impact and code path are distinct. No GitHub issue was created by worker-7.",
+  "coverage_credit": false
+}

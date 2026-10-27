@@ -37,3 +37,32 @@ Original ten findings remain in the [original complete report](../VAYLET_AUDIT_2
 18. **Related issue:** No new issue. #362 tracks continuation; existing #352–361 findings are distinct and unchanged.
 19. **Independent challenge:** Security worker discovered hypothesis; coordinator independently read routes, runner, auth wiring, password login/session checks, factor schema/trigger and service branches. ACTIVE factor blocks seed read; different user gets own factor; user/advisory locks serialize but do not authorize recovering session; at-rest encryption decrypts after the insufficient gate; session-bound assurance does not prevent attacker from obtaining a newly disclosed TOTP. Both controls passed in the synthetic model. Shared initial enrollment may be intentional, but it does not justify lifting established MFA recovery proof to every password-only session. A policy permitting that would need explicit security acceptance; none established here.
 20. **Final disposition:** **HIGH-CONFIDENCE / RUNTIME UNVERIFIED**. Model-confirmed control flow; not a confirmed live exploit. Reported immediately to owner during execution. Requires independent engineering/runtime review before remediation.
+
+## DASH-AUTH-01 — failed sign-out continuity marker lost across reload with denied browser storage
+
+- **Priority/confidence:** P2; HIGH_SOURCE_CONFIDENCE / RUNTIME_UNVERIFIED; new in C003. No controlled browser exploit or server authentication bypass claimed.
+- **Affected workflow:** Management Dashboard sign-out, restricted localStorage, and bootstrap cookie refresh on the same browser/device.
+- **Expected:** A sign-out with unconfirmed authoritative server completion remains blocked across reload until server/session status is explicitly reconciled.
+- **Actual source chain:** staff-auth-client.ts lines 141–148 sets logout-unconfirmed and clears local identity before POST. Lines 265–271 save the durable marker only to localStorage; denied writes are swallowed. A fresh instance begins with false memory, and hasUnconfirmedLogout lines 80–89 returns false when storage read throws. staff-auth-context.tsx lines 81–93 then automatically refreshes. If server logout never completed, credentials=include sends the still-valid HttpOnly refresh cookie and auth can be restored.
+- **Conditions:** localStorage read/write denied while cookies remain functional; logout network failure before server revocation; fresh Dashboard client mounted. Not a cross-user or cross-tenant claim.
+- **Impact:** A user who tried to sign out may unexpectedly regain protected management access after reload. Shared-device and cookie-lifetime conditions affect severity.
+- **Root cause:** Same-instance memory fail-closed fallback lacks a durable or server-derived barrier when client storage is unavailable.
+- **Existing controls/counterevidence:** Successful server logout revokes/clears cookie; normal writable localStorage retains the marker; same-instance memory blocks access. These narrow but do not close the combined failure case.
+- **Tests:** staff-auth-client.test.ts lines 128–148 checks failed logout across reload with functioning storage only. No denied-storage failed-logout case was executed in C003.
+- **Recommendation:** Owner-approved durable fail-closed logout uncertainty or server-session-based logout reconciliation for storage-denied browsers. Preserve explicit successful login, cookie refresh and transient failure semantics.
+- **Regression risks:** storage policy/quota exceptions, cross-tab behavior, failed/successful logout, network loss, explicit re-login and refresh cookie controls.
+- **Duplicate/owner decision:** Distinct from CUST-001 restricted-storage preferences and existing SEC-011 MFA recovery. No GitHub issue created; broader duplicate search and policy acceptance pending.
+- **Evidence:** [structured C003 record](evidence/C003-DASH-AUTH-01.json).
+
+## DASH-I18N-01 — restricted browser storage splits Dashboard Arabic locale and DOM direction
+
+- **Priority/confidence:** P3; HIGH_SOURCE_CONFIDENCE / RUNTIME_UNVERIFIED; new in C003.
+- **Expected:** Switching to Arabic consistently updates Dashboard translated React content and document lang/dir even when preference persistence fails.
+- **Actual:** Dashboard locale.ts readDashboardLocale lines 19–26 falls back to EN whenever localStorage read throws. commitDashboardLocale lines 29–39 ignores denied writes, changes document lang/dir to AR/RTL and dispatches an event; locale-provider.tsx lines 45–61 derives its useSyncExternalStore snapshot and dictionary from readDashboardLocale, so the React snapshot stays EN and its effect can restore EN/LTR. UI appears not to switch or briefly flashes inconsistent direction.
+- **Conditions/impact:** Browser localStorage denied, Dashboard locale switch in Arabic-first use cases. React presentation and document direction may disagree; this is not an authorization failure.
+- **Existing controls:** With storage available the event and snapshot agree. Server fallback is EN; this does not address denied storage at runtime.
+- **Tests:** Existing locale preference tests do not establish blocked-storage mounted Dashboard behavior; no browser test was executed in C003.
+- **Remediation direction:** Use an in-memory authoritative locale snapshot with best-effort persistence, preserving EN/AR and RTL/LTR UI Freeze. Coordinate with CUST-001/#356 shared failure class but inspect this separate Dashboard implementation.
+- **Regression risks:** Hydration, cross-tab storage events, theme/locale independence, translations, document direction, private/restricted browsers and persistence recovery.
+- **Duplicate/owner decision:** Related cause to CUST-001 but distinct Dashboard source/route. No issue created; owner may extend #356 or register separately after deduplication.
+- **Evidence:** [structured C003 record](evidence/C003-DASH-I18N-01.json).

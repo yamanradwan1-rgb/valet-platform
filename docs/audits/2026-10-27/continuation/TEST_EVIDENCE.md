@@ -13,3 +13,5 @@ Original validation suites and failures remain historical evidence in the origin
 Unperformed: PostgreSQL two-session HTTP reproduction and runtime-role ACL checks; original incomplete PostgreSQL operational fixtures; formal deep scan; device/Windows/browser/provider/network-recovery qualification. No claim these are unavailable forever; they are not evidenced in this checkpoint. Heavy wrappers were deliberately not invoked because source review confirms possible dependency setup and destructive owned-fixture orchestration.
 
 C002: **zero new tests executed**; review of test source and earlier logged results only. 75 full semantic source records and 12 independent evidence-QA spot checks are documentation/review work, not runtime test passes. No PostgreSQL, browser, physical device, provider or production qualification claim.
+
+C003: zero new application/DB/browser/physical-device/provider tests executed. Reviewers inspected historical test source but did not rerun earlier Codex outcomes; hash/range/inventory checks are audit evidence, not app tests.

@@ -1,0 +1,1505 @@
+[
+  {
+    "path": "packages/database/prisma/schema.prisma",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "31b368cfb2c3a2b7e9b47c7bdf4f33f614d1dfde3f730d52869350582d3439fc",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        300
+      ],
+      [
+        301,
+        600
+      ],
+      [
+        601,
+        900
+      ],
+      [
+        901,
+        1200
+      ],
+      [
+        1201,
+        1500
+      ],
+      [
+        1501,
+        1800
+      ],
+      [
+        1801,
+        2100
+      ],
+      [
+        2101,
+        2400
+      ],
+      [
+        2401,
+        2694
+      ]
+    ],
+    "feature": "Canonical Prisma relational model for tenant, operations, guest/auth, financial, push, outbound and presence domains",
+    "semantic_review_notes": "All 84 models were re-read in bounded ranges and inventoried by model/range/relation/unique/index shape after QA challenge. Tenant/config group Organization/Location/operating-hours/Guest information (501-775) uses organization-scoped Location keys and Restrict relations; GuestLocationPrivacy points to immutable versioned GuestPrivacyPublication while the active pointer is nullable. Auth group User/StaffAuthSession/UserMfaTotpFactor/MfaRecoveryCode/StaffRefreshCredential (777-872) separates access-token, refresh-token, protected TOTP and recovery verifier material; session-to-factor is scoped by [userId,mfaFactorId], refresh replacement is scoped by [sessionId,id], token hashes/selectors and generation slots are unique. Staff/operational group OrganizationMembership through HandoffVerification (874-1707) repeatedly exposes composite tenant/location/session identity: ValetSession binds Location/Vehicle/Customer/ParkingZone/ParkingSpot/KeySlot and membership actors through organization/location keys, Task and DispatchEvent use organization+location+session+task scope, tracking/GPS/geofence chains preserve that scope, and condition-photo operation/attempt/verification models use unusually wide composite keys to bind actor/session/object identity across retry and verification records. GuestBrowserEnrollment/GuestBrowserSession (1196-1235) make enrollment/browser token hashes unique and browser session generation unique; GuestPushRegistration later binds [guestBrowserSessionId,valetSessionId,credentialGeneration]. Financial group Payment/PaymentCollectionOperation/Validation/CashEntry/PaymentProviderEvent/Refund (1709-1858) uses organization-scoped payment FKs plus tenant idempotency/provider-reference uniqueness and validation supersession scoped to the same payment. Push/outbound group (1926-2333) preserves intent/delivery registration identity and retry/lease indexes; Stage C outbound separates recipientDigest from the encrypted OutboundMessageEnvelope and snapshots permission/policy/binding revisions in OutboundMessageIntent. Audit/security group AuditEvent/AccountSecurityAuditEvent/AntiAbuseEvent (2335-2392) keeps tenant actor relations where applicable and pagination/retention indexes. Shift Presence group (2521-2694) uses organization/location/member/user/action scoped operation/challenge/decision/exception keys and immutable management-result/audit linkage. Atypical relation-light tables such as OutboundMessagingControl and AntiAbuseEvent intentionally have no relational FK surface. The schema itself explicitly delegates Stage C outbound CHECK/partial indexes/security functions (line 2100), anti-abuse partial group/window index (2389), and DEC-099 extra Shift/zone/decision/reviewer FKs plus lifecycle guards (2662-2663) to SQL migrations; those constraints must not be inferred from Prisma alone.",
+    "callers_consumers": [
+      "Prisma client generation via packages/database/prisma.config.ts",
+      "Migration integration fixtures copy/use schema.prisma",
+      "Database migrations and API SQL code target the mapped tables/enums/relations"
+    ],
+    "invariants_error_checks": "Model inventory found 84 models. Owning relations overwhelmingly specify onDelete:Restrict; scoped operational/financial relations use composite organization/location/session/payment keys where the parent exposes matching unique keys. Representative hard fences include OrganizationMembership [organizationId,id,userId], ValetSession [organizationId,locationId,id], Task [organizationId,locationId,valetSessionId,id], GuestBrowserSession [id,valetSessionId,credentialGeneration], Payment [organizationId,id], Refund [organizationId,paymentId,id], and the wide condition-photo verification keys. Auth tokens/selectors/idempotency/provider references carry unique constraints. Exceptions are documented relation-light control/event tables and SQL-migration-owned CHECK/partial/lifecycle invariants, so schema review does not treat absent Prisma checks as absent database protection.",
+    "test_refs": [
+      "packages/database/src/staff-onboarding-migration.integration.test.ts",
+      "packages/database/src/staff-identity-migration.integration.test.ts",
+      "packages/database/src/staff-activation-migration.integration.test.ts",
+      "packages/database/src/condition-photo-p1-test-context.ts",
+      "packages/database/src/shift-presence-test-context.ts",
+      "Historical references only; no tests rerun in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Prisma cannot express several SQL-owned guards/partial indexes documented at lines 2100, 2389, and 2662-2663; migration bodies remain the authority for those invariants",
+      "No migration or live PostgreSQL validation rerun"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/dec103-online-index-rollout.sql",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ef2694ea131c84e91b8045555198f0561084a3442df1e0ae4d87082ca6e86d50",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        79
+      ]
+    ],
+    "feature": "DEC-103 online production rollout of two PARKED audit discovery indexes",
+    "semantic_review_notes": "The script explicitly requires psql no-transaction execution and ON_ERROR_STOP because CREATE INDEX CONCURRENTLY cannot run in a transaction. Preflight rejects an existing index name if table, validity/readiness, uniqueness flag or exact pg_get_indexdef differs. Only after that exact-definition guard does IF NOT EXISTS create the two partial audit_events indexes. Postflight repeats the exact definition/validity checks and raises if rollout did not converge. This prevents silently accepting an invalid or name-colliding index after an interrupted concurrent build.",
+    "callers_consumers": [
+      "packages/database/src/dec103-nonempty-test-rollout.ts",
+      "Production operator using the approved psql rollout artifact",
+      "Operational history audit discovery queries"
+    ],
+    "invariants_error_checks": "Fail-closed on invalid/conflicting existing index and missing/inconsistent postflight. Both indexes are scoped by organization_id and partial on VALET_SESSION_PARKED; one indexes entity_id and one metadata taskId.",
+    "test_refs": [
+      "apps/api/test/live-history-dense100-http.integration.test.ts",
+      "apps/api/test/operational-history-audit-discovery.test.ts",
+      "apps/api/test/issue300-pg/issue300-auth-http-proof.mjs",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Online rollout behavior was source-reviewed only; no external PostgreSQL/index build executed"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/guest-browser-session-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0e70083154983d6c945f4f430e9280d0e07c18f5759b8e8880a687fa826a0d63",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        110
+      ]
+    ],
+    "feature": "Guest Browser Session runtime least-privilege provisioning and verification",
+    "semantic_review_notes": "Provisioning revokes all direct API-role access to enrollment/session tables and revokes PUBLIC/runtime execution across both public command functions and private helpers, then grants EXECUTE only on the approved command surface. Verification requires zero direct table SELECT/INSERT/UPDATE/DELETE/TRUNCATE, requires command functions to be SECURITY DEFINER, independently owned, fixed search_path and PUBLIC-denied, and confirms private helpers remain non-executable by runtime. This keeps credential/session state behind database authority functions rather than raw table access.",
+    "callers_consumers": [
+      "packages/database/scripts/runtime-table-privileges.mjs",
+      "packages/database/scripts/guest-runtime-privileges.mjs",
+      "Guest browser auth/session API database calls"
+    ],
+    "invariants_error_checks": "Verification is fail-closed on missing rows or any unexpected grant. Private hash/generation helpers remain hidden from API role; runtime gets only named functions.",
+    "test_refs": [
+      "packages/database/src/guest-browser-session-runtime-role.integration.test.ts",
+      "packages/database/src/guest-browser-session-migration.integration.test.ts",
+      "packages/database/src/guest-browser-session-context-switch.integration.test.ts",
+      "apps/api/test/guest-browser-session-races.integration.test.ts",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "SECURITY DEFINER function bodies/migrations are separate files and were referenced through their tests/callers, not credited here"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/guest-information-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "46f45323a3bbb281adf0a54d2c01eb84016efb9a1a7c21b145a6490edcf3d1cf",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        116
+      ]
+    ],
+    "feature": "Guest information management read/write authority boundary",
+    "semantic_review_notes": "Runtime receives SELECT only on the four guest information projection/configuration tables and mutation authority only through five named SECURITY DEFINER commands. Provisioning revokes existing table authority and direct execution on private authorization/audit/URL/immutability helpers. Verification enumerates every table privilege and requires write functions to be executable, SECURITY DEFINER, fixed search_path, independently owned and PUBLIC-denied; private helpers must remain runtime-denied and PUBLIC-denied.",
+    "callers_consumers": [
+      "packages/database/scripts/runtime-table-privileges.mjs",
+      "packages/database/scripts/runtime-feature-privilege-verification.mjs",
+      "Guest information management services/functions"
+    ],
+    "invariants_error_checks": "Direct INSERT/UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER are denied on read-only tables. Function verification fails if any expected protection is absent.",
+    "test_refs": [
+      "packages/database/src/guest-information-migration.integration.test.ts",
+      "packages/database/src/guest-information-test-context.ts",
+      "apps/api/test/guest-information-projection-concurrency.integration.test.ts",
+      "apps/api/test/guest-information-publication-race.integration.test.ts",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Function-internal actor/CAS rules live in migrations and are not re-executed here"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/guest-push-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a771bf2da380a48c81f4ad227dbab6d633fa245af4ef8646092c783a3863e4c0",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        141
+      ]
+    ],
+    "feature": "Ordinary API role isolation from Guest Push storage and worker authority",
+    "semantic_review_notes": "The script revokes PUBLIC and API-role table authority across registrations/intents/deliveries, explicitly cleans up legacy column grants, revokes all API/worker/private function execution, then grants the ordinary API only registration and ready-intent SECURITY DEFINER functions. Verification requires no table-level or effective column SELECT/UPDATE authority, validates command functions as definer/independent-owner/fixed-search-path/PUBLIC-denied, and ensures worker-only maintenance/eligibility plus private guard functions are not executable by API runtime.",
+    "callers_consumers": [
+      "packages/database/scripts/runtime-table-privileges.mjs",
+      "packages/database/scripts/guest-runtime-privileges.mjs",
+      "Guest Push registration/Mark Ready API paths"
+    ],
+    "invariants_error_checks": "Legacy grant revocation prevents privilege residue after upgrades. API role cannot scan push endpoints/secrets or directly mutate delivery lifecycle. Worker functions remain separated.",
+    "test_refs": [
+      "packages/database/src/guest-push-migration-contract.test.ts",
+      "packages/database/src/guest-push-role-separation.integration.test.ts",
+      "apps/api/test/guest-push-registration-contract.test.ts",
+      "apps/api/test/mark-ready-guest-push.test.ts",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Worker-side privileges are reviewed separately in this C003 subset"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/guest-push-worker-provisioning-policy.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7fabec8987abf60744ccc462613ac27c6021f5385b24b49b23961e8a77ed6952",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        70
+      ]
+    ],
+    "feature": "Guest Push worker database-principal provisioning identity policy",
+    "semantic_review_notes": "Configuration parsing requires migration, ordinary API and worker URLs, validates a strict PostgreSQL role-name pattern, requires GUEST_PUSH_WORKER_ROLE to exactly equal the worker URL principal, rejects worker identity equal to migration or API role, and requires migration/API/worker host+port+database targets to match. This prevents provisioning grants onto a different database/server or collapsing the worker into a more privileged or ordinary API principal.",
+    "callers_consumers": [
+      "packages/database/scripts/provision-guest-push-worker-role.mjs"
+    ],
+    "invariants_error_checks": "Unsafe/missing role names, principal mismatch, role reuse and target mismatch all throw before provisioning proceeds.",
+    "test_refs": [
+      "packages/database/src/guest-push-worker-provisioning-policy.test.ts",
+      "packages/database/src/guest-push-migration-contract.test.ts",
+      "apps/api/test/guest-push-worker-principal.test.ts",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Connection-policy parser internals are a separate shared script"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/guest-push-worker-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "68cac98c4ca3d2ebd9c8a23750edf2197eb3f0afae4a1e8a69e9fb9614e2b14e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        200
+      ]
+    ],
+    "feature": "Guest Push sender/maintenance worker narrow database authority",
+    "semantic_review_notes": "Worker provisioning removes all broad table authority, grants full SELECT only on intents/deliveries, grants a small non-secret SELECT column set on registrations, and grants UPDATE only to delivery lifecycle fields plus registration terminal/endpoint fields needed for provider invalidation. Endpoint, p256dh, auth_secret and endpoint_hash cannot be scanned even though selected fields may be updated through guarded flow. Worker receives only eligibility/reconcile/cleanup SECURITY DEFINER functions and is explicitly denied API registration/ready-intent and private guard functions. Verification checks table, effective-column and per-column grants plus function security properties.",
+    "callers_consumers": [
+      "packages/database/scripts/provision-guest-push-worker-role.mjs",
+      "Guest Push delivery worker/maintenance process"
+    ],
+    "invariants_error_checks": "Organization/intent/registration/maxAttempts fields on deliveries remain non-updatable. endpoint_hash is non-updatable. API-only functions are forbidden. Verification fails on unexpected secret read or broad grant.",
+    "test_refs": [
+      "packages/database/src/guest-push-role-separation.integration.test.ts",
+      "packages/database/src/guest-push-worker-replica.integration.test.ts",
+      "packages/database/src/guest-push-migration-contract.test.ts",
+      "apps/api/test/guest-push-delivery-worker.test.ts",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Worker obtains endpoint/key material indirectly through SECURITY DEFINER eligibility resolution rather than table SELECT; function body correctness is migration-owned"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/guest-rating-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b92552b1247d91fd2d555b613b87b59486ccf79aa8c2cba9cfa1a98116b7611b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        96
+      ]
+    ],
+    "feature": "Guest Rating command/analytics authority without direct table access",
+    "semantic_review_notes": "Provisioning removes PUBLIC/runtime direct access to guest_ratings and grants only guest submit plus management analytics SECURITY DEFINER functions. Verification requires all common table mutations/reads denied, PUBLIC table access denied, runtime functions independently owned/fixed-search-path/PUBLIC-denied/non-grantable, and the mutation-reject helper inaccessible. This centralizes one-rating/idempotency and analytics scope enforcement inside controlled DB functions.",
+    "callers_consumers": [
+      "packages/database/scripts/management-runtime-privileges.mjs",
+      "Guest rating submission and management rating analytics paths"
+    ],
+    "invariants_error_checks": "Runtime cannot bypass command functions with direct row access or delegate EXECUTE onward. Private mutation guard remains denied.",
+    "test_refs": [
+      "packages/database/src/guest-rating-runtime-role.integration.test.ts",
+      "packages/database/src/guest-rating-migration.integration.test.ts",
+      "apps/api/test/guest-rating-concurrency.integration.test.ts",
+      "apps/api/test/guest-rating-idempotency.integration.test.ts",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Rating range/idempotency logic is function/migration-owned"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/guest-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "404e227720f32fe9b4d8cc9a4e1415609cb495c8dbd7e752269eff4a6d9f9a78",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        31
+      ]
+    ],
+    "feature": "Aggregate Guest runtime privilege verification including anti-abuse maintenance",
+    "semantic_review_notes": "The verifier composes full Guest Browser Session and Guest Push privilege checks, then verifies the exact anti_abuse_events ephemeral grants and cleanup function security. Runtime may insert request_class/group_key_hash and update group_key_hash, but cannot update key_hash/request_class, cannot supply occurred_at, and cannot DELETE/TRUNCATE. Cleanup must be SECURITY DEFINER with independent owner, exact search_path/lock_timeout/statement_timeout configuration and PUBLIC EXECUTE denied.",
+    "callers_consumers": [
+      "packages/database/scripts/runtime-feature-privilege-verification.mjs"
+    ],
+    "invariants_error_checks": "Object.values fail-closed requires every expected capability/denial/security property true in one query result.",
+    "test_refs": [
+      "Guest Browser/Guest Push runtime-role integration suites",
+      "Guest anti-abuse T3/T4 API and recovery tests reference the governed boundary",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "This is verification composition; provisioning of anti-abuse grants occurs elsewhere"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/incident-recovery-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9677b11ee5803f398dcf3521ed6774130f3385305add53f3e73b0044dee89490",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        110
+      ]
+    ],
+    "feature": "Incident recovery intent narrow runtime insert/update privileges",
+    "semantic_review_notes": "The ordinary runtime can read incident recovery intents, insert only immutable identity/scope/reporting columns, and update only state. It is denied table-wide INSERT/UPDATE as well as DELETE/TRUNCATE/REFERENCES/TRIGGER, and explicitly cannot insert/update retirement timestamp or rewrite incident/tenant/location/session/reporter/created/expiry identity. Provisioning revokes all prior authority first and removes runtime access to the row guard function.",
+    "callers_consumers": [
+      "packages/database/scripts/runtime-table-privileges.mjs",
+      "packages/database/scripts/verify-runtime-table-privileges.mjs",
+      "Incident recovery command/service"
+    ],
+    "invariants_error_checks": "Per-column verifier enforces exact INSERT and UPDATE sets. incidents itself is SELECT+INSERT with no UPDATE/DELETE broad authority through exported policy.",
+    "test_refs": [
+      "apps/api/test/staff-incident-recovery.integration.test.ts",
+      "apps/api/test/incident-recovery-controller.test.ts",
+      "Runtime table privilege verification suites consume exported policy",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Row guard trigger/function semantics are migration-owned and not rerun"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/incident-resolution-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "58a4cc14221bd44dcd44f34c3517b439fd2e347e63b9e267fb8d66fa5b88bc52",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        36
+      ]
+    ],
+    "feature": "Incident resolution column-level mutation authority",
+    "semantic_review_notes": "Runtime is granted UPDATE only on status, resolved_at, resolved_by_membership_id and resolution_notes. Verification enumerates every incidents column through information_schema and requires UPDATE permission to equal membership in that four-column allowlist, so tenant/location/session/reporter/description/severity/created identity cannot acquire accidental update authority.",
+    "callers_consumers": [
+      "packages/database/scripts/runtime-table-privileges.mjs",
+      "packages/database/scripts/verify-runtime-table-privileges.mjs",
+      "Incident resolution service/HTTP flow"
+    ],
+    "invariants_error_checks": "Verifier fails on an empty table description or any missing/extra column grant. Broader incident table policy separately denies table-level UPDATE/DELETE/TRUNCATE.",
+    "test_refs": [
+      "apps/api/test/dashboard-incident-resolution.integration.test.ts",
+      "apps/api/test/dashboard-incident-resolution-integrity.integration.test.ts",
+      "Runtime table privilege verification consumes this exact allowlist",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Lifecycle consistency between status/resolution fields is enforced by command/DB guards outside this privilege file"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/location-configuration-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1b960f00b592cf43381b10c4e40747840e2df302dfc26f92e2bdfc891f9c879c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        98
+      ]
+    ],
+    "feature": "Location configuration mutation function authority",
+    "semantic_review_notes": "The API runtime receives EXECUTE only on set/clear override SECURITY DEFINER commands. Authorization, current setting state, currency minor-unit resolution and audit helpers remain private. Verification requires runtime command execution, SECURITY DEFINER, independent owner, exact pg_catalog/public search_path and PUBLIC EXECUTE denial; every private helper must be runtime-denied and PUBLIC-denied.",
+    "callers_consumers": [
+      "packages/database/scripts/runtime-table-privileges.mjs",
+      "packages/database/scripts/runtime-feature-privilege-verification.mjs",
+      "Dashboard location configuration mutations"
+    ],
+    "invariants_error_checks": "Private authorization/audit helpers cannot be called directly by runtime. Any missing function row or altered security/search-path/public ACL fails verification.",
+    "test_refs": [
+      "packages/database/src/location-configuration-runtime-role.integration.test.ts",
+      "packages/database/src/location-configuration-migration.integration.test.ts",
+      "packages/database/src/location-configuration-currency.integration.test.ts",
+      "apps/api/test/dashboard-configuration-mutation.integration.test.ts",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Function body CAS/actor/setting validation is migration-owned"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/management-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2bd9b8d132def49b180a48e2560d5c81f8a8267a95ce1d983dd05480dedea087",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        34
+      ]
+    ],
+    "feature": "Management feature privilege provisioning/verifier composition",
+    "semantic_review_notes": "This composition layer delegates provisioning and verification in a fixed sequence to location lifecycle, visit contact, Guest Rating and physical-resource privilege modules. It introduces no independent grant and does not bypass sub-verifiers; the same four feature modules are mirrored between provision and verify paths.",
+    "callers_consumers": [
+      "packages/database/scripts/runtime-table-privileges.mjs",
+      "packages/database/scripts/runtime-feature-privilege-verification.mjs"
+    ],
+    "invariants_error_checks": "Provision/verify symmetry is explicit. Any sub-verifier rejection propagates and aborts the aggregate verifier.",
+    "test_refs": [
+      "Feature-specific runtime-role integration suites for location lifecycle, visit contact, guest rating and physical resources",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Security semantics reside in the four imported modules; only guest-rating is itself within this transferred subset"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/management-settings-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2e28db7c6422196ee1372ec22ba07e04868a4745d2c39ec9501d3462a4b0d3fc",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        133
+      ]
+    ],
+    "feature": "Management settings/branding/operating-hours/SLA least-privilege boundary",
+    "semantic_review_notes": "Runtime gets SELECT-only access to organization/location operating-hours tables and EXECUTE on explicit company/location scalar, operating-hours, branding and SLA mutation functions. Organization locking, actor authorization, canonicalization, minor-unit checks, audit writers, hours validation and retrieval SLA snapshot helpers stay private. Function verification also denies runtime grant option, preventing delegated EXECUTE authority.",
+    "callers_consumers": [
+      "packages/database/scripts/runtime-table-privileges.mjs",
+      "packages/database/scripts/runtime-feature-privilege-verification.mjs",
+      "Management settings/branding/SLA API services"
+    ],
+    "invariants_error_checks": "Read-only tables are checked across SELECT/INSERT/UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER. Runtime commands require SECURITY DEFINER, owner separation, exact search_path, no grant option and PUBLIC denial; private helpers must remain runtime/PUBLIC denied.",
+    "test_refs": [
+      "packages/database/src/management-settings-runtime-role.integration.test.ts",
+      "apps/api/test/management-settings.integration.test.ts",
+      "apps/api/test/management-settings-concurrency.integration.test.ts",
+      "apps/api/test/staff-push-management-policy-race.integration.test.ts",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Function-internal CAS/audit/policy validation remains migration-owned"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/mfa-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "425fdc89ade4a1d07768742c8cfba390685e45c884abdcc95121469e79433a42",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        215
+      ]
+    ],
+    "feature": "MFA/session/refresh credential exact column privilege provisioning",
+    "semantic_review_notes": "Provisioning first removes broad runtime/PUBLIC authority and explicit column ACL residue, then grants SELECT plus precise write columns. StaffAuthSession insertion cannot directly set revocation/MFA/admin-activity fields; updates can rotate token/expiry/revocation and record MFA/admin activity but cannot rewrite user/absolute expiry/creation. TOTP factor insertion includes protected_secret but later UPDATE excludes it; mutable fields are lifecycle state, last accepted TOTP step, recovery generation and activation/retirement times. Recovery-code rows can be inserted with selector/verifier identity and later only consumed_at can change. Refresh rows are SELECT+INSERT with only consumed_at/replaced_by_credential_id updates. MFA guard trigger functions are denied to runtime and PUBLIC.",
+    "callers_consumers": [
+      "packages/database/scripts/provision-runtime-role.mjs",
+      "packages/database/scripts/mfa-runtime-privilege-verification.mjs",
+      "Staff auth/MFA repositories using restricted runtime"
+    ],
+    "invariants_error_checks": "Revoke-before-grant prevents stale table/column grants. Protected TOTP secret is immutable after insert; recovery verifier/selector cannot be updated; session absolute expiry and refresh token identity cannot be rewritten by update.",
+    "test_refs": [
+      "packages/database/src/mfa-runtime-role.integration.test.ts",
+      "Security/auth MFA integration suites consume these table capabilities",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Row-level lifecycle consistency is enforced by DB guard triggers/application transactions outside this file"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/mfa-runtime-privilege-verification.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "713693939b32fbba7c6b69d189de67f2bcf062a2dc770cd6d3357970c843b6c6",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        190
+      ]
+    ],
+    "feature": "Fail-closed verification of MFA runtime ACLs",
+    "semantic_review_notes": "Verifier checks table-level SELECT/INSERT expectations while requiring table-wide UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER false, enumerates every table column for exact INSERT/UPDATE allowlists imported from provisioning, requires REFERENCES denied on all four auth tables, verifies PUBLIC has neither table nor column authority on TOTP/recovery tables, and confirms the two private guard functions are neither runtime nor PUBLIC executable.",
+    "callers_consumers": [
+      "packages/database/scripts/runtime-feature-privilege-verification.mjs"
+    ],
+    "invariants_error_checks": "Unexpected columns default denied because comparison is against a Set allowlist. Empty information_schema result is failure. This catches both over-grants and missing required grants, including injected protected_secret/session MFA insert grants tested historically.",
+    "test_refs": [
+      "packages/database/src/mfa-runtime-role.integration.test.ts includes deliberate unsafe grant injections and verifier rejection",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Verifier checks ACLs, not trigger bodies or cryptographic handling"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/outbound-binding-insert-smoke.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "80b3ded7b91a2612f169def9405941b924dadd5e21d9011cb1e7739bfeca261e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        57
+      ]
+    ],
+    "feature": "Outbound provider-binding API-role self-attestation regression smoke",
+    "semantic_review_notes": "Under the supplied restricted runtime role the smoke requires PostgreSQL 42501 when attempting to create an enabled/verified Meta binding or explicitly set enabled, provider verification evidence, revision or timestamps. A safe insert omitting protected columns must converge to disabled, unverified, revision=1 defaults. Runtime is also denied operator-only verification UPDATE while allowed to edit config_alias and increment revision/updated_at.",
+    "callers_consumers": [
+      "packages/database/scripts/outbound-migration-smoke.mjs"
+    ],
+    "invariants_error_checks": "expectsDenied treats success or any non-42501 code as failure. SET ROLE is reset in finally. The smoke distinguishes trusted operator verification fields from ordinary configuration fields.",
+    "test_refs": [
+      "Outbound migration smoke suite",
+      "apps/api/test/whatsapp-webhook-persistence.test.ts validates verified binding derivation at callback boundary",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Synthetic smoke was inspected only; no PostgreSQL execution in C003"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/outbound-callback-crash-smoke.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3e6e73c8167c875d5cd9a3e8f085879cd1567d458c2538215031d8b91763081b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        111
+      ]
+    ],
+    "feature": "Outbound dispatch crash recovery authenticated-proof fencing smoke",
+    "semantic_review_notes": "Seven DISPATCHING-expired-lease scenarios distinguish signed provider SENT/DELIVERED/READ, signed FAILED, a forged delivery timestamp, a bare stored provider message id and no proof. Recovery under sender role must terminalize all: only authenticated successful callback events become ACCEPTED; failed/forged/bare/absent evidence becomes UNKNOWN. Every path clears lease/retry, purges encrypted envelope, and repeat recovery is idempotent with zero rows; recovered deliveries cannot be claimed for resend.",
+    "callers_consumers": [
+      "packages/database/scripts/outbound-migration-smoke.mjs",
+      "outbound_recover_expired and outbound_claim_due database functions"
+    ],
+    "invariants_error_checks": "Mutable delivery timestamps and correlation IDs are explicitly treated as insufficient proof; authoritative evidence is counted from persisted provider events. Trusted state cannot be inferred from unauthenticated mutable columns.",
+    "test_refs": [
+      "apps/api/test/whatsapp-worker-multireplica-recovery.test.ts",
+      "apps/api/test/whatsapp-worker-multireplica-claims.test.ts",
+      "Outbound migration smoke",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Provider signature verification itself occurs before event persistence and is outside this DB smoke"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/outbound-constraint-smoke.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4370f388310aeac1cda78c2af79e1a1618c7418db6166ad4b415047f21b202d5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        162
+      ]
+    ],
+    "feature": "Outbound tenant, permission, send-fence, callback-dedupe and purge constraint smoke",
+    "semantic_review_notes": "Synthetic setup exercises restricted intake helpers under runtime role while direct customer/permission/control/event reads are denied. Cross-organization permission lookup returns empty, duplicate intent hits uniqueness, and cross-tenant delivery linkage hits FK failure. With sending disabled no delivery is claimable. Once enabled, dispatch permit rejects wrong recipient digest; post-permit confirmation rejects changed supplied phone, changed canonical customer phone and policy revision drift. Provider callback rejects wrong recipient, accepts/deduplicates the correct signed event, and later NOT_SENT finalization cannot downgrade callback-first delivered state. Successful terminalization purges envelope.",
+    "callers_consumers": [
+      "packages/database/scripts/outbound-migration-smoke.mjs",
+      "Outbound SECURITY DEFINER intake/claim/dispatch/callback functions"
+    ],
+    "invariants_error_checks": "Expected PostgreSQL error codes are asserted, runtime SET ROLE reset is guaranteed for scoped read checks, tenant FK/idempotency/policy revision/recipient digest/canonical phone are all independent send fences.",
+    "test_refs": [
+      "apps/api/test/whatsapp-worker-phone-change-pg.test.ts",
+      "apps/api/test/whatsapp-worker-postgres-repository.test.ts",
+      "apps/api/test/whatsapp-worker-multireplica-claims.test.ts",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Large synthetic smoke validates contracts only when executed; this C003 pass did not run it"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/outbound-late-callback-smoke.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e4cdee3e173808defc8ab6135bf0404d5380237a124bbac816c3fc9061d3399a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        51
+      ]
+    ],
+    "feature": "Late authenticated callback cancels scheduled outbound retry",
+    "semantic_review_notes": "The smoke constructs a NOT_SENT attempt with delivery already in RETRY_WAIT and an encrypted envelope, then records a signed SENT provider event. Expected convergence is ACCEPTED, next_attempt_at cleared, envelope deleted, and delivery absent from the due-claim set. This protects against duplicate outbound sends when provider acknowledgement arrives after local retry scheduling.",
+    "callers_consumers": [
+      "packages/database/scripts/outbound-migration-smoke.mjs",
+      "outbound_record_provider_event and outbound_claim_due functions"
+    ],
+    "invariants_error_checks": "Callback must return true, state must become ACCEPTED, retry must be null, ciphertext count zero and later claim must exclude the delivery.",
+    "test_refs": [
+      "Outbound migration smoke",
+      "Multi-replica worker recovery/claim tests exercise adjacent retry races",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Synthetic callback authenticity is represented by calling the trusted DB event writer after upstream verification; external webhook cryptography is outside scope"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/outbound-late-override-smoke.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d8f4f12ad2751f88ab06e22fb7feeafd3ef76304fd2eb1bf88ba5e74024fe46e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        45
+      ]
+    ],
+    "feature": "Late Location policy override invalidates an already-issued outbound intent",
+    "semantic_review_notes": "The smoke creates an intent while only Company policy applies, claims its delivery, then inserts a Location override disabling INITIAL_GUEST_ACCESS. The already-leased outbound_dispatch_permit must fail with P0001 despite the earlier intent snapshot, proving the final send gate re-evaluates current effective policy. The fixture then suppresses the synthetic row to avoid contaminating later smoke cases.",
+    "callers_consumers": [
+      "packages/database/scripts/outbound-migration-smoke.mjs",
+      "outbound_dispatch_permit effective-policy guard"
+    ],
+    "invariants_error_checks": "A missing lease fails the fixture; permit success or any code other than the expected policy rejection fails the smoke. This is the race fence between issuance and dispatch.",
+    "test_refs": [
+      "Outbound migration smoke",
+      "Management-settings/concurrency tests exercise adjacent policy revision races",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Synthetic PostgreSQL smoke inspected only; not executed"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/outbound-migration-smoke.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6f74d130f014e088edcc3d65e915791b397abbefe84fc57fea5771c4ed3b23aa",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        88
+      ]
+    ],
+    "feature": "Disposable PostgreSQL full outbound migration/ACL regression harness",
+    "semantic_review_notes": "The runner refuses non-local PostgreSQL hosts, creates a uniquely named disposable database, applies every migration in lexical order, asserts exactly 12 outbound tables and OFF/OFF control defaults, provisions isolated runtime/sender/webhook roles, then deliberately reproduces the historical vulnerable full-table provider-binding INSERT grant and applies forward migration 090 to prove in-place ACL repair. It re-verifies runtime privileges and runs all outbound constraint/race/recovery/phone/consent smokes before forcibly dropping the database and generated roles in finally blocks.",
+    "callers_consumers": [
+      "Database package smoke command/CI invocation",
+      "All outbound-*-smoke modules in this transfer set"
+    ],
+    "invariants_error_checks": "Host guard prevents accidental remote DB destruction. Migration failures include folder identity. Cleanup occurs even after test failure. Control defaults and legacy ACL repair are explicit preconditions before behavioral smokes.",
+    "test_refs": [
+      "This file is itself the top-level disposable migration smoke harness",
+      "apps/api/test/whatsapp-worker-* provide focused application/PG coverage",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "C003 prohibition on external tests/DB means this harness was source-reviewed and not executed"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/outbound-optout-smoke.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2a2726033c560fed3d93cd558b7a90ed63388bfcc35caa121a41998830b368df",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        46
+      ]
+    ],
+    "feature": "Consent withdrawal suppresses pending outbound delivery and purges ciphertext",
+    "semantic_review_notes": "The smoke creates a PENDING scheduled delivery plus encrypted envelope, records a WITHDRAW permission revision, and invokes recovery. Expected convergence is one recovered row in SUPPRESSED with next_attempt_at null and envelope count zero; the suppressed delivery must not appear in outbound_claim_due. This verifies revocation takes effect after issuance and removes both retry eligibility and retained message ciphertext.",
+    "callers_consumers": [
+      "packages/database/scripts/outbound-migration-smoke.mjs",
+      "outbound_permission_change, outbound_recover_expired, outbound_claim_due"
+    ],
+    "invariants_error_checks": "Suppression, retry cancellation and purge are checked together; a withdrawn row remaining claimable is a hard failure.",
+    "test_refs": [
+      "apps/api/test/whatsapp-worker-multireplica-recovery.test.ts includes permission withdrawal/recovery",
+      "Outbound migration smoke",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Consent evidence authenticity/collection occurs upstream of the DB command"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/outbound-phone-change-smoke.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "dd46088fa14f7802271347cc48a659e97f7550629ac0b51c35b2eca2d74ae5ea",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        180
+      ]
+    ],
+    "feature": "Outbound canonical phone drift and post-dispatch retry fencing regression smoke",
+    "semantic_review_notes": "The smoke exercises PENDING, LEASED, RETRY_WAIT and DISPATCHING rows against customer phone changes. A transactional change proves suppression is rollback-safe; a no-op update preserves rows; committed drift immediately SUPPRESSES and purges undispatched rows while in-flight DISPATCHING remains fenced until lease recovery converges to UNKNOWN. F33 cases prove recipient_routing_uncertain is monotone and cannot be manually cleared, arbitrary DISPATCHING->RETRY_WAIT without a finalized matching negative attempt is rejected by CHECK/guard, changed-phone definitive failure or NOT_SENT converges to SUPPRESSED, changed-phone UNKNOWN stays UNKNOWN, ACCEPTED stays accepted, and an authenticated positive callback cannot be downgraded by a later definitive failure. Same-phone definitive/NOT_SENT can retain bounded retry until a later phone change suppresses it.",
+    "callers_consumers": [
+      "packages/database/scripts/outbound-migration-smoke.mjs",
+      "outbound_finish_attempt, outbound_recover_expired, outbound_record_provider_event and customer phone-change trigger/guards"
+    ],
+    "invariants_error_checks": "Customer scope isolation is tested with an unaffected customer. Envelope presence/absence, lease/retry clearing, monotone routing-uncertain evidence and callback-first precedence are independently asserted. Sender role is reset in finally around each finalization.",
+    "test_refs": [
+      "apps/api/test/whatsapp-worker-phone-change-pg.test.ts explicitly covers F33",
+      "apps/api/test/whatsapp-worker-callback-first-pg.test.ts",
+      "apps/api/test/whatsapp-worker-multireplica-recovery.test.ts",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Synthetic DB smoke source reviewed; no PostgreSQL execution"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/outbound-principal-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3087eb5f0c200d7f8edbc70591b81667b062c077788625bb594ae87cb6564ba8",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        110
+      ]
+    ],
+    "feature": "Dedicated outbound sender/webhook database principal hardening",
+    "semantic_review_notes": "Sender and webhook receive disjoint approved SECURITY DEFINER function surfaces: sender can claim/lease/permit/confirm/finalize/recover/cleanup deliveries, while webhook can only resolve Meta binding and record provider events. Provisioning rejects principals that cannot login, are superuser/createdb/createrole/replication/bypassrls, inherit roles, hold memberships, or own public objects. It grants CONNECT+schema USAGE, explicitly removes database CREATE/TEMP and all table/sequence/function authority, then grants only approved functions. Verification requires zero table privileges over all 12 outbound tables, exact function access by principal kind, and no INSERT/UPDATE/DELETE on valet_sessions/customers/guest_browser_sessions/audit_events.",
+    "callers_consumers": [
+      "packages/database/scripts/provision-outbound-principals.mjs",
+      "packages/database/scripts/outbound-role-smoke.mjs",
+      "WhatsApp sender worker and webhook database connections"
+    ],
+    "invariants_error_checks": "NOINHERIT/no memberships/no object ownership closes SET ROLE and ownership bypass paths. Sender and webhook cannot directly read ciphertext tables or mutate custody/Guest/audit state.",
+    "test_refs": [
+      "packages/database/scripts/outbound-role-smoke.mjs",
+      "apps/api/test/whatsapp-worker-lifecycle.test.ts",
+      "apps/api/test/whatsapp-webhook-persistence.test.ts",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Function bodies carry the actual row-level authority; this file validates principal profile and ACL surface"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/outbound-recovery-smoke.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "92c7294b50830a6f85cc2977f00621475eb9771f4463d0662fcda4a1c6c80bde",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        54
+      ]
+    ],
+    "feature": "Stale in-flight outbound recovery without trusted provider evidence",
+    "semantic_review_notes": "A synthetic DISPATCHING delivery with expired lease, active attempt and encrypted envelope but no authenticated callback is recovered exactly once. Required result is delivery UNKNOWN, attempt UNKNOWN, lease token cleared and envelope purged; outbound_claim_due must never return it. The design prefers terminal uncertainty over automatic resend when provider acceptance is unknowable.",
+    "callers_consumers": [
+      "packages/database/scripts/outbound-migration-smoke.mjs",
+      "outbound_recover_expired and outbound_claim_due"
+    ],
+    "invariants_error_checks": "Recovery count, delivery/attempt state, lease clearance, ciphertext purge and no-reclaim are all asserted.",
+    "test_refs": [
+      "apps/api/test/whatsapp-worker-multireplica-recovery.test.ts",
+      "apps/api/test/whatsapp-worker-multireplica-claims.test.ts",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Smoke does not simulate provider transport; it validates the no-proof database branch"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/outbound-role-smoke.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9b649dfbd1a82ab8fe833dffe6a77b6125fd7bff3bf3e2aa89d7d665fa8d46aa",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        61
+      ]
+    ],
+    "feature": "Disposable role creation and effective outbound privilege smoke",
+    "semantic_review_notes": "The smoke creates runtime/sender/webhook roles with LOGIN, NOINHERIT and all elevated PostgreSQL attributes disabled, provisions the API runtime and the dedicated sender/webhook principals, and verifies all three cannot SELECT the encrypted envelope table. It also checks sender/webhook cannot UPDATE valet_sessions/customers and performs a real SET ROLE sender arbitrary ciphertext SELECT expecting 42501.",
+    "callers_consumers": [
+      "packages/database/scripts/outbound-migration-smoke.mjs",
+      "outbound runtime/principal privilege modules"
+    ],
+    "invariants_error_checks": "Generated roles are tracked for caller cleanup. SQL identifiers/literals are produced via server-side format. Direct envelope access must be denied even after function grants.",
+    "test_refs": [
+      "Outbound migration smoke",
+      "Application worker principal tests exercise sender database URL and function-only access",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Role smoke was not executed in C003"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/outbound-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "935e6ad5b82e3ffc6f2c3ba45a309e931faa17fdc1f659aaadb4426b8c221c54",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        154
+      ]
+    ],
+    "feature": "Ordinary API outbound data/function least-privilege provisioning",
+    "semantic_review_notes": "Provisioning revokes PUBLIC/runtime access across all 12 outbound tables, grants SELECT only on bindings/policies/control/permissions/intents/deliveries and INSERT only on policies/intents/deliveries/envelopes. Provider-binding insertion is intentionally column-scoped to onboarding identity/config fields, repairing the prior table-wide self-attestation vulnerability; enabled/verification evidence/revision/timestamps cannot be inserted. Binding UPDATE is limited to enabled/revision/updated_at/config_alias, while sensitive organization/phone scope is not updatable; policy UPDATE excludes organization/location and global send control. API runtime gets only permission-change and scoped intake read functions, never sender/webhook dispatch functions. Verification rechecks table ACLs including PUBLIC, exact binding INSERT columns, restricted update columns, and exact function surface.",
+    "callers_consumers": [
+      "packages/database/scripts/runtime-table-privileges.mjs",
+      "packages/database/scripts/runtime-feature-privilege-verification.mjs",
+      "packages/database/scripts/outbound-role-smoke.mjs",
+      "Ordinary API issuance/configuration path"
+    ],
+    "invariants_error_checks": "Revoke-before-grant includes stale per-column binding INSERT cleanup. Runtime cannot SELECT envelopes despite inserting them, cannot change send_enabled, organization/location scope or provider verification fields, and cannot invoke dispatch/webhook functions.",
+    "test_refs": [
+      "packages/database/scripts/outbound-migration-smoke.mjs forward migration 090 ACL repair",
+      "apps/api/test/whatsapp-issuance-*",
+      "apps/api/test/whatsapp-worker-postgres-repository.test.ts",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Row/business invariants remain in database functions/triggers/migrations; ACL verifier covers authority surface"
+    ]
+  },
+  {
+    "path": "packages/database/scripts/payment-collection-runtime-privileges.mjs",
+    "original_owner": "database",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fa497037fd33859e720c6a1a4f616a8143eedfa304cc6dedac92a811aa093df7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        72
+      ]
+    ],
+    "feature": "Digital payment collection-operation runtime ACL policy",
+    "semantic_review_notes": "The runtime may SELECT and INSERT payment_collection_operations but has no table-wide UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER. Existing operation identity/snapshot columns id, organization_id, payment_id, submission idempotency key, amount, currency, provider and created_at are not updatable. Only lifecycle/reconciliation fields state, provider_reference, safe_result_code, dispatch_guarded_at, resolved_at and updated_at receive UPDATE authority. Provisioning revokes PUBLIC and role table authority before restoring SELECT/INSERT plus those column updates.",
+    "callers_consumers": [
+      "packages/database/scripts/runtime-table-privileges.mjs",
+      "packages/database/scripts/verify-runtime-table-privileges.mjs",
+      "Digital collection command/provider-event reconciliation"
+    ],
+    "invariants_error_checks": "Exported table/column/any-column policy is consumed by central runtime verifier, so unexpected identity-column update grants are detectable. Insert authority is intentional for creating a new canonical operation and relies on payment/tenant FKs, unique idempotency/provider-reference constraints and command authorization.",
+    "test_refs": [
+      "packages/database/src/payment-collection-runtime-role.integration.test.ts",
+      "apps/api/test/payment-collection-initiation.integration.test.ts",
+      "apps/api/test/provider-event-collection.integration.test.ts",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Table-wide INSERT lets the trusted API runtime supply initial snapshot fields; correctness/authorization is enforced by application command plus DB constraints rather than an insert SECURITY DEFINER function"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/auth.module.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7989a1556df3dafa2bf3e2f1624237f948e21150606505c76af4dce662a64c73",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        84
+      ]
+    ],
+    "feature": "Staff authentication, activation and MFA Nest module composition",
+    "semantic_review_notes": "The module wires browser/native staff authentication, activation and MFA controllers to the restricted runtime database and anti-abuse/http infrastructure. Concrete database principal/session context resolvers and Argon2 password verifier are exposed only through their intended injection tokens; MFA assurance policy is the only MFA policy exported for other management modules. RequestIdMiddleware is applied uniformly to activation, browser/native auth and MFA controllers, preserving operation observability without adding an alternate auth path.",
+    "callers_consumers": [
+      "Application module imports AuthModule",
+      "Management modules consume STAFF_PRINCIPAL_RESOLVER, STAFF_SESSION_CONTEXT_RESOLVER and MfaAssurancePolicy",
+      "All staff auth/MFA controllers registered here"
+    ],
+    "invariants_error_checks": "No test/mock verifier is registered in production wiring. RuntimeDatabaseModule rather than admin/migration DB is used. Concrete resolver aliases use useExisting so there is one authoritative implementation instance per provider.",
+    "test_refs": [
+      "apps/api/test/feature-module-ownership.test.ts verifies controller/provider ownership",
+      "Staff auth/MFA integration suites exercise the composed module",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "This file is composition-only; individual service/controller security semantics are reviewed in their own records or adjacent source"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-step-up.service.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "08505127a6f720f43b584f9cebaec00d47cc878a54199d0e20c84b2f75bf6b31",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        96
+      ]
+    ],
+    "feature": "Management MFA TOTP step-up with replay and authority rechecks",
+    "semantic_review_notes": "Step-up resolves the current bearer session, reserves a user-scoped TOTP anti-abuse slot, then performs all security checks in one PostgreSQL transaction: re-lock/recheck the auth session, lock the user, re-evaluate management-MFA eligibility, lock the current factor, require ACTIVE state, decrypt the factor secret with user+factor binding, verify the code strictly after any prior accepted time step, update last_accepted_step only while the factor is still ACTIVE, and establish assurance on the same session/factor at the same database operation time. This ordering fences concurrent logout/refresh replay/factor replacement and serializes TOTP replay. Verification failures are counted by anti-abuse; infrastructure/security-unavailable failures do not consume the bad-code budget.",
+    "callers_consumers": [
+      "StaffMfaController POST /v1/staff/auth/mfa/step-up",
+      "MfaAssurancePolicy later reads the established session assurance"
+    ],
+    "invariants_error_checks": "Persisted replay state must convert to a nonnegative safe integer or execution fails. Missing/inactive factor, invalid/replayed code or stale factor update yields MfaVerificationFailedError. The update rowCount must be exactly one before assurance is established.",
+    "test_refs": [
+      "apps/api/test/staff-mfa-enrollment.integration.test.ts rejects TOTP replay and serializes concurrent same-step attempts",
+      "apps/api/test/staff-mfa-authority-races.integration.test.ts covers refresh-replay/logout/factor-replacement races against step-up",
+      "apps/api/test/staff-mfa-session-races.integration.test.ts covers refresh ordering and absolute expiry",
+      "apps/api/test/staff-mfa-security.integration.test.ts covers anti-abuse",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Factor secret protection and session repository internals are adjacent security modules outside this exact transfer subset"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-totp.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4c070a97a4420bfdedc1d50fd2efc07234d9f2fae9e4434c0693687ffcbfe03d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        60
+      ]
+    ],
+    "feature": "TOTP secret generation and one-time code verification primitive",
+    "semantic_review_notes": "Secret generation requests 20 random bytes from otplib and accepts only the expected 32-character Base32 alphabet, mapping generator anomalies to MFA security unavailable. Verification accepts exactly six decimal digits, validates secret/date/prior-step state, uses SHA-1 TOTP with six digits and a 30-second period, permits one 30-second tolerance window, and passes afterTimeStep when prior state exists so a previously accepted time step cannot be accepted again. Library exceptions become a fail-closed MfaSecurityUnavailableError rather than a verification success/failure ambiguity.",
+    "callers_consumers": [
+      "MfaEnrollmentService",
+      "MfaStepUpService",
+      "MfaRecoveryService",
+      "mfa-secret-protection re-exports protect/unprotect helpers"
+    ],
+    "invariants_error_checks": "Malformed codes return undefined without invoking crypto. Malformed secret/time/replay state is treated as security-unavailable. Valid result is accepted only when otplib returns valid plus a concrete timeStep.",
+    "test_refs": [
+      "apps/api/test/mfa-totp.test.ts covers valid windows, replay cutoff, invalid formats and invalid security state",
+      "apps/api/test/staff-mfa-enrollment.integration.test.ts integration replay behavior",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "TOTP uses the standard SHA-1 algorithm required by broad authenticator compatibility; key-at-rest protection is implemented in mfa-secret-protection.ts outside this exact file"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/staff-mfa.controller.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "be1ccc1a241d67deda48daf14c5e800abb6798916cbf401e4311a89fab916494",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        202
+      ]
+    ],
+    "feature": "Staff MFA HTTP surface for state, enrollment, step-up and recovery",
+    "semantic_review_notes": "All five MFA mutation/read surfaces set private no-cache auth headers and run through named ApiOperationRunner operations. Mutation routes require JSON content type, reject query parameters and validate request contracts before invoking services; response objects are parsed through explicit contracts. The controller passes only the Authorization credential and the narrowly typed MFA code/recovery-code payload to state/enrollment/step-up/recovery services, with no tenant, membership, factor or session identifier accepted from the body. Enrollment begin requires an effectively empty object, limiting authority injection.",
+    "callers_consumers": [
+      "AuthModule registers StaffMfaController",
+      "MfaEnrollmentService",
+      "MfaRecoveryService",
+      "MfaStepUpService",
+      "MfaStateService"
+    ],
+    "invariants_error_checks": "Unexpected body/query shape fails transport validation before service calls. Private headers apply even on controller-handled auth responses. Recovery code and TOTP are never returned from state/step-up endpoints; generated recovery codes are response-schema bounded by the enrollment/reissue services.",
+    "test_refs": [
+      "apps/api/test/staff-mfa-enrollment.integration.test.ts",
+      "apps/api/test/staff-mfa-security.integration.test.ts",
+      "apps/api/test/staff-mfa-eligibility.integration.test.ts",
+      "apps/api/test/mfa-controlled-recovery-tool.test.ts checks controller surface",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Browser Origin/CSRF policy is handled at the wider auth transport/controller boundary; this controller authenticates explicit bearer sessions"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/native-staff-auth.controller.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bedf0db16212fd4ded72ac5be826ec51b8f32105f5cf2daac421ffe4c34deb29",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        107
+      ]
+    ],
+    "feature": "Native staff login, refresh-token rotation and logout HTTP transport",
+    "semantic_review_notes": "The native surface deliberately uses explicit JSON refresh-token bodies rather than browser cookies/origin semantics. Login, refresh and logout all set private auth headers, require JSON, reject query parameters and parse strict contracts under named operation runners. Login delegates password/anti-abuse/session issuance to StaffLoginService; refresh and logout pass only the submitted refresh token to StaffAuthService. Native responses use nativeAccessResponse, which is reviewed with the shared transport file and returns explicit access/refresh credentials appropriate to native secure storage rather than setting browser cookies.",
+    "callers_consumers": [
+      "AuthModule",
+      "StaffLoginService",
+      "StaffAuthService",
+      "native clients"
+    ],
+    "invariants_error_checks": "No user/session ID is accepted for refresh/logout, so credential possession selects the canonical session. Strict request schemas prevent cookie/browser authority fields or arbitrary scope from being injected.",
+    "test_refs": [
+      "Staff auth/native refresh/logout integration suites",
+      "apps/api/test/staff-management-deactivation-refresh-race.integration.test.ts exercises native refresh against membership changes",
+      "apps/api/test/feature-module-ownership.test.ts",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "OS secure storage and TLS are client/deployment concerns outside server source; refresh rotation/replay semantics are reviewed in StaffAuthService"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-activation.controller.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a7f2c0cccea1a74ff5f7220c0da17e362fbc6d58abfdcfbc153254a3b3519e9b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        54
+      ]
+    ],
+    "feature": "Public staff onboarding activation HTTP gate",
+    "semantic_review_notes": "Activation is the public credential-consumption route and therefore requires the configured StaffAuthOriginPolicy before parsing or invoking the activation service. It also enforces JSON, rejects query parameters, parses the activation contract, sets private auth headers and runs under the dedicated STAFF_AUTH_ACTIVATE operation. Invite/password authority stays in the body and is not reflected into URL/query state.",
+    "callers_consumers": [
+      "AuthModule",
+      "StaffActivationService",
+      "StaffAuthOriginPolicy"
+    ],
+    "invariants_error_checks": "Missing/disallowed Origin yields a fixed StaffAuthOriginError. Strict body/query handling blocks alternate token placement. Response remains no-store/private.",
+    "test_refs": [
+      "apps/api/test/staff-activation.integration.test.ts",
+      "apps/api/test/staff-activation-anti-abuse.integration.test.ts",
+      "apps/api/test/staff-onboarding-policy.test.ts validates configured secure origin/link handling",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Origin configuration parsing is reviewed in staff-auth.origin.ts later in this transferred subset"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-activation.service.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e95b67e287799c5ea5423adb295cf9104f49f4f8cbe718020ab26f45711c4ae8",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        123
+      ]
+    ],
+    "feature": "Staff invitation activation with anti-enumeration password verification and dual anti-abuse bounds",
+    "semantic_review_notes": "Activation first derives a trusted client address and reserves a 30-attempt address budget, then a tighter five-attempt invite-token credential budget. It hashes the invite token before database lookup. A genuinely pending account with no password may set a newly policy-validated Argon2 password; every other path performs an Argon2 verification against either the accepted stored hash or a fixed dummy hash, avoiding a fast invalid-token/unsupported-hash oracle. Only an already ACTIVE account with a supported matching password may converge to ALREADY_ACTIVATED; all other cases use the same StaffActivationFailedError. The authoritative DB activation and successful reservation finalization occur in one transaction. Failed credentials count anti-abuse reservations, while successful/idempotent activation reservations are ignored rather than consuming failure budgets.",
+    "callers_consumers": [
+      "StaffActivationController",
+      "staff onboarding invitation database function",
+      "AntiAbuseService and TrustedClientAddressResolver"
+    ],
+    "invariants_error_checks": "Unavailable trusted client address fails as AntiAbuseUnavailable. Invalid password policy on first activation cannot reach password hashing. Token lookup uses only the hash. Dummy Argon2 verification preserves work for invalid/unsupported states. DB race outcome is authoritative in the final transaction.",
+    "test_refs": [
+      "apps/api/test/staff-activation.integration.test.ts covers activation, wrong credentials, disabled/invalid cases and ALREADY_ACTIVATED",
+      "apps/api/test/staff-activation-races.integration.test.ts",
+      "apps/api/test/staff-activation-anti-abuse.integration.test.ts",
+      "apps/api/test/staff-activation-observability.test.ts",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "The public invite token necessarily participates in the anti-abuse HMAC key before being hashed for DB lookup; AntiAbuseService key derivation is separate audited infrastructure"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-activation-repository.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f1f3283fff8241c232df01ee39e5c6e72f9be7da815c9612b6e0da10935a2400",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        59
+      ]
+    ],
+    "feature": "Staff onboarding activation account lookup and authoritative database command adapter",
+    "semantic_review_notes": "The preflight account lookup follows invitation -> membership with matching organization -> user and selects only status/password_hash by token hash. The actual transition is delegated to public.staff_onboarding_activate as a SECURITY DEFINER database command, passing token hash plus either verified existing hash or newly created hash. Only ACTIVATED and ALREADY_ACTIVATED are accepted; the database's expected STAFF_ACTIVATION_FAILED signal is normalized to the fixed application error while unrelated infrastructure errors remain distinguishable internally.",
+    "callers_consumers": [
+      "StaffActivationService",
+      "staff_onboarding_activate database function"
+    ],
+    "invariants_error_checks": "No plaintext invitation token reaches SQL. Preflight output is advisory; authoritative state/race handling remains in the transaction command. Fixed public error avoids disclosure of token/account/membership state.",
+    "test_refs": [
+      "apps/api/test/staff-onboarding-database.integration.test.ts verifies SECURITY DEFINER activation contract and failure behavior",
+      "apps/api/test/staff-activation.integration.test.ts",
+      "apps/api/test/staff-activation-races.integration.test.ts",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Database function body/migration is outside this transferred source file; its historical integration contract was inspected"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-auth.controller.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5b27c9b1e4304311e588f9b3f27d4aa01b6616a4e618d21a0fef0d7a4083adc0",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        187
+      ]
+    ],
+    "feature": "Browser staff login, refresh-cookie rotation and logout transport",
+    "semantic_review_notes": "The browser auth surface requires an explicitly allowed Origin on login, refresh and logout, requires JSON and rejects query/body authority outside the strict contracts. Login returns only access credentials in the response body, exposes the logical staff session UUID separately as continuity metadata, and stores the refresh token only in a Secure HttpOnly SameSite=Strict cookie scoped to /v1/staff/auth with no Domain attribute. Refresh requires an empty body and exactly one refresh cookie name; malformed/missing/duplicate cookie authority is treated as generic authentication failure and clears the browser cookie. A successful refresh rotates the server refresh credential and replaces the cookie with the remaining absolute-session lifetime. Transport/Origin failures occur before credential consumption and therefore do not clear or rotate a valid credential. Logout is intentionally idempotent/non-disclosing, delegates server revocation by refresh credential when present, then clears the cookie.",
+    "callers_consumers": [
+      "AuthModule browser staff auth routes",
+      "StaffLoginService",
+      "StaffAuthService",
+      "Dashboard staff-auth client"
+    ],
+    "invariants_error_checks": "Cookie attributes are HttpOnly, Secure, SameSite=Strict, Path=/v1/staff/auth and host-scoped. readRefreshCookie rejects duplicate cookie names before parsing. Refresh/logout accept no user/session/tenant identifier from the client. StaffAuthOriginPolicy is checked before the auth service. Web response contract excludes refreshToken and staffAuthSessionId from the body.",
+    "test_refs": [
+      "apps/api/test/staff-auth.integration.test.ts covers cookie attributes, Origin/transport failures, generic malformed/unknown refresh failure, rotation/replay-family revocation, absolute-expiry bounds and idempotent logout",
+      "apps/api/test/staff-auth-native.integration.test.ts confirms Web/Native boundary preservation",
+      "apps/api/test/staff-auth-continuity.integration.test.ts",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "TLS termination and browser cookie enforcement are deployment/browser responsibilities; server configuration still permits explicitly configured canonical http origins for local/non-TLS environments"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-auth.origin.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8528db7bad7a811478f98a3a7f6ee632569d9e094ad7ccaf9d0f0b28b9879f68",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        45
+      ]
+    ],
+    "feature": "Explicit canonical browser staff-auth Origin allowlist",
+    "semantic_review_notes": "Origin configuration defaults to an empty deny-all set. Comma-separated values are trimmed but wildcard/blank entries are rejected, each value must parse as an HTTP(S) URL with no credentials/path/query/fragment, and parsed.origin must exactly equal the configured text so noncanonical aliases are not accepted. Runtime requests are allowed only when the Origin header is present and is an exact Set member.",
+    "callers_consumers": [
+      "StaffAuthController",
+      "StaffActivationController via the same policy class",
+      "AuthModule provider wiring"
+    ],
+    "invariants_error_checks": "Missing configuration does not fall back to wildcard. Missing request Origin is denied. Userinfo, paths, query strings, fragments and wildcard configuration fail startup/policy parsing rather than being normalized permissively.",
+    "test_refs": [
+      "apps/api/test/staff-auth.service.test.ts validates explicit canonical origins and wildcard/path rejection",
+      "apps/api/test/staff-auth.integration.test.ts covers missing/attacker Origin",
+      "apps/api/test/staff-onboarding-policy.test.ts covers activation-origin policy interactions",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Both http and https schemes are accepted when explicitly configured; production TLS enforcement is deployment policy rather than encoded here"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-auth.service.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f3e03edc4a9b0e4975411293ce7c8577aa82497b319524ab46661284df7258cc",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        298
+      ]
+    ],
+    "feature": "Staff password authentication, opaque session issuance and refresh-family rotation/replay revocation",
+    "semantic_review_notes": "Login performs one Argon2 verification for every account state, using a fixed accepted dummy hash for unknown/passwordless/unsupported stored hashes and the real accepted hash otherwise. Only ACTIVE users with a supported matching password proceed. Before session issuance the transaction takes the per-user security advisory lock and rechecks the exact password hash plus ACTIVE status, fencing concurrent password/status changes. Access and refresh credentials are independent 256-bit random tokens; only domain-separated SHA-256 hashes are persisted. Session/access lifetime is 15 minutes bounded by a fixed 720-hour absolute session expiry, and the refresh expires at the same absolute boundary. Successful login finalizes any identifier anti-abuse reservation inside the same transaction so session creation cannot commit while limiter finalization fails. Refresh validates syntax, hashes the credential, obtains the same user security boundary, then locks refresh/session/user rows. A consumed refresh is treated as replay and atomically revokes the whole session family. Expired/revoked/disabled-user refresh likewise revokes the session. A valid refresh consumes the old credential, creates exactly one next-generation credential expiring at the unchanged absolute session deadline, links replaced_by_credential_id, rotates the access hash and clamps access/cookie lifetime to the absolute expiry. The old access token becomes stale because current_access_token_hash changes. Concurrent same-token refreshes therefore produce one winner and one replay revocation, intentionally invalidating the family after detected reuse.",
+    "callers_consumers": [
+      "StaffLoginService login",
+      "StaffAuthController browser refresh/logout",
+      "NativeStaffAuthController native refresh/logout",
+      "DatabaseStaffPrincipal/SessionContext resolvers consume current access-token hash and session expiry"
+    ],
+    "invariants_error_checks": "Generic StaffAuthenticationError covers unknown account, malformed/invalid/expired/replayed refresh and disabled/revoked state. Login transaction rechecks state/hash after expensive verification. Refresh uses database clock, FOR UPDATE on credential/session/user after the per-user advisory lock, preserves absolute expiry and revokes on replay. One-current-refresh-per-session and expiry constraints are database-backed. Raw tokens are never persisted.",
+    "test_refs": [
+      "apps/api/test/staff-auth.integration.test.ts covers generic failures, persisted token hashes, rotation/replay revocation, concurrent refresh, absolute expiry, disable and logout",
+      "apps/api/test/staff-auth-native.integration.test.ts covers native rotation/replay-family revocation",
+      "apps/api/test/issue215-staff-credential-races.test.ts covers refresh/logout ordering against protected operations",
+      "apps/api/test/staff-mfa-session-races.integration.test.ts and staff-mfa-authority-races.integration.test.ts cover refresh replay versus MFA authority",
+      "packages/database/src/schema.integration.test.ts covers staff refresh/session constraints",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Security relies on the separately reviewed runtime DB column privileges/constraints and adjacent staff-user-security-lock/session-revalidation modules; no live race tests were rerun"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-auth.transport.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0a6402db0b30f129fa435f64e98d064e0ee7fad6c4405eb851112155cfc5fb0a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        76
+      ]
+    ],
+    "feature": "Shared staff-auth request validation and Web/Native response minimization",
+    "semantic_review_notes": "Transport parsing uses strict contract safeParse and maps any shape failure to a generic request validation error. Auth mutations require exactly application/json with an optional UTF-8 charset and empty query contracts. Auth responses are explicitly no-store/no-cache. The Web response includes only access token/type/access expiry/session expiry; Native extends that exact response with refreshToken. Logical staffAuthSessionId is emitted only through a separately schema-validated UUID continuity header and never becomes part of refresh/logout request authority.",
+    "callers_consumers": [
+      "StaffAuthController",
+      "NativeStaffAuthController",
+      "StaffActivationController",
+      "StaffMfaController",
+      "Dashboard continuity reader"
+    ],
+    "invariants_error_checks": "Response schemas are strict and will fail closed on accidental internal fields. Refresh token is excluded from Web body by construction. Continuity UUID has a dedicated schema and is distinct from bearer/refresh credentials.",
+    "test_refs": [
+      "packages/contracts/src/staff-auth.test.ts verifies strict Web/Native response compatibility and rejects staffAuthSessionId as request authority",
+      "apps/api/test/staff-auth-native.integration.test.ts verifies native/web response separation",
+      "apps/api/test/staff-auth-continuity.integration.test.ts",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Continuity metadata is visible to browser JavaScript by design; consumers use it only as a local logical-session continuity discriminator, not authentication authority"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-auth-credential.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3915f42e9a7bf0a8aa72e72c3354b90dc5ce53f92171b246d20fb82357e02011",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        18
+      ]
+    ],
+    "feature": "Opaque staff access/refresh credential format, generation and storage hashing",
+    "semantic_review_notes": "Access and refresh credentials have distinct versioned prefixes and exactly 43 base64url characters generated from 32 cryptographically random bytes. Bearer/access/refresh regexes are closed to their intended prefix. Persisted hashes are SHA-256 over the full high-entropy credential with an explicit access-versus-refresh storage prefix, preventing raw-token persistence and avoiding cross-token-type namespace confusion.",
+    "callers_consumers": [
+      "StaffAuthService",
+      "staff principal/session resolvers",
+      "logout helper",
+      "tests/fixtures generating exact credential forms"
+    ],
+    "invariants_error_checks": "randomBytes(32) supplies 256 bits of entropy, making unsalted SHA-256 appropriate for opaque random bearer-token lookup rather than human passwords. Access and refresh formats are non-interchangeable.",
+    "test_refs": [
+      "apps/api/test/staff-auth.integration.test.ts validates persisted hashes rather than raw tokens",
+      "apps/api/test/staff-auth-native.integration.test.ts validates refresh format",
+      "apps/api/test/issue215-staff-credential-races.test.ts uses exact hash identity across races",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Token confidentiality in clients/logging/TLS is enforced by transport/client/deployment layers rather than this primitive"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-auth-logout.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4c3db8fff39ee38b7f9b398267748e98e493fef96f91d71404912c6d7f00232c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        29
+      ]
+    ],
+    "feature": "Idempotent staff session revocation selected by refresh credential",
+    "semantic_review_notes": "Missing or syntactically invalid refresh credentials intentionally produce a no-op so logout remains non-disclosing/idempotent. A valid-looking token is hashed, the matching refresh and session rows are locked together, and only the canonical session_id derived from that credential is passed to revokeStaffSessionAndDisablePush. The revocation helper atomically sets revoked_at once and disables/clears active Staff Push registrations for that auth session.",
+    "callers_consumers": [
+      "StaffAuthService.logout",
+      "StaffAuthController browser logout",
+      "NativeStaffAuthController native logout",
+      "Protected-operation race tests"
+    ],
+    "invariants_error_checks": "No session/user ID is accepted from the caller. FOR UPDATE serializes logout with refresh/session-sensitive operations. Unknown tokens do not reveal whether a credential existed.",
+    "test_refs": [
+      "apps/api/test/staff-auth.integration.test.ts covers idempotent logout and subsequent access/refresh denial",
+      "apps/api/test/staff-auth-native.integration.test.ts covers native 204 logout",
+      "apps/api/test/issue215-staff-credential-races.test.ts and cancel-check-in-exact-credential.integration.test.ts cover exact-session ordering",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Push-disable/revocation helper is adjacent source and was inspected for caller semantics but is not a credited transfer file"
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-auth-token-result.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "756960243fd885487fdfde8972c122aee82196c2da09d94077723422f0ee1185",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        16
+      ]
+    ],
+    "feature": "Internal staff-auth token/session result assembly",
+    "semantic_review_notes": "The helper combines the authoritative persisted session id/expiry/cookie max-age with the newly generated access and refresh tokens. It performs no persistence or transport exposure itself; Web transport subsequently removes refreshToken from the body and Native transport deliberately retains it. Session continuity comes from the persisted session row, not from client input.",
+    "callers_consumers": [
+      "StaffAuthService.login",
+      "StaffAuthService.refresh",
+      "staff-auth.transport Web/Native projections"
+    ],
+    "invariants_error_checks": "No caller-provided expiry/session ID enters this result. The object remains an internal superset whose external disclosure is constrained by strict response schemas.",
+    "test_refs": [
+      "apps/api/test/staff-auth.integration.test.ts",
+      "apps/api/test/staff-auth-native.integration.test.ts",
+      "packages/contracts/src/staff-auth.test.ts response-minimization tests",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": []
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-auth-types.ts",
+    "original_owner": "security",
+    "temporary_reviewer": "worker-1",
+    "checkpoint": "C003",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d34fc69d7d355145f81a0a9aad57698bca731bbc70f0d169564c364e14dd2a50",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      [
+        1,
+        49
+      ]
+    ],
+    "feature": "Typed staff user/session/refresh credential rows and generic authentication error",
+    "semantic_review_notes": "Types distinguish account status, login-session absolute/access expiry, refresh generation/consumption/revocation and the internal StaffAuthTokens superset. The only exported authentication-domain error carries the single fixed STAFF_AUTHENTICATION_FAILED code/message, supporting non-disclosure across invalid account/token states.",
+    "callers_consumers": [
+      "StaffAuthService",
+      "staff-auth-token-result.ts",
+      "password verifier implementations and auth error translation"
+    ],
+    "invariants_error_checks": "Closed account-status union and nullable consumed/revoked fields make the service's validity decisions explicit. No underlying database/provider detail is stored in StaffAuthenticationError.",
+    "test_refs": [
+      "apps/api/test/staff-auth.service.test.ts generic failure cases",
+      "apps/api/test/staff-auth.integration.test.ts verifies identical external authentication failures",
+      "Historical only; not run in C003"
+    ],
+    "finding_ids": [],
+    "limits": [
+      "Type declarations do not enforce persisted state; DB constraints and service transactions supply runtime enforcement"
+    ]
+  }
+]
