@@ -1,0 +1,679 @@
+[
+  {
+    "path": "apps/customer/src/features/retrieval/use-retrieval.test.ts",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "80fcb61644baec35e9c1d716f833053c59d63279606b3af13b6f9584b4acf42a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 110
+      }
+    ],
+    "semantic_review_notes": "Retrieval hook tests exercise the coordinator ticket contract: rapid duplicate gestures yield BUSY without a second POST, visit replacement retires the old ticket, and mutation failure reconciles through one canonical read without replaying the write. Cross-read with use-retrieval.ts and GuestRequestCoordinator confirms UI state is committed only when both client identity and valetSessionId still match.",
+    "callers_consumers": "use-retrieval.ts; GuestRequestCoordinator; GuestSessionProvider; GuestApiClient.requestRetrieval/cancelRetrieval; guest retrieval API",
+    "invariants_error_checks": "Mutation requires a fresh trusted snapshot; exactly one protected write may be active; stale generation results cannot update the current visit; ambiguous/failed writes reconcile before another action. Backend resolve-and-lock plus retrieval command transaction owns custody and tenant/location/session truth.",
+    "test_refs": [
+      "use-retrieval.ts",
+      "guest-request-coordinator.ts",
+      "apps/api/src/modules/retrieval/guest-retrieval.controller.ts",
+      "apps/api/src/modules/retrieval/retrieval.service.ts",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/features/session/guest-bootstrap-flow.test.ts",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ceacd96c1436c5f8d6cf8563557a8dd3a2272b052ce7fd7254ed36ac10c7b7b9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 79
+      }
+    ],
+    "semantic_review_notes": "Bootstrap flow tests keep the screen in LOADING while token authority or the first session read is unresolved, map PARKING to the received presentation, and distinguish missing/invalid authority from retryable bootstrap transport failure. Cross-read with GuestAuthProvider and guest-lifecycle-router.ts confirms temporary browser-session bootstrap failure does not get presented as an expired link.",
+    "callers_consumers": "GuestAuthProvider; guest-auth-bootstrap.ts; guest-lifecycle-router.ts; GuestAppRoot",
+    "invariants_error_checks": "No guest session UI becomes authoritative before auth bootstrap completes; temporary transport failure remains retryable; absent authority after bootstrap fails closed to unavailable; state routing follows server session state.",
+    "test_refs": [
+      "guest-auth-context.tsx",
+      "guest-auth-bootstrap.ts",
+      "guest-lifecycle-router.ts",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/features/session/guest-brand-palette.test.ts",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "625b092125c5f261cdb6c7bf48d2e4e3cf0eb94e49881f2db09ef51fa8d6cccd",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 46
+      }
+    ],
+    "semantic_review_notes": "Palette tests constrain tenant branding to canonical six-digit hex input and verify WCAG-style contrast for primary, hover, pressed and accent tokens in light and dark surfaces. The palette does not rewrite semantic success, warning, trust, or status colors, so tenant branding cannot silently redefine custody/status meaning.",
+    "callers_consumers": "guest-branding.tsx; guest brand CSS variables; customer CTA and branded-link consumers",
+    "invariants_error_checks": "Only validated color input reaches derived brand tokens; contrast targets remain at least 4.5 in tested surfaces; semantic/status tokens stay outside tenant-controlled palette generation.",
+    "test_refs": [
+      "guest-branding.tsx",
+      "guest-branding.test.tsx",
+      "guest-branding-coverage.test.tsx",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/features/session/guest-branding-coverage.test.tsx",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bc7007df86e0bb00d282d758a1bf6187814231e1a1e42b41ab5dbae228d7f90c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 76
+      }
+    ],
+    "semantic_review_notes": "Coverage test statically constrains active Customer TSX surfaces to use brand variables for primary CTA/link accents while retaining semantic danger and lifecycle status tokens. It also scans active components for fixed VAYLET-blue accent literals so tenant brand projection cannot be bypassed by a hidden hard-coded active surface.",
+    "callers_consumers": "customer active TSX components; Btn styles; lifecycle progress/status presentation; guest brand variables",
+    "invariants_error_checks": "Brand accents are scoped to approved UI roles; destructive and lifecycle semantics remain semantic; demo/test files are deliberately outside the active-component scan and were treated as a stated coverage boundary.",
+    "test_refs": [
+      "guest-branding.tsx",
+      "components/primitives/btn.tsx",
+      "guest-brand-palette.test.ts",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/features/session/guest-branding.mounted.test.tsx",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9974f49a37705337cbc37598454e8489e3c008e1f543e2805ae44ba84f533a1d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 110
+      }
+    ],
+    "semantic_review_notes": "Mounted branding tests verify shell and sibling consumers update atomically, client replacement clears prior branding during loading, and late results from visit A cannot overwrite visit B including A→B transitions, invalid projection, logout and terminal invalid authority. The linked provider keys retained branding to the exact GuestApiClient/session identity rather than organization/location labels alone.",
+    "callers_consumers": "GuestBrandingProvider; GuestSessionProvider; GuestAppRoot and mounted shell/sibling branding consumers",
+    "invariants_error_checks": "Branding from a retired credential/client cannot survive replacement or terminal invalid authority; late async reads are generation/client fenced; invalid color projection clears rather than retaining untrusted style input.",
+    "test_refs": [
+      "guest-branding.tsx",
+      "guest-session-provider.tsx",
+      "guest-api-client.ts",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/features/session/guest-branding.test.tsx",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c92dc37bd385900be961ae8a6e454c2ec69508771a1d6cdc6eb0e4a9fc436dfb",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 260
+      }
+    ],
+    "semantic_review_notes": "Branding unit coverage checks projected display name/color parsing, same-session mutation-response retention, EN/AR geometry parity, immediate clearing on client replacement including A→B→A, and rejection of late old-client responses. Theme fallback and invalid-color cases preserve readable defaults while same-session responses without branding do not erase already-authoritative branding.",
+    "callers_consumers": "GuestBrandingProvider; guestBrandStyle/guestBrandPalette; GuestSessionProvider mutation/read snapshots",
+    "invariants_error_checks": "Brand authority follows exact client plus session continuity; branding never authorizes a session or mutation; invalid tenant color fails closed to default theme; locale changes do not alter security/state semantics.",
+    "test_refs": [
+      "guest-branding.tsx",
+      "guest-brand-palette.test.ts",
+      "guest-branding.mounted.test.tsx",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/features/session/guest-read-error-classification.test.ts",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bf0cd3b3e5fb84396c9e5338df1bc76c5db3fea194bcf25377d3aad7d4fb4536",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 24
+      }
+    ],
+    "semantic_review_notes": "Read-error classification tests separate 429/rate-limit, network/timeout, service/invalid-response, unknown and no-error conditions. Cross-read with guest-http-transport.ts confirms reads use bounded deadlines and preserve definitive mutation ambiguity as a different path rather than collapsing all failures into expired authority.",
+    "callers_consumers": "classifyGuestReadFailure; GuestSessionProvider and system-state presentation",
+    "invariants_error_checks": "Rate limiting is not treated as invalid authority; network and service failures preserve the last known session as informational; terminal guest authority is handled separately by coordinator error code.",
+    "test_refs": [
+      "guest-read-error-classification.ts",
+      "guest-http-transport.ts",
+      "guest-request-coordinator.ts",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/features/session/guest-request-coordinator.test.ts",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4d00d5e36ce732f85b5fb31754ffe6da27f79f8fcf0b91e4338988cfbd140a5c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 300
+      }
+    ],
+    "semantic_review_notes": "Coordinator tests cover coalesced reads, manual/wake gating, Retry-After cooldown, protected mutation exclusion, canonical post-mutation reconciliation, stale pre-mutation GET fencing, old-client disposal, terminal invalid authority clearing, informational retention on 5xx, freshness gating, and the documented 21s polling budget. Cross-read with GuestSessionProvider confirms visibility/online/context-switch fences are added before a snapshot is exposed as fresh or a mutation ticket is issued.",
+    "callers_consumers": "guest-request-coordinator.ts; guest-session-provider.tsx; guest-read-schedule.ts; use-retrieval.ts; ready-alert tracking",
+    "invariants_error_checks": "Session identity cannot change implicitly inside one coordinator; generation increments fence stale reads; writes require trusted freshness and single-flight mutation; 429 has mutation cooldown; invalid authority clears protected session while temporary failures do not; post-write read is authoritative.",
+    "test_refs": [
+      "guest-request-coordinator.ts",
+      "guest-session-provider.tsx",
+      "guest-read-schedule.ts",
+      "guest-api-client-context-switch.test.ts",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/features/session/guest-session-ready-alert-composition.test.ts",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "854ef98c1e74b2f25733feab0505ae2e9a5d0a2dc77471091408cf39db073671",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 26
+      }
+    ],
+    "semantic_review_notes": "Composition test pins ready-alert observation to the same canonical session acceptance path used by GET and mutation reconciliation and verifies scheduling ownership is centralized rather than duplicated by an old five-second poll. The provider additionally requires the current client and a fresh non-expired snapshot before exposing the alert.",
+    "callers_consumers": "GuestSessionProvider; guest-ready-alert tracker; GuestRequestCoordinator.acceptSession",
+    "invariants_error_checks": "Ready presentation derives from authoritative accepted snapshots; stale client/session observations do not schedule alerts; there is one scheduling owner.",
+    "test_refs": [
+      "guest-session-provider.tsx",
+      "guest-request-coordinator.ts",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/features/session/production-behavior.test.ts",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "50c9fae7565ad47c33c4d097cd984bb8cddc70e1c9e8225f76737cd039305e0f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 121
+      }
+    ],
+    "semantic_review_notes": "Production behavior tests pin real GuestApiClient calls for retrieval and handoff, require the server-backed HANDOFF_PENDING path, keep COMPLETED terminal, and ensure missing credentials produce unavailable rather than a demo fallback. Linked transport uses no-store requests, exact response schemas, and CSRF for cookie-authorized POSTs.",
+    "callers_consumers": "GuestApiClient; guest-lifecycle-router.ts; handoff hooks/screens; GuestAppRoot",
+    "invariants_error_checks": "Production state comes from server session authority; retrieval request body is empty and server resolves custody; no production demo credential fallback; handoff proof is issued only through guest API.",
+    "test_refs": [
+      "guest-api-client.ts",
+      "guest-http-transport.ts",
+      "guest-lifecycle-router.ts",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/features/session/session-state-flow.test.ts",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "63717374671c04116bab5fe75a04056fd75ffaee7f684a1e9635b77a412a7ed6",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 209
+      }
+    ],
+    "semantic_review_notes": "State-flow tests enumerate server lifecycle states, verify no-authority/expired/null fail closed, ensure READY is not yet a handoff-proof state, and constrain cancellation to the real empty-body bearer call. Cross-read with retrieval backend shows request/cancel resolve and lock guest authority in one transaction and preserve organization/location/session custody scopes.",
+    "callers_consumers": "guest-lifecycle-router.ts; GuestApiClient.cancelRetrieval; GuestSessionProvider; retrieval API",
+    "invariants_error_checks": "UI state mapping does not invent forward custody transitions; HANDOFF_PENDING alone enters proof flow; guest cancellation is authorized server-side and state-checked transactionally.",
+    "test_refs": [
+      "guest-lifecycle-router.ts",
+      "guest-api-client.ts",
+      "apps/api/src/modules/retrieval/retrieval.service.ts",
+      "apps/api/src/modules/retrieval/guest-retrieval-cancellation-command.ts",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/features/web-push/guest-web-push-boundaries.test.ts",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "aed25d718abdd3452652831cb5e09548684df00808b5efe4aebd7631a4e59432",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 271
+      }
+    ],
+    "semantic_review_notes": "Boundary tests cover synchronous permission prompting from the explicit gesture plus bounded permission, service-worker readiness, getSubscription, VAPID load, native subscribe, registration and local cleanup stages. They preserve a subscription once server registration may have committed, and block server binding if the browser context marker changes before registration.",
+    "callers_consumers": "enableGuestWebPush; guest-web-push-stage.ts; createGuestWebPushTransport; GuestWebPushPermissionCard",
+    "invariants_error_checks": "No background permission prompt; all potentially hanging stages are bounded; late native results cannot continue an obsolete operation; unknown POST outcome never triggers destructive unsubscribe; browser context is rechecked across stages.",
+    "test_refs": [
+      "guest-web-push-client.ts",
+      "guest-web-push-stage.ts",
+      "guest-web-push-transport.ts",
+      "guest-web-push-permission-card.tsx",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/features/web-push/guest-web-push-client.test.ts",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "78cf4583b5bdae67236c6794f4d2444ba4cf9237ee3f4975df5c88049e723aa8",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 179
+      }
+    ],
+    "semantic_review_notes": "Client tests constrain capability detection without trusting user-agent text, require iOS Home Screen when platform signals identify iOS, fail closed on missing secure/browser capabilities, and bind only after an explicit enable gesture. Registration payload contains endpoint/auth/p256dh/locale only; no organization, location, session or token authority identifiers are client supplied.",
+    "callers_consumers": "guest-web-push-client.ts; GuestWebPushPermissionCard; guest-web-push-transport.ts",
+    "invariants_error_checks": "Capability checks are feature/platform based; denied/unsupported states do not subscribe; browser context changes abort authority use; server derives all tenant/session/generation identity from the browser credential.",
+    "test_refs": [
+      "guest-web-push-client.ts",
+      "guest-web-push-boundaries.test.ts",
+      "apps/api/src/modules/guest-push-registration/guest-push-registration.service.ts",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/features/web-push/guest-web-push-copy.test.ts",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9691674c15591900c9e36f7f493a28c52b2635ca242301b35c0f2644245fec0b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 33
+      }
+    ],
+    "semantic_review_notes": "Copy test freezes the Owner-approved English and Arabic Web Push strings used for notification and permission UI. Cross-read with public/sw.js confirms push payloads cannot inject title/body text; the service worker selects the immutable copy by validated locale.",
+    "callers_consumers": "guest-web-push-copy.ts; GuestWebPushPermissionPresentation; public/sw.js copy parity",
+    "invariants_error_checks": "Notification content is not server-controlled free text; EN/AR copy remains exact and immutable; iOS guidance is explicit and permission copy does not imply success before binding.",
+    "test_refs": [
+      "guest-web-push-copy.ts",
+      "guest-web-push-sw.test.ts",
+      "public/sw.js",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/features/web-push/guest-web-push-copy.ts",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1151b543fbe84e72cafcb358ea1a527752442f3a206a3c24683d349c3dcbb10a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 28
+      }
+    ],
+    "semantic_review_notes": "Source defines the frozen EN/AR notification and permission dictionaries and a locale-keyed accessor. The strings match the service-worker notification copy reviewed in public/sw.js and the dedicated copy test, preventing payload text from crossing into notification rendering.",
+    "callers_consumers": "GuestWebPushPermissionCard; guest-web-push-copy.test.ts; public/sw.js mirrored immutable notification copy",
+    "invariants_error_checks": "Only en/ar locale keys are accepted at the type boundary; objects are frozen; no authority or visit-identifying content is embedded in copy.",
+    "test_refs": [
+      "guest-web-push-copy.test.ts",
+      "guest-web-push-sw.test.ts",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/features/web-push/guest-web-push-permission-card.mounted.test.tsx",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "cb67871cf5e7ccff5d0bb22f04a01b360474703db2df8a4edc7efb809f49d87b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 204
+      }
+    ],
+    "semantic_review_notes": "Mounted lifecycle tests verify rapid enable taps single-flight, success is shown only after completed binding, Not now and unmount abort current work, context change hides the obsolete card, and 12s config/35s overall deadlines permit a clean retry while dropping late completions. The implementation also generation-fences every state commit.",
+    "callers_consumers": "GuestWebPushPermissionCard; GuestWebPushMount; enableGuestWebPush; guest browser context change event",
+    "invariants_error_checks": "One enable operation at a time; dismissed/unmounted/retired-context work cannot mutate remounted UI; timeout does not assert server failure; browser-context marker must match before each UI commit.",
+    "test_refs": [
+      "guest-web-push-permission-card.tsx",
+      "guest-web-push-client.ts",
+      "guest-browser-context-marker.ts",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/features/web-push/guest-web-push-permission-card.test.tsx",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "732b1e74808b9e49a1e732b45e36f50f5b002d50e59003b60daf919972ffb860",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 40
+      }
+    ],
+    "semantic_review_notes": "Presentation tests verify LTR English enable controls and RTL Arabic iOS Home Screen guidance, with denied/unsupported guidance rendered without an enable action. This keeps the permission card truthful about browser capability instead of presenting a control that cannot succeed.",
+    "callers_consumers": "GuestWebPushPermissionPresentation; guest-web-push-copy.ts",
+    "invariants_error_checks": "Direction follows locale; unsupported/iOS-required states cannot trigger enable from the card; dismissal remains available.",
+    "test_refs": [
+      "guest-web-push-permission-card.tsx",
+      "guest-web-push-copy.ts",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/features/web-push/guest-web-push-sw.test.ts",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2c651659ec67325ae5a6d45fe7061f87e4ed800c11efbda13a8f22ed116751c5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 114
+      }
+    ],
+    "semantic_review_notes": "Service-worker tests execute the static worker in isolation and require schemaVersion 1, GUEST_VEHICLE_READY, GUEST_STATUS, UUID intent and en/ar locale before showing a notification. Notification click ignores arbitrary URL data, focuses only same-origin windows, otherwise opens the public root; notification tag is opaque intent-based dedupe.",
+    "callers_consumers": "apps/customer/public/sw.js; Web Push delivery payload from guest push worker",
+    "invariants_error_checks": "Push payload cannot choose navigation URL or arbitrary display copy; malformed/unknown payloads are ignored; click navigation remains same-origin/root only; service worker cache policy is public-static only in linked implementation.",
+    "test_refs": [
+      "public/sw.js",
+      "packages/database guest push delivery/intent contract",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/features/web-push/guest-web-push-transport.test.ts",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e12e79a6b2076828bf8ea12271726ffe11d20c238d30d467f31c7417a92951bd",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 133
+      }
+    ],
+    "semantic_review_notes": "Transport tests require same-origin no-store config reads, exact flat cookie-authorized registration POST with Guest CSRF header, and confirmation only for an exact 204 empty response. Redirects, HTML/fallback 2xx, wrong final URL, lost response, timeout and in-flight abort are treated as unknown mutation outcome; structured 429 Retry-After remains explicit.",
+    "callers_consumers": "createGuestWebPushTransport; executeGuestHttpRequest; GuestPushRegistrationController/Service",
+    "invariants_error_checks": "Cookie-authorized mutation carries CSRF/origin fences; ambiguous network/redirect/parse outcomes never become confirmed success or safe replay; server registration resolves browser credential and generation rather than accepting authority IDs.",
+    "test_refs": [
+      "guest-web-push-transport.ts",
+      "guest-http-transport.ts",
+      "apps/api/src/modules/guest-push-registration/guest-push-registration.controller.ts",
+      "apps/api/src/modules/guest-push-registration/guest-push-registration.service.ts",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/i18n/translations/ar.ts",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8ace832ef5c43e021fb2f211af98b2413e40f261f4b1ca6145747b23e5cfd978",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 263
+      }
+    ],
+    "semantic_review_notes": "Arabic dictionary covers lifecycle, retrieval, handoff, system/error, context-conflict and deferred presentation keys, then composes typed post-visit, information and preview dictionaries. Guest-safe error strings do not expose backend text, and ready-alert wording matches the approved Arabic ready notification semantics.",
+    "callers_consumers": "useTranslation; guest lifecycle/system screens; error-translator.ts; guest information overlays",
+    "invariants_error_checks": "Arabic keys share the TranslationDictionary contract with English; security-sensitive API errors use fixed guest-safe copy; lifecycle labels do not alter server state or authority.",
+    "test_refs": [
+      "translations/types.ts",
+      "error-translator.ts",
+      "guest-information-ar.ts",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/i18n/translations/en.ts",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a3543dbc7fbbf15fe2919e5ea1cdaa66146c0876f98062a73dcefb940d5409e0",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 263
+      }
+    ],
+    "semantic_review_notes": "English dictionary covers lifecycle, retrieval, handoff, system/error, context-conflict and deferred presentation keys, then composes typed post-visit, information and preview dictionaries. Error copy distinguishes unknown mutation outcome, rate limiting, timeout and invalid authority without returning backend messages.",
+    "callers_consumers": "useTranslation; guest lifecycle/system screens; error-translator.ts; guest information overlays",
+    "invariants_error_checks": "English keys satisfy the same TranslationDictionary as Arabic; guest-safe errors remain static client copy; UI labels do not authorize or advance custody.",
+    "test_refs": [
+      "translations/types.ts",
+      "error-translator.ts",
+      "guest-information-en.ts",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/i18n/translations/guest-error-translation-types.ts",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8198c30afca48faaf09aee8caf73d798affbf1b23bb68bc90953d812ef48f0fe",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 23
+      }
+    ],
+    "semantic_review_notes": "Type interface enumerates the guest-safe API/runtime error translation surface, including invalid access, rate limit, handoff failures, unknown mutation outcome, timeout, invalid response, cancellation, state/version conflicts, service/network and generic fallback. error-translator.ts checks these dictionaries before returning a localized key and never returns an unknown backend message.",
+    "callers_consumers": "TranslationDictionary; ar.ts; en.ts; error-translator.ts",
+    "invariants_error_checks": "Known guest error codes require localized safe copy; unknown GuestApiError falls back to REQUEST_FAILED; raw backend error message is not rendered through this translation path.",
+    "test_refs": [
+      "error-translator.ts",
+      "ar.ts",
+      "en.ts",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/i18n/translations/guest-information-ar.ts",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "95317a83e12c5e17abf4e4a292c9be07eb94a875f0c9a7be49b5ce1a68ff4241",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 14
+      }
+    ],
+    "semantic_review_notes": "Arabic visit-information dictionary provides loading/failure/privacy/contact/operator/phone/hours/support labels under the typed information contract. Cross-read with OverlayGuestInformationSheet shows failed reads remain recoverable by explicit user retry and stale old-client results are identity-fenced.",
+    "callers_consumers": "TranslationDictionary; OverlayGuestInformationSheet; GuestInformationContent",
+    "invariants_error_checks": "Information copy is presentation only; failed load does not reuse another visit result; privacy/contact absence has explicit safe messaging.",
+    "test_refs": [
+      "guest-information-translation-types.ts",
+      "features/deferred/overlay-guest-information-sheet.tsx",
+      "features/deferred/overlay-guest-information.mounted.test.tsx",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/i18n/translations/guest-information-en.ts",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "014d6f3b8d78838426303a6329a24aeff2a944e45f674505d9caf02b1905b01d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 14
+      }
+    ],
+    "semantic_review_notes": "English visit-information dictionary provides loading/failure/privacy/contact/operator/phone/hours/support labels under the typed information contract. The consumer loads information with the exact current client plus locale and aborts on replacement, while GuestApiClient also rejects a mismatched response locale.",
+    "callers_consumers": "TranslationDictionary; OverlayGuestInformationSheet; GuestInformationContent",
+    "invariants_error_checks": "Information from a retired credential client is not displayed; locale mismatch fails parsing; missing published privacy/contact content has explicit safe presentation.",
+    "test_refs": [
+      "guest-information-translation-types.ts",
+      "features/deferred/overlay-guest-information-sheet.tsx",
+      "guest-api-client.ts",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/customer/src/i18n/translations/guest-information-translation-types.ts",
+    "worker": "customer",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "62dd7d5f11f40ededfde58478bafa320cc4d8734b105247b474728f25cf71957",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 12
+      }
+    ],
+    "semantic_review_notes": "Type interface defines the complete eleven-key Guest Information translation contract consumed by both EN and AR dictionaries. It keeps loading/error/absence labels and field/link labels synchronized at compile-time with the broader TranslationDictionary.",
+    "callers_consumers": "translations/types.ts; guest-information-ar.ts; guest-information-en.ts; deferred information UI",
+    "invariants_error_checks": "EN/AR information dictionaries must provide the same key surface; this type contains display copy only and no server-provided authority or HTML.",
+    "test_refs": [
+      "translations/types.ts",
+      "guest-information-ar.ts",
+      "guest-information-en.ts",
+      "features/deferred/guest-information-content.tsx",
+      "Static semantic review only in C007; assigned source and linked callers/contracts were read, and no tests, DB operations, CI or runtime validation were executed."
+    ],
+    "finding_ids": [],
+    "limits": "Static review at frozen source commit only. Conclusions are limited to the assigned file plus the linked implementation/contracts inspected for its behavior; no runtime test execution was permitted in C007.",
+    "original_worker": "customer",
+    "reviewer": "customer"
+  }
+]

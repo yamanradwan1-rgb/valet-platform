@@ -1,0 +1,35 @@
+{
+  "checkpoint": "C007",
+  "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+  "original_invited": 7,
+  "failed_start_workers": [
+    "worker-15 database",
+    "worker-16 backend",
+    "worker-19 native",
+    "worker-20 contracts",
+    "worker-21 employee"
+  ],
+  "completed_reviewers": [
+    {
+      "worker_id": "worker-17",
+      "original_dashboard": 25,
+      "temporary_database": 25,
+      "temporary_backend": 25,
+      "temporary_employee": 13,
+      "total": 88
+    },
+    {
+      "worker_id": "worker-18",
+      "original_customer": 25,
+      "temporary_native": 25,
+      "temporary_contracts": 25,
+      "temporary_employee": 12,
+      "total": 87
+    }
+  ],
+  "original_failed_worker_credited": 0,
+  "reassigned_failed_paths": 125,
+  "completed_transfer_paths": 125,
+  "incomplete_files_credited": 0,
+  "evidence_qa": "Every credited frozen-source file was independently SHA256, read-range and ownership checked by Prime; no runtime tests run."
+}

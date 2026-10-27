@@ -1,0 +1,2064 @@
+[
+  {
+    "path": "packages/database/prisma/migrations/20260917004200_mgt_be_09_guest_rating/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ae193d9d91a070c1fd1471ed60f23cd730f67eecd96fc604bf8e368d2e5ee6be",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 124
+      }
+    ],
+    "semantic_review_notes": "Creates immutable one-per-session Guest ratings with composite organization/location/session custody. The SECURITY DEFINER submit function validates token shape, hashes it, requires current unrevoked unexpired guest access, row-locks the session, requires COMPLETED state, and is idempotent only for the same rating; table and helper functions are revoked from PUBLIC.",
+    "callers_consumers": [
+      "apps/api/src/modules/guest-access/guest-rating-command.ts"
+    ],
+    "invariants_error_checks": [
+      "rating is 1..5 and one row per valet session",
+      "guest token never stored; only hash lookup is used",
+      "non-completed/revoked/expired access cannot rate",
+      "UPDATE/DELETE is trigger-rejected"
+    ],
+    "test_refs": [
+      "packages/database/src/guest-rating-runtime-role.integration.test.ts",
+      "packages/database/src/guest-browser-session-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260917004300_mgt_be_10_kpi_analytics/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "220220c3aa55eb863592b1564d125c41af626ed71a0ca1bd574c4b389f3fd4ea",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 241
+      }
+    ],
+    "semantic_review_notes": "Adds historically stable SLA snapshots and measured KPI indexes. Retrieval inserts snapshot the location SLA under the management settings organization lock, later snapshot mutation is rejected, and management SLA set/clear commands authorize the actor, lock the location, enforce CAS through updated_at, advance timestamps monotonically, and append audit events.",
+    "callers_consumers": [
+      "management settings SLA commands",
+      "retrieval request insert trigger"
+    ],
+    "invariants_error_checks": [
+      "SLA bounds 30..3600 seconds",
+      "retrieval SLA snapshot is immutable",
+      "location SLA mutation is authorization- and CAS-gated",
+      "audit records previous/new values"
+    ],
+    "test_refs": [
+      "packages/database/src",
+      "apps/api/test"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260918004400_mgt_be_11_all_locations_reports/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c9e7d35c1aa3a9b69cd62c1f9fddae5d9d02579b9b32d3ca4ff09616708dcf59",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 5
+      }
+    ],
+    "semantic_review_notes": "Adds the measured composite dispatch-events index used by company-wide management reports, scoped first by organization and location and ordered by occurrence time while including task/event fields for the report read path.",
+    "callers_consumers": [
+      "apps/api/src/modules/dashboard/report-read-service.ts"
+    ],
+    "invariants_error_checks": [
+      "index is additive only",
+      "organization/location remain leading custody dimensions"
+    ],
+    "test_refs": [
+      "management report database/read tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260919004500_mgt_fix_02_pagination_snapshot_membership/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7a9f38316532d1f248043e43a54c76628937500d621b6b924096f65db87794cc",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 47
+      }
+    ],
+    "semantic_review_notes": "Adds xid8 birth transaction markers to audit_events and valet_sessions for stable MVCC pagination membership. Defaults and BEFORE INSERT/UPDATE triggers force the top-level transaction id and preserve the original birth xid against later writes; helper execution is revoked from PUBLIC.",
+    "callers_consumers": [
+      "management cursor pagination queries"
+    ],
+    "invariants_error_checks": [
+      "birth xid is assigned at insert",
+      "updates cannot rewrite pagination birth xid",
+      "both audit and session pagination share the same mechanism"
+    ],
+    "test_refs": [
+      "management pagination snapshot integration coverage"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260929004600_mgt_232_physical_resource_creation/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "03fcebc1c3f91eddf4751898c1c6f791c1cb01f98b714cf796a41beb53c928b7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 300
+      }
+    ],
+    "semantic_review_notes": "Introduces idempotent Management creation for key slots and parking spots. Authority requires active management membership, organization/subscription/location and LM location grant; operation IDs serialize through an advisory lock, replay is fingerprint-bound, parking zones are proven active in the same tenant/location, and audit inserts are guarded.",
+    "callers_consumers": [
+      "apps/api/src/modules/dashboard/physical-resource-command.ts"
+    ],
+    "invariants_error_checks": [
+      "tenant/location authority precedes protected writes",
+      "operation replay must match event type and fingerprint",
+      "resource codes are bounded/trimmed",
+      "parking spot zone must belong to the authorized location"
+    ],
+    "test_refs": [
+      "packages/database/src/physical-resource-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260929004700_map_setup_client_cas/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8656e6ca1db66e611069c1e67a613da52eaa3a622af1d756ae812db34f007f71",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 91
+      }
+    ],
+    "semantic_review_notes": "Replaces map area vertex mutation with explicit expected_updated_at CAS. It derives the authorized organization from the management boundary, locks the exact area in organization/location scope, validates polygon cardinality and coordinates, atomically replaces vertices, advances area updated_at, and appends the existing map audit.",
+    "callers_consumers": [
+      "map setup area vertex command"
+    ],
+    "invariants_error_checks": [
+      "area is tenant/location scoped",
+      "stale expected_updated_at fails with configuration conflict",
+      "polygon has 3..500 paired valid coordinates",
+      "audit follows the same mutation"
+    ],
+    "test_refs": [
+      "map setup CAS integration coverage"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261001004800_mgt_236_parking_zone_creation/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6bbe1fb49bcb2b0204262a9cc37aa8ba5484841f213d0d18398518773b9af551",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 235
+      }
+    ],
+    "semantic_review_notes": "Extends physical-resource creation to parking zones without rewriting migration 046. It widens the idempotency/audit allowlist, tightens event/entity validation, retains active actor/subscription/location and LM-grant authority, validates code/label, distinguishes the intended unique-code conflict, and revokes all helper entrypoints from PUBLIC.",
+    "callers_consumers": [
+      "apps/api/src/modules/dashboard/parking-zone-command.ts",
+      "apps/api/src/modules/dashboard/physical-resource-command.ts"
+    ],
+    "invariants_error_checks": [
+      "same operation identity spans all physical resource kinds without cross-kind replay",
+      "audit event/entity pair is allowlisted",
+      "only expected parking-zone code uniqueness maps to RESOURCE_CODE_CONFLICT"
+    ],
+    "test_refs": [
+      "packages/database/src/parking-zone-runtime-role.integration.test.ts",
+      "packages/database/src/parking-zone-authority-races.integration.test.ts",
+      "packages/database/src/parking-zone-migration-upgrade.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261001004900_mgt_240a_staff_identity/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fcb671e030a5ff7f4d12695ad59839c998c5e77f954e7ece5a8af85d337b8143",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 19
+      }
+    ],
+    "semantic_review_notes": "Adds membership-owned first/last name fields as nullable additive identity, preserving legacy rows. Database checks mirror ECMAScript trim edge whitespace and enforce 1..100 character bounds when present.",
+    "callers_consumers": [
+      "staff directory/detail projections"
+    ],
+    "invariants_error_checks": [
+      "legacy membership identity may remain NULL",
+      "stored names cannot start/end with supported trim whitespace",
+      "length is bounded"
+    ],
+    "test_refs": [
+      "staff directory/identity integration and dashboard issue240a coverage"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261001005000_mgt_240b_lm_staff_authority/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "89436ac6969dab45029a8322d2cd4b128fa4f922b3d29d20ce30be8bdb3c944d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 394
+      }
+    ],
+    "semantic_review_notes": "Extends staff-management commands to Location Managers under complete persisted grant coverage. An organization advisory boundary serializes authority; LM must retain active grants and can target only employee/supervisor memberships whose complete location grants are covered. Role/status/access commands use row locks and expectedVersion CAS, preserve last-admin/handover checks, bound location batches to 50, and recheck LM target coverage after mutation.",
+    "callers_consumers": [
+      "management staff role/status/location-access repositories",
+      "dashboard staff APIs"
+    ],
+    "invariants_error_checks": [
+      "LM cannot target self/admin/manager or staff outside complete grant coverage",
+      "role/status/access writes are version-CAS protected",
+      "location arrays are same-org, distinct and <=50",
+      "last usable admin and operational handoff protections remain authoritative"
+    ],
+    "test_refs": [
+      "apps/api management staff integration tests",
+      "apps/dashboard/e2e/issue240b-lm-mutation-races.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261001005100_mgt_240c_staff_onboarding_invites/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "29049bb6a59edbbbbbdd4a313d3ae76cc1023d36add29614583c704babd63b0f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 522
+      }
+    ],
+    "semantic_review_notes": "Adds PENDING user/membership onboarding and immutable invitation generations with unique operation/token/current-invite identities. Create/resend use account/email and organization authority locks, active subscription and LM grant coverage, 1..50 explicit locations, fingerprint-bound operation replay, guarded audit issuance, and no protected write before complete authority/account proof. It also quarantines PENDING targets from normal staff-management role/status/access commands.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/staff-onboarding-repository.ts"
+    ],
+    "invariants_error_checks": [
+      "PENDING user has NULL password until activation",
+      "only one current invite per membership",
+      "create/resend operation replay is fingerprint-bound",
+      "pending targets cannot use ordinary staff mutations"
+    ],
+    "test_refs": [
+      "packages/database/src/staff-activation-migration.integration.test.ts",
+      "apps/api/test/staff-onboarding-races.integration.test.ts",
+      "apps/api/test/staff-onboarding-database.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261001005200_mgt_240c_invitation_anti_abuse_scope/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7bf501d3d8cea771abe24db3421fa3c4ca685a22d60806f4a5334ccaa8e688d2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 19
+      }
+    ],
+    "semantic_review_notes": "Extends the anti-abuse scope check with only organization-scoped onboarding-create and membership-scoped resend keys while preserving all pre-existing scope values.",
+    "callers_consumers": [
+      "staff onboarding anti-abuse limiter"
+    ],
+    "invariants_error_checks": [
+      "anti-abuse rows remain constrained to an explicit scope allowlist"
+    ],
+    "test_refs": [
+      "staff onboarding anti-abuse coverage"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261001005300_mgt_240d_staff_activation/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ede5a14a69445cb0424909a513a13de02e9ef57026108255cb2b06b287a0ecab",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 121
+      }
+    ],
+    "semantic_review_notes": "Adds guarded staff invite activation. The function resolves only by token hash, acquires account-first and organization/member/account/invite locks, revalidates active organization and invitation ownership, enforces strict pending-vs-existing-account password proofs, supports durable unknown-response recovery only when active state plus matching activation audit exists, then atomically activates membership/account, consumes the invitation and audits the generation.",
+    "callers_consumers": [
+      "apps/api/src/modules/auth/staff-activation-repository.ts"
+    ],
+    "invariants_error_checks": [
+      "raw invite credential is not persisted by this function",
+      "revoked/expired/non-current or mismatched invitation fails generically",
+      "PENDING activation requires exact Argon2id hash form",
+      "consumed replay succeeds only with durable matching activation evidence"
+    ],
+    "test_refs": [
+      "packages/database/src/staff-activation-migration.integration.test.ts",
+      "apps/api/test/staff-activation-races.integration.test.ts",
+      "apps/api/test/staff-onboarding-database.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261002005400_mgt_240f_force_end_shift/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4ce525b59d46792b5ce618ab100156b6bd6bcd63298c8ad033934669a61718cf",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 203
+      }
+    ],
+    "semantic_review_notes": "Adds immutable administrative shift closure distinct from employee cash reporting. The command locks/revalidates staff session, active management membership, organization/subscription, LM location scope and MFA freshness; validates explicit confirmation/reason/fingerprint and idempotent operation identity; refuses active task handoff; then ends the active shift and writes an immutable closure plus tightly guarded audit event.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/staff-shift-force-end-repository.ts"
+    ],
+    "invariants_error_checks": [
+      "admin force-end cannot fabricate cash reconciliation",
+      "LM authority is location-scoped",
+      "open assigned/accepted/in-progress tasks block closure",
+      "closure and protected shift history become immutable"
+    ],
+    "test_refs": [
+      "packages/database/src/shift-force-end-migration.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261003005500_check_in_cancelled_enum/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7cf561a4f8f0973290520fb28c4df0898b64d6f4d99b4cbb6ab5ea28b8b0d903",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 2
+      }
+    ],
+    "semantic_review_notes": "Commits the additive CANCELLED valet_session_state enum label in its own migration so later migrations can safely reference it after transaction commit.",
+    "callers_consumers": [
+      "check-in cancellation state transitions"
+    ],
+    "invariants_error_checks": [
+      "enum addition is additive and migration-order dependent"
+    ],
+    "test_refs": [
+      "check-in cancellation integration coverage"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004005800_shift_presence_foundation/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "12a5362224407475c6c9812326bcae32b719a5fe54cbc1e6904197a1b8b40dab",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 444
+      }
+    ],
+    "semantic_review_notes": "Establishes GPS presence policy/state/history with all company/location modes defaulting to OFF and strict release initially closed. Operations, challenges, exceptions, decisions and zones carry composite tenant/location/user/membership/shift FKs, bounded lifetimes and revisions; triggers own timestamps, lifecycle transitions, immutable decision/history semantics and retention; sensitive tables/helpers are revoked from PUBLIC.",
+    "callers_consumers": [
+      "shift presence service/repositories"
+    ],
+    "invariants_error_checks": [
+      "no strict policy can activate at this foundation migration",
+      "presence rows are tenant/location/actor linked by composite keys",
+      "operation/challenge lifetime is bounded to 300s",
+      "decisions are immutable and long-retained while ephemeral attempt data can expire"
+    ],
+    "test_refs": [
+      "packages/database/src/shift-presence-test-context.ts",
+      "apps/api/test/shift-presence-*"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004005900_shift_presence_decision_privacy/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bab10dee973b0836d9cf2db1480f0a0eb7fb98a76e2b07bdb5d00d9f1add3db1",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 170
+      }
+    ],
+    "semantic_review_notes": "Removes request_fingerprint from long-lived presence decisions so attempt digests remain only on the shorter-lived operation. It atomically replaces history/linkage guards to validate result identity through operation/actor scope without retaining the request digest in 24-month decision history.",
+    "callers_consumers": [
+      "shift presence operation/result projection"
+    ],
+    "invariants_error_checks": [
+      "attempt fingerprint is not copied into decision history",
+      "decision immutability and operation/challenge linkage remain enforced"
+    ],
+    "test_refs": [
+      "shift presence privacy/retention integration coverage"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004006000_shift_presence_authority_denial/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b58e9432acab675215624197b42a3aea4e3ed56e26cd0a7764aea90acda64b38",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 149
+      }
+    ],
+    "semantic_review_notes": "Adds explicit minimized denial/expiry provenance and a narrow SECURITY DEFINER recovery for an approval whose approver authority was revoked. It locks/rechecks target and reviewer user/membership/org/subscription/location grant authority before protected writes, binds the pending attempt if needed, early-expires only an approved unconsumed exception, denies the exact operation and emits an expiry audit.",
+    "callers_consumers": [
+      "shift presence approval recovery path"
+    ],
+    "invariants_error_checks": [
+      "authority-revoked denial requires matching early-expiry provenance",
+      "expiry cause cannot be supplied at insert or arbitrary update",
+      "operation intent fingerprints must match before recovery mutation"
+    ],
+    "test_refs": [
+      "apps/api/test/shift-presence-readiness-races.integration.test.ts",
+      "shift presence exception/recovery integration coverage"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004006100_shift_presence_policy_commands/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bdcd039974bc580eeac3a917263d041de778cc59dbe225f1f9086ed6b94e8e97",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 99
+      }
+    ],
+    "semantic_review_notes": "Introduces the management policy mutation function while the GPS-B release gate allows only OFF/WARN_ONLY. It locks management/location/session/staff authority, active entitlement and location grant, requires a current active MFA factor plus recent MFA/admin activity, enforces company/location revision CAS and an allowlisted field mapping, owns revision increments through triggers, and audits changes.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/presence-management-policy-command.ts"
+    ],
+    "invariants_error_checks": [
+      "strict modes remain rejected at this migration stage",
+      "company policy is ORG_ADMIN-only and location policy is scoped",
+      "MFA and session freshness are rechecked in transaction",
+      "location writes verify inherited company revision"
+    ],
+    "test_refs": [
+      "apps/api/test/shift-presence-policy-function.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004006300_shift_presence_management_entitlement/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ce5d025383b25a1cd408d33c208d5b2a030087ea05b7766528c2d6ec340bcd98",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 21
+      }
+    ],
+    "semantic_review_notes": "Adds a narrow SECURITY DEFINER entitlement lock helper because runtime has read-only commercial-table privileges. It first proves the caller's current unrevoked staff session and active admin/LM membership for the organization, then SHARE-locks the organization subscription and returns dashboard_access_enabled; PUBLIC execution is revoked.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/presence-management-authority.ts",
+      "apps/api/src/modules/dashboard/live-history-read-authorization.ts",
+      "apps/api/src/modules/dashboard/incident-resolution-command.ts"
+    ],
+    "invariants_error_checks": [
+      "commercial entitlement is held through the transaction without runtime UPDATE privilege",
+      "unauthorized/expired session returns false before subscription disclosure"
+    ],
+    "test_refs": [
+      "apps/api/test/live-history-read-authorization.test.ts",
+      "apps/api/test/dashboard-incident-resolution-integrity.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004006400_shift_presence_management_results/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "43ff1b1818abf37fc8fee0ae5187955e42e1f25b8843ba77fed4191d77613550",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 70
+      }
+    ],
+    "semantic_review_notes": "Adds immutable management mutation receipts keyed by mutation_id, with tenant/location/actor FKs and kind/effect constraints. NO_CHANGE receipts must match the current policy revision and may only represent policy kinds; CHANGED receipts must point to the exact audit event/mutation and match actor, entity, event type and revision. The receipt table/helper are revoked from PUBLIC.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/presence-management-mutation.ts"
+    ],
+    "invariants_error_checks": [
+      "receipt mutation identity is unique and immutable",
+      "CHANGED receipt requires exact audit provenance",
+      "NO_CHANGE receipt cannot fabricate an audit event"
+    ],
+    "test_refs": [
+      "apps/api/test/shift-presence-management-result-database.integration.test.ts",
+      "apps/api/test/shift-presence-policy-noop-recovery.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004006500_shift_presence_anti_abuse_scopes/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5652ccc0fb587e2fdb98c2a7db353707af8558e9176d251820d8b8e52cb067a0",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 16
+      }
+    ],
+    "semantic_review_notes": "Extends the anti-abuse scope allowlist with exactly three user-scoped presence keys for challenge, exception and status operations while preserving every prior scope.",
+    "callers_consumers": [
+      "shift presence anti-abuse guards"
+    ],
+    "invariants_error_checks": [
+      "presence anti-abuse activity uses enumerated scope classes only"
+    ],
+    "test_refs": [
+      "apps/api/test/shift-presence-anti-abuse.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004006600_shift_presence_consumer_denial/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "541c426451acf5162cfd80480e22e81c4a36ac3e205dd1fde0c505f26bd3053b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 25
+      }
+    ],
+    "semantic_review_notes": "Adds only minimized terminal classification/reason fields to denied presence operations. The check permits them solely for PRESENCE_REJECTED with bound request/policy fingerprints and only for the allowed outside/edge/configuration/measurement-unusable pairs; historical rows stay NULL and existing terminal immutability prevents later alteration.",
+    "callers_consumers": [
+      "apps/api/src/modules/shifts/shift-presence-command.ts",
+      "apps/api/src/modules/shifts/shift-presence-result-projection.ts"
+    ],
+    "invariants_error_checks": [
+      "no raw GPS measurement is retained in terminal denial",
+      "summary can exist only on a bound PRESENCE_REJECTED terminal operation",
+      "classification/reason pairs are constrained"
+    ],
+    "test_refs": [
+      "packages/contracts/src/shift-presence-consumer.test.ts",
+      "apps/api/test/shift-presence-consumer-*"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004006700_shift_presence_evidence_free_completion/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d83d12fbe6e9ffc6f0a8467033b3dcd4497dc8acd1f17d342fa340bf91fbbba6",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 67
+      }
+    ],
+    "semantic_review_notes": "Adds OFF_NO_EVIDENCE as an explicit completion basis for successful OFF-mode operations without inventing a decision. The completion guard requires a bound pending attempt, current OFF policy, live unconsumed challenge, no decision for the operation, and a real resulting active START shift or ended/cash-reported END shift before commit.",
+    "callers_consumers": [
+      "apps/api/src/modules/shifts/shift-presence-operation.ts"
+    ],
+    "invariants_error_checks": [
+      "evidence-free completion cannot be supplied at allocation",
+      "OFF_NO_EVIDENCE has no result_decision_id",
+      "completion must correspond to an actual authoritative shift result and bound attempt"
+    ],
+    "test_refs": [
+      "packages/database/src/shift-presence-completion.integration.test.ts",
+      "apps/api/test/shift-presence-no-evidence-*"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004006800_shift_presence_converged_completion/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b7db72ca29c3738c5c86526e5f057d39ebca2e70e1c26966337fff3635dc0e93",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 71
+      }
+    ],
+    "semantic_review_notes": "Adds NO_EFFECT_CONVERGENCE as a second evidence-free completion basis for already-satisfied successful state, keeping the same bound-attempt/challenge/no-decision/authoritative-shift provenance. Unlike OFF_NO_EVIDENCE it deliberately does not assert a policy mode; the OFF basis still requires current OFF policy.",
+    "callers_consumers": [
+      "apps/api/src/modules/shifts/shift-presence-operation.ts"
+    ],
+    "invariants_error_checks": [
+      "convergence completion is not new presence evidence",
+      "both evidence-free bases require authoritative shift outcome and no decision",
+      "OFF_NO_EVIDENCE continues to require OFF policy"
+    ],
+    "test_refs": [
+      "packages/database/src/shift-presence-convergence.integration.test.ts",
+      "apps/api/test/shift-presence-convergence-proof.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261007006900_shift_presence_strict_rollout_activation/migration.sql",
+    "worker": "dashboard",
+    "original_owner": "database",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "119512f3ba283c8eca6e5da4068bd3e42dbdd63c54302cdce3ef3ca56858e3d9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 98
+      }
+    ],
+    "semantic_review_notes": "Activates persistence of REQUIRE and REQUIRE_OR_OVERRIDE by removing only the release-only table constraints and replacing the policy function allowlist. The SQL boundary retains session/user, staff-role, subscription, location/grant, MFA freshness and company/location revision checks plus audit semantics. Application management callers perform configuration readiness before invoking it, including complete company-location fanout, so PRESENCE_NOT_READY remains a pre-write service invariant; migration does not auto-enable existing rows.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/presence-management-policy-command.ts",
+      "apps/api/src/modules/management/presence-management-authority.ts"
+    ],
+    "invariants_error_checks": [
+      "existing organizations/locations are not rewritten on migration",
+      "strict enum values become persistable only through the same protected function boundary at runtime",
+      "CAS/MFA/tenant/location authority remain intact",
+      "service checks usable zone configuration before strict management persistence"
+    ],
+    "test_refs": [
+      "packages/database/src/shift-presence-release-gate.integration.test.ts",
+      "apps/api/test/shift-presence-policy-function.integration.test.ts",
+      "apps/api/test/shift-presence-strict-rollout.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; referenced tests were inspected/discovered but no tests or database execution were run in C007.",
+    "original_worker": "database",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/report-read-service.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "73aa791b78f79e88670dc28c2125c24075265a63c22345925cd59c3f4086f1c3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 261
+      }
+    ],
+    "semantic_review_notes": "Composes daily/weekly/monthly location reports from operational, financial and incident analytics only after dashboard location authorization. The helper returns the persisted authorized organization/location scope, daily activity is explicitly tenant/location scoped, and management activity is separately finalized through the same REPORTS_READ authorization boundary.",
+    "callers_consumers": [
+      "DashboardReportController",
+      "report export service"
+    ],
+    "invariants_error_checks": [
+      "REPORTS_READ authorization precedes report composition",
+      "location and organization scope come from persisted authorization",
+      "daily activity receives both organizationId and locationId",
+      "management activity finalization is explicit"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-reports-api.integration.test.ts",
+      "apps/api/test/dashboard-read-revocation-fence.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/report.controller.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "418b6298df00562cfdcbf1cd614bb25eef5832f4ae0947c6f9598034fd86adce",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 197
+      }
+    ],
+    "semantic_review_notes": "Defines report read/export HTTP transport. It rejects malformed/duplicate Authorization headers, validates location UUID and contract query/body schemas, resolves the exact staff session context, routes all work through ApiOperationRunner, validates response contracts, and marks binary exports no-store before returning PDF/CSV bytes.",
+    "callers_consumers": [
+      "Nest DashboardModule routes"
+    ],
+    "invariants_error_checks": [
+      "exactly one Authorization header",
+      "all route inputs schema/UUID validated",
+      "export bytes receive no-store response headers",
+      "report service receives resolved staff session context"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-reports-api.integration.test.ts",
+      "apps/api/test/management-company-report-export-http.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/session-overview-cursor.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8ff48c7f516fed889848ba47e798b4f1f0b61f8e1425155ccd877795129ace3f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 42
+      }
+    ],
+    "semantic_review_notes": "Creates a v2 session cursor only after location authorization. Decoding requires canonical base64url, parses the contract cursor, and binds organizationId, locationId and filter to the current authorized request before exposing sort/tiebreaker keys, preventing cross-scope/filter cursor reuse.",
+    "callers_consumers": [
+      "apps/api/src/modules/dashboard/overview-sessions-query.ts"
+    ],
+    "invariants_error_checks": [
+      "cursor is organization/location/filter bound",
+      "noncanonical or malformed cursor fails transport validation",
+      "cursor payload does not override current authorized scope"
+    ],
+    "test_refs": [
+      "apps/api/test/live-session-overview-cursor.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/session-photo-admission.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4cd37a6ffc8a08e462ddb55f6b9ad430a5fd6fd1d1a956f72374fcc2da94ada5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 48
+      }
+    ],
+    "semantic_review_notes": "Separates Management photo-view admission from employee upload/status budgets. Durable anti-abuse limits requests per user and in-process reservations cap each user at two and each API replica at four buffered photo deliveries, with idempotent release bookkeeping.",
+    "callers_consumers": [
+      "DashboardSessionPhotoService"
+    ],
+    "invariants_error_checks": [
+      "view quota is isolated from employee photo budget",
+      "per-user concurrency <=2 and replica concurrency <=4",
+      "reservation release is idempotent",
+      "retryAfter is only surfaced when finite and bounded"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-session-photo-errors.test.ts",
+      "apps/api/test/issue309-photo-admission-boundaries.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/session-photo-controller.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "680905e3109fa8851858c6caea998a84eb95e96ce1724fc16b6c484ff3966cfa",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 198
+      }
+    ],
+    "semantic_review_notes": "Exposes no-store Management condition-photo manifest/byte routes with exact single staff Authorization, empty-query validation and UUID validation. The bytes path registers finish/close fencing before asynchronous auth/DB/S3 work and refuses enqueue after disconnect; it carefully transfers the memory reservation to response lifecycle only after successful synchronous end, aborting incomplete header-only responses without leaking provider details.",
+    "callers_consumers": [
+      "DashboardSessionPhotoService",
+      "ApiOperationRunner"
+    ],
+    "invariants_error_checks": [
+      "no-store and nosniff on photo responses",
+      "no response enqueue after client disconnect",
+      "reservation survives only a successful queued response",
+      "partial/closed response errors are not double-written"
+    ],
+    "test_refs": [
+      "apps/api/test/issue309-session-photo-controller-commit.test.ts",
+      "apps/api/test/issue309-session-photo-controller-socket.test.ts",
+      "apps/api/test/issue309-photo-browser.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/session-photo-delivery-fence.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ee7eed38b6936c505a8864632ad0e1caf762fa8e639d89764a63aed619034214",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 119
+      }
+    ],
+    "semantic_review_notes": "Implements the final photo delivery race fence with two independently acquired READ COMMITTED leases. A witness holds canonical SHARE locks while a second transaction revalidates and commits; only after acknowledged commit and witness liveness is the synchronous HTTP enqueue invoked. Pair checkout serialization prevents pool starvation and cleanup destroys unusable leases on ambiguous transaction outcomes.",
+    "callers_consumers": [
+      "deliverManagementSessionPhotoBytes"
+    ],
+    "invariants_error_checks": [
+      "both DB leases acquired before either starts holding locks",
+      "no network/S3 or HTTP flush awaited while DB locks are held",
+      "acknowledged COMMIT precedes enqueue",
+      "witness locks survive through enqueue",
+      "ambiguous failed COMMIT/BEGIN leases are discarded"
+    ],
+    "test_refs": [
+      "apps/api/test/issue309-photo-grant-race.integration.test.ts",
+      "apps/api/test/issue309-session-photo-controller-commit.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/session-photo-query.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "71b91d0cb857e3b945241af715d8052a9991f23f0ab8d02f4f68646cc7d29206",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 122
+      }
+    ],
+    "semantic_review_notes": "Provides exact management photo custody queries. Session existence is checked by id+organization+location even for empty manifests; only verified CHECK_IN_CONDITION candidates are selected; display times must form a one-to-one <=10 mapping; post-S3 equality covers every immutable evidence/storage identity field and compares SHA-256 timing-safely; delivery locks the exact verified evidence through a database helper.",
+    "callers_consumers": [
+      "DashboardSessionPhotoService"
+    ],
+    "invariants_error_checks": [
+      "session/photo IDs cannot escape authorized tenant/location",
+      "candidate count fails closed above 10",
+      "object version/digest/capture/attempt identity must remain unchanged",
+      "delivery requires exact canonical evidence lock"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-session-photo.test.ts",
+      "apps/api/test/issue309-photo-grant-race.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/session-photo-service.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "77e7e16419c8f09f7c2d8074c402d8ceec151f00dd35b361195e5f05cdf807be",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 288
+      }
+    ],
+    "semantic_review_notes": "Orchestrates privacy-preserving Management photo manifests and bytes. Authorization plus exact session binding occurs in transaction; manifest exposes only photoId/verifiedAt/jpeg. Byte delivery reads an exact version outside any DB transaction, verifies version/size/SHA-256, zeroes hash/raw buffers, then reauthorizes scope and exact evidence after S3 and uses the committed delivery fence before synchronous enqueue. Hidden IDs collapse to a generic not-visible error and private DB/provider faults to unavailable.",
+    "callers_consumers": [
+      "DashboardSessionPhotoController"
+    ],
+    "invariants_error_checks": [
+      "manifest never exposes object key/bucket/version/digest/signed URL",
+      "no S3 I/O occurs under transaction",
+      "post-S3 authority and immutable evidence are revalidated",
+      "byteSize bounded 1..8MiB and digest exactly 32 bytes",
+      "raw buffers are zeroed on exit"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-session-photo.test.ts",
+      "apps/api/test/dashboard-session-photo-errors.test.ts",
+      "apps/api/test/issue309-photo-viewer.integration.test.ts",
+      "apps/api/test/issue309-photo-grant-race.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/session-resource-projection.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "88ff1bf50a70a263137f356085464859aabca70ec9b5c9b150e7ee42ebbdc4ab",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 19
+      }
+    ],
+    "semantic_review_notes": "Projects key slot, parking spot and zone from the exact resources referenced by a session using organization+location+id joins. It intentionally keeps inactive historical references truthful rather than substituting currently active resources.",
+    "callers_consumers": [
+      "apps/api/src/modules/dashboard/overview-sessions-query.ts"
+    ],
+    "invariants_error_checks": [
+      "resource projection is tenant/location scoped",
+      "inactive referenced resources remain historical truth",
+      "missing resource stays null rather than guessed"
+    ],
+    "test_refs": [
+      "dashboard live session overview integration coverage"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/subscription-read.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "150fe34fde87248899cd65f7773aa96e53b2d03b9faefb1db6d1b32e79905a25",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 95
+      }
+    ],
+    "semantic_review_notes": "Reads a location subscription for an already authorized Location Manager scope while deliberately remaining readable when dashboardAccess is disabled. It takes the shared staff-management organization advisory fence, requires READ COMMITTED, reauthorizes after possible revocation, compares exact organization/membership/location identity, then projects the same organization subscription without Company Admin fallback.",
+    "callers_consumers": [
+      "DashboardSubscriptionController"
+    ],
+    "invariants_error_checks": [
+      "LM location authorization is rechecked under shared revocation fence",
+      "scope identity cannot change between hint and final read",
+      "disabled dashboard entitlement is reportable rather than treated as fallback authority",
+      "subscription joins through authorized organization"
+    ],
+    "test_refs": [
+      "dashboard subscription/revocation integration coverage"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/subscription.controller.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d83e98a2fa872765780aa97f9884419aa2fad651169ceb725b29397ed5cb27ec",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 70
+      }
+    ],
+    "semantic_review_notes": "HTTP wrapper for location subscription reads. It requires exactly one Authorization header, resolves the authenticated staff principal, validates the location UUID, runs via ApiOperationRunner and validates the final contract response.",
+    "callers_consumers": [
+      "Nest DashboardModule route /v1/staff/dashboard/locations/:locationId/subscription"
+    ],
+    "invariants_error_checks": [
+      "duplicate/malformed Authorization denied",
+      "invalid location identifier denied",
+      "contract parser owns response shape"
+    ],
+    "test_refs": [
+      "dashboard subscription API integration coverage"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/task-cancellation-projection.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ff184d43082480da1927f62c59d80fbaedf940d77603bc6767e112041108336a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 51
+      }
+    ],
+    "semantic_review_notes": "Builds cancellation evidence from the exact cancelled task's tenant/location/session/task dispatch history. It requires exactly one CANCELLED dispatch event before attributing staff/guest identity; duplicate or missing evidence becomes UNKNOWN, and guest attribution additionally requires the matching guest retrieval-cancel audit at the same occurrence time.",
+    "callers_consumers": [
+      "apps/api/src/modules/dashboard/overview-retrieval-tasks-query.ts"
+    ],
+    "invariants_error_checks": [
+      "never select an arbitrary latest cancellation actor",
+      "ambiguous cancellation event count returns UNKNOWN",
+      "guest attribution needs matching GUEST audit provenance",
+      "staff names use canonical history-name projection"
+    ],
+    "test_refs": [
+      "dashboard retrieval task/history projection integration coverage"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/dispatch-errors.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "779907596e5155fa6fce267a00351c18e9f95639926817136ba4a27dc1cb0b3f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 26
+      }
+    ],
+    "semantic_review_notes": "Defines the small dispatch domain-error vocabulary and non-disclosing client messages. Forbidden/not-found are intentionally collapsed and concurrency uses explicit VERSION_CONFLICT.",
+    "callers_consumers": [
+      "DispatchService/commands",
+      "dispatch-types.ts"
+    ],
+    "invariants_error_checks": [
+      "forbidden resource message does not disclose existence",
+      "known codes map deterministically to client-safe messages"
+    ],
+    "test_refs": [
+      "dispatch command/service tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/dispatch-event-writer.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c036d20535e8f5c9f2c99460c90d1ecaffc989cb40eda6913e40c42e217825f2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 57
+      }
+    ],
+    "semantic_review_notes": "Central append-only dispatch event writer copies organization/location/task/session custody directly from the already locked task and writes actor/assignee/reason/time facts with a fresh event id. It does not accept caller-supplied tenant scope independently from the task.",
+    "callers_consumers": [
+      "record-task-mutation.ts",
+      "queue-parking-task-command.ts",
+      "parking and retrieval transition commands"
+    ],
+    "invariants_error_checks": [
+      "dispatch event tenant/location/session/task derive from canonical task",
+      "event type constrained by TypeScript domain union",
+      "event append occurs inside caller transaction"
+    ],
+    "test_refs": [
+      "apps/api/test/issue-276-canonical-writer-diagnostic.test.ts",
+      "dispatch transition integration coverage"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/dispatch-types.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2fd542e8ca2a043509985ca0b6cbae1da03bf39064bc717147ef564764266093",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 136
+      }
+    ],
+    "semantic_review_notes": "Defines canonical operational task shapes and projections. Completed/cancelled tasks are rejected from operational/queue projections, parking zone/spot references fail closed if their labels cannot be resolved, and valet session state is explicitly allowlisted before exposure.",
+    "callers_consumers": [
+      "task-queue-query.ts",
+      "dispatch commands/services"
+    ],
+    "invariants_error_checks": [
+      "terminal tasks cannot appear as operational queue items",
+      "referenced physical resource missing from scoped join is forbidden",
+      "unknown/cancelled session states cannot enter the staff queue projection"
+    ],
+    "test_refs": [
+      "apps/api/test/staff-task-queue-projection.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/dispatch.module.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "11e6e6276a1e342138d9c70c4308dd1f593c55c8019433db6b8f40dccf13a6ce",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 19
+      }
+    ],
+    "semantic_review_notes": "Wires DispatchController/DispatchService with Auth, runtime DB and HTTP infrastructure, applying RequestIdMiddleware to dispatch routes for operation tracing.",
+    "callers_consumers": [
+      "application module graph"
+    ],
+    "invariants_error_checks": [
+      "dispatch routes receive request IDs and shared auth/DB infrastructure"
+    ],
+    "test_refs": [
+      "dispatch module/integration bootstrap coverage"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/employee-task-tracking-projection.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3993ec3dee8b76ba527de556ad2292d15dec2e79e396910f54f653332ecc98d2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 68
+      }
+    ],
+    "semantic_review_notes": "Projects the employee's foreground tracking target only when an assigned task is IN_PROGRESS, its session is in the matching PARKING/RETRIEVING state, tracking is effectively enabled, and one open tracking session exists in the same organization/location/session/task. Query LIMIT 2 deliberately distinguishes NONE, one ELIGIBLE, and >1 AMBIGUOUS instead of selecting an arbitrary task.",
+    "callers_consumers": [
+      "apps/api/src/modules/dispatch/task-queue-query.ts"
+    ],
+    "invariants_error_checks": [
+      "tracking joins preserve tenant/location/session/task custody",
+      "only current assignee can receive projection",
+      "task/session state must match task type",
+      "multiple eligible movements fail closed as AMBIGUOUS"
+    ],
+    "test_refs": [
+      "staff task queue GPS/tracking projection integration coverage"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/task-audit-event-writer.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4c133a82c6e1e842220f457c5a3f932d47f8430c149e6dd8206ceee53323dfcf",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 55
+      }
+    ],
+    "semantic_review_notes": "Appends task-management audit events using organization/location/session/task identity from the locked canonical task. Metadata records before/after status/version, assignee identities, optional reason and session ID, giving deterministic mutation provenance within the caller transaction.",
+    "callers_consumers": [
+      "record-task-mutation.ts"
+    ],
+    "invariants_error_checks": [
+      "audit tenant/location/session/entity derives from locked task",
+      "metadata captures from/to versions and statuses",
+      "actor membership is explicit"
+    ],
+    "test_refs": [
+      "dispatch mutation audit integration coverage"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-access.controller.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e69e255adc390f3f8ae7ccfa84eb407116f54bbd8b439b1c8fd55dacbbb27258",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 185
+      }
+    ],
+    "semantic_review_notes": "Separates staff guest-access issuance/revocation from guest session reads. Staff commands require exactly one Authorization header, resolved staff principal, UUID/session and contract validation, and no-store responses; guest session read accepts only the empty query and delegates credential resolution to the shared GuestCredentialAuthorizer, avoiding route-local token interpretation.",
+    "callers_consumers": [
+      "GuestAccessService",
+      "GuestCredentialAuthorizer"
+    ],
+    "invariants_error_checks": [
+      "staff guest-access mutation requires one staff credential",
+      "issue intent schema owns reissue precondition",
+      "guest read response is no-store and credential-authorized",
+      "route does not log/store raw token"
+    ],
+    "test_refs": [
+      "apps/api/test/check-in-api.integration.test.ts",
+      "guest access integration coverage"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-access.module.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3ca86b609704a06822e370d0a1db85865db0f29aea083c2c9bcc02efc56f884e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 72
+      }
+    ],
+    "semantic_review_notes": "Owns all guest access, browser-session/context, rating and information controllers/services under one module with shared Auth, AntiAbuse, runtime DB and HTTP infrastructure. RequestIdMiddleware is consistently applied across every guest and staff guest-access controller.",
+    "callers_consumers": [
+      "application module graph"
+    ],
+    "invariants_error_checks": [
+      "guest browser endpoints share the same anti-abuse/auth infrastructure",
+      "request IDs cover all owned controllers"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-rating-module-ownership.test.ts",
+      "apps/api/test/guest-browser-session-test-module.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-browser-context-transport.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fed31478deaefa4c21ea39e521ab7c0c5b8e9c79051bf5f9f974032a6a871bf6",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 126
+      }
+    ],
+    "semantic_review_notes": "Parses credentials for prepare/switch/reconcile without accepting ambiguous Authorization multiplicity or malformed browser/enrollment/pending cookies. Switch requires all four exact credential classes; reconcile forbids Authorization and distinguishes NONE from INVALID. Cookie helpers validate non-secret context-marker shape and use __Host-prefixed names with bounded lifetimes from the shared serializer.",
+    "callers_consumers": [
+      "GuestBrowserContextController"
+    ],
+    "invariants_error_checks": [
+      "prepare/switch require exactly one bearer header",
+      "switch requires current browser+enrollment+pending credentials",
+      "reconcile cannot mix Authorization with cookie recovery",
+      "malformed present cookies fail closed"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-browser-session-context-switch.integration.test.ts",
+      "apps/api/test/guest-browser-session-context-switch-recovery.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-browser-context.controller.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "73b81a1dc89e26ba044cd68fb07fe55cf750036ed6addc474e5558eb67b8320e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 297
+      }
+    ],
+    "semantic_review_notes": "Implements prepare, explicit context switch, and lost-response reconciliation. Every mutation requires empty body/query, trusted mutation transport/origin policy, no-store, and GuestBrowserLimiter reservation. Invalid guest credentials are counted without distinguishing their cause; successful operations finalize reservations as ignored. Cookie transitions are explicit: prepare may stage pending context, switch atomically installs pending browser/context and clears enrollment/pending, while reconcile recovers only from the exact cookie tuple and clears temporary cookies otherwise.",
+    "callers_consumers": [
+      "GuestBrowserContextService",
+      "GuestBrowserLimiter",
+      "AntiAbuseService"
+    ],
+    "invariants_error_checks": [
+      "CSRF/origin transport gate precedes credential mutation",
+      "invalid credentials consume anti-abuse budget without detail disclosure",
+      "context switch requires exact current/pending/enrollment tuple",
+      "temporary enrollment/pending cookies are cleared on terminal paths"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-browser-session-context-switch.integration.test.ts",
+      "apps/api/test/guest-browser-session-context-switch-recovery.integration.test.ts",
+      "apps/api/test/guest-t3-recovery-pressure.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-browser-limiter.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7100c9ec39f68f02c357742aad6193dc79b6adc38f2fdfb2e5863586b58c7e3a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 95
+      }
+    ],
+    "semantic_review_notes": "Builds the anti-abuse credential class for browser flows using the primary secret plus bounded recovery alternates. It routes allocation vs normal admission separately, performs the protected operation and reservation finalization inside AntiAbuseService.transaction, and counts malformed/invalid absent reconcile targets while ignoring a truly absent optional reconcile.",
+    "callers_consumers": [
+      "GuestBrowserSessionController",
+      "GuestBrowserContextController"
+    ],
+    "invariants_error_checks": [
+      "credential secret type is inferred only from recognized browser prefix vs legacy bearer",
+      "recovery credentials participate in admission without replacing the primary",
+      "reservation operation executes in anti-abuse transaction",
+      "invalid reconcile is counted"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-browser-session-enrollment-anti-abuse.integration.test.ts",
+      "apps/api/test/guest-t3-budget.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-browser-request-validation.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1fccde850a31b3a14e419caf6466b2dd62fff91119bfd0885e2e0b91e13aafaa",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 8
+      }
+    ],
+    "semantic_review_notes": "Centralizes browser-session/context requirement that body/query payloads are empty according to the contract, mapping any unexpected fields or shape to transport validation error.",
+    "callers_consumers": [
+      "GuestBrowserSessionController",
+      "GuestBrowserContextController"
+    ],
+    "invariants_error_checks": [
+      "browser mutation routes accept no attacker-controlled JSON/query fields"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-browser-session-http.integration.test.ts",
+      "apps/api/test/guest-browser-session-context-switch.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-browser-session.controller.ts",
+    "worker": "dashboard",
+    "original_owner": "backend",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d58e6e197e831cae545c9cb86878dc7763f77e1eb43a31dda45a2d2b7219dd71",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 261
+      }
+    ],
+    "semantic_review_notes": "Implements browser-session enroll, exchange and end with no-store, empty body/query and mandatory guest mutation transport/origin policy. Enroll rejects mixed Authorization or malformed cookie targets and refuses allocation over an already authorized browser session; exchange requires the exact bearer/enrollment/browser credential tuple and counts invalid credentials; end requires a valid browser secret and clears browser/context/enrollment/pending cookies on success. All operations are wrapped in the durable limiter/anti-abuse transaction.",
+    "callers_consumers": [
+      "GuestBrowserSessionService",
+      "GuestBrowserLimiter",
+      "AntiAbuseService"
+    ],
+    "invariants_error_checks": [
+      "enroll cannot mix bearer auth or overwrite an authorized browser session",
+      "exchange invalid/mixed credentials fail generically and are counted",
+      "end clears every browser-session/context staging cookie",
+      "all endpoints require CSRF/origin transport gate"
+    ],
+    "test_refs": [
+      "apps/api/test/guest-browser-session-http.integration.test.ts",
+      "apps/api/test/guest-browser-session-lifecycle.integration.test.ts",
+      "apps/api/test/guest-browser-session-enrollment-anti-abuse.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; callers/tests were inspected or located for context, but no test suite, HTTP server, external storage, or database execution was run in C007.",
+    "original_worker": "backend",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-types.ts",
+    "worker": "dashboard",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6ceffdc8f609c6872d4a9626691172642985bac9e78fba4b98dc11d7e2755357",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 166
+      }
+    ],
+    "semantic_review_notes": "Defines the portable Check-In workflow state contract, separating discovery/capture/intake/continuation modes from authoritative session facts. The authoritative session is constrained to CHECKING_IN/AWAITING_PARKING with server version, while continuation keeps pending correction/condition intent explicit rather than inferring success locally.",
+    "callers_consumers": [
+      "employee-check-in-session.ts",
+      "native check-in runtime/screens"
+    ],
+    "invariants_error_checks": [
+      "authoritative session version is retained for protected mutations",
+      "continuation pending intent/stage remain explicit",
+      "transport methods distinguish reads from protected commands"
+    ],
+    "test_refs": [
+      "packages/employee-client/src/employee-check-in-session*.test.ts",
+      "apps/valet-native check-in tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; related production callers/tests were inspected or located for context, but no tests, native runtime, HTTP server, or database execution was run in C007.",
+    "original_worker": "employee",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/employee-client/src/employee-client.test.ts",
+    "worker": "dashboard",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2a1920cb44d004c5337d6940ae481c1a560ac56db899c9a483c9b13cb6556b3d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 174
+      }
+    ],
+    "semantic_review_notes": "Verifies the shared EmployeeClient recovery boundary: injected transport payloads pass through on success; only GET/HEAD may refresh authorization and retry once; POST/PATCH are never automatically replayed; bounded Retry-After survives normalization; and transient refresh outage remains distinct from definitive authorization loss.",
+    "callers_consumers": [
+      "EmployeeClient"
+    ],
+    "invariants_error_checks": [
+      "safe read retry at most once",
+      "protected mutation never auto-replayed after 401",
+      "definitive auth loss invokes loss callback",
+      "transient refresh outage does not log the user out"
+    ],
+    "test_refs": [
+      "packages/employee-client/src/employee-client.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; related production callers/tests were inspected or located for context, but no tests, native runtime, HTTP server, or database execution was run in C007.",
+    "original_worker": "employee",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/employee-client/src/employee-client.ts",
+    "worker": "dashboard",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "89bbb29ba0bd9d744e550c43fd967baf1f0e91fa29725b4d6e17993331b4f4b1",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 103
+      }
+    ],
+    "semantic_review_notes": "Transport-neutral request orchestrator. Non-2xx responses are normalized centrally; optional authorization recovery can refresh and recursively retry only when recovery-policy allows the method/status and no prior retry occurred. Mutation failures surface directly and report authorization loss without replay, while transient refresh failure becomes a service-unavailable network error.",
+    "callers_consumers": [
+      "all employee-client transports",
+      "apps/valet-native/src/tasks/native-operational-http.ts"
+    ],
+    "invariants_error_checks": [
+      "one safe read refresh retry maximum",
+      "mutations never automatically replay",
+      "retryAfter is preserved into normalized API error",
+      "refresh transient failure is not treated as definitive auth loss"
+    ],
+    "test_refs": [
+      "packages/employee-client/src/employee-client.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; related production callers/tests were inspected or located for context, but no tests, native runtime, HTTP server, or database execution was run in C007.",
+    "original_worker": "employee",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/employee-client/src/employee-condition-photo-session.test.ts",
+    "worker": "dashboard",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6e5490ece197677d322d772e5d1498a51c1f411902a0a164a7c2051498e35f4c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 210
+      }
+    ],
+    "semantic_review_notes": "Portable lifecycle regression covers required-photo authority, single-flight upload, lost-response read reconciliation, A→B→A owner fencing, restart with no durable local handle, background purge/unknown state, optional-photo independence, status-404 race retention and local-file preflight. Required eligibility becomes true only after authoritative discovery confirms a qualifying verified photo.",
+    "callers_consumers": [
+      "EmployeeConditionPhotoSession",
+      "native condition photo owner/steps"
+    ],
+    "invariants_error_checks": [
+      "one upload dispatch per confirmed local capture",
+      "lost response reconciles with reads and never silent POST replay",
+      "private local handles are discarded on scope/background transitions",
+      "owner revision/scope fence late results",
+      "qualifying required-photo state comes only from discovery"
+    ],
+    "test_refs": [
+      "packages/employee-client/src/employee-condition-photo-session.test.ts",
+      "apps/valet-native condition-photo tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; related production callers/tests were inspected or located for context, but no tests, native runtime, HTTP server, or database execution was run in C007.",
+    "original_worker": "employee",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/employee-client/src/employee-condition-photo-transport.test.ts",
+    "worker": "dashboard",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a5229bda6335338ca4be7798d5bdfde3c85113666e1fc50d42ee94eef201fd90",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 60
+      }
+    ],
+    "semantic_review_notes": "Validates the portable wire contract: upload converts opaque Native handle through the injected multipart adapter exactly once, response must match requested session+operation and strict status schema, foreign/malformed VERIFIED bodies are rejected, and discovery/status remain read-only while reconciliation requires a separate explicit POST method.",
+    "callers_consumers": [
+      "createEmployeeConditionPhotoTransport",
+      "native-condition-photo-transport.ts"
+    ],
+    "invariants_error_checks": [
+      "portable layer never handles device file paths directly",
+      "response sessionId/operationId must equal request",
+      "server-only objectKey or malformed verified facts are rejected by schema",
+      "reconcile is explicit rather than hidden in GET"
+    ],
+    "test_refs": [
+      "packages/employee-client/src/employee-condition-photo-transport.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; related production callers/tests were inspected or located for context, but no tests, native runtime, HTTP server, or database execution was run in C007.",
+    "original_worker": "employee",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/employee-client/src/employee-confirm-parked-fences.test.ts",
+    "worker": "dashboard",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8dbda831fb35ec6238f3cfb3ece05e9ea032da59e5c7613a1b82d99c2a699e26",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 161
+      }
+    ],
+    "semantic_review_notes": "MOB-012B late-result/authority regression proves confirmation cannot enable for another assignee, mismatched success is never adopted, and late command completion is discarded after identity, organization, location, membership, shift, task/session workflow replacement or explicit purge. These cases exercise the target identity and request-generation fence rather than relying on cancellation.",
+    "callers_consumers": [
+      "EmployeeConfirmParkedSession",
+      "confirmParkedAttemptMatches/targetMatches"
+    ],
+    "invariants_error_checks": [
+      "current assignee must equal operational membership",
+      "command response task/session must match target",
+      "late result cannot repaint after any authority generation/scope/workflow change",
+      "clear leaves parked result null"
+    ],
+    "test_refs": [
+      "packages/employee-client/src/employee-confirm-parked-fences.test.ts",
+      "packages/employee-client/src/employee-workflow-background-fences.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; related production callers/tests were inspected or located for context, but no tests, native runtime, HTTP server, or database execution was run in C007.",
+    "original_worker": "employee",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/employee-client/src/employee-confirm-parked-flow.test.ts",
+    "worker": "dashboard",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b51c413fdfc3ce5d23b38164a9e974d68bd5e28f5716b56df969d60cd8db2ff0",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 93
+      }
+    ],
+    "semantic_review_notes": "MOB-012B happy-path regression enforces ordered Spot → validated Key Slot → explicit Confirm Parked. Manual and QR inputs normalize into the same candidate-only state; wrong QR resource kinds are rejected; the protected command carries exact expected task/session versions and normalized resource codes and is emitted only on the explicit final action.",
+    "callers_consumers": [
+      "EmployeeConfirmParkedSession",
+      "Native parking Spot/Key Slot/Confirm panels"
+    ],
+    "invariants_error_checks": [
+      "spot precedes key slot",
+      "candidate entry alone never sends confirm",
+      "command includes exact CAS versions and chosen codes",
+      "wrong QR kind cannot advance phase"
+    ],
+    "test_refs": [
+      "packages/employee-client/src/employee-confirm-parked-flow.test.ts",
+      "apps/valet-native/test/native-parking-qr-input.test.tsx",
+      "apps/valet-native/test/native-parking-confirm-panel.test.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; related production callers/tests were inspected or located for context, but no tests, native runtime, HTTP server, or database execution was run in C007.",
+    "original_worker": "employee",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/employee-client/src/employee-confirm-parked-operation.ts",
+    "worker": "dashboard",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f26c001dadfe29db2edf7001d880d96f808d4f8a00021bef0015686604e67ce3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 117
+      }
+    ],
+    "semantic_review_notes": "Freezes a confirm attempt only from a ready snapshot whose task/session remain canonically active for the target. It carries expected session/task versions and optional validated resource IDs, checks the protected response for exact session/task/spot and +1 versions, and otherwise raises a mismatch error. Canonical recovery loads queue and session in parallel then delegates to strict reconciliation.",
+    "callers_consumers": [
+      "EmployeeConfirmParkedSession"
+    ],
+    "invariants_error_checks": [
+      "attempt cannot form outside ready canonical PARKING state",
+      "response session/task/spot and version increments must match frozen attempt",
+      "unknown command result is not trusted without canonical reconciliation"
+    ],
+    "test_refs": [
+      "packages/employee-client/src/employee-confirm-parked-flow.test.ts",
+      "packages/employee-client/src/employee-confirm-parked-fences.test.ts",
+      "apps/api/test/confirm-parked-command.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; related production callers/tests were inspected or located for context, but no tests, native runtime, HTTP server, or database execution was run in C007.",
+    "original_worker": "employee",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/employee-client/src/employee-confirm-parked-phase.ts",
+    "worker": "dashboard",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d516a0f3d919fca44dd014d54925846e93859c8d39e41d67a5fc9665fcf99c64",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 60
+      }
+    ],
+    "semantic_review_notes": "Keeps parking-spot validation proof version-bound to the exact task/session/candidate/resource and determines the next phase after canonical refresh. Backgrounding invalidates validation; if a protected command was in flight the state becomes ambiguous, otherwise ready/slot state falls back to Spot and clears the key slot.",
+    "callers_consumers": [
+      "employee-confirm-parked-state.ts",
+      "EmployeeConfirmParkedSession"
+    ],
+    "invariants_error_checks": [
+      "validation proof must match current task/session versions and spot",
+      "background protected outcome becomes ambiguous",
+      "background without protected outcome cannot retain stale validation/key slot"
+    ],
+    "test_refs": [
+      "employee confirm parked background/read fence tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; related production callers/tests were inspected or located for context, but no tests, native runtime, HTTP server, or database execution was run in C007.",
+    "original_worker": "employee",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/employee-client/src/employee-confirm-parked-read.ts",
+    "worker": "dashboard",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "47c820e2e06a31a86afc0783f9a67e24797bdc112e1098c6b0fd69ff3dda6796",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 38
+      }
+    ],
+    "semantic_review_notes": "Executes canonical queue+session reconciliation with a caller-supplied current-generation predicate. Both success and failure publish only if still current; stale read failures vanish, while a current failure maps to unavailable except an already ambiguous protected outcome remains ambiguous.",
+    "callers_consumers": [
+      "EmployeeConfirmParkedSession.reconcile"
+    ],
+    "invariants_error_checks": [
+      "stale reads cannot publish success or failure",
+      "ambiguous mutation state is preserved across failed authoritative read",
+      "operational failure normalization is centralized"
+    ],
+    "test_refs": [
+      "packages/employee-client/src/employee-workflow-read-background-fences.test.ts",
+      "packages/employee-client/src/employee-confirm-parked-recovery.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; related production callers/tests were inspected or located for context, but no tests, native runtime, HTTP server, or database execution was run in C007.",
+    "original_worker": "employee",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/employee-client/src/employee-confirm-parked-recovery.test.ts",
+    "worker": "dashboard",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c60737a1af2f4bf8f15c72743a0e908440533f2afcc965202dd84022680f4fe3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 180
+      }
+    ],
+    "semantic_review_notes": "Protected-attempt recovery regression verifies rapid taps coalesce to one command and freeze candidates, spot/key custody conflicts reconcile to the correct earlier phase without resend, VERSION_CONFLICT refreshes canonical versions without replay, ambiguous HTTP outcomes may adopt canonical PARKED only through read reconciliation, restart can recover PARKED without local transient candidates, and Check Server State remains read-only.",
+    "callers_consumers": [
+      "EmployeeConfirmParkedSession",
+      "employee-confirm-parked-state.ts"
+    ],
+    "invariants_error_checks": [
+      "one in-flight Confirm Parked promise/POST",
+      "domain conflicts never auto-resend",
+      "ambiguous success is adopted only from canonical PARKED state",
+      "fresh-process recovery requires no transient client state",
+      "checkServerState performs reads only"
+    ],
+    "test_refs": [
+      "packages/employee-client/src/employee-confirm-parked-recovery.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; related production callers/tests were inspected or located for context, but no tests, native runtime, HTTP server, or database execution was run in C007.",
+    "original_worker": "employee",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/employee-client/src/employee-confirm-parked-session.ts",
+    "worker": "dashboard",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2ed304645b6f0c069e82b68e2bb2b372e007aa635162e3f847671f69de866ecc",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 299
+      }
+    ],
+    "semantic_review_notes": "Owns Confirm Parked state and concurrency. Open/clear/background advance request generations and invalidate spot proof; candidate editing is phase-gated; one active command is coalesced; command results require both current target generation and frozen-attempt equality. Ambiguous or known conflicts trigger read-only canonical reconciliation, and no branch automatically resends the protected command. Backgrounding during a protected attempt deliberately forgets the promise and marks ambiguous so later completion cannot repaint.",
+    "callers_consumers": [
+      "apps/valet-native/src/auth/native-auth-runtime.ts",
+      "native parking route/panels",
+      "native task tracking runtime"
+    ],
+    "invariants_error_checks": [
+      "target binds identity generation+org+membership+location+shift+task+session",
+      "single active protected command",
+      "late command/read results fenced by request+target identity",
+      "conflicts/unknown outcomes reconcile with reads only",
+      "background protected outcome is ambiguous"
+    ],
+    "test_refs": [
+      "packages/employee-client/src/employee-confirm-parked-flow.test.ts",
+      "packages/employee-client/src/employee-confirm-parked-fences.test.ts",
+      "packages/employee-client/src/employee-confirm-parked-recovery.test.ts",
+      "apps/valet-native/test/native-parking-confirm-panel.test.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; related production callers/tests were inspected or located for context, but no tests, native runtime, HTTP server, or database execution was run in C007.",
+    "original_worker": "employee",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/employee-client/src/employee-confirm-parked-state.ts",
+    "worker": "dashboard",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ddf02467f4057fa2739de3cc7d45abf6abaf6f0b125f021f690608b94b7d354b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 289
+      }
+    ],
+    "semantic_review_notes": "Contains the canonical state predicates and reconciliation rules. Active parking requires exact target task/session, current assignee, IN_PROGRESS/PARKING state and matching session version with no parked result yet. Recovery adopts PARKED only when no parking task remains and canonical session has matching location, parked timestamp, spot and key slot; multiple parking tasks for the session deliberately prevent selecting one. Target matching fences identity generation, organization, membership, location and shift.",
+    "callers_consumers": [
+      "EmployeeConfirmParkedSession",
+      "employee-parking-spot-validation.ts",
+      "employee-confirm-parked-operation.ts"
+    ],
+    "invariants_error_checks": [
+      "active task must belong to current membership and exact session/location",
+      "multiple same-session parking tasks fail canonical selection",
+      "recovered PARKED requires authoritative spot+slot+parkedAt and optional candidate equality",
+      "authority/inconsistent canonical states fail closed",
+      "target scope includes all identity/tenant/location/shift dimensions"
+    ],
+    "test_refs": [
+      "packages/employee-client/src/employee-confirm-parked-fences.test.ts",
+      "packages/employee-client/src/employee-confirm-parked-recovery.test.ts",
+      "apps/api/test/confirm-parked-guards.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source; related production callers/tests were inspected or located for context, but no tests, native runtime, HTTP server, or database execution was run in C007.",
+    "original_worker": "employee",
+    "reviewer": "dashboard"
+  }
+]

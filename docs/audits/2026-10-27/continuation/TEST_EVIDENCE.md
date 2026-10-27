@@ -21,3 +21,5 @@ C004: Zero application/DB/browser/device/provider tests rerun. Historical Dashbo
 C005: Zero new tests executed. Reviewed existing test source as references; no claim of CI/browser/provider pass.
 
 C006: Existing test sources reviewed as code evidence only; **zero tests executed**. Assertions described in reviewed files are not reported as observed pass results.
+
+C007: Zero new tests executed; existing test files were read and linked to implementation only. Historical test results remain historical.

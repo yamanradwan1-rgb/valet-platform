@@ -1,0 +1,930 @@
+[
+  {
+    "path": "apps/dashboard/e2e/issue240a-directory-budget.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "75d41eb120cf091ac56979c6e0f3c3242b341fcadedee72e672c471c75b6b1cb",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 159
+      }
+    ],
+    "semantic_review_notes": "Directory budget coverage exercises 300ms search debounce, immediate clear, role/status/location filter resets, bounded 50-row cursor requests, lazy paged Location options, detail close on filter change, and zero non-auth writes. It also checks first/last/email/search sentinels never enter localStorage, sessionStorage, IndexedDB, or Cache Storage.",
+    "callers_consumers": [
+      "StaffEmployeesBody",
+      "useStaffDirectoryQuery",
+      "StaffDirectoryLocationFilter",
+      "staff-api readStaffDirectory/readStaffDetail"
+    ],
+    "invariants_error_checks": [
+      "filter changes reset cursor/history and selected detail",
+      "directory requests keep limit=50 and active filters",
+      "opening Location picker does not unboundedly refetch",
+      "identity/search PII remains memory-only",
+      "test performs no protected mutation"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-employees-body.tsx",
+      "src/features/administration/staff/use-staff-directory-query.ts",
+      "src/features/administration/staff/staff-api.ts",
+      "e2e/support/persistent-storage.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture E2E only; no live API/database execution and no test execution in C007 audit mode.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240a-directory-detail-races.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e3d5ecf4d8957cba3e671c929d90e92c470550497ca4bca190577e74a502b72d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 87
+      }
+    ],
+    "semantic_review_notes": "A pending employee-detail read is deliberately held while the Role filter changes. Both delayed success and delayed 503 are required to be fenced: the drawer stays closed and neither stale identity nor stale error repaints after the directory generation changes.",
+    "callers_consumers": [
+      "StaffEmployeesBody detail read",
+      "useStaffDirectoryQuery detailGeneration/generation",
+      "useAuthoritativeRead"
+    ],
+    "invariants_error_checks": [
+      "filter change clears membership selection",
+      "stale detail success is suppressed",
+      "stale detail failure is suppressed",
+      "only the fresh filtered directory remains visible"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-employees-body.tsx",
+      "src/features/administration/staff/use-staff-directory-query.ts",
+      "src/features/administration/use-authoritative-read.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Race is modeled with fixture deferred promises; transport/server cancellation semantics are not independently executed.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240a-directory-races.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3ef1c50282e915cc7f0ac32ca88da94d4fcc60e0b2470ac4ab60878d39ae76e9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 187
+      }
+    ],
+    "semantic_review_notes": "Covers two directory race classes: A→B→A search replacement and delayed page-2 completion after a filter reset. In both success/error modes stale rows, cursor/history, loading/error state, and an already-open fresh detail are protected from the older request generation.",
+    "callers_consumers": [
+      "StaffEmployeesBody",
+      "useStaffDirectoryQuery",
+      "useAuthoritativeRead",
+      "StaffCursorControls"
+    ],
+    "invariants_error_checks": [
+      "older A response cannot overwrite fresh returned-A state",
+      "stale page2 cannot restore cursor/history after filter reset",
+      "stale errors stay invisible",
+      "fresh detail remains bound to current membership/generation"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-employees-body.tsx",
+      "src/features/administration/staff/use-staff-directory-query.ts",
+      "src/features/administration/use-authoritative-read.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture-level response ordering; no browser test was executed during this read-only audit.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240a-visual.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f6c8d5926fe15ea29c3394b7df38ce0dbfeafeb1da44ab01204c9e85589da709",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 113
+      }
+    ],
+    "semantic_review_notes": "Visual-freeze harness compares employee table/drawer identity presentation across EN/light/desktop and AR/dark/480px using before/after identity fixtures. It waits for fonts/animations, checks row height and no horizontal overflow, captures table/drawer screenshots, and records geometry under the OS temp directory.",
+    "callers_consumers": [
+      "StaffEmployeesBody",
+      "StaffDetailDrawer",
+      "administration staff reference CSS",
+      "locale/theme shell"
+    ],
+    "invariants_error_checks": [
+      "mixed Arabic/Latin identity remains direction-safe",
+      "480px RTL view has no horizontal overflow",
+      "row geometry is frozen near 69px",
+      "visual artifacts are emitted outside tracked source"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-employees-body.tsx",
+      "src/features/administration/staff/staff-detail-drawer.tsx",
+      "src/features/administration/staff/staff-reference.module.css"
+    ],
+    "finding_ids": [],
+    "limits": "Chromium/font/DPR-sensitive visual harness; screenshots were not executed in C007.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240b-ca-grant-regression.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4fd42ae6adfc9e5545ee72f3114fb58e5749a97aaa3a01369b472350f28a95ea",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 182
+      }
+    ],
+    "semantic_review_notes": "Company Admin grant regression verifies truncated detail never substitutes for the authoritative paged grant list, revoke double-click collapses to one in-flight command, and grant emits one explicit command with the current expectedVersion. Candidate/grant endpoints remain separately paged at 50.",
+    "callers_consumers": [
+      "StaffLocationAccessPanel",
+      "StaffLocationAssignmentDialog",
+      "changeStaffLocationAccess",
+      "readStaffLocationAccess/readStaffLocationCandidates"
+    ],
+    "invariants_error_checks": [
+      "truncated detail triggers bounded grant paging",
+      "double-click revoke dispatches once",
+      "grant/revoke include expectedVersion",
+      "locationIds are explicit and bounded"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-location-access-panel.tsx",
+      "src/features/administration/staff/staff-location-assignment-dialog.tsx",
+      "src/features/administration/staff/staff-api.ts",
+      "src/features/administration/use-sensitive-mutation.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Server authorization/CAS correctness is fixture-controlled; backend/database were not executed.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240b-ca-status-regression.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "cc7090e47145a57d1eec209170eede13869abce18c34d08a98775fdf68a10631",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 98
+      }
+    ],
+    "semantic_review_notes": "Company Admin deactivation regression keeps server denials authoritative: LAST_USABLE_ADMIN_REQUIRED and STAFF_HANDOVER_REQUIRED remain visible and do not fabricate state change. A third explicit submit succeeds, with each unchanged-version attempt sending expectedVersion=1.",
+    "callers_consumers": [
+      "StaffDetailDrawer",
+      "setStaffStatus",
+      "useSensitiveMutation",
+      "administration error mapping"
+    ],
+    "invariants_error_checks": [
+      "last usable admin denial remains visible",
+      "handover denial remains visible",
+      "denials do not mutate client status",
+      "success occurs only after a separate explicit click"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-detail-drawer.tsx",
+      "src/features/administration/staff/staff-api.ts",
+      "src/features/administration/use-sensitive-mutation.ts"
+    ],
+    "finding_ids": [],
+    "limits": "The server preconditions are simulated; no live membership authority/database check was run.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240b-lm-mutation-races.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bd03807cbcaf40a4593221f113b4372f734b76ada774d6d1dcd10f23277f1cba",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 299
+      }
+    ],
+    "semantic_review_notes": "Location Manager mutation races cover delayed MFA assurance after switching target, role CAS conflict reconciliation, and revoke conflict reconciliation. The current sensitive-mutation scope key/generation prevents old target callbacks or automatic POST replay; conflicts refresh canonical detail/grant state and require a second explicit submit using the new version.",
+    "callers_consumers": [
+      "StaffDetailDrawer",
+      "StaffLocationAccessPanel",
+      "useSensitiveMutation",
+      "sensitive-mutation-executor",
+      "useAuthoritativeRead"
+    ],
+    "invariants_error_checks": [
+      "MFA assurance after target change cannot replay old POST",
+      "VERSION_CONFLICT triggers authoritative refresh",
+      "controls stay disabled while reconciling",
+      "retry uses refreshed expectedVersion",
+      "stale target error/callback cannot repaint"
+    ],
+    "test_refs": [
+      "src/features/administration/use-sensitive-mutation.ts",
+      "src/features/administration/sensitive-mutation-executor.ts",
+      "src/features/administration/staff/staff-detail-drawer.tsx",
+      "src/features/administration/staff/staff-location-access-panel.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Race and MFA responses are fixture-controlled; live session/authorization service behavior is outside this E2E audit.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240b-lm-read-races.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "68f2a5267d7743a5311583f57a343625a75b3a987647b3f935b5f280166d3314",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 220
+      }
+    ],
+    "semantic_review_notes": "Location Manager read races verify organization/location A→B→A replacement and employee A→B detail/grant replacement. Delayed first-A directory/grant success or failure cannot repaint the current scope/target, matching scope-key plus authoritative-read generation fencing.",
+    "callers_consumers": [
+      "StaffPage/StaffEmployeesBody",
+      "StaffLocationAccessPanel",
+      "administration scope selection",
+      "useAuthoritativeRead"
+    ],
+    "invariants_error_checks": [
+      "stale organization-scope rows/errors suppressed",
+      "stale employee grant page suppressed after target switch",
+      "fresh B/current A remains visible",
+      "old location grant cannot appear in current drawer"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-page.tsx",
+      "src/features/administration/staff/staff-employees-body.tsx",
+      "src/features/administration/staff/staff-location-access-panel.tsx",
+      "src/features/administration/use-authoritative-read.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Scope switches use fixture workspaces; live auth/session transport is not exercised.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240b-lm-rtl.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "cebf28143fbe271c7772962355dfdb3212869c21c28aed039a5d7d74c344272c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 107
+      }
+    ],
+    "semantic_review_notes": "Arabic RTL regression validates mixed-direction Location names/codes in both the current grant list and grant-assignment dialog. Production uses bdi dir=auto for names and bdi dir=ltr for codes, while the LM-only employee subtitle and role-restricted path remain in the selected location workspace.",
+    "callers_consumers": [
+      "StaffLocationAccessPanel",
+      "StaffLocationAssignmentDialog",
+      "StaffPage locale copy"
+    ],
+    "invariants_error_checks": [
+      "html switches to rtl",
+      "mixed Arabic/Latin location name uses bdi auto",
+      "location code uses forced ltr",
+      "LM grant dialog remains reachable in authorized workspace"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-location-access-panel.tsx",
+      "src/features/administration/staff/staff-location-assignment-dialog.tsx",
+      "src/features/administration/staff/staff-page.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Presentation/fixture coverage only; no server authorization proof.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240b-lm-staff.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "199b437b7fdfe91716fb9fe1e6028e2c086ac8a46c6c7c4866ee6447183b6bac",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 284
+      }
+    ],
+    "semantic_review_notes": "Location Manager staff coverage verifies reuse of Employees UI with lower-role-only filters/detail controls, bounded paged grant/candidate reads, explicit versioned grant commands, 50-location command cap with a second submit for item 51, and absence of employee/location sentinels from persistent browser storage.",
+    "callers_consumers": [
+      "StaffEmployeesBody",
+      "StaffDetailDrawer",
+      "StaffLocationAccessPanel",
+      "StaffLocationAssignmentDialog",
+      "staff-api"
+    ],
+    "invariants_error_checks": [
+      "LM roles limited to supervisor/employee",
+      "grant/candidate pages are bounded",
+      "one explicit command contains at most 50 IDs",
+      "second batch uses incremented expectedVersion",
+      "PII/location labels remain out of persistent storage"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-employees-body.tsx",
+      "src/features/administration/staff/staff-detail-drawer.tsx",
+      "src/features/administration/staff/staff-location-access-panel.tsx",
+      "src/features/administration/staff/staff-location-assignment-dialog.tsx",
+      "e2e/support/persistent-storage.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture E2E; no live API/database or test execution in C007.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240b-lm-version-reconcile.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "628e79b33021e63fb1feaee4092f0f5e2d33ea0dfbd6ae13031fc71219861786",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 154
+      }
+    ],
+    "semantic_review_notes": "Location Manager grant reconciliation proves a successful first grant immediately supplies version 2 while the subsequent detail refresh is deliberately held. The grant control remains disabled during reconciliation, then a second explicit grant uses expectedVersion 2; this prevents a stale-version command from escaping while authoritative detail refresh is pending.",
+    "callers_consumers": [
+      "StaffLocationAssignmentDialog",
+      "StaffLocationAccessPanel",
+      "StaffEmployeesBody onChanged/reconciling",
+      "useSensitiveMutation"
+    ],
+    "invariants_error_checks": [
+      "mutation result version becomes current before retry",
+      "grant UI disabled while detail refresh is pending",
+      "second explicit submit uses expectedVersion=2",
+      "no hidden automatic retry"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-location-assignment-dialog.tsx",
+      "src/features/administration/staff/staff-location-access-panel.tsx",
+      "src/features/administration/staff/staff-employees-body.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture-controlled CAS/read timing; no live API/database execution or test execution.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240b-visual.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ea39979fdf7ed5dcc529d69f2388f0eabe964feb7a66d616a8285233504c5398",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 225
+      }
+    ],
+    "semantic_review_notes": "Visual freeze covers Company Admin and Location Manager employee table/detail/grant surfaces, EN light desktop, AR dark 480px, and the Company Admin Shifts table. It pins approximately 69px rows, 448px drawer width, RTL/no-horizontal-overflow behavior, and writes screenshots/geometry only under the OS temp directory.",
+    "callers_consumers": [
+      "StaffEmployeesBody",
+      "StaffDetailDrawer",
+      "StaffLocationAssignmentDialog",
+      "StaffShiftsBody",
+      "staff reference CSS/theme/locale shell"
+    ],
+    "invariants_error_checks": [
+      "desktop employee row/drawer geometry remains frozen",
+      "480px RTL has no horizontal overflow",
+      "CA and LM touched surfaces remain visually reachable",
+      "visual artifacts stay outside tracked source"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-employees-body.tsx",
+      "src/features/administration/staff/staff-detail-drawer.tsx",
+      "src/features/administration/staff/staff-location-assignment-dialog.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Visual assertions depend on Chromium/font/DPR; screenshots were not executed in audit mode.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240d-activation.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5db9194ce15a7189716e5747f2cbe77bc73392348e74394232d4f9aae1ee95c7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 146
+      }
+    ],
+    "semantic_review_notes": "Standalone invite activation verifies the fragment credential is captured then stripped before any network request, remains absent from URL/headers/browser persistence/resource URLs, submits exactly one credential-omitting-auth-session POST containing only inviteToken/password, receives no cookie, and supports EN plus AR/dark RTL. Missing, malformed, duplicate and reload-without-original-link cases fail closed; generic failure and Retry-After require explicit retries.",
+    "callers_consumers": [
+      "StaffActivationPage",
+      "activateStaffAccount",
+      "staff invitation token/request/response contracts"
+    ],
+    "invariants_error_checks": [
+      "invite fragment removed before request",
+      "activation uses credentials=omit/cache=no-store/referrerPolicy=no-referrer",
+      "malformed or duplicate invite produces zero request",
+      "rate limit disables retry until bounded Retry-After expires",
+      "success does not create authenticated staff session"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-activation-page.tsx",
+      "src/features/administration/staff/staff-activation-api.ts",
+      "e2e/support/issue240d-onboarding.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Synthetic token and intercepted transport; backend token consumption/password persistence are outside this dashboard audit.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240d-create-fencing.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ec0346ee74a5bb3f864d20607c71f0e86358a9a9714f6648bf9a4ce96ff595b5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 204
+      }
+    ],
+    "semantic_review_notes": "Create Employee scope/session fencing holds an old organization-A mutation across A→B→A, logout/identity replacement, and delayed MFA assurance. Late success, ordinary failure or MFA completion cannot restore the old draft, link, error, directory refresh or POST; the current dialog remains scoped to the new intent and the invite secret stays out of browser persistence.",
+    "callers_consumers": [
+      "StaffCreateDialog",
+      "useSensitiveMutation",
+      "administration scope key",
+      "protected dashboard session/identity generations"
+    ],
+    "invariants_error_checks": [
+      "late old-scope create cannot repaint current A after round trip",
+      "logout/replacement discards late activation link",
+      "MFA assurance does not replay old POST",
+      "secret never persists in browser stores/DOM/resource URLs"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-create-dialog.tsx",
+      "src/features/administration/use-sensitive-mutation.ts",
+      "e2e/support/issue240d-onboarding.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture race model; live cross-tab/session backend behavior is not executed.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240d-create.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "619761966d745ef6af7b6623b0ed978445a2a98593e45c1b94b51350638130a4",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 162
+      }
+    ],
+    "semantic_review_notes": "Create Employee coverage verifies CA/LM role narrowing, bounded location selection, no password collection by management, exact onboarding command fields, one POST per explicit submit, directory refresh after success, explicit clipboard copy of the fresh activation link, focus restoration, and no secret persistence. MFA and uncertain network retries preserve the operationId for the same material intent, while a material edit rotates it and MFA never auto-replays.",
+    "callers_consumers": [
+      "StaffCreateDialog",
+      "StaffCreateLocations",
+      "createStaff/resendStaffInvite",
+      "useSensitiveMutation",
+      "StaffOnboardingResultPanel"
+    ],
+    "invariants_error_checks": [
+      "LM can create only supervisor/employee roles",
+      "CA excludes ORG_ADMIN from create choices",
+      "same material retry preserves operationId",
+      "material edit rotates operationId",
+      "activation link only exposed by explicit result/copy flow and not persisted"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-create-dialog.tsx",
+      "src/features/administration/staff/staff-create-locations.tsx",
+      "src/features/administration/staff/staff-onboarding-api.ts"
+    ],
+    "finding_ids": [],
+    "limits": "API authorization/idempotency is simulated; no backend execution.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240d-pending-fencing.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bbd723eb103fcc6aede5327a010a1a624e7aebea448301e4d00d773caab0617f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 109
+      }
+    ],
+    "semantic_review_notes": "Pending-invite target A→B→A races hold a resend response and prove late success-with-link or failure cannot repaint the current target, trigger a stale directory refresh, disable the current resend control, or expose/persist the old activation credential.",
+    "callers_consumers": [
+      "StaffPendingInvitePanel",
+      "StaffDetailDrawer",
+      "useSensitiveMutation",
+      "StaffEmployeesBody detail generation"
+    ],
+    "invariants_error_checks": [
+      "late resend result is target-generation fenced",
+      "stale success link/error stays invisible",
+      "current resend remains enabled",
+      "old mutation does not refresh directory",
+      "invite secret remains absent from browser persistence"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-pending-invite-panel.tsx",
+      "src/features/administration/staff/staff-detail-drawer.tsx",
+      "e2e/support/issue240d-onboarding.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Deferred fixture response; no live transport execution.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240d-pending.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9058f907acd05362a324975a149814dbc624586687e8c6d31167674c5a6c9d09",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 139
+      }
+    ],
+    "semantic_review_notes": "Pending membership detail is constrained to invitation facts/resend: role/status/grant mutation controls are absent, grant/candidate endpoints are not read, and resend reconciliation refreshes canonical detail/directory. Fresh-link responses permit explicit clipboard copy; no-link reconciliation suppresses copy. MFA requires a second explicit resend using the same unresolved operationId.",
+    "callers_consumers": [
+      "StaffDetailDrawer pending branch",
+      "StaffPendingInvitePanel",
+      "resendStaffInvite",
+      "StaffOnboardingResultPanel"
+    ],
+    "invariants_error_checks": [
+      "PENDING staff cannot role/status/location mutate from drawer",
+      "pending view performs no grant/candidate reads",
+      "same unresolved resend retry reuses operationId",
+      "fresh link is explicit-copy only",
+      "secret remains out of browser persistence"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-detail-drawer.tsx",
+      "src/features/administration/staff/staff-pending-invite-panel.tsx",
+      "src/features/administration/staff/staff-onboarding-api.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Invitation generation/server authorization behavior is fixture-simulated.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240d-retry-authority.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b71c994a6a2b045408106b36d1e7d8c2a5244f21cdeac3ec8556d065ed52f8cc",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 195
+      }
+    ],
+    "semantic_review_notes": "Retry authority coverage proves post-MFA explicit Create/Resend retries remain subject to current authorization, a 401 refresh/session replacement closes the create intent without replay, and uncertain resend outcomes reuse one operationId until an authoritative resolved response before rotating for a new resend generation.",
+    "callers_consumers": [
+      "StaffCreateDialog",
+      "StaffPendingInvitePanel",
+      "DashboardApiClient refresh/session replacement",
+      "useSensitiveMutation"
+    ],
+    "invariants_error_checks": [
+      "MFA assurance does not bypass later AUTHORIZATION_DENIED",
+      "401 session replacement drops old create intent",
+      "unknown-outcome resend preserves idempotency identity",
+      "resolved no-link response advances to a new resend operationId",
+      "no hidden POST replay"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-create-dialog.tsx",
+      "src/features/administration/staff/staff-pending-invite-panel.tsx",
+      "src/features/administration/use-sensitive-mutation.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Authorization/session transitions are fixture-modeled rather than live backend execution.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240d-selector-visual.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fb33b093c13d65b848b28eae49873d1d48680eac264aa0639b38dd403922e539",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 128
+      }
+    ],
+    "semantic_review_notes": "Create selector regression verifies location pages load only on explicit cursor navigation, selections survive previous/next paging and submit together, while the AR dark 480px create/pending surfaces keep focus trapped/restored, mixed-direction email presentation, and no document overflow.",
+    "callers_consumers": [
+      "StaffCreateLocations",
+      "StaffCreateDialog",
+      "FocusDialog",
+      "StaffPendingInvitePanel"
+    ],
+    "invariants_error_checks": [
+      "paging is explicit rather than fan-out",
+      "multi-page selected IDs are retained",
+      "focus trap cycles close→first field and returns trigger",
+      "480px page does not horizontally overflow",
+      "email remains ltr in RTL"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-create-locations.tsx",
+      "src/features/administration/staff/staff-create-dialog.tsx",
+      "src/features/administration/staff/staff-pending-invite-panel.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Visual/focus fixture coverage; screenshots/tests not executed in C007.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240d-visual.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "11b8a6fe08fca772e8f61426c9f7998434d7bcecc433af193077c69d41dce906",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 76
+      }
+    ],
+    "semantic_review_notes": "T05-D visual regression captures frozen Employees list, detail drawer and Shifts surfaces in EN light desktop and AR dark 480px using synthetic staff fixtures. Network settles before screenshots and active-shift/location-access reads are bounded to empty fixture pages.",
+    "callers_consumers": [
+      "StaffEmployeesBody",
+      "StaffDetailDrawer",
+      "StaffShiftsBody",
+      "locale/theme shell"
+    ],
+    "invariants_error_checks": [
+      "employees/detail/shifts remain present in both visual modes",
+      "AR narrow route uses RTL/dark shell",
+      "fixture exposes no unintended location-access or active-shift data"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-employees-body.tsx",
+      "src/features/administration/staff/staff-detail-drawer.tsx",
+      "src/features/administration/staff/staff-shifts-body.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Screenshot-only regression evidence; not executed during audit.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240e-baseline.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6a71e6c2f51445e82494b914db587af93ac79da4940d8510b75b71b52cf4e71b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 127
+      }
+    ],
+    "semantic_review_notes": "T05-E baseline freezes Employees, employee drawer, Shifts history and shift drawer across EN/AR, light/dark, desktop/480px. History is served from the organization shifts projection, renders identity/location/time facts, maintains narrow no-overflow geometry and preserves the established table padding.",
+    "callers_consumers": [
+      "StaffPage",
+      "StaffShiftsBody",
+      "StaffShiftRows",
+      "StaffShiftManagementDrawer/StaffShiftDrawer"
+    ],
+    "invariants_error_checks": [
+      "history surface renders from organization shifts endpoint",
+      "narrow viewport has exact document width",
+      "mixed locale/theme combinations retain table/drawer reachability",
+      "history detail is separately authoritative"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-shifts-body.tsx",
+      "src/features/administration/staff/staff-shift-rows.tsx",
+      "src/features/administration/staff/staff-shift-drawer.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Visual fixture coverage; screenshots/tests were not executed in C007.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240e-denial-retry.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "46aebd5551bbde224ae690767cf02ef04a03a0424e1e9327fffa9980b4812bca",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 162
+      }
+    ],
+    "semantic_review_notes": "History and selector denial-retry coverage ensures an authoritative 404 removes previously learned employee/location labels before retry and keeps them absent through an empty successful retry. Selected IDs may remain as opaque selected placeholders, but cached identity/location names are not restored, and selector retry is explicit.",
+    "callers_consumers": [
+      "StaffShiftsBody",
+      "StaffShiftEmployeeFilter",
+      "StaffShiftLocationFilter",
+      "useAuthoritativeRead"
+    ],
+    "invariants_error_checks": [
+      "history denial clears row/detail identity",
+      "employee/location denied candidate labels disappear immediately",
+      "pending and empty retry never rehydrate cached label",
+      "selected filter ID may remain without PII label",
+      "Retry is explicit"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-shifts-body.tsx",
+      "src/features/administration/staff/staff-shift-employee-filter.tsx",
+      "src/features/administration/staff/staff-shift-location-filter.tsx",
+      "src/features/administration/use-authoritative-read.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture-authoritative denial; live backend authorization is outside this dashboard audit.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240e-history-budget.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9e9a04c2470c9825e0929d2802b96608e98609fa51ca316e45d0899649e6233b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 213
+      }
+    ],
+    "semantic_review_notes": "History budget coverage owns entry, paging, filtering, refresh and detail through the bounded organization-history projection, with no active-shift fan-out. A single local 60s clock updates active duration without requests or aria-live noise. Employee/location selectors load only on focus and explicit paging/search; date filters resolve civil midnight in the selected timezone and invalid ranges stop the server query entirely.",
+    "callers_consumers": [
+      "StaffShiftsBody",
+      "useStaffShiftQuery",
+      "StaffShiftEmployeeFilter",
+      "StaffShiftLocationFilter",
+      "useShiftClock",
+      "historyDateRange",
+      "staff-shift-history-api"
+    ],
+    "invariants_error_checks": [
+      "history requests limit=50 and preserve cursor/filter query",
+      "one shared minute clock creates zero network traffic",
+      "candidate selectors are bounded and lazy",
+      "changing location clears employee filter",
+      "invalid date range issues no history request and hides table",
+      "no active-shifts fan-out"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-shifts-body.tsx",
+      "src/features/administration/staff/staff-shift-employee-filter.tsx",
+      "src/features/administration/staff/staff-shift-location-filter.tsx",
+      "src/features/administration/staff/staff-shift-time.ts",
+      "src/features/administration/staff/use-shift-clock.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Request budgets use fixture counters; no live load/performance test was run.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240e-history-races.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "587fcd369b7cb47ad68be99e33254425d1b8a8ae71a0d934ab58da30beb2e1cd",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 219
+      }
+    ],
+    "semantic_review_notes": "History race matrix covers filter A→B→A, page-2, detail and employee-candidate reads in both stale-success and stale-failure modes. Generation-keyed authoritative reads prevent stale PII, cursor controls, errors/loading and drawer contents from repainting. A current authorization denial drops rows, drawer and employee candidate identity immediately.",
+    "callers_consumers": [
+      "StaffShiftsBody",
+      "useStaffShiftQuery",
+      "StaffShiftEmployeeFilter",
+      "useAuthoritativeRead",
+      "StaffShiftManagementDrawer"
+    ],
+    "invariants_error_checks": [
+      "stale filter/page/detail/candidate response cannot repaint current generation",
+      "stale PII and stale errors remain absent",
+      "stale next/previous cursor state is not restored",
+      "authoritative denial clears table/detail/candidate identity"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-shifts-body.tsx",
+      "src/features/administration/staff/use-staff-shift-query.ts",
+      "src/features/administration/staff/staff-shift-employee-filter.tsx",
+      "src/features/administration/use-authoritative-read.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Deferred fixture timing; no real network/session race execution.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240e-location-recovery.spec.ts",
+    "worker": "dashboard",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "98f4ff681eef3a827d42f9d4bcd9efd5875d7401b309c2f7b56d5f31471e1054",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 285
+      }
+    ],
+    "semantic_review_notes": "Location history discovery preserves authority boundaries: Location Manager discovery uses dashboard-scoped locations and excludes inactive options, while Company Admin uses management discovery and may select inactive locations. After an LM selected-location history denial, the stale label/employee PII is replaced by an opaque Selected location placeholder, discovery is remounted, and recovery to All or a newly authorized location fences any pre-denial discovery success/failure/cursor.",
+    "callers_consumers": [
+      "StaffShiftsBody",
+      "StaffShiftLocationFilter",
+      "listLocationManagerLocations/listCompanyAdminLocations",
+      "useAuthoritativeRead"
+    ],
+    "invariants_error_checks": [
+      "LM cannot discover/select inactive location from history filter",
+      "CA retains authorized inactive-location visibility",
+      "denied selected location label and employee PII are cleared",
+      "post-denial discovery is fresh and bounded",
+      "pre-denial discovery response/error/cursor cannot restore revoked location"
+    ],
+    "test_refs": [
+      "src/features/administration/staff/staff-shifts-body.tsx",
+      "src/features/administration/staff/staff-shift-location-filter.tsx",
+      "src/lib/scope/dashboard-scope.ts",
+      "src/features/administration/use-authoritative-read.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Authorization transitions are fixture-modeled; server-side tenant/location checks were not executed.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  }
+]

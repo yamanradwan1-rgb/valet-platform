@@ -1,0 +1,1614 @@
+[
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-vehicle-details-step.tsx",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d8872545c24b384526314febb178c8f1d385f4f7fe46f95df986c238aa0206b6",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 85
+      }
+    ],
+    "semantic_review_notes": "Vehicle-details UI writes only bounded human-entered make/model/color/temporary descriptor fields into the EmployeeCheckInSession draft and delegates phase advancement to session.continueVehicleDetails(). Skip clears optional descriptive fields but remains blocked for an empty temporary descriptor, so the UI does not synthesize plate or custody state.",
+    "callers_consumers": "NativeCheckInWorkflow; EmployeeCheckInSession.setPreIntakeVehicleDetails/continueVehicleDetails; DraftVehicleCard",
+    "invariants_error_checks": "Input lengths are capped; temporary-descriptor mode requires non-empty identity text before skip; the component does not call API or mutate authoritative session state directly. Errors are rendered through the check-in presentation mapper.",
+    "test_refs": [
+      "native-check-in-workflow.tsx; employee check-in session implementation/types",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-condition-photo-copy.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "cfaed08fb0435204921efa4c4b1991581d598e3b855f582d234ec0fb5273b456",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 51
+      }
+    ],
+    "semantic_review_notes": "Bilingual condition-photo copy distinguishes optional policy, required verified evidence, pending server verification, unknown upload outcome, rejected evidence, retry/reconcile and resend semantics. The wording correctly avoids claiming success while upload state is pending or ambiguous.",
+    "callers_consumers": "NativeConditionPhotoCamera; NativeConditionPhotoStatus",
+    "invariants_error_checks": "Copy preserves the server-authoritative VERIFIED distinction and explicitly warns that UNKNOWN must be checked before retry. No IDs, paths, tokens, or telemetry contents are exposed.",
+    "test_refs": [
+      "native-condition-photo-camera.tsx; native-condition-photo-status.tsx; EmployeeConditionPhotoSession",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-condition-photo-path.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "022410d9345e041bfa4527609b3ed0500ea28e2782f2af3b8d7d4bb6a71f75ff",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 28
+      }
+    ],
+    "semantic_review_notes": "Private-path guards accept only ordinary JPEG file URIs under the app cache and reject empty/dot segments plus percent-encoded dot/slash/backslash traversal. Generated-source recognition narrows further to SDK Camera/ImageManipulator UUID JPEGs, and the cleanup probe scans only those two exact SDK directories.",
+    "callers_consumers": "NativeConditionPhotoFiles startup/capture cleanup",
+    "invariants_error_checks": "Raw photo cleanup is confined to app-private cache URIs; recovery never sweeps unrelated cache. Traversal-shaped paths fail containment, and unknown capture recovery only lifts the barrier after both scoped SDK directories contain no generated JPEG.",
+    "test_refs": [
+      "native-condition-photo-files.ts; native-condition-photo-camera.tsx",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-photo-stage.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "aa238f2f31c41399271c4429191a69a9631691a8a7e2393851c6361b373e30ba",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 48
+      }
+    ],
+    "semantic_review_notes": "Stage wrappers emit start/success/error diagnostics around sync and async photo operations while swallowing observer failures. They never alter the operation result or catch-and-convert the underlying error, so telemetry cannot become authoritative state.",
+    "callers_consumers": "NativeConditionPhotoFiles; NativeConditionPhotoCamera; NativeConditionPhotoOwnedCopy; upload diagnostics",
+    "invariants_error_checks": "Observer exceptions are isolated; operation exceptions are rethrown; stage labels are type-limited by pinned diagnostics.",
+    "test_refs": [
+      "native-condition-photo-files.ts; native-condition-photo-camera.tsx; native-photo-upload-diagnostics.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-photo-upload-diagnostics.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fc2fb184e25bd3cf7ed89f0bff28804cdeeae68dcead054f0665c983040c5355",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 91
+      }
+    ],
+    "semantic_review_notes": "Upload instrumentation creates schema-validated secure operation IDs, tracks dispatch/response stages without recording operation IDs, handles, or HTTP contents, and distinguishes not-attempted from attempted-unknown failures. It does not unsubscribe, replay, or reinterpret the underlying transport result.",
+    "callers_consumers": "useNativeConditionPhotoOwner; createNativeConditionPhotoTransport; EmployeeConditionPhotoSession",
+    "invariants_error_checks": "Secure UUID creation fails closed; diagnostics cancellation retires the active token; aborted/stale operations do not complete telemetry as current. VERIFIED alone is marked success, PENDING unknown, REJECTED/EXPIRED failed.",
+    "test_refs": [
+      "native-condition-photo-owner.ts; native-condition-photo-transport.ts; EmployeeConditionPhotoSession",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-camera-controller.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b0a981c4de432f9b2e604b429d5fb02f57ad1d578c70eaa042cffdac2db0b089",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 294
+      }
+    ],
+    "semantic_review_notes": "Controller owns permission, mount/generation, torch, fallback remount and OCR-loop lifetime. Every async permission/result path checks the current generation; eligibility loss closes and increments generation so stale camera/OCR callbacks cannot accept a plate into a retired check-in. Fallback remount is single-flight and abort-aware.",
+    "callers_consumers": "NativePlateCameraStep; NativePlateRoiBinding; NativePlateOcrLoop/createNativePlateOcrBinding",
+    "invariants_error_checks": "Camera eligibility is required for all current-state actions; phase/mount checks gate torch and ready callbacks; close/fail cancel OCR and invalidate generation. Permission denial/error does not auto-advance identity. OCR acceptance occurs only after the loop returns a MATCH for the still-current generation.",
+    "test_refs": [
+      "native-plate-camera-step.tsx; native-plate-camera-lifecycle.ts; native-plate-ocr-adapter.ts; native-plate-ocr-loop.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-camera-copy.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "cac071dcae2d349af3e9d4aa03d26176ca6ddbe910b21f22cc373244801d395c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 48
+      }
+    ],
+    "semantic_review_notes": "Locale adapter builds camera UI copy from the employee and platform dictionaries for idle/requesting/starting/preview/denied/error/no-match/unavailable states, keeping permission/settings guidance centralized and presentation-only.",
+    "callers_consumers": "NativePlateCameraStep",
+    "invariants_error_checks": "Copy contains no workflow authority and maps all controller phases explicitly, avoiding an unhandled state that could imply a false success.",
+    "test_refs": [
+      "native-plate-camera-step.tsx; native employee/platform dictionaries",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-camera-lifecycle.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f7a31a0009af2d9cd92307ce56a02df639528c3901145adf931940e9a625a954",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 66
+      }
+    ],
+    "semantic_review_notes": "Lifecycle binding reuses the Native QR auth/identity/AppState fences and adds exact check-in capture-phase, identityGeneration and location continuity. Once any of those retire, invalidation is permanent for that binding and controller eligibility is removed, closing the camera/OCR path.",
+    "callers_consumers": "NativePlateCameraStep; bindNativeQrLifecycle; native identity state",
+    "invariants_error_checks": "Background/auth/identity/location/phase changes cannot reactivate an already-retired camera binding; cleanup unsubscribes session and lifecycle listeners. Permission-pending background transitions are traced without bypassing the eligibility fence.",
+    "test_refs": [
+      "native-plate-camera-step.tsx; native-qr-lifecycle.ts; native-camera-permission-lifecycle.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-camera-permission-trace.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3a24033b556be98ac3ad220b89475566f4863a9f66f543004ba1c8b5574f6f59",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 19
+      }
+    ],
+    "semantic_review_notes": "Permission tracing records only granted/canAskAgain plus generation currency against the camera trace owner after the original permission await. It adds no async hop and does not record permission object internals or identity secrets.",
+    "callers_consumers": "NativePlateCameraController.open",
+    "invariants_error_checks": "Trace observation is non-authoritative; current is derived by generation equality and cannot grant permission or alter controller state.",
+    "test_refs": [
+      "native-plate-camera-controller.ts; native-plate-camera-trace.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-camera-step.tsx",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ba138d98481b686d4c44a5306d64b9bd4d5a18f543287441c21cf131f2c91f3b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 225
+      }
+    ],
+    "semantic_review_notes": "Focused camera UI creates one OCR binding, binds it to auth/identity/AppState/session lifecycle, opens on focus, renders the ROI viewport only during starting/preview, and always closes the controller before manual/no-plate diversion. Denied non-reaskable permission exposes OS Settings without changing check-in state.",
+    "callers_consumers": "NativeCheckInCaptureStep; createNativePlateOcrBinding; NativePlateCameraController",
+    "invariants_error_checks": "No plate is accepted in this component; authoritative draft transition stays in the EmployeeCheckInSession through OCR accept/manual/no-plate handlers. Focus cleanup retires the camera binding; stale generation and mount callbacks are fenced below this view.",
+    "test_refs": [
+      "native-check-in-capture-step.tsx; native-plate-ocr-adapter.ts; native-plate-camera-controller.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-camera-trace.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c309a01e07d4e1ff87096cb136bdd1eaa2ad1decfb4c53fb88d051723bb33eaa",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 284
+      }
+    ],
+    "semantic_review_notes": "Opt-in camera trace keeps a bounded 512-record in-memory ring of closed event names and sanitized numeric/boolean/enumerated details. Picture-size strings are shape-restricted, object references are local sequence IDs, and no plate text, file URI, bearer, session ID, organization/location ID, or network payload is accepted into trace records.",
+    "callers_consumers": "NativePlateCameraController; NativePlateRoiBinding; native-plate-ocr-adapter; debugger-only readNativePlateCameraTrace",
+    "invariants_error_checks": "Tracing is disabled unless EXPO_PUBLIC_PLATE_CAMERA_TRACE=1; console transport failures are swallowed and cannot change camera state. Workflow/identity generations are local numeric fences rather than credentials.",
+    "test_refs": [
+      "native-plate-camera-controller.ts; native-plate-roi-binding.ts; native-plate-ocr-adapter.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-capture-policy.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f90eed3f5718c5cf56a9982afe6878bcbdaeccf016c06d589465c46861a5dbcb",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 95
+      }
+    ],
+    "semantic_review_notes": "Capture policy parses only exact WxH camera sizes, normalizes orientation for scoring, restricts preferred sizes to 1024x576..1280x720 bounds, and selects a strictly lower-area supported fallback. Returned values are exact supported strings rather than inferred dimensions.",
+    "callers_consumers": "createNativePlateOcrBinding cameraReady/configurePictureSizes; NativePlateCameraController fallback remount",
+    "invariants_error_checks": "Malformed/non-safe/oversized/undersized sizes are rejected; fallback cannot equal or exceed the preferred area. Quality constants feed the ROI capture encoder but do not weaken server byte limits.",
+    "test_refs": [
+      "native-plate-ocr-adapter.ts; native-plate-roi-capture.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-country-selector.tsx",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6d93b3d845ea8b6273965f87d642dd2a7d6ff4bf4b277688f41090426f34c018",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 211
+      }
+    ],
+    "semantic_review_notes": "Plate-country picker constrains user selection to JO/AE/SA/KW/BH/OTHER and falls back to OTHER for an unexpected display value. It is an accessible presentation control; the callback alone updates the check-in draft and cannot authorize OCR or a workflow transition.",
+    "callers_consumers": "NativeCheckInCaptureStep; EmployeeCheckInSession.setVehicle; plateOcrRequestSchema",
+    "invariants_error_checks": "Only enum values are emitted by the picker; server/client plate OCR schemas independently validate the same country set. Modal close/backdrop behavior has no state side effects beyond local visibility.",
+    "test_refs": [
+      "native-check-in-capture-step.tsx; packages/contracts/src/plate-ocr.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-ocr-adapter.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ed1968110d8ff0a90a7e48a0e3add49ebd324fe1a1e0ab49632847c3576d4d38",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 258
+      }
+    ],
+    "semantic_review_notes": "OCR adapter binds camera, ROI geometry, auth and EmployeeCheckInSession. Ready/size-query callbacks are mount/generation fenced; capture delegates to validated ROI geometry and retries once only after a CameraCaptureFailure plus a successful fallback remount. Recognition verifies file existence/size and current location before an authenticated POST; only a MATCH is accepted into the draft and then reviewIdentity() is invoked.",
+    "callers_consumers": "NativePlateCameraStep; NativePlateCameraController; NativePlateRoiBinding; native-plate-ocr-client; EmployeeCheckInSession",
+    "invariants_error_checks": "File size is bounded before network dispatch; targetLocationId and plateCountry come from the current check-in session, response is schema-validated downstream, and stale/aborted capture paths cannot call accept. Server independently authenticates staff and validates multipart metadata/image.",
+    "test_refs": [
+      "native-plate-camera-step.tsx; native-plate-ocr-client.ts; apps/api/src/modules/check-in-api/plate-ocr.controller.ts; plate-ocr-auth.guard.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-ocr-client.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f1759936fbec846bcfa7f360e4c0f07aea01c6ed2c26f05ea707e6ff0a0c600f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 50
+      }
+    ],
+    "semantic_review_notes": "Client validates metadata with plateOcrRequestSchema, sends one JPEG FormData POST through the authenticated native employee client, imposes a 15s abort deadline, snapshots authGeneration, and returns UNAVAILABLE if caller aborts, deadline fires, or auth generation changes before response use. Server response is parsed by the strict discriminated response schema.",
+    "callers_consumers": "createNativePlateOcrPorts.recognize; native operational HTTP/auth session; staff plate OCR endpoint",
+    "invariants_error_checks": "No automatic retry is performed; auth generation fencing drops stale responses; metadata fields are schema-limited and the image is sent as a file object. Server guard authenticates before bounded multipart processing and zeroes the transient buffer after use.",
+    "test_refs": [
+      "native-plate-ocr-adapter.ts; packages/contracts/src/plate-ocr.ts; apps/api/src/modules/check-in-api/plate-ocr.controller.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-ocr-diagnostics.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c284e6f00381d5732cf7ed700772770c3a3cbf5019bf0ec9c6220cbae5d46dea",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 97
+      }
+    ],
+    "semantic_review_notes": "DEV-only OCR console diagnostics accept a closed classification union and a bounded numeric/status/picture-size detail surface. They deliberately omit plate candidate text, file URIs, tokens and arbitrary strings; production builds return before logging.",
+    "callers_consumers": "OCR adapter, loop, ROI capture/files",
+    "invariants_error_checks": "Only finite non-negative numeric fields, WxH size strings, and known response statuses are serialized. Diagnostics have no control-flow or state authority.",
+    "test_refs": [
+      "native-plate-ocr-adapter.ts; native-plate-ocr-loop.ts; native-plate-roi-capture.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-ocr-loop.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5e5689b12edddad3235dd58bbb4646a48c5a0afa47114adf0a52b113a510c6b2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 176
+      }
+    ],
+    "semantic_review_notes": "OCR loop permits one timer/operation at a time, runs at most five attempts, owns the captured URI until deletion, aborts and starts cleanup on cancellation, and rechecks generation currency before recognition result handling or final finish. Only NO_MATCH schedules another capture; MATCH/UNAVAILABLE terminate.",
+    "callers_consumers": "NativePlateCameraController; createNativePlateOcrPorts; native OCR telemetry",
+    "invariants_error_checks": "No capture/upload queue is accumulated. Stale generation results are discarded before finish/accept, and cleanup failure forces UNAVAILABLE. Cancellation aborts network/capture ownership and asynchronously removes known transient file.",
+    "test_refs": [
+      "native-plate-camera-controller.ts; native-plate-ocr-adapter.ts; native-plate-ocr-telemetry.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-ocr-telemetry.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "54011446b12ccf799c9a390a500a9e8fa88e170d0b090c9cb1e43a66f56cd442",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 80
+      }
+    ],
+    "semantic_review_notes": "Production OCR telemetry maps only the provider status or two loop transitions to a closed event classification. It records no plate text, file URI, byte payload or candidate value; capture failure codes are limited to the explicit ROI diagnostic vocabulary and vetted rotation codes.",
+    "callers_consumers": "NativePlateOcrLoop; native telemetry owner; employee telemetry contract",
+    "invariants_error_checks": "Unknown classifications are dropped. MATCH/NO_MATCH are success outcomes; provider/capture/unavailable/abort are errors. Telemetry remains observational and cannot alter OCR or check-in state.",
+    "test_refs": [
+      "native-plate-ocr-loop.ts; native-plate-roi-failure.ts; employee telemetry types",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-roi-binding.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9ef57a256c6144703911f635940e3ef7f1c22e3805294c1269d355635f6c94c0",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 228
+      }
+    ],
+    "semantic_review_notes": "ROI binding owns CameraView reference, mount, layout geometry and native preview metadata entirely outside check-in domain state. Controller generation/mount/phase changes invalidate camera, geometry and pending metadata reads. Validation accepts metadata only when the same reading, camera object, geometry object and mount remain current, then allows controller preview/OCR start.",
+    "callers_consumers": "NativePlateCameraController; createNativePlateOcrBinding; NativePlateRoiViewport",
+    "invariants_error_checks": "Layout changes during preview retire geometry rather than silently remapping an active OCR loop. Capture requires a validated current ReadyGeometry; stale native metadata is discarded by reading token plus mount/generation/ref checks.",
+    "test_refs": [
+      "native-plate-camera-controller.ts; native-plate-ocr-adapter.ts; native-plate-roi-metadata.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-roi-capture.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a41d0486e42d73162c66f97ef7b131b6cb302405c863d0a0980e6f876391a8e6",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 230
+      }
+    ],
+    "semantic_review_notes": "ROI capture owns every raw/cropped URI until exactly one validated, size-bounded cropped JPEG is handed to the OCR loop. It sends generation/mount/revision metadata into native capture, requires returned metadata identity and preview dimensions to match, derives crop only from validated native transform, retries compression without recapturing, and cleans all other files on every exit.",
+    "callers_consumers": "createNativePlateOcrPorts.capture; renderPlateRoi; ROI geometry/metadata/files",
+    "invariants_error_checks": "Abort/current checks bracket native capture, render/save and handoff. EXIF/base64 are disabled; output must be a distinct crop with exact expected dimensions and <= PLATE_OCR_MAX_IMAGE_BYTES. Any cleanup failure becomes a hard unavailable error instead of leaving successful OCR state.",
+    "test_refs": [
+      "native-plate-ocr-adapter.ts; native-plate-roi-geometry.ts; native-plate-roi-metadata.ts; native-plate-roi-files.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-roi-crop-adapter.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fa5114a206469910079f218126b2fff57e375767d1233de5a4460d97d24f4585",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 41
+      }
+    ],
+    "semantic_review_notes": "Crop adapter uses ImageManipulator for one explicit ROI crop and returns a wrapper that can save JPEG at caller-selected quality while ensuring both rendered image and manipulation context are released. It does not infer crop coordinates or retain base64 data.",
+    "callers_consumers": "capturePlateRoi",
+    "invariants_error_checks": "Caller supplies already-validated bounded geometry; render errors release context and surface a generic unavailable error. Output lifecycle is explicitly releasable by the capture owner.",
+    "test_refs": [
+      "native-plate-roi-capture.ts; native-plate-roi-geometry.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-roi-failure.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "867ac8c02bbe0b45859cb76c5b6c7c41fcf09eb5520a7070351bf0cb10082822",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 89
+      }
+    ],
+    "semantic_review_notes": "Failure module defines a closed native/capture diagnostic reason set and converts native error codes only when they match the OCR_CAPTURE_METADATA_ namespace. Rotation detail is retained only for a recognized rotation diagnostic code; user-facing Error text stays generic.",
+    "callers_consumers": "capturePlateRoi; NativePlateOcrLoop telemetry; native CameraX patch error mapping",
+    "invariants_error_checks": "Arbitrary native error.code values cannot enter production telemetry; failure reasons carry diagnostics only and never plate/session identity.",
+    "test_refs": [
+      "native-plate-roi-capture.ts; native-plate-ocr-telemetry.ts; native-plate-roi-rotation-diagnostic.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-roi-files.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e13b96cde56f82f7aee519f6b6878f533a7db226f2d066bddc07e80bac5749dc",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 25
+      }
+    ],
+    "semantic_review_notes": "File helper exposes only existence/size inspection and deletion for transient OCR paths. removePlateFile retries a failed deletion once, logs only a closed cleanup classification, and still fails the operation after any initial deletion failure even if the second attempt succeeds.",
+    "callers_consumers": "capturePlateRoi; NativePlateOcrLoop cleanup",
+    "invariants_error_checks": "Cleanup failure is fail-closed so a successful OCR result is not accepted while transient-file ownership is uncertain. No URI is logged by this helper.",
+    "test_refs": [
+      "native-plate-roi-capture.ts; native-plate-ocr-loop.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-roi-geometry.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e3f023931b38547184a64890c9b0011585432ac106135ef4464bbe892097413b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 131
+      }
+    ],
+    "semantic_review_notes": "Geometry code validates finite positive layout/image dimensions, exact generation/mount/revision identity, exact captured image dimensions, and an invertible affine 3x3 preview-to-image transform. It maps all four guide corners, rejects out-of-bounds/degenerate results, then adds a bounded 10% crop margin clamped to actual pixels.",
+    "callers_consumers": "NativePlateRoiBinding; capturePlateRoi; native metadata readers",
+    "invariants_error_checks": "No crop is inferred from requested picture size, screen aspect or locale. Projective transforms and stale/mismatched dimensions fail closed before any image is handed to OCR.",
+    "test_refs": [
+      "native-plate-roi-binding.ts; native-plate-roi-capture.ts; native-plate-roi-metadata.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-roi-metadata.ts",
+    "worker": "customer",
+    "original_owner": "native",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f5aefc0947ae512d83896bcdb806dad2aa02d2a46d72accc1ad2d6d65028086b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 57
+      }
+    ],
+    "semantic_review_notes": "Metadata boundary isolates version-specific native camera extensions. Preview metadata requires positive safe dimensions and a valid affine sensorToView matrix; capture metadata requires safe generation/mount/revision and positive preview/image dimensions plus a valid affine previewToImage matrix, with missing/invalid capture metadata classified explicitly.",
+    "callers_consumers": "NativePlateRoiBinding.validate; capturePlateRoi",
+    "invariants_error_checks": "Untrusted native metadata is structurally validated before geometry use. Missing or malformed capture metadata cannot fall back to guessed transforms; it becomes a diagnostic failure.",
+    "test_refs": [
+      "native-plate-roi-binding.ts; native-plate-roi-capture.ts; native-plate-roi-geometry.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "native",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/gps-ingestion.test.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "09e4186e7990a59893aecde714be8df9610e86634a91e87972629d8b51234f50",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 45
+      }
+    ],
+    "semantic_review_notes": "Tests pin the GPS ingestion boundary to 1-50 strict samples and a caller-owned ACCEPTED/DUPLICATE response keyed only by clientSampleId. They reject client-supplied organization authority, offset-less timestamps, non-finite/out-of-range coordinates, and non-positive or excessive accuracy.",
+    "callers_consumers": "employee-gps-sample-buffer.ts; employee-gps-ingestion-transport.ts; API gps-ingestion.controller.ts",
+    "invariants_error_checks": "Tenant/user authority is absent from the body contract and resolved server-side from the authenticated staff principal plus route session. Invalid physical fixes fail before batching or service execution.",
+    "test_refs": [
+      "gps-ingestion.ts; employee GPS transport/buffer; tracking GPS API",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/gps-ingestion.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3221a794854229fa091df6258fe3f32dc49228725712261a94f48320695f52d5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 33
+      }
+    ],
+    "semantic_review_notes": "Defines a strict transient GPS sample shape: UUID sample identity, timezone-offset timestamp, finite bounded coordinates, accuracy >0 and <=100m; requests and responses are both bounded to 50 samples. Response status is only ACCEPTED or DUPLICATE and cannot carry unrelated authority fields.",
+    "callers_consumers": "EmployeeGpsSampleBuffer; EmployeeGpsIngestionTransport; GpsIngestionController/Service",
+    "invariants_error_checks": "Organization, location, membership and user IDs are intentionally not accepted in sample bodies; server derives authorization from bearer plus session route. Strict parsing and finite-number checks reject malformed telemetry before persistence.",
+    "test_refs": [
+      "employee-gps-sample-buffer.ts; employee-gps-ingestion-transport.ts; apps/api/src/modules/tracking/gps-ingestion.controller.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/guest-browser-auth.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "53b5aa7a79aba5df3978c4708bad8e2c856eae4317d0a0bda3052b2dfd88096e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 33
+      }
+    ],
+    "semantic_review_notes": "Pins the cookie-authorized guest browser CSRF header/value and strict context-transition responses. Prepare may return ENROLLMENT_READY, SAME_VISIT or a conflict with only ACTIVE/POST_VISIT scope; switch/reconcile expose only the allowed recovery outcomes.",
+    "callers_consumers": "customer guest-api-client; guest-browser-context.controller/service",
+    "invariants_error_checks": "No browser/session secret or tenant identifier appears in response bodies. Mutation transport separately requires the fixed CSRF fence and server-owned cookies; strict unions prevent clients from accepting invented context states.",
+    "test_refs": [
+      "apps/customer/src/lib/api/guest-api-client.ts; apps/api/src/modules/guest-access/guest-browser-context.controller.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/guest-effective-branding.test.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3c87d73971166bcb8bba3f484fbda4245032a4f45160936dd25f23ddea20b5e6",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 45
+      }
+    ],
+    "semantic_review_notes": "Tests require guest branding to preserve safe UTF-8 display names and canonical uppercase six-digit colors while rejecting active control characters, noncanonical colors and extra scope identifiers such as organizationId. This verifies branding remains a narrow presentation projection on the guest session response.",
+    "callers_consumers": "guestSessionReadResponseSchema; customer GuestBrandingProvider; guest session projection",
+    "invariants_error_checks": "Branding cannot add tenant authority fields to the guest-safe session; invalid display/color input fails strict parsing before rendering.",
+    "test_refs": [
+      "guest session contract/projection; customer guest-branding.tsx",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/guest-information-contact.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2ae75a341f98fa3ff32550b47692a03728c49503c1bafcff19ebee9a27e547ac",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 180
+      }
+    ],
+    "semantic_review_notes": "Defines strict company/location contact management values, explicit INHERIT/OVERRIDE/UNAVAILABLE modes, revision-CAS requests, and narrow guest contact projections. Phone is E.164-like, support URLs reuse hardened HTTPS parsing, hours confirmation cannot exist without tenant-provided hours, and overview publishedCount cannot exceed authorized locations.",
+    "callers_consumers": "guest information management controllers/services; guest-information.controller; customer/dashboard guest information clients",
+    "invariants_error_checks": "Guest response transports only locale, published privacy projection and contact display fields; it omits draft legal content and private identity. Management responses carry scope IDs, while update requests do not permit caller-forged organization/location authority.",
+    "test_refs": [
+      "guest-information-privacy.ts; guest-information-contracts.test.ts; API guest/management information controllers",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/guest-information-contracts.test.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6cfb0082c8aa539e53929318537e1e8f405665c7122d95d5730cea33a8f3cdf5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 129
+      }
+    ],
+    "semantic_review_notes": "Tests exercise URL host-confusion defenses, explicit contact override modes, honest UNAVAILABLE privacy with no draft leakage, and bounded overview counts. HTTPS normalization accepts ordinary/IDN hosts while rejecting embedded credentials, backslashes, invalid ports, trailing-dot hosts and IPv6 forms outside the persisted SQL grammar.",
+    "callers_consumers": "guestInformationHttpsUrlSchema; guest contact/privacy management and guest projections",
+    "invariants_error_checks": "An unavailable guest privacy snapshot must contain no text/url/version/time; management overview cannot claim publications beyond the visible authorized location list.",
+    "test_refs": [
+      "guest-information-privacy.ts; guest-information-contact.ts; guest information API consumers",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/guest-information-privacy.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "11ca7c15b3e7da2c94d3a42c4fc7f81a9b32a4586841ed42f9156118efd8aac8",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 137
+      }
+    ],
+    "semantic_review_notes": "Hardened privacy contract canonicalizes only credential-free HTTPS URLs whose host fits the persisted ASCII grammar, rejects backslash/whitespace/control confusion, and bounds draft text/URL sizes. Published guest projection must have version/time and actual content; UNAVAILABLE must carry all-null snapshot fields.",
+    "callers_consumers": "management guest privacy save/publish/unpublish; guest information projection; dashboard preview",
+    "invariants_error_checks": "Draft and published management shapes are revisioned and strict; guest projection exposes only a coherent published snapshot or explicit unavailability. URL parsing is aligned with PostgreSQL persistence constraints.",
+    "test_refs": [
+      "guest-information-contact.ts; guest-information-contracts.test.ts; management guest information services",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/guest-rating.test.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6fcff03e6cd1160aa81850ae3885246960108e086e59c8ded1dfa7ca13a462f7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 74
+      }
+    ],
+    "semantic_review_notes": "Tests restrict rating to integer 1-5, reject missing/extra request fields including client-supplied valetSessionId, and require an exact guest-safe response with server-selected session UUID and rated timestamp. Extra organization scope is rejected.",
+    "callers_consumers": "customer GuestApiClient.submitRating; guest-rating.controller/service",
+    "invariants_error_checks": "The guest client supplies only the rating value; current authorized visit identity is server-derived. Strict response parsing prevents scope leakage or malformed timestamps/ratings.",
+    "test_refs": [
+      "guest-rating.ts; apps/customer/src/lib/api/guest-api-client.ts; apps/api/src/modules/guest-access/guest-rating.controller.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/guest-rating.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "832d0ebe9ec309848244ee8e2394dc4f2b557e493cd68fdcf9475376d8939b2f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 22
+      }
+    ],
+    "semantic_review_notes": "Minimal strict guest rating contract accepts only integer values 1-5. Request contains no visit or tenant authority; response contains only rating, ratedAt and valetSessionId.",
+    "callers_consumers": "customer guest rating flow; guest-rating.controller/service",
+    "invariants_error_checks": "Session authority remains credential-derived on the server; unknown request/response fields are rejected, preventing client authority injection and response scope expansion.",
+    "test_refs": [
+      "guest-rating.test.ts; guest rating API/controller",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/handoff.test.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "28a1f73441e7d02f9ae8797905943f51ea62f7686d68d5b945b8c013f76ac37b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 95
+      }
+    ],
+    "semantic_review_notes": "Tests constrain standard issuance to PICKUP_CODE or DYNAMIC_QR, exact four-digit and vhq1 base64url proof formats, positive expected session version, bounded trimmed reasons, and minimal staff authority inputs. Guest material is one discriminated secret and rejects internal task IDs.",
+    "callers_consumers": "employee handoff transport/session; staff and guest handoff controllers/services",
+    "invariants_error_checks": "Supervisor override cannot be requested through the standard issue contract; CAS version is mandatory for verification actions; guest secret projection excludes internal task/actor authority.",
+    "test_refs": [
+      "handoff.ts; employee-handoff-flow-transport.ts; handoff-staff.controller.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/handoff.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6c4c6c193e72e6896c67971ca4e96a9b558a7e65c54856fa488ff49307e6d746",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 120
+      }
+    ],
+    "semantic_review_notes": "Defines strict handoff CAS/proof contracts and separate staff versus guest projections. Client standard issuance cannot request SUPERVISOR_OVERRIDE; verification requires positive expectedSessionVersion plus exact pickup/QR proof, while server verified response may truthfully report an override performed through its separate authority path.",
+    "callers_consumers": "HandoffStaffController/Service; guest handoff issuance; employee/valet clients",
+    "invariants_error_checks": "Request bodies do not carry organization/location/membership authority. Guest material exposes only the active pickup secret, expiry, state and valet session ID; staff responses remain strict task/session/version projections.",
+    "test_refs": [
+      "handoff.test.ts; apps/api/src/modules/retrieval/handoff-staff.controller.ts; employee handoff transport",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/incident-recovery.test.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "845ad3c71e8e2a47fa30bc912405d4e2beeb22ee10439dfe439d74315dbe0ebf",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 89
+      }
+    ],
+    "semantic_review_notes": "Tests distinguish UUIDv8 recovery intent identities from legacy UUIDv4 IDs, pin the recovery outcome union, and ensure persisted recovery markers exclude report content, user IDs, authorization and access/refresh secrets.",
+    "callers_consumers": "employee incident recovery transport/session; API incident-recovery.controller/service",
+    "invariants_error_checks": "Marker stores only actor/scope identifiers, installation generation, protocol/version and creation time; it cannot become a shadow copy of sensitive incident payload or bearer material.",
+    "test_refs": [
+      "incident-recovery.ts; employee incident recovery transport; API recovery controller",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/incident-recovery.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "090cbcd7027db7f2e951f8fed391eea9b1a74a1949a6676b9499f32507d6df95",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 86
+      }
+    ],
+    "semantic_review_notes": "Defines actor-bound incident recovery protocol constants, strict UUIDv8 recovery IDs, route identity, empty mutation body, bounded marker fields, and discriminated FOUND/RESERVED/RETIRED/UNKNOWN responses. FOUND reuses the canonical report projection rather than inventing a second payload shape.",
+    "callers_consumers": "incident recovery controller/service; employee incident-recovery-transport",
+    "invariants_error_checks": "Recovery identity and marker schemas are strict; client cannot add secrets/content to marker contract. RESERVED carries an expiry; ambiguous/retired states remain explicit rather than treated as a confirmed report.",
+    "test_refs": [
+      "incident-recovery.test.ts; apps/api/src/modules/incidents/incident-recovery.controller.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/incident-resolution.test.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "978ed94a9241475ac7b590fce6c6740ca112b06f597665b4e540c19dd62371e0",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 32
+      }
+    ],
+    "semantic_review_notes": "Tests default incident listing to ALL and require resolution to carry a UUID operationId, expected OPEN/INVESTIGATING status and a trimmed non-empty <=1000 note. Client-authoritative resolver/resolvedAt fields and CLOSED as an expected pre-state are rejected.",
+    "callers_consumers": "dashboard resolve incident control; incidents.controller; incident-resolution-command",
+    "invariants_error_checks": "The contract supports CAS/idempotency without letting the browser choose actor or timestamp. Server command independently binds org/location/membership, locks entitlement and incident row, and records the audit event.",
+    "test_refs": [
+      "incident-resolution.ts; dashboard resolve control; API incident resolution command",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/incident-resolution.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fcc32a8f04544eedc2cc4d921faacc6bf2944c8628ebc2443b6fc8c24e26a93c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 20
+      }
+    ],
+    "semantic_review_notes": "Strict resolution request contains only idempotency operationId, expected mutable status and bounded notes; list filter is ALL/ACTIVE/RESOLVED on the existing pagination contract.",
+    "callers_consumers": "Dashboard incidents controller/command; resolve-incident-control.tsx",
+    "invariants_error_checks": "Actor, organization, location and resolved timestamp remain server-owned. Expected status is limited to states the resolution transition may legally consume.",
+    "test_refs": [
+      "incident-resolution.test.ts; apps/api/src/modules/dashboard/incidents.controller.ts; incident-resolution-command.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/index.test.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b24a3e0f36245f2386fa0aae31c02b5bf1acb6c9ebd8f80762aa8d2e2f32e479",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 204
+      }
+    ],
+    "semantic_review_notes": "Package-root tests verify selected operational schemas remain exported and preserve strict authority boundaries for shifts, key custody, staff auth, secure handoff, MFA and management control plane. They specifically reject client membership/location authority fields where route/auth owns them and preserve exact password bytes while normalizing email.",
+    "callers_consumers": "all @valet/contracts consumers through package root",
+    "invariants_error_checks": "This is a broad export/contract smoke oracle, not runtime authorization proof. The tested schemas keep CAS versions and minimal request authority at package boundaries.",
+    "test_refs": [
+      "index.ts; shifts/key-custody/staff-auth/handoff contract modules",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/index.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5f6c12aa0c38e4d8a3a5e1c798c6c8f9ab85a899c77c9295996ee1f93828a03d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 96
+      }
+    ],
+    "semantic_review_notes": "Central barrel re-exports the platform contract modules, including the transferred GPS, guest browser/info/rating, handoff, incident, custody, live operations and analytics schemas. It defines only a generic trimmed non-empty bootstrap string locally.",
+    "callers_consumers": "API, Dashboard, Customer, Native and employee-client imports from @valet/contracts",
+    "invariants_error_checks": "No runtime logic or authority is implemented in the barrel; correctness depends on the strict source modules it exposes. Review confirmed transferred contract modules are exported from the shared package root.",
+    "test_refs": [
+      "index.test.ts; transferred contract source modules",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/issue300-closure-contract.test.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e2112daeec5b2fda75d9740dd579f62df057efa325cce3ad76affd46809de507",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 297
+      }
+    ],
+    "semantic_review_notes": "Independent Issue #300 oracle models four audit sources, direct/parent/legacy/conflict/orphan/foreign relationships, confidence quality, snapshot cutover, safe coverage and paging. It refuses guessed session association for ambiguous relations, deduplicates by source-qualified identity, and requires explicit Apply/503 when continuation cannot prove cohort stability.",
+    "callers_consumers": "audit investigation contract/query tests; auditInvestigationCoverageSchema",
+    "invariants_error_checks": "The test oracle deliberately withholds session IDs for conflict/orphan/legacy-indirect/vehicle-only/foreign facts and exposes only a generic integrity health signal. PARKED linkage requires coherent session/task identity and snapshot timing.",
+    "test_refs": [
+      "audit-investigation-common.ts; audit investigation timeline/search contracts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/key-custody.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6a092c6df4c1433cdb37607091b5732014b7bf57415a696466149b43b1ea2c1e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 33
+      }
+    ],
+    "semantic_review_notes": "Key custody mutations accept only positive expectedVersion plus a trimmed non-empty slot code for assign, or only expectedVersion for clear. The strict response is a minimal AWAITING_PARKING session/version/slot projection.",
+    "callers_consumers": "KeyCustodyController/Service; employee key-slot flows",
+    "invariants_error_checks": "Client cannot submit keySlotId, locationId, membershipId or other authority; authenticated user and route session determine scope server-side. CAS version is mandatory.",
+    "test_refs": [
+      "index.test.ts; apps/api/src/modules/keys/key-custody.controller.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/live-operations-map.test.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5bfa5f261d1be376374032d1f029ede92492bf75f0a6854056da0a062f84ece3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 60
+      }
+    ],
+    "semantic_review_notes": "Tests bound the live-map query to cursor plus 1-500 limit, reject arbitrary taskId filtering, and require a narrow strict response projection. Adding userId to an item is rejected.",
+    "callers_consumers": "Dashboard operations API; LiveMapController/Service",
+    "invariants_error_checks": "Authorization and location scope remain outside the response contract; projection contains operational task/session/vehicle data only for the server-authorized location.",
+    "test_refs": [
+      "live-operations-map.ts; apps/api/src/modules/tracking/live-map.controller.ts; dashboard operations-api.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/live-operations-map.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e9c018143164e050e95b959d962281ed19ff3adfd73925e1f009435caa35575b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 75
+      }
+    ],
+    "semantic_review_notes": "Strict live operations map schema bounds pagination and projects only PARKING/RETRIEVING tasks, assignee membership, tracking/session IDs, vehicle display identity and optional bounded-valid geographic position/freshness/areas. Coordinates must be finite and in world bounds.",
+    "callers_consumers": "LiveMapController/Service; Dashboard operations live map",
+    "invariants_error_checks": "Caller cannot filter by arbitrary task/session IDs through the query. Server resolves staff session and location authorization before service execution; response parser rejects extra fields.",
+    "test_refs": [
+      "live-operations-map.test.ts; apps/api/src/modules/tracking/live-map.controller.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/live-session-overview.test.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c450579c5254c0ddc18470689cb37a6752424aa66f6da886c6cfd8774e6b6cca",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 135
+      }
+    ],
+    "semantic_review_notes": "Tests preserve the old vehicle session projection, then constrain the purpose-specific live-session extension: historical names are complete trimmed bounded components; parkedBy may appear only with PROVEN completion; NO_RECORD/UNVERIFIABLE cannot name an actor. Cursor v3 uses a distinct live-sessions domain and rejects old/foreign cursors.",
+    "callers_consumers": "DashboardLiveSessionsController/query; dashboard operations transport",
+    "invariants_error_checks": "Historical identity is deliberately name-only—emails, membership IDs and userId extras fail strict parsing. Proof status gates whether a historical parker can be disclosed.",
+    "test_refs": [
+      "live-session-overview.ts; apps/api/src/modules/dashboard/live-sessions.controller.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/live-session-overview.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "71a7e7a59d9f54ef87401564e8281067c19c067a859835a5930067ea505414f6",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 66
+      }
+    ],
+    "semantic_review_notes": "Defines name-only historical staff projection with 100 Unicode-code-point bound, explicit PROVEN/NO_RECORD/UNVERIFIABLE completion proof, and a refinement that suppresses parkedBy unless completion is proven. Uses a separate v3 live-sessions cursor scoped by organization/location/filter/time/tiebreaker.",
+    "callers_consumers": "Dashboard live sessions query/controller; dashboard operations API",
+    "invariants_error_checks": "No historical email/user/membership identifiers are accepted in the name projection. Cursor domain separation prevents replay of older overview cursors into this route.",
+    "test_refs": [
+      "live-session-overview.test.ts; DashboardLiveSessionsController",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/location-analytics-common.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6761ac35b2db95c97d3c3ef42da1b95df5b5a89720e1b013ef5f7a672109c581",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 39
+      }
+    ],
+    "semantic_review_notes": "Shared analytics contract limits query input to from/to local-date strings and defines a location/timezone period envelope plus exact string-precision duration/rate metrics. Count fields are non-negative integers.",
+    "callers_consumers": "DashboardAnalyticsController; analytics query modules; Dashboard intelligence API",
+    "invariants_error_checks": "Location scope is route/auth-owned, not supplied by the period query. Controller additionally passes parsed dates through validateAnalyticsPeriod, so calendar/order/span semantics are server-validated beyond this lexical schema.",
+    "test_refs": [
+      "apps/api/src/modules/dashboard/analytics.controller.ts; analytics-period.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/contracts/src/location-analytics-financial.ts",
+    "worker": "customer",
+    "original_owner": "contracts",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "60113a744e54b24cb3ab8c8f37a58994225896e142df1accd55633578c9fd0ce",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 51
+      }
+    ],
+    "semantic_review_notes": "Financial analytics response groups exact three-decimal monetary strings by uppercase three-letter currency, uses shared count/rate schemas, permits signed cash reconciliation totals, and embeds the authorized location/timezone/period envelope. All objects are strict.",
+    "callers_consumers": "Dashboard financial analytics query/controller; Dashboard intelligence API",
+    "invariants_error_checks": "Query authority remains server-side; monetary values are transported as fixed-precision strings rather than binary floats. Response cannot add unmodeled financial or identity fields through strict parsing.",
+    "test_refs": [
+      "location-analytics-common.ts; apps/api/src/modules/dashboard/analytics.controller.ts; dashboard intelligence-api.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "contracts",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/employee-client/src/employee-confirm-parked-target.ts",
+    "worker": "customer",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "cd6bd40844ae0a7f3f1488911e33fa0b05e721ec83153add43255bbd587eea96",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 19
+      }
+    ],
+    "semantic_review_notes": "Builds the Confirm Parked workflow target from the current identity generation plus server-derived operational scope and explicit task/session IDs. Organization, location, membership and shift identity are carried as continuity fences for canonical reads and response acceptance.",
+    "callers_consumers": "EmployeeConfirmParkedSession.open; targetMatches/reconciliation state",
+    "invariants_error_checks": "Target authority comes from resolved EmployeeOperationalScope rather than user input. Session logic requires current target continuity, matching identity generation and canonical queue/session state before accepting mutation results.",
+    "test_refs": [
+      "employee-confirm-parked-session.ts; employee-confirm-parked-state.ts; employee-confirm-parked-operation.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "employee",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/employee-client/src/employee-confirm-parked-test-fixture.ts",
+    "worker": "customer",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e824cc3e40ca698851e3fe4ee30cd20e4ca9f6c420439e0fbc633fa7fef3226a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 167
+      }
+    ],
+    "semantic_review_notes": "Fixture constructs coherent PARKING task/session projections, expected PARKED response/version increments, validated spot projections, and a stub transport that records calls. Helpers model queue/session rereads and the parking-spot then key-slot flow used by confirm-parked tests.",
+    "callers_consumers": "EmployeeConfirmParkedSession test suites; parking spot validation tests; process-death parking tests",
+    "invariants_error_checks": "Fixture data preserves matching session/task/location/version custody and does not itself grant runtime authority. Unexpected transport calls reject, helping tests detect hidden retries.",
+    "test_refs": [
+      "employee-confirm-parked-session.ts; employee-confirm-parked-operation.ts; employee-parking-spot-validation.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "employee",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/employee-client/src/employee-confirm-parked-types.ts",
+    "worker": "customer",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e942cc96f5cae42d93938d354c821d67ca0c57bb5c6c05f5e7c8e40baf953f95",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 85
+      }
+    ],
+    "semantic_review_notes": "Types define the Confirm Parked state machine, conflict categories, command versus reconciliation success, and transport contract for validation, confirm, and canonical rereads. Protected mutation input requires expected session/task versions plus parking/key-slot identity.",
+    "callers_consumers": "EmployeeConfirmParkedSession; confirm-parked transport/operation/read/validation; Native parking UI",
+    "invariants_error_checks": "Snapshot retains operational scope and canonical task/session for fencing while ambiguous/reconciling phases are explicit. Confirm body has no organization/location/membership authority fields.",
+    "test_refs": [
+      "employee-confirm-parked-session.ts; employee-confirm-parked-transport.ts; employee-confirm-parked-operation.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "employee",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/employee-client/src/employee-connectivity-owner.test.ts",
+    "worker": "customer",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5cd02cd4b852b92920f35cc4b3f5e10f8b10084b1b5dec0b9094863f198c2a60",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 107
+      }
+    ],
+    "semantic_review_notes": "Tests pin connectivity as a process-local hint: initial read, subscribed transition precedence, deduplicated publication, adapter failure to unknown, and disposal. Recovery is requested only for offline-to-unknown or a non-online-to-online transition.",
+    "callers_consumers": "EmployeeConnectivityOwner; NativeProductionLifecycleOwner; push lifecycle",
+    "invariants_error_checks": "A connectivity event never becomes API authority. A subscribed event wins over a late initial read, and failure to establish subscription leaves unknown rather than falsely online.",
+    "test_refs": [
+      "employee-connectivity-owner.ts; native-production-lifecycle-owner.ts; use-native-push-lifecycle.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "employee",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/employee-client/src/employee-connectivity-owner.ts",
+    "worker": "customer",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "cabd0300377ff65ee44614cb628bfb8fe99a0e4f9e181e2983a99104231334b9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 85
+      }
+    ],
+    "semantic_review_notes": "Provider-neutral owner publishes only offline, online or unknown and documents that status is never API authority. It establishes subscription before async read, ignores stale initial read after any event, suppresses duplicate states, and clears listeners/subscription on dispose.",
+    "callers_consumers": "Native auth runtime; production lifecycle owner; shift runtime; push lifecycle",
+    "invariants_error_checks": "Connectivity can trigger revalidation scheduling but protected workflows still require fresh authenticated operational scope. Adapter read/subscribe failure falls back to unknown and cannot manufacture authorization.",
+    "test_refs": [
+      "employee-connectivity-owner.test.ts; apps/valet-native/src/shell/native-production-lifecycle-owner.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "employee",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/employee-client/src/employee-gps-ingestion-transport.test.ts",
+    "worker": "customer",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "14c02bdfe82ea7f0198c6dc054e39b6f2fe7c9e71d4fd7f32673468f472e2b04",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 57
+      }
+    ],
+    "semantic_review_notes": "Tests require GPS upload to use the strict task-session route with a samples-only body, excluding tenant/actor authority fields, and fail closed when the server response cannot satisfy the bounded GPS response schema.",
+    "callers_consumers": "createEmployeeGpsIngestionTransport; NativeTaskGpsPublisher",
+    "invariants_error_checks": "Session ID is carried by the route while authenticated transport supplies staff authority; malformed response does not let the buffer retire samples as accepted.",
+    "test_refs": [
+      "employee-gps-ingestion-transport.ts; gps-ingestion contract; native-task-gps-publisher.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "employee",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/employee-client/src/employee-gps-sample-buffer.test.ts",
+    "worker": "customer",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6f8b85a7b624e2e4039b6ba534354c8b14c2104968c1fddc50acf9e5f6c6642d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 150
+      }
+    ],
+    "semantic_review_notes": "Tests cover immutable UUID samples, chronological batching, hard resident cap including in-flight work, eviction only of unsent entries, exact response identity reconciliation, identical unknown retry payload, bounded 120s unknown lifetime, invalid-fix rejection and scope-retirement clear.",
+    "callers_consumers": "EmployeeGpsSampleBuffer; NativeTaskGpsPublisher; employee GPS transport",
+    "invariants_error_checks": "In-flight/retry IDs are protected from overflow eviction. Samples leave memory only after a coherent one-for-one response identity set or bounded retirement; unknown retry does not mix newly admitted samples.",
+    "test_refs": [
+      "employee-gps-sample-buffer.ts; native-task-gps-publisher.ts; gps-ingestion contract",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "employee",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/employee-client/src/employee-handoff-flow-fences.test.ts",
+    "worker": "customer",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "61e9ef2d4f90e356e85413e1db9df670fa247b8e8b9f8c16ca2b81cbec1e13fc",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 106
+      }
+    ],
+    "semantic_review_notes": "Authority-fence tests prove late verified responses are ignored after clear/scope purge, after newer task ownership appears, and after app backgrounding. Backgrounding protected proof leaves the flow ambiguous until canonical queue/session reread proves verification.",
+    "callers_consumers": "EmployeeHandoffSession; NativeProductionLifecycleOwner; Native handoff UI",
+    "invariants_error_checks": "Protected mutation response is accepted only while the same target/request remains current. Task reassignment and lifecycle suspension retire in-flight authority and force reconciliation instead of trusting a late success.",
+    "test_refs": [
+      "employee-handoff-flow-session.ts; employee-handoff-flow-state.ts; native-production-lifecycle-owner.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "employee",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/employee-client/src/employee-handoff-flow-session.test.ts",
+    "worker": "customer",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "45514567b70675fdc367505983422d366936a4f12862d1144fa2e8700168248d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 261
+      }
+    ],
+    "semantic_review_notes": "Tests cover READY hydration, initiate, pickup/QR verification without completing custody, supervisor-only override, proof non-retention, abort-to-READY, protected single-flight, lost-response reconciliation without replay, ambiguity when reread fails, version-conflict reread, and mismatched-success target rejection.",
+    "callers_consumers": "EmployeeHandoffSession; handoff transport/command/state; Native handoff panel",
+    "invariants_error_checks": "Raw proof is validated locally and not retained in snapshot. Ordinary employees cannot override; mutation ambiguity/version conflict triggers canonical reread and a fresh explicit action rather than automatic replay.",
+    "test_refs": [
+      "employee-handoff-flow-session.ts; employee-handoff-flow-state.ts; employee-handoff-flow-transport.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "employee",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/employee-client/src/employee-handoff-flow-session.ts",
+    "worker": "customer",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fb6b3fa34e74a992df65f3f3f4bfeffa25d54e3eea3ac677bdb7a4180fa540a7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 300
+      }
+    ],
+    "semantic_review_notes": "Handoff session owns one protected operation, captures target identity generation/scope/task/session, enforces owner versus supervisor command eligibility, validates pickup/QR/reason shapes before dispatch, and generation/request-fences every result. Ambiguous or reconciliation-class failure rereads queue plus session canonical truth.",
+    "callers_consumers": "Native handoff panel/pending UI; createEmployeeHandoffTransport; production lifecycle revalidation",
+    "invariants_error_checks": "Initiate and verify require current task ownership; override requires VALET_SUPERVISOR; abort requires owner or supervisor. No automatic mutation replay occurs, and stale responses are dropped before state application.",
+    "test_refs": [
+      "employee-handoff-flow-state.ts; employee-handoff-flow-command.ts; employee-handoff-flow-transport.ts; native-production-lifecycle-owner.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "employee",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/employee-client/src/employee-handoff-flow-state.ts",
+    "worker": "customer",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "dd06080314ad8e367cacd4be5deed8a6833cb459b38dac7a53e3f6aae2e28f27",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 169
+      }
+    ],
+    "semantic_review_notes": "State helpers define exact operational target scope, task-authority equivalence, canonical READY/HANDOFF_PENDING classification, reconciliation error codes, and queue/session reload. Canonical classification demands retrieval task IN_PROGRESS, non-null assignee, matching session/location/state/version and owner/supervisor authority.",
+    "callers_consumers": "EmployeeHandoffSession; handoff command/reconciliation",
+    "invariants_error_checks": "Changed task assignee/version/session state becomes conflict instead of retaining authority. Verified state requires verifiedAt; malformed pending state is conflict. Ambiguous write failures are separated from simple unavailability.",
+    "test_refs": [
+      "employee-handoff-flow-session.ts; employee-handoff-flow-command.ts; employee-operational-recovery.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "employee",
+    "reviewer": "customer"
+  },
+  {
+    "path": "packages/employee-client/src/employee-handoff-flow-test-fixture.ts",
+    "worker": "customer",
+    "original_owner": "employee",
+    "batch": "C007",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "53d116d85ec00888a19c750ea4dd188bab5eac155efdf4bc21322c224034f2da",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 143
+      }
+    ],
+    "semantic_review_notes": "Fixture supplies coherent READY/HANDOFF_PENDING retrieval task and session projections, resolved operational scope, and a stub handoff transport that records each protected command and canonical reread. It supports owner, reassignment, supervisor and response-loss scenarios without hidden behavior.",
+    "callers_consumers": "Employee handoff flow tests and process-death tests",
+    "invariants_error_checks": "Unexpected transport use rejects; fixture authority is derived through resolveEmployeeOperationalScope and tests independently vary task assignee/session version to exercise fences.",
+    "test_refs": [
+      "employee-handoff-flow-session.test.ts; employee-handoff-flow-fences.test.ts; employee-operational-test-fixture.ts",
+      "Static semantic review only; assigned file and meaningful linked callers/contracts were inspected. No tests, DB, CI, GitHub, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review. Credit covers this exact transferred file plus linked callers/contracts inspected for semantics; runtime behavior was not executed.",
+    "original_worker": "employee",
+    "reviewer": "customer"
+  }
+]

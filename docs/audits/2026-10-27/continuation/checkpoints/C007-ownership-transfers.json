@@ -1,0 +1,1265 @@
+{
+  "checkpoint": "C007",
+  "prior_audit_checkpoint": "625fed6d45df7734c7558dc2a7b810238632a789",
+  "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+  "failed_owners": [
+    "database",
+    "backend",
+    "native",
+    "contracts",
+    "employee"
+  ],
+  "unchanged_original_ownership": true,
+  "transfers": [
+    {
+      "path": "packages/database/prisma/migrations/20260917004200_mgt_be_09_guest_rating/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ae193d9d91a070c1fd1471ed60f23cd730f67eecd96fc604bf8e368d2e5ee6be",
+      "lines": 124,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260917004300_mgt_be_10_kpi_analytics/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "220220c3aa55eb863592b1564d125c41af626ed71a0ca1bd574c4b389f3fd4ea",
+      "lines": 241,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260918004400_mgt_be_11_all_locations_reports/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c9e7d35c1aa3a9b69cd62c1f9fddae5d9d02579b9b32d3ca4ff09616708dcf59",
+      "lines": 5,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260919004500_mgt_fix_02_pagination_snapshot_membership/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7a9f38316532d1f248043e43a54c76628937500d621b6b924096f65db87794cc",
+      "lines": 47,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260929004600_mgt_232_physical_resource_creation/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "03fcebc1c3f91eddf4751898c1c6f791c1cb01f98b714cf796a41beb53c928b7",
+      "lines": 300,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260929004700_map_setup_client_cas/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "8656e6ca1db66e611069c1e67a613da52eaa3a622af1d756ae812db34f007f71",
+      "lines": 91,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261001004800_mgt_236_parking_zone_creation/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6bbe1fb49bcb2b0204262a9cc37aa8ba5484841f213d0d18398518773b9af551",
+      "lines": 235,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261001004900_mgt_240a_staff_identity/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "fcb671e030a5ff7f4d12695ad59839c998c5e77f954e7ece5a8af85d337b8143",
+      "lines": 19,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261001005000_mgt_240b_lm_staff_authority/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "89436ac6969dab45029a8322d2cd4b128fa4f922b3d29d20ce30be8bdb3c944d",
+      "lines": 394,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261001005100_mgt_240c_staff_onboarding_invites/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "29049bb6a59edbbbbbdd4a313d3ae76cc1023d36add29614583c704babd63b0f",
+      "lines": 522,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261001005200_mgt_240c_invitation_anti_abuse_scope/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7bf501d3d8cea771abe24db3421fa3c4ca685a22d60806f4a5334ccaa8e688d2",
+      "lines": 19,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261001005300_mgt_240d_staff_activation/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ede5a14a69445cb0424909a513a13de02e9ef57026108255cb2b06b287a0ecab",
+      "lines": 121,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261002005400_mgt_240f_force_end_shift/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4ce525b59d46792b5ce618ab100156b6bd6bcd63298c8ad033934669a61718cf",
+      "lines": 203,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261003005500_check_in_cancelled_enum/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7cf561a4f8f0973290520fb28c4df0898b64d6f4d99b4cbb6ab5ea28b8b0d903",
+      "lines": 2,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004005800_shift_presence_foundation/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "12a5362224407475c6c9812326bcae32b719a5fe54cbc1e6904197a1b8b40dab",
+      "lines": 444,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004005900_shift_presence_decision_privacy/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "bab10dee973b0836d9cf2db1480f0a0eb7fb98a76e2b07bdb5d00d9f1add3db1",
+      "lines": 170,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004006000_shift_presence_authority_denial/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b58e9432acab675215624197b42a3aea4e3ed56e26cd0a7764aea90acda64b38",
+      "lines": 149,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004006100_shift_presence_policy_commands/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "bdcd039974bc580eeac3a917263d041de778cc59dbe225f1f9086ed6b94e8e97",
+      "lines": 99,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004006300_shift_presence_management_entitlement/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ce5d025383b25a1cd408d33c208d5b2a030087ea05b7766528c2d6ec340bcd98",
+      "lines": 21,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004006400_shift_presence_management_results/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "43ff1b1818abf37fc8fee0ae5187955e42e1f25b8843ba77fed4191d77613550",
+      "lines": 70,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004006500_shift_presence_anti_abuse_scopes/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "5652ccc0fb587e2fdb98c2a7db353707af8558e9176d251820d8b8e52cb067a0",
+      "lines": 16,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004006600_shift_presence_consumer_denial/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "541c426451acf5162cfd80480e22e81c4a36ac3e205dd1fde0c505f26bd3053b",
+      "lines": 25,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004006700_shift_presence_evidence_free_completion/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "d83d12fbe6e9ffc6f0a8467033b3dcd4497dc8acd1f17d342fa340bf91fbbba6",
+      "lines": 67,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004006800_shift_presence_converged_completion/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b7db72ca29c3738c5c86526e5f057d39ebca2e70e1c26966337fff3635dc0e93",
+      "lines": 71,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261007006900_shift_presence_strict_rollout_activation/migration.sql",
+      "original_owner": "database",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "119512f3ba283c8eca6e5da4068bd3e42dbdd63c54302cdce3ef3ca56858e3d9",
+      "lines": 98,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/dashboard/report-read-service.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "73aa791b78f79e88670dc28c2125c24075265a63c22345925cd59c3f4086f1c3",
+      "lines": 261,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/dashboard/report.controller.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "418b6298df00562cfdcbf1cd614bb25eef5832f4ae0947c6f9598034fd86adce",
+      "lines": 197,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/dashboard/session-overview-cursor.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "8ff48c7f516fed889848ba47e798b4f1f0b61f8e1425155ccd877795129ace3f",
+      "lines": 42,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/dashboard/session-photo-admission.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4cd37a6ffc8a08e462ddb55f6b9ad430a5fd6fd1d1a956f72374fcc2da94ada5",
+      "lines": 48,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/dashboard/session-photo-controller.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "680905e3109fa8851858c6caea998a84eb95e96ce1724fc16b6c484ff3966cfa",
+      "lines": 198,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/dashboard/session-photo-delivery-fence.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ee7eed38b6936c505a8864632ad0e1caf762fa8e639d89764a63aed619034214",
+      "lines": 119,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/dashboard/session-photo-query.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "71b91d0cb857e3b945241af715d8052a9991f23f0ab8d02f4f68646cc7d29206",
+      "lines": 122,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/dashboard/session-photo-service.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "77e7e16419c8f09f7c2d8074c402d8ceec151f00dd35b361195e5f05cdf807be",
+      "lines": 288,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/dashboard/session-resource-projection.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "88ff1bf50a70a263137f356085464859aabca70ec9b5c9b150e7ee42ebbdc4ab",
+      "lines": 19,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/dashboard/subscription-read.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "150fe34fde87248899cd65f7773aa96e53b2d03b9faefb1db6d1b32e79905a25",
+      "lines": 95,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/dashboard/subscription.controller.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "d83e98a2fa872765780aa97f9884419aa2fad651169ceb725b29397ed5cb27ec",
+      "lines": 70,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/dashboard/task-cancellation-projection.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ff184d43082480da1927f62c59d80fbaedf940d77603bc6767e112041108336a",
+      "lines": 51,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/dispatch/dispatch-errors.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "779907596e5155fa6fce267a00351c18e9f95639926817136ba4a27dc1cb0b3f",
+      "lines": 26,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/dispatch/dispatch-event-writer.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c036d20535e8f5c9f2c99460c90d1ecaffc989cb40eda6913e40c42e217825f2",
+      "lines": 57,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/dispatch/dispatch-types.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2fd542e8ca2a043509985ca0b6cbae1da03bf39064bc717147ef564764266093",
+      "lines": 136,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/dispatch/dispatch.module.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "11e6e6276a1e342138d9c70c4308dd1f593c55c8019433db6b8f40dccf13a6ce",
+      "lines": 19,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/dispatch/employee-task-tracking-projection.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "3993ec3dee8b76ba527de556ad2292d15dec2e79e396910f54f653332ecc98d2",
+      "lines": 68,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/dispatch/task-audit-event-writer.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4c133a82c6e1e842220f457c5a3f932d47f8430c149e6dd8206ceee53323dfcf",
+      "lines": 55,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/guest-access/guest-access.controller.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "e69e255adc390f3f8ae7ccfa84eb407116f54bbd8b439b1c8fd55dacbbb27258",
+      "lines": 185,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/guest-access/guest-access.module.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "3ca86b609704a06822e370d0a1db85865db0f29aea083c2c9bcc02efc56f884e",
+      "lines": 72,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/guest-access/guest-browser-context-transport.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "fed31478deaefa4c21ea39e521ab7c0c5b8e9c79051bf5f9f974032a6a871bf6",
+      "lines": 126,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/guest-access/guest-browser-context.controller.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "73b81a1dc89e26ba044cd68fb07fe55cf750036ed6addc474e5558eb67b8320e",
+      "lines": 297,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/guest-access/guest-browser-limiter.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7100c9ec39f68f02c357742aad6193dc79b6adc38f2fdfb2e5863586b58c7e3a",
+      "lines": 95,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/guest-access/guest-browser-request-validation.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "1fccde850a31b3a14e419caf6466b2dd62fff91119bfd0885e2e0b91e13aafaa",
+      "lines": 8,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/api/src/modules/guest-access/guest-browser-session.controller.ts",
+      "original_owner": "backend",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "d58e6e197e831cae545c9cb86878dc7763f77e1eb43a31dda45a2d2b7219dd71",
+      "lines": 261,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-check-in-vehicle-details-step.tsx",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "d8872545c24b384526314febb178c8f1d385f4f7fe46f95df986c238aa0206b6",
+      "lines": 85,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-condition-photo-copy.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "cfaed08fb0435204921efa4c4b1991581d598e3b855f582d234ec0fb5273b456",
+      "lines": 51,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-condition-photo-path.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "022410d9345e041bfa4527609b3ed0500ea28e2782f2af3b8d7d4bb6a71f75ff",
+      "lines": 28,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-photo-stage.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "aa238f2f31c41399271c4429191a69a9631691a8a7e2393851c6361b373e30ba",
+      "lines": 48,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-photo-upload-diagnostics.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "fc2fb184e25bd3cf7ed89f0bff28804cdeeae68dcead054f0665c983040c5355",
+      "lines": 91,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-plate-camera-controller.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b0a981c4de432f9b2e604b429d5fb02f57ad1d578c70eaa042cffdac2db0b089",
+      "lines": 294,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-plate-camera-copy.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "cac071dcae2d349af3e9d4aa03d26176ca6ddbe910b21f22cc373244801d395c",
+      "lines": 48,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-plate-camera-lifecycle.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "f7a31a0009af2d9cd92307ce56a02df639528c3901145adf931940e9a625a954",
+      "lines": 66,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-plate-camera-permission-trace.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "3a24033b556be98ac3ad220b89475566f4863a9f66f543004ba1c8b5574f6f59",
+      "lines": 19,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-plate-camera-step.tsx",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ba138d98481b686d4c44a5306d64b9bd4d5a18f543287441c21cf131f2c91f3b",
+      "lines": 225,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-plate-camera-trace.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c309a01e07d4e1ff87096cb136bdd1eaa2ad1decfb4c53fb88d051723bb33eaa",
+      "lines": 284,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-plate-capture-policy.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "f90eed3f5718c5cf56a9982afe6878bcbdaeccf016c06d589465c46861a5dbcb",
+      "lines": 95,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-plate-country-selector.tsx",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6d93b3d845ea8b6273965f87d642dd2a7d6ff4bf4b277688f41090426f34c018",
+      "lines": 211,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-plate-ocr-adapter.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ed1968110d8ff0a90a7e48a0e3add49ebd324fe1a1e0ab49632847c3576d4d38",
+      "lines": 258,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-plate-ocr-client.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "f1759936fbec846bcfa7f360e4c0f07aea01c6ed2c26f05ea707e6ff0a0c600f",
+      "lines": 50,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-plate-ocr-diagnostics.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c284e6f00381d5732cf7ed700772770c3a3cbf5019bf0ec9c6220cbae5d46dea",
+      "lines": 97,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-plate-ocr-loop.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "5e5689b12edddad3235dd58bbb4646a48c5a0afa47114adf0a52b113a510c6b2",
+      "lines": 176,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-plate-ocr-telemetry.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "54011446b12ccf799c9a390a500a9e8fa88e170d0b090c9cb1e43a66f56cd442",
+      "lines": 80,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-plate-roi-binding.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "9ef57a256c6144703911f635940e3ef7f1c22e3805294c1269d355635f6c94c0",
+      "lines": 228,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-plate-roi-capture.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "a41d0486e42d73162c66f97ef7b131b6cb302405c863d0a0980e6f876391a8e6",
+      "lines": 230,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-plate-roi-crop-adapter.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "fa5114a206469910079f218126b2fff57e375767d1233de5a4460d97d24f4585",
+      "lines": 41,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-plate-roi-failure.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "867ac8c02bbe0b45859cb76c5b6c7c41fcf09eb5520a7070351bf0cb10082822",
+      "lines": 89,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-plate-roi-files.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "e13b96cde56f82f7aee519f6b6878f533a7db226f2d066bddc07e80bac5749dc",
+      "lines": 25,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-plate-roi-geometry.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "e3f023931b38547184a64890c9b0011585432ac106135ef4464bbe892097413b",
+      "lines": 131,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "apps/valet-native/src/check-in/native-plate-roi-metadata.ts",
+      "original_owner": "native",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "f5aefc0947ae512d83896bcdb806dad2aa02d2a46d72accc1ad2d6d65028086b",
+      "lines": 57,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/gps-ingestion.test.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "09e4186e7990a59893aecde714be8df9610e86634a91e87972629d8b51234f50",
+      "lines": 45,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/gps-ingestion.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "3221a794854229fa091df6258fe3f32dc49228725712261a94f48320695f52d5",
+      "lines": 33,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/guest-browser-auth.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "53b5aa7a79aba5df3978c4708bad8e2c856eae4317d0a0bda3052b2dfd88096e",
+      "lines": 33,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/guest-effective-branding.test.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "3c87d73971166bcb8bba3f484fbda4245032a4f45160936dd25f23ddea20b5e6",
+      "lines": 45,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/guest-information-contact.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2ae75a341f98fa3ff32550b47692a03728c49503c1bafcff19ebee9a27e547ac",
+      "lines": 180,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/guest-information-contracts.test.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6cfb0082c8aa539e53929318537e1e8f405665c7122d95d5730cea33a8f3cdf5",
+      "lines": 129,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/guest-information-privacy.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "11ca7c15b3e7da2c94d3a42c4fc7f81a9b32a4586841ed42f9156118efd8aac8",
+      "lines": 137,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/guest-rating.test.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6fcff03e6cd1160aa81850ae3885246960108e086e59c8ded1dfa7ca13a462f7",
+      "lines": 74,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/guest-rating.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "832d0ebe9ec309848244ee8e2394dc4f2b557e493cd68fdcf9475376d8939b2f",
+      "lines": 22,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/handoff.test.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "28a1f73441e7d02f9ae8797905943f51ea62f7686d68d5b945b8c013f76ac37b",
+      "lines": 95,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/handoff.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6c4c6c193e72e6896c67971ca4e96a9b558a7e65c54856fa488ff49307e6d746",
+      "lines": 120,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/incident-recovery.test.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "845ad3c71e8e2a47fa30bc912405d4e2beeb22ee10439dfe439d74315dbe0ebf",
+      "lines": 89,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/incident-recovery.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "090cbcd7027db7f2e951f8fed391eea9b1a74a1949a6676b9499f32507d6df95",
+      "lines": 86,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/incident-resolution.test.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "978ed94a9241475ac7b590fce6c6740ca112b06f597665b4e540c19dd62371e0",
+      "lines": 32,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/incident-resolution.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "fcc32a8f04544eedc2cc4d921faacc6bf2944c8628ebc2443b6fc8c24e26a93c",
+      "lines": 20,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/index.test.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b24a3e0f36245f2386fa0aae31c02b5bf1acb6c9ebd8f80762aa8d2e2f32e479",
+      "lines": 204,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/index.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "5f6c12aa0c38e4d8a3a5e1c798c6c8f9ab85a899c77c9295996ee1f93828a03d",
+      "lines": 96,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/issue300-closure-contract.test.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "e2112daeec5b2fda75d9740dd579f62df057efa325cce3ad76affd46809de507",
+      "lines": 297,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/key-custody.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6a092c6df4c1433cdb37607091b5732014b7bf57415a696466149b43b1ea2c1e",
+      "lines": 33,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/live-operations-map.test.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "5bfa5f261d1be376374032d1f029ede92492bf75f0a6854056da0a062f84ece3",
+      "lines": 60,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/live-operations-map.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "e9c018143164e050e95b959d962281ed19ff3adfd73925e1f009435caa35575b",
+      "lines": 75,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/live-session-overview.test.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c450579c5254c0ddc18470689cb37a6752424aa66f6da886c6cfd8774e6b6cca",
+      "lines": 135,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/live-session-overview.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "71a7e7a59d9f54ef87401564e8281067c19c067a859835a5930067ea505414f6",
+      "lines": 66,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/location-analytics-common.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6761ac35b2db95c97d3c3ef42da1b95df5b5a89720e1b013ef5f7a672109c581",
+      "lines": 39,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/contracts/src/location-analytics-financial.ts",
+      "original_owner": "contracts",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "60113a744e54b24cb3ab8c8f37a58994225896e142df1accd55633578c9fd0ce",
+      "lines": 51,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-check-in-types.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6ceffdc8f609c6872d4a9626691172642985bac9e78fba4b98dc11d7e2755357",
+      "lines": 166,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-client.test.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2a1920cb44d004c5337d6940ae481c1a560ac56db899c9a483c9b13cb6556b3d",
+      "lines": 174,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-client.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "89bbb29ba0bd9d744e550c43fd967baf1f0e91fa29725b4d6e17993331b4f4b1",
+      "lines": 103,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-condition-photo-session.test.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6e5490ece197677d322d772e5d1498a51c1f411902a0a164a7c2051498e35f4c",
+      "lines": 210,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-condition-photo-transport.test.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "a5229bda6335338ca4be7798d5bdfde3c85113666e1fc50d42ee94eef201fd90",
+      "lines": 60,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-confirm-parked-fences.test.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "8dbda831fb35ec6238f3cfb3ece05e9ea032da59e5c7613a1b82d99c2a699e26",
+      "lines": 161,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-confirm-parked-flow.test.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b51c413fdfc3ce5d23b38164a9e974d68bd5e28f5716b56df969d60cd8db2ff0",
+      "lines": 93,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-confirm-parked-operation.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "f26c001dadfe29db2edf7001d880d96f808d4f8a00021bef0015686604e67ce3",
+      "lines": 117,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-confirm-parked-phase.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "d516a0f3d919fca44dd014d54925846e93859c8d39e41d67a5fc9665fcf99c64",
+      "lines": 60,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-confirm-parked-read.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "47c820e2e06a31a86afc0783f9a67e24797bdc112e1098c6b0fd69ff3dda6796",
+      "lines": 38,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-confirm-parked-recovery.test.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c60737a1af2f4bf8f15c72743a0e908440533f2afcc965202dd84022680f4fe3",
+      "lines": 180,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-confirm-parked-session.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2ed304645b6f0c069e82b68e2bb2b372e007aa635162e3f847671f69de866ecc",
+      "lines": 299,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-confirm-parked-state.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "dashboard",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ddf02467f4057fa2739de3cc7d45abf6abaf6f0b125f021f690608b94b7d354b",
+      "lines": 289,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-confirm-parked-target.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "cd6bd40844ae0a7f3f1488911e33fa0b05e721ec83153add43255bbd587eea96",
+      "lines": 19,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-confirm-parked-test-fixture.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "e824cc3e40ca698851e3fe4ee30cd20e4ca9f6c420439e0fbc633fa7fef3226a",
+      "lines": 167,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-confirm-parked-types.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "e942cc96f5cae42d93938d354c821d67ca0c57bb5c6c05f5e7c8e40baf953f95",
+      "lines": 85,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-connectivity-owner.test.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "5cd02cd4b852b92920f35cc4b3f5e10f8b10084b1b5dec0b9094863f198c2a60",
+      "lines": 107,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-connectivity-owner.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "cabd0300377ff65ee44614cb628bfb8fe99a0e4f9e181e2983a99104231334b9",
+      "lines": 85,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-gps-ingestion-transport.test.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "14c02bdfe82ea7f0198c6dc054e39b6f2fe7c9e71d4fd7f32673468f472e2b04",
+      "lines": 57,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-gps-sample-buffer.test.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6f8b85a7b624e2e4039b6ba534354c8b14c2104968c1fddc50acf9e5f6c6642d",
+      "lines": 150,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-handoff-flow-fences.test.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "61e9ef2d4f90e356e85413e1db9df670fa247b8e8b9f8c16ca2b81cbec1e13fc",
+      "lines": 106,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-handoff-flow-session.test.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "45514567b70675fdc367505983422d366936a4f12862d1144fa2e8700168248d",
+      "lines": 261,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-handoff-flow-session.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "fb6b3fa34e74a992df65f3f3f4bfeffa25d54e3eea3ac677bdb7a4180fa540a7",
+      "lines": 300,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-handoff-flow-state.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "dd06080314ad8e367cacd4be5deed8a6833cb459b38dac7a53e3f6aae2e28f27",
+      "lines": 169,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    },
+    {
+      "path": "packages/employee-client/src/employee-handoff-flow-test-fixture.ts",
+      "original_owner": "employee",
+      "temporary_reviewer": "customer",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "53d116d85ec00888a19c750ea4dd188bab5eac155efdf4bc21322c224034f2da",
+      "lines": 143,
+      "checkpoint": "C007",
+      "reason": "COS worker chat failed before source review; zero original credits"
+    }
+  ]
+}

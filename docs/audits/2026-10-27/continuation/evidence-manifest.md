@@ -10,16 +10,16 @@ No evidence archive, Git LFS, dependency installation or size-limit bypass. New 
 
 | Path | SHA-256 |
 |---|---|
-|[AUDIT_PROGRESS.md](AUDIT_PROGRESS.md)|`c3b50c8af0c1142dfec9ed58577f9043a406ea06f1c242ebb617a7d84c5ef76f`|
-|[CHECKPOINTS.md](CHECKPOINTS.md)|`ebbf11b0e2ef636ffb01f5370faf85cc8e73c120ce20dbbf8b50d243462a096d`|
+|[AUDIT_PROGRESS.md](AUDIT_PROGRESS.md)|`142d1d3a74418a541d60916e3b45c8f9b875e412710421809e9f24272230ac3d`|
+|[CHECKPOINTS.md](CHECKPOINTS.md)|`988b2bbcc5df5559f95ca3340b5011568936cb461edc36a51b0e99c3e259fdda`|
 |[CROSS_FEATURE_RISKS.md](CROSS_FEATURE_RISKS.md)|`c18c0e6a56fa15e4f7889539cf2d4664d73b80b4f371d234f273c201b1a24872`|
 |[FALSE_POSITIVE_DISPOSITIONS.md](FALSE_POSITIVE_DISPOSITIONS.md)|`c292f9ebb470be6bb36a18c0fcaf5efc7d86920d1bf881ef8e0f7852baff5677`|
-|[FEATURE_COVERAGE.md](FEATURE_COVERAGE.md)|`e2cc70e97c4a842fd675bdc025a2fd14f09fc4a49eba8017e943bae81de827e4`|
+|[FEATURE_COVERAGE.md](FEATURE_COVERAGE.md)|`1f111a17f490cf4cb072befde002017ff5a1b88ab1d91d40a4feb8cd1adfc18d`|
 |[FINDINGS_REGISTER.md](FINDINGS_REGISTER.md)|`7b1f31568a7a23169848e041977f7584a3b9c11d9a968258a4dfd0ce7e06d0b0`|
 |[FINDING_VALIDATION.md](FINDING_VALIDATION.md)|`0a7524f26c7a50b3046ed7caaad1e1dbc309e070efde98b37701b50cda51ecdc`|
 |[README.md](README.md)|`1e8c1f4f6e6fad421417fd1ee900afc96ab73f34d7fe591d1073bddf88d5f182`|
-|[SECURITY_COVERAGE.md](SECURITY_COVERAGE.md)|`c2af4d106b37413e69ab489812b0450f604a3792a62a698c67b330f83b7ae13c`|
-|[TEST_EVIDENCE.md](TEST_EVIDENCE.md)|`c2a19785f1f3ffd45d02508fe1bcd5e0002f45b215098ab8d1cbfc538eed3e65`|
+|[SECURITY_COVERAGE.md](SECURITY_COVERAGE.md)|`2403c158ccbed27011232b91646fcdfe3258495d9103402591d032c16c9c2b53`|
+|[TEST_EVIDENCE.md](TEST_EVIDENCE.md)|`b7de155288aad25ad11dbc493803f62ef3e449e788988db144b3ee5897032c7a`|
 |[checkpoints/C001-assignments.json](checkpoints/C001-assignments.json)|`01b5e193f8ce4d782e3e1080c1548efd554dc66342f54e2c3ebc541d817d9e9a`|
 |[checkpoints/C001-coverage-summary.json](checkpoints/C001-coverage-summary.json)|`2a268b1a55db35335cc1a6d5f6488b66426d397ede4e79f3d2d06278d45cf99b`|
 |[checkpoints/C001-pending-files.txt](checkpoints/C001-pending-files.txt)|`46b8e0c75777785eafecb40b2ace46498dbbbb88b24d6185bf824a273271d2fb`|
@@ -27,7 +27,7 @@ No evidence archive, Git LFS, dependency installation or size-limit bypass. New 
 |[checkpoints/C001-starting-plan.json](checkpoints/C001-starting-plan.json)|`b720e961d38219dc37a824f1544dedf734dc3cf23de5d96f5e89ffc2a9c53be3`|
 |[checkpoints/C001.md](checkpoints/C001.md)|`551fb92ff48dea356b2e3b429572afa1f96ac210ad795d536cd203b521cb7b81`|
 |[checkpoints/initial-remaining-ownership.json](checkpoints/initial-remaining-ownership.json)|`6a074f7595eaee2f81871527096f9bf4e141b1de5d2da2e0124897bb7bf05976`|
-|[coverage-ledger-progress.csv](coverage-ledger-progress.csv)|`4ce14336fa1071cb70aabdfe2c8a728495bcac602da2e382517cadca762f68b1`|
+|[coverage-ledger-progress.csv](coverage-ledger-progress.csv)|`720ff1bc84a14ff866c3b78a2d194db23dd0dce51eeb8c84578bc107c7478056`|
 |[evidence/C001-backend_operations-saved-results.json](evidence/C001-backend_operations-saved-results.json)|`f821e43cd83b2fcd4cd51a29deac4fa17f26d74b4091034c40e4afb8202bf97d`|
 |[evidence/C001-coordinator-saved-results.json](evidence/C001-coordinator-saved-results.json)|`c4e71aa94b824c60ac56db4da66f6aab25b95c75cef7177c5be02a83ae3ca8e3`|
 |[evidence/C001-customer-saved-results.json](evidence/C001-customer-saved-results.json)|`347ff3aa7f1ac540e588b07eed30b33d326d5bd6373cef661f25c4faa0538048`|
@@ -37,7 +37,7 @@ No evidence archive, Git LFS, dependency installation or size-limit bypass. New 
 |[evidence/C001-security-saved-results.json](evidence/C001-security-saved-results.json)|`92f5dbf89fda7a1c1f907119f22a1e61ba6a9b455f7e36e07de0d0e63572c4fe`|
 |[evidence/mfa-recovery-session-model.cjs](evidence/mfa-recovery-session-model.cjs)|`586e58d79509a4dd255d277e217f553c2d4b43f469cca4625d7dc0fd01af44e8`|
 |[evidence/mfa-recovery-session-model.txt](evidence/mfa-recovery-session-model.txt)|`d555d6fec32b0b3641beec480152cab77add08668cbcacfae998409635e20914`|
-|[remaining-files.txt](remaining-files.txt)|`6faafb41364e080558a98c965efba5a3e06b342189650012719e0d35f040acd5`|
+|[remaining-files.txt](remaining-files.txt)|`6bf4a03b3f3c236a4c885e977a9bc1e1697875ee30583dd10f50ee3e49ce7055`|
 
 ## C002 additions (same frozen source)
 
@@ -105,3 +105,19 @@ No evidence archive, Git LFS, dependency installation or size-limit bypass. New 
 |[evidence/C006-dashboard.json](evidence/C006-dashboard.json)|`b9b2164441d8a6c8bf60c0b32592391e435c0541215971bb0033aa882e4de233`|
 |[evidence/C006-database.json](evidence/C006-database.json)|`347b50bb2e6931bf5b852f4ba25250d18f0ba574bae21e97c6d23cf37b576c78`|
 |[evidence/C006-prime.json](evidence/C006-prime.json)|`b9cc000ad03d43e4107c32bff259006c92bc61912e953516eb59a28220398c0b`|
+
+## C007 additions
+
+| Path | SHA-256 |
+|---|---|
+|[checkpoints/C007.md](checkpoints/C007.md)|`4d2e6b62dbce5a4ce9ce856eed7ac41eaefa59e3dc20f41e9f1d07b69341d506`|
+|[checkpoints/C007-assignment-roster.json](checkpoints/C007-assignment-roster.json)|`1c7f2dec16fc7cbd538977b6a3f74bf47de3bd70b89c44c0deacacf6632969b4`|
+|[checkpoints/C007-ownership-transfers.json](checkpoints/C007-ownership-transfers.json)|`6ab7187ac0fea3ab43ee95a5e00c1288bdb718429cb592603044bd32029018ce`|
+|[checkpoints/C007-review-records.json](checkpoints/C007-review-records.json)|`b6ad8dbcd57f480f5b8d3c5fab97fc735f934d81d91d6789abb99b3e802b2c91`|
+|[checkpoints/C007-pending-files.json](checkpoints/C007-pending-files.json)|`37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570`|
+|[checkpoints/C007-coverage-summary.json](checkpoints/C007-coverage-summary.json)|`3971981e3c67b81de66e1efdfa3813b23741dd4cfaf1e57bdabbf6fb8120c4e6`|
+|[checkpoints/C007-execution-status.json](checkpoints/C007-execution-status.json)|`fb16d43c9d0c8413653aaf63f7909089a2687ed79dbbd629f5c404b4034a1bc2`|
+|[evidence/C007-dashboard-results.json](evidence/C007-dashboard-results.json)|`80563407f1f2468c48832e7fd69a0be224bc6befce0d3cfca97387e2e1670162`|
+|[evidence/C007-customer-results.json](evidence/C007-customer-results.json)|`57e9fb1504df29c733d349fd0684522456da459dec0c6e76aec2f903f35a80a8`|
+|[evidence/C007-dashboard-transfers.json](evidence/C007-dashboard-transfers.json)|`7f3411477ebc9e3993310f57f51c18bc7e4b947cbabca06558f8837b90936a0f`|
+|[evidence/C007-customer-transfers.json](evidence/C007-customer-transfers.json)|`1677b686f30870fbc4b3d04642130113324830e28a733e4bd7bbba10bf0ff783`|
