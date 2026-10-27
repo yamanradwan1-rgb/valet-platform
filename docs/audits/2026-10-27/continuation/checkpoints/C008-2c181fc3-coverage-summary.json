@@ -1,0 +1,20 @@
+{
+  "checkpoint": "C008",
+  "source_commit": "2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8",
+  "parent_docs_commit": "8fc860f8ffe61fd71be722efa8c8b5ef619f292b",
+  "candidate_files": 4711,
+  "candidate_lines": 611038,
+  "previous_current_fully_reviewed": 1312,
+  "previous_current_reviewed_lines": 148631,
+  "newly_reviewed": 180,
+  "newly_reviewed_lines": 22800,
+  "current_fully_reviewed": 1492,
+  "current_reviewed_lines": 171431,
+  "current_remaining": 3219,
+  "file_percent": 31.670558267883678,
+  "line_percent": 28.055701936704427,
+  "original_worker_groups": 7,
+  "ownership_transfers": 125,
+  "errors": 0,
+  "runtime_tests_executed": 0
+}

@@ -1,9 +1,7 @@
-# VAYLET continuation progress — D001 on current main
+# VAYLET continuation progress — C008 on current main
 
-Current immutable source `2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8` (after [RB-001](checkpoints/REBASELINE-2c181fc3.md)); historical C001–C007 source `66968655b8bd90c6681daf53fb9d8da9b9ab9f79` remains preserved.
+Current source `2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8`; historical C001–C007 remain at `66968655b8bd90c6681daf53fb9d8da9b9ab9f79`. [RB-001](checkpoints/REBASELINE-2c181fc3.md) and [D001](checkpoints/D001-2c181fc3.md) remain immutable.
 
-**1,312/4,711 source candidates (27.85%) and 148,631/611,038 lines (24.32%) credited; 3,399 current source files remain.** D001 separately reviewed all 15 new/modified eligible paths after RB-001: nine new-version stale reviews refreshed plus six new source candidates. See [D001](checkpoints/D001-2c181fc3.md), [new current ledger](checkpoints/D001-2c181fc3-current-ledger.csv) and [remaining paths](checkpoints/D001-2c181fc3-current-remaining.txt).
+**1,492/4,711 files (31.67%) and 171431/611,038 candidate lines (28.06%) fully credited; 3,219 remain.** C008 completed all 180 assigned files with source SHA, full ranges, semantic context, explicit reviewer ownership and no duplicate credit. [C008 records and report](checkpoints/C008-2c181fc3.md), [current ledger](checkpoints/C008-2c181fc3-current-ledger.csv), [remaining paths](checkpoints/C008-2c181fc3-current-remaining.txt).
 
-The 110 old-source C008/C009 records were recovered and unchanged under new main; an additional 25 C008 Backend records were recovered from Prime's earlier full source review, verified locally. C008 is **80/180 locally** with 100 pending; C009 is **55/180 locally** with 125 pending. They are not yet counted in the published numerator. Four replacement area reviewers are working on disjoint C008 Database/Employee/Native/Contracts rosters.
-
-Provisional P2 monitoring schema/cardinality note [RB001-OBS-001](findings/RB001-OBS-001.md) is source-backed but runtime unverified; no new P0/P1 confirmed. No application/DB/CI/browser/provider tests executed in D001. No product/UI/schema/config, issue/PR, merge, CI or deploy changes. Source coverage does not establish pilot/production readiness.
+C009 has 160/180 current-main semantic records independently verified in ignored scratch; none are credited until full C009 publication. Existing findings, including RB001-OBS-001 source-only P2 and C009-NATIVE-001 usability candidate, retain their confidence/limits. Zero new runtime tests, product changes, issues, PRs, merges, CI or deploys. Full exhaustive/security/pilot readiness assessment still pending.

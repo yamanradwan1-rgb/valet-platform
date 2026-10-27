@@ -25,3 +25,5 @@ C006: Existing test sources reviewed as code evidence only; **zero tests execute
 C007: Zero new tests executed; existing test files were read and linked to implementation only. Historical test results remain historical.
 
 RB-001/D001: Zero new application/runtime/browser/PostgreSQL/provider/CI tests executed; static source review, SHA/range/ledger verification only. Earlier benchmark/test results remain historical, not retested on current main.
+
+C008 on new main: Zero new application/DB/browser/provider/CI tests executed. Reviewed test assertions and source-only hash/range checks do not establish observed runtime PASS.

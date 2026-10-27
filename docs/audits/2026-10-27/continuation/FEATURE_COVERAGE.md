@@ -39,3 +39,7 @@ Reviewed selected Dashboard administration/physical-resource/security E2E, API D
 ## C007 continuation
 
 Completed 175 scoped source files covering Dashboard E2E, Customer flows, PostgreSQL migrations, API modules, Native, Contracts and Employee Client. This is file-level semantic coverage; cross-feature and runtime validation remain incomplete.
+
+## C008 on updated main
+
+180 fully reviewed source files across guest and customer, API guest push/access, database migrations, shared schemas, Native and Employee state/foreground, Dashboard E2E. Cross-feature and production readiness remain unverified.

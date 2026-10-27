@@ -1,0 +1,877 @@
+[
+  {
+    "path": "apps/api/src/modules/guest-access/guest-browser-transport.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-credential.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-information.controller.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-information.service.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-rating.controller.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-request-admission.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-push-registration/guest-push-public-config.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-push-registration/guest-push-registration-types.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-push-registration/guest-push-registration.controller.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-push-registration/guest-push-registration.module.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-push-registration/guest-push-registration.service.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-claim-repository.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-delivery-types.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-finalization-repository.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-idle-delay.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-lifetime.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-maintenance-repository.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-maintenance.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-observability.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-operational-policy.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-provider.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-retry.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-worker-database.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-web-push-config.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "apps/api/src/modules/incidents/incident-database-time.ts",
+    "original_worker": "backend",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "recovered prior Prime full review"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261007007000_guest_browser_session_continuity/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261008007100_guest_browser_context_schema/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261008007200_guest_browser_context_prepare/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261008007300_guest_browser_context_switch/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261008007400_guest_browser_context_reconcile/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261008007500_guest_t3_classified_anti_abuse/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261008007600_guest_t3_visit_budget_binding/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261008007700_guest_t3_group_window_index/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261008007800_guest_web_push_v1/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261010007900_live_history_parked_audit_indexes/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261014008000_issue_215_verified_condition_photo_p1/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015008100_issue_215_photo_anti_abuse_scopes/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015008200_issue_215_condition_photo_policy_recovery/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015008300_issue_215_condition_photo_policy_recovery_finish/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015008400_issue_215_p5_photo_maintenance_claims/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015008500_issue_215_p5_photo_integrity_system/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015008600_outbound_messaging_foundation/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015008700_outbound_sender_functions/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015008800_outbound_webhook_recovery_functions/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015008900_outbound_callback_and_suppression_fences/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015009000_outbound_binding_insert_acl/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015009200_outbound_phone_change_suppression/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261020009700_issue304_key_slot_label/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261021009800_issue309_photo_view_anti_abuse_scope/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261022010100_issue316_guest_information_contracts/migration.sql",
+    "original_worker": "database",
+    "actual_reviewer": "c008_database_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-handoff-flow-transport.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-handoff-flow-types.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-http-failure-taxonomy.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-locale.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-locale.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-operational-accept.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-operational-action-scope.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-operational-background-action-fence.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-operational-barrier.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-operational-bootstrap-ordering.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-operational-context-action-recovery.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-operational-identity.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-operational-lifecycle-race.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-operational-load.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-parking-bootstrap-background-fence.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-parking-cancellation-queue.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-parking-cancellation-session.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-parking-cancellation-session.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-parking-cancellation-transport.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-parking-cancellation-types.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-parking-spot-validation-fences.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-parking-spot-validation.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-parking-spot-validation.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-parking-start-session.test.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/employee-client/src/employee-parking-start-session.ts",
+    "original_worker": "employee",
+    "actual_reviewer": "c008_employee_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-roi-rotation-diagnostic.ts",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-roi-viewport.tsx",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-plate-torch-control.tsx",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/crypto/native-secure-crypto.ts",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/diagnostics/native-physical-diagnostics-card.tsx",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/diagnostics/native-physical-diagnostics-model.ts",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/diagnostics/native-physical-diagnostics-persistence.ts",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/diagnostics/native-physical-diagnostics-store.ts",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/diagnostics/native-physical-diagnostics.ts",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/employee-ui/employee-action-icons.tsx",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/employee-ui/employee-back-header.tsx",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/employee-ui/employee-brand-logo.tsx",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/employee-ui/employee-context-icons.tsx",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/employee-ui/employee-controls.tsx",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/employee-ui/employee-feedback.tsx",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/employee-ui/employee-fields.tsx",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/employee-ui/employee-frame.tsx",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/employee-ui/employee-icon-types.ts",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/employee-ui/employee-icons.tsx",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/employee-ui/employee-navigation-icons.tsx",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/employee-ui/employee-tokens.ts",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/employee-ui/employee-torch-icon.tsx",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/employee-ui/employee-typography.ts",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/foundation/foundation-locale.ts",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "apps/valet-native/src/foundation/foundation-shell.tsx",
+    "original_worker": "native",
+    "actual_reviewer": "prime",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/location-analytics-incidents.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/location-analytics-kpis.test.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/location-analytics-kpis.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/location-analytics-operational.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/location-branding.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/location-configuration.test.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/location-configuration.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/location-financial-overview.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/location-overview-pagination.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/location-overview.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/location-report-common.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/location-report.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/location-subscription.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/management-audit-details.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/management-audit-human-identity.test.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/management-audit-presence.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/management-audit.test.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/management-audit.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/management-branding.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/management-commercial.test.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/management-commercial.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/management-control-plane.test.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/management-control-plane.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/management-integrations.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  },
+  {
+    "path": "packages/contracts/src/management-location-lifecycle.ts",
+    "original_worker": "contracts",
+    "actual_reviewer": "c008_contracts_review",
+    "batch": "C008",
+    "reason": "new authorized replacement after old COS worker failure"
+  }
+]

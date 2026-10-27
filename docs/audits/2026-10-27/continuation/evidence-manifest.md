@@ -10,16 +10,16 @@ No evidence archive, Git LFS, dependency installation or size-limit bypass. New 
 
 | Path | SHA-256 |
 |---|---|
-|[AUDIT_PROGRESS.md](AUDIT_PROGRESS.md)|`93a02e56fa3a07dbf667338dd69f246e9ed06f75566694a9bcf8c707cb6316dd`|
-|[CHECKPOINTS.md](CHECKPOINTS.md)|`eda78f2170fb33739084a498c7860e1dbd10f638c95fd8e0a94a4cec6ca2a445`|
+|[AUDIT_PROGRESS.md](AUDIT_PROGRESS.md)|`bfda87964671fafb8131592ae3b78e0c4a833173ee656c5ac63697017d28a424`|
+|[CHECKPOINTS.md](CHECKPOINTS.md)|`8feb266a1f3bc212966fb4e77666c939187b014e93907a955e9d1522f3b9011f`|
 |[CROSS_FEATURE_RISKS.md](CROSS_FEATURE_RISKS.md)|`c18c0e6a56fa15e4f7889539cf2d4664d73b80b4f371d234f273c201b1a24872`|
 |[FALSE_POSITIVE_DISPOSITIONS.md](FALSE_POSITIVE_DISPOSITIONS.md)|`c292f9ebb470be6bb36a18c0fcaf5efc7d86920d1bf881ef8e0f7852baff5677`|
-|[FEATURE_COVERAGE.md](FEATURE_COVERAGE.md)|`1f111a17f490cf4cb072befde002017ff5a1b88ab1d91d40a4feb8cd1adfc18d`|
+|[FEATURE_COVERAGE.md](FEATURE_COVERAGE.md)|`dbb757dad7bdc3b58ecf607047a164a233a825df69d35501332923eabec4e4bd`|
 |[FINDINGS_REGISTER.md](FINDINGS_REGISTER.md)|`33d9ba11db0d1a845831df0218b2e84aee73625481178fa29660f9c070a59954`|
 |[FINDING_VALIDATION.md](FINDING_VALIDATION.md)|`0a7524f26c7a50b3046ed7caaad1e1dbc309e070efde98b37701b50cda51ecdc`|
 |[README.md](README.md)|`1e8c1f4f6e6fad421417fd1ee900afc96ab73f34d7fe591d1073bddf88d5f182`|
-|[SECURITY_COVERAGE.md](SECURITY_COVERAGE.md)|`2403c158ccbed27011232b91646fcdfe3258495d9103402591d032c16c9c2b53`|
-|[TEST_EVIDENCE.md](TEST_EVIDENCE.md)|`4e22050d7cc9aac7b304906007f190be03f753af18427cc07fd6c87e1822841a`|
+|[SECURITY_COVERAGE.md](SECURITY_COVERAGE.md)|`058f37838280b439cddf5b4d959634fcb032c95b04073425bfe562d293a18b00`|
+|[TEST_EVIDENCE.md](TEST_EVIDENCE.md)|`67b8730fb25e2de29df38f63dd9455673dc9b8342f87a83070862f4f5eb694c9`|
 |[checkpoints/C001-assignments.json](checkpoints/C001-assignments.json)|`01b5e193f8ce4d782e3e1080c1548efd554dc66342f54e2c3ebc541d817d9e9a`|
 |[checkpoints/C001-coverage-summary.json](checkpoints/C001-coverage-summary.json)|`2a268b1a55db35335cc1a6d5f6488b66426d397ede4e79f3d2d06278d45cf99b`|
 |[checkpoints/C001-pending-files.txt](checkpoints/C001-pending-files.txt)|`46b8e0c75777785eafecb40b2ace46498dbbbb88b24d6185bf824a273271d2fb`|
@@ -152,3 +152,15 @@ No evidence archive, Git LFS, dependency installation or size-limit bypass. New 
 |[checkpoints/D001-2c181fc3-current-remaining.txt](checkpoints/D001-2c181fc3-current-remaining.txt)|`6bf4a03b3f3c236a4c885e977a9bc1e1697875ee30583dd10f50ee3e49ce7055`|
 |[checkpoints/D001-2c181fc3.md](checkpoints/D001-2c181fc3.md)|`130b30a04195198d0a2a02af317145485efa5cb66fac2d2f77a7cc2420e254f0`|
 |[findings/RB001-OBS-001.md](findings/RB001-OBS-001.md)|`8e169772e44eaac6a74b5351c7661fd10f9b1f3ffcc85018c6877fa7ce074c1a`|
+
+## C008 current-main completed batch
+
+| Path | SHA-256 |
+|---|---|
+|[checkpoints/C008-2c181fc3-review-records.json](checkpoints/C008-2c181fc3-review-records.json)|`7292eb198937cf8bf523ea6ff55792bfc778390eb2defe63a5408047d64a50f0`|
+|[checkpoints/C008-2c181fc3-assignment-roster.json](checkpoints/C008-2c181fc3-assignment-roster.json)|`e617b1d3c5912097f258ec8bb225a59e3da97c09d7a2251f67fa1904ad4fc9de`|
+|[checkpoints/C008-2c181fc3-ownership-transfers.json](checkpoints/C008-2c181fc3-ownership-transfers.json)|`bd3777e0eff62e8bfe203d9add40dacf67fd92c3ea23483e9d816e9a30b566a2`|
+|[checkpoints/C008-2c181fc3-coverage-summary.json](checkpoints/C008-2c181fc3-coverage-summary.json)|`39cd83bebfc1a1228fc6326e31aeac1f5a51e5e6a5eb786a6a77c766487e4d37`|
+|[checkpoints/C008-2c181fc3-current-ledger.csv](checkpoints/C008-2c181fc3-current-ledger.csv)|`11085a910212aafce07871662fe0e60c5ed7f9fbbe9f311800883b10f71c0f5a`|
+|[checkpoints/C008-2c181fc3-current-remaining.txt](checkpoints/C008-2c181fc3-current-remaining.txt)|`0909fecdf65713e2c4fb88076266b442e6abb8476d1aaee0051da8f8f56bab96`|
+|[checkpoints/C008-2c181fc3.md](checkpoints/C008-2c181fc3.md)|`c5fa187d32b681c203931621d2568fe6838a696f8d8a4a504b1a1636fe9a5a36`|
