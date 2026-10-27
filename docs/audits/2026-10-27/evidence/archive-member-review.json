@@ -1,0 +1,804 @@
+{
+  "source_archive_sha256": "1753641029f6340ff0b8ffcc430cb7ca5cf20887e9c6f6deceedac0d80741494",
+  "members_inspected": 65,
+  "members": [
+    {
+      "archive_member": "VAYLET_AUDIT_2026-10-27.md",
+      "original_bytes": 187836,
+      "original_sha256": "c40ccf34dd4c91338377af3d74444da3025440dae9f3f0754438f34d9dd90928",
+      "published_path": "VAYLET_AUDIT_2026-10-27.md",
+      "published_bytes": 188206,
+      "published_sha256": "b6226e18374d00115d81fb06826f0ed62e3ca282c7c5d0183347d44745f23af1",
+      "disposition": "published_sanitized",
+      "changes": [
+        "7 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>",
+        "8 host-path prefix occurrence(s) replaced by <AUDIT_WORKDIR>",
+        "11 host-path prefix occurrence(s) replaced by <DEPENDENCY_CHECKOUT>",
+        "Publication provenance note prepended; Reports A\u2013L and all appendices retained"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "validation-commands.md",
+      "original_bytes": 6428,
+      "original_sha256": "39aedf595e37c5254966c3e13ce8889b7a0f80534654048e2f9c42b7b312626d",
+      "published_path": "evidence/validation-commands.md",
+      "published_bytes": 6354,
+      "published_sha256": "8a69a6bfd83e8c57010ae58df70a70647a4ad122860f25130ead3d4115492846",
+      "disposition": "published_sanitized",
+      "changes": [
+        "2 host-path prefix occurrence(s) replaced by <AUDIT_WORKDIR>",
+        "12 host-path prefix occurrence(s) replaced by <DEPENDENCY_CHECKOUT>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/coverage-ledger.json",
+      "original_bytes": 3441413,
+      "original_sha256": "8c56cd8e25fe26a9d827fe47587c94012cd237b956cde7ccbb9d4656f6443e2e",
+      "published_path": "evidence/coverage-ledger.json",
+      "published_bytes": 3441413,
+      "published_sha256": "8c56cd8e25fe26a9d827fe47587c94012cd237b956cde7ccbb9d4656f6443e2e",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/coverage-ledger.csv",
+      "original_bytes": 841449,
+      "original_sha256": "bb419223f2385453a6bac4e8c92581063417c895fc816ae99a5dea03fb4de748",
+      "published_path": "coverage-ledger.csv",
+      "published_bytes": 841449,
+      "published_sha256": "bb419223f2385453a6bac4e8c92581063417c895fc816ae99a5dea03fb4de748",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/coverage-summary.json",
+      "original_bytes": 3616,
+      "original_sha256": "215a7a669df3449356ad7d9e6de2d248fb643e1f461e0454c7bee8aebdc62a70",
+      "published_path": "evidence/coverage-summary.json",
+      "published_bytes": 3616,
+      "published_sha256": "215a7a669df3449356ad7d9e6de2d248fb643e1f461e0454c7bee8aebdc62a70",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/not-fully-reviewed.txt",
+      "original_bytes": 559336,
+      "original_sha256": "b986dd996ef22f3fb9e96ab11163cb1923ad16652d8996b24ff476c224dc86cd",
+      "published_path": "evidence/not-fully-reviewed.txt",
+      "published_bytes": 559336,
+      "published_sha256": "b986dd996ef22f3fb9e96ab11163cb1923ad16652d8996b24ff476c224dc86cd",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/inventory.json",
+      "original_bytes": 1830649,
+      "original_sha256": "916d192fad84546c6d609b99c82afb6130ac9649c53e7fc6ab5a5625f7e627cc",
+      "published_path": "evidence/inventory.json",
+      "published_bytes": 1830649,
+      "published_sha256": "916d192fad84546c6d609b99c82afb6130ac9649c53e7fc6ab5a5625f7e627cc",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/api-endpoints.csv",
+      "original_bytes": 74957,
+      "original_sha256": "a43838e079a8994a3ad0668595ecc1fae2a6c14523f68b93a0e13158592365b7",
+      "published_path": "evidence/api-endpoints.csv",
+      "published_bytes": 74957,
+      "published_sha256": "a43838e079a8994a3ad0668595ecc1fae2a6c14523f68b93a0e13158592365b7",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/api-endpoints.json",
+      "original_bytes": 113643,
+      "original_sha256": "3670d3d359789c198647a9f3b97fa6bb8bca116a5fa42b6e19e8f86699b20634",
+      "published_path": "evidence/api-endpoints.json",
+      "published_bytes": 113643,
+      "published_sha256": "3670d3d359789c198647a9f3b97fa6bb8bca116a5fa42b6e19e8f86699b20634",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/coordinator-findings.md",
+      "original_bytes": 10694,
+      "original_sha256": "9782b273c0ae19c3b94cccb92d3ff78eef72c2bc2aaf50dd3111cdaf0503a4e4",
+      "published_path": "evidence/coordinator-findings.md",
+      "published_bytes": 10686,
+      "published_sha256": "1f1db3dbb853face4c974b053dc8a002e79bda690b320938fbaee94a094a1b6f",
+      "disposition": "published_sanitized",
+      "changes": [
+        "2 host-path prefix occurrence(s) replaced by <DEPENDENCY_CHECKOUT>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/dependency-resolution.json",
+      "original_bytes": 171,
+      "original_sha256": "2b378974b75df442dd78036647ce88aa59529f1b1c474c2e45158b3171f69519",
+      "published_path": "evidence/dependency-resolution.json",
+      "published_bytes": 171,
+      "published_sha256": "2b378974b75df442dd78036647ce88aa59529f1b1c474c2e45158b3171f69519",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/architecture-final.log",
+      "original_bytes": 2086,
+      "original_sha256": "a35e49f8e68431cedacda29ae18c75be58e08548b30a547e1a1beaafbc41d26b",
+      "published_path": "evidence/architecture-final.log",
+      "published_bytes": 2086,
+      "published_sha256": "a35e49f8e68431cedacda29ae18c75be58e08548b30a547e1a1beaafbc41d26b",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/typecheck-api-final.log",
+      "original_bytes": 0,
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "published_path": "evidence/typecheck-api-final.log",
+      "published_bytes": 0,
+      "published_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/lint-final.log",
+      "original_bytes": 0,
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "published_path": "evidence/lint-final.log",
+      "published_bytes": 0,
+      "published_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/harness-only-final.log",
+      "original_bytes": 3556,
+      "original_sha256": "be2433cfe9cc42cad32c462fa0a8935430e271de8fb47072e2fe751e53364201",
+      "published_path": "evidence/harness-only-final.log",
+      "published_bytes": 3556,
+      "published_sha256": "be2433cfe9cc42cad32c462fa0a8935430e271de8fb47072e2fe751e53364201",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/node-validation.log",
+      "original_bytes": 27507,
+      "original_sha256": "64d381403599046da35d51955d8e3ea32b8a2a524e4ceee2a38af6093a3c35c2",
+      "published_path": "evidence/node-validation.log",
+      "published_bytes": 27421,
+      "published_sha256": "17e2e340d2be4273f5e63401e53562251ba42d49f92ea6d99875779a3793dd3f",
+      "disposition": "published_sanitized",
+      "changes": [
+        "2 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>",
+        "2 host-path prefix occurrence(s) replaced by <PACKAGE_CACHE>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/customer-tests.json",
+      "original_bytes": 184794,
+      "original_sha256": "25af20b9bbcf0f49d5de8ef916861d47dcf3b25d1f9a1f830c298d1717db7e68",
+      "published_path": "evidence/customer-tests.json",
+      "published_bytes": 183553,
+      "published_sha256": "b872003d219a9b59018f498cd340adfd97d28f6712b837ab80fde27947ba4bc2",
+      "disposition": "published_sanitized",
+      "changes": [
+        "67 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>",
+        "2 credential-shaped synthetic URL userinfo occurrence(s) redacted"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/contracts-full-tests.log",
+      "original_bytes": 1250,
+      "original_sha256": "80fd7779618bb7133181387c7dd8fdb0bbb1460779e55b57186b28328e7ff3fe",
+      "published_path": "evidence/contracts-full-tests.log",
+      "published_bytes": 1231,
+      "published_sha256": "87e4551cc398f313990a44e026ff4699ad473029fbe31f5c2033db85f77fe103",
+      "disposition": "published_sanitized",
+      "changes": [
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/employee-client-full-tests.log",
+      "original_bytes": 261,
+      "original_sha256": "a0a08f912de1e41cb430d74ad77c72dbdb74f97d7e05b0a43bc9e97c4958f0f2",
+      "published_path": "evidence/employee-client-full-tests.log",
+      "published_bytes": 242,
+      "published_sha256": "a53d4070e677d6039e78e53b825a9859a015c69c466381c672c4a4c1d19284c7",
+      "disposition": "published_sanitized",
+      "changes": [
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/employee-web-full-tests.log",
+      "original_bytes": 246,
+      "original_sha256": "442cb2ec4802562b6dc2bf60fa3156aa5697e7625c30e49cdfe0ba65e6bc1f17",
+      "published_path": "evidence/employee-web-full-tests.log",
+      "published_bytes": 227,
+      "published_sha256": "462de421f79966f1dd90738a1fff6987f3f816698bc34349aec3fe2db0805c6a",
+      "disposition": "published_sanitized",
+      "changes": [
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/native-node-full-tests.log",
+      "original_bytes": 4396,
+      "original_sha256": "10d8a69ddf79d5e9bc8b5dde60e60ed2d973aa455c783aec22594f7dd3216fb4",
+      "published_path": "evidence/native-node-full-tests.log",
+      "published_bytes": 4377,
+      "published_sha256": "34b65d26be7be2fc2edbfe26fd0f8ce926b8c14375d6a356d9ae99d1e20b57a0",
+      "disposition": "published_sanitized",
+      "changes": [
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/native-timeout-disambiguation.log",
+      "original_bytes": 243,
+      "original_sha256": "769574b428adad925a2b6de4151d687d2de344cb726776890f576e43d86dbfe7",
+      "published_path": "evidence/native-timeout-disambiguation.log",
+      "published_bytes": 224,
+      "published_sha256": "5f7bf6c4d551f9f23abdd36c4f7916ca949d2455efe295b8757edc1e90ae0bf2",
+      "disposition": "published_sanitized",
+      "changes": [
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/native-font-diagnosis.txt",
+      "original_bytes": 330,
+      "original_sha256": "bf6014ad299ea08c853d8279166b9b7282f55f52762642e7d6e10eb1467f1adf",
+      "published_path": "evidence/native-font-diagnosis.txt",
+      "published_bytes": 330,
+      "published_sha256": "bf6014ad299ea08c853d8279166b9b7282f55f52762642e7d6e10eb1467f1adf",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/currency-tests.log",
+      "original_bytes": 228,
+      "original_sha256": "ad5402c154e9b72aaf87d1227d209a10dcf8ecb5abd377e037c279046142d19d",
+      "published_path": "evidence/currency-tests.log",
+      "published_bytes": 209,
+      "published_sha256": "12300467a576c840fb2fa72087aec4e4c881802a8c607269deafecff50243c57",
+      "disposition": "published_sanitized",
+      "changes": [
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/tracking-official-discovery.log",
+      "original_bytes": 0,
+      "original_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "published_path": "evidence/tracking-official-discovery.log",
+      "published_bytes": 0,
+      "published_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/tracking-direct-tests.log",
+      "original_bytes": 214,
+      "original_sha256": "c48b30ac7e98a6156d7c2ea30513f81016ae5648a070526e883a0038155e0bae",
+      "published_path": "evidence/tracking-direct-tests.log",
+      "published_bytes": 201,
+      "published_sha256": "ffd79c896fa367385ba3bd8f3cf5c25c4463eff6786ad3517463561f30e16539",
+      "disposition": "published_sanitized",
+      "changes": [
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKDIR>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/tracking-tests.config.mjs",
+      "original_bytes": 340,
+      "original_sha256": "f9049b7fa1d9d56854ba7e1416176222a62a7a58f101fcb59a84ebc1ba37e22b",
+      "published_path": "evidence/tracking-tests.config.mjs",
+      "published_bytes": 347,
+      "published_sha256": "3d70cf5f4a2cf578bdb64e2ca97c54bd84bc489a249482927b9743d44bfe8d8f",
+      "disposition": "published_sanitized",
+      "changes": [
+        "Host-specific source/dependency paths parameterized via reproduction-paths.cjs; model, assertions and outcomes unchanged; not rerun for publication"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/disposable-postgres-tests.log",
+      "original_bytes": 13824,
+      "original_sha256": "27e384b6fa28e60d3c72e687c2135600a336fbf520e0039ceea9dda09bedffdd",
+      "published_path": "evidence/disposable-postgres-tests.log",
+      "published_bytes": 10541,
+      "published_sha256": "d060d86fbeeda5065f358ce5f8e1c4660186ffaa9bc1b556e51d0730f01c521b",
+      "disposition": "published_sanitized",
+      "changes": [
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>",
+        "72 host-path prefix occurrence(s) replaced by <NODE_RUNTIME>",
+        "1 host-path prefix occurrence(s) replaced by <PACKAGE_CACHE>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/disposable-sql-migration.log",
+      "original_bytes": 20844,
+      "original_sha256": "e5fc39f52894089e0536caa5027def8a38dc6b8e89354dbaca23800d56ae4137",
+      "published_path": "evidence/disposable-sql-migration.log",
+      "published_bytes": 20844,
+      "published_sha256": "e5fc39f52894089e0536caa5027def8a38dc6b8e89354dbaca23800d56ae4137",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/disposable-postgres-result.json",
+      "original_bytes": 346,
+      "original_sha256": "6be875936152df49daa6117c66d4e9c4e27dfb97c13d1ecdb1b254edc22a6802",
+      "published_path": "evidence/disposable-postgres-result.json",
+      "published_bytes": 346,
+      "published_sha256": "6be875936152df49daa6117c66d4e9c4e27dfb97c13d1ecdb1b254edc22a6802",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/backend_operations/summary.json",
+      "original_bytes": 195,
+      "original_sha256": "3cce29ffeaefe97074a419f3e6a1831f7b4c46e2cad8a944b783c59c1879f1a4",
+      "published_path": "evidence/backend_operations/summary.json",
+      "published_bytes": 195,
+      "published_sha256": "3cce29ffeaefe97074a419f3e6a1831f7b4c46e2cad8a944b783c59c1879f1a4",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/backend_operations/handoff-time-harness.log",
+      "original_bytes": 297,
+      "original_sha256": "52f2f96971152dcb82574dd222dfdeafb6141664d0c4527774dc06916540d07d",
+      "published_path": "evidence/backend_operations/handoff-time-harness.log",
+      "published_bytes": 297,
+      "published_sha256": "52f2f96971152dcb82574dd222dfdeafb6141664d0c4527774dc06916540d07d",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/backend_operations/routes.json",
+      "original_bytes": 15061,
+      "original_sha256": "74b876573541eb7296e2ab1f77b521866094a7457a437bc0ce1d233586e61e9a",
+      "published_path": "evidence/backend_operations/routes.json",
+      "published_bytes": 15061,
+      "published_sha256": "74b876573541eb7296e2ab1f77b521866094a7457a437bc0ce1d233586e61e9a",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/backend_operations/coverage.json",
+      "original_bytes": 100512,
+      "original_sha256": "6f149a9e68251ec326f7fb4f4452be68c987f06b3fd6c80316cf446ea6f17ce8",
+      "published_path": "evidence/backend_operations/coverage.json",
+      "published_bytes": 100512,
+      "published_sha256": "6f149a9e68251ec326f7fb4f4452be68c987f06b3fd6c80316cf446ea6f17ce8",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/backend_operations/handoff-time-harness.cjs",
+      "original_bytes": 2244,
+      "original_sha256": "12b239ece6307f799bf44f0e1304cfb3c7a04d84adbfd338cc44f9f0cdb82bda",
+      "published_path": "evidence/backend_operations/handoff-time-harness.cjs",
+      "published_bytes": 2270,
+      "published_sha256": "70fd62e20d335ff8fd4cc8aaaf994c4a613820b661183647c0fe4f68f885e94c",
+      "disposition": "published_sanitized",
+      "changes": [
+        "Host-specific source/dependency paths parameterized via reproduction-paths.cjs; model, assertions and outcomes unchanged; not rerun for publication"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/backend_operations/tests.log",
+      "original_bytes": 8117,
+      "original_sha256": "63ca1b5d27122a8b1bb6c9f98dbaa6470f78f9185f1d1eda017093c793702517",
+      "published_path": "evidence/backend_operations/tests.log",
+      "published_bytes": 8098,
+      "published_sha256": "d0420942fcc42c4801ec7c7ccc06791184b8e0a483ec8fa101ef26010c234b93",
+      "disposition": "published_sanitized",
+      "changes": [
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/backend_operations/report.md",
+      "original_bytes": 23255,
+      "original_sha256": "c79ad53bd8f5576ba2886cb26cf7d18008e9b90829c3c5996bf2e73b7a50611b",
+      "published_path": "evidence/backend_operations/report.md",
+      "published_bytes": 23219,
+      "published_sha256": "888c72214f54bfbb8b16e51dbdbcf9c1e501571d4c497ddb5e44b46a3a121398",
+      "disposition": "published_sanitized",
+      "changes": [
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>",
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKDIR>",
+        "1 host-path prefix occurrence(s) replaced by <DEPENDENCY_CHECKOUT>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/backend_integrations/coverage.json",
+      "original_bytes": 143884,
+      "original_sha256": "2d6ef711cfc1d923165dcab4c3ff98479fc830b2b0911b9b1e456961be5951af",
+      "published_path": "evidence/backend_integrations/coverage.json",
+      "published_bytes": 143884,
+      "published_sha256": "2d6ef711cfc1d923165dcab4c3ff98479fc830b2b0911b9b1e456961be5951af",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/backend_integrations/focused-tests.log",
+      "original_bytes": 233,
+      "original_sha256": "7e6882ec9952ad4b7d61b580c36ba0fc43d902e082a7c8e7f3a59667cb8a5d8f",
+      "published_path": "evidence/backend_integrations/focused-tests.log",
+      "published_bytes": 214,
+      "published_sha256": "14e0e8b4bd60b1d9b54a3ddd1f1832a0ccbcb3bb4f3d644ac65c8eecdd1dfe64",
+      "disposition": "published_sanitized",
+      "changes": [
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/backend_integrations/report.md",
+      "original_bytes": 18909,
+      "original_sha256": "b41705d86ab58f667fcb97146dd93a6bc94b116e8248aa5e7070d83c209f3118",
+      "published_path": "evidence/backend_integrations/report.md",
+      "published_bytes": 18854,
+      "published_sha256": "0007fd9a2dac31c7f93b7c6cce4bb66729e4bdf204ef48af6be46a20609a28a5",
+      "disposition": "published_sanitized",
+      "changes": [
+        "2 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>",
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKDIR>",
+        "1 host-path prefix occurrence(s) replaced by <DEPENDENCY_CHECKOUT>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/backend_integrations/late-lease-probe.log",
+      "original_bytes": 361,
+      "original_sha256": "556c3d64a46062a677c25b3ac4f6baa1c599f0e4977d48bdcdc6e3a38c9f574c",
+      "published_path": "evidence/backend_integrations/late-lease-probe.log",
+      "published_bytes": 361,
+      "published_sha256": "556c3d64a46062a677c25b3ac4f6baa1c599f0e4977d48bdcdc6e3a38c9f574c",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/backend_integrations/late-lease-probe.cjs",
+      "original_bytes": 2942,
+      "original_sha256": "41643206d8fea3d23957014234e38f6d6545e41d7704c3c39fa07348221830ed",
+      "published_path": "evidence/backend_integrations/late-lease-probe.cjs",
+      "published_bytes": 2968,
+      "published_sha256": "148f52d2f2f6d3d95c5f61ef60c59a85c5b34949ccb4e88f5aae1098efd7b76a",
+      "disposition": "published_sanitized",
+      "changes": [
+        "Host-specific source/dependency paths parameterized via reproduction-paths.cjs; model, assertions and outcomes unchanged; not rerun for publication"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/database/coverage.json",
+      "original_bytes": 90065,
+      "original_sha256": "805ccf943c088c4bd4da1e7c3e46a5c95e7082f603c176b01e7c4872b6d38314",
+      "published_path": "evidence/database/coverage.json",
+      "published_bytes": 90065,
+      "published_sha256": "805ccf943c088c4bd4da1e7c3e46a5c95e7082f603c176b01e7c4872b6d38314",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/database/vitest-non-postgres.log",
+      "original_bytes": 1639,
+      "original_sha256": "234dededec929ab8bb694935bf309af49f21ccebf5096efa07a3e3fb83f2cedb",
+      "published_path": "evidence/database/vitest-non-postgres.log",
+      "published_bytes": 1620,
+      "published_sha256": "0e4ad5ed2701e9fde63213460c5445ac62403b36ebf0b709feb02efd74b13e7a",
+      "disposition": "published_sanitized",
+      "changes": [
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/database/vitest-manifest.log",
+      "original_bytes": 1613,
+      "original_sha256": "f9f2c186f9c0f54d49299179c0419d543c31312db7c29471369696cb7bc455b3",
+      "published_path": "evidence/database/vitest-manifest.log",
+      "published_bytes": 1594,
+      "published_sha256": "fb96b94c2bec550f225fc3b02bb97c4176e6a245c42a7c5809374f99e7d481be",
+      "disposition": "published_sanitized",
+      "changes": [
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/database/unreviewed-files.txt",
+      "original_bytes": 21430,
+      "original_sha256": "bd423f425ac4bc39cf0bcdad9c03e7b524528b5a26635affd176bad11d05da20",
+      "published_path": "evidence/database/unreviewed-files.txt",
+      "published_bytes": 21430,
+      "published_sha256": "bd423f425ac4bc39cf0bcdad9c03e7b524528b5a26635affd176bad11d05da20",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/database/migration-inventory.json",
+      "original_bytes": 37575,
+      "original_sha256": "b838c16e7e0715da90c34b56d5b7f94511bd2a42b9fbdd3b038278045dfbffb9",
+      "published_path": "evidence/database/migration-inventory.json",
+      "published_bytes": 37575,
+      "published_sha256": "b838c16e7e0715da90c34b56d5b7f94511bd2a42b9fbdd3b038278045dfbffb9",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/database/report.md",
+      "original_bytes": 22648,
+      "original_sha256": "8a050b3bbcd54db65cca6724ee7f27c0c7e9d475b1fc4c145c2f47d530e82f4c",
+      "published_path": "evidence/database/report.md",
+      "published_bytes": 22608,
+      "published_sha256": "9fdb52d79f21c09c815181e275f0fd8b7259dbc28e2d88a671ea49bd18c50322",
+      "disposition": "published_sanitized",
+      "changes": [
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>",
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKDIR>",
+        "2 host-path prefix occurrence(s) replaced by <DEPENDENCY_CHECKOUT>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/database/manifest-comparison.log",
+      "original_bytes": 11863,
+      "original_sha256": "7bb6bbdcd655969ef9310634a404168c013ea031dcca62d0dc220fc1bbd7c923",
+      "published_path": "evidence/database/manifest-comparison.log",
+      "published_bytes": 11850,
+      "published_sha256": "d6e814a0da13b7abecca0a0a73ccced296df9c6b1740d60fc658ef0653960c80",
+      "disposition": "published_sanitized",
+      "changes": [
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKDIR>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/database/check-migration-manifest.mjs",
+      "original_bytes": 868,
+      "original_sha256": "9abea34db4c123a5a136959698e0e6b7c27887e14a6450bc301b5d3692b5761d",
+      "published_path": "evidence/database/check-migration-manifest.mjs",
+      "published_bytes": 897,
+      "published_sha256": "8bf72adee752a16c00de3434e4afc1beb579863b4b61345550cdb7c98225dea3",
+      "disposition": "published_sanitized",
+      "changes": [
+        "Host-specific source/dependency paths parameterized via reproduction-paths.cjs; model, assertions and outcomes unchanged; not rerun for publication"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/dashboard/coverage.json",
+      "original_bytes": 174652,
+      "original_sha256": "efd863e38a135bfcc7ed770863cc6e9f42f7eeed707426780da93bf2d1c9bfb9",
+      "published_path": "evidence/dashboard/coverage.json",
+      "published_bytes": 174652,
+      "published_sha256": "efd863e38a135bfcc7ed770863cc6e9f42f7eeed707426780da93bf2d1c9bfb9",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/dashboard/report.md",
+      "original_bytes": 20543,
+      "original_sha256": "f7ee2cc5cae20e3e09d6e9dc108d8357de6769c3ac09471d575a2766111dd033",
+      "published_path": "evidence/dashboard/report.md",
+      "published_bytes": 20503,
+      "published_sha256": "24baac94213069e4eb5b1a0d71845cf06e54e37d0f3639e5f938776aaa59f77e",
+      "disposition": "published_sanitized",
+      "changes": [
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>",
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKDIR>",
+        "2 host-path prefix occurrence(s) replaced by <DEPENDENCY_CHECKOUT>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/dashboard/inventory.json",
+      "original_bytes": 30889,
+      "original_sha256": "26c2cd69e343c26029729652e8a7a4930e0bcc806c1270cfb160c59c7eee2ccb",
+      "published_path": "evidence/dashboard/inventory.json",
+      "published_bytes": 30889,
+      "published_sha256": "26c2cd69e343c26029729652e8a7a4930e0bcc806c1270cfb160c59c7eee2ccb",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/customer/coverage.json",
+      "original_bytes": 76102,
+      "original_sha256": "bfcb8434f133721977fc144373b827dfa754c47787d69273d83153603ed7078a",
+      "published_path": "evidence/customer/coverage.json",
+      "published_bytes": 76102,
+      "published_sha256": "bfcb8434f133721977fc144373b827dfa754c47787d69273d83153603ed7078a",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/customer/reproduce-preferences.cjs",
+      "original_bytes": 2395,
+      "original_sha256": "340993978946a3375778c1e39f32fff8340ba99338559f6988c2c84b58b328e7",
+      "published_path": "evidence/customer/reproduce-preferences.cjs",
+      "published_bytes": 2420,
+      "published_sha256": "3d116204f4e089179207d72ca4e34b060ab04eadd45f3f49e67aeb1ffd7ed455",
+      "disposition": "published_sanitized",
+      "changes": [
+        "Host-specific source/dependency paths parameterized via reproduction-paths.cjs; model, assertions and outcomes unchanged; not rerun for publication"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/customer/report.md",
+      "original_bytes": 21008,
+      "original_sha256": "b7f4dc057dacd7bf807b4df7ada6ee5b9e16217aebdf2bda08e9ede82df0474f",
+      "published_path": "evidence/customer/report.md",
+      "published_bytes": 20965,
+      "published_sha256": "80be975fd4b73fc0bb4bbba9646f6b38f2b1e534f4032525e2d271a285cfda7e",
+      "disposition": "published_sanitized",
+      "changes": [
+        "3 host-path prefix occurrence(s) replaced by <AUDIT_WORKDIR>",
+        "1 host-path prefix occurrence(s) replaced by <DEPENDENCY_CHECKOUT>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/customer/preferences-reproduction.log",
+      "original_bytes": 623,
+      "original_sha256": "2c8fcda5b1754a05313da1a143e1be6f79711a31f5595ad87dec63712769ea80",
+      "published_path": "evidence/customer/preferences-reproduction.log",
+      "published_bytes": 623,
+      "published_sha256": "2c8fcda5b1754a05313da1a143e1be6f79711a31f5595ad87dec63712769ea80",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/native/coverage.json",
+      "original_bytes": 193126,
+      "original_sha256": "d17e7bd859322d31755d51bf9c197d302840d09f99f7579f141ac809af09cef8",
+      "published_path": "evidence/native/coverage.json",
+      "published_bytes": 193126,
+      "published_sha256": "d17e7bd859322d31755d51bf9c197d302840d09f99f7579f141ac809af09cef8",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/native/coverage-summary.json",
+      "original_bytes": 469,
+      "original_sha256": "daa0e26cb8f0c700bf6f9a7567f6fe4687e028a0cebfb12eed3827a5e4ff1252",
+      "published_path": "evidence/native/coverage-summary.json",
+      "published_bytes": 469,
+      "published_sha256": "daa0e26cb8f0c700bf6f9a7567f6fe4687e028a0cebfb12eed3827a5e4ff1252",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/native/workspace-scope-probe.log",
+      "original_bytes": 475,
+      "original_sha256": "b6fe0944d1c9df4f1b1a2f9ae8ffeb6f1cfec6ec2b0ed09eb3b8bee79a6b137f",
+      "published_path": "evidence/native/workspace-scope-probe.log",
+      "published_bytes": 475,
+      "published_sha256": "b6fe0944d1c9df4f1b1a2f9ae8ffeb6f1cfec6ec2b0ed09eb3b8bee79a6b137f",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/native/focused-tests.log",
+      "original_bytes": 309,
+      "original_sha256": "d97839bf5d75643fbaeb15c5454b3e7879843920c4935997ad5aa50fd40f3875",
+      "published_path": "evidence/native/focused-tests.log",
+      "published_bytes": 290,
+      "published_sha256": "eaf3f58b76c3e3bb93b657c946c1dfc1ba3c6a276684215b7072bfb997eab76e",
+      "disposition": "published_sanitized",
+      "changes": [
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/native/web-workspace-tests.log",
+      "original_bytes": 263,
+      "original_sha256": "26bfb18f2c159a9b1a04d7b88ca8cb226b3452b51e226aba9f83ff7e3ac375c7",
+      "published_path": "evidence/native/web-workspace-tests.log",
+      "published_bytes": 244,
+      "published_sha256": "2558198437c024261f90dca6e89535711d8a1e52387f471b89de5d9fceb84f5c",
+      "disposition": "published_sanitized",
+      "changes": [
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/native/workspace-scope-probe.cjs",
+      "original_bytes": 1466,
+      "original_sha256": "8d1a9683c5073d79bd88a5490eb141df5eb8e9bbf53ebc093c053ad542f1e377",
+      "published_path": "evidence/native/workspace-scope-probe.cjs",
+      "published_bytes": 1492,
+      "published_sha256": "a422c11b229ef378f68dc3d2913013e264812f55a1979f39f52cb8914447c470",
+      "disposition": "published_sanitized",
+      "changes": [
+        "Host-specific source/dependency paths parameterized via reproduction-paths.cjs; model, assertions and outcomes unchanged; not rerun for publication"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "evidence/native/report.md",
+      "original_bytes": 20720,
+      "original_sha256": "dd54c03eaee5e07a30eecbfb6895d37231a9891398cdba51ce67b298c74ff46a",
+      "published_path": "evidence/native/report.md",
+      "published_bytes": 20680,
+      "published_sha256": "4ef14df1935f8ea643c790d4950cb059632d9844d8b4349f4504b9c09e69e990",
+      "disposition": "published_sanitized",
+      "changes": [
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKTREE>",
+        "1 host-path prefix occurrence(s) replaced by <AUDIT_WORKDIR>",
+        "2 host-path prefix occurrence(s) replaced by <DEPENDENCY_CHECKOUT>"
+      ],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    },
+    {
+      "archive_member": "audit-integrity.json",
+      "original_bytes": 702,
+      "original_sha256": "72e329fda8a5e2a3c8c1eed1dcab2c0363550df413184868ae25209db5bb3897",
+      "published_path": "evidence/original-audit-integrity.json",
+      "published_bytes": 702,
+      "published_sha256": "72e329fda8a5e2a3c8c1eed1dcab2c0363550df413184868ae25209db5bb3897",
+      "disposition": "published_unchanged",
+      "changes": [],
+      "inspection": "Complete UTF-8 member content read; structured JSON validated; credential/key/userinfo/host/network checks and evidence relevance reviewed"
+    }
+  ]
+}

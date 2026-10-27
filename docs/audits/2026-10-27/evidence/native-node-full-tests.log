@@ -1,0 +1,98 @@
+
+ RUN  v4.1.10 <AUDIT_WORKTREE>/apps/valet-native
+
+ ❯ test/native-shift-recovery-freeze.test.ts (4 tests | 1 failed) 5286ms
+   × compares complete Shift trees against exact base across EN/AR, themes, widths and font scales 5213ms
+ ❯ test/native-appearance-render-matrix.test.ts (2 tests | 1 failed) 23349ms
+     × freezes Light against pushed #226 and Dark geometry in en 21005ms
+ ❯ test/employee-font-contract.test.tsx (12 tests | 2 failed) 105ms
+     × embeds the exact static Android families and weights 47ms
+     × embeds the same nine static assets for iOS without identifier drift 7ms
+ ❯ test/native-header-theme-geometry.test.ts (4 tests | 1 failed) 7612ms
+     × switches official logo source without changing shared header geometry in en 7510ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/employee-font-contract.test.tsx > Employee Native font ownership > embeds the exact static Android families and weights
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/employee-font-contract.test.tsx:102:55
+    100|         expect(path).toMatch(/\.ttf$/);
+    101|         expect(path).not.toMatch(/italic|variable/i);
+    102|         expect(existsSync(resolve(nativeRoot, path))).toBe(true);
+       |                                                       ^
+    103|       }
+    104|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  test/employee-font-contract.test.tsx > Employee Native font ownership > embeds the same nine static assets for iOS without identifier drift
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/employee-font-contract.test.tsx:111:74
+    109|     expect(fonts).toHaveLength(9);
+    110|     expect(new Set(fonts)).toHaveLength(9);
+    111|     expect(fonts.every((path) => existsSync(resolve(nativeRoot, path))…
+       |                                                                          ^
+    112|       true,
+    113|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  test/native-appearance-render-matrix.test.ts > Native EN/AR appearance render matrix at 320px host width > freezes Light against pushed #226 and Dark geometry in en
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ test/native-appearance-render-matrix.test.ts:211:33
+    209|   });
+    210|
+    211|   it.each(["en", "ar"] as const)(
+       |                                 ^
+    212|     "freezes Light against pushed #226 and Dark geometry in %s",
+    213|     (locale) => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  test/native-header-theme-geometry.test.ts > Native shared header theme geometry > switches official logo source without changing shared header geometry in en
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ test/native-header-theme-geometry.test.ts:93:33
+     91|   });
+     92|
+     93|   it.each(["en", "ar"] as const)(
+       |                                 ^
+     94|     "switches official logo source without changing shared header geom…
+     95|     async (locale) => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  test/native-shift-recovery-freeze.test.ts > compares complete Shift trees against exact base across EN/AR, themes, widths and font scales
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ test/native-shift-recovery-freeze.test.ts:115:1
+    113| }
+    114|
+    115| it("compares complete Shift trees against exact base across EN/AR, the…
+       | ^
+    116|   const comparisons: unknown[] = [];
+    117|   for (const locale of ["en", "ar"] as const)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  4 failed | 221 passed (225)
+      Tests  5 failed | 1575 passed (1580)
+   Start at  23:37:34
+   Duration  374.78s (transform 62.31s, setup 12.30s, import 491.20s, tests 75.23s, environment 85ms)
+

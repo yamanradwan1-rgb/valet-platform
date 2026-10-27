@@ -1,0 +1,7 @@
+{
+  "method": "External ancestor symlinks to existing installed dependencies; workspace aliases to isolated worktree",
+  "conflicts": [
+    "react",
+    "typescript"
+  ]
+}

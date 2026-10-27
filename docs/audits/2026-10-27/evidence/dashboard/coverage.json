@@ -1,0 +1,6672 @@
+[
+  {
+    "path": "apps/dashboard/README.md",
+    "status": "not_reviewed",
+    "lines": 7,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/auth-principals.spec.ts",
+    "status": "not_reviewed",
+    "lines": 218,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/authority-loss.spec.ts",
+    "status": "not_reviewed",
+    "lines": 99,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/cross-feature-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 88,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/issue234-security.spec.ts",
+    "status": "not_reviewed",
+    "lines": 106,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/issue300-browser-safety.ts",
+    "status": "not_reviewed",
+    "lines": 246,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/issue300-closure.spec.ts",
+    "status": "not_reviewed",
+    "lines": 299,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/md-r11-administration.spec.ts",
+    "status": "not_reviewed",
+    "lines": 113,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/operational-separation.spec.ts",
+    "status": "not_reviewed",
+    "lines": 94,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/report-generation-race.spec.ts",
+    "status": "not_reviewed",
+    "lines": 49,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/reports-privacy.spec.ts",
+    "status": "not_reviewed",
+    "lines": 146,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/request-bounds.spec.ts",
+    "status": "not_reviewed",
+    "lines": 60,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/scope-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 130,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/session-generation.spec.ts",
+    "status": "not_reviewed",
+    "lines": 46,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/support/delayed-real-response.ts",
+    "status": "not_reviewed",
+    "lines": 59,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/support/persistent-state.ts",
+    "status": "not_reviewed",
+    "lines": 109,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/support/runtime-fixture.ts",
+    "status": "not_reviewed",
+    "lines": 196,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/support/runtime-test.ts",
+    "status": "not_reviewed",
+    "lines": 12,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/two-tab-concurrency.spec.ts",
+    "status": "not_reviewed",
+    "lines": 149,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-authority.spec.ts",
+    "status": "not_reviewed",
+    "lines": 143,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-behavior.spec.ts",
+    "status": "not_reviewed",
+    "lines": 247,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-concurrency.spec.ts",
+    "status": "not_reviewed",
+    "lines": 242,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-locations.spec.ts",
+    "status": "not_reviewed",
+    "lines": 66,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-authority-budget.spec.ts",
+    "status": "not_reviewed",
+    "lines": 253,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-cursor-generation.spec.ts",
+    "status": "not_reviewed",
+    "lines": 188,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-controls.spec.ts",
+    "status": "not_reviewed",
+    "lines": 70,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-generation.spec.ts",
+    "status": "not_reviewed",
+    "lines": 91,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-page-scope.spec.ts",
+    "status": "not_reviewed",
+    "lines": 88,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-pagination.spec.ts",
+    "status": "not_reviewed",
+    "lines": 92,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-presentation.spec.ts",
+    "status": "not_reviewed",
+    "lines": 118,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-scope-cursor.spec.ts",
+    "status": "not_reviewed",
+    "lines": 112,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-session.spec.ts",
+    "status": "not_reviewed",
+    "lines": 131,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-mutations.spec.ts",
+    "status": "not_reviewed",
+    "lines": 251,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-presentation.spec.ts",
+    "status": "not_reviewed",
+    "lines": 197,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 253,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r06-accessibility.spec.ts",
+    "status": "not_reviewed",
+    "lines": 61,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r06-authority-budget.spec.ts",
+    "status": "not_reviewed",
+    "lines": 139,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r06-corrections.spec.ts",
+    "status": "not_reviewed",
+    "lines": 176,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r06-cursor-selection.spec.ts",
+    "status": "not_reviewed",
+    "lines": 185,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r06-mfa-state.spec.ts",
+    "status": "not_reviewed",
+    "lines": 81,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r06-mutations.spec.ts",
+    "status": "not_reviewed",
+    "lines": 244,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r06-presentation.spec.ts",
+    "status": "not_reviewed",
+    "lines": 58,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r06-session-fencing.spec.ts",
+    "status": "not_reviewed",
+    "lines": 124,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r06-states.spec.ts",
+    "status": "not_reviewed",
+    "lines": 107,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r06-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 273,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-settings-validation.spec.ts",
+    "status": "not_reviewed",
+    "lines": 190,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-settings.spec.ts",
+    "status": "not_reviewed",
+    "lines": 100,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-staff.spec.ts",
+    "status": "not_reviewed",
+    "lines": 86,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-visual-freeze.spec.ts",
+    "status": "not_reviewed",
+    "lines": 126,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/auth-session.spec.ts",
+    "status": "not_reviewed",
+    "lines": 130,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/foundation-authority-follow-up.spec.ts",
+    "status": "not_reviewed",
+    "lines": 82,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue232-physical-resource-closure.spec.ts",
+    "status": "not_reviewed",
+    "lines": 122,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue232-physical-resource-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 227,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue232-physical-resource-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 132,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue232-physical-resources.spec.ts",
+    "status": "not_reviewed",
+    "lines": 246,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue234-security-accessibility.spec.ts",
+    "status": "not_reviewed",
+    "lines": 122,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue234-security-authority.spec.ts",
+    "status": "not_reviewed",
+    "lines": 148,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue234-security-lifecycle.spec.ts",
+    "status": "not_reviewed",
+    "lines": 299,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue234-security-privacy.spec.ts",
+    "status": "not_reviewed",
+    "lines": 236,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue234-security-shell.spec.ts",
+    "status": "not_reviewed",
+    "lines": 182,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue234-security-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 185,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue236-parking-zones.spec.ts",
+    "status": "not_reviewed",
+    "lines": 148,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue236-zone-auth-retry.spec.ts",
+    "status": "not_reviewed",
+    "lines": 68,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue236-zone-authority-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 197,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue236-zone-mfa-race.spec.ts",
+    "status": "not_reviewed",
+    "lines": 90,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue236-zone-selector-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 113,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue236-zone-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 123,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue237-keys-spots.spec.ts",
+    "status": "not_reviewed",
+    "lines": 290,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue237-physical-resource-cursor-race.spec.ts",
+    "status": "not_reviewed",
+    "lines": 111,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue237-physical-resource-session-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 90,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue238-service-status.spec.ts",
+    "status": "not_reviewed",
+    "lines": 88,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240a-directory-budget.spec.ts",
+    "status": "not_reviewed",
+    "lines": 159,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240a-directory-detail-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 87,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240a-directory-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 187,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240a-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 113,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240b-ca-grant-regression.spec.ts",
+    "status": "not_reviewed",
+    "lines": 182,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240b-ca-status-regression.spec.ts",
+    "status": "not_reviewed",
+    "lines": 98,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240b-lm-mutation-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 299,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240b-lm-read-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 220,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240b-lm-rtl.spec.ts",
+    "status": "not_reviewed",
+    "lines": 107,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240b-lm-staff.spec.ts",
+    "status": "not_reviewed",
+    "lines": 284,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240b-lm-version-reconcile.spec.ts",
+    "status": "not_reviewed",
+    "lines": 154,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240b-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 225,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240d-activation.spec.ts",
+    "status": "not_reviewed",
+    "lines": 146,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240d-create-fencing.spec.ts",
+    "status": "not_reviewed",
+    "lines": 204,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240d-create.spec.ts",
+    "status": "not_reviewed",
+    "lines": 162,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240d-pending-fencing.spec.ts",
+    "status": "not_reviewed",
+    "lines": 109,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240d-pending.spec.ts",
+    "status": "not_reviewed",
+    "lines": 139,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240d-retry-authority.spec.ts",
+    "status": "not_reviewed",
+    "lines": 195,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240d-selector-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 128,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240d-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 76,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240e-baseline.spec.ts",
+    "status": "not_reviewed",
+    "lines": 127,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240e-denial-retry.spec.ts",
+    "status": "not_reviewed",
+    "lines": 162,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240e-history-budget.spec.ts",
+    "status": "not_reviewed",
+    "lines": 213,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240e-history-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 219,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240e-location-recovery.spec.ts",
+    "status": "not_reviewed",
+    "lines": 285,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240e-session-read.spec.ts",
+    "status": "not_reviewed",
+    "lines": 77,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-auth-cancellation.spec.ts",
+    "status": "not_reviewed",
+    "lines": 81,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-authority.spec.ts",
+    "status": "not_reviewed",
+    "lines": 117,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-freeze.spec.ts",
+    "status": "not_reviewed",
+    "lines": 129,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-keyboard.spec.ts",
+    "status": "not_reviewed",
+    "lines": 50,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-mfa-baseline.spec.ts",
+    "status": "not_reviewed",
+    "lines": 65,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-mutation-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 148,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-page-fences.spec.ts",
+    "status": "not_reviewed",
+    "lines": 163,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-reconcile-fences.spec.ts",
+    "status": "not_reviewed",
+    "lines": 197,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-submit.spec.ts",
+    "status": "not_reviewed",
+    "lines": 121,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-unknown.spec.ts",
+    "status": "not_reviewed",
+    "lines": 203,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 174,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue241-live-operations.spec.ts",
+    "status": "not_reviewed",
+    "lines": 177,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue242-roles-reference.spec.ts",
+    "status": "not_reviewed",
+    "lines": 201,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue254-resource-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 206,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue254-resource-rows.spec.ts",
+    "status": "not_reviewed",
+    "lines": 180,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue254-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 106,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue268-scope-restoration-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 64,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue268-scope-restoration.spec.ts",
+    "status": "not_reviewed",
+    "lines": 278,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue270-live-map-refresh.spec.ts",
+    "status": "not_reviewed",
+    "lines": 171,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue277-audit-identity-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 107,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-activation-help-focus.spec.ts",
+    "status": "not_reviewed",
+    "lines": 82,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-administration-mobile-help.spec.ts",
+    "status": "not_reviewed",
+    "lines": 299,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-administration-presence-help.spec.ts",
+    "status": "not_reviewed",
+    "lines": 239,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-administration-settings-help.spec.ts",
+    "status": "not_reviewed",
+    "lines": 130,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-audit-long-timezone.spec.ts",
+    "status": "not_reviewed",
+    "lines": 99,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-e-account-activation-help.spec.ts",
+    "status": "not_reviewed",
+    "lines": 116,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-e-audit-contacts-help.spec.ts",
+    "status": "not_reviewed",
+    "lines": 105,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-e-f-audit-geometry.spec.ts",
+    "status": "not_reviewed",
+    "lines": 124,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-e-f-visual-evidence.spec.ts",
+    "status": "not_reviewed",
+    "lines": 210,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-final-visible-help-overlaps.spec.ts",
+    "status": "not_reviewed",
+    "lines": 79,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-header-help-geometry.spec.ts",
+    "status": "not_reviewed",
+    "lines": 104,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-heading-safety.spec.ts",
+    "status": "not_reviewed",
+    "lines": 74,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-help-authority.spec.ts",
+    "status": "not_reviewed",
+    "lines": 139,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-help-lifecycle.spec.ts",
+    "status": "not_reviewed",
+    "lines": 176,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-help-zoom.spec.ts",
+    "status": "not_reviewed",
+    "lines": 165,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-historical-geometry-compare.mjs",
+    "status": "not_reviewed",
+    "lines": 152,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-historical-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 145,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-intelligence-help.spec.ts",
+    "status": "not_reviewed",
+    "lines": 152,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-operations-help.spec.ts",
+    "status": "not_reviewed",
+    "lines": 176,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-u004-evidence-compare.mjs",
+    "status": "not_reviewed",
+    "lines": 139,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-u004-geometry.spec.ts",
+    "status": "not_reviewed",
+    "lines": 172,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-visual-help.spec.ts",
+    "status": "not_reviewed",
+    "lines": 131,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue280-exceptions-help-a11y.spec.ts",
+    "status": "not_reviewed",
+    "lines": 138,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue280-guided-review-apply.spec.ts",
+    "status": "not_reviewed",
+    "lines": 286,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue280-guided-review-focus.spec.ts",
+    "status": "not_reviewed",
+    "lines": 39,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue280-guided-review-zoom-fixture.ts",
+    "status": "not_reviewed",
+    "lines": 117,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue280-map-first-flow.spec.ts",
+    "status": "not_reviewed",
+    "lines": 258,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue280-map-first-map-mock.ts",
+    "status": "not_reviewed",
+    "lines": 86,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue280-map-first-receipts.spec.ts",
+    "status": "not_reviewed",
+    "lines": 130,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue280-map-first-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 179,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue280-map-first-zoom.spec.ts",
+    "status": "not_reviewed",
+    "lines": 142,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue299-task-staff-attribution.spec.ts",
+    "status": "not_reviewed",
+    "lines": 126,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue300-concept-a-role-guard.spec.ts",
+    "status": "not_reviewed",
+    "lines": 131,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue300-concept-a-ui-integration.spec.ts",
+    "status": "not_reviewed",
+    "lines": 152,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue300-g2-live-browser.mjs",
+    "status": "not_reviewed",
+    "lines": 249,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue300-live-disclosure.spec.ts",
+    "status": "not_reviewed",
+    "lines": 55,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue300-original-shell-zoom-baseline.spec.ts",
+    "status": "not_reviewed",
+    "lines": 46,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue300-real-source-identity.spec.ts",
+    "status": "not_reviewed",
+    "lines": 81,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue304-header-geometry.spec.ts",
+    "status": "not_reviewed",
+    "lines": 120,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue305-controlled-parity.spec.ts",
+    "status": "not_reviewed",
+    "lines": 89,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue305-table-alignment.spec.ts",
+    "status": "not_reviewed",
+    "lines": 178,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue306-incident-reporter.spec.ts",
+    "status": "not_reviewed",
+    "lines": 55,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue306-matched-baseline.spec.ts",
+    "status": "not_reviewed",
+    "lines": 242,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue314-incident-drawer-reflow.spec.ts",
+    "status": "not_reviewed",
+    "lines": 89,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue314-independent-acceptance.spec.ts",
+    "status": "not_reviewed",
+    "lines": 252,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue337-incidents.spec.ts",
+    "status": "not_reviewed",
+    "lines": 126,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue339-public-phone.spec.ts",
+    "status": "not_reviewed",
+    "lines": 131,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue340-location-drain.spec.ts",
+    "status": "not_reviewed",
+    "lines": 76,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue341-tasks.spec.ts",
+    "status": "not_reviewed",
+    "lines": 46,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue342-shift-cash.spec.ts",
+    "status": "not_reviewed",
+    "lines": 116,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue344-last-attendance-zone.spec.ts",
+    "status": "not_reviewed",
+    "lines": 74,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issue346-resume-intake.spec.ts",
+    "status": "not_reviewed",
+    "lines": 177,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issues342-346-evidence.spec.ts",
+    "status": "not_reviewed",
+    "lines": 58,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/issues342-346-ui-freeze.spec.ts",
+    "status": "not_reviewed",
+    "lines": 118,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/live-operations-google-map-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 207,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r02-overview-parity.spec.ts",
+    "status": "not_reviewed",
+    "lines": 268,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r07-map-privacy-budget.spec.ts",
+    "status": "not_reviewed",
+    "lines": 107,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r07-map-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 288,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r07-map-session.spec.ts",
+    "status": "not_reviewed",
+    "lines": 114,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r07-map-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 167,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r08-accessibility.spec.ts",
+    "status": "not_reviewed",
+    "lines": 34,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r08-audit-security.spec.ts",
+    "status": "not_reviewed",
+    "lines": 102,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r08-authority.spec.ts",
+    "status": "not_reviewed",
+    "lines": 196,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r08-presentation.spec.ts",
+    "status": "not_reviewed",
+    "lines": 226,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r08-privacy-budget.spec.ts",
+    "status": "not_reviewed",
+    "lines": 68,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r08-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 247,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r08-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 75,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r09-analytics.spec.ts",
+    "status": "not_reviewed",
+    "lines": 92,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r09-lifecycle.spec.ts",
+    "status": "not_reviewed",
+    "lines": 143,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r09-payments-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 154,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r09-payments.spec.ts",
+    "status": "not_reviewed",
+    "lines": 107,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r09-states.spec.ts",
+    "status": "not_reviewed",
+    "lines": 158,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r09-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 115,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r10-evidence.spec.ts",
+    "status": "not_reviewed",
+    "lines": 139,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r10-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 137,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r11-commercial.spec.ts",
+    "status": "not_reviewed",
+    "lines": 119,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r11-presentation.spec.ts",
+    "status": "not_reviewed",
+    "lines": 109,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r11-privacy.spec.ts",
+    "status": "not_reviewed",
+    "lines": 42,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r11-read-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 256,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r11-security.spec.ts",
+    "status": "not_reviewed",
+    "lines": 89,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r11-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 190,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md04-accessibility.spec.ts",
+    "status": "not_reviewed",
+    "lines": 146,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md04-audit.spec.ts",
+    "status": "not_reviewed",
+    "lines": 226,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md04-auth-reconciliation.spec.ts",
+    "status": "not_reviewed",
+    "lines": 93,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md04-corrections.spec.ts",
+    "status": "not_reviewed",
+    "lines": 253,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md04-navigation.spec.ts",
+    "status": "not_reviewed",
+    "lines": 132,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md04-scope-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 276,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md04-visit-contacts.spec.ts",
+    "status": "not_reviewed",
+    "lines": 215,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md05-analytics.spec.ts",
+    "status": "not_reviewed",
+    "lines": 295,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md05-closure.spec.ts",
+    "status": "not_reviewed",
+    "lines": 195,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md05-location-race.spec.ts",
+    "status": "not_reviewed",
+    "lines": 94,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md05-navigation-accessibility.spec.ts",
+    "status": "not_reviewed",
+    "lines": 135,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md05-overview-payments.spec.ts",
+    "status": "not_reviewed",
+    "lines": 292,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md05-period-endpoint-focus.spec.ts",
+    "status": "not_reviewed",
+    "lines": 208,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md05-reports-bidi.spec.ts",
+    "status": "not_reviewed",
+    "lines": 65,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md05-reports-export.spec.ts",
+    "status": "not_reviewed",
+    "lines": 298,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md05-storage-privacy.spec.ts",
+    "status": "not_reviewed",
+    "lines": 202,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md06-cumulative-ui.spec.ts",
+    "status": "not_reviewed",
+    "lines": 139,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md231-map-contract-closure.spec.ts",
+    "status": "not_reviewed",
+    "lines": 300,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md231-map-zone-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 175,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md233-period-refresh.spec.ts",
+    "status": "not_reviewed",
+    "lines": 90,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md233-period-scope-race.spec.ts",
+    "status": "not_reviewed",
+    "lines": 130,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md233-period-ux.spec.ts",
+    "status": "not_reviewed",
+    "lines": 272,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/md233-period-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 84,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/mfa.spec.ts",
+    "status": "not_reviewed",
+    "lines": 113,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/operations-authority.spec.ts",
+    "status": "not_reviewed",
+    "lines": 134,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/operations-concurrency.spec.ts",
+    "status": "not_reviewed",
+    "lines": 147,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/operations-google-map-authority.spec.ts",
+    "status": "not_reviewed",
+    "lines": 115,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/operations-google-map.spec.ts",
+    "status": "not_reviewed",
+    "lines": 300,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/operations-map-outcomes.spec.ts",
+    "status": "not_reviewed",
+    "lines": 92,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/operations-maps.spec.ts",
+    "status": "not_reviewed",
+    "lines": 219,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/operations-r03-authority.spec.ts",
+    "status": "not_reviewed",
+    "lines": 176,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/operations-r03-cursor-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 264,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/operations-r03-presentation.spec.ts",
+    "status": "not_reviewed",
+    "lines": 214,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/operations-r03-privacy-budget.spec.ts",
+    "status": "not_reviewed",
+    "lines": 68,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/operations-r03-states.spec.ts",
+    "status": "not_reviewed",
+    "lines": 179,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/operations-r03-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 100,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/operations-r04-authority-budget.spec.ts",
+    "status": "not_reviewed",
+    "lines": 175,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/operations-r04-cursor.spec.ts",
+    "status": "not_reviewed",
+    "lines": 159,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/operations-r04-generation.spec.ts",
+    "status": "not_reviewed",
+    "lines": 108,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/operations-r04-presentation.spec.ts",
+    "status": "not_reviewed",
+    "lines": 206,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/operations-r04-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 215,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/operations-visibility.spec.ts",
+    "status": "not_reviewed",
+    "lines": 107,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/operations-visual-freeze.spec.ts",
+    "status": "not_reviewed",
+    "lines": 223,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/presentation.spec.ts",
+    "status": "not_reviewed",
+    "lines": 189,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/scope-authority.spec.ts",
+    "status": "not_reviewed",
+    "lines": 266,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/shift-presence-auth-continuity.spec.ts",
+    "status": "not_reviewed",
+    "lines": 218,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/shift-presence-auth-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 173,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/shift-presence-geolocation.spec.ts",
+    "status": "not_reviewed",
+    "lines": 232,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/shift-presence-lists.spec.ts",
+    "status": "not_reviewed",
+    "lines": 175,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/shift-presence-location-feedback.spec.ts",
+    "status": "not_reviewed",
+    "lines": 68,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/shift-presence-map-first-orchestration.spec.ts",
+    "status": "not_reviewed",
+    "lines": 99,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/shift-presence-map-lifecycle.spec.ts",
+    "status": "not_reviewed",
+    "lines": 103,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/shift-presence-map.spec.ts",
+    "status": "not_reviewed",
+    "lines": 60,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/shift-presence-organization.spec.ts",
+    "status": "not_reviewed",
+    "lines": 88,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/shift-presence-recovery.spec.ts",
+    "status": "not_reviewed",
+    "lines": 232,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/shift-presence-scope.spec.ts",
+    "status": "not_reviewed",
+    "lines": 280,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/shift-presence-settings.spec.ts",
+    "status": "not_reviewed",
+    "lines": 189,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/shift-presence-unmount.spec.ts",
+    "status": "not_reviewed",
+    "lines": 237,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/shift-presence-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 166,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/subscription-recovery.spec.ts",
+    "status": "not_reviewed",
+    "lines": 197,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/administration-fixtures.ts",
+    "status": "not_reviewed",
+    "lines": 125,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/administration-r05-fixtures.ts",
+    "status": "not_reviewed",
+    "lines": 56,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/dashboard-api-fixture.ts",
+    "status": "not_reviewed",
+    "lines": 286,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/dashboard-auth-fixture.ts",
+    "status": "not_reviewed",
+    "lines": 53,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/fixture-data.ts",
+    "status": "not_reviewed",
+    "lines": 85,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/foundation-ui.ts",
+    "status": "not_reviewed",
+    "lines": 44,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/guest-contact-fixture.ts",
+    "status": "not_reviewed",
+    "lines": 200,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/issue232-physical-resources.ts",
+    "status": "not_reviewed",
+    "lines": 124,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/issue234-privacy.ts",
+    "status": "not_reviewed",
+    "lines": 87,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/issue236-parking-zones.ts",
+    "status": "not_reviewed",
+    "lines": 119,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/issue240d-onboarding.ts",
+    "status": "not_reviewed",
+    "lines": 140,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/issue240e-history.ts",
+    "status": "not_reviewed",
+    "lines": 40,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/issue240g-force-end.ts",
+    "status": "not_reviewed",
+    "lines": 161,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/issue254-resources.ts",
+    "status": "not_reviewed",
+    "lines": 117,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/issues342-346-visual.ts",
+    "status": "not_reviewed",
+    "lines": 168,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/keys-spots.ts",
+    "status": "not_reviewed",
+    "lines": 60,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/md-r09-fixtures.ts",
+    "status": "not_reviewed",
+    "lines": 80,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/md-r10-fixtures.ts",
+    "status": "not_reviewed",
+    "lines": 36,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/md-r11-fixtures.ts",
+    "status": "not_reviewed",
+    "lines": 68,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/md04-audit-fixtures.ts",
+    "status": "not_reviewed",
+    "lines": 133,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/md04-fixtures.ts",
+    "status": "not_reviewed",
+    "lines": 174,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/md05-analytics-fixtures.ts",
+    "status": "not_reviewed",
+    "lines": 209,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/md05-analytics-visual-contract.ts",
+    "status": "not_reviewed",
+    "lines": 92,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/md05-analytics-visual-proof.ts",
+    "status": "not_reviewed",
+    "lines": 212,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/md05-intelligence-fixtures.ts",
+    "status": "not_reviewed",
+    "lines": 278,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/md05-protected-route-proof.ts",
+    "status": "not_reviewed",
+    "lines": 37,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/md05-reports-e2e-helpers.ts",
+    "status": "not_reviewed",
+    "lines": 229,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/md05-reports-fixtures.ts",
+    "status": "not_reviewed",
+    "lines": 198,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/md05-reports-interaction-proof.ts",
+    "status": "not_reviewed",
+    "lines": 125,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/md05-reports-visual-contract.ts",
+    "status": "not_reviewed",
+    "lines": 115,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/md05-reports-visual-proof.ts",
+    "status": "not_reviewed",
+    "lines": 209,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/md05-visual-contract.ts",
+    "status": "not_reviewed",
+    "lines": 129,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/md05-visual-proof.ts",
+    "status": "not_reviewed",
+    "lines": 287,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/operations-fixture-identifiers.ts",
+    "status": "not_reviewed",
+    "lines": 11,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/operations-fixtures.ts",
+    "status": "not_reviewed",
+    "lines": 157,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/operations-google-map-mock.ts",
+    "status": "not_reviewed",
+    "lines": 176,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/overview-fixtures.ts",
+    "status": "not_reviewed",
+    "lines": 74,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/persistent-storage.ts",
+    "status": "not_reviewed",
+    "lines": 60,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/png-qr-decode.ts",
+    "status": "not_reviewed",
+    "lines": 113,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/presence-continuity-fixture.ts",
+    "status": "not_reviewed",
+    "lines": 133,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/presence-data.ts",
+    "status": "not_reviewed",
+    "lines": 97,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/presence-fixtures.ts",
+    "status": "not_reviewed",
+    "lines": 227,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/presence-map-mock.ts",
+    "status": "not_reviewed",
+    "lines": 118,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/r06-locations.ts",
+    "status": "not_reviewed",
+    "lines": 66,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/r08-accountability.ts",
+    "status": "not_reviewed",
+    "lines": 103,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/support/staff-directory-ui.ts",
+    "status": "not_reviewed",
+    "lines": 24,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/task01-custom-mutation-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 263,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/task01-map-async-race.spec.ts",
+    "status": "not_reviewed",
+    "lines": 160,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/task01-mfa-session-fencing.spec.ts",
+    "status": "not_reviewed",
+    "lines": 120,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/task01-mfa-session-race.spec.ts",
+    "status": "not_reviewed",
+    "lines": 73,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/task01-physical-async-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 180,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/task01-scope-epoch-hardening.spec.ts",
+    "status": "not_reviewed",
+    "lines": 296,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/task02-location-switch-authority.spec.ts",
+    "status": "not_reviewed",
+    "lines": 265,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/task02-location-switch-behavior.spec.ts",
+    "status": "not_reviewed",
+    "lines": 230,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/task02-location-switch-races.spec.ts",
+    "status": "not_reviewed",
+    "lines": 277,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/task02-location-switch-security.spec.ts",
+    "status": "not_reviewed",
+    "lines": 100,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/e2e/task02-location-switch-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 265,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/next-env.d.ts",
+    "status": "not_reviewed",
+    "lines": 6,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/next.config.ts",
+    "status": "fully_reviewed",
+    "lines": 59,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/package.json",
+    "status": "not_reviewed",
+    "lines": 34,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/playwright.config.ts",
+    "status": "not_reviewed",
+    "lines": 21,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/playwright.runtime.config.ts",
+    "status": "not_reviewed",
+    "lines": 14,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/public/fonts/locations/OFL.txt",
+    "status": "not_reviewed",
+    "lines": 93,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/public/fonts/locations/inter-latin.woff2",
+    "status": "excluded",
+    "lines": 206,
+    "evidence": [
+      "Binary asset excluded from manual line-level review per user scope."
+    ]
+  },
+  {
+    "path": "apps/dashboard/public/vaylet-emblem.png",
+    "status": "excluded",
+    "lines": 275,
+    "evidence": [
+      "Binary asset excluded from manual line-level review per user scope."
+    ]
+  },
+  {
+    "path": "apps/dashboard/public/vaylet-text-dark.png",
+    "status": "excluded",
+    "lines": 79,
+    "evidence": [
+      "Binary asset excluded from manual line-level review per user scope."
+    ]
+  },
+  {
+    "path": "apps/dashboard/public/vaylet-text-white.png",
+    "status": "excluded",
+    "lines": 61,
+    "evidence": [
+      "Binary asset excluded from manual line-level review per user scope."
+    ]
+  },
+  {
+    "path": "apps/dashboard/scripts/issue278-e-f-compare.mjs",
+    "status": "not_reviewed",
+    "lines": 130,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/scripts/issue278-overlap-geometry.mjs",
+    "status": "not_reviewed",
+    "lines": 56,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/scripts/issue278-overlap-geometry.test.mjs",
+    "status": "not_reviewed",
+    "lines": 79,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/app/.gitkeep",
+    "status": "excluded",
+    "lines": 0,
+    "evidence": [
+      "Empty placeholder file."
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/analytics/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 12,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/app-providers.tsx",
+    "status": "not_reviewed",
+    "lines": 37,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/app/audit-log/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 10,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/billing-subscription/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 6,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/branding/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 6,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/customers/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 10,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/document-bootstrap-script.ts",
+    "status": "not_reviewed",
+    "lines": 12,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/app/employees/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 6,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/foundation-test-subscription-recovery/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 13,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/foundation-test-subscription-recovery/subscription-recovery-probe.tsx",
+    "status": "not_reviewed",
+    "lines": 21,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/app/globals.css",
+    "status": "not_reviewed",
+    "lines": 67,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/app/guest-information/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 10,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/help/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 10,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/incidents/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 6,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/integrations/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 5,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/keys/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 6,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/layout.tsx",
+    "status": "not_reviewed",
+    "lines": 34,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/app/live-operations/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 6,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/locations/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 6,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/maps-zones/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 6,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/overview/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 12,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 10,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/payments/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 12,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/policies/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 15,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/reports/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 12,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/roles-permissions/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 6,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/security/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 5,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/staff/activate/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 11,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/tasks/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 6,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/app/vehicles/page.tsx",
+    "status": "fully_reviewed",
+    "lines": 6,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/.gitkeep",
+    "status": "excluded",
+    "lines": 0,
+    "evidence": [
+      "Empty placeholder file."
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/auth/login-panel.tsx",
+    "status": "not_reviewed",
+    "lines": 79,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/brand/vaylet-logo.tsx",
+    "status": "not_reviewed",
+    "lines": 34,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/account-security-route.tsx",
+    "status": "not_reviewed",
+    "lines": 7,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/account-security-shell.tsx",
+    "status": "not_reviewed",
+    "lines": 180,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/authority-separation.test.ts",
+    "status": "not_reviewed",
+    "lines": 231,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/dashboard-feature-target.test.ts",
+    "status": "not_reviewed",
+    "lines": 164,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/dashboard-feature-target.ts",
+    "status": "not_reviewed",
+    "lines": 126,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/dashboard-shell-labels.ts",
+    "status": "not_reviewed",
+    "lines": 17,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/dashboard-shell-presentation-provider.tsx",
+    "status": "not_reviewed",
+    "lines": 104,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/foundation-state.tsx",
+    "status": "not_reviewed",
+    "lines": 21,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/header-preferences.test.tsx",
+    "status": "not_reviewed",
+    "lines": 20,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/header-preferences.tsx",
+    "status": "not_reviewed",
+    "lines": 51,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/help-copy.ts",
+    "status": "not_reviewed",
+    "lines": 94,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/help-foundation.module.css",
+    "status": "not_reviewed",
+    "lines": 121,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/help-foundation.tsx",
+    "status": "not_reviewed",
+    "lines": 67,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/location-maps-revalidation.test.ts",
+    "status": "not_reviewed",
+    "lines": 292,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/management-foundation-app.tsx",
+    "status": "not_reviewed",
+    "lines": 127,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/md04-feature-authority-revalidation.test.ts",
+    "status": "not_reviewed",
+    "lines": 299,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/md04-feature-route-access.ts",
+    "status": "not_reviewed",
+    "lines": 94,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/md05-intelligence-authority.test.ts",
+    "status": "not_reviewed",
+    "lines": 277,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/navigation-authority-demand.test.ts",
+    "status": "not_reviewed",
+    "lines": 44,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/navigation-authority-generation.test.ts",
+    "status": "not_reviewed",
+    "lines": 280,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/navigation-authority-special-scopes.test.ts",
+    "status": "not_reviewed",
+    "lines": 298,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/preference-controls.tsx",
+    "status": "not_reviewed",
+    "lines": 56,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/protected-dashboard-context.tsx",
+    "status": "not_reviewed",
+    "lines": 39,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/protected-dashboard-route.tsx",
+    "status": "fully_reviewed",
+    "lines": 20,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/resolve-navigation-authority.test.ts",
+    "status": "not_reviewed",
+    "lines": 284,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/resolve-navigation-authority.ts",
+    "status": "not_reviewed",
+    "lines": 196,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/revalidate-selected-scope.ts",
+    "status": "not_reviewed",
+    "lines": 193,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/root-product-landing-help.test.tsx",
+    "status": "not_reviewed",
+    "lines": 44,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/root-product-landing.tsx",
+    "status": "not_reviewed",
+    "lines": 58,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/scope-presentation.ts",
+    "status": "not_reviewed",
+    "lines": 91,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-management-shell-policy.ts",
+    "status": "not_reviewed",
+    "lines": 32,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-management-shell-transition.ts",
+    "status": "not_reviewed",
+    "lines": 96,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-management-shell.tsx",
+    "status": "fully_reviewed",
+    "lines": 288,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-base-authority-sharing.test.ts",
+    "status": "not_reviewed",
+    "lines": 141,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-base-authority.ts",
+    "status": "not_reviewed",
+    "lines": 206,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-base-request.ts",
+    "status": "not_reviewed",
+    "lines": 95,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-mfa-panel.tsx",
+    "status": "not_reviewed",
+    "lines": 30,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-provider.tsx",
+    "status": "not_reviewed",
+    "lines": 29,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-restoration-hint.test.ts",
+    "status": "not_reviewed",
+    "lines": 212,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-restoration-hint.ts",
+    "status": "not_reviewed",
+    "lines": 205,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-restoration-lifecycle.test.ts",
+    "status": "not_reviewed",
+    "lines": 185,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-restoration-location-manager.test.ts",
+    "status": "not_reviewed",
+    "lines": 98,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-restoration.test.ts",
+    "status": "not_reviewed",
+    "lines": 169,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-restoration.ts",
+    "status": "not_reviewed",
+    "lines": 156,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-revalidation-policy.ts",
+    "status": "not_reviewed",
+    "lines": 116,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-scope-state.ts",
+    "status": "not_reviewed",
+    "lines": 81,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/standalone-foundation-panel.tsx",
+    "status": "not_reviewed",
+    "lines": 18,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/supervisor-foundation-access.test.ts",
+    "status": "not_reviewed",
+    "lines": 80,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/unselected-scope-foundation.tsx",
+    "status": "not_reviewed",
+    "lines": 71,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/use-foundation-logout.ts",
+    "status": "not_reviewed",
+    "lines": 18,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/use-navigation-authority.ts",
+    "status": "not_reviewed",
+    "lines": 138,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/use-selected-scope-lifecycle.ts",
+    "status": "not_reviewed",
+    "lines": 239,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/use-selected-scope-revalidation.test.ts",
+    "status": "not_reviewed",
+    "lines": 294,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/use-selected-scope-revalidation.ts",
+    "status": "not_reviewed",
+    "lines": 235,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/workspace-foundation.tsx",
+    "status": "not_reviewed",
+    "lines": 19,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/presentation/button.tsx",
+    "status": "not_reviewed",
+    "lines": 22,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/presentation/focus-dialog.tsx",
+    "status": "fully_reviewed",
+    "lines": 119,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/presentation/panel.tsx",
+    "status": "not_reviewed",
+    "lines": 29,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/index.ts",
+    "status": "not_reviewed",
+    "lines": 6,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/location-maps-scope-entry.test.ts",
+    "status": "not_reviewed",
+    "lines": 181,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/location-switch-authority.test.ts",
+    "status": "not_reviewed",
+    "lines": 254,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/location-switch-authority.ts",
+    "status": "not_reviewed",
+    "lines": 298,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/location-switch-control.tsx",
+    "status": "not_reviewed",
+    "lines": 82,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/location-switch-menu.module.css",
+    "status": "not_reviewed",
+    "lines": 90,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/location-switch-menu.tsx",
+    "status": "not_reviewed",
+    "lines": 228,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/location-switch-policy.test.ts",
+    "status": "not_reviewed",
+    "lines": 112,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/location-switch-policy.ts",
+    "status": "not_reviewed",
+    "lines": 91,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/location-switch-recovery.ts",
+    "status": "not_reviewed",
+    "lines": 42,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/location-switch-state.ts",
+    "status": "not_reviewed",
+    "lines": 71,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/location-switch-types.ts",
+    "status": "not_reviewed",
+    "lines": 28,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/scope-entry-policy.test.ts",
+    "status": "not_reviewed",
+    "lines": 35,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/scope-entry-policy.ts",
+    "status": "not_reviewed",
+    "lines": 14,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/scope-entry-route-policy.ts",
+    "status": "not_reviewed",
+    "lines": 43,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/scope-entry-selection.ts",
+    "status": "not_reviewed",
+    "lines": 110,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/scope-entry-types.ts",
+    "status": "not_reviewed",
+    "lines": 61,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/scope-entry.tsx",
+    "status": "not_reviewed",
+    "lines": 198,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/use-location-switch-epoch-guard.ts",
+    "status": "not_reviewed",
+    "lines": 99,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/use-location-switcher.ts",
+    "status": "not_reviewed",
+    "lines": 250,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/use-scope-entry-controller.ts",
+    "status": "not_reviewed",
+    "lines": 300,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/security/account-security-access-provider.tsx",
+    "status": "not_reviewed",
+    "lines": 200,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/security/account-security-panel.tsx",
+    "status": "not_reviewed",
+    "lines": 147,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/security/account-security-standalone.tsx",
+    "status": "not_reviewed",
+    "lines": 100,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/security/account-security-workspace.tsx",
+    "status": "not_reviewed",
+    "lines": 88,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/security/index.ts",
+    "status": "not_reviewed",
+    "lines": 2,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/security/mfa-ceremonies.tsx",
+    "status": "not_reviewed",
+    "lines": 198,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/security/mfa-ui.test.ts",
+    "status": "not_reviewed",
+    "lines": 36,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/security/mfa-ui.ts",
+    "status": "not_reviewed",
+    "lines": 44,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/security/use-account-security-ceremony.ts",
+    "status": "not_reviewed",
+    "lines": 203,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/shell/dashboard-shell.tsx",
+    "status": "not_reviewed",
+    "lines": 72,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/shell/index.ts",
+    "status": "not_reviewed",
+    "lines": 6,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/shell/mobile-navigation-dialog.tsx",
+    "status": "fully_reviewed",
+    "lines": 48,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/components/shell/navigation-list.tsx",
+    "status": "not_reviewed",
+    "lines": 45,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/shell/shell-types.ts",
+    "status": "not_reviewed",
+    "lines": 34,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/shell/sidebar.tsx",
+    "status": "not_reviewed",
+    "lines": 84,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/components/shell/topbar.tsx",
+    "status": "not_reviewed",
+    "lines": 81,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/.gitkeep",
+    "status": "excluded",
+    "lines": 0,
+    "evidence": [
+      "Empty placeholder file."
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/administration-api.test.ts",
+    "status": "not_reviewed",
+    "lines": 89,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/administration-copy.ts",
+    "status": "not_reviewed",
+    "lines": 297,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/administration-drawer.tsx",
+    "status": "not_reviewed",
+    "lines": 96,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/administration-error.ts",
+    "status": "not_reviewed",
+    "lines": 17,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/administration-navigation.test.ts",
+    "status": "not_reviewed",
+    "lines": 116,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/administration-navigation.ts",
+    "status": "fully_reviewed",
+    "lines": 109,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/administration-scope.test.ts",
+    "status": "not_reviewed",
+    "lines": 48,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/administration-scope.ts",
+    "status": "not_reviewed",
+    "lines": 56,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/administration-tabs.tsx",
+    "status": "not_reviewed",
+    "lines": 58,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/administration-ui.tsx",
+    "status": "fully_reviewed",
+    "lines": 70,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/administration.module.css",
+    "status": "not_reviewed",
+    "lines": 193,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/branding/branding-api.ts",
+    "status": "fully_reviewed",
+    "lines": 40,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/branding/branding-editors.tsx",
+    "status": "fully_reviewed",
+    "lines": 78,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/branding/branding-page.tsx",
+    "status": "fully_reviewed",
+    "lines": 185,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/commercial/commercial-api.ts",
+    "status": "not_reviewed",
+    "lines": 17,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/commercial/service-status-panel.tsx",
+    "status": "not_reviewed",
+    "lines": 202,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/commercial/subscription-page.tsx",
+    "status": "fully_reviewed",
+    "lines": 188,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/locations/location-create-dialog.tsx",
+    "status": "not_reviewed",
+    "lines": 151,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/locations/location-detail.tsx",
+    "status": "not_reviewed",
+    "lines": 58,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/locations/location-lifecycle-explanation.test.ts",
+    "status": "not_reviewed",
+    "lines": 92,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/locations/location-lifecycle-explanation.ts",
+    "status": "not_reviewed",
+    "lines": 51,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/locations/location-lifecycle-facts.tsx",
+    "status": "not_reviewed",
+    "lines": 85,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/locations/location-lifecycle-panel.tsx",
+    "status": "fully_reviewed",
+    "lines": 278,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/locations/location-master.tsx",
+    "status": "not_reviewed",
+    "lines": 114,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/locations/location-resume-copy.ts",
+    "status": "not_reviewed",
+    "lines": 31,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/locations/location-resume-error.test.ts",
+    "status": "not_reviewed",
+    "lines": 26,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/locations/location-resume-error.ts",
+    "status": "not_reviewed",
+    "lines": 26,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/locations/location-resume-intake.tsx",
+    "status": "fully_reviewed",
+    "lines": 106,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/locations/locations-api.ts",
+    "status": "fully_reviewed",
+    "lines": 82,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/locations/locations-dialog.module.css",
+    "status": "not_reviewed",
+    "lines": 24,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/locations/locations-page.tsx",
+    "status": "not_reviewed",
+    "lines": 240,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/locations/locations-reference.module.css",
+    "status": "not_reviewed",
+    "lines": 279,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/issue304-action-dialogs.test.tsx",
+    "status": "not_reviewed",
+    "lines": 94,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/issue304-action-dialogs.tsx",
+    "status": "not_reviewed",
+    "lines": 140,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/issue304-action-intent.test.ts",
+    "status": "not_reviewed",
+    "lines": 56,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/issue304-action-intent.ts",
+    "status": "not_reviewed",
+    "lines": 53,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/issue304-action-reopen.test.tsx",
+    "status": "not_reviewed",
+    "lines": 91,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/issue304-create-key-slot.test.ts",
+    "status": "not_reviewed",
+    "lines": 81,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/issue304-create-key-slot.ts",
+    "status": "not_reviewed",
+    "lines": 55,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/issue304-native-variant.test.tsx",
+    "status": "not_reviewed",
+    "lines": 88,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/issue304-option3-actions.css",
+    "status": "not_reviewed",
+    "lines": 308,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/issue304-option3-create-form.test.tsx",
+    "status": "not_reviewed",
+    "lines": 76,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/issue304-option3-create-form.tsx",
+    "status": "not_reviewed",
+    "lines": 93,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/issue304-option3-heading.test.tsx",
+    "status": "not_reviewed",
+    "lines": 40,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/issue304-option3-heading.tsx",
+    "status": "not_reviewed",
+    "lines": 40,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/parking-zone-create-dialog.tsx",
+    "status": "not_reviewed",
+    "lines": 198,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/parking-zone-picker.tsx",
+    "status": "not_reviewed",
+    "lines": 88,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/physical-resource-create-dialog.tsx",
+    "status": "not_reviewed",
+    "lines": 297,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/physical-resource-operation-id.ts",
+    "status": "not_reviewed",
+    "lines": 42,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/physical-resource-table.tsx",
+    "status": "not_reviewed",
+    "lines": 116,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/physical-resources-api.ts",
+    "status": "not_reviewed",
+    "lines": 123,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/physical-resources-copy.ts",
+    "status": "not_reviewed",
+    "lines": 113,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/physical-resources-panel.tsx",
+    "status": "not_reviewed",
+    "lines": 247,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/physical-resources.module.css",
+    "status": "not_reviewed",
+    "lines": 28,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/resource-label-dialog.tsx",
+    "status": "not_reviewed",
+    "lines": 178,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/resource-label-png.ts",
+    "status": "not_reviewed",
+    "lines": 103,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/resource-label-print.module.css",
+    "status": "not_reviewed",
+    "lines": 7,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/physical-resources/use-parking-zone-page.ts",
+    "status": "not_reviewed",
+    "lines": 45,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/reference-administration-page.tsx",
+    "status": "not_reviewed",
+    "lines": 16,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/reference-administration.module.css",
+    "status": "not_reviewed",
+    "lines": 75,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/roles/role-reference.ts",
+    "status": "fully_reviewed",
+    "lines": 123,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/roles/roles-page.test.ts",
+    "status": "not_reviewed",
+    "lines": 88,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/roles/roles-page.tsx",
+    "status": "fully_reviewed",
+    "lines": 82,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/sensitive-mfa-dialog.tsx",
+    "status": "not_reviewed",
+    "lines": 86,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/sensitive-mutation-executor.ts",
+    "status": "fully_reviewed",
+    "lines": 27,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/attendance-zone-bounds.test.ts",
+    "status": "not_reviewed",
+    "lines": 84,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/attendance-zone-bounds.ts",
+    "status": "not_reviewed",
+    "lines": 55,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/attendance-zone-map.tsx",
+    "status": "not_reviewed",
+    "lines": 189,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/attendance-zones-overview-map.module.css",
+    "status": "not_reviewed",
+    "lines": 20,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/attendance-zones-overview-map.tsx",
+    "status": "not_reviewed",
+    "lines": 156,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/company-settings-panel.tsx",
+    "status": "not_reviewed",
+    "lines": 108,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/location-manager-settings-panel.tsx",
+    "status": "not_reviewed",
+    "lines": 111,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/management-location-settings-panel.tsx",
+    "status": "not_reviewed",
+    "lines": 141,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/mobile-setting-context-help.tsx",
+    "status": "not_reviewed",
+    "lines": 33,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/operating-hours-editor.tsx",
+    "status": "not_reviewed",
+    "lines": 161,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/setting-definitions.ts",
+    "status": "not_reviewed",
+    "lines": 41,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/setting-row.tsx",
+    "status": "not_reviewed",
+    "lines": 136,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/settings-api.ts",
+    "status": "not_reviewed",
+    "lines": 46,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/settings-copy.ts",
+    "status": "not_reviewed",
+    "lines": 86,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/settings-page.tsx",
+    "status": "not_reviewed",
+    "lines": 283,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-api.test.ts",
+    "status": "not_reviewed",
+    "lines": 222,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-api.ts",
+    "status": "not_reviewed",
+    "lines": 253,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-copy.ts",
+    "status": "not_reviewed",
+    "lines": 291,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-errors.ts",
+    "status": "not_reviewed",
+    "lines": 53,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-exception-facts.tsx",
+    "status": "not_reviewed",
+    "lines": 46,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-exceptions.tsx",
+    "status": "not_reviewed",
+    "lines": 197,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-feedback.tsx",
+    "status": "not_reviewed",
+    "lines": 35,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-guided-apply.test.ts",
+    "status": "not_reviewed",
+    "lines": 158,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-guided-apply.ts",
+    "status": "not_reviewed",
+    "lines": 180,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-guided-copy.test.ts",
+    "status": "not_reviewed",
+    "lines": 172,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-guided-copy.ts",
+    "status": "not_reviewed",
+    "lines": 193,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-id.test.ts",
+    "status": "not_reviewed",
+    "lines": 16,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-id.ts",
+    "status": "not_reviewed",
+    "lines": 17,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-list-ui.tsx",
+    "status": "not_reviewed",
+    "lines": 70,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-location-orchestration.tsx",
+    "status": "not_reviewed",
+    "lines": 178,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-map-first-layout.module.css",
+    "status": "not_reviewed",
+    "lines": 241,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-map-first-layout.test.tsx",
+    "status": "not_reviewed",
+    "lines": 115,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-map-first-layout.tsx",
+    "status": "not_reviewed",
+    "lines": 122,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-policy-copy.ts",
+    "status": "not_reviewed",
+    "lines": 66,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-policy-fields.ts",
+    "status": "not_reviewed",
+    "lines": 163,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-policy-row.tsx",
+    "status": "not_reviewed",
+    "lines": 297,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-policy.module.css",
+    "status": "not_reviewed",
+    "lines": 86,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-policy.test.tsx",
+    "status": "not_reviewed",
+    "lines": 268,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-policy.tsx",
+    "status": "not_reviewed",
+    "lines": 72,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-readiness.tsx",
+    "status": "not_reviewed",
+    "lines": 61,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-recovery.ts",
+    "status": "not_reviewed",
+    "lines": 43,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-response-scope.ts",
+    "status": "not_reviewed",
+    "lines": 82,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-retained-intent.test.ts",
+    "status": "not_reviewed",
+    "lines": 148,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-retained-intent.ts",
+    "status": "not_reviewed",
+    "lines": 100,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-review-dialog.tsx",
+    "status": "not_reviewed",
+    "lines": 177,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-settings.tsx",
+    "status": "not_reviewed",
+    "lines": 260,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-setup-review.tsx",
+    "status": "not_reviewed",
+    "lines": 267,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-setup-steps.tsx",
+    "status": "not_reviewed",
+    "lines": 101,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-validation.test.tsx",
+    "status": "not_reviewed",
+    "lines": 143,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-zone-code.test.tsx",
+    "status": "not_reviewed",
+    "lines": 73,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-zone-code.ts",
+    "status": "not_reviewed",
+    "lines": 35,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-zone-dialog.tsx",
+    "status": "not_reviewed",
+    "lines": 93,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-zone-draft.ts",
+    "status": "not_reviewed",
+    "lines": 58,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-zone-form.tsx",
+    "status": "not_reviewed",
+    "lines": 296,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-zone-readiness.test.ts",
+    "status": "not_reviewed",
+    "lines": 150,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-zone-readiness.ts",
+    "status": "not_reviewed",
+    "lines": 85,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence-zones.tsx",
+    "status": "not_reviewed",
+    "lines": 160,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/shift-presence.module.css",
+    "status": "not_reviewed",
+    "lines": 27,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/sla-setting-row.tsx",
+    "status": "not_reviewed",
+    "lines": 47,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/use-attendance-zone-location.ts",
+    "status": "not_reviewed",
+    "lines": 112,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/use-presence-api.ts",
+    "status": "not_reviewed",
+    "lines": 74,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/use-presence-dialog-focus.ts",
+    "status": "not_reviewed",
+    "lines": 33,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/use-presence-expiry.ts",
+    "status": "not_reviewed",
+    "lines": 47,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/use-presence-foreground.ts",
+    "status": "not_reviewed",
+    "lines": 18,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/use-presence-retained-intent.ts",
+    "status": "not_reviewed",
+    "lines": 54,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/use-shift-presence-mutation.ts",
+    "status": "not_reviewed",
+    "lines": 232,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/whatsapp-settings-api.test.tsx",
+    "status": "not_reviewed",
+    "lines": 44,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/whatsapp-settings-api.ts",
+    "status": "not_reviewed",
+    "lines": 81,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/whatsapp-settings-panel.tsx",
+    "status": "not_reviewed",
+    "lines": 125,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/settings/whatsapp-settings.module.css",
+    "status": "not_reviewed",
+    "lines": 9,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-activation-api.ts",
+    "status": "not_reviewed",
+    "lines": 42,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-activation-page.tsx",
+    "status": "not_reviewed",
+    "lines": 207,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-api.ts",
+    "status": "not_reviewed",
+    "lines": 142,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-create-dialog.tsx",
+    "status": "not_reviewed",
+    "lines": 199,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-create-locations.tsx",
+    "status": "not_reviewed",
+    "lines": 104,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-cursor-controls.tsx",
+    "status": "not_reviewed",
+    "lines": 47,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-detail-drawer.tsx",
+    "status": "not_reviewed",
+    "lines": 227,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-directory-filter.module.css",
+    "status": "not_reviewed",
+    "lines": 5,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-directory-location-filter.tsx",
+    "status": "not_reviewed",
+    "lines": 109,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-employees-body.tsx",
+    "status": "not_reviewed",
+    "lines": 275,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-force-end-copy.ts",
+    "status": "not_reviewed",
+    "lines": 72,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-force-end-dialog.tsx",
+    "status": "not_reviewed",
+    "lines": 175,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-force-end-intent.test.ts",
+    "status": "not_reviewed",
+    "lines": 61,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-force-end-intent.ts",
+    "status": "not_reviewed",
+    "lines": 71,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-force-end-recovery.test.ts",
+    "status": "not_reviewed",
+    "lines": 50,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-force-end-recovery.ts",
+    "status": "not_reviewed",
+    "lines": 49,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-labels.ts",
+    "status": "not_reviewed",
+    "lines": 23,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-location-access-panel.tsx",
+    "status": "not_reviewed",
+    "lines": 225,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-location-assignment-dialog.tsx",
+    "status": "not_reviewed",
+    "lines": 220,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-onboarding-api.ts",
+    "status": "not_reviewed",
+    "lines": 36,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-onboarding-copy.ts",
+    "status": "not_reviewed",
+    "lines": 78,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-onboarding-result.tsx",
+    "status": "not_reviewed",
+    "lines": 52,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-page.tsx",
+    "status": "fully_reviewed",
+    "lines": 119,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-pending-invite-panel.tsx",
+    "status": "not_reviewed",
+    "lines": 119,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-presentation.test.ts",
+    "status": "not_reviewed",
+    "lines": 38,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-presentation.ts",
+    "status": "not_reviewed",
+    "lines": 59,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-reference.module.css",
+    "status": "not_reviewed",
+    "lines": 298,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-shift-cash-facts.test.tsx",
+    "status": "not_reviewed",
+    "lines": 104,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-shift-cash-facts.tsx",
+    "status": "not_reviewed",
+    "lines": 140,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-shift-drawer.tsx",
+    "status": "not_reviewed",
+    "lines": 111,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-shift-employee-filter.tsx",
+    "status": "not_reviewed",
+    "lines": 164,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-shift-filters.module.css",
+    "status": "not_reviewed",
+    "lines": 19,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-shift-force-end-api.test.ts",
+    "status": "not_reviewed",
+    "lines": 95,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-shift-force-end-api.ts",
+    "status": "not_reviewed",
+    "lines": 32,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-shift-history-api.ts",
+    "status": "not_reviewed",
+    "lines": 43,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-shift-history-copy.ts",
+    "status": "not_reviewed",
+    "lines": 49,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-shift-location-filter.tsx",
+    "status": "not_reviewed",
+    "lines": 113,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-shift-management-drawer.tsx",
+    "status": "not_reviewed",
+    "lines": 108,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-shift-rows.tsx",
+    "status": "not_reviewed",
+    "lines": 97,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-shift-time.test.ts",
+    "status": "not_reviewed",
+    "lines": 57,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-shift-time.ts",
+    "status": "not_reviewed",
+    "lines": 67,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/staff-shifts-body.tsx",
+    "status": "not_reviewed",
+    "lines": 270,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/use-shift-clock.ts",
+    "status": "not_reviewed",
+    "lines": 25,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/use-staff-directory-query.ts",
+    "status": "fully_reviewed",
+    "lines": 92,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/use-staff-shift-force-end.ts",
+    "status": "not_reviewed",
+    "lines": 246,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/staff/use-staff-shift-query.ts",
+    "status": "not_reviewed",
+    "lines": 100,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/use-authoritative-read.ts",
+    "status": "fully_reviewed",
+    "lines": 128,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/use-sensitive-mutation.test.ts",
+    "status": "tool_only",
+    "lines": 88,
+    "evidence": [
+      "Executed in focused Vitest run: 7 files / 78 tests passed; test source not fully manually reviewed."
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/administration/use-sensitive-mutation.ts",
+    "status": "fully_reviewed",
+    "lines": 111,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-api.test.ts",
+    "status": "not_reviewed",
+    "lines": 38,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-api.ts",
+    "status": "not_reviewed",
+    "lines": 39,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-copy.ts",
+    "status": "not_reviewed",
+    "lines": 104,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-detail-drawer.tsx",
+    "status": "not_reviewed",
+    "lines": 207,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-detail-renderer.tsx",
+    "status": "not_reviewed",
+    "lines": 118,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-detail-values.ts",
+    "status": "not_reviewed",
+    "lines": 113,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-drawer.module.css",
+    "status": "not_reviewed",
+    "lines": 119,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-errors.ts",
+    "status": "not_reviewed",
+    "lines": 23,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-event-copy.ts",
+    "status": "not_reviewed",
+    "lines": 283,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-event-labels.test.ts",
+    "status": "not_reviewed",
+    "lines": 87,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-event-labels.ts",
+    "status": "not_reviewed",
+    "lines": 74,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-filters.tsx",
+    "status": "not_reviewed",
+    "lines": 46,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-guest-information.test.ts",
+    "status": "not_reviewed",
+    "lines": 23,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-navigation.ts",
+    "status": "fully_reviewed",
+    "lines": 18,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-page.tsx",
+    "status": "fully_reviewed",
+    "lines": 244,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-presentation.test.ts",
+    "status": "not_reviewed",
+    "lines": 163,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-presentation.ts",
+    "status": "not_reviewed",
+    "lines": 56,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-query-identity.ts",
+    "status": "not_reviewed",
+    "lines": 15,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-safe-details.ts",
+    "status": "not_reviewed",
+    "lines": 107,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-safe-renderer.test.ts",
+    "status": "not_reviewed",
+    "lines": 78,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-scope.ts",
+    "status": "not_reviewed",
+    "lines": 68,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-table.tsx",
+    "status": "not_reviewed",
+    "lines": 123,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit-view-switch.module.css",
+    "status": "not_reviewed",
+    "lines": 89,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/audit.module.css",
+    "status": "not_reviewed",
+    "lines": 300,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/index.ts",
+    "status": "not_reviewed",
+    "lines": 1,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation-demo-audit-guard.test.tsx",
+    "status": "not_reviewed",
+    "lines": 95,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation-demo-fixtures.test.ts",
+    "status": "not_reviewed",
+    "lines": 114,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation-demo-fixtures.ts",
+    "status": "not_reviewed",
+    "lines": 190,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation-demo-types.ts",
+    "status": "not_reviewed",
+    "lines": 91,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation-demo-ui.test.tsx",
+    "status": "not_reviewed",
+    "lines": 117,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation-demo.module.css",
+    "status": "not_reviewed",
+    "lines": 6,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation-demo.tsx",
+    "status": "not_reviewed",
+    "lines": 82,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation-event-drawer.module.css",
+    "status": "not_reviewed",
+    "lines": 183,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation-event-drawer.tsx",
+    "status": "not_reviewed",
+    "lines": 290,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation-live-query.test.ts",
+    "status": "not_reviewed",
+    "lines": 76,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation-live-query.ts",
+    "status": "not_reviewed",
+    "lines": 50,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation-live-support.ts",
+    "status": "partial",
+    "lines": 287,
+    "evidence": [
+      "Part of text inspected; output truncation prevented complete review."
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation-live-timezone.ts",
+    "status": "not_reviewed",
+    "lines": 81,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation-live.tsx",
+    "status": "not_reviewed",
+    "lines": 57,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation-search-panel.tsx",
+    "status": "not_reviewed",
+    "lines": 291,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation-search.module.css",
+    "status": "not_reviewed",
+    "lines": 242,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation-workspace.module.css",
+    "status": "not_reviewed",
+    "lines": 276,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation-workspace.tsx",
+    "status": "partial",
+    "lines": 204,
+    "evidence": [
+      "Part of text inspected; output truncation prevented complete review."
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/investigation-continuation-controls.tsx",
+    "status": "not_reviewed",
+    "lines": 56,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/investigation-continuation.module.css",
+    "status": "not_reviewed",
+    "lines": 40,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/investigation-ui-manifest.test.tsx",
+    "status": "not_reviewed",
+    "lines": 71,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/issue300-browser-safety.test.ts",
+    "status": "not_reviewed",
+    "lines": 150,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/issue300-closure.test.ts",
+    "status": "not_reviewed",
+    "lines": 134,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/live/investigation-live-controller.ts",
+    "status": "not_reviewed",
+    "lines": 275,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/live/investigation-pagination-state.ts",
+    "status": "not_reviewed",
+    "lines": 53,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/search/investigation-employee-selector.tsx",
+    "status": "not_reviewed",
+    "lines": 99,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/search/investigation-live-panel.test.tsx",
+    "status": "not_reviewed",
+    "lines": 100,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/search/investigation-member-options.test.ts",
+    "status": "not_reviewed",
+    "lines": 300,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/search/investigation-member-options.ts",
+    "status": "not_reviewed",
+    "lines": 193,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/search/investigation-panel-copy.ts",
+    "status": "not_reviewed",
+    "lines": 70,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/search/investigation-search-client.ts",
+    "status": "not_reviewed",
+    "lines": 74,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/search/investigation-search-contract.test.ts",
+    "status": "not_reviewed",
+    "lines": 235,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/search/investigation-search-controller.test.ts",
+    "status": "not_reviewed",
+    "lines": 219,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/search/investigation-search-controller.ts",
+    "status": "not_reviewed",
+    "lines": 232,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/search/investigation-search-model.ts",
+    "status": "not_reviewed",
+    "lines": 124,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/search/investigation-search-query.ts",
+    "status": "not_reviewed",
+    "lines": 30,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/search/investigation-search-scope.ts",
+    "status": "not_reviewed",
+    "lines": 79,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/search/investigation-selector-controller.test.ts",
+    "status": "not_reviewed",
+    "lines": 95,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/search/investigation-selector-controller.ts",
+    "status": "not_reviewed",
+    "lines": 132,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/search/investigation-selector-resolution.test.ts",
+    "status": "not_reviewed",
+    "lines": 102,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/search/investigation-selector-resolution.ts",
+    "status": "not_reviewed",
+    "lines": 101,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/search/investigation-time-disambiguation.tsx",
+    "status": "not_reviewed",
+    "lines": 49,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/timeline/investigation-live-projection.test.tsx",
+    "status": "not_reviewed",
+    "lines": 191,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/timeline/investigation-live-projection.ts",
+    "status": "not_reviewed",
+    "lines": 245,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/timeline/investigation-timeline-event.tsx",
+    "status": "not_reviewed",
+    "lines": 61,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/timeline/investigation-workspace-copy.ts",
+    "status": "not_reviewed",
+    "lines": 98,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/timeline/timeline-api.test.ts",
+    "status": "not_reviewed",
+    "lines": 108,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/timeline/timeline-api.ts",
+    "status": "not_reviewed",
+    "lines": 73,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/timeline/timeline-model.ts",
+    "status": "not_reviewed",
+    "lines": 97,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/timeline/timeline-projection.test.ts",
+    "status": "not_reviewed",
+    "lines": 110,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/timeline/timeline-projection.ts",
+    "status": "not_reviewed",
+    "lines": 117,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/timeline/timeline-state.test.ts",
+    "status": "not_reviewed",
+    "lines": 190,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/timeline/timeline-state.ts",
+    "status": "not_reviewed",
+    "lines": 235,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/investigation/timeline/timeline-test-fixtures.ts",
+    "status": "not_reviewed",
+    "lines": 92,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/audit/use-audit-page.ts",
+    "status": "not_reviewed",
+    "lines": 108,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/approved-elements.tsx",
+    "status": "not_reviewed",
+    "lines": 93,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/approved-feature.css",
+    "status": "not_reviewed",
+    "lines": 192,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/approved-option2.css",
+    "status": "not_reviewed",
+    "lines": 106,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/company-defaults-card.tsx",
+    "status": "fully_reviewed",
+    "lines": 132,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/contact-section.tsx",
+    "status": "fully_reviewed",
+    "lines": 65,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/guest-contact-input.ts",
+    "status": "not_reviewed",
+    "lines": 85,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/guest-contact-phone.test.ts",
+    "status": "not_reviewed",
+    "lines": 97,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/guest-information-api.ts",
+    "status": "not_reviewed",
+    "lines": 146,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/guest-information-focus.test.tsx",
+    "status": "not_reviewed",
+    "lines": 29,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/guest-information-model.test.ts",
+    "status": "not_reviewed",
+    "lines": 107,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/guest-information-model.ts",
+    "status": "not_reviewed",
+    "lines": 137,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/guest-information-page.tsx",
+    "status": "fully_reviewed",
+    "lines": 281,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/guest-information-shell-parity.css",
+    "status": "not_reviewed",
+    "lines": 81,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/guest-preview-card.tsx",
+    "status": "not_reviewed",
+    "lines": 71,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/location-contact-card.tsx",
+    "status": "fully_reviewed",
+    "lines": 213,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/overview-section.tsx",
+    "status": "not_reviewed",
+    "lines": 128,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/privacy-section.tsx",
+    "status": "fully_reviewed",
+    "lines": 187,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/section-navigation.tsx",
+    "status": "not_reviewed",
+    "lines": 68,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/use-revisioned-draft.test.ts",
+    "status": "not_reviewed",
+    "lines": 47,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/use-revisioned-draft.ts",
+    "status": "not_reviewed",
+    "lines": 45,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/account-context-help.tsx",
+    "status": "not_reviewed",
+    "lines": 22,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/administration-settings-help-browser-harness.tsx",
+    "status": "not_reviewed",
+    "lines": 79,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/administration-settings-help.test.ts",
+    "status": "not_reviewed",
+    "lines": 154,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/context-help-administration-mounts.test.ts",
+    "status": "not_reviewed",
+    "lines": 55,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/context-help-browser-harness.tsx",
+    "status": "not_reviewed",
+    "lines": 132,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/context-help-coverage-contract.ts",
+    "status": "not_reviewed",
+    "lines": 100,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/context-help-coverage.test.ts",
+    "status": "not_reviewed",
+    "lines": 176,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/context-help-phase-e-mounts.test.ts",
+    "status": "not_reviewed",
+    "lines": 56,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/context-help-registry.test.ts",
+    "status": "not_reviewed",
+    "lines": 83,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/context-help-registry.ts",
+    "status": "not_reviewed",
+    "lines": 32,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/context-help-types.ts",
+    "status": "not_reviewed",
+    "lines": 13,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/context-help.module.css",
+    "status": "not_reviewed",
+    "lines": 63,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/context-help.test.tsx",
+    "status": "not_reviewed",
+    "lines": 289,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/context-help.tsx",
+    "status": "not_reviewed",
+    "lines": 152,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/help-account.ts",
+    "status": "not_reviewed",
+    "lines": 40,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/help-administration.ts",
+    "status": "not_reviewed",
+    "lines": 136,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/help-intelligence.ts",
+    "status": "not_reviewed",
+    "lines": 88,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/help-operations.ts",
+    "status": "not_reviewed",
+    "lines": 118,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/help-pages.ts",
+    "status": "not_reviewed",
+    "lines": 142,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/help-presence.ts",
+    "status": "not_reviewed",
+    "lines": 99,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/help-route-manifest.ts",
+    "status": "not_reviewed",
+    "lines": 56,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/help-section-manifest.ts",
+    "status": "not_reviewed",
+    "lines": 62,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/help-section-source-manifest.ts",
+    "status": "not_reviewed",
+    "lines": 70,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/help-setting-manifest.ts",
+    "status": "not_reviewed",
+    "lines": 50,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/help-settings.ts",
+    "status": "not_reviewed",
+    "lines": 112,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/help-slot.module.css",
+    "status": "not_reviewed",
+    "lines": 78,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/scoped-context-help.tsx",
+    "status": "not_reviewed",
+    "lines": 47,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/help/use-connected-help-fallback.ts",
+    "status": "not_reviewed",
+    "lines": 26,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/analytics-activity-chart.tsx",
+    "status": "not_reviewed",
+    "lines": 157,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/analytics-card-evidence.tsx",
+    "status": "not_reviewed",
+    "lines": 103,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/analytics-cards.tsx",
+    "status": "not_reviewed",
+    "lines": 212,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/analytics-chart-data.tsx",
+    "status": "not_reviewed",
+    "lines": 114,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/analytics-copy.ts",
+    "status": "not_reviewed",
+    "lines": 226,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/analytics-coverage.tsx",
+    "status": "not_reviewed",
+    "lines": 121,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/analytics-evidence.module.css",
+    "status": "not_reviewed",
+    "lines": 55,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/analytics-page.tsx",
+    "status": "fully_reviewed",
+    "lines": 229,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/analytics-presentation.test.ts",
+    "status": "not_reviewed",
+    "lines": 292,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/analytics-presentation.ts",
+    "status": "not_reviewed",
+    "lines": 158,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/analytics-secondary-chart.tsx",
+    "status": "not_reviewed",
+    "lines": 217,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/analytics-text-summary.tsx",
+    "status": "not_reviewed",
+    "lines": 205,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/analytics.module.css",
+    "status": "not_reviewed",
+    "lines": 295,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/customer-feedback-api.test.ts",
+    "status": "not_reviewed",
+    "lines": 57,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/customer-feedback-api.ts",
+    "status": "not_reviewed",
+    "lines": 33,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/customer-feedback-copy.ts",
+    "status": "not_reviewed",
+    "lines": 67,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/customer-feedback-insights.tsx",
+    "status": "not_reviewed",
+    "lines": 73,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/customer-feedback-section.test.tsx",
+    "status": "not_reviewed",
+    "lines": 108,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/customer-feedback-section.tsx",
+    "status": "not_reviewed",
+    "lines": 72,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/customer-feedback-summary.tsx",
+    "status": "not_reviewed",
+    "lines": 70,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/customer-feedback.module.css",
+    "status": "not_reviewed",
+    "lines": 191,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/dashboard-period-calendar.test.ts",
+    "status": "tool_only",
+    "lines": 98,
+    "evidence": [
+      "Executed in focused Vitest run: 7 files / 78 tests passed; test source not fully manually reviewed."
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/dashboard-period-calendar.ts",
+    "status": "fully_reviewed",
+    "lines": 95,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/dashboard-period-control.module.css",
+    "status": "not_reviewed",
+    "lines": 96,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/dashboard-period-control.tsx",
+    "status": "not_reviewed",
+    "lines": 218,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/dashboard-period-selection.test.ts",
+    "status": "tool_only",
+    "lines": 47,
+    "evidence": [
+      "Executed in focused Vitest run: 7 files / 78 tests passed; test source not fully manually reviewed."
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/dashboard-period-selection.ts",
+    "status": "fully_reviewed",
+    "lines": 68,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/intelligence-api.test.ts",
+    "status": "not_reviewed",
+    "lines": 226,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/intelligence-api.ts",
+    "status": "not_reviewed",
+    "lines": 289,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/intelligence-format.ts",
+    "status": "not_reviewed",
+    "lines": 42,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/intelligence-generation.test.ts",
+    "status": "not_reviewed",
+    "lines": 219,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/intelligence-help.module.css",
+    "status": "not_reviewed",
+    "lines": 17,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/intelligence-navigation.test.ts",
+    "status": "not_reviewed",
+    "lines": 55,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/intelligence-navigation.ts",
+    "status": "fully_reviewed",
+    "lines": 58,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/intelligence-period-validation.test.ts",
+    "status": "not_reviewed",
+    "lines": 31,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/intelligence-period-validation.ts",
+    "status": "fully_reviewed",
+    "lines": 58,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/intelligence-period.module.css",
+    "status": "not_reviewed",
+    "lines": 210,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/intelligence-query-identity.ts",
+    "status": "not_reviewed",
+    "lines": 107,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/intelligence-scope.ts",
+    "status": "not_reviewed",
+    "lines": 73,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/overview-activity-chart.tsx",
+    "status": "not_reviewed",
+    "lines": 138,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/overview-chart.module.css",
+    "status": "not_reviewed",
+    "lines": 98,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/overview-copy.ts",
+    "status": "not_reviewed",
+    "lines": 118,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/overview-current-panel.tsx",
+    "status": "not_reviewed",
+    "lines": 177,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/overview-current-row.tsx",
+    "status": "not_reviewed",
+    "lines": 27,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/overview-current.module.css",
+    "status": "not_reviewed",
+    "lines": 101,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/overview-duration.test.ts",
+    "status": "not_reviewed",
+    "lines": 28,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/overview-duration.ts",
+    "status": "not_reviewed",
+    "lines": 49,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/overview-metrics.tsx",
+    "status": "not_reviewed",
+    "lines": 105,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/overview-page-ui.tsx",
+    "status": "not_reviewed",
+    "lines": 70,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/overview-page.tsx",
+    "status": "not_reviewed",
+    "lines": 171,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/overview-presentation.test.ts",
+    "status": "not_reviewed",
+    "lines": 217,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/overview-presentation.ts",
+    "status": "not_reviewed",
+    "lines": 65,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/overview-session-state.test.ts",
+    "status": "not_reviewed",
+    "lines": 22,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/overview-session-state.ts",
+    "status": "not_reviewed",
+    "lines": 20,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/overview.module.css",
+    "status": "not_reviewed",
+    "lines": 264,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/payments-breakdown-table.tsx",
+    "status": "not_reviewed",
+    "lines": 69,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/payments-breakdown-types.ts",
+    "status": "not_reviewed",
+    "lines": 19,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/payments-breakdown.module.css",
+    "status": "not_reviewed",
+    "lines": 231,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/payments-copy.ts",
+    "status": "not_reviewed",
+    "lines": 118,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/payments-current-table.tsx",
+    "status": "not_reviewed",
+    "lines": 119,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/payments-labels.test.ts",
+    "status": "not_reviewed",
+    "lines": 41,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/payments-labels.ts",
+    "status": "not_reviewed",
+    "lines": 42,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/payments-page.tsx",
+    "status": "fully_reviewed",
+    "lines": 162,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/payments-period-tables.tsx",
+    "status": "not_reviewed",
+    "lines": 192,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/payments-presentation.test.ts",
+    "status": "not_reviewed",
+    "lines": 204,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/payments-presentation.ts",
+    "status": "not_reviewed",
+    "lines": 41,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/payments-summary-grid.tsx",
+    "status": "not_reviewed",
+    "lines": 165,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/payments-table-primitives.tsx",
+    "status": "not_reviewed",
+    "lines": 82,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/payments.module.css",
+    "status": "not_reviewed",
+    "lines": 201,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/report-export-intent.ts",
+    "status": "not_reviewed",
+    "lines": 59,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/report-export-recovery.ts",
+    "status": "not_reviewed",
+    "lines": 35,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/report-preview-dialog.module.css",
+    "status": "not_reviewed",
+    "lines": 265,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/report-preview-dialog.tsx",
+    "status": "not_reviewed",
+    "lines": 175,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/report-preview-rows.module.css",
+    "status": "not_reviewed",
+    "lines": 51,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/report-preview-rows.tsx",
+    "status": "not_reviewed",
+    "lines": 62,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/report-row-label.test.ts",
+    "status": "not_reviewed",
+    "lines": 31,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/report-row-label.ts",
+    "status": "not_reviewed",
+    "lines": 94,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/reports-copy.ts",
+    "status": "not_reviewed",
+    "lines": 151,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/reports-export-api.test.ts",
+    "status": "not_reviewed",
+    "lines": 91,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/reports-export-api.ts",
+    "status": "not_reviewed",
+    "lines": 38,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/reports-export-controls.tsx",
+    "status": "not_reviewed",
+    "lines": 86,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/reports-page-helpers.ts",
+    "status": "not_reviewed",
+    "lines": 129,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/reports-page.tsx",
+    "status": "not_reviewed",
+    "lines": 284,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/reports-presentation.test.ts",
+    "status": "not_reviewed",
+    "lines": 102,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/reports-presentation.ts",
+    "status": "not_reviewed",
+    "lines": 257,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/reports-reference-icons.ts",
+    "status": "not_reviewed",
+    "lines": 20,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/reports-table.tsx",
+    "status": "not_reviewed",
+    "lines": 101,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/reports.module.css",
+    "status": "not_reviewed",
+    "lines": 183,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/use-customer-feedback-read.ts",
+    "status": "not_reviewed",
+    "lines": 33,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/use-dashboard-period.ts",
+    "status": "fully_reviewed",
+    "lines": 112,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/intelligence/use-intelligence-read.ts",
+    "status": "fully_reviewed",
+    "lines": 137,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/accountability.module.css",
+    "status": "not_reviewed",
+    "lines": 81,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/incidents/incident-drawer.module.css",
+    "status": "not_reviewed",
+    "lines": 61,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/incidents/incident-drawer.tsx",
+    "status": "not_reviewed",
+    "lines": 126,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/incidents/incident-presentation.test.ts",
+    "status": "not_reviewed",
+    "lines": 46,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/incidents/incident-presentation.ts",
+    "status": "not_reviewed",
+    "lines": 83,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/incidents/incidents-page.tsx",
+    "status": "not_reviewed",
+    "lines": 245,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/incidents/resolve-incident-control.tsx",
+    "status": "fully_reviewed",
+    "lines": 124,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/keys/key-presentation.test.ts",
+    "status": "not_reviewed",
+    "lines": 24,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/keys/key-presentation.ts",
+    "status": "not_reviewed",
+    "lines": 36,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/keys/keys-operational-view.tsx",
+    "status": "not_reviewed",
+    "lines": 209,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/keys/keys-page.tsx",
+    "status": "not_reviewed",
+    "lines": 14,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/keys/keys-workspace-tabs.tsx",
+    "status": "not_reviewed",
+    "lines": 67,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/keys/option3-resource-inspector.css",
+    "status": "not_reviewed",
+    "lines": 262,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/keys/option3-resource-inspector.tsx",
+    "status": "not_reviewed",
+    "lines": 176,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/keys/resource-inspector-contract.test.ts",
+    "status": "not_reviewed",
+    "lines": 52,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/keys/resource-inspector-contract.ts",
+    "status": "not_reviewed",
+    "lines": 99,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/keys/resource-inspector-copy.ts",
+    "status": "not_reviewed",
+    "lines": 141,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/keys/resource-inspector-custody.tsx",
+    "status": "not_reviewed",
+    "lines": 67,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/keys/resource-inspector-detail.tsx",
+    "status": "not_reviewed",
+    "lines": 151,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/keys/resource-inspector-key-create.tsx",
+    "status": "not_reviewed",
+    "lines": 165,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/keys/resource-inspector-kpis.tsx",
+    "status": "not_reviewed",
+    "lines": 32,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/keys/resource-inspector-live.tsx",
+    "status": "not_reviewed",
+    "lines": 211,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/keys/resource-inspector-master.tsx",
+    "status": "not_reviewed",
+    "lines": 146,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/keys/resource-inspector-presentation.ts",
+    "status": "not_reviewed",
+    "lines": 42,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/live-operations/issue-276-baseline-diagnostic.test.tsx",
+    "status": "fully_reviewed",
+    "lines": 143,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/live-operations/issue-276-mounted.e2e.mjs",
+    "status": "not_reviewed",
+    "lines": 285,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/live-operations/issue-276-queue.e2e.mjs",
+    "status": "not_reviewed",
+    "lines": 88,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/live-operations/issue-276-stale.e2e.mjs",
+    "status": "not_reviewed",
+    "lines": 97,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/live-operations/issue-276-ui-matrix.e2e.mjs",
+    "status": "not_reviewed",
+    "lines": 113,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/live-operations/live-operations-controls.tsx",
+    "status": "fully_reviewed",
+    "lines": 96,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/live-operations/live-operations-page.tsx",
+    "status": "fully_reviewed",
+    "lines": 202,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/live-operations/live-operations-presentation.test.ts",
+    "status": "tool_only",
+    "lines": 179,
+    "evidence": [
+      "Executed in focused Vitest run: 7 files / 78 tests passed; test source not fully manually reviewed."
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/live-operations/live-operations-presentation.ts",
+    "status": "not_reviewed",
+    "lines": 109,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/live-operations/live-operations-table.tsx",
+    "status": "fully_reviewed",
+    "lines": 243,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/live-operations/live-sessions-transport.test.ts",
+    "status": "not_reviewed",
+    "lines": 33,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/live-operations/playwright.issue-276.config.mjs",
+    "status": "not_reviewed",
+    "lines": 23,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/live-operations/retrieval-queue-table.tsx",
+    "status": "not_reviewed",
+    "lines": 268,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/live-operations/session-drawer.tsx",
+    "status": "not_reviewed",
+    "lines": 151,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/live-operations/session-staff-attribution.test.tsx",
+    "status": "not_reviewed",
+    "lines": 178,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/live-operations/session-staff-attribution.ts",
+    "status": "not_reviewed",
+    "lines": 78,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/map-setup-api.test.ts",
+    "status": "not_reviewed",
+    "lines": 65,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/map-setup-api.ts",
+    "status": "not_reviewed",
+    "lines": 123,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/area-editor-dialog.tsx",
+    "status": "not_reviewed",
+    "lines": 191,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/coordinate-canvas.tsx",
+    "status": "not_reviewed",
+    "lines": 95,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/live-map-panel.tsx",
+    "status": "not_reviewed",
+    "lines": 61,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/live-map-refresh-owner.test.ts",
+    "status": "not_reviewed",
+    "lines": 236,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/live-map-refresh-owner.ts",
+    "status": "not_reviewed",
+    "lines": 178,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/map-presentation.test.ts",
+    "status": "not_reviewed",
+    "lines": 179,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/map-presentation.ts",
+    "status": "not_reviewed",
+    "lines": 129,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/map-setup-dialog.tsx",
+    "status": "not_reviewed",
+    "lines": 57,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/map-setup-panel.tsx",
+    "status": "not_reviewed",
+    "lines": 165,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/map-setup-presentation.ts",
+    "status": "not_reviewed",
+    "lines": 30,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/map-setup-select.tsx",
+    "status": "not_reviewed",
+    "lines": 21,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/maps-page.tsx",
+    "status": "not_reviewed",
+    "lines": 288,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/maps-reference.module.css",
+    "status": "not_reviewed",
+    "lines": 168,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/operational-google-map-config.test.ts",
+    "status": "not_reviewed",
+    "lines": 13,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/operational-google-map-config.ts",
+    "status": "not_reviewed",
+    "lines": 6,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/operational-google-map-runtime.test.ts",
+    "status": "not_reviewed",
+    "lines": 216,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/operational-google-map-runtime.ts",
+    "status": "not_reviewed",
+    "lines": 223,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/operational-google-map.tsx",
+    "status": "not_reviewed",
+    "lines": 241,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/operational-map-camera-fit.test.ts",
+    "status": "not_reviewed",
+    "lines": 45,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/operational-map-camera-fit.ts",
+    "status": "not_reviewed",
+    "lines": 31,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/operational-map-model.test.ts",
+    "status": "not_reviewed",
+    "lines": 201,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/operational-map-model.ts",
+    "status": "not_reviewed",
+    "lines": 183,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/point-editor-dialog.tsx",
+    "status": "not_reviewed",
+    "lines": 92,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/use-live-map-read.ts",
+    "status": "not_reviewed",
+    "lines": 53,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/use-map-parking-zones.ts",
+    "status": "not_reviewed",
+    "lines": 37,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/use-map-setup-mutation.test.ts",
+    "status": "not_reviewed",
+    "lines": 101,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/use-map-setup-mutation.ts",
+    "status": "not_reviewed",
+    "lines": 123,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/maps/use-map-setup-state.ts",
+    "status": "not_reviewed",
+    "lines": 80,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/operational-staff.tsx",
+    "status": "not_reviewed",
+    "lines": 38,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/operations-api.test.ts",
+    "status": "tool_only",
+    "lines": 56,
+    "evidence": [
+      "Executed in focused Vitest run: 7 files / 78 tests passed; test source not fully manually reviewed."
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/operations-api.ts",
+    "status": "fully_reviewed",
+    "lines": 178,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/operations-copy.ts",
+    "status": "not_reviewed",
+    "lines": 223,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/operations-labels.ts",
+    "status": "not_reviewed",
+    "lines": 42,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/operations-location.ts",
+    "status": "not_reviewed",
+    "lines": 13,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/operations-navigation.test.ts",
+    "status": "not_reviewed",
+    "lines": 77,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/operations-navigation.ts",
+    "status": "fully_reviewed",
+    "lines": 52,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/operations-presentation.test.ts",
+    "status": "not_reviewed",
+    "lines": 167,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/operations-presentation.ts",
+    "status": "not_reviewed",
+    "lines": 132,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/operations-scope.test.ts",
+    "status": "not_reviewed",
+    "lines": 49,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/operations-scope.ts",
+    "status": "not_reviewed",
+    "lines": 72,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/operations-ui.tsx",
+    "status": "not_reviewed",
+    "lines": 177,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/operations.module.css",
+    "status": "not_reviewed",
+    "lines": 226,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/reference-cursor-controls.tsx",
+    "status": "not_reviewed",
+    "lines": 46,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/reference-list.module.css",
+    "status": "not_reviewed",
+    "lines": 262,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/session-photos/photo-client.test.ts",
+    "status": "not_reviewed",
+    "lines": 72,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/session-photos/photo-client.ts",
+    "status": "not_reviewed",
+    "lines": 101,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/session-photos/photo-download-scheduler.prime.test.ts",
+    "status": "not_reviewed",
+    "lines": 154,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/session-photos/photo-download-scheduler.ts",
+    "status": "not_reviewed",
+    "lines": 82,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/session-photos/protected-photo-get.test.ts",
+    "status": "not_reviewed",
+    "lines": 50,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/session-photos/session-photos.module.css",
+    "status": "not_reviewed",
+    "lines": 54,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/session-photos/session-photos.tsx",
+    "status": "not_reviewed",
+    "lines": 231,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/tasks/task-attribution.ts",
+    "status": "not_reviewed",
+    "lines": 24,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/tasks/task-drawer.tsx",
+    "status": "not_reviewed",
+    "lines": 92,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/tasks/task-table-body.tsx",
+    "status": "not_reviewed",
+    "lines": 114,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/tasks/tasks-page.tsx",
+    "status": "fully_reviewed",
+    "lines": 190,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/use-cursor-page.ts",
+    "status": "fully_reviewed",
+    "lines": 26,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/use-operations-context.ts",
+    "status": "fully_reviewed",
+    "lines": 16,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/use-operations-read.ts",
+    "status": "fully_reviewed",
+    "lines": 66,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/vehicles/vehicles-page.tsx",
+    "status": "fully_reviewed",
+    "lines": 287,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/index.ts",
+    "status": "not_reviewed",
+    "lines": 2,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/md04-generation.test.ts",
+    "status": "not_reviewed",
+    "lines": 143,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/use-visit-contact-search.ts",
+    "status": "not_reviewed",
+    "lines": 183,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/use-visit-history.ts",
+    "status": "not_reviewed",
+    "lines": 99,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-copy.ts",
+    "status": "not_reviewed",
+    "lines": 159,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-correction-dialog.tsx",
+    "status": "not_reviewed",
+    "lines": 295,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-correction-intent.ts",
+    "status": "not_reviewed",
+    "lines": 8,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-correction-recovery.test.ts",
+    "status": "not_reviewed",
+    "lines": 33,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-correction-recovery.ts",
+    "status": "not_reviewed",
+    "lines": 32,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-detail-drawer.tsx",
+    "status": "not_reviewed",
+    "lines": 249,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-drawer.module.css",
+    "status": "not_reviewed",
+    "lines": 71,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-drawer.tsx",
+    "status": "not_reviewed",
+    "lines": 99,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-errors.ts",
+    "status": "not_reviewed",
+    "lines": 56,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-navigation.ts",
+    "status": "fully_reviewed",
+    "lines": 18,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-overlay.module.css",
+    "status": "not_reviewed",
+    "lines": 26,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-presentation.ts",
+    "status": "not_reviewed",
+    "lines": 12,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-privacy.test.ts",
+    "status": "not_reviewed",
+    "lines": 36,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-query-identity.ts",
+    "status": "not_reviewed",
+    "lines": 32,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-results.tsx",
+    "status": "not_reviewed",
+    "lines": 185,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-scope.ts",
+    "status": "not_reviewed",
+    "lines": 59,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-search.module.css",
+    "status": "not_reviewed",
+    "lines": 31,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-search.tsx",
+    "status": "not_reviewed",
+    "lines": 131,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-sensitive-mfa.tsx",
+    "status": "not_reviewed",
+    "lines": 86,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-table.module.css",
+    "status": "not_reviewed",
+    "lines": 76,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-time-format.ts",
+    "status": "not_reviewed",
+    "lines": 14,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-time.test.ts",
+    "status": "not_reviewed",
+    "lines": 12,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contact-time.tsx",
+    "status": "not_reviewed",
+    "lines": 20,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contacts-api.test.ts",
+    "status": "not_reviewed",
+    "lines": 99,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contacts-api.ts",
+    "status": "not_reviewed",
+    "lines": 116,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contacts-page.tsx",
+    "status": "not_reviewed",
+    "lines": 194,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-contacts.module.css",
+    "status": "not_reviewed",
+    "lines": 295,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-history-query-identity.ts",
+    "status": "not_reviewed",
+    "lines": 18,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/features/visit-contacts/visit-history.tsx",
+    "status": "not_reviewed",
+    "lines": 192,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/.gitkeep",
+    "status": "excluded",
+    "lines": 0,
+    "evidence": [
+      "Empty placeholder file."
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/api/api-origin.test.ts",
+    "status": "not_reviewed",
+    "lines": 70,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/api/api-origin.ts",
+    "status": "not_reviewed",
+    "lines": 60,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/api/dashboard-api-client-binary.test.ts",
+    "status": "tool_only",
+    "lines": 297,
+    "evidence": [
+      "Executed in focused Vitest run: 7 files / 78 tests passed; test source not fully manually reviewed."
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/api/dashboard-api-client.test.ts",
+    "status": "tool_only",
+    "lines": 292,
+    "evidence": [
+      "Executed in focused Vitest run: 7 files / 78 tests passed; test source not fully manually reviewed."
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/api/dashboard-api-client.ts",
+    "status": "fully_reviewed",
+    "lines": 299,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/api/dashboard-api-error.ts",
+    "status": "fully_reviewed",
+    "lines": 131,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/api/dashboard-api-types.ts",
+    "status": "not_reviewed",
+    "lines": 30,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/api/dashboard-binary-response.ts",
+    "status": "not_reviewed",
+    "lines": 23,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/api/dashboard-protected-jpeg-body.test.ts",
+    "status": "not_reviewed",
+    "lines": 26,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/api/dashboard-protected-jpeg-body.ts",
+    "status": "not_reviewed",
+    "lines": 35,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/app-info.test.ts",
+    "status": "not_reviewed",
+    "lines": 9,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/app-info.ts",
+    "status": "not_reviewed",
+    "lines": 4,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/auth/staff-auth-abort.ts",
+    "status": "not_reviewed",
+    "lines": 26,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/auth/staff-auth-client.test.ts",
+    "status": "not_reviewed",
+    "lines": 176,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/auth/staff-auth-client.ts",
+    "status": "not_reviewed",
+    "lines": 292,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/auth/staff-auth-context.test.ts",
+    "status": "not_reviewed",
+    "lines": 28,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/auth/staff-auth-context.tsx",
+    "status": "fully_reviewed",
+    "lines": 150,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/auth/staff-auth-continuity.test.ts",
+    "status": "not_reviewed",
+    "lines": 95,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/auth/staff-auth-continuity.ts",
+    "status": "not_reviewed",
+    "lines": 12,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/auth/staff-auth-status.ts",
+    "status": "not_reviewed",
+    "lines": 14,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/i18n/dictionaries.ts",
+    "status": "not_reviewed",
+    "lines": 194,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/i18n/locale-provider.tsx",
+    "status": "not_reviewed",
+    "lines": 69,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/i18n/locale.test.ts",
+    "status": "not_reviewed",
+    "lines": 16,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/i18n/locale.ts",
+    "status": "not_reviewed",
+    "lines": 39,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/maps/google-maps-sdk-ownership.test.ts",
+    "status": "not_reviewed",
+    "lines": 50,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/maps/google-maps-sdk.test.ts",
+    "status": "not_reviewed",
+    "lines": 172,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/maps/google-maps-sdk.ts",
+    "status": "not_reviewed",
+    "lines": 176,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/mfa/dashboard-mfa-client.test.ts",
+    "status": "not_reviewed",
+    "lines": 60,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/mfa/dashboard-mfa-client.ts",
+    "status": "not_reviewed",
+    "lines": 106,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/account-security-navigation.test.ts",
+    "status": "not_reviewed",
+    "lines": 41,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/account-security-navigation.ts",
+    "status": "not_reviewed",
+    "lines": 56,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/dashboard-navigation.test.ts",
+    "status": "not_reviewed",
+    "lines": 94,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/dashboard-navigation.ts",
+    "status": "fully_reviewed",
+    "lines": 26,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/index.ts",
+    "status": "not_reviewed",
+    "lines": 32,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/location-maps-navigation.test.ts",
+    "status": "not_reviewed",
+    "lines": 139,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/md01-navigation.ts",
+    "status": "fully_reviewed",
+    "lines": 39,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/md04-feature-authority-navigation.test.ts",
+    "status": "not_reviewed",
+    "lines": 255,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/md04-production-navigation.test.ts",
+    "status": "not_reviewed",
+    "lines": 55,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/md05-intelligence-navigation.test.ts",
+    "status": "not_reviewed",
+    "lines": 243,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/navigation-authority.ts",
+    "status": "not_reviewed",
+    "lines": 69,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/navigation-commercial-access.test.ts",
+    "status": "not_reviewed",
+    "lines": 121,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/navigation-landing.test.ts",
+    "status": "not_reviewed",
+    "lines": 63,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/navigation-landing.ts",
+    "status": "not_reviewed",
+    "lines": 22,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/navigation-registry.test.ts",
+    "status": "not_reviewed",
+    "lines": 246,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/navigation-registry.ts",
+    "status": "fully_reviewed",
+    "lines": 100,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/navigation-types.ts",
+    "status": "not_reviewed",
+    "lines": 44,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/product-navigation-order.ts",
+    "status": "not_reviewed",
+    "lines": 48,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/presentation/resource-vehicle-identity-text.test.tsx",
+    "status": "not_reviewed",
+    "lines": 34,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/presentation/resource-vehicle-identity-text.tsx",
+    "status": "not_reviewed",
+    "lines": 12,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/presentation/resource-vehicle-identity.test.ts",
+    "status": "not_reviewed",
+    "lines": 29,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/presentation/resource-vehicle-identity.ts",
+    "status": "not_reviewed",
+    "lines": 19,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/scope/dashboard-commercial-access.test.ts",
+    "status": "not_reviewed",
+    "lines": 111,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/scope/dashboard-commercial-access.ts",
+    "status": "not_reviewed",
+    "lines": 78,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/scope/dashboard-scope.test.ts",
+    "status": "not_reviewed",
+    "lines": 102,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/scope/dashboard-scope.ts",
+    "status": "not_reviewed",
+    "lines": 216,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/scope/scope-generation.ts",
+    "status": "not_reviewed",
+    "lines": 40,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/theme/theme-provider.tsx",
+    "status": "not_reviewed",
+    "lines": 59,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/lib/theme/theme.ts",
+    "status": "not_reviewed",
+    "lines": 25,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/styles/foundation.css",
+    "status": "not_reviewed",
+    "lines": 94,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/styles/shell-controls.css",
+    "status": "not_reviewed",
+    "lines": 63,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/src/styles/shell.css",
+    "status": "not_reviewed",
+    "lines": 266,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/tests/issue304-accessibility.spec.ts",
+    "status": "not_reviewed",
+    "lines": 76,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/tests/issue304-authority.spec.ts",
+    "status": "not_reviewed",
+    "lines": 56,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/tests/issue304-browser-zoom.spec.ts",
+    "status": "not_reviewed",
+    "lines": 89,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/tests/issue304-contract.ts",
+    "status": "not_reviewed",
+    "lines": 71,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/tests/issue304-fixture.ts",
+    "status": "not_reviewed",
+    "lines": 181,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/tests/issue304-interactions.spec.ts",
+    "status": "not_reviewed",
+    "lines": 83,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/tests/issue304-key-detail-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 57,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/tests/issue304-kpi.spec.ts",
+    "status": "not_reviewed",
+    "lines": 38,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/tests/issue304-modal-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 135,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/tests/issue304-paging.spec.ts",
+    "status": "not_reviewed",
+    "lines": 90,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/tests/issue304-parity.ts",
+    "status": "not_reviewed",
+    "lines": 85,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/tests/issue304-playwright.config.ts",
+    "status": "not_reviewed",
+    "lines": 20,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/tests/issue304-qr-actions.spec.ts",
+    "status": "not_reviewed",
+    "lines": 45,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/tests/issue304-spot-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 71,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/tests/issue304-visual.spec.ts",
+    "status": "not_reviewed",
+    "lines": 60,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/tsconfig.json",
+    "status": "not_reviewed",
+    "lines": 19,
+    "evidence": []
+  },
+  {
+    "path": "apps/dashboard/vitest.config.mjs",
+    "status": "not_reviewed",
+    "lines": 9,
+    "evidence": []
+  },
+  {
+    "path": "packages/ui/README.md",
+    "status": "not_reviewed",
+    "lines": 5,
+    "evidence": []
+  },
+  {
+    "path": "packages/ui/package.json",
+    "status": "not_reviewed",
+    "lines": 24,
+    "evidence": []
+  },
+  {
+    "path": "packages/ui/src/index.test.ts",
+    "status": "not_reviewed",
+    "lines": 7,
+    "evidence": []
+  },
+  {
+    "path": "packages/ui/src/index.tsx",
+    "status": "fully_reviewed",
+    "lines": 15,
+    "evidence": [
+      "Entire text emitted for line-level source review; no runtime proof implied"
+    ]
+  },
+  {
+    "path": "packages/ui/tsconfig.json",
+    "status": "not_reviewed",
+    "lines": 10,
+    "evidence": []
+  }
+]

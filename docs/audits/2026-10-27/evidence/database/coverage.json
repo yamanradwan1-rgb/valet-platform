@@ -1,0 +1,1983 @@
+{
+  "baseline": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+  "scope": [
+    "packages/database",
+    "packages/testing"
+  ],
+  "counts": {
+    "not_reviewed": 204,
+    "fully_reviewed": 36,
+    "tool_only": 80,
+    "partial": 8
+  },
+  "files": [
+    {
+      "path": "packages/database/README.md",
+      "status": "not_reviewed",
+      "lines": 37,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/package.json",
+      "status": "fully_reviewed",
+      "lines": 35,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/prisma.config.ts",
+      "status": "not_reviewed",
+      "lines": 33,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/prisma/demo-operational-seed.mjs",
+      "status": "not_reviewed",
+      "lines": 90,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260808000100_tenant_staff_foundation/migration.sql",
+      "status": "tool_only",
+      "lines": 144,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260808000200_blueprint_location_and_supervisor/migration.sql",
+      "status": "tool_only",
+      "lines": 12,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260808000300_customer_vehicle_foundation/migration.sql",
+      "status": "fully_reviewed",
+      "lines": 74,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260808000400_parking_spot_key_slot_foundation/migration.sql",
+      "status": "tool_only",
+      "lines": 66,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260808000500_valet_session_foundation/migration.sql",
+      "status": "fully_reviewed",
+      "lines": 130,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260808000600_restore_valet_session_query_indexes/migration.sql",
+      "status": "tool_only",
+      "lines": 8,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260808000700_audit_event_foundation/migration.sql",
+      "status": "tool_only",
+      "lines": 49,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260808000800_retrieval_request_foundation/migration.sql",
+      "status": "fully_reviewed",
+      "lines": 72,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260808000900_handoff_verification_foundation/migration.sql",
+      "status": "fully_reviewed",
+      "lines": 68,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260809001000_payment_validation_tip_foundation/migration.sql",
+      "status": "tool_only",
+      "lines": 205,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260809001100_cash_entry_provider_event_foundation/migration.sql",
+      "status": "tool_only",
+      "lines": 105,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260809001200_refund_foundation/migration.sql",
+      "status": "tool_only",
+      "lines": 94,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260809001300_incident_foundation/migration.sql",
+      "status": "tool_only",
+      "lines": 68,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260809001400_notification_foundation/migration.sql",
+      "status": "tool_only",
+      "lines": 50,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260809001500_check_in_intake_persistence/migration.sql",
+      "status": "tool_only",
+      "lines": 164,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260810001600_intake_session_creation/migration.sql",
+      "status": "fully_reviewed",
+      "lines": 38,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260810001700_staff_authentication/migration.sql",
+      "status": "tool_only",
+      "lines": 85,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260810001800_shared_durable_anti_abuse/migration.sql",
+      "status": "tool_only",
+      "lines": 48,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260811001900_phase3_key_parking_persistence/migration.sql",
+      "status": "fully_reviewed",
+      "lines": 164,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260812002000_phase3_task_dispatch_persistence/migration.sql",
+      "status": "partial",
+      "lines": 149,
+      "evidence": "Reviewed active task index, composite FK declarations and related application mutation path; remainder unreviewed."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260813002100_guest_retrieval_requester_consistency/migration.sql",
+      "status": "tool_only",
+      "lines": 16,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260813002200_secure_handoff_policy_and_anti_abuse/migration.sql",
+      "status": "tool_only",
+      "lines": 28,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260814002300_phase5_maps_tracking_persistence/migration.sql",
+      "status": "tool_only",
+      "lines": 226,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260814002400_phase5_map_setup_write_authority/migration.sql",
+      "status": "tool_only",
+      "lines": 468,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260815002500_phase5_raw_gps_retention_cleanup/migration.sql",
+      "status": "fully_reviewed",
+      "lines": 54,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260815002600_phase6_financial_policy_payment_core/migration.sql",
+      "status": "tool_only",
+      "lines": 31,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260816002700_phase6_cash_reconciliation/migration.sql",
+      "status": "tool_only",
+      "lines": 70,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260816002800_phase6_payment_collection_operation/migration.sql",
+      "status": "tool_only",
+      "lines": 113,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260822002900_phase7_location_configuration_authority/migration.sql",
+      "status": "tool_only",
+      "lines": 684,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260822003000_phase7_basic_branding_subscription_entitlements/migration.sql",
+      "status": "partial",
+      "lines": 476,
+      "evidence": "Reviewed subscription table shape and selected entitlement declarations; full migration not reviewed."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260823003100_phase7_basic_branding_hardening/migration.sql",
+      "status": "tool_only",
+      "lines": 99,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260910003200_mob_020a_staff_push_persistence/migration.sql",
+      "status": "tool_only",
+      "lines": 396,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260911003300_mob_020d_staff_push_cleanup/migration.sql",
+      "status": "tool_only",
+      "lines": 83,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260912003400_mob_023b_incident_recovery_intents/migration.sql",
+      "status": "tool_only",
+      "lines": 98,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260916003500_mgt_be_01_audit_foundation/migration.sql",
+      "status": "tool_only",
+      "lines": 216,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260916003600_mgt_be_02_complete_mfa/migration.sql",
+      "status": "tool_only",
+      "lines": 258,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260916003700_mgt_be_04_staff_roles_access/migration.sql",
+      "status": "tool_only",
+      "lines": 324,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260916003800_mgt_be_05_company_settings_branding/migration.sql",
+      "status": "tool_only",
+      "lines": 1530,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260917003900_mgt_be_06_management_audit_log/migration.sql",
+      "status": "tool_only",
+      "lines": 2,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260917004000_mgt_be_07_location_management/migration.sql",
+      "status": "partial",
+      "lines": 299,
+      "evidence": "Read lifecycle functions and lock/authority flow; large combined output truncation prevents full-line claim."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260917004100_mgt_be_08_visit_contacts/migration.sql",
+      "status": "tool_only",
+      "lines": 143,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260917004200_mgt_be_09_guest_rating/migration.sql",
+      "status": "tool_only",
+      "lines": 124,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260917004300_mgt_be_10_kpi_analytics/migration.sql",
+      "status": "tool_only",
+      "lines": 241,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260918004400_mgt_be_11_all_locations_reports/migration.sql",
+      "status": "tool_only",
+      "lines": 5,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260919004500_mgt_fix_02_pagination_snapshot_membership/migration.sql",
+      "status": "tool_only",
+      "lines": 47,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260929004600_mgt_232_physical_resource_creation/migration.sql",
+      "status": "tool_only",
+      "lines": 300,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20260929004700_map_setup_client_cas/migration.sql",
+      "status": "tool_only",
+      "lines": 91,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261001004800_mgt_236_parking_zone_creation/migration.sql",
+      "status": "tool_only",
+      "lines": 235,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261001004900_mgt_240a_staff_identity/migration.sql",
+      "status": "tool_only",
+      "lines": 19,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261001005000_mgt_240b_lm_staff_authority/migration.sql",
+      "status": "tool_only",
+      "lines": 394,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261001005100_mgt_240c_staff_onboarding_invites/migration.sql",
+      "status": "tool_only",
+      "lines": 522,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261001005200_mgt_240c_invitation_anti_abuse_scope/migration.sql",
+      "status": "tool_only",
+      "lines": 19,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261001005300_mgt_240d_staff_activation/migration.sql",
+      "status": "tool_only",
+      "lines": 121,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261002005400_mgt_240f_force_end_shift/migration.sql",
+      "status": "tool_only",
+      "lines": 203,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261003005500_check_in_cancelled_enum/migration.sql",
+      "status": "tool_only",
+      "lines": 2,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261003005600_check_in_cancelled_terminal/migration.sql",
+      "status": "fully_reviewed",
+      "lines": 37,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261003005700_pre_custody_parking_cancellation/migration.sql",
+      "status": "fully_reviewed",
+      "lines": 17,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004005800_shift_presence_foundation/migration.sql",
+      "status": "tool_only",
+      "lines": 444,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004005900_shift_presence_decision_privacy/migration.sql",
+      "status": "tool_only",
+      "lines": 170,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004006000_shift_presence_authority_denial/migration.sql",
+      "status": "tool_only",
+      "lines": 149,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004006100_shift_presence_policy_commands/migration.sql",
+      "status": "tool_only",
+      "lines": 99,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004006200_shift_presence_retention_execution/migration.sql",
+      "status": "fully_reviewed",
+      "lines": 60,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004006300_shift_presence_management_entitlement/migration.sql",
+      "status": "tool_only",
+      "lines": 21,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004006400_shift_presence_management_results/migration.sql",
+      "status": "tool_only",
+      "lines": 70,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004006500_shift_presence_anti_abuse_scopes/migration.sql",
+      "status": "tool_only",
+      "lines": 16,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004006600_shift_presence_consumer_denial/migration.sql",
+      "status": "tool_only",
+      "lines": 25,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004006700_shift_presence_evidence_free_completion/migration.sql",
+      "status": "tool_only",
+      "lines": 67,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261004006800_shift_presence_converged_completion/migration.sql",
+      "status": "tool_only",
+      "lines": 71,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261007006900_shift_presence_strict_rollout_activation/migration.sql",
+      "status": "tool_only",
+      "lines": 98,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261007007000_guest_browser_session_continuity/migration.sql",
+      "status": "tool_only",
+      "lines": 625,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261008007100_guest_browser_context_schema/migration.sql",
+      "status": "tool_only",
+      "lines": 250,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261008007200_guest_browser_context_prepare/migration.sql",
+      "status": "tool_only",
+      "lines": 228,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261008007300_guest_browser_context_switch/migration.sql",
+      "status": "tool_only",
+      "lines": 251,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261008007400_guest_browser_context_reconcile/migration.sql",
+      "status": "tool_only",
+      "lines": 143,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261008007500_guest_t3_classified_anti_abuse/migration.sql",
+      "status": "tool_only",
+      "lines": 40,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261008007600_guest_t3_visit_budget_binding/migration.sql",
+      "status": "tool_only",
+      "lines": 6,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261008007700_guest_t3_group_window_index/migration.sql",
+      "status": "tool_only",
+      "lines": 5,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261008007800_guest_web_push_v1/migration.sql",
+      "status": "tool_only",
+      "lines": 852,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261010007900_live_history_parked_audit_indexes/migration.sql",
+      "status": "tool_only",
+      "lines": 87,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261014008000_issue_215_verified_condition_photo_p1/migration.sql",
+      "status": "partial",
+      "lines": 1231,
+      "evidence": "Reviewed uniqueness declarations and finalize function lines 875-984; full 1231-line migration not reviewed."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261015008100_issue_215_photo_anti_abuse_scopes/migration.sql",
+      "status": "tool_only",
+      "lines": 21,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261015008200_issue_215_condition_photo_policy_recovery/migration.sql",
+      "status": "tool_only",
+      "lines": 242,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261015008300_issue_215_condition_photo_policy_recovery_finish/migration.sql",
+      "status": "tool_only",
+      "lines": 253,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261015008400_issue_215_p5_photo_maintenance_claims/migration.sql",
+      "status": "tool_only",
+      "lines": 158,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261015008500_issue_215_p5_photo_integrity_system/migration.sql",
+      "status": "tool_only",
+      "lines": 94,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261015008600_outbound_messaging_foundation/migration.sql",
+      "status": "partial",
+      "lines": 296,
+      "evidence": "Reviewed unique identity declarations and state-fence references; full function set not reviewed."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261015008700_outbound_sender_functions/migration.sql",
+      "status": "tool_only",
+      "lines": 183,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261015008800_outbound_webhook_recovery_functions/migration.sql",
+      "status": "tool_only",
+      "lines": 239,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261015008900_outbound_callback_and_suppression_fences/migration.sql",
+      "status": "tool_only",
+      "lines": 255,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261015009000_outbound_binding_insert_acl/migration.sql",
+      "status": "tool_only",
+      "lines": 25,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261015009100_outbound_authenticated_crash_recovery/migration.sql",
+      "status": "fully_reviewed",
+      "lines": 61,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261015009200_outbound_phone_change_suppression/migration.sql",
+      "status": "tool_only",
+      "lines": 44,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261015009300_outbound_post_result_phone_fence/migration.sql",
+      "status": "fully_reviewed",
+      "lines": 179,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261018009400_issue_300_u05_birth_xid/migration.sql",
+      "status": "fully_reviewed",
+      "lines": 53,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261018009500_issue_300_option_b_task_relation_provenance/migration.sql",
+      "status": "fully_reviewed",
+      "lines": 84,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261018009600_issue_300_option_b_attribution_freeze/migration.sql",
+      "status": "fully_reviewed",
+      "lines": 41,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261020009700_issue304_key_slot_label/migration.sql",
+      "status": "tool_only",
+      "lines": 53,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261021009800_issue309_photo_view_anti_abuse_scope/migration.sql",
+      "status": "tool_only",
+      "lines": 67,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261021009900_issue_309_management_photo_evidence_lock/migration.sql",
+      "status": "fully_reviewed",
+      "lines": 72,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261022010000_issue313_rating_analytics_read/migration.sql",
+      "status": "fully_reviewed",
+      "lines": 131,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261022010100_issue316_guest_information_contracts/migration.sql",
+      "status": "tool_only",
+      "lines": 188,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261022010200_issue316_guest_information_authority/migration.sql",
+      "status": "tool_only",
+      "lines": 263,
+      "evidence": "Mechanical SQL declaration/transaction inventory only; see migration-inventory.json. No complete manual line review."
+    },
+    {
+      "path": "packages/database/prisma/migrations/20261026010300_issue346_resume_location_intake/migration.sql",
+      "status": "fully_reviewed",
+      "lines": 61,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/prisma/migrations/migration_lock.toml",
+      "status": "not_reviewed",
+      "lines": 3,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/prisma/phase3-resource-seed.mjs",
+      "status": "not_reviewed",
+      "lines": 92,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/prisma/schema.prisma",
+      "status": "partial",
+      "lines": 2694,
+      "evidence": "Read enum/model/relation/index blocks across schema; output truncation in large reads means complete line coverage cannot be certified."
+    },
+    {
+      "path": "packages/database/prisma/seed.mjs",
+      "status": "not_reviewed",
+      "lines": 741,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/audit-foundation-runtime-privilege-verification.mjs",
+      "status": "not_reviewed",
+      "lines": 230,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/audit-foundation-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 71,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/basic-branding-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 126,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/condition-photo-maintenance-policy.d.mts",
+      "status": "not_reviewed",
+      "lines": 22,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/condition-photo-maintenance-policy.mjs",
+      "status": "not_reviewed",
+      "lines": 40,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/condition-photo-maintenance-privileges.d.mts",
+      "status": "not_reviewed",
+      "lines": 15,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/condition-photo-maintenance-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 72,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/condition-photo-management-lock-owner.mjs",
+      "status": "fully_reviewed",
+      "lines": 109,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/scripts/condition-photo-management-lock-owner.test.mjs",
+      "status": "not_reviewed",
+      "lines": 154,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/condition-photo-privilege-policy.d.mts",
+      "status": "not_reviewed",
+      "lines": 31,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/condition-photo-privilege-policy.mjs",
+      "status": "not_reviewed",
+      "lines": 76,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/condition-photo-runtime-privileges.d.mts",
+      "status": "not_reviewed",
+      "lines": 15,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/condition-photo-runtime-privileges.mjs",
+      "status": "fully_reviewed",
+      "lines": 177,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/scripts/database-connection-policy.d.mts",
+      "status": "not_reviewed",
+      "lines": 37,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/database-connection-policy.mjs",
+      "status": "fully_reviewed",
+      "lines": 212,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/scripts/dec103-online-index-rollout.sql",
+      "status": "not_reviewed",
+      "lines": 79,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/guest-browser-session-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 110,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/guest-information-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 116,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/guest-push-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 141,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/guest-push-worker-provisioning-policy.d.mts",
+      "status": "not_reviewed",
+      "lines": 23,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/guest-push-worker-provisioning-policy.mjs",
+      "status": "not_reviewed",
+      "lines": 70,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/guest-push-worker-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 200,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/guest-rating-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 96,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/guest-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 31,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/incident-recovery-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 110,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/incident-resolution-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 36,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/location-configuration-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 98,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/location-lifecycle-runtime-privileges.mjs",
+      "status": "fully_reviewed",
+      "lines": 135,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/scripts/management-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 34,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/management-settings-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 133,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/mfa-runtime-privilege-verification.mjs",
+      "status": "not_reviewed",
+      "lines": 190,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/mfa-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 215,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/outbound-binding-insert-smoke.mjs",
+      "status": "not_reviewed",
+      "lines": 57,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/outbound-callback-crash-smoke.mjs",
+      "status": "not_reviewed",
+      "lines": 111,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/outbound-constraint-smoke.mjs",
+      "status": "not_reviewed",
+      "lines": 162,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/outbound-late-callback-smoke.mjs",
+      "status": "not_reviewed",
+      "lines": 51,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/outbound-late-override-smoke.mjs",
+      "status": "not_reviewed",
+      "lines": 45,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/outbound-migration-smoke.mjs",
+      "status": "not_reviewed",
+      "lines": 88,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/outbound-optout-smoke.mjs",
+      "status": "not_reviewed",
+      "lines": 46,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/outbound-phone-change-smoke.mjs",
+      "status": "not_reviewed",
+      "lines": 180,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/outbound-principal-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 110,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/outbound-recovery-smoke.mjs",
+      "status": "not_reviewed",
+      "lines": 54,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/outbound-role-smoke.mjs",
+      "status": "not_reviewed",
+      "lines": 61,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/outbound-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 154,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/payment-collection-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 72,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/physical-resource-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 113,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/provider-event-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 121,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/provision-append-only-tables.mjs",
+      "status": "fully_reviewed",
+      "lines": 97,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/scripts/provision-condition-photo-maintenance-role.mjs",
+      "status": "not_reviewed",
+      "lines": 99,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/provision-guest-push-worker-role.mjs",
+      "status": "not_reviewed",
+      "lines": 134,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/provision-outbound-principals.mjs",
+      "status": "not_reviewed",
+      "lines": 43,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/provision-runtime-role.mjs",
+      "status": "fully_reviewed",
+      "lines": 328,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/scripts/raw-gps-cleanup.mjs",
+      "status": "fully_reviewed",
+      "lines": 64,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/scripts/run-migrate-deploy.mjs",
+      "status": "fully_reviewed",
+      "lines": 58,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/scripts/runtime-feature-privilege-verification.mjs",
+      "status": "not_reviewed",
+      "lines": 25,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/runtime-privilege-verification-helpers.mjs",
+      "status": "not_reviewed",
+      "lines": 36,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/runtime-staff-authority-revokes.mjs",
+      "status": "not_reviewed",
+      "lines": 38,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/runtime-table-privileges.mjs",
+      "status": "partial",
+      "lines": 289,
+      "evidence": "Reviewed lines 1-240 and subsequent snippets; full final provisioning tail not line-reviewed."
+    },
+    {
+      "path": "packages/database/scripts/shift-force-end-runtime-privileges.d.mts",
+      "status": "not_reviewed",
+      "lines": 17,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/shift-force-end-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 78,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/shift-presence-maintenance.mjs",
+      "status": "fully_reviewed",
+      "lines": 73,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/scripts/shift-presence-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 192,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/staff-management-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 90,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/staff-onboarding-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 105,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/staff-push-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 94,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/verify-issue215-p5-local.mjs",
+      "status": "not_reviewed",
+      "lines": 283,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/verify-issue215-p5-photo-fact.mjs",
+      "status": "not_reviewed",
+      "lines": 51,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/verify-issue309-management-photo-lock-pg17.mjs",
+      "status": "not_reviewed",
+      "lines": 189,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/verify-runtime-table-privileges.d.mts",
+      "status": "not_reviewed",
+      "lines": 6,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/verify-runtime-table-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 288,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/scripts/visit-contact-runtime-privileges.mjs",
+      "status": "not_reviewed",
+      "lines": 82,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/audit-foundation-constraints.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 293,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/audit-foundation-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 241,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/audit-foundation-runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 300,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/audit-required-field-write-guards.ts",
+      "status": "not_reviewed",
+      "lines": 33,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/basic-branding-hardening.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 204,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/basic-branding-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 269,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/basic-branding-runtime-privilege.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 127,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/cash-reconciliation-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 193,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/check-in-cancellation-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 249,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/condition-photo-p1-audit-availability.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 136,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/condition-photo-p1-ci-target.d.mts",
+      "status": "not_reviewed",
+      "lines": 5,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/condition-photo-p1-ci-target.mjs",
+      "status": "not_reviewed",
+      "lines": 56,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/condition-photo-p1-connected-role-proof.ts",
+      "status": "not_reviewed",
+      "lines": 142,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/condition-photo-p1-connected-role-seed.ts",
+      "status": "not_reviewed",
+      "lines": 54,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/condition-photo-p1-integrity.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 191,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/condition-photo-p1-negative.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 245,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/condition-photo-p1-owned-target.test.ts",
+      "status": "not_reviewed",
+      "lines": 149,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/condition-photo-p1-owned-target.ts",
+      "status": "not_reviewed",
+      "lines": 101,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/condition-photo-p1-stored.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 100,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/condition-photo-p1-test-context.ts",
+      "status": "not_reviewed",
+      "lines": 194,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/condition-photo-p1-test-target.d.mts",
+      "status": "not_reviewed",
+      "lines": 38,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/condition-photo-p1-test-target.mjs",
+      "status": "not_reviewed",
+      "lines": 141,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/condition-photo-p1-test-target.test.ts",
+      "status": "not_reviewed",
+      "lines": 126,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/condition-photo-p1-test-target.ts",
+      "status": "not_reviewed",
+      "lines": 7,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/condition-photo-p1-upgrade.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 122,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/condition-photo-p2-anti-abuse.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 70,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/condition-photo-privilege-policy.test.ts",
+      "status": "not_reviewed",
+      "lines": 169,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/condition-photo-runtime-privileges.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 220,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/database-connection-policy.test.ts",
+      "status": "not_reviewed",
+      "lines": 219,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/dec103-nonempty-test-rollout.ts",
+      "status": "not_reviewed",
+      "lines": 18,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/financial-policy-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 207,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-anti-abuse-schema-assertions.ts",
+      "status": "not_reviewed",
+      "lines": 98,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-browser-session-context-switch-failures.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 287,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-browser-session-context-switch-helpers.ts",
+      "status": "not_reviewed",
+      "lines": 69,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-browser-session-context-switch.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 223,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-browser-session-enrollment-cleanup.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 271,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-browser-session-exchange-expiry.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 72,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-browser-session-legacy-writer-compat.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 144,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-browser-session-lock-expiry.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 148,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-browser-session-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 271,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-browser-session-runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 299,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-browser-session-test-fixture.ts",
+      "status": "not_reviewed",
+      "lines": 260,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-information-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 205,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-information-test-context.ts",
+      "status": "not_reviewed",
+      "lines": 183,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-push-migration-contract.test.ts",
+      "status": "not_reviewed",
+      "lines": 156,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-push-registration-concurrency.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 205,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-push-role-separation.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 162,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-push-worker-provisioning-policy.test.ts",
+      "status": "not_reviewed",
+      "lines": 89,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-push-worker-replica-test-context.ts",
+      "status": "not_reviewed",
+      "lines": 222,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-push-worker-replica.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 240,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-rating-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 194,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-rating-runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 241,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/guest-t3-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 158,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/incident-recovery-runtime-fixture.ts",
+      "status": "not_reviewed",
+      "lines": 135,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/incident-recovery-runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 293,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/incident-runtime-read-privilege.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 231,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/index.test.ts",
+      "status": "not_reviewed",
+      "lines": 9,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/index.ts",
+      "status": "fully_reviewed",
+      "lines": 1,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/src/issue300-migration-source-appendix.ts",
+      "status": "fully_reviewed",
+      "lines": 7,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/src/issue304-migration-source-appendix.test.ts",
+      "status": "fully_reviewed",
+      "lines": 33,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/src/issue304-migration-source-appendix.ts",
+      "status": "fully_reviewed",
+      "lines": 25,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/src/issue309-photo-scope-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 108,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/location-configuration-currency.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 300,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/location-configuration-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 300,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/location-configuration-runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 262,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/location-lifecycle-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 225,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/location-lifecycle-runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 295,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/management-audit-index.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 103,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/management-company-reports-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 187,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/management-kpi-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 208,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/management-pagination-snapshot-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 289,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/management-settings-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 271,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/management-settings-runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 300,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/management-sla-runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 299,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/maps-tracking-fixture.ts",
+      "status": "not_reviewed",
+      "lines": 88,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/maps-tracking-migration-baseline.test.ts",
+      "status": "not_reviewed",
+      "lines": 59,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/maps-tracking-persistence.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 286,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/maps-tracking-runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 284,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/mfa-constraints.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 252,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/mfa-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 160,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/mfa-recovery-constraints.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 186,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/mfa-runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 300,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/migration-manifest.ts",
+      "status": "fully_reviewed",
+      "lines": 95,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/database/src/parking-zone-authority-races.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 135,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/parking-zone-migration-upgrade.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 90,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/parking-zone-runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 116,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/payment-collection-constraints.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 149,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/payment-collection-database-context.ts",
+      "status": "not_reviewed",
+      "lines": 173,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/payment-collection-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 81,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/payment-collection-runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 138,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/phase3-persistence-fixture.ts",
+      "status": "not_reviewed",
+      "lines": 36,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/phase3-persistence.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 284,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/phase3-runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 200,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/phase4-runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 182,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/physical-resource-runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 243,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/physical-resource-runtime-test-fixture.ts",
+      "status": "not_reviewed",
+      "lines": 221,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/pre-custody-cancellation-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 207,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/provider-event-runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 294,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/rating-analytics-explain-fixture.ts",
+      "status": "not_reviewed",
+      "lines": 88,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/rating-analytics-runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 292,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/raw-gps-retention-test-context.ts",
+      "status": "not_reviewed",
+      "lines": 108,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/raw-gps-retention.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 287,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/refund-runtime-role-assertions.ts",
+      "status": "not_reviewed",
+      "lines": 46,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/runtime-authority-privilege-cases.ts",
+      "status": "not_reviewed",
+      "lines": 148,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/runtime-authority-privileges.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 292,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 946,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/schema-parking-fixture.ts",
+      "status": "not_reviewed",
+      "lines": 81,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/schema.integration.test.ts",
+      "status": "partial",
+      "lines": 7484,
+      "evidence": "Inspected setup/migration application and selected inventory assertions, not entire ~7500-line suite."
+    },
+    {
+      "path": "packages/database/src/secure-handoff-policy.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 119,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/seed-operational-fixture-state.ts",
+      "status": "not_reviewed",
+      "lines": 63,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/seed.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 640,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/shift-force-end-migration-test-fixture.ts",
+      "status": "not_reviewed",
+      "lines": 233,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/shift-force-end-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 189,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/shift-presence-completion.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 247,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/shift-presence-convergence.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 250,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/shift-presence-fixture.ts",
+      "status": "not_reviewed",
+      "lines": 51,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/shift-presence-persistence.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 240,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/shift-presence-privacy.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 81,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/shift-presence-release-gate.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 143,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/shift-presence-runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 143,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/shift-presence-test-context.ts",
+      "status": "not_reviewed",
+      "lines": 116,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/staff-activation-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 271,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/staff-identity-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 253,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/staff-management-lm-authority-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 288,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/staff-management-migration-preservation.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 199,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/staff-management-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 239,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/staff-onboarding-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 218,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/staff-push-intent-delivery.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 300,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/staff-push-migration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 170,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/staff-push-registration.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 276,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/staff-push-test-context.ts",
+      "status": "not_reviewed",
+      "lines": 256,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/task-active-concurrency.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 96,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/task-dispatch-fixture.ts",
+      "status": "not_reviewed",
+      "lines": 133,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/task-dispatch-persistence.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 300,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/task-dispatch-runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 173,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/task-dispatch-upgrade.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 83,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/src/visit-contact-runtime-role.integration.test.ts",
+      "status": "not_reviewed",
+      "lines": 248,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/test/issue300/disposable-lease-guard.mjs",
+      "status": "not_reviewed",
+      "lines": 48,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/test/issue300/disposable-lease-guard.test.mjs",
+      "status": "not_reviewed",
+      "lines": 51,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/tsconfig.json",
+      "status": "not_reviewed",
+      "lines": 8,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/database/vitest.config.mjs",
+      "status": "fully_reviewed",
+      "lines": 60,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/testing/README.md",
+      "status": "not_reviewed",
+      "lines": 5,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/testing/package.json",
+      "status": "not_reviewed",
+      "lines": 19,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    },
+    {
+      "path": "packages/testing/src/index.test.ts",
+      "status": "fully_reviewed",
+      "lines": 9,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/testing/src/index.ts",
+      "status": "fully_reviewed",
+      "lines": 3,
+      "evidence": "Full source read and semantic source review during database audit; runtime verification only where separately logged."
+    },
+    {
+      "path": "packages/testing/tsconfig.json",
+      "status": "not_reviewed",
+      "lines": 8,
+      "evidence": "Inventoried only. Execution of a test project does not imply manual review of this file."
+    }
+  ]
+}

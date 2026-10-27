@@ -1,0 +1,492 @@
+[
+  {
+    "file": "apps/api/src/modules/check-in-api/cancel-check-in.controller.ts",
+    "line": 49,
+    "method": "POST",
+    "path": "/v1/staff/check-in/sessions/:sessionId/cancel",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/check-in-api/cancel-check-in.controller.ts",
+    "line": 75,
+    "method": "GET",
+    "path": "/v1/staff/check-in/sessions/:sessionId/cancel-status",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/check-in-api/plate-ocr.controller.ts",
+    "line": 76,
+    "method": "POST",
+    "path": "/v1/staff/check-in/plate-ocr",
+    "review": "fully_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/check-in-api/check-in-api.controller.ts",
+    "line": 66,
+    "method": "POST",
+    "path": "/v1/staff/check-in/intakes",
+    "review": "fully_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/check-in-api/check-in-api.controller.ts",
+    "line": 125,
+    "method": "PUT",
+    "path": "/v1/staff/check-in/sessions/:sessionId/vehicle-identity",
+    "review": "fully_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/check-in-api/check-in-api.controller.ts",
+    "line": 158,
+    "method": "POST",
+    "path": "/v1/staff/check-in/sessions/:sessionId/condition-notes",
+    "review": "fully_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/check-in-api/check-in-api.controller.ts",
+    "line": 186,
+    "method": "POST",
+    "path": "/v1/staff/check-in/sessions/:sessionId/condition-notes/:noteId/corrections",
+    "review": "fully_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/check-in-api/check-in-api.controller.ts",
+    "line": 220,
+    "method": "POST",
+    "path": "/v1/staff/check-in/sessions/:sessionId/condition-photos",
+    "review": "fully_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/check-in-api/check-in-api.controller.ts",
+    "line": 249,
+    "method": "POST",
+    "path": "/v1/staff/check-in/sessions/:sessionId/condition-completion",
+    "review": "fully_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/check-in-api/check-in-api.controller.ts",
+    "line": 275,
+    "method": "POST",
+    "path": "/v1/staff/check-in/sessions/:sessionId/complete",
+    "review": "fully_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/check-in-api/returning-check-in.controller.ts",
+    "line": 46,
+    "method": "POST",
+    "path": "/v1/staff/check-in/vehicle-recognition",
+    "review": "fully_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/check-in-api/returning-check-in.controller.ts",
+    "line": 83,
+    "method": "PUT",
+    "path": "/v1/staff/check-in/sessions/:sessionId/vehicle-details",
+    "review": "fully_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/check-in-api/condition-photo.controller.ts",
+    "line": 65,
+    "method": "POST",
+    "path": "/v1/staff/check-in/sessions/:sessionId/condition-photo-uploads",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/check-in-api/condition-photo.controller.ts",
+    "line": 92,
+    "method": "GET",
+    "path": "/v1/staff/check-in/sessions/:sessionId/condition-photo-uploads/:operationId",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/check-in-api/condition-photo.controller.ts",
+    "line": 107,
+    "method": "POST",
+    "path": "/v1/staff/check-in/sessions/:sessionId/condition-photo-uploads/:operationId/reconcile",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/check-in-api/condition-photo.controller.ts",
+    "line": 126,
+    "method": "GET",
+    "path": "/v1/staff/check-in/sessions/:sessionId/condition-photo-state",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/retrieval/handoff-guest.controller.ts",
+    "line": 74,
+    "method": "POST",
+    "path": "/v1/guest/session/handoff-verification/issue",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/retrieval/handoff-guest.controller.ts",
+    "line": 90,
+    "method": "POST",
+    "path": "/v1/guest/session/handoff-verification/rotate",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/retrieval/handoff-staff.controller.ts",
+    "line": 72,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/initiate-handoff",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/retrieval/handoff-staff.controller.ts",
+    "line": 92,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/verify-pickup-code",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/retrieval/handoff-staff.controller.ts",
+    "line": 114,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/verify-dynamic-qr",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/retrieval/handoff-staff.controller.ts",
+    "line": 136,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/supervisor-override-handoff",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/retrieval/handoff-staff.controller.ts",
+    "line": 157,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/abort-handoff",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/retrieval/complete-handoff.controller.ts",
+    "line": 57,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/complete-handoff",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/retrieval/guest-retrieval.controller.ts",
+    "line": 49,
+    "method": "POST",
+    "path": "/v1/guest/session/request-retrieval",
+    "review": "fully_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/retrieval/guest-retrieval.controller.ts",
+    "line": 76,
+    "method": "POST",
+    "path": "/v1/guest/session/cancel-retrieval",
+    "review": "fully_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/retrieval/start-retrieval.controller.ts",
+    "line": 64,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/start-retrieval",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/retrieval/mark-ready.controller.ts",
+    "line": 64,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/mark-ready",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/dispatch/dispatch.controller.ts",
+    "line": 86,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/parking-task/queue",
+    "review": "fully_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/dispatch/dispatch.controller.ts",
+    "line": 105,
+    "method": "GET",
+    "path": "/v1/staff/tasks/queue",
+    "review": "fully_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/dispatch/dispatch.controller.ts",
+    "line": 133,
+    "method": "POST",
+    "path": "/v1/staff/tasks/:taskId/assign",
+    "review": "fully_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/dispatch/dispatch.controller.ts",
+    "line": 162,
+    "method": "POST",
+    "path": "/v1/staff/tasks/:taskId/accept",
+    "review": "fully_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/dispatch/dispatch.controller.ts",
+    "line": 183,
+    "method": "POST",
+    "path": "/v1/staff/tasks/:taskId/decline",
+    "review": "fully_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/dispatch/dispatch.controller.ts",
+    "line": 205,
+    "method": "POST",
+    "path": "/v1/staff/tasks/:taskId/reassign",
+    "review": "fully_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/parking/start-parking.controller.ts",
+    "line": 64,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/start-parking",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/parking/parking-spot-validation.controller.ts",
+    "line": 35,
+    "method": "GET",
+    "path": "/v1/staff/valet-sessions/:sessionId/parking-spot-validation",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/parking/cancel-before-parking.controller.ts",
+    "line": 58,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/cancel-before-parking",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/parking/cancel-before-parking.controller.ts",
+    "line": 76,
+    "method": "GET",
+    "path": "/v1/staff/valet-sessions/:sessionId/parking-cancellation-status",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/parking/confirm-parked.controller.ts",
+    "line": 64,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/confirm-parked",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/keys/key-custody.controller.ts",
+    "line": 76,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/key-slot/assign",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/keys/key-custody.controller.ts",
+    "line": 100,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/key-slot/clear",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/shifts/shift.controller.ts",
+    "line": 117,
+    "method": "POST",
+    "path": "/v1/staff/shifts/start",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/shifts/shift.controller.ts",
+    "line": 140,
+    "method": "POST",
+    "path": "/v1/staff/shifts/:shiftId/end",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/shifts/shift.controller.ts",
+    "line": 164,
+    "method": "GET",
+    "path": "/v1/staff/shifts/active",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/shifts/shift-presence.controller.ts",
+    "line": 66,
+    "method": "POST",
+    "path": "/v1/staff/shifts/presence/challenges",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/shifts/shift-presence.controller.ts",
+    "line": 83,
+    "method": "GET",
+    "path": "/v1/staff/shifts/presence/operations/:operationId",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/shifts/shift-presence.controller.ts",
+    "line": 99,
+    "method": "GET",
+    "path": "/v1/staff/shifts/presence/operations/:operationId/challenge",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/shifts/shift-presence.controller.ts",
+    "line": 115,
+    "method": "POST",
+    "path": "/v1/staff/shifts/presence/operations/:operationId/exception",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/shifts/shift-presence.controller.ts",
+    "line": 134,
+    "method": "GET",
+    "path": "/v1/staff/shifts/presence/exceptions/:exceptionId",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/staff/staff-operational-context.controller.ts",
+    "line": 48,
+    "method": "GET",
+    "path": "/v1/staff/operational-context",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/staff/staff-check-in-continuations.controller.ts",
+    "line": 63,
+    "method": "GET",
+    "path": "/v1/staff/check-in/continuations",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/staff/staff-check-in-drafts.controller.ts",
+    "line": 63,
+    "method": "GET",
+    "path": "/v1/staff/check-in/drafts",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/staff/staff-valet-session.controller.ts",
+    "line": 81,
+    "method": "GET",
+    "path": "/v1/staff/valet-sessions/directory",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/staff/staff-valet-session.controller.ts",
+    "line": 140,
+    "method": "GET",
+    "path": "/v1/staff/valet-sessions/:sessionId",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/incidents/incident-recovery.controller.ts",
+    "line": 44,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/incidents/:incidentId/recovery-intent",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/incidents/incident-recovery.controller.ts",
+    "line": 79,
+    "method": "GET",
+    "path": "/v1/staff/valet-sessions/:sessionId/incidents/:incidentId/recovery",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/incidents/incident-recovery.controller.ts",
+    "line": 100,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/incidents/:incidentId/recovery-intent/retire",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/incidents/incident-reporting.controller.ts",
+    "line": 45,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/incidents",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/payments/staff-payment.controller.ts",
+    "line": 81,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/payment/refunds",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/payments/staff-payment.controller.ts",
+    "line": 99,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/payment/cash-receipt",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/payments/staff-payment.controller.ts",
+    "line": 117,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/payment/cash-adjustments",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/payments/staff-payment.controller.ts",
+    "line": 149,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/payment/validation",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/payments/staff-payment.controller.ts",
+    "line": 166,
+    "method": "PATCH",
+    "path": "/v1/staff/valet-sessions/:sessionId/payment/tip",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/payments/staff-payment.controller.ts",
+    "line": 183,
+    "method": "PATCH",
+    "path": "/v1/staff/valet-sessions/:sessionId/payment/payer",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/payments/staff-payment.controller.ts",
+    "line": 200,
+    "method": "PATCH",
+    "path": "/v1/staff/valet-sessions/:sessionId/payment/service-amount",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/payments/guest-payment.controller.ts",
+    "line": 45,
+    "method": "PATCH",
+    "path": "/v1/guest/payment/tip",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/payments/guest-payment.controller.ts",
+    "line": 73,
+    "method": "GET",
+    "path": "/v1/guest/valet-sessions/:sessionId/payment",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/tracking/route-history.controller.ts",
+    "line": 28,
+    "method": "GET",
+    "path": "/v1/staff/tracking-sessions/:trackingSessionId/route-history",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/tracking/live-map.controller.ts",
+    "line": 37,
+    "method": "GET",
+    "path": "/v1/staff/locations/:locationId/live-operations-map",
+    "review": "not_reviewed"
+  },
+  {
+    "file": "apps/api/src/modules/tracking/gps-ingestion.controller.ts",
+    "line": 64,
+    "method": "POST",
+    "path": "/v1/staff/valet-sessions/:sessionId/tracking/gps-samples",
+    "review": "not_reviewed"
+  }
+]

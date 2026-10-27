@@ -1,0 +1,1 @@
+{"status":"PASS","method":"actual source transpiled with controlled database adapters","begin":"2026-01-01T00:00:00.000Z","expires":"2026-01-01T00:00:00.100Z","simulatedWallTime":"2026-01-01T00:00:00.300Z","staleTimestampAccepted":true,"currentTimestampRejected":true,"realPostgresRaceRun":false}

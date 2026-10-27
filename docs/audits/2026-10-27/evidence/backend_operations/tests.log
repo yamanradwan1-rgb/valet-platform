@@ -1,0 +1,81 @@
+
+ RUN  v4.1.10 <AUDIT_WORKTREE>/apps/api
+
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=0
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER no-match status=200 results=0
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=0
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER no-match status=200 results=0
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=0
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER no-match status=200 results=0
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=0
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER no-match status=200 results=0
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=0
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER no-match status=200 results=0
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=0
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER no-match status=200 results=0
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=3
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER match status=200 results=3
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=0
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER no-match status=200 results=0
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=1
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER no-match status=200 results=1
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER invalid-provider-shape status=200
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER invalid-provider-shape status=200
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=1
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER candidate-validation-failure status=200 results=1
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200 results=1
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER candidate-validation-failure status=200 results=1
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER provider-config-missing
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER network-error
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-non-ok status=429
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER invalid-json status=200
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER http-success status=200
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER response-too-large status=200
+[Nest] 2480  - 10/26/2026, 10:52:14 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER request-start
+[Nest] 2480  - 10/26/2026, 10:52:18 PM     LOG [PlateOcrProvider] PLATE_OCR_PROVIDER timeout
+
+ Test Files  11 passed (11)
+      Tests  81 passed (81)
+   Start at  22:52:10
+   Duration  16.41s (transform 3.27s, setup 2.69s, import 18.62s, tests 1.12s, environment 2ms)
+

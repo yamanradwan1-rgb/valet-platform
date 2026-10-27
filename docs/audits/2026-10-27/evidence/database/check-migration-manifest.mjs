@@ -1,0 +1,12 @@
+import {readFileSync,readdirSync} from "node:fs";
+import assert from "node:assert/strict";
+import paths from '../reproduction-paths.cjs';
+const root=paths.sourceRoot+'/packages/database/';
+const base=readFileSync(root+"src/migration-manifest.ts","utf8");
+const issue300=readFileSync(root+"src/issue300-migration-source-appendix.ts","utf8");
+const issue304=readFileSync(root+"src/issue304-migration-source-appendix.ts","utf8");
+const extract=s=>Array.from(s.matchAll(/"(20\d{12}_[^"\n]+)"/g), m=>m[1]);
+const expected=[...extract(base),...extract(issue300),...extract(issue304)];
+const actual=readdirSync(root+"prisma/migrations",{withFileTypes:true}).filter(x=>x.isDirectory()).map(x=>x.name).sort();
+console.log(JSON.stringify({expectedCount:expected.length,actualCount:actual.length,missingFromExpected:actual.filter(x=>!expected.includes(x))},null,2));
+assert.deepStrictEqual(actual,expected);

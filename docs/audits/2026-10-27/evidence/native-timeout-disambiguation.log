@@ -1,0 +1,9 @@
+
+ RUN  v4.1.10 <AUDIT_WORKTREE>/apps/valet-native
+
+
+ Test Files  3 passed (3)
+      Tests  10 passed (10)
+   Start at  23:45:06
+   Duration  13.93s (transform 2.18s, setup 133ms, import 5.81s, tests 7.18s, environment 0ms)
+

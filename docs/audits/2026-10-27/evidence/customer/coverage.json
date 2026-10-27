@@ -1,0 +1,2138 @@
+{
+  "baseline": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+  "scope": "apps/customer",
+  "coverage_kind": "partial manual source review plus full src Vitest execution; no real browser/provider/device audit",
+  "summary_all_tracked": {
+    "fully_reviewed": 95,
+    "not_reviewed": 74,
+    "tool_only": 63,
+    "partial": 3
+  },
+  "summary_reviewable": {
+    "fully_reviewed": 95,
+    "not_reviewed": 67,
+    "tool_only": 63,
+    "partial": 3
+  },
+  "tracked_files": 235,
+  "manual_line_review_lines": 8650,
+  "test_files_executed": 67,
+  "tests_passed": 481,
+  "files": [
+    {
+      "path": "apps/customer/README.md",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 7
+    },
+    {
+      "path": "apps/customer/next-env.d.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 6
+    },
+    {
+      "path": "apps/customer/next.config.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 48
+    },
+    {
+      "path": "apps/customer/package.json",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 30
+    },
+    {
+      "path": "apps/customer/public/brand/VAYLET_Logo_Dark_Background.png",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": true,
+      "exclusion_reason": "Binary asset; excluded from line-level review, no binary-content validation.",
+      "lines": null
+    },
+    {
+      "path": "apps/customer/public/brand/VAYLET_Logo_Light_Background.png",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": true,
+      "exclusion_reason": "Binary asset; excluded from line-level review, no binary-content validation.",
+      "lines": null
+    },
+    {
+      "path": "apps/customer/public/icons/apple-touch-icon.png",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": true,
+      "exclusion_reason": "Binary asset; excluded from line-level review, no binary-content validation.",
+      "lines": null
+    },
+    {
+      "path": "apps/customer/public/icons/icon-192.png",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": true,
+      "exclusion_reason": "Binary asset; excluded from line-level review, no binary-content validation.",
+      "lines": null
+    },
+    {
+      "path": "apps/customer/public/icons/icon-512.png",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": true,
+      "exclusion_reason": "Binary asset; excluded from line-level review, no binary-content validation.",
+      "lines": null
+    },
+    {
+      "path": "apps/customer/public/icons/icon-maskable-512.png",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": true,
+      "exclusion_reason": "Binary asset; excluded from line-level review, no binary-content validation.",
+      "lines": null
+    },
+    {
+      "path": "apps/customer/public/manifest.webmanifest",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 15
+    },
+    {
+      "path": "apps/customer/public/sounds/vehicle-ready-alert.wav",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": true,
+      "exclusion_reason": "Binary asset; excluded from line-level review, no binary-content validation.",
+      "lines": null
+    },
+    {
+      "path": "apps/customer/public/sw.js",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 149
+    },
+    {
+      "path": "apps/customer/qa/issue-316-b/visual.mjs",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 69
+    },
+    {
+      "path": "apps/customer/qa/issue-335/browser-freeze-capture.mjs",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 77
+    },
+    {
+      "path": "apps/customer/qa/issue-335/browser-freeze-matrix.mjs",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 250
+    },
+    {
+      "path": "apps/customer/qa/issue-335/ui-freeze-compare.mjs",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 185
+    },
+    {
+      "path": "apps/customer/qa/issue-338/README.md",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 48
+    },
+    {
+      "path": "apps/customer/qa/issue-338/browser-compare.mjs",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 101
+    },
+    {
+      "path": "apps/customer/qa/issue-338/live-browser.mjs",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 102
+    },
+    {
+      "path": "apps/customer/qa/issue-338/native-browser-zoom.mjs",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 11
+    },
+    {
+      "path": "apps/customer/qa/issue-338/pixel-compare.py",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 45
+    },
+    {
+      "path": "apps/customer/qa/issue-338/render.test.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 63
+    },
+    {
+      "path": "apps/customer/qa/issues-312-317-318/README.md",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 52
+    },
+    {
+      "path": "apps/customer/qa/issues-312-317-318/dev.mjs",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 39
+    },
+    {
+      "path": "apps/customer/qa/issues-312-317-318/fixture.mjs",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 84
+    },
+    {
+      "path": "apps/customer/qa/issues-312-317-318/report.mjs",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 96
+    },
+    {
+      "path": "apps/customer/qa/issues-312-317-318/visual.mjs",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 223
+    },
+    {
+      "path": "apps/customer/qa/issues-312-317-318/zoom-matrix.mjs",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 211
+    },
+    {
+      "path": "apps/customer/qa/issues-312-317-318/zoom.mjs",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 1
+    },
+    {
+      "path": "apps/customer/scripts/artifact-origin.mjs",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 85
+    },
+    {
+      "path": "apps/customer/scripts/prepare-standalone.mjs",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 20
+    },
+    {
+      "path": "apps/customer/scripts/start-production.mjs",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 18
+    },
+    {
+      "path": "apps/customer/src/app/.gitkeep",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 0
+    },
+    {
+      "path": "apps/customer/src/app/document-bootstrap-script.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 78
+    },
+    {
+      "path": "apps/customer/src/app/document-bootstrap-script.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 26
+    },
+    {
+      "path": "apps/customer/src/app/globals.css",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 238
+    },
+    {
+      "path": "apps/customer/src/app/guest-app-root.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 248
+    },
+    {
+      "path": "apps/customer/src/app/guest-auto-rating-eligibility.mounted.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 122
+    },
+    {
+      "path": "apps/customer/src/app/guest-freshness-notice.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 45
+    },
+    {
+      "path": "apps/customer/src/app/guest-live-overlays.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 47
+    },
+    {
+      "path": "apps/customer/src/app/guest-live-view.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 118
+    },
+    {
+      "path": "apps/customer/src/app/guest-post-visit-route.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 39
+    },
+    {
+      "path": "apps/customer/src/app/guest-refresh-mounted.test-host.ts",
+      "status": "partial",
+      "evidence": "Source inspected in output that was truncated, or only selected lines; full review not claimed.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 209
+    },
+    {
+      "path": "apps/customer/src/app/guest-refresh-mounted.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 233
+    },
+    {
+      "path": "apps/customer/src/app/guest-session-loading.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 21
+    },
+    {
+      "path": "apps/customer/src/app/guest-web-push-mount.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 39
+    },
+    {
+      "path": "apps/customer/src/app/guest-web-push-mount.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 21
+    },
+    {
+      "path": "apps/customer/src/app/layout.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 47
+    },
+    {
+      "path": "apps/customer/src/app/page.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 19
+    },
+    {
+      "path": "apps/customer/src/app/readyz/readiness-concurrency.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 147
+    },
+    {
+      "path": "apps/customer/src/app/readyz/route.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 63
+    },
+    {
+      "path": "apps/customer/src/app/readyz/route.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 14
+    },
+    {
+      "path": "apps/customer/src/components/.gitkeep",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 0
+    },
+    {
+      "path": "apps/customer/src/components/brand/vaylet-logo.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 52
+    },
+    {
+      "path": "apps/customer/src/components/icons/action-icons.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 164
+    },
+    {
+      "path": "apps/customer/src/components/icons/navigation-icons.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 35
+    },
+    {
+      "path": "apps/customer/src/components/icons/status-icons.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 63
+    },
+    {
+      "path": "apps/customer/src/components/icons/svg-icon.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 27
+    },
+    {
+      "path": "apps/customer/src/components/layout/app-header.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 122
+    },
+    {
+      "path": "apps/customer/src/components/layout/app-shell.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 73
+    },
+    {
+      "path": "apps/customer/src/components/layout/bottom-sheet.mounted.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 242
+    },
+    {
+      "path": "apps/customer/src/components/layout/bottom-sheet.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 193
+    },
+    {
+      "path": "apps/customer/src/components/primitives/btn.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 89
+    },
+    {
+      "path": "apps/customer/src/components/primitives/info-row.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 46
+    },
+    {
+      "path": "apps/customer/src/components/primitives/journey-progress.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 61
+    },
+    {
+      "path": "apps/customer/src/components/primitives/pickup-pin.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 101
+    },
+    {
+      "path": "apps/customer/src/components/primitives/pickup-pin.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 139
+    },
+    {
+      "path": "apps/customer/src/components/primitives/status-badge.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 42
+    },
+    {
+      "path": "apps/customer/src/components/primitives/trust-strip.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 34
+    },
+    {
+      "path": "apps/customer/src/components/primitives/typography-primitives.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 42
+    },
+    {
+      "path": "apps/customer/src/components/primitives/vehicle-hero.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 88
+    },
+    {
+      "path": "apps/customer/src/features/.gitkeep",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 0
+    },
+    {
+      "path": "apps/customer/src/features/auth/guest-auth-bootstrap-rate-limit.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 262
+    },
+    {
+      "path": "apps/customer/src/features/auth/guest-auth-bootstrap.mounted.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 234
+    },
+    {
+      "path": "apps/customer/src/features/auth/guest-auth-bootstrap.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 259
+    },
+    {
+      "path": "apps/customer/src/features/auth/guest-auth-context-switch.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 168
+    },
+    {
+      "path": "apps/customer/src/features/auth/guest-auth-context.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 283
+    },
+    {
+      "path": "apps/customer/src/features/auth/guest-auth-context.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 290
+    },
+    {
+      "path": "apps/customer/src/features/auth/guest-auth-rate-limit.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 86
+    },
+    {
+      "path": "apps/customer/src/features/auth/guest-context-conflict-gate.tsx",
+      "status": "partial",
+      "evidence": "Source inspected in output that was truncated, or only selected lines; full review not claimed.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 56
+    },
+    {
+      "path": "apps/customer/src/features/auth/guest-token-adapter.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 78
+    },
+    {
+      "path": "apps/customer/src/features/auth/guest-token-adapter.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 40
+    },
+    {
+      "path": "apps/customer/src/features/auth/overlay-guest-context-conflict.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 121
+    },
+    {
+      "path": "apps/customer/src/features/auth/overlay-guest-context-conflict.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 62
+    },
+    {
+      "path": "apps/customer/src/features/deferred/guest-information-content.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 58
+    },
+    {
+      "path": "apps/customer/src/features/deferred/guest-information-content.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 82
+    },
+    {
+      "path": "apps/customer/src/features/deferred/overlay-guest-information-sheet.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 71
+    },
+    {
+      "path": "apps/customer/src/features/deferred/overlay-guest-information.mounted.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 105
+    },
+    {
+      "path": "apps/customer/src/features/deferred/overlay-more-menu.tsx",
+      "status": "partial",
+      "evidence": "Source inspected in output that was truncated, or only selected lines; full review not claimed.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 195
+    },
+    {
+      "path": "apps/customer/src/features/deferred/overlay-vehicle-details.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 49
+    },
+    {
+      "path": "apps/customer/src/features/deferred/screen-payment-complimentary.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 113
+    },
+    {
+      "path": "apps/customer/src/features/deferred/screen-payment-error.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 80
+    },
+    {
+      "path": "apps/customer/src/features/deferred/screen-payment-method.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 130
+    },
+    {
+      "path": "apps/customer/src/features/deferred/screen-payment-success.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 142
+    },
+    {
+      "path": "apps/customer/src/features/deferred/screen-payment.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 167
+    },
+    {
+      "path": "apps/customer/src/features/deferred/screen-report-issue.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 154
+    },
+    {
+      "path": "apps/customer/src/features/deferred/screen-report-submitted.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 120
+    },
+    {
+      "path": "apps/customer/src/features/deferred/screen-service.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 61
+    },
+    {
+      "path": "apps/customer/src/features/deferred/screen-system.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 208
+    },
+    {
+      "path": "apps/customer/src/features/demo/customer-navigation-removal.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 95
+    },
+    {
+      "path": "apps/customer/src/features/demo/demo-fixtures.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 83
+    },
+    {
+      "path": "apps/customer/src/features/demo/demo-navigator.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 196
+    },
+    {
+      "path": "apps/customer/src/features/demo/demo-registry.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 75
+    },
+    {
+      "path": "apps/customer/src/features/demo/demo-registry.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 107
+    },
+    {
+      "path": "apps/customer/src/features/demo/demo-safety.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 244
+    },
+    {
+      "path": "apps/customer/src/features/demo/demo-screen-renderer.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 192
+    },
+    {
+      "path": "apps/customer/src/features/demo/demo-screen-renderer.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 160
+    },
+    {
+      "path": "apps/customer/src/features/demo/demo-visual-matrix.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 104
+    },
+    {
+      "path": "apps/customer/src/features/demo/dev-preview-controls.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 36
+    },
+    {
+      "path": "apps/customer/src/features/demo/dev-preview-overlays.tsx",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 44
+    },
+    {
+      "path": "apps/customer/src/features/handoff/handoff-ui-state.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 51
+    },
+    {
+      "path": "apps/customer/src/features/handoff/qr-code.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 45
+    },
+    {
+      "path": "apps/customer/src/features/handoff/qr-code.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 76
+    },
+    {
+      "path": "apps/customer/src/features/handoff/qr-matrix.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 47
+    },
+    {
+      "path": "apps/customer/src/features/handoff/screen-ready-pin.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 107
+    },
+    {
+      "path": "apps/customer/src/features/handoff/screen-ready-qr.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 179
+    },
+    {
+      "path": "apps/customer/src/features/handoff/use-handoff.mounted.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 294
+    },
+    {
+      "path": "apps/customer/src/features/handoff/use-handoff.reconcile-failure.mounted.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 140
+    },
+    {
+      "path": "apps/customer/src/features/handoff/use-handoff.recovery.mounted.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 298
+    },
+    {
+      "path": "apps/customer/src/features/handoff/use-handoff.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 125
+    },
+    {
+      "path": "apps/customer/src/features/handoff/use-handoff.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 275
+    },
+    {
+      "path": "apps/customer/src/features/payment/guest-payment-summary.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 135
+    },
+    {
+      "path": "apps/customer/src/features/post-visit/guest-auto-rating.mounted.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 252
+    },
+    {
+      "path": "apps/customer/src/features/post-visit/guest-post-visit-screen.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 87
+    },
+    {
+      "path": "apps/customer/src/features/post-visit/guest-post-visit.mounted.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 150
+    },
+    {
+      "path": "apps/customer/src/features/post-visit/use-guest-post-visit.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 110
+    },
+    {
+      "path": "apps/customer/src/features/rating/guest-live-rating.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 91
+    },
+    {
+      "path": "apps/customer/src/features/rating/guest-rating-submission.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 93
+    },
+    {
+      "path": "apps/customer/src/features/rating/guest-rating-submission.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 57
+    },
+    {
+      "path": "apps/customer/src/features/rating/rating-presentation-outcome.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 53
+    },
+    {
+      "path": "apps/customer/src/features/rating/rating-presentation-policy.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 92
+    },
+    {
+      "path": "apps/customer/src/features/rating/rating-presentation-policy.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 88
+    },
+    {
+      "path": "apps/customer/src/features/ready-alert/guest-ready-alert-audio.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 46
+    },
+    {
+      "path": "apps/customer/src/features/ready-alert/guest-ready-alert-audio.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 32
+    },
+    {
+      "path": "apps/customer/src/features/ready-alert/guest-ready-alert-tracker.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 122
+    },
+    {
+      "path": "apps/customer/src/features/ready-alert/guest-ready-alert-tracker.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 69
+    },
+    {
+      "path": "apps/customer/src/features/ready-alert/guest-vehicle-ready-alert.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 55
+    },
+    {
+      "path": "apps/customer/src/features/ready-alert/guest-vehicle-ready-alert.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 89
+    },
+    {
+      "path": "apps/customer/src/features/retrieval/overlay-confirm-request.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 70
+    },
+    {
+      "path": "apps/customer/src/features/retrieval/screen-requested.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 110
+    },
+    {
+      "path": "apps/customer/src/features/retrieval/use-retrieval.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 110
+    },
+    {
+      "path": "apps/customer/src/features/retrieval/use-retrieval.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 176
+    },
+    {
+      "path": "apps/customer/src/features/session/client-bound-session.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 35
+    },
+    {
+      "path": "apps/customer/src/features/session/guest-bootstrap-flow.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 79
+    },
+    {
+      "path": "apps/customer/src/features/session/guest-brand-palette.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 46
+    },
+    {
+      "path": "apps/customer/src/features/session/guest-brand-palette.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 44
+    },
+    {
+      "path": "apps/customer/src/features/session/guest-branding-coverage.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 76
+    },
+    {
+      "path": "apps/customer/src/features/session/guest-branding.mounted.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 110
+    },
+    {
+      "path": "apps/customer/src/features/session/guest-branding.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 260
+    },
+    {
+      "path": "apps/customer/src/features/session/guest-branding.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 36
+    },
+    {
+      "path": "apps/customer/src/features/session/guest-lifecycle-router.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 78
+    },
+    {
+      "path": "apps/customer/src/features/session/guest-read-error-classification.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 24
+    },
+    {
+      "path": "apps/customer/src/features/session/guest-read-error-classification.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 17
+    },
+    {
+      "path": "apps/customer/src/features/session/guest-read-schedule.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 20
+    },
+    {
+      "path": "apps/customer/src/features/session/guest-request-coordinator.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 300
+    },
+    {
+      "path": "apps/customer/src/features/session/guest-request-coordinator.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 234
+    },
+    {
+      "path": "apps/customer/src/features/session/guest-session-provider.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 169
+    },
+    {
+      "path": "apps/customer/src/features/session/guest-session-ready-alert-composition.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 26
+    },
+    {
+      "path": "apps/customer/src/features/session/production-behavior.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 121
+    },
+    {
+      "path": "apps/customer/src/features/session/screen-completed.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 134
+    },
+    {
+      "path": "apps/customer/src/features/session/screen-on-the-way.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 80
+    },
+    {
+      "path": "apps/customer/src/features/session/screen-parked.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 76
+    },
+    {
+      "path": "apps/customer/src/features/session/screen-ready.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 60
+    },
+    {
+      "path": "apps/customer/src/features/session/screen-received.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 80
+    },
+    {
+      "path": "apps/customer/src/features/session/screen-verifying.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 51
+    },
+    {
+      "path": "apps/customer/src/features/session/session-state-flow.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 209
+    },
+    {
+      "path": "apps/customer/src/features/session/use-guest-brand-style.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 15
+    },
+    {
+      "path": "apps/customer/src/features/session/use-guest-session.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 34
+    },
+    {
+      "path": "apps/customer/src/features/web-push/guest-web-push-boundaries.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 271
+    },
+    {
+      "path": "apps/customer/src/features/web-push/guest-web-push-boundary-test-fixtures.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 56
+    },
+    {
+      "path": "apps/customer/src/features/web-push/guest-web-push-client.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 179
+    },
+    {
+      "path": "apps/customer/src/features/web-push/guest-web-push-client.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 215
+    },
+    {
+      "path": "apps/customer/src/features/web-push/guest-web-push-copy.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 33
+    },
+    {
+      "path": "apps/customer/src/features/web-push/guest-web-push-copy.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 28
+    },
+    {
+      "path": "apps/customer/src/features/web-push/guest-web-push-permission-card.mounted.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 204
+    },
+    {
+      "path": "apps/customer/src/features/web-push/guest-web-push-permission-card.test.tsx",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 40
+    },
+    {
+      "path": "apps/customer/src/features/web-push/guest-web-push-permission-card.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 206
+    },
+    {
+      "path": "apps/customer/src/features/web-push/guest-web-push-stage.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 98
+    },
+    {
+      "path": "apps/customer/src/features/web-push/guest-web-push-sw.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 114
+    },
+    {
+      "path": "apps/customer/src/features/web-push/guest-web-push-transport.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 133
+    },
+    {
+      "path": "apps/customer/src/features/web-push/guest-web-push-transport.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 176
+    },
+    {
+      "path": "apps/customer/src/i18n/error-translator.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 34
+    },
+    {
+      "path": "apps/customer/src/i18n/format-session-state.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 29
+    },
+    {
+      "path": "apps/customer/src/i18n/interpolate.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 15
+    },
+    {
+      "path": "apps/customer/src/i18n/locale-integration.test.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 120
+    },
+    {
+      "path": "apps/customer/src/i18n/locale-provider.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 136
+    },
+    {
+      "path": "apps/customer/src/i18n/locale.test.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 171
+    },
+    {
+      "path": "apps/customer/src/i18n/locale.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 63
+    },
+    {
+      "path": "apps/customer/src/i18n/translations/ar.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 263
+    },
+    {
+      "path": "apps/customer/src/i18n/translations/en.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 263
+    },
+    {
+      "path": "apps/customer/src/i18n/translations/guest-error-translation-types.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 23
+    },
+    {
+      "path": "apps/customer/src/i18n/translations/guest-information-ar.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 14
+    },
+    {
+      "path": "apps/customer/src/i18n/translations/guest-information-en.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 14
+    },
+    {
+      "path": "apps/customer/src/i18n/translations/guest-information-translation-types.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 12
+    },
+    {
+      "path": "apps/customer/src/i18n/translations/guest-post-visit-ar.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 29
+    },
+    {
+      "path": "apps/customer/src/i18n/translations/guest-post-visit-en.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 29
+    },
+    {
+      "path": "apps/customer/src/i18n/translations/guest-post-visit-translation-types.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 31
+    },
+    {
+      "path": "apps/customer/src/i18n/translations/guest-rating-translation-types.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 11
+    },
+    {
+      "path": "apps/customer/src/i18n/translations/preview-ar.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 76
+    },
+    {
+      "path": "apps/customer/src/i18n/translations/preview-en.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 76
+    },
+    {
+      "path": "apps/customer/src/i18n/translations/types.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 286
+    },
+    {
+      "path": "apps/customer/src/i18n/use-translation.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 1
+    },
+    {
+      "path": "apps/customer/src/lib/.gitkeep",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 0
+    },
+    {
+      "path": "apps/customer/src/lib/api/api-config.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 18
+    },
+    {
+      "path": "apps/customer/src/lib/api/api-error.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 31
+    },
+    {
+      "path": "apps/customer/src/lib/api/api-error.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 89
+    },
+    {
+      "path": "apps/customer/src/lib/api/api-origin.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 94
+    },
+    {
+      "path": "apps/customer/src/lib/api/api-origin.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 66
+    },
+    {
+      "path": "apps/customer/src/lib/api/guest-api-client-context-switch.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 135
+    },
+    {
+      "path": "apps/customer/src/lib/api/guest-api-client.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 278
+    },
+    {
+      "path": "apps/customer/src/lib/api/guest-api-client.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 296
+    },
+    {
+      "path": "apps/customer/src/lib/api/guest-api-types.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 27
+    },
+    {
+      "path": "apps/customer/src/lib/api/guest-browser-context-marker.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 22
+    },
+    {
+      "path": "apps/customer/src/lib/api/guest-http-transport.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 93
+    },
+    {
+      "path": "apps/customer/src/lib/api/guest-http-transport.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 130
+    },
+    {
+      "path": "apps/customer/src/lib/api/guest-information-client.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 63
+    },
+    {
+      "path": "apps/customer/src/lib/api/guest-t5-api.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 120
+    },
+    {
+      "path": "apps/customer/src/lib/app-info.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 9
+    },
+    {
+      "path": "apps/customer/src/lib/app-info.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 4
+    },
+    {
+      "path": "apps/customer/src/lib/async/in-flight-guard.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 25
+    },
+    {
+      "path": "apps/customer/src/lib/guest-presentation-context.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 33
+    },
+    {
+      "path": "apps/customer/src/lib/guest-presentation-context.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 15
+    },
+    {
+      "path": "apps/customer/src/lib/pwa/guest-static-cache.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 145
+    },
+    {
+      "path": "apps/customer/src/lib/pwa/register-pwa.test.ts",
+      "status": "tool_only",
+      "evidence": "Existing Vitest file executed successfully; assertions not manually reviewed in full.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 171
+    },
+    {
+      "path": "apps/customer/src/lib/pwa/register-pwa.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 37
+    },
+    {
+      "path": "apps/customer/src/lib/readiness/customer-readiness.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 107
+    },
+    {
+      "path": "apps/customer/src/lib/theme/colors.ts",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 56
+    },
+    {
+      "path": "apps/customer/src/theme/theme-matrix.test.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 200
+    },
+    {
+      "path": "apps/customer/src/theme/theme-provider.tsx",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 107
+    },
+    {
+      "path": "apps/customer/src/theme/theme.test.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": true,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 196
+    },
+    {
+      "path": "apps/customer/src/theme/theme.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 81
+    },
+    {
+      "path": "apps/customer/src/theme/use-theme.ts",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 1
+    },
+    {
+      "path": "apps/customer/tsconfig.json",
+      "status": "not_reviewed",
+      "evidence": "Inventory only; no manual line-level review.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 19
+    },
+    {
+      "path": "apps/customer/vitest.config.mjs",
+      "status": "fully_reviewed",
+      "evidence": "Complete source text inspected in numbered or raw terminal output; traced relevant control flow in this worker.",
+      "tested": false,
+      "excluded": false,
+      "exclusion_reason": null,
+      "lines": 12
+    }
+  ]
+}

@@ -1,0 +1,169 @@
+
+ RUN  v4.1.10 <AUDIT_WORKTREE>/apps/api
+
+[postgres-harness] project=api-postgres-standard profile=api-standard workers=1 supported=6 max=160 reserved=3 nonTest=20 envelope=20 admitted=20 headroom=117
+ ❯ |api-postgres-standard| test/dispatch-assignment.integration.test.ts (8 tests | 8 skipped) 10272ms
+ ❯ |api-postgres-standard| test/complete-handoff-command.integration.test.ts (4 tests | 4 skipped) 3682ms
+ ❯ |api-postgres-standard| test/complete-handoff-authorization.integration.test.ts (11 tests | 11 skipped) 3406ms
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  |api-postgres-standard| test/complete-handoff-authorization.integration.test.ts [ test/complete-handoff-authorization.integration.test.ts ]
+Error: Database setup command failed (1). Scope: all 12 workspace projects
+✓ Lockfile passes supply-chain policies (verified 39m ago)
+Lockfile is up to date, resolution step is skipped
+Already up to date
+
+[ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: @prisma/engines@7.9.1, @scarf/scarf@1.4.0, argon2@0.45.1, esbuild@0.28.1, prisma@7.9.1
+
+Run "pnpm approve-builds" to pick which dependencies should be allowed to run scripts.
+[ERROR] Command failed with exit code 1: <NODE_RUNTIME>/bin/node <NODE_RUNTIME>/node_modules/pnpm/bin/pnpm.mjs install
+
+pnpm: Command failed with exit code 1: <NODE_RUNTIME>/bin/node <NODE_RUNTIME>/node_modules/pnpm/bin/pnpm.mjs install
+    at getFinalError (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:89986:14)
+    at makeError (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:92293:21)
+    at getSyncResult (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:94137:10)
+    at spawnSubprocessSync (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:94097:14)
+    at execaCoreSync (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:94027:23)
+    at callBoundExeca (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:96555:23)
+    at boundExeca (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:96532:49)
+    at sync2 (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:96691:10)
+    at runPnpmCli (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:276904:5)
+    at runDepsStatusCheck (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:278122:7)
+
+ ❯ getFinalError ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:89986:14
+ ❯ makeError ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:92293:21
+ ❯ getSyncResult ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:94137:10
+ ❯ spawnSubprocessSync ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:94097:14
+ ❯ execaCoreSync ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:94027:23
+ ❯ callBoundExeca ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:96555:23
+ ❯ boundExeca ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:96532:49
+ ❯ sync2 ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:96691:10
+ ❯ runPnpmCli ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:276904:5
+ ❯ runDepsStatusCheck ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:278122:7
+ ❯ ChildProcess.<anonymous> test/shift-test-context.ts:65:11
+     63|       else
+     64|         reject(
+     65|           new Error(
+       |           ^
+     66|             `Database setup command failed (${String(code)}). ${output…
+     67|           ),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  |api-postgres-standard| test/complete-handoff-command.integration.test.ts [ test/complete-handoff-command.integration.test.ts ]
+Error: Database setup command failed (1). Scope: all 12 workspace projects
+✓ Lockfile passes supply-chain policies (verified 38m ago)
+Lockfile is up to date, resolution step is skipped
+Already up to date
+
+[ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: @prisma/engines@7.9.1, @scarf/scarf@1.4.0, argon2@0.45.1, esbuild@0.28.1, prisma@7.9.1
+
+Run "pnpm approve-builds" to pick which dependencies should be allowed to run scripts.
+[ERROR] Command failed with exit code 1: <NODE_RUNTIME>/bin/node <NODE_RUNTIME>/node_modules/pnpm/bin/pnpm.mjs install
+
+pnpm: Command failed with exit code 1: <NODE_RUNTIME>/bin/node <NODE_RUNTIME>/node_modules/pnpm/bin/pnpm.mjs install
+    at getFinalError (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:89986:14)
+    at makeError (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:92293:21)
+    at getSyncResult (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:94137:10)
+    at spawnSubprocessSync (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:94097:14)
+    at execaCoreSync (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:94027:23)
+    at callBoundExeca (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:96555:23)
+    at boundExeca (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:96532:49)
+    at sync2 (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:96691:10)
+    at runPnpmCli (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:276904:5)
+    at runDepsStatusCheck (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:278122:7)
+
+ ❯ getFinalError ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:89986:14
+ ❯ makeError ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:92293:21
+ ❯ getSyncResult ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:94137:10
+ ❯ spawnSubprocessSync ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:94097:14
+ ❯ execaCoreSync ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:94027:23
+ ❯ callBoundExeca ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:96555:23
+ ❯ boundExeca ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:96532:49
+ ❯ sync2 ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:96691:10
+ ❯ runPnpmCli ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:276904:5
+ ❯ runDepsStatusCheck ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:278122:7
+ ❯ ChildProcess.<anonymous> test/shift-test-context.ts:65:11
+     63|       else
+     64|         reject(
+     65|           new Error(
+       |           ^
+     66|             `Database setup command failed (${String(code)}). ${output…
+     67|           ),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  |api-postgres-standard| test/dispatch-assignment.integration.test.ts [ test/dispatch-assignment.integration.test.ts ]
+Error: Database setup command failed (1). Scope: all 12 workspace projects
+✓ Lockfile passes supply-chain policies (verified 38m ago)
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +1044
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 1044, reused 71, downloaded 0, added 0
+Progress: resolved 1044, reused 1041, downloaded 0, added 0
+Packages are hard linked from the content-addressable store to the virtual store.
+  Content-addressable store is at: <PACKAGE_CACHE>
+  Virtual store is at:             node_modules/.pnpm
+Progress: resolved 1044, reused 1041, downloaded 0, added 36
+Progress: resolved 1044, reused 1041, downloaded 0, added 70
+Progress: resolved 1044, reused 1041, downloaded 0, added 405
+Progress: resolved 1044, reused 1041, downloaded 0, added 1044, done
+
+devDependencies:
++ @eslint/js 9.39.5
++ @types/node 22.20.1
++ eslint 9.39.5
++ eslint-plugin-react-hooks 7.1.1
++ globals 16.5.0
++ prettier 3.9.6
++ turbo 2.10.6
++ typescript 5.9.3
++ typescript-eslint 8.66.0
++ vitest 4.1.10
+
+[ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: @prisma/engines@7.9.1, @scarf/scarf@1.4.0, argon2@0.45.1, esbuild@0.28.1, prisma@7.9.1
+
+Run "pnpm approve-builds" to pick which dependencies should be allowed to run scripts.
+[ERROR] Command failed with exit code 1: <NODE_RUNTIME>/bin/node <NODE_RUNTIME>/node_modules/pnpm/bin/pnpm.mjs install
+
+pnpm: Command failed with exit code 1: <NODE_RUNTIME>/bin/node <NODE_RUNTIME>/node_modules/pnpm/bin/pnpm.mjs install
+    at getFinalError (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:89986:14)
+    at makeError (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:92293:21)
+    at getSyncResult (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:94137:10)
+    at spawnSubprocessSync (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:94097:14)
+    at execaCoreSync (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:94027:23)
+    at callBoundExeca (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:96555:23)
+    at boundExeca (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:96532:49)
+    at sync2 (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:96691:10)
+    at runPnpmCli (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:276904:5)
+    at runDepsStatusCheck (file://<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:278122:7)
+
+ ❯ getFinalError ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:89986:14
+ ❯ makeError ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:92293:21
+ ❯ getSyncResult ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:94137:10
+ ❯ spawnSubprocessSync ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:94097:14
+ ❯ execaCoreSync ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:94027:23
+ ❯ callBoundExeca ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:96555:23
+ ❯ boundExeca ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:96532:49
+ ❯ sync2 ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:96691:10
+ ❯ runPnpmCli ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:276904:5
+ ❯ runDepsStatusCheck ../../../../../..<NODE_RUNTIME>/node_modules/pnpm/dist/pnpm.mjs:278122:7
+ ❯ ChildProcess.<anonymous> test/shift-test-context.ts:65:11
+     63|       else
+     64|         reject(
+     65|           new Error(
+       |           ^
+     66|             `Database setup command failed (${String(code)}). ${output…
+     67|           ),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  3 failed (3)
+      Tests  23 skipped (23)
+   Start at  23:32:29
+   Duration  26.12s (transform 1.68s, setup 308ms, import 4.27s, tests 17.36s, environment 1ms)
+
+[postgres-harness] cleanup run=run_api-postgres-stand_3vy_d9f4010e7319 db=0 roles=0 children=0 wallMs=26018

@@ -1,0 +1,18 @@
+{
+  "result": "DUPLICATE_SEND_REPRODUCED_IN_DETERMINISTIC_FAKE_DB_MODEL",
+  "leaseDurationMs": 30000,
+  "sends": [
+    {
+      "worker": "B",
+      "atMs": 31000,
+      "stateAtTransport": "LEASED",
+      "ttl": "269.000s"
+    },
+    {
+      "worker": "A",
+      "atMs": 31000,
+      "stateAtTransport": "PROVIDER_ACCEPTED",
+      "ttl": "269.000s"
+    }
+  ]
+}

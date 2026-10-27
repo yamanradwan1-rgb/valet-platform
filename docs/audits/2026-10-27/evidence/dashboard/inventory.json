@@ -1,0 +1,1642 @@
+{
+  "apps/dashboard/README.md": [
+    1,
+    7
+  ],
+  "apps/dashboard/e2e-runtime/auth-principals.spec.ts": [
+    1,
+    218
+  ],
+  "apps/dashboard/e2e-runtime/authority-loss.spec.ts": [
+    1,
+    99
+  ],
+  "apps/dashboard/e2e-runtime/cross-feature-races.spec.ts": [
+    1,
+    88
+  ],
+  "apps/dashboard/e2e-runtime/issue234-security.spec.ts": [
+    1,
+    106
+  ],
+  "apps/dashboard/e2e-runtime/issue300-browser-safety.ts": [
+    1,
+    246
+  ],
+  "apps/dashboard/e2e-runtime/issue300-closure.spec.ts": [
+    1,
+    299
+  ],
+  "apps/dashboard/e2e-runtime/md-r11-administration.spec.ts": [
+    1,
+    113
+  ],
+  "apps/dashboard/e2e-runtime/operational-separation.spec.ts": [
+    1,
+    94
+  ],
+  "apps/dashboard/e2e-runtime/report-generation-race.spec.ts": [
+    1,
+    49
+  ],
+  "apps/dashboard/e2e-runtime/reports-privacy.spec.ts": [
+    1,
+    146
+  ],
+  "apps/dashboard/e2e-runtime/request-bounds.spec.ts": [
+    1,
+    60
+  ],
+  "apps/dashboard/e2e-runtime/scope-races.spec.ts": [
+    1,
+    130
+  ],
+  "apps/dashboard/e2e-runtime/session-generation.spec.ts": [
+    1,
+    46
+  ],
+  "apps/dashboard/e2e-runtime/support/delayed-real-response.ts": [
+    1,
+    59
+  ],
+  "apps/dashboard/e2e-runtime/support/persistent-state.ts": [
+    1,
+    109
+  ],
+  "apps/dashboard/e2e-runtime/support/runtime-fixture.ts": [
+    1,
+    196
+  ],
+  "apps/dashboard/e2e-runtime/support/runtime-test.ts": [
+    1,
+    12
+  ],
+  "apps/dashboard/e2e-runtime/two-tab-concurrency.spec.ts": [
+    1,
+    149
+  ],
+  "apps/dashboard/e2e/administration-authority.spec.ts": [
+    1,
+    143
+  ],
+  "apps/dashboard/e2e/administration-behavior.spec.ts": [
+    1,
+    247
+  ],
+  "apps/dashboard/e2e/administration-concurrency.spec.ts": [
+    1,
+    242
+  ],
+  "apps/dashboard/e2e/administration-locations.spec.ts": [
+    1,
+    66
+  ],
+  "apps/dashboard/e2e/administration-r05-authority-budget.spec.ts": [
+    1,
+    253
+  ],
+  "apps/dashboard/e2e/administration-r05-cursor-generation.spec.ts": [
+    1,
+    188
+  ],
+  "apps/dashboard/e2e/administration-r05-employees-controls.spec.ts": [
+    1,
+    70
+  ],
+  "apps/dashboard/e2e/administration-r05-employees-generation.spec.ts": [
+    1,
+    91
+  ],
+  "apps/dashboard/e2e/administration-r05-employees-page-scope.spec.ts": [
+    1,
+    88
+  ],
+  "apps/dashboard/e2e/administration-r05-employees-pagination.spec.ts": [
+    1,
+    92
+  ],
+  "apps/dashboard/e2e/administration-r05-employees-presentation.spec.ts": [
+    1,
+    118
+  ],
+  "apps/dashboard/e2e/administration-r05-employees-scope-cursor.spec.ts": [
+    1,
+    112
+  ],
+  "apps/dashboard/e2e/administration-r05-employees-session.spec.ts": [
+    1,
+    131
+  ],
+  "apps/dashboard/e2e/administration-r05-mutations.spec.ts": [
+    1,
+    251
+  ],
+  "apps/dashboard/e2e/administration-r05-presentation.spec.ts": [
+    1,
+    197
+  ],
+  "apps/dashboard/e2e/administration-r05-visual.spec.ts": [
+    1,
+    253
+  ],
+  "apps/dashboard/e2e/administration-r06-accessibility.spec.ts": [
+    1,
+    61
+  ],
+  "apps/dashboard/e2e/administration-r06-authority-budget.spec.ts": [
+    1,
+    139
+  ],
+  "apps/dashboard/e2e/administration-r06-corrections.spec.ts": [
+    1,
+    176
+  ],
+  "apps/dashboard/e2e/administration-r06-cursor-selection.spec.ts": [
+    1,
+    185
+  ],
+  "apps/dashboard/e2e/administration-r06-mfa-state.spec.ts": [
+    1,
+    81
+  ],
+  "apps/dashboard/e2e/administration-r06-mutations.spec.ts": [
+    1,
+    244
+  ],
+  "apps/dashboard/e2e/administration-r06-presentation.spec.ts": [
+    1,
+    58
+  ],
+  "apps/dashboard/e2e/administration-r06-session-fencing.spec.ts": [
+    1,
+    124
+  ],
+  "apps/dashboard/e2e/administration-r06-states.spec.ts": [
+    1,
+    107
+  ],
+  "apps/dashboard/e2e/administration-r06-visual.spec.ts": [
+    1,
+    273
+  ],
+  "apps/dashboard/e2e/administration-settings-validation.spec.ts": [
+    1,
+    190
+  ],
+  "apps/dashboard/e2e/administration-settings.spec.ts": [
+    1,
+    100
+  ],
+  "apps/dashboard/e2e/administration-staff.spec.ts": [
+    1,
+    86
+  ],
+  "apps/dashboard/e2e/administration-visual-freeze.spec.ts": [
+    1,
+    126
+  ],
+  "apps/dashboard/e2e/auth-session.spec.ts": [
+    1,
+    130
+  ],
+  "apps/dashboard/e2e/foundation-authority-follow-up.spec.ts": [
+    1,
+    82
+  ],
+  "apps/dashboard/e2e/issue232-physical-resource-closure.spec.ts": [
+    1,
+    122
+  ],
+  "apps/dashboard/e2e/issue232-physical-resource-races.spec.ts": [
+    1,
+    227
+  ],
+  "apps/dashboard/e2e/issue232-physical-resource-visual.spec.ts": [
+    1,
+    132
+  ],
+  "apps/dashboard/e2e/issue232-physical-resources.spec.ts": [
+    1,
+    246
+  ],
+  "apps/dashboard/e2e/issue234-security-accessibility.spec.ts": [
+    1,
+    122
+  ],
+  "apps/dashboard/e2e/issue234-security-authority.spec.ts": [
+    1,
+    148
+  ],
+  "apps/dashboard/e2e/issue234-security-lifecycle.spec.ts": [
+    1,
+    299
+  ],
+  "apps/dashboard/e2e/issue234-security-privacy.spec.ts": [
+    1,
+    236
+  ],
+  "apps/dashboard/e2e/issue234-security-shell.spec.ts": [
+    1,
+    182
+  ],
+  "apps/dashboard/e2e/issue234-security-visual.spec.ts": [
+    1,
+    185
+  ],
+  "apps/dashboard/e2e/issue236-parking-zones.spec.ts": [
+    1,
+    148
+  ],
+  "apps/dashboard/e2e/issue236-zone-auth-retry.spec.ts": [
+    1,
+    68
+  ],
+  "apps/dashboard/e2e/issue236-zone-authority-races.spec.ts": [
+    1,
+    197
+  ],
+  "apps/dashboard/e2e/issue236-zone-mfa-race.spec.ts": [
+    1,
+    90
+  ],
+  "apps/dashboard/e2e/issue236-zone-selector-races.spec.ts": [
+    1,
+    113
+  ],
+  "apps/dashboard/e2e/issue236-zone-visual.spec.ts": [
+    1,
+    123
+  ],
+  "apps/dashboard/e2e/issue237-keys-spots.spec.ts": [
+    1,
+    290
+  ],
+  "apps/dashboard/e2e/issue237-physical-resource-cursor-race.spec.ts": [
+    1,
+    111
+  ],
+  "apps/dashboard/e2e/issue237-physical-resource-session-races.spec.ts": [
+    1,
+    90
+  ],
+  "apps/dashboard/e2e/issue238-service-status.spec.ts": [
+    1,
+    88
+  ],
+  "apps/dashboard/e2e/issue240a-directory-budget.spec.ts": [
+    1,
+    159
+  ],
+  "apps/dashboard/e2e/issue240a-directory-detail-races.spec.ts": [
+    1,
+    87
+  ],
+  "apps/dashboard/e2e/issue240a-directory-races.spec.ts": [
+    1,
+    187
+  ],
+  "apps/dashboard/e2e/issue240a-visual.spec.ts": [
+    1,
+    113
+  ],
+  "apps/dashboard/e2e/issue240b-ca-grant-regression.spec.ts": [
+    1,
+    182
+  ],
+  "apps/dashboard/e2e/issue240b-ca-status-regression.spec.ts": [
+    1,
+    98
+  ],
+  "apps/dashboard/e2e/issue240b-lm-mutation-races.spec.ts": [
+    1,
+    299
+  ],
+  "apps/dashboard/e2e/issue240b-lm-read-races.spec.ts": [
+    1,
+    220
+  ],
+  "apps/dashboard/e2e/issue240b-lm-rtl.spec.ts": [
+    1,
+    107
+  ],
+  "apps/dashboard/e2e/issue240b-lm-staff.spec.ts": [
+    1,
+    284
+  ],
+  "apps/dashboard/e2e/issue240b-lm-version-reconcile.spec.ts": [
+    1,
+    154
+  ],
+  "apps/dashboard/e2e/issue240b-visual.spec.ts": [
+    1,
+    225
+  ],
+  "apps/dashboard/e2e/issue240d-activation.spec.ts": [
+    1,
+    146
+  ],
+  "apps/dashboard/e2e/issue240d-create-fencing.spec.ts": [
+    1,
+    204
+  ],
+  "apps/dashboard/e2e/issue240d-create.spec.ts": [
+    1,
+    162
+  ],
+  "apps/dashboard/e2e/issue240d-pending-fencing.spec.ts": [
+    1,
+    109
+  ],
+  "apps/dashboard/e2e/issue240d-pending.spec.ts": [
+    1,
+    139
+  ],
+  "apps/dashboard/e2e/issue240d-retry-authority.spec.ts": [
+    1,
+    195
+  ],
+  "apps/dashboard/e2e/issue240d-selector-visual.spec.ts": [
+    1,
+    128
+  ],
+  "apps/dashboard/e2e/issue240d-visual.spec.ts": [
+    1,
+    76
+  ],
+  "apps/dashboard/e2e/issue240e-baseline.spec.ts": [
+    1,
+    127
+  ],
+  "apps/dashboard/e2e/issue240e-denial-retry.spec.ts": [
+    1,
+    162
+  ],
+  "apps/dashboard/e2e/issue240e-history-budget.spec.ts": [
+    1,
+    213
+  ],
+  "apps/dashboard/e2e/issue240e-history-races.spec.ts": [
+    1,
+    219
+  ],
+  "apps/dashboard/e2e/issue240e-location-recovery.spec.ts": [
+    1,
+    285
+  ],
+  "apps/dashboard/e2e/issue240e-session-read.spec.ts": [
+    1,
+    77
+  ],
+  "apps/dashboard/e2e/issue240g-auth-cancellation.spec.ts": [
+    1,
+    81
+  ],
+  "apps/dashboard/e2e/issue240g-authority.spec.ts": [
+    1,
+    117
+  ],
+  "apps/dashboard/e2e/issue240g-freeze.spec.ts": [
+    1,
+    129
+  ],
+  "apps/dashboard/e2e/issue240g-keyboard.spec.ts": [
+    1,
+    50
+  ],
+  "apps/dashboard/e2e/issue240g-mfa-baseline.spec.ts": [
+    1,
+    65
+  ],
+  "apps/dashboard/e2e/issue240g-mutation-races.spec.ts": [
+    1,
+    148
+  ],
+  "apps/dashboard/e2e/issue240g-page-fences.spec.ts": [
+    1,
+    163
+  ],
+  "apps/dashboard/e2e/issue240g-reconcile-fences.spec.ts": [
+    1,
+    197
+  ],
+  "apps/dashboard/e2e/issue240g-submit.spec.ts": [
+    1,
+    121
+  ],
+  "apps/dashboard/e2e/issue240g-unknown.spec.ts": [
+    1,
+    203
+  ],
+  "apps/dashboard/e2e/issue240g-visual.spec.ts": [
+    1,
+    174
+  ],
+  "apps/dashboard/e2e/issue241-live-operations.spec.ts": [
+    1,
+    177
+  ],
+  "apps/dashboard/e2e/issue242-roles-reference.spec.ts": [
+    1,
+    201
+  ],
+  "apps/dashboard/e2e/issue254-resource-races.spec.ts": [
+    1,
+    206
+  ],
+  "apps/dashboard/e2e/issue254-resource-rows.spec.ts": [
+    1,
+    180
+  ],
+  "apps/dashboard/e2e/issue254-visual.spec.ts": [
+    1,
+    106
+  ],
+  "apps/dashboard/e2e/issue268-scope-restoration-races.spec.ts": [
+    1,
+    64
+  ],
+  "apps/dashboard/e2e/issue268-scope-restoration.spec.ts": [
+    1,
+    278
+  ],
+  "apps/dashboard/e2e/issue270-live-map-refresh.spec.ts": [
+    1,
+    171
+  ],
+  "apps/dashboard/e2e/issue277-audit-identity-visual.spec.ts": [
+    1,
+    107
+  ],
+  "apps/dashboard/e2e/issue278-activation-help-focus.spec.ts": [
+    1,
+    82
+  ],
+  "apps/dashboard/e2e/issue278-administration-mobile-help.spec.ts": [
+    1,
+    299
+  ],
+  "apps/dashboard/e2e/issue278-administration-presence-help.spec.ts": [
+    1,
+    239
+  ],
+  "apps/dashboard/e2e/issue278-administration-settings-help.spec.ts": [
+    1,
+    130
+  ],
+  "apps/dashboard/e2e/issue278-audit-long-timezone.spec.ts": [
+    1,
+    99
+  ],
+  "apps/dashboard/e2e/issue278-e-account-activation-help.spec.ts": [
+    1,
+    116
+  ],
+  "apps/dashboard/e2e/issue278-e-audit-contacts-help.spec.ts": [
+    1,
+    105
+  ],
+  "apps/dashboard/e2e/issue278-e-f-audit-geometry.spec.ts": [
+    1,
+    124
+  ],
+  "apps/dashboard/e2e/issue278-e-f-visual-evidence.spec.ts": [
+    1,
+    210
+  ],
+  "apps/dashboard/e2e/issue278-final-visible-help-overlaps.spec.ts": [
+    1,
+    79
+  ],
+  "apps/dashboard/e2e/issue278-header-help-geometry.spec.ts": [
+    1,
+    104
+  ],
+  "apps/dashboard/e2e/issue278-heading-safety.spec.ts": [
+    1,
+    74
+  ],
+  "apps/dashboard/e2e/issue278-help-authority.spec.ts": [
+    1,
+    139
+  ],
+  "apps/dashboard/e2e/issue278-help-lifecycle.spec.ts": [
+    1,
+    176
+  ],
+  "apps/dashboard/e2e/issue278-help-zoom.spec.ts": [
+    1,
+    165
+  ],
+  "apps/dashboard/e2e/issue278-historical-geometry-compare.mjs": [
+    1,
+    152
+  ],
+  "apps/dashboard/e2e/issue278-historical-visual.spec.ts": [
+    1,
+    145
+  ],
+  "apps/dashboard/e2e/issue278-intelligence-help.spec.ts": [
+    1,
+    152
+  ],
+  "apps/dashboard/e2e/issue278-operations-help.spec.ts": [
+    1,
+    176
+  ],
+  "apps/dashboard/e2e/issue278-u004-evidence-compare.mjs": [
+    1,
+    139
+  ],
+  "apps/dashboard/e2e/issue278-u004-geometry.spec.ts": [
+    1,
+    172
+  ],
+  "apps/dashboard/e2e/issue278-visual-help.spec.ts": [
+    1,
+    131
+  ],
+  "apps/dashboard/e2e/issue280-exceptions-help-a11y.spec.ts": [
+    1,
+    138
+  ],
+  "apps/dashboard/e2e/issue280-guided-review-apply.spec.ts": [
+    1,
+    286
+  ],
+  "apps/dashboard/e2e/issue280-guided-review-focus.spec.ts": [
+    1,
+    39
+  ],
+  "apps/dashboard/e2e/issue280-guided-review-zoom-fixture.ts": [
+    1,
+    117
+  ],
+  "apps/dashboard/e2e/issue280-map-first-flow.spec.ts": [
+    1,
+    258
+  ],
+  "apps/dashboard/e2e/issue280-map-first-map-mock.ts": [
+    1,
+    86
+  ],
+  "apps/dashboard/e2e/issue280-map-first-receipts.spec.ts": [
+    1,
+    130
+  ],
+  "apps/dashboard/e2e/issue280-map-first-visual.spec.ts": [
+    1,
+    179
+  ],
+  "apps/dashboard/e2e/issue280-map-first-zoom.spec.ts": [
+    1,
+    142
+  ],
+  "apps/dashboard/e2e/issue299-task-staff-attribution.spec.ts": [
+    1,
+    126
+  ],
+  "apps/dashboard/e2e/issue300-concept-a-role-guard.spec.ts": [
+    1,
+    131
+  ],
+  "apps/dashboard/e2e/issue300-concept-a-ui-integration.spec.ts": [
+    1,
+    152
+  ],
+  "apps/dashboard/e2e/issue300-g2-live-browser.mjs": [
+    1,
+    249
+  ],
+  "apps/dashboard/e2e/issue300-live-disclosure.spec.ts": [
+    1,
+    55
+  ],
+  "apps/dashboard/e2e/issue300-original-shell-zoom-baseline.spec.ts": [
+    1,
+    46
+  ],
+  "apps/dashboard/e2e/issue300-real-source-identity.spec.ts": [
+    1,
+    81
+  ],
+  "apps/dashboard/e2e/issue304-header-geometry.spec.ts": [
+    1,
+    120
+  ],
+  "apps/dashboard/e2e/issue305-controlled-parity.spec.ts": [
+    1,
+    89
+  ],
+  "apps/dashboard/e2e/issue305-table-alignment.spec.ts": [
+    1,
+    178
+  ],
+  "apps/dashboard/e2e/issue306-incident-reporter.spec.ts": [
+    1,
+    55
+  ],
+  "apps/dashboard/e2e/issue306-matched-baseline.spec.ts": [
+    1,
+    242
+  ],
+  "apps/dashboard/e2e/issue314-incident-drawer-reflow.spec.ts": [
+    1,
+    89
+  ],
+  "apps/dashboard/e2e/issue314-independent-acceptance.spec.ts": [
+    1,
+    252
+  ],
+  "apps/dashboard/e2e/issue337-incidents.spec.ts": [
+    1,
+    126
+  ],
+  "apps/dashboard/e2e/issue339-public-phone.spec.ts": [
+    1,
+    131
+  ],
+  "apps/dashboard/e2e/issue340-location-drain.spec.ts": [
+    1,
+    76
+  ],
+  "apps/dashboard/e2e/issue341-tasks.spec.ts": [
+    1,
+    46
+  ],
+  "apps/dashboard/e2e/issue342-shift-cash.spec.ts": [
+    1,
+    116
+  ],
+  "apps/dashboard/e2e/issue344-last-attendance-zone.spec.ts": [
+    1,
+    74
+  ],
+  "apps/dashboard/e2e/issue346-resume-intake.spec.ts": [
+    1,
+    177
+  ],
+  "apps/dashboard/e2e/issues342-346-evidence.spec.ts": [
+    1,
+    58
+  ],
+  "apps/dashboard/e2e/issues342-346-ui-freeze.spec.ts": [
+    1,
+    118
+  ],
+  "apps/dashboard/e2e/live-operations-google-map-visual.spec.ts": [
+    1,
+    207
+  ],
+  "apps/dashboard/e2e/md-r02-overview-parity.spec.ts": [
+    1,
+    268
+  ],
+  "apps/dashboard/e2e/md-r07-map-privacy-budget.spec.ts": [
+    1,
+    107
+  ],
+  "apps/dashboard/e2e/md-r07-map-races.spec.ts": [
+    1,
+    288
+  ],
+  "apps/dashboard/e2e/md-r07-map-session.spec.ts": [
+    1,
+    114
+  ],
+  "apps/dashboard/e2e/md-r07-map-visual.spec.ts": [
+    1,
+    167
+  ],
+  "apps/dashboard/e2e/md-r08-accessibility.spec.ts": [
+    1,
+    34
+  ],
+  "apps/dashboard/e2e/md-r08-audit-security.spec.ts": [
+    1,
+    102
+  ],
+  "apps/dashboard/e2e/md-r08-authority.spec.ts": [
+    1,
+    196
+  ],
+  "apps/dashboard/e2e/md-r08-presentation.spec.ts": [
+    1,
+    226
+  ],
+  "apps/dashboard/e2e/md-r08-privacy-budget.spec.ts": [
+    1,
+    68
+  ],
+  "apps/dashboard/e2e/md-r08-races.spec.ts": [
+    1,
+    247
+  ],
+  "apps/dashboard/e2e/md-r08-visual.spec.ts": [
+    1,
+    75
+  ],
+  "apps/dashboard/e2e/md-r09-analytics.spec.ts": [
+    1,
+    92
+  ],
+  "apps/dashboard/e2e/md-r09-lifecycle.spec.ts": [
+    1,
+    143
+  ],
+  "apps/dashboard/e2e/md-r09-payments-races.spec.ts": [
+    1,
+    154
+  ],
+  "apps/dashboard/e2e/md-r09-payments.spec.ts": [
+    1,
+    107
+  ],
+  "apps/dashboard/e2e/md-r09-states.spec.ts": [
+    1,
+    158
+  ],
+  "apps/dashboard/e2e/md-r09-visual.spec.ts": [
+    1,
+    115
+  ],
+  "apps/dashboard/e2e/md-r10-evidence.spec.ts": [
+    1,
+    139
+  ],
+  "apps/dashboard/e2e/md-r10-visual.spec.ts": [
+    1,
+    137
+  ],
+  "apps/dashboard/e2e/md-r11-commercial.spec.ts": [
+    1,
+    119
+  ],
+  "apps/dashboard/e2e/md-r11-presentation.spec.ts": [
+    1,
+    109
+  ],
+  "apps/dashboard/e2e/md-r11-privacy.spec.ts": [
+    1,
+    42
+  ],
+  "apps/dashboard/e2e/md-r11-read-races.spec.ts": [
+    1,
+    256
+  ],
+  "apps/dashboard/e2e/md-r11-security.spec.ts": [
+    1,
+    89
+  ],
+  "apps/dashboard/e2e/md-r11-visual.spec.ts": [
+    1,
+    190
+  ],
+  "apps/dashboard/e2e/md04-accessibility.spec.ts": [
+    1,
+    146
+  ],
+  "apps/dashboard/e2e/md04-audit.spec.ts": [
+    1,
+    226
+  ],
+  "apps/dashboard/e2e/md04-auth-reconciliation.spec.ts": [
+    1,
+    93
+  ],
+  "apps/dashboard/e2e/md04-corrections.spec.ts": [
+    1,
+    253
+  ],
+  "apps/dashboard/e2e/md04-navigation.spec.ts": [
+    1,
+    132
+  ],
+  "apps/dashboard/e2e/md04-scope-races.spec.ts": [
+    1,
+    276
+  ],
+  "apps/dashboard/e2e/md04-visit-contacts.spec.ts": [
+    1,
+    215
+  ],
+  "apps/dashboard/e2e/md05-analytics.spec.ts": [
+    1,
+    295
+  ],
+  "apps/dashboard/e2e/md05-closure.spec.ts": [
+    1,
+    195
+  ],
+  "apps/dashboard/e2e/md05-location-race.spec.ts": [
+    1,
+    94
+  ],
+  "apps/dashboard/e2e/md05-navigation-accessibility.spec.ts": [
+    1,
+    135
+  ],
+  "apps/dashboard/e2e/md05-overview-payments.spec.ts": [
+    1,
+    292
+  ],
+  "apps/dashboard/e2e/md05-period-endpoint-focus.spec.ts": [
+    1,
+    208
+  ],
+  "apps/dashboard/e2e/md05-reports-bidi.spec.ts": [
+    1,
+    65
+  ],
+  "apps/dashboard/e2e/md05-reports-export.spec.ts": [
+    1,
+    298
+  ],
+  "apps/dashboard/e2e/md05-storage-privacy.spec.ts": [
+    1,
+    202
+  ],
+  "apps/dashboard/e2e/md06-cumulative-ui.spec.ts": [
+    1,
+    139
+  ],
+  "apps/dashboard/e2e/md231-map-contract-closure.spec.ts": [
+    1,
+    300
+  ],
+  "apps/dashboard/e2e/md231-map-zone-races.spec.ts": [
+    1,
+    175
+  ],
+  "apps/dashboard/e2e/md233-period-refresh.spec.ts": [
+    1,
+    90
+  ],
+  "apps/dashboard/e2e/md233-period-scope-race.spec.ts": [
+    1,
+    130
+  ],
+  "apps/dashboard/e2e/md233-period-ux.spec.ts": [
+    1,
+    272
+  ],
+  "apps/dashboard/e2e/md233-period-visual.spec.ts": [
+    1,
+    84
+  ],
+  "apps/dashboard/e2e/mfa.spec.ts": [
+    1,
+    113
+  ],
+  "apps/dashboard/e2e/operations-authority.spec.ts": [
+    1,
+    134
+  ],
+  "apps/dashboard/e2e/operations-concurrency.spec.ts": [
+    1,
+    147
+  ],
+  "apps/dashboard/e2e/operations-google-map-authority.spec.ts": [
+    1,
+    115
+  ],
+  "apps/dashboard/e2e/operations-google-map.spec.ts": [
+    1,
+    300
+  ],
+  "apps/dashboard/e2e/operations-map-outcomes.spec.ts": [
+    1,
+    92
+  ],
+  "apps/dashboard/e2e/operations-maps.spec.ts": [
+    1,
+    219
+  ],
+  "apps/dashboard/e2e/operations-r03-authority.spec.ts": [
+    1,
+    176
+  ],
+  "apps/dashboard/e2e/operations-r03-cursor-races.spec.ts": [
+    1,
+    264
+  ],
+  "apps/dashboard/e2e/operations-r03-presentation.spec.ts": [
+    1,
+    214
+  ],
+  "apps/dashboard/e2e/operations-r03-privacy-budget.spec.ts": [
+    1,
+    68
+  ],
+  "apps/dashboard/e2e/operations-r03-states.spec.ts": [
+    1,
+    179
+  ],
+  "apps/dashboard/e2e/operations-r03-visual.spec.ts": [
+    1,
+    100
+  ],
+  "apps/dashboard/e2e/operations-r04-authority-budget.spec.ts": [
+    1,
+    175
+  ],
+  "apps/dashboard/e2e/operations-r04-cursor.spec.ts": [
+    1,
+    159
+  ],
+  "apps/dashboard/e2e/operations-r04-generation.spec.ts": [
+    1,
+    108
+  ],
+  "apps/dashboard/e2e/operations-r04-presentation.spec.ts": [
+    1,
+    206
+  ],
+  "apps/dashboard/e2e/operations-r04-visual.spec.ts": [
+    1,
+    215
+  ],
+  "apps/dashboard/e2e/operations-visibility.spec.ts": [
+    1,
+    107
+  ],
+  "apps/dashboard/e2e/operations-visual-freeze.spec.ts": [
+    1,
+    223
+  ],
+  "apps/dashboard/e2e/presentation.spec.ts": [
+    1,
+    189
+  ],
+  "apps/dashboard/e2e/scope-authority.spec.ts": [
+    1,
+    266
+  ],
+  "apps/dashboard/e2e/shift-presence-auth-continuity.spec.ts": [
+    1,
+    218
+  ],
+  "apps/dashboard/e2e/shift-presence-auth-races.spec.ts": [
+    1,
+    173
+  ],
+  "apps/dashboard/e2e/shift-presence-geolocation.spec.ts": [
+    1,
+    232
+  ],
+  "apps/dashboard/e2e/shift-presence-lists.spec.ts": [
+    1,
+    175
+  ],
+  "apps/dashboard/e2e/shift-presence-location-feedback.spec.ts": [
+    1,
+    68
+  ],
+  "apps/dashboard/e2e/shift-presence-map-first-orchestration.spec.ts": [
+    1,
+    99
+  ],
+  "apps/dashboard/e2e/shift-presence-map-lifecycle.spec.ts": [
+    1,
+    103
+  ],
+  "apps/dashboard/e2e/shift-presence-map.spec.ts": [
+    1,
+    60
+  ],
+  "apps/dashboard/e2e/shift-presence-organization.spec.ts": [
+    1,
+    88
+  ],
+  "apps/dashboard/e2e/shift-presence-recovery.spec.ts": [
+    1,
+    232
+  ],
+  "apps/dashboard/e2e/shift-presence-scope.spec.ts": [
+    1,
+    280
+  ],
+  "apps/dashboard/e2e/shift-presence-settings.spec.ts": [
+    1,
+    189
+  ],
+  "apps/dashboard/e2e/shift-presence-unmount.spec.ts": [
+    1,
+    237
+  ],
+  "apps/dashboard/e2e/shift-presence-visual.spec.ts": [
+    1,
+    166
+  ],
+  "apps/dashboard/e2e/subscription-recovery.spec.ts": [
+    1,
+    197
+  ],
+  "apps/dashboard/e2e/support/administration-fixtures.ts": [
+    1,
+    125
+  ],
+  "apps/dashboard/e2e/support/administration-r05-fixtures.ts": [
+    1,
+    56
+  ],
+  "apps/dashboard/e2e/support/dashboard-api-fixture.ts": [
+    1,
+    286
+  ],
+  "apps/dashboard/e2e/support/dashboard-auth-fixture.ts": [
+    1,
+    53
+  ],
+  "apps/dashboard/e2e/support/fixture-data.ts": [
+    1,
+    85
+  ],
+  "apps/dashboard/e2e/support/foundation-ui.ts": [
+    1,
+    44
+  ],
+  "apps/dashboard/e2e/support/guest-contact-fixture.ts": [
+    1,
+    200
+  ],
+  "apps/dashboard/e2e/support/issue232-physical-resources.ts": [
+    1,
+    124
+  ],
+  "apps/dashboard/e2e/support/issue234-privacy.ts": [
+    1,
+    87
+  ],
+  "apps/dashboard/e2e/support/issue236-parking-zones.ts": [
+    1,
+    119
+  ],
+  "apps/dashboard/e2e/support/issue240d-onboarding.ts": [
+    1,
+    140
+  ],
+  "apps/dashboard/e2e/support/issue240e-history.ts": [
+    1,
+    40
+  ],
+  "apps/dashboard/e2e/support/issue240g-force-end.ts": [
+    1,
+    161
+  ],
+  "apps/dashboard/e2e/support/issue254-resources.ts": [
+    1,
+    117
+  ],
+  "apps/dashboard/e2e/support/issues342-346-visual.ts": [
+    1,
+    168
+  ],
+  "apps/dashboard/e2e/support/keys-spots.ts": [
+    1,
+    60
+  ],
+  "apps/dashboard/e2e/support/md-r09-fixtures.ts": [
+    1,
+    80
+  ],
+  "apps/dashboard/e2e/support/md-r10-fixtures.ts": [
+    1,
+    36
+  ],
+  "apps/dashboard/e2e/support/md-r11-fixtures.ts": [
+    1,
+    68
+  ],
+  "apps/dashboard/e2e/support/md04-audit-fixtures.ts": [
+    1,
+    133
+  ],
+  "apps/dashboard/e2e/support/md04-fixtures.ts": [
+    1,
+    174
+  ],
+  "apps/dashboard/e2e/support/md05-analytics-fixtures.ts": [
+    1,
+    209
+  ],
+  "apps/dashboard/e2e/support/md05-analytics-visual-contract.ts": [
+    1,
+    92
+  ],
+  "apps/dashboard/e2e/support/md05-analytics-visual-proof.ts": [
+    1,
+    212
+  ],
+  "apps/dashboard/e2e/support/md05-intelligence-fixtures.ts": [
+    1,
+    278
+  ],
+  "apps/dashboard/e2e/support/md05-protected-route-proof.ts": [
+    1,
+    37
+  ],
+  "apps/dashboard/e2e/support/md05-reports-e2e-helpers.ts": [
+    1,
+    229
+  ],
+  "apps/dashboard/e2e/support/md05-reports-fixtures.ts": [
+    1,
+    198
+  ],
+  "apps/dashboard/e2e/support/md05-reports-interaction-proof.ts": [
+    1,
+    125
+  ],
+  "apps/dashboard/e2e/support/md05-reports-visual-contract.ts": [
+    1,
+    115
+  ],
+  "apps/dashboard/e2e/support/md05-reports-visual-proof.ts": [
+    1,
+    209
+  ],
+  "apps/dashboard/e2e/support/md05-visual-contract.ts": [
+    1,
+    129
+  ],
+  "apps/dashboard/e2e/support/md05-visual-proof.ts": [
+    1,
+    287
+  ],
+  "apps/dashboard/e2e/support/operations-fixture-identifiers.ts": [
+    1,
+    11
+  ],
+  "apps/dashboard/e2e/support/operations-fixtures.ts": [
+    1,
+    157
+  ],
+  "apps/dashboard/e2e/support/operations-google-map-mock.ts": [
+    1,
+    176
+  ],
+  "apps/dashboard/e2e/support/overview-fixtures.ts": [
+    1,
+    74
+  ],
+  "apps/dashboard/e2e/support/persistent-storage.ts": [
+    1,
+    60
+  ],
+  "apps/dashboard/e2e/support/png-qr-decode.ts": [
+    1,
+    113
+  ],
+  "apps/dashboard/e2e/support/presence-continuity-fixture.ts": [
+    1,
+    133
+  ],
+  "apps/dashboard/e2e/support/presence-data.ts": [
+    1,
+    97
+  ],
+  "apps/dashboard/e2e/support/presence-fixtures.ts": [
+    1,
+    227
+  ],
+  "apps/dashboard/e2e/support/presence-map-mock.ts": [
+    1,
+    118
+  ],
+  "apps/dashboard/e2e/support/r06-locations.ts": [
+    1,
+    66
+  ],
+  "apps/dashboard/e2e/support/r08-accountability.ts": [
+    1,
+    103
+  ],
+  "apps/dashboard/e2e/support/staff-directory-ui.ts": [
+    1,
+    24
+  ],
+  "apps/dashboard/e2e/task01-custom-mutation-races.spec.ts": [
+    1,
+    263
+  ],
+  "apps/dashboard/e2e/task01-map-async-race.spec.ts": [
+    1,
+    160
+  ],
+  "apps/dashboard/e2e/task01-mfa-session-fencing.spec.ts": [
+    1,
+    120
+  ],
+  "apps/dashboard/e2e/task01-mfa-session-race.spec.ts": [
+    1,
+    73
+  ],
+  "apps/dashboard/e2e/task01-physical-async-races.spec.ts": [
+    1,
+    180
+  ],
+  "apps/dashboard/e2e/task01-scope-epoch-hardening.spec.ts": [
+    1,
+    296
+  ],
+  "apps/dashboard/e2e/task02-location-switch-authority.spec.ts": [
+    1,
+    265
+  ],
+  "apps/dashboard/e2e/task02-location-switch-behavior.spec.ts": [
+    1,
+    230
+  ],
+  "apps/dashboard/e2e/task02-location-switch-races.spec.ts": [
+    1,
+    277
+  ],
+  "apps/dashboard/e2e/task02-location-switch-security.spec.ts": [
+    1,
+    100
+  ],
+  "apps/dashboard/e2e/task02-location-switch-visual.spec.ts": [
+    1,
+    265
+  ],
+  "apps/dashboard/next-env.d.ts": [
+    1,
+    6
+  ],
+  "apps/dashboard/next.config.ts": [
+    1,
+    59
+  ],
+  "apps/dashboard/package.json": [
+    1,
+    34
+  ],
+  "apps/dashboard/playwright.config.ts": [
+    1,
+    21
+  ],
+  "apps/dashboard/playwright.runtime.config.ts": [
+    1,
+    14
+  ],
+  "apps/dashboard/public/fonts/locations": [
+    2,
+    299
+  ],
+  "apps/dashboard/public/vaylet-emblem.png": [
+    1,
+    275
+  ],
+  "apps/dashboard/public/vaylet-text-dark.png": [
+    1,
+    79
+  ],
+  "apps/dashboard/public/vaylet-text-white.png": [
+    1,
+    61
+  ],
+  "apps/dashboard/scripts/issue278-e-f-compare.mjs": [
+    1,
+    130
+  ],
+  "apps/dashboard/scripts/issue278-overlap-geometry.mjs": [
+    1,
+    56
+  ],
+  "apps/dashboard/scripts/issue278-overlap-geometry.test.mjs": [
+    1,
+    79
+  ],
+  "apps/dashboard/src/app/.gitkeep": [
+    1,
+    0
+  ],
+  "apps/dashboard/src/app/analytics": [
+    1,
+    12
+  ],
+  "apps/dashboard/src/app/app-providers.tsx": [
+    1,
+    37
+  ],
+  "apps/dashboard/src/app/audit-log": [
+    1,
+    10
+  ],
+  "apps/dashboard/src/app/billing-subscription": [
+    1,
+    6
+  ],
+  "apps/dashboard/src/app/branding": [
+    1,
+    6
+  ],
+  "apps/dashboard/src/app/customers": [
+    1,
+    10
+  ],
+  "apps/dashboard/src/app/document-bootstrap-script.ts": [
+    1,
+    12
+  ],
+  "apps/dashboard/src/app/employees": [
+    1,
+    6
+  ],
+  "apps/dashboard/src/app/foundation-test-subscription-recovery": [
+    2,
+    34
+  ],
+  "apps/dashboard/src/app/globals.css": [
+    1,
+    67
+  ],
+  "apps/dashboard/src/app/guest-information": [
+    1,
+    10
+  ],
+  "apps/dashboard/src/app/help": [
+    1,
+    10
+  ],
+  "apps/dashboard/src/app/incidents": [
+    1,
+    6
+  ],
+  "apps/dashboard/src/app/integrations": [
+    1,
+    5
+  ],
+  "apps/dashboard/src/app/keys": [
+    1,
+    6
+  ],
+  "apps/dashboard/src/app/layout.tsx": [
+    1,
+    34
+  ],
+  "apps/dashboard/src/app/live-operations": [
+    1,
+    6
+  ],
+  "apps/dashboard/src/app/locations": [
+    1,
+    6
+  ],
+  "apps/dashboard/src/app/maps-zones": [
+    1,
+    6
+  ],
+  "apps/dashboard/src/app/overview": [
+    1,
+    12
+  ],
+  "apps/dashboard/src/app/page.tsx": [
+    1,
+    10
+  ],
+  "apps/dashboard/src/app/payments": [
+    1,
+    12
+  ],
+  "apps/dashboard/src/app/policies": [
+    1,
+    15
+  ],
+  "apps/dashboard/src/app/reports": [
+    1,
+    12
+  ],
+  "apps/dashboard/src/app/roles-permissions": [
+    1,
+    6
+  ],
+  "apps/dashboard/src/app/security": [
+    1,
+    5
+  ],
+  "apps/dashboard/src/app/staff": [
+    1,
+    11
+  ],
+  "apps/dashboard/src/app/tasks": [
+    1,
+    6
+  ],
+  "apps/dashboard/src/app/vehicles": [
+    1,
+    6
+  ],
+  "apps/dashboard/src/components/.gitkeep": [
+    1,
+    0
+  ],
+  "apps/dashboard/src/components/auth": [
+    1,
+    79
+  ],
+  "apps/dashboard/src/components/brand": [
+    1,
+    34
+  ],
+  "apps/dashboard/src/components/foundation": [
+    55,
+    7146
+  ],
+  "apps/dashboard/src/components/presentation": [
+    3,
+    170
+  ],
+  "apps/dashboard/src/components/scope": [
+    21,
+    2593
+  ],
+  "apps/dashboard/src/components/security": [
+    9,
+    1018
+  ],
+  "apps/dashboard/src/components/shell": [
+    7,
+    370
+  ],
+  "apps/dashboard/src/features/.gitkeep": [
+    1,
+    0
+  ],
+  "apps/dashboard/src/features/administration": [
+    184,
+    20556
+  ],
+  "apps/dashboard/src/features/audit": [
+    80,
+    10006
+  ],
+  "apps/dashboard/src/features/guest-information": [
+    20,
+    2310
+  ],
+  "apps/dashboard/src/features/help": [
+    28,
+    2530
+  ],
+  "apps/dashboard/src/features/intelligence": [
+    91,
+    10914
+  ],
+  "apps/dashboard/src/features/operations": [
+    101,
+    11946
+  ],
+  "apps/dashboard/src/features/visit-contacts": [
+    33,
+    3081
+  ],
+  "apps/dashboard/src/lib/.gitkeep": [
+    1,
+    0
+  ],
+  "apps/dashboard/src/lib/api": [
+    10,
+    1263
+  ],
+  "apps/dashboard/src/lib/app-info.test.ts": [
+    1,
+    9
+  ],
+  "apps/dashboard/src/lib/app-info.ts": [
+    1,
+    4
+  ],
+  "apps/dashboard/src/lib/auth": [
+    8,
+    793
+  ],
+  "apps/dashboard/src/lib/i18n": [
+    4,
+    318
+  ],
+  "apps/dashboard/src/lib/maps": [
+    3,
+    398
+  ],
+  "apps/dashboard/src/lib/mfa": [
+    2,
+    166
+  ],
+  "apps/dashboard/src/lib/navigation": [
+    18,
+    1693
+  ],
+  "apps/dashboard/src/lib/presentation": [
+    4,
+    94
+  ],
+  "apps/dashboard/src/lib/scope": [
+    5,
+    547
+  ],
+  "apps/dashboard/src/lib/theme": [
+    2,
+    84
+  ],
+  "apps/dashboard/src/styles/foundation.css": [
+    1,
+    94
+  ],
+  "apps/dashboard/src/styles/shell-controls.css": [
+    1,
+    63
+  ],
+  "apps/dashboard/src/styles/shell.css": [
+    1,
+    266
+  ],
+  "apps/dashboard/tests/issue304-accessibility.spec.ts": [
+    1,
+    76
+  ],
+  "apps/dashboard/tests/issue304-authority.spec.ts": [
+    1,
+    56
+  ],
+  "apps/dashboard/tests/issue304-browser-zoom.spec.ts": [
+    1,
+    89
+  ],
+  "apps/dashboard/tests/issue304-contract.ts": [
+    1,
+    71
+  ],
+  "apps/dashboard/tests/issue304-fixture.ts": [
+    1,
+    181
+  ],
+  "apps/dashboard/tests/issue304-interactions.spec.ts": [
+    1,
+    83
+  ],
+  "apps/dashboard/tests/issue304-key-detail-visual.spec.ts": [
+    1,
+    57
+  ],
+  "apps/dashboard/tests/issue304-kpi.spec.ts": [
+    1,
+    38
+  ],
+  "apps/dashboard/tests/issue304-modal-visual.spec.ts": [
+    1,
+    135
+  ],
+  "apps/dashboard/tests/issue304-paging.spec.ts": [
+    1,
+    90
+  ],
+  "apps/dashboard/tests/issue304-parity.ts": [
+    1,
+    85
+  ],
+  "apps/dashboard/tests/issue304-playwright.config.ts": [
+    1,
+    20
+  ],
+  "apps/dashboard/tests/issue304-qr-actions.spec.ts": [
+    1,
+    45
+  ],
+  "apps/dashboard/tests/issue304-spot-visual.spec.ts": [
+    1,
+    71
+  ],
+  "apps/dashboard/tests/issue304-visual.spec.ts": [
+    1,
+    60
+  ],
+  "apps/dashboard/tsconfig.json": [
+    1,
+    19
+  ],
+  "apps/dashboard/vitest.config.mjs": [
+    1,
+    9
+  ],
+  "packages/ui/README.md": [
+    1,
+    5
+  ],
+  "packages/ui/package.json": [
+    1,
+    24
+  ],
+  "packages/ui/src/index.test.ts": [
+    1,
+    7
+  ],
+  "packages/ui/src/index.tsx": [
+    1,
+    15
+  ],
+  "packages/ui/tsconfig.json": [
+    1,
+    10
+  ]
+}

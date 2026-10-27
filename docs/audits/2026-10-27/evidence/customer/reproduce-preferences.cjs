@@ -1,0 +1,30 @@
+const auditPaths = require('../reproduction-paths.cjs');
+const fs = require('node:fs');
+const path = require('node:path');
+const { createRequire } = require('node:module');
+const req = auditPaths.dependencyRequire;
+const ts = req('typescript');
+for(const ext of ['.ts','.tsx']) require.extensions[ext] = (module, filename) => {
+ const result = ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}});
+ module._compile(result.outputText,filename);
+};
+const source=auditPaths.sourceRoot;
+const {installTestDom}=require(source+'/apps/customer/src/app/guest-refresh-mounted.test-host.ts');
+const {window,document}=installTestDom(); document.getElementById=()=>null; document.querySelector=()=>null;
+window.localStorage={ getItem(){throw new Error('storage blocked')},setItem(){throw new Error('storage blocked')}};
+const locale=require(source+'/apps/customer/src/i18n/locale.ts');
+const theme=require(source+'/apps/customer/src/theme/theme.ts');
+const appReq=createRequire(path.join(auditPaths.dependencyRoot,'apps/customer/package.json')); const React=appReq('react'); const {createRoot}=appReq('react-dom/client');
+const {LocaleProvider,useTranslation}=require(source+'/apps/customer/src/i18n/locale-provider.tsx');
+const {ThemeProvider,useTheme}=require(source+'/apps/customer/src/theme/theme-provider.tsx');
+let state;
+function Probe(){const l=useTranslation();const t=useTheme();state={l,t};return React.createElement('p',null,l.locale+':'+t.theme)}
+(async()=>{const root=createRoot(document.body);await React.act(async()=>{root.render(React.createElement(LocaleProvider,null,React.createElement(ThemeProvider,null,React.createElement(Probe))))});
+ console.log('before',state.l.locale,state.t.theme,document.body.textContent);
+ await React.act(async()=>{state.l.toggleLocale();state.t.toggleTheme()});
+ console.log('after',state.l.locale,state.t.theme,document.body.textContent,'DOM dir',document.documentElement.dir,'DOM theme',document.documentElement.getAttribute('data-theme'));
+ await React.act(async()=>root.unmount());
+})();
+const {Btn}=require(source+'/apps/customer/src/components/primitives/btn.tsx');
+const {renderToStaticMarkup}=appReq('react-dom/server');
+console.log('loading Btn markup:',renderToStaticMarkup(React.createElement(Btn,{loading:true,variant:'secondary'},'Refresh')));

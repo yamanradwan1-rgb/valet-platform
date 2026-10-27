@@ -1,0 +1,9 @@
+
+ RUN  v4.1.10 <AUDIT_WORKTREE>/apps/valet
+
+
+ Test Files  117 passed (117)
+      Tests  655 passed (655)
+   Start at  23:37:34
+   Duration  303.80s (transform 41.93s, setup 0ms, import 431.87s, tests 18.97s, environment 73ms)
+

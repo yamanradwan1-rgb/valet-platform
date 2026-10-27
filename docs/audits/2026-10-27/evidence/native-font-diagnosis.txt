@@ -1,0 +1,1 @@
+Audit conventional configured font paths:0/9 present. Original pre-existing installed configured paths:9/9 present. Two native font-contract assertions fail because external ancestor dependency reuse does not populate app-relative node_modules font paths. No font asset was installed, removed or altered in the original checkout.

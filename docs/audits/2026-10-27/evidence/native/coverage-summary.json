@@ -1,0 +1,25 @@
+{
+  "counts": {
+    "not_reviewed": 1116,
+    "fully_reviewed": 63,
+    "partial": 23,
+    "tool_only": 4
+  },
+  "fullyReviewedLines": 8455,
+  "byPackage": {
+    "apps/valet-native": {
+      "not_reviewed": 566,
+      "fully_reviewed": 38,
+      "partial": 23
+    },
+    "apps/valet": {
+      "not_reviewed": 331,
+      "fully_reviewed": 14
+    },
+    "packages/employee-client": {
+      "fully_reviewed": 11,
+      "not_reviewed": 219,
+      "tool_only": 4
+    }
+  }
+}

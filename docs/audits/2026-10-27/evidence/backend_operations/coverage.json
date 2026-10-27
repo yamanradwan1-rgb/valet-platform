@@ -1,0 +1,3886 @@
+[
+  {
+    "path": "apps/api/src/modules/check-in-api/plate-recognizer-snapshot.provider.ts",
+    "status": "fully_reviewed",
+    "lines": 223,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/check-in.module.ts",
+    "status": "not_reviewed",
+    "lines": 68,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/cancel-check-in.service.ts",
+    "status": "not_reviewed",
+    "lines": 45,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/check-in-controller-support.ts",
+    "status": "fully_reviewed",
+    "lines": 55,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/cancel-check-in.controller.ts",
+    "status": "not_reviewed",
+    "lines": 100,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/check-in-operation-runner.ts",
+    "status": "fully_reviewed",
+    "lines": 27,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/condition-photo-auth.guard.ts",
+    "status": "not_reviewed",
+    "lines": 91,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/plate-ocr.controller.ts",
+    "status": "fully_reviewed",
+    "lines": 151,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/plate-ocr-boundary-diagnostics.ts",
+    "status": "not_reviewed",
+    "lines": 31,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/plate-ocr-cost-guard.ts",
+    "status": "fully_reviewed",
+    "lines": 52,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/check-in-api.service.ts",
+    "status": "fully_reviewed",
+    "lines": 168,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/plate-ocr-config.ts",
+    "status": "fully_reviewed",
+    "lines": 68,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/check-in-api.controller.ts",
+    "status": "fully_reviewed",
+    "lines": 304,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/plate-ocr-provider.ts",
+    "status": "fully_reviewed",
+    "lines": 9,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/check-in-location-authorization.ts",
+    "status": "fully_reviewed",
+    "lines": 67,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/condition-photo-multipart.ts",
+    "status": "not_reviewed",
+    "lines": 151,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/returning-check-in.controller.ts",
+    "status": "fully_reviewed",
+    "lines": 114,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/plate-ocr-auth.guard.ts",
+    "status": "not_reviewed",
+    "lines": 52,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/condition-photo.controller.ts",
+    "status": "not_reviewed",
+    "lines": 141,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/plate-ocr.service.ts",
+    "status": "fully_reviewed",
+    "lines": 98,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/condition-photo-ingress.ts",
+    "status": "not_reviewed",
+    "lines": 20,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/initial-guest-issuance.ts",
+    "status": "not_reviewed",
+    "lines": 162,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/complete-check-in-command.ts",
+    "status": "fully_reviewed",
+    "lines": 337,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/guest-access-command.ts",
+    "status": "not_reviewed",
+    "lines": 433,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/guest-access-session-resolution.ts",
+    "status": "not_reviewed",
+    "lines": 138,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/intake-session-types.ts",
+    "status": "not_reviewed",
+    "lines": 81,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/check-in-condition-authorization.ts",
+    "status": "fully_reviewed",
+    "lines": 102,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/guest-access-token.ts",
+    "status": "not_reviewed",
+    "lines": 52,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/check-in-condition-command.ts",
+    "status": "fully_reviewed",
+    "lines": 717,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/check-in-vehicle-identity-guard.ts",
+    "status": "fully_reviewed",
+    "lines": 31,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/intake-session-persistence.ts",
+    "status": "fully_reviewed",
+    "lines": 160,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/cancel-check-in-status-query.ts",
+    "status": "not_reviewed",
+    "lines": 33,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/cancel-check-in-authorization.ts",
+    "status": "fully_reviewed",
+    "lines": 118,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/README.md",
+    "status": "not_reviewed",
+    "lines": 5,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/intake-session-normalization.ts",
+    "status": "fully_reviewed",
+    "lines": 122,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/guest-access-resolver.ts",
+    "status": "not_reviewed",
+    "lines": 122,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/intake-session-command.ts",
+    "status": "fully_reviewed",
+    "lines": 184,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/intake-customer-resolution.ts",
+    "status": "fully_reviewed",
+    "lines": 131,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/condition-photo-qualified-receipt.ts",
+    "status": "not_reviewed",
+    "lines": 221,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/intake-vehicle-resolution.ts",
+    "status": "fully_reviewed",
+    "lines": 93,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/protected-custody-command.ts",
+    "status": "fully_reviewed",
+    "lines": 279,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/check-in-condition-guard.ts",
+    "status": "fully_reviewed",
+    "lines": 99,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/check-in-photo-preflight.ts",
+    "status": "not_reviewed",
+    "lines": 100,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/cancel-check-in-command.ts",
+    "status": "fully_reviewed",
+    "lines": 99,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/guest-safe-session.ts",
+    "status": "not_reviewed",
+    "lines": 49,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/start-retrieval-command.ts",
+    "status": "fully_reviewed",
+    "lines": 160,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/verify-handoff-command.ts",
+    "status": "fully_reviewed",
+    "lines": 246,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/handoff-guest.controller.ts",
+    "status": "not_reviewed",
+    "lines": 104,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/handoff-secret.ts",
+    "status": "not_reviewed",
+    "lines": 65,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/initiate-handoff-command.ts",
+    "status": "fully_reviewed",
+    "lines": 78,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/retrieval.service.ts",
+    "status": "fully_reviewed",
+    "lines": 169,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/issue-handoff-command.ts",
+    "status": "fully_reviewed",
+    "lines": 118,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/retrieval.module.ts",
+    "status": "not_reviewed",
+    "lines": 60,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/mark-ready-guards.ts",
+    "status": "fully_reviewed",
+    "lines": 40,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/handoff-staff.controller.ts",
+    "status": "not_reviewed",
+    "lines": 176,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/complete-handoff.controller.ts",
+    "status": "not_reviewed",
+    "lines": 76,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/mark-ready-audit.ts",
+    "status": "not_reviewed",
+    "lines": 46,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/mark-ready-guest-push.ts",
+    "status": "not_reviewed",
+    "lines": 14,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/guest-retrieval.controller.ts",
+    "status": "fully_reviewed",
+    "lines": 101,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/handoff-locks.ts",
+    "status": "fully_reviewed",
+    "lines": 180,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/mark-ready.service.ts",
+    "status": "not_reviewed",
+    "lines": 18,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/start-retrieval-locks.ts",
+    "status": "fully_reviewed",
+    "lines": 147,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/mark-ready-errors.ts",
+    "status": "not_reviewed",
+    "lines": 24,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/complete-handoff-command.ts",
+    "status": "fully_reviewed",
+    "lines": 159,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/start-retrieval.service.ts",
+    "status": "not_reviewed",
+    "lines": 18,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/start-retrieval-types.ts",
+    "status": "not_reviewed",
+    "lines": 38,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/complete-handoff-mutations.ts",
+    "status": "fully_reviewed",
+    "lines": 83,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/start-retrieval.controller.ts",
+    "status": "not_reviewed",
+    "lines": 88,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/mark-ready-mutations.ts",
+    "status": "fully_reviewed",
+    "lines": 23,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/README.md",
+    "status": "not_reviewed",
+    "lines": 5,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/mark-ready-locks.ts",
+    "status": "fully_reviewed",
+    "lines": 97,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/guest-retrieval-cancellation-command.ts",
+    "status": "fully_reviewed",
+    "lines": 268,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/guest-retrieval-request-command.ts",
+    "status": "fully_reviewed",
+    "lines": 241,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/handoff-errors.ts",
+    "status": "not_reviewed",
+    "lines": 46,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/handoff-release-guard.ts",
+    "status": "fully_reviewed",
+    "lines": 45,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/start-retrieval-audit.ts",
+    "status": "not_reviewed",
+    "lines": 58,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/override-handoff-command.ts",
+    "status": "fully_reviewed",
+    "lines": 106,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/start-retrieval-errors.ts",
+    "status": "not_reviewed",
+    "lines": 26,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/start-retrieval-mutations.ts",
+    "status": "not_reviewed",
+    "lines": 68,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/handoff-types.ts",
+    "status": "not_reviewed",
+    "lines": 71,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/complete-handoff-types.ts",
+    "status": "not_reviewed",
+    "lines": 43,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/abort-handoff-command.ts",
+    "status": "fully_reviewed",
+    "lines": 88,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/mark-ready.controller.ts",
+    "status": "not_reviewed",
+    "lines": 83,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/handoff.service.ts",
+    "status": "not_reviewed",
+    "lines": 128,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/mark-ready-types.ts",
+    "status": "not_reviewed",
+    "lines": 38,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/complete-handoff.service.ts",
+    "status": "fully_reviewed",
+    "lines": 18,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/handoff-policy.ts",
+    "status": "fully_reviewed",
+    "lines": 42,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/handoff-audit.ts",
+    "status": "not_reviewed",
+    "lines": 29,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/mark-ready-command.ts",
+    "status": "fully_reviewed",
+    "lines": 101,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/complete-handoff-guards.ts",
+    "status": "fully_reviewed",
+    "lines": 45,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/complete-handoff-audit.ts",
+    "status": "not_reviewed",
+    "lines": 70,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/complete-handoff-locks.ts",
+    "status": "fully_reviewed",
+    "lines": 138,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/start-retrieval-guards.ts",
+    "status": "fully_reviewed",
+    "lines": 41,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/complete-handoff-errors.ts",
+    "status": "not_reviewed",
+    "lines": 25,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/employee-task-tracking-projection.ts",
+    "status": "not_reviewed",
+    "lines": 68,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/queue-parking-task-command.ts",
+    "status": "fully_reviewed",
+    "lines": 125,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/dispatch.module.ts",
+    "status": "not_reviewed",
+    "lines": 19,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/dispatch-event-writer.ts",
+    "status": "not_reviewed",
+    "lines": 57,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/record-task-mutation.ts",
+    "status": "fully_reviewed",
+    "lines": 70,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/decline-task-command.ts",
+    "status": "fully_reviewed",
+    "lines": 54,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/dispatch-transaction.ts",
+    "status": "fully_reviewed",
+    "lines": 39,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/task-authorization.ts",
+    "status": "fully_reviewed",
+    "lines": 84,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/accept-task-command.ts",
+    "status": "fully_reviewed",
+    "lines": 52,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/assignment-ranking.ts",
+    "status": "fully_reviewed",
+    "lines": 55,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/dispatch.controller.ts",
+    "status": "fully_reviewed",
+    "lines": 224,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/dispatch.service.ts",
+    "status": "fully_reviewed",
+    "lines": 62,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/dispatch-errors.ts",
+    "status": "not_reviewed",
+    "lines": 26,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/dispatch-types.ts",
+    "status": "not_reviewed",
+    "lines": 136,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/task-mutation.ts",
+    "status": "fully_reviewed",
+    "lines": 52,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/reassign-task-command.ts",
+    "status": "fully_reviewed",
+    "lines": 73,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/task-queue-query.ts",
+    "status": "fully_reviewed",
+    "lines": 131,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/assign-task-command.ts",
+    "status": "fully_reviewed",
+    "lines": 83,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/task-audit-event-writer.ts",
+    "status": "not_reviewed",
+    "lines": 55,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/handoff/README.md",
+    "status": "not_reviewed",
+    "lines": 5,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/cancel-before-parking-authorization.ts",
+    "status": "fully_reviewed",
+    "lines": 92,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/parking/confirm-parked.service.ts",
+    "status": "not_reviewed",
+    "lines": 18,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/start-parking.controller.ts",
+    "status": "not_reviewed",
+    "lines": 84,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/cancel-before-parking-status-query.ts",
+    "status": "not_reviewed",
+    "lines": 36,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/start-parking-errors.ts",
+    "status": "not_reviewed",
+    "lines": 24,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/parking-spot-validation.controller.ts",
+    "status": "not_reviewed",
+    "lines": 66,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/cancel-before-parking.controller.ts",
+    "status": "not_reviewed",
+    "lines": 95,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/parking-spot-availability.ts",
+    "status": "not_reviewed",
+    "lines": 76,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/confirm-parked-types.ts",
+    "status": "not_reviewed",
+    "lines": 58,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/confirm-parked-command.ts",
+    "status": "fully_reviewed",
+    "lines": 241,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/parking/parking-spot-validation.service.ts",
+    "status": "not_reviewed",
+    "lines": 17,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/cancel-before-parking.service.ts",
+    "status": "not_reviewed",
+    "lines": 21,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/start-parking.module.ts",
+    "status": "not_reviewed",
+    "lines": 42,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/start-parking-guards.ts",
+    "status": "fully_reviewed",
+    "lines": 30,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/parking/start-parking-locks.ts",
+    "status": "fully_reviewed",
+    "lines": 102,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/parking/start-parking-mutations.ts",
+    "status": "not_reviewed",
+    "lines": 44,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/confirm-parked-guards.ts",
+    "status": "not_reviewed",
+    "lines": 32,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/parking-spot-validation-query.ts",
+    "status": "not_reviewed",
+    "lines": 90,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/cancel-before-parking-types.ts",
+    "status": "not_reviewed",
+    "lines": 27,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/start-parking-types.ts",
+    "status": "not_reviewed",
+    "lines": 30,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/start-parking.service.ts",
+    "status": "fully_reviewed",
+    "lines": 18,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/parking/README.md",
+    "status": "not_reviewed",
+    "lines": 5,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/confirm-parked-errors.ts",
+    "status": "not_reviewed",
+    "lines": 27,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/start-parking-audit.ts",
+    "status": "not_reviewed",
+    "lines": 51,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/cancel-before-parking-history.ts",
+    "status": "not_reviewed",
+    "lines": 68,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/confirm-parked-locks.ts",
+    "status": "fully_reviewed",
+    "lines": 151,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/parking/start-parking-command.ts",
+    "status": "fully_reviewed",
+    "lines": 149,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/parking/cancel-before-parking-command.ts",
+    "status": "fully_reviewed",
+    "lines": 116,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/parking/confirm-parked-mutations.ts",
+    "status": "not_reviewed",
+    "lines": 59,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/confirm-parked-resources.ts",
+    "status": "fully_reviewed",
+    "lines": 87,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/parking/confirm-parked-audit.ts",
+    "status": "not_reviewed",
+    "lines": 55,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking/confirm-parked.controller.ts",
+    "status": "not_reviewed",
+    "lines": 95,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/parking-zones/parking-zone-selector-query.ts",
+    "status": "not_reviewed",
+    "lines": 104,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/keys/assign-key-slot-command.ts",
+    "status": "not_reviewed",
+    "lines": 164,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/keys/key-errors.ts",
+    "status": "not_reviewed",
+    "lines": 8,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/keys/key-command-guards.ts",
+    "status": "not_reviewed",
+    "lines": 53,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/keys/clear-key-slot-command.ts",
+    "status": "not_reviewed",
+    "lines": 85,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/keys/key-custody-event-writer.ts",
+    "status": "fully_reviewed",
+    "lines": 46,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/keys/key-custody.service.ts",
+    "status": "not_reviewed",
+    "lines": 34,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/keys/parking-key-custody.ts",
+    "status": "fully_reviewed",
+    "lines": 70,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/keys/key-session-authorization.ts",
+    "status": "not_reviewed",
+    "lines": 51,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/keys/key-audit-event-writer.ts",
+    "status": "not_reviewed",
+    "lines": 51,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/keys/key-custody.module.ts",
+    "status": "not_reviewed",
+    "lines": 19,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/keys/README.md",
+    "status": "not_reviewed",
+    "lines": 5,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/keys/key-transaction.ts",
+    "status": "not_reviewed",
+    "lines": 39,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/keys/key-types.ts",
+    "status": "not_reviewed",
+    "lines": 19,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/keys/key-custody.controller.ts",
+    "status": "not_reviewed",
+    "lines": 118,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-operational-eligibility.ts",
+    "status": "fully_reviewed",
+    "lines": 51,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence-anti-abuse.ts",
+    "status": "not_reviewed",
+    "lines": 25,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift.module.ts",
+    "status": "not_reviewed",
+    "lines": 29,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift.service.ts",
+    "status": "not_reviewed",
+    "lines": 50,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift.controller.ts",
+    "status": "not_reviewed",
+    "lines": 182,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-errors.ts",
+    "status": "not_reviewed",
+    "lines": 31,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence.controller.ts",
+    "status": "not_reviewed",
+    "lines": 150,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence-retention.ts",
+    "status": "not_reviewed",
+    "lines": 34,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence-zone.ts",
+    "status": "fully_reviewed",
+    "lines": 35,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence-evaluator.ts",
+    "status": "not_reviewed",
+    "lines": 95,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-transaction.ts",
+    "status": "not_reviewed",
+    "lines": 39,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-audit-event-writer.ts",
+    "status": "not_reviewed",
+    "lines": 51,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence-revoked-start.ts",
+    "status": "not_reviewed",
+    "lines": 84,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence-errors.ts",
+    "status": "not_reviewed",
+    "lines": 20,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence-no-evidence.ts",
+    "status": "fully_reviewed",
+    "lines": 109,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence-fingerprint.ts",
+    "status": "not_reviewed",
+    "lines": 145,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/active-shift-query.ts",
+    "status": "not_reviewed",
+    "lines": 41,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence-operation.ts",
+    "status": "not_reviewed",
+    "lines": 218,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/README.md",
+    "status": "not_reviewed",
+    "lines": 5,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence-result-projection.ts",
+    "status": "not_reviewed",
+    "lines": 113,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence-attempt.ts",
+    "status": "not_reviewed",
+    "lines": 188,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-money.ts",
+    "status": "not_reviewed",
+    "lines": 27,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence-convergence.ts",
+    "status": "not_reviewed",
+    "lines": 87,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence-security.ts",
+    "status": "not_reviewed",
+    "lines": 150,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence-command.ts",
+    "status": "not_reviewed",
+    "lines": 253,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence.service.ts",
+    "status": "not_reviewed",
+    "lines": 263,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence-query-scope.ts",
+    "status": "not_reviewed",
+    "lines": 55,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence-challenge.ts",
+    "status": "not_reviewed",
+    "lines": 43,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-authorization.ts",
+    "status": "fully_reviewed",
+    "lines": 107,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence-policy.ts",
+    "status": "not_reviewed",
+    "lines": 119,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/start-shift-command.ts",
+    "status": "fully_reviewed",
+    "lines": 274,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence-operational-scope.ts",
+    "status": "not_reviewed",
+    "lines": 52,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-types.ts",
+    "status": "not_reviewed",
+    "lines": 53,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/end-shift-command.ts",
+    "status": "fully_reviewed",
+    "lines": 266,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence-decision.ts",
+    "status": "not_reviewed",
+    "lines": 45,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/shifts/shift-presence-exception.ts",
+    "status": "not_reviewed",
+    "lines": 43,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-vehicle-directory.service.ts",
+    "status": "not_reviewed",
+    "lines": 248,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-valet-session-queries.ts",
+    "status": "fully_reviewed",
+    "lines": 283,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-vehicle-directory-descriptor.ts",
+    "status": "not_reviewed",
+    "lines": 82,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-operational-context.controller.ts",
+    "status": "not_reviewed",
+    "lines": 64,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-request-principal.ts",
+    "status": "not_reviewed",
+    "lines": 29,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-check-in-continuations.service.ts",
+    "status": "not_reviewed",
+    "lines": 140,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-check-in-continuations.controller.ts",
+    "status": "not_reviewed",
+    "lines": 86,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/staff/custody-staff-authorizer.ts",
+    "status": "fully_reviewed",
+    "lines": 135,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-operational-context.service.ts",
+    "status": "not_reviewed",
+    "lines": 18,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-check-in-drafts.controller.ts",
+    "status": "not_reviewed",
+    "lines": 86,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-valet-session-authorization.ts",
+    "status": "fully_reviewed",
+    "lines": 267,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/staff/README.md",
+    "status": "not_reviewed",
+    "lines": 5,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-vehicle-directory.queries.ts",
+    "status": "not_reviewed",
+    "lines": 236,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-check-in-drafts.service.ts",
+    "status": "not_reviewed",
+    "lines": 135,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-valet-session.service.ts",
+    "status": "not_reviewed",
+    "lines": 144,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-operational-context-query.ts",
+    "status": "fully_reviewed",
+    "lines": 196,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff.module.ts",
+    "status": "not_reviewed",
+    "lines": 54,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-valet-session.controller.ts",
+    "status": "not_reviewed",
+    "lines": 160,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/vehicles/vehicle-details-normalization.ts",
+    "status": "not_reviewed",
+    "lines": 70,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/vehicles/vehicle-identity-command.ts",
+    "status": "partial",
+    "lines": 502,
+    "evidence": [
+      "Mutation/locking reviewed; initial normalization/types truncated in batch; complete read pending."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/vehicles/README.md",
+    "status": "not_reviewed",
+    "lines": 5,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/vehicles/vehicle-details-command.ts",
+    "status": "fully_reviewed",
+    "lines": 261,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/vehicles/returning-vehicle-recognition.ts",
+    "status": "not_reviewed",
+    "lines": 142,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/customers/README.md",
+    "status": "not_reviewed",
+    "lines": 5,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/incidents/incident-recovery-intent-command.ts",
+    "status": "fully_reviewed",
+    "lines": 120,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/incidents/incident-creation-authorization.ts",
+    "status": "fully_reviewed",
+    "lines": 55,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/incidents/incident-recovery.controller.ts",
+    "status": "not_reviewed",
+    "lines": 167,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/incidents/incident-recovery-authorization.ts",
+    "status": "fully_reviewed",
+    "lines": 31,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/incidents/incident-reporting.controller.ts",
+    "status": "not_reviewed",
+    "lines": 87,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/incidents/README.md",
+    "status": "not_reviewed",
+    "lines": 5,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/incidents/incident-recovery-query.ts",
+    "status": "fully_reviewed",
+    "lines": 73,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/incidents/incident-recovery-records.ts",
+    "status": "not_reviewed",
+    "lines": 68,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/incidents/incident-recovery-retirement-command.ts",
+    "status": "fully_reviewed",
+    "lines": 93,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/incidents/incident-recovery.service.ts",
+    "status": "fully_reviewed",
+    "lines": 47,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/incidents/incident-reporting-command.ts",
+    "status": "fully_reviewed",
+    "lines": 227,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/incidents/incident-database-time.ts",
+    "status": "not_reviewed",
+    "lines": 18,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/incidents/incident-reporting.service.ts",
+    "status": "not_reviewed",
+    "lines": 32,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/incidents/incident-recovery-result.ts",
+    "status": "fully_reviewed",
+    "lines": 79,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ]
+  },
+  {
+    "path": "apps/api/src/modules/incidents/incident-operation-lock.ts",
+    "status": "not_reviewed",
+    "lines": 12,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-mutation-audit.ts",
+    "status": "not_reviewed",
+    "lines": 48,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-command.ts",
+    "status": "not_reviewed",
+    "lines": 297,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/cash-audit.ts",
+    "status": "not_reviewed",
+    "lines": 50,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-projection-authorization.ts",
+    "status": "not_reviewed",
+    "lines": 62,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/refund-types.ts",
+    "status": "not_reviewed",
+    "lines": 27,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-types.ts",
+    "status": "not_reviewed",
+    "lines": 46,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-transitions.ts",
+    "status": "not_reviewed",
+    "lines": 116,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-audit.ts",
+    "status": "not_reviewed",
+    "lines": 41,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/provider-event-repository.ts",
+    "status": "not_reviewed",
+    "lines": 290,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-authorization.ts",
+    "status": "not_reviewed",
+    "lines": 51,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-transaction.ts",
+    "status": "not_reviewed",
+    "lines": 25,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/provider-event-errors.ts",
+    "status": "not_reviewed",
+    "lines": 17,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-payment-provider.ts",
+    "status": "not_reviewed",
+    "lines": 50,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/refund-repository.ts",
+    "status": "not_reviewed",
+    "lines": 123,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-mutation-guards.ts",
+    "status": "not_reviewed",
+    "lines": 19,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/cash-authorization.ts",
+    "status": "fully_reviewed",
+    "lines": 78,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/cash-types.ts",
+    "status": "fully_reviewed",
+    "lines": 45,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-types.ts",
+    "status": "not_reviewed",
+    "lines": 42,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/refund-validation.ts",
+    "status": "not_reviewed",
+    "lines": 73,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-http.ts",
+    "status": "not_reviewed",
+    "lines": 152,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/cash-mutation.service.ts",
+    "status": "not_reviewed",
+    "lines": 36,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-audit.ts",
+    "status": "not_reviewed",
+    "lines": 52,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/provider-event-ingress.ts",
+    "status": "not_reviewed",
+    "lines": 162,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/cash-money.ts",
+    "status": "fully_reviewed",
+    "lines": 24,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/provider-event-collection.ts",
+    "status": "not_reviewed",
+    "lines": 180,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/cash-command.ts",
+    "status": "fully_reviewed",
+    "lines": 270,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/validation-command.ts",
+    "status": "not_reviewed",
+    "lines": 129,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-projection-query.ts",
+    "status": "not_reviewed",
+    "lines": 132,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-repository.ts",
+    "status": "not_reviewed",
+    "lines": 170,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-repository.ts",
+    "status": "not_reviewed",
+    "lines": 218,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-mutation-types.ts",
+    "status": "not_reviewed",
+    "lines": 71,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/cash-repository.ts",
+    "status": "fully_reviewed",
+    "lines": 182,
+    "evidence": [
+      "Full source read; control flow, SQL and caller/guard composition assessed."
+    ],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/financial-policy-resolver.ts",
+    "status": "not_reviewed",
+    "lines": 63,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/cash-errors.ts",
+    "status": "not_reviewed",
+    "lines": 23,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/financial-release-guard.ts",
+    "status": "not_reviewed",
+    "lines": 70,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/provider-event-validation.ts",
+    "status": "not_reviewed",
+    "lines": 113,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/README.md",
+    "status": "not_reviewed",
+    "lines": 5,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/provider-event-refund.ts",
+    "status": "not_reviewed",
+    "lines": 123,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-mutation.service.ts",
+    "status": "not_reviewed",
+    "lines": 206,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-release-satisfaction.ts",
+    "status": "not_reviewed",
+    "lines": 55,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-term-command.ts",
+    "status": "not_reviewed",
+    "lines": 166,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-errors.ts",
+    "status": "not_reviewed",
+    "lines": 21,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection.service.ts",
+    "status": "not_reviewed",
+    "lines": 28,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/provider-event-audit.ts",
+    "status": "not_reviewed",
+    "lines": 51,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/refund-errors.ts",
+    "status": "not_reviewed",
+    "lines": 18,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/initialize-payment-command.ts",
+    "status": "not_reviewed",
+    "lines": 159,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/staff-payment.controller.ts",
+    "status": "not_reviewed",
+    "lines": 222,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/refund-audit.ts",
+    "status": "not_reviewed",
+    "lines": 40,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-recompute.ts",
+    "status": "not_reviewed",
+    "lines": 41,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-projection-types.ts",
+    "status": "not_reviewed",
+    "lines": 45,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/guest-payment.controller.ts",
+    "status": "not_reviewed",
+    "lines": 100,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/provider-event-types.ts",
+    "status": "not_reviewed",
+    "lines": 57,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-mutation-errors.ts",
+    "status": "not_reviewed",
+    "lines": 34,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-initialization.service.ts",
+    "status": "not_reviewed",
+    "lines": 18,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/refund-command.ts",
+    "status": "not_reviewed",
+    "lines": 216,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-validation.ts",
+    "status": "not_reviewed",
+    "lines": 108,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/refund.service.ts",
+    "status": "not_reviewed",
+    "lines": 24,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-projection.service.ts",
+    "status": "not_reviewed",
+    "lines": 86,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-mutation-repository.ts",
+    "status": "not_reviewed",
+    "lines": 237,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payment-money.ts",
+    "status": "not_reviewed",
+    "lines": 37,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/digital-collection-errors.ts",
+    "status": "not_reviewed",
+    "lines": 23,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/payments/payments.module.ts",
+    "status": "not_reviewed",
+    "lines": 58,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/live-map-query.ts",
+    "status": "not_reviewed",
+    "lines": 199,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/gps-ingestion-command.ts",
+    "status": "not_reviewed",
+    "lines": 93,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/live-map-read-authorization.ts",
+    "status": "not_reviewed",
+    "lines": 77,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/live-map-authorization.ts",
+    "status": "not_reviewed",
+    "lines": 49,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/point-in-polygon.ts",
+    "status": "not_reviewed",
+    "lines": 56,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/live-map.service.ts",
+    "status": "not_reviewed",
+    "lines": 34,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/gps-sample-persistence.ts",
+    "status": "not_reviewed",
+    "lines": 186,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/route-history.controller.ts",
+    "status": "not_reviewed",
+    "lines": 54,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/gps-sample-canonicalization.ts",
+    "status": "not_reviewed",
+    "lines": 77,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/gps-ingestion-types.ts",
+    "status": "not_reviewed",
+    "lines": 53,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/live-map.controller.ts",
+    "status": "not_reviewed",
+    "lines": 69,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/gps-ingestion-locks.ts",
+    "status": "not_reviewed",
+    "lines": 119,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/route-history-cursor.ts",
+    "status": "not_reviewed",
+    "lines": 41,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/task-tracking-lifecycle.ts",
+    "status": "not_reviewed",
+    "lines": 106,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/route-history-query.ts",
+    "status": "not_reviewed",
+    "lines": 69,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/geofence-evaluation.ts",
+    "status": "not_reviewed",
+    "lines": 229,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/route-history-cursor.test.ts",
+    "status": "not_reviewed",
+    "lines": 25,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/geofence-types.ts",
+    "status": "not_reviewed",
+    "lines": 20,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/point-in-polygon.test.ts",
+    "status": "not_reviewed",
+    "lines": 31,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/route-history-authorization.ts",
+    "status": "not_reviewed",
+    "lines": 73,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/tracking.module.ts",
+    "status": "not_reviewed",
+    "lines": 33,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/live-map-cursor.test.ts",
+    "status": "not_reviewed",
+    "lines": 20,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/route-history.service.ts",
+    "status": "not_reviewed",
+    "lines": 27,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/gps-ingestion-errors.ts",
+    "status": "not_reviewed",
+    "lines": 23,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/live-map-cursor.ts",
+    "status": "not_reviewed",
+    "lines": 50,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/gps-ingestion.service.ts",
+    "status": "not_reviewed",
+    "lines": 18,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/live-map-area-projection.ts",
+    "status": "not_reviewed",
+    "lines": 70,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/tracking/gps-ingestion.controller.ts",
+    "status": "not_reviewed",
+    "lines": 83,
+    "evidence": [],
+    "parent_owned": true
+  },
+  {
+    "path": "apps/api/src/modules/reporting/README.md",
+    "status": "not_reviewed",
+    "lines": 5,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/src/modules/reporting/report-render-hardening.ts",
+    "status": "not_reviewed",
+    "lines": 53,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/complete-handoff-financial-concurrency.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 173,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/condition-photo-qualified-receipt.test.ts",
+    "status": "tool_only",
+    "lines": 189,
+    "evidence": [
+      "Focused Vitest api-non-postgres run passed; tests not manually line-reviewed."
+    ]
+  },
+  {
+    "path": "apps/api/test/shift-presence-readiness-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 210,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-directory-filters.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 294,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/handoff-command.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 261,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-shift-history-authority.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 228,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/start-parking-test-context.ts",
+    "status": "not_reviewed",
+    "lines": 145,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-exceptions.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 181,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-incident-recovery-authorization.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 156,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/start-retrieval-api.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 154,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-check-in-continuations-discovery.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 292,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/intake-session-command-test-harness.ts",
+    "status": "not_reviewed",
+    "lines": 192,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-anti-abuse.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 261,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-incident-recovery-idempotency.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 263,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/key-correction.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 262,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/confirm-parked-atomicity.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 251,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-authority-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 276,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/incident-recovery-rollout.test.ts",
+    "status": "not_reviewed",
+    "lines": 45,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/dispatch-test-context.ts",
+    "status": "not_reviewed",
+    "lines": 245,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-evaluator.test.ts",
+    "status": "not_reviewed",
+    "lines": 69,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-shift-history-candidates.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 130,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-task-queue-harness.ts",
+    "status": "not_reviewed",
+    "lines": 190,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/cancel-check-in-exact-credential.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 181,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/cancel-check-in-race-barrier.ts",
+    "status": "not_reviewed",
+    "lines": 72,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/tracking-lifecycle-retrieval.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 175,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/condition-photo-maintenance-policy.test.ts",
+    "status": "not_reviewed",
+    "lines": 33,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/retrieval-push-test-context.ts",
+    "status": "not_reviewed",
+    "lines": 195,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/confirm-parked-same-slot-race.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 160,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-enforcement.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 275,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-test-context-names.test.ts",
+    "status": "not_reviewed",
+    "lines": 23,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/check-in-condition-command.integration.test.ts",
+    "status": "partial",
+    "lines": 1201,
+    "evidence": [
+      "Targeted relevant assertions and cases inspected; not full source review; PostgreSQL suite NOT run."
+    ]
+  },
+  {
+    "path": "apps/api/test/check-in-photo-preflight.test.ts",
+    "status": "tool_only",
+    "lines": 143,
+    "evidence": [
+      "Focused Vitest api-non-postgres run passed; tests not manually line-reviewed."
+    ]
+  },
+  {
+    "path": "apps/api/test/confirm-parked-key-return.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 154,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-management-failure.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 120,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/complete-check-in-command.integration.test.ts",
+    "status": "partial",
+    "lines": 1027,
+    "evidence": [
+      "Targeted relevant assertions and cases inspected; not full source review; PostgreSQL suite NOT run."
+    ]
+  },
+  {
+    "path": "apps/api/test/staff-valet-session-retrieval-lifecycle.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 224,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-policy-noop-recovery.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 224,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/confirm-parked-api.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 194,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/intake-session-phone-normalization.test.ts",
+    "status": "not_reviewed",
+    "lines": 39,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/whatsapp-intake-eligibility.test.ts",
+    "status": "not_reviewed",
+    "lines": 191,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/check-in-directory-coverage.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 41,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/cancel-check-in-child-race.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 117,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-vehicle-directory-cap.test.ts",
+    "status": "not_reviewed",
+    "lines": 35,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/handoff-proof-concurrency.integration.test.ts",
+    "status": "fully_reviewed",
+    "lines": 149,
+    "evidence": [
+      "Full source read to assess lock and expiry coverage; PostgreSQL suite NOT run."
+    ]
+  },
+  {
+    "path": "apps/api/test/shift-presence-management.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 240,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/cancel-check-in.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 271,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/issue346-resume-intake.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 255,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-task-queue-authorization.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 123,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/complete-handoff-financial-command-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 286,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-convergence-proof.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 233,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-incident-recovery.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 297,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/dispatch-ranking-shift.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 277,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/complete-handoff-api.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 181,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-mocked-test-helper.ts",
+    "status": "not_reviewed",
+    "lines": 56,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-no-evidence-fences.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 287,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/incident-recovery-result.test.ts",
+    "status": "not_reviewed",
+    "lines": 41,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/handoff-secret.test.ts",
+    "status": "tool_only",
+    "lines": 66,
+    "evidence": [
+      "Focused Vitest api-non-postgres run passed; tests not manually line-reviewed."
+    ]
+  },
+  {
+    "path": "apps/api/test/shift-end.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 227,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-zone-evaluation-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 205,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/cancel-before-parking-consumers.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 204,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/condition-photo-private-storage.test.ts",
+    "status": "not_reviewed",
+    "lines": 103,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/phase4-retrieval-handoff-gate-test-context.ts",
+    "status": "not_reviewed",
+    "lines": 289,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-consumer-integrity.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 154,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-maintenance.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 264,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/vehicle-identity-command.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 1099,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-convergence-test-helper.ts",
+    "status": "not_reviewed",
+    "lines": 50,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/issue347-intake-stopped.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 239,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-shift-force-end-replay-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 78,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/dispatch-api.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 232,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-fingerprint.test.ts",
+    "status": "not_reviewed",
+    "lines": 46,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/phase4-retrieval-cancellation.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 162,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/key-test-context.ts",
+    "status": "not_reviewed",
+    "lines": 173,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/handoff-abuse.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 149,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-task-queue-projection.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 231,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-valet-session-auth-and-states.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 274,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/phase4-handoff-policy-gate.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 161,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/start-parking-null-key-slot.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 225,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-http-test-helper.ts",
+    "status": "not_reviewed",
+    "lines": 123,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/plate-ocr-provider-diagnostics.test.ts",
+    "status": "tool_only",
+    "lines": 247,
+    "evidence": [
+      "Focused Vitest api-non-postgres run passed; tests not manually line-reviewed."
+    ]
+  },
+  {
+    "path": "apps/api/test/condition-photo-db-errors.test.ts",
+    "status": "not_reviewed",
+    "lines": 29,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-configuration-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 212,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/issue342-shift-cash-read.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 221,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/intake-command-database-test-harness.ts",
+    "status": "not_reviewed",
+    "lines": 147,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/intake-session-command-resilience-test-suite.ts",
+    "status": "not_reviewed",
+    "lines": 158,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/returning-check-in-normalization.test.ts",
+    "status": "not_reviewed",
+    "lines": 45,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-retention.test.ts",
+    "status": "tool_only",
+    "lines": 34,
+    "evidence": [
+      "Focused Vitest api-non-postgres run passed; tests not manually line-reviewed."
+    ]
+  },
+  {
+    "path": "apps/api/test/shift-presence-zone-create-recovery.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 196,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-check-in-continuations-test-module.ts",
+    "status": "not_reviewed",
+    "lines": 47,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/cancel-before-parking-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 218,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-mocked-evaluator.test.ts",
+    "status": "tool_only",
+    "lines": 70,
+    "evidence": [
+      "Focused Vitest api-non-postgres run passed; tests not manually line-reviewed."
+    ]
+  },
+  {
+    "path": "apps/api/test/shift-presence-management-http-recovery.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 96,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/cancel-before-parking-guards.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 97,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-zone-test-helper.ts",
+    "status": "not_reviewed",
+    "lines": 13,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/confirm-parked-test-context.ts",
+    "status": "not_reviewed",
+    "lines": 215,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-vehicle-directory.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 274,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-shift-force-end-controller.test.ts",
+    "status": "not_reviewed",
+    "lines": 136,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/dispatch-assignment.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 224,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/phase4-retrieval-handoff-gate.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 279,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-session-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 82,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/parking-spot-validation-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 149,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-check-in-continuations-harness.ts",
+    "status": "not_reviewed",
+    "lines": 267,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/phase4-retrieval-security-gate.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 198,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/condition-photo-ingress.test.ts",
+    "status": "not_reviewed",
+    "lines": 20,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/key-eligibility-concurrency.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 188,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-vehicle-directory-employee-visibility.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 262,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-mocked-http.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 191,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-shift-history-cursor.test.ts",
+    "status": "not_reviewed",
+    "lines": 72,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/issue347-intake-state-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 109,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/phase5-retrieval-tracking-gate.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 266,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-forward-migration.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 174,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-valet-session-fixture-helpers.ts",
+    "status": "not_reviewed",
+    "lines": 218,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-shift-force-end-race-fixture.ts",
+    "status": "not_reviewed",
+    "lines": 66,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/dashboard-incident-resolution-integrity.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 222,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/complete-handoff-atomicity.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 58,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/plate-ocr-provider.test.ts",
+    "status": "tool_only",
+    "lines": 203,
+    "evidence": [
+      "Focused Vitest api-non-postgres run passed; tests not manually line-reviewed."
+    ]
+  },
+  {
+    "path": "apps/api/test/check-in-photo-command-credential.test.ts",
+    "status": "not_reviewed",
+    "lines": 90,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/guest-retrieval-effects.ts",
+    "status": "not_reviewed",
+    "lines": 54,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-shift-force-end-scope.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 104,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/complete-handoff-test-context.ts",
+    "status": "not_reviewed",
+    "lines": 151,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-task-queue-ordering-and-lifecycle.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 185,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/retrieval-dispatch.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 295,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/key-custody-api.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 178,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-valet-session-handoff-recovery.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 273,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/handoff-atomicity.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 98,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-maintenance-expiry.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 115,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/returning-check-in-mutations.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 273,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/incident-resolution-test-fixture.ts",
+    "status": "not_reviewed",
+    "lines": 63,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-incident-reporting.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 289,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/condition-photo-qualification-gate.test.ts",
+    "status": "not_reviewed",
+    "lines": 79,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/guest-retrieval-request.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 275,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/confirm-parked-guards.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 206,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-consumer-policy-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 150,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-no-evidence-retention.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 121,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-start.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 228,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/confirm-parked-post-binding-rejections.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 153,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/parking-spot-validation-test-support.ts",
+    "status": "not_reviewed",
+    "lines": 50,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/complete-handoff-command.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 126,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/dashboard-incident-reporter.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 141,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/condition-photo-status-query.test.ts",
+    "status": "not_reviewed",
+    "lines": 121,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-server-test-context.ts",
+    "status": "not_reviewed",
+    "lines": 219,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/management-parking-spot-policy.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 195,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/start-retrieval-test-context.ts",
+    "status": "not_reviewed",
+    "lines": 150,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-commit-test-helper.ts",
+    "status": "not_reviewed",
+    "lines": 101,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/start-retrieval-atomicity.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 167,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/cancel-check-in-concurrency.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 200,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/condition-photo-multipart.test.ts",
+    "status": "not_reviewed",
+    "lines": 71,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-failure.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 298,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-check-in-drafts-harness.ts",
+    "status": "not_reviewed",
+    "lines": 235,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-no-evidence-test-helper.ts",
+    "status": "not_reviewed",
+    "lines": 48,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-management-result-database.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 162,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-management-authority.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 102,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-valet-session-requested-retrieval-authorization.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 133,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/start-retrieval-command.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 251,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-cash-reconciliation.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 141,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-consumer-continuation.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 268,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/dispatch-lifecycle.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 202,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-check-in-drafts-auth.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 219,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-anti-abuse-privacy.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 137,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-directory-filter-fixture.ts",
+    "status": "not_reviewed",
+    "lines": 67,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/condition-photo-http.test.ts",
+    "status": "not_reviewed",
+    "lines": 195,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-shift-force-end-authority.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 199,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/condition-photo-s3-wire.test.ts",
+    "status": "not_reviewed",
+    "lines": 110,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-convergence-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 132,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/key-assignment.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 155,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/start-parking-api.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 229,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/phase4-retrieval-cancellation-safety.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 210,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/confirm-parked-post-binding-downstream.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 222,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/feature-check-in-ownership.test.ts",
+    "status": "not_reviewed",
+    "lines": 54,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-shift-history-plan.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 108,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-selector-compatibility.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 62,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-test-helpers.ts",
+    "status": "not_reviewed",
+    "lines": 32,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/intake-session-command.integration.test.ts",
+    "status": "partial",
+    "lines": 235,
+    "evidence": [
+      "Targeted relevant assertions and cases inspected; not full source review; PostgreSQL suite NOT run."
+    ]
+  },
+  {
+    "path": "apps/api/test/shift-presence-current-authority-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 194,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-shift-history.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 207,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-valet-session-guest-access.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 153,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/cancel-before-parking-http.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 188,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/parking-spot-validation-api.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 206,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/handoff-test-context.ts",
+    "status": "not_reviewed",
+    "lines": 238,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/condition-photo-jpeg-decoder.test.ts",
+    "status": "not_reviewed",
+    "lines": 42,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/complete-handoff-authorization.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 106,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-mocked-fingerprint.test.ts",
+    "status": "tool_only",
+    "lines": 75,
+    "evidence": [
+      "Focused Vitest api-non-postgres run passed; tests not manually line-reviewed."
+    ]
+  },
+  {
+    "path": "apps/api/test/staff-shift-force-end.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 202,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/cancel-before-parking-financial.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 75,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/whatsapp-intake-issuance.test.ts",
+    "status": "not_reviewed",
+    "lines": 168,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/dispatch-queue.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 162,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-shift-force-end-audit.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 100,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-consumer-recovery.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 230,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/cancelled-guest-compatibility.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 170,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/cancelled-guest-resolution.test.ts",
+    "status": "tool_only",
+    "lines": 24,
+    "evidence": [
+      "Focused Vitest api-non-postgres run passed; tests not manually line-reviewed."
+    ]
+  },
+  {
+    "path": "apps/api/test/staff-management-incident-recovery-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 253,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/cancel-before-parking.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 147,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-shift-force-end-proof-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 132,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/condition-photo-maintenance-integrity.test.ts",
+    "status": "not_reviewed",
+    "lines": 109,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-http.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 269,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/plate-ocr-cost-guard.test.ts",
+    "status": "tool_only",
+    "lines": 90,
+    "evidence": [
+      "Focused Vitest api-non-postgres run passed; tests not manually line-reviewed."
+    ]
+  },
+  {
+    "path": "apps/api/test/staff-directory-plan.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 84,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-eligibility.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 217,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/start-parking-atomicity.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 216,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/confirm-parked-post-binding.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 202,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-test-context.ts",
+    "status": "not_reviewed",
+    "lines": 249,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/management-sla-retrieval-concurrency.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 156,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/condition-photo-maintenance-restore.test.ts",
+    "status": "not_reviewed",
+    "lines": 49,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-task-tracking-projection.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 196,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-policy-function.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 247,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-check-in-continuations-auth.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 219,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/confirm-parked-command.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 191,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/cancel-check-in-credential-fixture.ts",
+    "status": "not_reviewed",
+    "lines": 46,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-disconnect-test-helper.ts",
+    "status": "not_reviewed",
+    "lines": 49,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-check-in-drafts-discovery.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 117,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-mocked-denial.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 116,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/retrieval-push-intent.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 300,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-negative.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 268,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/returning-check-in-test-context.ts",
+    "status": "not_reviewed",
+    "lines": 223,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-no-evidence-recovery.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 292,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-valet-session-retrieval-recovery.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 223,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-mocked-recovery.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 138,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-expiry-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 149,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/retrieval-push-atomicity.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 129,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/handoff-authorization.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 79,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-valet-session-harness.ts",
+    "status": "not_reviewed",
+    "lines": 290,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-consumer-policy.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 159,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/complete-handoff-guards.integration.test.ts",
+    "status": "partial",
+    "lines": 130,
+    "evidence": [
+      "Targeted relevant assertions and cases inspected; not full source review; PostgreSQL suite NOT run."
+    ]
+  },
+  {
+    "path": "apps/api/test/shift-presence-module-ownership.test.ts",
+    "status": "not_reviewed",
+    "lines": 33,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-foundation.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 202,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/returning-check-in.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 267,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-approver.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 164,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/physical-resource-key-label-idempotency.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 71,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/complete-handoff-financial-release.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 244,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-shift-force-end-test-fixture.ts",
+    "status": "not_reviewed",
+    "lines": 147,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/cancel-before-parking-test-context.ts",
+    "status": "not_reviewed",
+    "lines": 71,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-incident-recovery-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 249,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-convergence-fences.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 196,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/condition-photo-maintenance-sweep.test.ts",
+    "status": "not_reviewed",
+    "lines": 148,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/condition-photo-maintenance-s3.test.ts",
+    "status": "not_reviewed",
+    "lines": 60,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-strict-rollout.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 271,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-valet-session-projection-and-invariants.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 270,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-management-shift-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 173,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/incident-recovery-controller.test.ts",
+    "status": "not_reviewed",
+    "lines": 62,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-recovery.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 108,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/cancel-check-in-authority-race.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 126,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-audit-projection.test.ts",
+    "status": "not_reviewed",
+    "lines": 49,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/parking-spot-validation-authority.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 180,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/parking-spot-validation.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 137,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-shift-force-end-work-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 183,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/condition-photo-admission.test.ts",
+    "status": "not_reviewed",
+    "lines": 93,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/physical-resource-key-label-idempotency.test.ts",
+    "status": "not_reviewed",
+    "lines": 52,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/whatsapp-intake-postgres-guards.test.ts",
+    "status": "not_reviewed",
+    "lines": 232,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/start-parking-command.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 283,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/phase4-retrieval-cancellation-test-context.ts",
+    "status": "not_reviewed",
+    "lines": 104,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/dashboard-incident-resolution.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 192,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/retrieval-push-eligibility.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 193,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/complete-handoff-concurrency.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 72,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/cancel-before-parking-authority-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 101,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/staff-directory-cursor.test.ts",
+    "status": "tool_only",
+    "lines": 105,
+    "evidence": [
+      "Focused Vitest api-non-postgres run passed; tests not manually line-reviewed."
+    ]
+  },
+  {
+    "path": "apps/api/test/whatsapp-intake-postgres-lifecycle.test.ts",
+    "status": "not_reviewed",
+    "lines": 131,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/intake-session-command-vehicle-test-suite.ts",
+    "status": "not_reviewed",
+    "lines": 103,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-presence-no-evidence-races.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 240,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/shift-api.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 217,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/check-in-api.integration.test.ts",
+    "status": "partial",
+    "lines": 1572,
+    "evidence": [
+      "Targeted relevant assertions and cases inspected; not full source review; PostgreSQL suite NOT run."
+    ]
+  },
+  {
+    "path": "apps/api/test/shift-presence-exception-test-helper.ts",
+    "status": "not_reviewed",
+    "lines": 62,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/handoff-api.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 163,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/cancel-check-in-http.integration.test.ts",
+    "status": "not_reviewed",
+    "lines": 108,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/issue300-pg/issue300-operational-retrieval-handoff.mjs",
+    "status": "not_reviewed",
+    "lines": 206,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/issue300-pg/issue300-operational-dispatch-writer.mjs",
+    "status": "not_reviewed",
+    "lines": 130,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/issue300-pg/issue300-operational-incident-writer.mjs",
+    "status": "not_reviewed",
+    "lines": 132,
+    "evidence": []
+  },
+  {
+    "path": "apps/api/test/issue300-pg/issue300-operational-checkin-key-writer.mjs",
+    "status": "not_reviewed",
+    "lines": 298,
+    "evidence": []
+  }
+]

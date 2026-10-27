@@ -1,0 +1,33 @@
+
+ RUN  v4.1.10 <AUDIT_WORKTREE>/packages/contracts
+
+ ❯ src/management-audit.test.ts (6 tests | 1 failed) 216ms
+     × publishes the exact bounded current event catalog 49ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/management-audit.test.ts > management audit contracts > publishes the exact bounded current event catalog
+AssertionError: expected [ 'VALET_SESSION_CREATED', …(102) ] to have a length of 102 but got 103
+
+- Expected
++ Received
+
+- 102
++ 103
+
+ ❯ src/management-audit.test.ts:16:44
+     14| describe("management audit contracts", () => {
+     15|   it("publishes the exact bounded current event catalog", () => {
+     16|     expect(managementAuditKnownEventTypes).toHaveLength(102);
+       |                                            ^
+     17|     expect(new Set(managementAuditKnownEventTypes)).toHaveLength(102);
+     18|     expect(managementAuditKnownEventTypes).toContain("INCIDENT_RESOLVE…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 70 passed (71)
+      Tests  1 failed | 506 passed (507)
+   Start at  23:37:34
+   Duration  93.19s (transform 9.31s, setup 0ms, import 71.97s, tests 9.03s, environment 80ms)
+

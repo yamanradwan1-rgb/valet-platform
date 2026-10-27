@@ -1,0 +1,17 @@
+{
+  "oldScope": {
+    "membershipId": "m-a",
+    "locationId": "loc-a",
+    "shiftId": "shift-a"
+  },
+  "newScope": {
+    "membershipId": "m-b",
+    "locationId": "loc-b",
+    "shiftId": "shift-b"
+  },
+  "sameIdentity": true,
+  "workspaceRetainedByReference": true,
+  "retainedScreen": "retrieval",
+  "retainedSession": "session-a",
+  "conclusion": "Changing active operational scope is not expressible at workspace fence; real EmployeeApp feeds only this identity input."
+}

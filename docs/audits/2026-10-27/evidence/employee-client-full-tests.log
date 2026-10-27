@@ -1,0 +1,9 @@
+
+ RUN  v4.1.10 <AUDIT_WORKTREE>/packages/employee-client
+
+
+ Test Files  103 passed (103)
+      Tests  897 passed (897)
+   Start at  23:37:34
+   Duration  181.86s (transform 24.46s, setup 0ms, import 209.60s, tests 13.90s, environment 172ms)
+

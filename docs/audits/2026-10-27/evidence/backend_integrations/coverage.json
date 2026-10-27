@@ -1,0 +1,3267 @@
+[
+  {
+    "path": "apps/api/src/common/database/postgres-transaction-outcome.ts",
+    "status": "fully_reviewed",
+    "evidence": "Supporting dependency full source read for contract/disproof or worker transaction behavior."
+  },
+  {
+    "path": "apps/api/src/common/database/postgres-transaction.ts",
+    "status": "fully_reviewed",
+    "evidence": "Supporting dependency full source read for contract/disproof or worker transaction behavior."
+  },
+  {
+    "path": "apps/api/src/common/database/runtime-database-deadline.ts",
+    "status": "fully_reviewed",
+    "evidence": "Supporting dependency full source read for contract/disproof or worker transaction behavior."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/analytics-financial-query.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/analytics-incidents-query.ts",
+    "status": "partial",
+    "evidence": "Source appeared in truncated multi-file read; no complete line review claim."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/analytics-kpi-key-exceptions-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/analytics-kpi-query.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/analytics-kpi-sla-query.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/analytics-kpi-snapshot-transaction.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/analytics-kpi-workforce-query.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/analytics-operations-query.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/analytics-period.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/analytics-queue-query.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/analytics.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/branding-command.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/branding.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-configuration-command.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-configuration-errors.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-configuration-projection.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-configuration.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-feature-authority.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-feature-authority.service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-location-authorization.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-location-scope-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-overview-error.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-presence.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-read-authorization.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-scope-discovery-cursor.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-scope-discovery.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-scope-discovery.service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard.module.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/incident-resolution-command.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/incidents-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/incidents.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/live-history-read-authorization.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/live-session-overview-cursor.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/live-sessions-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/live-sessions.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/operational-assignee-projection.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/operational-history-atomic-evidence.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/operational-history-audit-discovery.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/operational-history-evidence-classifier.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/operational-history-identity-projection.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/operational-history-projection.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/overview-cursor.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/overview-financial-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/overview-query-input.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/overview-retrieval-tasks-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/overview-sessions-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/overview-shifts-keys-incidents-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/overview.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/parking-zone-command.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-authorization.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-command.ts",
+    "status": "partial",
+    "evidence": "Source appeared in truncated multi-file read; no complete line review claim."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-cursor.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-custody-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-errors.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-overview-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-overview-transaction.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-policy.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-read.service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-write.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-write.service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/rating-analytics-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/rating-analytics.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/report-audit-writer.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/report-csv-renderer.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/report-daily-activity-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/report-export-service.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/report-pdf-renderer.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/report-period.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/report-read-service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/report.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/session-overview-cursor.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/session-photo-admission.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/session-photo-authorization.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/session-photo-controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/session-photo-delivery-fence.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/session-photo-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/session-photo-service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/session-resource-projection.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/subscription-read.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/subscription.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/task-cancellation-projection.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-access.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-access.module.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-access.service.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-browser-context-transport.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-browser-context.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-browser-context.service.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-browser-limiter.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-browser-request-validation.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-browser-session.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-browser-session.service.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-browser-transport.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-credential-authorizer.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-credential.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-information.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-information.service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-rating-command.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-rating.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-rating.service.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-request-admission.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-access/guest-request-policy.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push-registration/guest-push-public-config.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push-registration/guest-push-registration-types.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push-registration/guest-push-registration.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push-registration/guest-push-registration.module.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push-registration/guest-push-registration.service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-claim-repository.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-delivery-types.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-delivery-worker.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-eligibility-repository.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-finalization-repository.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-idle-delay.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-lifetime.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-maintenance-repository.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-maintenance.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-observability.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-operational-policy.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-provider.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-retry.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-push-worker-database.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-web-push-adapter.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/guest-push/guest-web-push-config.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/locations/README.md",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-cursor.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-u05-build-digest.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-u05-gate.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-u05-indirect-guard.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-u05-ledger-runtime.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-u05-policy.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-u05-proof-attestation.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/audit-investigation-u05-proof-files.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/search/audit-investigation-search.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/search/audit-investigation-search.service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/search/search-integrity.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/search/search-page-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/search/search-selector-authorization.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/search/search-selector-cursor.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/search/search-selector-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/search/search-witness-sql.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/security/audit-investigation-authorization.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/security/audit-investigation-source-boundary.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline-indirect-audit.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline-read-service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline-safe-projection.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline-session-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline-source-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/company-admin-rr-snapshot.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/company-analytics-bounds.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/company-analytics-coverage-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/company-analytics-financial-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/company-analytics-incidents-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/company-analytics-kpi-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/company-analytics-operations-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/company-analytics-source.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/company-report-csv-renderer.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/company-report-daily-activity-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/company-report-export-service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/company-report-pdf-renderer.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/company-report-read-service.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/company-report-render-rows.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/company-report.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/guest-information-authorization.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/guest-information-company.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/guest-information-contact-repository.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/guest-information-location.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/guest-information-overview.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/guest-information-privacy-repository.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/guest-information-public-projection.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/guest-information-staff.service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-audit-authorization.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-audit-cursor.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-audit-detail-projection.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-audit-event-catalog.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-audit-presence-projection.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-audit-projection.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-audit-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-audit-shift-projection.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-audit.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-audit.service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-authorization.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-branding-mutation-repository.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-branding-projection.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-branding.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-branding.service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-capabilities.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-commercial-access-policy.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-commercial-read.service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-commercial.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-company-analytics.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-company-analytics.service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-context.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-context.service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-cursor.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-integrations-status.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-integrations.service.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-location-authorization.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-location-errors.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-location-policy.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-location-presence.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-location-projection.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-location-repository.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-location.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-location.service.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-pagination-snapshot.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-rating-analytics.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-rating-analytics.service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-settings-errors.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-settings-mutation-repository.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-settings-projection.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-settings.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-settings.service.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-visit-contact-authorization.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-visit-contact-correction.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-visit-contact-cursor.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-visit-contact-history-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-visit-contact-policy.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-visit-contact-search-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-visit-contact.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management-visit-contact.service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/management.module.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/presence-location-controller-base.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/presence-location-exception-controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/presence-location-policy-controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/presence-location-zone-controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/presence-management-audit.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/presence-management-authority.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/presence-management-errors.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/presence-management-exception.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/presence-management-http.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/presence-management-mutation.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/presence-management-policy-command.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/presence-management-projection.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/presence-management-result.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/presence-management-zone-command.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/presence-management.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/presence-management.service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/rating-analytics-http.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/rating-analytics-projection-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-directory-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-directory.service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-invitation-credential.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-location-access-cursor.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-location-access.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-location-access.service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-management-audit.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-management-authorization.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-management-cursor.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-management-errors.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-management-http.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-management-mutation-repository.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-management-mutation.service.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-management-projection.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-management.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-onboarding-account-lock.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-onboarding-errors.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-onboarding-policy.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-onboarding-repository.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-onboarding.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-onboarding.service.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-pending-invitation-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-shift-cash-read.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-shift-employee-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-shift-force-end-errors.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-shift-force-end-policy.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-shift-force-end-repository.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-shift-force-end.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-shift-force-end.service.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-shift-history-cursor.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-shift-history-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-shift-history.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/management/staff-shift-history.service.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/map-setup/map-area-command.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/map-setup/map-point-command.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/map-setup/map-setup-authorization.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/map-setup/map-setup-errors.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/map-setup/map-setup-projections.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/map-setup/map-setup.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/map-setup/map-setup.module.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/map-setup/map-setup.service.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/README.md",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/config/meta-cloud-policy.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/contracts/outbound-envelope.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/contracts/outbound-events.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/contracts/outbound-intent.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/contracts/outbound-lease.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/contracts/outbound-policy.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/contracts/outbound-provider.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/issuance/initial-guest-crypto.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/issuance/initial-guest-eligibility.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/issuance/initial-guest-outbox.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/issuance/initial-guest-runtime.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/notifications.module.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/providers/meta-cloud-http.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/providers/meta-cloud-provider.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/providers/meta-cloud-result.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/webhooks/meta-webhook-database.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/webhooks/meta-webhook-delivery.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/webhooks/meta-webhook-events.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/webhooks/meta-webhook-signature.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/webhooks/meta-webhook.controller.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/whatsapp-settings-controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/whatsapp-settings-service.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/whatsapp-settings-validation.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/whatsapp-template-authority.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/worker/outbound-delivery-worker.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/worker/outbound-postgres-permit.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/worker/outbound-postgres-repository.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/worker/outbound-postgres-types.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/worker/outbound-sender-preflight.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/worker/outbound-transport-payload.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/worker/outbound-transport-source.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/worker/outbound-worker-composition.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/worker/outbound-worker-envelope-opener.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/worker/outbound-worker-loop.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/worker/outbound-worker-principal.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/notifications/worker/outbound-worker-recipient-digest.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/organizations/README.md",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/reporting/report-render-hardening.ts",
+    "status": "fully_reviewed",
+    "evidence": "Supporting dependency full source read for contract/disproof or worker transaction behavior."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/fcm-http-v1-adapter.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/fcm-http-v1-config.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/fcm-result-mapper.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/retrieval-push-attention-writer.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-claim-repository.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-delivery-types.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-delivery-worker.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-eligibility-repository.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-finalization-repository.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-lifetime.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-maintenance-repository.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-maintenance.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-observability.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-operational-policy.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-payload.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-provider.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-registration-errors.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-registration-repository.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-registration-token.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-registration-types.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-registration.controller.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-registration.service.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-registration.transport.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-retry.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push.module.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/README.md",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-admission.module.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-admission.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-authorization.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-backend.service.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-db-errors.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-discovery-query.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-jpeg-decoder.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-jpeg-worker.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-maintenance-integrity-journal.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-maintenance-integrity.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-maintenance-journal.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-maintenance-policy.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-maintenance-restore.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-maintenance-s3.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-maintenance-sweep.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-maintenance-types.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-reconcile-executor.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-status-query.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-storage-config.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-transactions.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-upload-executor.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/private-photo-store.ts",
+    "status": "not_reviewed",
+    "evidence": "Discovered in assigned subsystem inventory; no line-level review claimed."
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/s3-private-photo-store.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete source text read in worker; traced function-level behavior and immediate call/DB/provider boundary. Runtime integration not implied."
+  },
+  {
+    "path": "apps/api/test/condition-photo-admission.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/condition-photo-db-errors.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/condition-photo-http.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/condition-photo-ingress.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/condition-photo-jpeg-decoder.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/condition-photo-maintenance-integrity.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/condition-photo-maintenance-policy.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/condition-photo-maintenance-restore.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/condition-photo-maintenance-s3.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/condition-photo-maintenance-sweep.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/condition-photo-multipart.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/condition-photo-private-storage.test.ts",
+    "status": "tool_only",
+    "evidence": "Focused vitest run: 9 files / 67 tests passed collectively; test body not fully reviewed unless separately indicated. See focused-tests.log."
+  },
+  {
+    "path": "apps/api/test/condition-photo-qualification-gate.test.ts",
+    "status": "tool_only",
+    "evidence": "Focused vitest run: 9 files / 67 tests passed collectively; test body not fully reviewed unless separately indicated. See focused-tests.log."
+  },
+  {
+    "path": "apps/api/test/condition-photo-qualified-receipt.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/condition-photo-s3-wire.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/condition-photo-status-query.test.ts",
+    "status": "tool_only",
+    "evidence": "Focused vitest run: 9 files / 67 tests passed collectively; test body not fully reviewed unless separately indicated. See focused-tests.log."
+  },
+  {
+    "path": "apps/api/test/dashboard-analytics-api.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-analytics-financial-cohorts.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-analytics-financial.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-analytics-kpis.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-analytics-seed.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-analytics.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-api-test-context.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-branding-commercial.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-configuration-api.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-configuration-mutation.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-configuration-resolution.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-feature-authority.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-g8-audit-color.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-g8-authz.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-g8-matrix.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-g8.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-incident-reporter.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-incident-resolution-integrity.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-incident-resolution.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue315-concurrency.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue315-extended.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue315-kpi-ca-retry.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue315-kpi-pg.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue315-kpi-regression.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-adjacent-candidates.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-adjacent-eligibility.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-adjacent-remediation-races.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-ca-mfa-rr-candidate.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-ca-mfa-rr-regression.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-ca-rr-company-analytics-gate.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-ca-rr-company-export-finalizer.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-ca-rr-company-report-gate.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-ca-rr-kpi-gate.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-ca-rr-performance.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-extension-http.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-extension-locks.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-final-mfa-lab.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-final-reader-export.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-final-retry-cleanup.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-http.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-lab.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-lifecycle.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-performance.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-physical-lease.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-physical-matrix.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-issue319-remediation-races.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-location-authorization.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-overview-api.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-overview-authz.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-overview-domains.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-overview-financial.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-overview-test-context.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-parking-zone-authority.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-parking-zone-create.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-physical-resources-authority.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-physical-resources.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-read-revocation-fence.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-report-commercial.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-reports-api.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-reports-fix.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-reports.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-resource-occupancy-authority.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-resource-occupancy.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-scope-discovery.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-session-photo-errors.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-session-photo-fixture.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-session-photo.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-task-assignee-history.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-task-cancellation.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-task-native-cancellation.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/dashboard-test-context.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-access-command.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-browser-session-context-switch-races.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-browser-session-context-switch-recovery.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-browser-session-context-switch-test-helpers.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-browser-session-context-switch.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-browser-session-enrollment-anti-abuse.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-browser-session-http.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-browser-session-lifecycle.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-browser-session-peer-app.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-browser-session-races.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-browser-session-test-context.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-browser-session-test-module.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-browser-transport.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-push-delivery-worker.test.ts",
+    "status": "tool_only",
+    "evidence": "Focused vitest run: 9 files / 67 tests passed collectively; test body not fully reviewed unless separately indicated. See focused-tests.log."
+  },
+  {
+    "path": "apps/api/test/guest-push-eligibility.test.ts",
+    "status": "tool_only",
+    "evidence": "Focused vitest run: 9 files / 67 tests passed collectively; test body not fully reviewed unless separately indicated. See focused-tests.log."
+  },
+  {
+    "path": "apps/api/test/guest-push-idle-delay.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-push-maintenance-contract.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-push-registration-contract.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-push-registration-controller.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-push-worker-principal.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-rating-boundary.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-rating-command.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-rating-concurrency.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-rating-idempotency.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-rating-module-ownership.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-rating-race-test-helpers.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-rating-service.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/guest-rating-test-context.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/issue309-photo-admission-boundaries.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/issue309-photo-browser-support.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/issue309-photo-browser.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/issue309-photo-cross-commit-http.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/issue309-photo-cross-commit-pg17-fixture.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/issue309-photo-cross-commit-pg17.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/issue309-photo-db-blocker-proof.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/issue309-photo-grant-race.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/issue309-photo-http-fixture.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/issue309-photo-viewer.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/issue309-session-photo-authorization.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/issue309-session-photo-controller-commit.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/issue309-session-photo-controller-socket.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/issue309-session-photo-dev-gate.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-audit-authorization.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-audit-cursor-filters.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-audit-http-admin-authorization.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-audit-http-location-roles.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-audit-http-scope-side-effects.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-audit-human-identity.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-audit-human-identity.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-audit-pagination.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-audit-privacy.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-audit-projection.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-audit-projection.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-audit-supervisor-visibility.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-audit-test-fixture.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-branding-commercial.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-branding.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-commercial-field-boundary.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-commercial-http.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-commercial-location-export-finalization.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-commercial-policy.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-company-analytics-authorization.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-company-analytics-boundaries.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-company-analytics-financial.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-company-analytics-snapshot-concurrency.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-company-analytics-test-seed.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-company-analytics-weighting.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-company-report-commercial.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-company-report-export-http.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-company-report-finalization.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-company-report-snapshot-concurrency.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-company-reports.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-control-plane-activity.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-control-plane-pagination.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-control-plane-staleness.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-control-plane-test-fixture.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-control-plane.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-integrations-status.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-location-currency-correction.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-location-export-session-finalization.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-location-idempotency-readiness.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-location-lifecycle.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-location-preactivation.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-location-race-test-helpers.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-location-races.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-location-timezone-correction.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-notification-settings.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-operating-hours-test-values.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-operating-hours.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-parking-spot-policy.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-read-surfaces.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-settings-concurrency.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-settings-race-test-helpers.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-settings.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-sla-retrieval-concurrency.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-sla-settings.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-tracking-boundaries.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-visit-contact-authorization.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-visit-contact-correction.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-visit-contact-history.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-visit-contact-privacy.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-visit-contact-search.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/management-visit-contact-test-fixture.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/map-setup-area.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/map-setup-client-cas.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/map-setup-parking-zone-projection.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/map-setup-point.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/map-setup-review-fix.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/map-setup-test-context.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/physical-resource-cursor.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/physical-resource-key-label-idempotency.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/physical-resource-key-label-idempotency.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/physical-resource-overview-filters.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/physical-resource-overview-query.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/physical-resource-overview.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/physical-resource-v2-operational.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/shift-presence-management-authority.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/shift-presence-management-failure.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/shift-presence-management-http-recovery.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/shift-presence-management-result-database.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/shift-presence-management.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/shift-presence-readiness-races.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/shift-presence-strict-rollout.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-management-cas.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-management-custody-race.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-management-deactivation-refresh-race.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-management-deactivation.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-management-directory-pagination.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-management-entitlement.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-management-handover-blockers.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-management-incident-recovery-races.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-management-last-admin.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-management-lm-authority-races.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-management-lm-directory.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-management-lm-mutations.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-management-push-deactivation.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-management-races.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-management-shift-races.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-management-task-races.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-management-transitions.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-management.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-onboarding-authority.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-onboarding-database.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-onboarding-policy.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-onboarding-quarantine.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-onboarding-races.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-onboarding-rate-limit.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-onboarding-resend.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-onboarding-test-fixture.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-onboarding.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-push-api-fixture.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-push-claim.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-push-cleanup.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-push-crash-recovery.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-push-finalization-outage.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-push-inactive-newer-owner.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-push-invalid-endpoint.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-push-logout.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-push-management-policy-race.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-push-operational-policy.test.ts",
+    "status": "tool_only",
+    "evidence": "Focused vitest run: 9 files / 67 tests passed collectively; test body not fully reviewed unless separately indicated. See focused-tests.log."
+  },
+  {
+    "path": "apps/api/test/staff-push-payload.test.ts",
+    "status": "tool_only",
+    "evidence": "Focused vitest run: 9 files / 67 tests passed collectively; test body not fully reviewed unless separately indicated. See focused-tests.log."
+  },
+  {
+    "path": "apps/api/test/staff-push-policy-test-value.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-push-provider-test-value.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-push-redaction.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-push-registration-authority.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-push-registration-concurrency.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-push-registration-lifecycle.integration.test.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete test source read to disprove ownership/lease candidates; PG integration tests NOT executed. Ownership unit suite did execute and pass."
+  },
+  {
+    "path": "apps/api/test/staff-push-registration-ownership.test.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete test source read to disprove ownership/lease candidates; PG integration tests NOT executed. Ownership unit suite did execute and pass."
+  },
+  {
+    "path": "apps/api/test/staff-push-retry.test.ts",
+    "status": "tool_only",
+    "evidence": "Focused vitest run: 9 files / 67 tests passed collectively; test body not fully reviewed unless separately indicated. See focused-tests.log."
+  },
+  {
+    "path": "apps/api/test/staff-push-stale-confirmation-race.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-push-stale-maintenance.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-push-worker-eligibility.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-push-worker-results.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-push-worker-ttl.integration.test.ts",
+    "status": "fully_reviewed",
+    "evidence": "Complete test source read to disprove ownership/lease candidates; PG integration tests NOT executed. Ownership unit suite did execute and pass."
+  },
+  {
+    "path": "apps/api/test/staff-shift-force-end-audit.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-shift-force-end-authority.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-shift-force-end-controller.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-shift-force-end-proof-races.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-shift-force-end-race-fixture.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-shift-force-end-replay-races.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-shift-force-end-scope.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-shift-force-end-test-fixture.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-shift-force-end-work-races.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-shift-force-end.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-shift-history-authority.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-shift-history-candidates.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-shift-history-cursor.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-shift-history-plan.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "apps/api/test/staff-shift-history.integration.test.ts",
+    "status": "not_reviewed",
+    "evidence": "Corresponding test/helper inventory only; not executed or line-reviewed."
+  },
+  {
+    "path": "docs/decisions/DEC-073_NATIVE_PUSH_ARCHITECTURE.md",
+    "status": "partial",
+    "evidence": "Focused ownership, lease, duplicate semantics or location-grant sections reviewed; whole document not claimed."
+  },
+  {
+    "path": "docs/decisions/DEC-075_STAFF_PUSH_OPERATIONAL_POLICY.md",
+    "status": "partial",
+    "evidence": "Focused ownership, lease, duplicate semantics or location-grant sections reviewed; whole document not claimed."
+  },
+  {
+    "path": "docs/decisions/DEC-081_STAFF_ROLE_AND_ACCESS_LIFECYCLE.md",
+    "status": "partial",
+    "evidence": "Focused ownership, lease, duplicate semantics or location-grant sections reviewed; whole document not claimed."
+  },
+  {
+    "path": "packages/contracts/src/incidents.ts",
+    "status": "fully_reviewed",
+    "evidence": "Supporting dependency full source read for contract/disproof or worker transaction behavior."
+  }
+]

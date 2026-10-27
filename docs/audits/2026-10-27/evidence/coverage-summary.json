@@ -1,0 +1,184 @@
+{
+  "all_tracked": {
+    "count": 7502,
+    "text_lines": 1235010,
+    "statuses": {
+      "not_reviewed": 2786,
+      "partial": 61,
+      "fully_reviewed": 510,
+      "tool_only": 4145
+    },
+    "fully_reviewed_lines": 52706
+  },
+  "authored_code_candidates": {
+    "count": 4705,
+    "text_lines": 610400,
+    "statuses": {
+      "tool_only": 4145,
+      "fully_reviewed": 491,
+      "partial": 55,
+      "not_reviewed": 14
+    },
+    "fully_reviewed_lines": 51676
+  },
+  "application_and_package_code": {
+    "count": 4487,
+    "text_lines": 582939,
+    "statuses": {
+      "tool_only": 3943,
+      "fully_reviewed": 490,
+      "partial": 51,
+      "not_reviewed": 3
+    },
+    "fully_reviewed_lines": 51647
+  },
+  "migration_sql": {
+    "count": 103,
+    "text_lines": 17855,
+    "statuses": {
+      "tool_only": 80,
+      "fully_reviewed": 18,
+      "partial": 5
+    },
+    "fully_reviewed_lines": 1396
+  },
+  "by_package": {
+    ".env.example": {
+      "not_reviewed": 1
+    },
+    ".gitattributes": {
+      "not_reviewed": 1
+    },
+    ".github": {
+      "not_reviewed": 6,
+      "partial": 1
+    },
+    ".gitignore": {
+      "not_reviewed": 1
+    },
+    ".prettierignore": {
+      "not_reviewed": 1
+    },
+    ".prettierrc.json": {
+      "not_reviewed": 1
+    },
+    "AGENTS.md": {
+      "fully_reviewed": 1
+    },
+    "CONTRIBUTING.md": {
+      "not_reviewed": 1
+    },
+    "PROJECT_TREE.txt": {
+      "not_reviewed": 1
+    },
+    "README.md": {
+      "not_reviewed": 1
+    },
+    "apps/api": {
+      "not_reviewed": 24,
+      "fully_reviewed": 220,
+      "tool_only": 1404,
+      "partial": 11
+    },
+    "apps/customer": {
+      "fully_reviewed": 95,
+      "tool_only": 122,
+      "not_reviewed": 15,
+      "partial": 3
+    },
+    "apps/dashboard": {
+      "not_reviewed": 72,
+      "tool_only": 920,
+      "fully_reviewed": 80,
+      "partial": 2
+    },
+    "apps/valet": {
+      "not_reviewed": 16,
+      "tool_only": 315,
+      "fully_reviewed": 14
+    },
+    "apps/valet-native": {
+      "not_reviewed": 31,
+      "fully_reviewed": 39,
+      "tool_only": 531,
+      "partial": 26
+    },
+    "design": {
+      "not_reviewed": 183,
+      "tool_only": 22
+    },
+    "docker-compose.yml": {
+      "fully_reviewed": 1
+    },
+    "docs": {
+      "not_reviewed": 2374,
+      "partial": 5,
+      "tool_only": 18
+    },
+    "eslint.config.mjs": {
+      "tool_only": 1
+    },
+    "infra": {
+      "fully_reviewed": 6,
+      "not_reviewed": 1
+    },
+    "package.json": {
+      "fully_reviewed": 1
+    },
+    "packages/config": {
+      "not_reviewed": 3,
+      "tool_only": 2
+    },
+    "packages/contracts": {
+      "not_reviewed": 2,
+      "fully_reviewed": 3,
+      "tool_only": 160,
+      "partial": 1
+    },
+    "packages/database": {
+      "not_reviewed": 14,
+      "fully_reviewed": 35,
+      "tool_only": 266,
+      "partial": 8
+    },
+    "packages/employee-client": {
+      "fully_reviewed": 11,
+      "tool_only": 222,
+      "not_reviewed": 1
+    },
+    "packages/testing": {
+      "not_reviewed": 3,
+      "fully_reviewed": 2
+    },
+    "packages/ui": {
+      "not_reviewed": 3,
+      "tool_only": 1,
+      "fully_reviewed": 1
+    },
+    "patches": {
+      "not_reviewed": 1
+    },
+    "pnpm-lock.yaml": {
+      "not_reviewed": 1
+    },
+    "pnpm-workspace.yaml": {
+      "not_reviewed": 1
+    },
+    "scripts": {
+      "not_reviewed": 21,
+      "tool_only": 146,
+      "partial": 4,
+      "fully_reviewed": 1
+    },
+    "tmp": {
+      "not_reviewed": 4,
+      "tool_only": 15
+    },
+    "tsconfig.base.json": {
+      "not_reviewed": 1
+    },
+    "turbo.json": {
+      "not_reviewed": 1
+    }
+  }
+}

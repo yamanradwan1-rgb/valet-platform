@@ -1,0 +1,225 @@
+✔ verification build supplies one deterministic API origin (1.342535ms)
+✔ production build never fabricates or rewrites API_ORIGIN (0.290548ms)
+✔ build orchestration pins Turbo strict environment mode (1.190851ms)
+✔ Customer startup requires an approved deployment API origin matching its immutable artifact (0.750744ms)
+✔ Customer artifact proves the exact build-time Guest API rewrite (68.255298ms)
+✔ Customer readiness derives from the immutable standalone Guest rewrite (9.658695ms)
+✔ Customer standalone artifact contains the production start path and public assets (16.167846ms)
+✖ actual Customer production build rejects missing and invalid API_ORIGIN (160150.696281ms)
+✔ Guest T4's three simultaneous pools use the bounded compound project (759.687598ms)
+✔ exact-name compound ownership requires real DB signal and does not widen to lookalikes (2.101873ms)
+✔ Issue 215 target preflight depends only on authoritative test-project ownership (1.071058ms)
+✔ stale owner attestation fences old mixed P1 runs without pinning unrelated new leases (0.249407ms)
+✔ failed preflight parks recovery ancestry instead of deleting old owned resource metadata (16.844591ms)
+✔ Issue 215 P1 rejects missing target despite a migration URL before acquiring a cluster lease (53.364712ms)
+✔ an unrelated stale-owner cleanup refuses known Issue215 resources before any SQL/child cleanup (3.072038ms)
+✔ a protected run marker fences stale recovery even before its first CREATE (1.128061ms)
+✔ a PostgreSQL test importing an Issue215 mutation fixture must join the protected manifest (4.449228ms)
+✔ current API and database tests each have exactly one owner (596.549305ms)
+✔ transitive DB fixture access is classified into a PostgreSQL project (0.829442ms)
+✔ NodeNext source extensions keep transitive DB ownership (0.881385ms)
+✔ CommonJS require keeps transitive DB ownership (0.490608ms)
+✔ unknown test naming and non-DB runtime access fail actionably (0.661921ms)
+✔ published Contracts runtime imports have Node-resolvable relative extensions (5.54662ms)
+✔ reviewed #215 and #309 exact API tests alone enter the protected Issue215 PostgreSQL project (598.836322ms)
+✔ protected project ownership includes API but rejects name and CLI-like impostors (0.369563ms)
+✔ API project requires the same pinned disposable container URL and ownership identity (1.21307ms)
+✔ every protected API basename rejects missing DB signal and excludes near-matches (5.712103ms)
+✔ ambiguous CREATE failure keeps absence-proven resource cleanup-owned (4.92626ms)
+✔ failed CREATE without absence proof never becomes cleanup-owned (0.274302ms)
+✔ created and dropped resource semantics remain unchanged (0.612263ms)
+✔ one cluster admits only one live invocation (9.434756ms)
+✔ a dead prior owner is recoverable only from matching ownership metadata (1.74459ms)
+✔ resource identity is bounded, unique, and recorded before creation (2.473376ms)
+✔ partial setup cleanup touches only ledger-owned resources (1.584907ms)
+✔ planned-only resources are never treated as owned (1.20239ms)
+✔ planned resource proven absent before create is crash-recoverable (0.82708ms)
+✔ parent cleanup terminates a surviving child from a killed worker ledger (31.852766ms)
+✔ PostgreSQL project applies its test-only pool cap and registers it (1.805843ms)
+✔ resource ownership is written before CREATE DATABASE executes (4.493333ms)
+✔ unquoted runtime roles are tracked as owned resources (2.295904ms)
+✔ direct client profile count is enforced across live connections (5.467631ms)
+✔ sync DB children consume the subprocess profile and inherit the ownership hook (1.14792ms)
+✔ non-PostgreSQL projects reject real query/connect while allowing lazy construction (0.988426ms)
+✔ race profile admits exactly two safe local file workers (2.716158ms)
+✔ long API projects use one file worker after repeated native fork crashes (0.364116ms)
+✔ profiles include pool, direct client, and subprocess envelopes (0.461935ms)
+✔ failure diagnostics separate resource and execution classes (0.806803ms)
+ℹ tests 47
+ℹ suites 0
+ℹ pass 46
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 163995.829071
+
+✖ failing tests:
+
+test at scripts/build/build-contract.test.mjs:216:1
+✖ actual Customer production build rejects missing and invalid API_ORIGIN (160150.696281ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /API_ORIGIN is required in production/u. Input:
+  
+  'Scope: all 12 workspace projects\n' +
+    '? Verifying lockfile against supply-chain policies (1150 entries)...\n' +
+    'Lockfile is up to date, resolution step is skipped\n' +
+    'Progress: resolved 1, reused 0, downloaded 0, added 0\n' +
+    'Packages: +1044\n' +
+    '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n' +
+    'Progress: resolved 1044, reused 0, downloaded 0, added 0\n' +
+    '[WARN] Request took 11180ms: https://registry.npmjs.org/@aws-sdk%2Fcredential-provider-web-identity\n' +
+    '[WARN] Request took 11487ms: https://registry.npmjs.org/@babel%2Fparser\n' +
+    '[WARN] Request took 11755ms: https://registry.npmjs.org/@aws-sdk%2Fcredential-provider-env\n' +
+    '[WARN] Request took 11775ms: https://registry.npmjs.org/@babel%2Fcore\n' +
+    '[WARN] Request took 13623ms: https://registry.npmjs.org/@aws-sdk%2Fcredential-provider-process\n' +
+    'Progress: resolved 1044, reused 0, downloaded 1, added 0\n' +
+    '[WARN] Request took 14766ms: https://registry.npmjs.org/@aws-sdk%2Fmiddleware-sdk-s3\n' +
+    'Progress: resolved 1044, reused 0, downloaded 3, added 0\n' +
+    '[WARN] Request took 15896ms: https://registry.npmjs.org/@aws-sdk%2Ftoken-providers\n' +
+    'Progress: resolved 1044, reused 0, downloaded 8, added 0\n' +
+    '[WARN] Request took 10242ms: https://registry.npmjs.org/@babel%2Fplugin-transform-parameters\n' +
+    'Progress: resolved 1044, reused 0, downloaded 13, added 0\n' +
+    '[WARN] Request took 17982ms: https://registry.npmjs.org/@aws-sdk%2Fcredential-provider-sso\n' +
+    '[WARN] Request took 10876ms: https://registry.npmjs.org/@babel%2Fplugin-transform-runtime\n' +
+    '[WARN] Request took 10716ms: https://registry.npmjs.org/@babel%2Fplugin-transform-typescript\n' +
+    'Progress: resolved 1044, reused 0, downloaded 19, added 0\n' +
+    '[WARN] Request took 10862ms: https://registry.npmjs.org/@babel%2Fruntime\n' +
+    '[WARN] Request took 11045ms: https://registry.npmjs.org/@babel%2Ftypes\n' +
+    '[WARN] Request took 19492ms: https://registry.npmjs.org/@aws-sdk%2Fcredential-provider-ini\n' +
+    'Progress: resolved 1044, reused 0, downloaded 20, added 0\n' +
+    '[WARN] Request took 11957ms: https://registry.npmjs.org/@babel%2Ftraverse\n' +
+    'Progress: resolved 1044, reused 0, downloaded 25, added 0\n' +
+    '[WARN] Request took 21084ms: https://registry.npmjs.org/@aws-sdk%2Fcredential-provider-node\n' +
+    'Progress: resolved 1044, reused 0, downloaded 27, added 0\n' +
+    'Progress: resolved 1044, reused 0, downloaded 34, added 0\n' +
+    'Progress: resolved 1044, reused 0, downloaded 37, added 0\n' +
+    '[WARN] Request took 25171ms: https://registry.npmjs.org/@aws-sdk%2Fclient-s3\n' +
+    'Progress: resolved 1044, reused 0, downloaded 41, added 0\n' +
+    '[WARN] Request took 27409ms: https://registry.npmjs.org/pnpm\n' +
+    '\n' +
+    '   ╭──────────────────────────────────────────────────────────────────────╮\n' +
+    '   │                                                                      │\n' +
+    '   │                 Update available! 11.25.0 → 12.15.0.                 │\n' +
+    '   │                 Changelog: https://pnpm.io/v/12.15.0                 │\n' +
+    '   │   To update, run: curl -fsSL https://get.pnpm.io/install.sh | sh -   │\n' +
+    '   │                                                                      │\n' +
+    '   ╰──────────────────────────────────────────────────────────────────────╯\n' +
+    '\n' +
+    'Progress: resolved 1044, reused 0, downloaded 42, added 0\n' +
+    'Progress: resolved 1044, reused 0, downloaded 45, added 0\n' +
+    'Progress: resolved 1044, reused 0, downloaded 54, added 0\n' +
+    'Progress: resolved 1044, reused 0, downloaded 58, added 0\n' +
+    'Packages are hard linked from the content-addressable store to the virtual store.\n' +
+    '  Content-addressable store is at: <PACKAGE_CACHE>\n' +
+    '  Virtual store is at:             node_modules/.pnpm\n' +
+    'Progress: resolved 1044, reused 0, downloaded 59, added 1\n' +
+    '[WARN] Request took 10100ms: https://registry.npmjs.org/@prisma%2Fstudio-core\n' +
+    'Progress: resolved 1044, reused 0, downloaded 60, added 1\n' +
+    'Progress: resolved 1044, reused 0, downloaded 64, added 4\n' +
+    'Progress: resolved 1044, reused 0, downloaded 65, added 4\n' +
+    '[WARN] Request took 15023ms: https://registry.npmjs.org/@next%2Fswc-linux-x64-musl\n' +
+    'Progress: resolved 1044, reused 0, downloaded 66, added 4\n' +
+    '[WARN] Request took 15869ms: https://registry.npmjs.org/@next%2Fswc-win32-arm64-msvc\n' +
+    '[WARN] Request took 16282ms: https://registry.npmjs.org/@next%2Fswc-linux-arm64-musl\n' +
+    'Progress: resolved 1044, reused 0, downloaded 67, added 4\n' +
+    '[WARN] Request took 16715ms: https://registry.npmjs.org/@next%2Fswc-linux-arm64-gnu\n' +
+    '[WARN] Request took 17288ms: https://registry.npmjs.org/@next%2Fswc-darwin-x64\n' +
+    '[WARN] Request took 17185ms: https://registry.npmjs.org/@next%2Fswc-win32-x64-msvc\n' +
+    'Progress: resolved 1044, reused 0, downloaded 68, added 4\n' +
+    '[WARN] Request took 17773ms: https://registry.npmjs.org/@next%2Fswc-darwin-arm64\n' +
+    '[WARN] Request took 17706ms: https://registry.npmjs.org/@next%2Fswc-linux-x64-gnu\n' +
+    '[WARN] Request took 15744ms: https://registry.npmjs.org/@react-native%2Fbabel-preset\n' +
+    'Progress: resolved 1044, reused 0, downloaded 71, added 4\n' +
+    'Progress: resolved 1044, reused 0, downloaded 74, added 4\n' +
+    '[WARN] Request took 13629ms: https://registry.npmjs.org/@tailwindcss%2Foxide\n' +
+    '[WARN] Request took 20131ms: https://registry.npmjs.org/@next%2Fenv\n' +
+    '[WARN] Request took 10068ms: https://registry.npmjs.org/caniuse-lite\n' +
+    '[WARN] Request took 19199ms: https://registry.npmjs.org/@aws-sdk%2Fclient-s3\n' +
+    '[WARN] Request took 18155ms: https://registry.npmjs.org/@types%2Fnode\n' +
+    '[WARN] Request took 26599ms: https://registry.npmjs.org/@playwright%2Ftest\n' +
+    '[WARN] Request took 27623ms: https://registry.npmjs.org/@prisma%2Fengines-version\n' +
+    '[WARN] Request took 13993ms: https://registry.npmjs.org/electron-to-chromium\n' +
+    '[WARN] Request took 22012ms: https://registry.npmjs.org/@typescript-eslint%2Ftype-utils\n' +
+    '[WARN] Request took 22005ms: https://registry.npmjs.org/@typescript-eslint%2Futils\n' +
+    '[WARN] Request took 14792ms: https://registry.npmjs.org/eslint-plugin-react-hooks\n' +
+    '[WARN] Request took 23078ms: https://registry.npmjs.org/@typescript-eslint%2Ftypes\n' +
+    'Progress: resolved 1044, reused 0, downloaded 75, added 4\n' +
+    'Progress: resolved 1044, reused 0, downloaded 76, added 4\n' +
+    '[WARN] Request took 24661ms: https://registry.npmjs.org/@typescript-eslint%2Fvisitor-keys\n' +
+    'Progress: resolved 1044, reused 0, downloaded 81, added 4\n' +
+    '[WARN] Request took 26166ms: https://registry.npmjs.org/@typescript-eslint%2Fscope-manager\n' +
+    'Progress: resolved 1044, reused 0, downloaded 83, added 4\n' +
+    '[WARN] Request took 28085ms: https://registry.npmjs.org/@typescript-eslint%2Fparser\n' +
+    '[WARN] Request took 28766ms: https://registry.npmjs.org/@typescript-eslint%2Ftypescript-estree\n' +
+    '[WARN] Request took 12022ms: https://registry.npmjs.org/react-native\n' +
+    'Progress: resolved 1044, reused 0, downloaded 84, added 4\n' +
+    '[WARN] Request took 36613ms: https://registry.npmjs.org/@prisma%2Fengines\n' +
+    '[WARN] Request took 30552ms: https://registry.npmjs.org/@typescript-eslint%2Feslint-plugin\n' +
+    'Progress: resolved 1044, reused 0, downloaded 89, added 4\n' +
+    '[WARN] Request took 11769ms: https://registry.npmjs.org/typescript\n' +
+    '[WARN] Request took 15893ms: https://registry.npmjs.org/playwright\n' +
+    '[WARN] Request took 16271ms: https://registry.npmjs.org/playwright-core\n' +
+    'Progress: resolved 1044, reused 0, downloaded 90, added 4\n' +
+    '[WARN] Request took 10249ms: https://registry.npmjs.org/eslint-plugin-react-hooks\n' +
+    'Progress: resolved 1044, reused 0, downloaded 109, added 4\n' +
+    '[WARN] Request took 41690ms: https://registry.npmjs.org/@prisma%2Fget-platform\n' +
+    'Progress: resolved 1044, reused 0, downloaded 119, added 4\n' +
+    '[WARN] Request took 42818ms: https://registry.npmjs.org/@prisma%2Fdebug\n' +
+    'Progress: resolved 1044, reused 0, downloaded 122, added 5\n' +
+    '[WARN] Request took 43545ms: https://registry.npmjs.org/@prisma%2Ffetch-engine\n' +
+    '[WARN] Request took 23657ms: https://registry.npmjs.org/next\n' +
+    'Progress: resolved 1044, reused 0, downloaded 123, added 5\n' +
+    '[WARN] Request took 23845ms: https://registry.npmjs.org/prisma\n' +
+    'Progress: resolved 1044, reused 0, downloaded 142, added 8\n' +
+    '[WARN] Request took 10180ms: https://registry.npmjs.org/typescript\n' +
+    'Progress: resolved 1044, reused 0, downloaded 149, added 8\n' +
+    'Progress: resolved 1044, reused 0, downloaded 152, added 8\n' +
+    'Progress: resolved 1044, reused 0, downloaded 161, added 8\n' +
+    '[WARN] Request took 62249ms: https://registry.npmjs.org/@prisma%2Fclient\n' +
+    '✓ Lockfile passes supply-chain policies (1150 entries in 1m 23.3s)\n' +
+    'Progress: resolved 1044, reused 0, downloaded 168, added 8\n' +
+    'Progress: resolved 1044, reused 0, downloaded 171, added 8\n' +
+    'Progress: resolved 1044, reused 0, downloaded 186, added 12\n' +
+    'Progress: resolved 1044, reused 0, downloaded 205, added 12\n' +
+    'Progress: resolved 1044, reused 0, downloaded 206, added 12\n' +
+    'Progress: resolved 1044, reused 0, downloaded 207, added 12\n' +
+    'Progress: resolved 1044, reused 0, downloaded 208, added 12\n' +
+    'Progress: resolved 1044, reused 0, downloaded 209, added 12\n' +
+    'Progress: resolved 1044, reused 0, downloaded 215, added 12\n' +
+    'Progress: resolved 1044, reused 0, downloaded 216, added 12\n' +
+    'Progress: resolved 1044, reused 0, downloaded 217, added 12\n' +
+    'Progress: resolved 1044, reused 0, downloaded 219, added 12\n' +
+    'Progress: resolved 1044, reused 0, downloaded 224, added 12\n' +
+    'Progress: resolved 1044, reused 0, downloaded 232, added 12\n' +
+    'Progress: resolved 1044, reused 0, downloaded 237, added 12\n' +
+    'Progress: resolved 1044, reused 0, downloaded 253, added 16\n' +
+    'Progress: resolved 1044, reused 0, downloaded 263, added 16\n' +
+    'Progress: resolved 1044, reused 0, downloaded 264, added 16\n' +
+    'Progress: resolved 1044, reused 0, downloaded 265, added 16\n' +
+    'Progress: resolved 1044, reused 0, downloaded 268, added 16\n' +
+    'Progress: resolved 1044, reused 0, downloaded 269, added 16\n' +
+    'Progress: resolved 1044, reused 0, downloaded 280, added 16\n' +
+    'Progress: resolved 1044, reused 0, downloaded 296, added 16\n' +
+    'Progress: resolved 1044, reused 0, downloaded 299, added 16\n' +
+    'Progress: resolved 1044, reused 0, downloaded 326, added 20\n' +
+    'Progress: resolved 1044, reused 0, downloaded 330, added 20\n' +
+    'Progress: resolved 1044, reused 0, downloaded 396, added 24\n' +
+    'Progress: resolved 1044, reused 0, downloaded 452, added 65\n' +
+    'Progress: resolved 1044, reused 0, downloaded 452, added 70\n' +
+    'Progress: resolved 1044, reused 0, downloaded 522, added 77\n' +
+    'Progress: resolved 1044, reused 0, downloaded 596, added 139\n' +
+    'Progress: resolved 1044, reused 0, downloaded 643, added 646\n' +
+    'Progre'... 2659 more characters
+  
+      at expectCustomerBuildFailure (file://<AUDIT_WORKTREE>/scripts/build/build-contract.test.mjs:241:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file://<AUDIT_WORKTREE>/scripts/build/build-contract.test.mjs:217:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Scope: all 12 workspace projects\n? Verifying lockfile against supply-chain policies (1150 entries)...\nLockfile is up to date, resolution step is skipped\nProgress: resolved 1, reused 0, downloaded 0, added 0\nPackages: +1044\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\nProgress: resolved 1044, reused 0, downloaded 0, added 0\n[WARN] Request took 11180ms: https://registry.npmjs.org/@aws-sdk%2Fcredential-provider-web-identity\n[WARN] Request took 11487ms: https://registry.npmjs.org/@babel%2Fparser\n[WARN] Request took 11755ms: https://registry.npmjs.org/@aws-sdk%2Fcredential-provider-env\n[WARN] Request took 11775ms: https://registry.npmjs.org/@babel%2Fcore\n[WARN] Request took 13623ms: https://registry.npmjs.org/@aws-sdk%2Fcredential-provider-process\nProgress: resolved 1044, reused 0, downloaded 1, added 0\n[WARN] Request took 14766ms: https://registry.npmjs.org/@aws-sdk%2Fmiddleware-sdk-s3\nProgress: resolved 1044, reused 0, downloaded 3, added 0\n[WARN] Request took 15896ms: https://registry.npmjs.org/@aws-sdk%2Ftoken-providers\nProgress: resolved 1044, reused 0, downloaded 8, added 0\n[WARN] Request took 10242ms: https://registry.npmjs.org/@babel%2Fplugin-transform-parameters\nProgress: resolved 1044, reused 0, downloaded 13, added 0\n[WARN] Request took 17982ms: https://registry.npmjs.org/@aws-sdk%2Fcredential-provider-sso\n[WARN] Request took 10876ms: https://registry.npmjs.org/@babel%2Fplugin-transform-runtime\n[WARN] Request took 10716ms: https://registry.npmjs.org/@babel%2Fplugin-transform-typescript\nProgress: resolved 1044, reused 0, downloaded 19, added 0\n[WARN] Request took 10862ms: https://registry.npmjs.org/@babel%2Fruntime\n[WARN] Request took 11045ms: https://registry.npmjs.org/@babel%2Ftypes\n[WARN] Request took 19492ms: https://registry.npmjs.org/@aws-sdk%2Fcredential-provider-ini\nProgress: resolved 1044, reused 0, downloaded 20, added 0\n[WARN] Request took 11957ms: https://registry.npmjs.org/@babel%2Ftraverse\nProgress: resolved 1044, reused 0, downloaded 25, added 0\n[WARN] Request took 21084ms: https://registry.npmjs.org/@aws-sdk%2Fcredential-provider-node\nProgress: resolved 1044, reused 0, downloaded 27, added 0\nProgress: resolved 1044, reused 0, downloaded 34, added 0\nProgress: resolved 1044, reused 0, downloaded 37, added 0\n[WARN] Request took 25171ms: https://registry.npmjs.org/@aws-sdk%2Fclient-s3\nProgress: resolved 1044, reused 0, downloaded 41, added 0\n[WARN] Request took 27409ms: https://registry.npmjs.org/pnpm\n\n   ╭──────────────────────────────────────────────────────────────────────╮\n   │                                                                      │\n   │                 Update available! 11.25.0 → 12.15.0.                 │\n   │                 Changelog: https://pnpm.io/v/12.15.0                 │\n   │   To update, run: curl -fsSL https://get.pnpm.io/install.sh | sh -   │\n   │                                                                      │\n   ╰──────────────────────────────────────────────────────────────────────╯\n\nProgress: resolved 1044, reused 0, downloaded 42, added 0\nProgress: resolved 1044, reused 0, downloaded 45, added 0\nProgress: resolved 1044, reused 0, downloaded 54, added 0\nProgress: resolved 1044, reused 0, downloaded 58, added 0\nPackages are hard linked from the content-addressable store to the virtual store.\n  Content-addressable store is at: <PACKAGE_CACHE>\n  Virtual store is at:             node_modules/.pnpm\nProgress: resolved 1044, reused 0, downloaded 59, added 1\n[WARN] Request took 10100ms: https://registry.npmjs.org/@prisma%2Fstudio-core\nProgress: resolved 1044, reused 0, downloaded 60, added 1\nProgress: resolved 1044, reused 0, downloaded 64, added 4\nProgress: resolved 1044, reused 0, downloaded 65, added 4\n[WARN] Request took 15023ms: https://registry.npmjs.org/@next%2Fswc-linux-x64-musl\nProgress: resolved 1044, reused 0, downloaded 66, added 4\n[WARN] Request took 15869ms: https://registry.npmjs.org/@next%2Fswc-win32-arm64-msvc\n[WARN] Request took 16282ms: https://registry.npmjs.org/@next%2Fswc-linux-arm64-musl\nProgress: resolved 1044, reused 0, downloaded 67, added 4\n[WARN] Request took 16715ms: https://registry.npmjs.org/@next%2Fswc-linux-arm64-gnu\n[WARN] Request took 17288ms: https://registry.npmjs.org/@next%2Fswc-darwin-x64\n[WARN] Request took 17185ms: https://registry.npmjs.org/@next%2Fswc-win32-x64-msvc\nProgress: resolved 1044, reused 0, downloaded 68, added 4\n[WARN] Request took 17773ms: https://registry.npmjs.org/@next%2Fswc-darwin-arm64\n[WARN] Request took 17706ms: https://registry.npmjs.org/@next%2Fswc-linux-x64-gnu\n[WARN] Request took 15744ms: https://registry.npmjs.org/@react-native%2Fbabel-preset\nProgress: resolved 1044, reused 0, downloaded 71, added 4\nProgress: resolved 1044, reused 0, downloaded 74, added 4\n[WARN] Request took 13629ms: https://registry.npmjs.org/@tailwindcss%2Foxide\n[WARN] Request took 20131ms: https://registry.npmjs.org/@next%2Fenv\n[WARN] Request took 10068ms: https://registry.npmjs.org/caniuse-lite\n[WARN] Request took 19199ms: https://registry.npmjs.org/@aws-sdk%2Fclient-s3\n[WARN] Request took 18155ms: https://registry.npmjs.org/@types%2Fnode\n[WARN] Request took 26599ms: https://registry.npmjs.org/@playwright%2Ftest\n[WARN] Request took 27623ms: https://registry.npmjs.org/@prisma%2Fengines-version\n[WARN] Request took 13993ms: https://registry.npmjs.org/electron-to-chromium\n[WARN] Request took 22012ms: https://registry.npmjs.org/@typescript-eslint%2Ftype-utils\n[WARN] Request took 22005ms: https://registry.npmjs.org/@typescript-eslint%2Futils\n[WARN] Request took 14792ms: https://registry.npmjs.org/eslint-plugin-react-hooks\n[WARN] Request took 23078ms: https://registry.npmjs.org/@typescript-eslint%2Ftypes\nProgress: resolved 1044, reused 0, downloaded 75, added 4\nProgress: resolved 1044, reused 0, downloaded 76, added 4\n[WARN] Request took 24661ms: https://registry.npmjs.org/@typescript-eslint%2Fvisitor-keys\nProgress: resolved 1044, reused 0, downloaded 81, added 4\n[WARN] Request took 26166ms: https://registry.npmjs.org/@typescript-eslint%2Fscope-manager\nProgress: resolved 1044, reused 0, downloaded 83, added 4\n[WARN] Request took 28085ms: https://registry.npmjs.org/@typescript-eslint%2Fparser\n[WARN] Request took 28766ms: https://registry.npmjs.org/@typescript-eslint%2Ftypescript-estree\n[WARN] Request took 12022ms: https://registry.npmjs.org/react-native\nProgress: resolved 1044, reused 0, downloaded 84, added 4\n[WARN] Request took 36613ms: https://registry.npmjs.org/@prisma%2Fengines\n[WARN] Request took 30552ms: https://registry.npmjs.org/@typescript-eslint%2Feslint-plugin\nProgress: resolved 1044, reused 0, downloaded 89, added 4\n[WARN] Request took 11769ms: https://registry.npmjs.org/typescript\n[WARN] Request took 15893ms: https://registry.npmjs.org/playwright\n[WARN] Request took 16271ms: https://registry.npmjs.org/playwright-core\nProgress: resolved 1044, reused 0, downloaded 90, added 4\n[WARN] Request took 10249ms: https://registry.npmjs.org/eslint-plugin-react-hooks\nProgress: resolved 1044, reused 0, downloaded 109, added 4\n[WARN] Request took 41690ms: https://registry.npmjs.org/@prisma%2Fget-platform\nProgress: resolved 1044, reused 0, downloaded 119, added 4\n[WARN] Request took 42818ms: https://registry.npmjs.org/@prisma%2Fdebug\nProgress: resolved 1044, reused 0, downloaded 122, added 5\n[WARN] Request took 43545ms: https://registry.npmjs.org/@prisma%2Ffetch-engine\n[WARN] Request took 23657ms: https://registry.npmjs.org/next\nProgress: resolved 1044, reused 0, downloaded 123, added 5\n[WARN] Request took 23845ms: https://registry.npmjs.org/prisma\nProgress: resolved 1044, reused 0, downloaded 142, added 8\n[WARN] Request took 10180ms: https://registry.npmjs.org/typescript\nProgress: resolved 1044, reused 0, downloaded 149, added 8\nProgress: resolved 1044, reused 0, downloaded 152, added 8\nProgress: resolved 1044, reused 0, downloaded 161, added 8\n[WARN] Request took 62249ms: https://registry.npmjs.org/@prisma%2Fclient\n✓ Lockfile passes supply-chain policies (1150 entries in 1m 23.3s)\nProgress: resolved 1044, reused 0, downloaded 168, added 8\nProgress: resolved 1044, reused 0, downloaded 171, added 8\nProgress: resolved 1044, reused 0, downloaded 186, added 12\nProgress: resolved 1044, reused 0, downloaded 205, added 12\nProgress: resolved 1044, reused 0, downloaded 206, added 12\nProgress: resolved 1044, reused 0, downloaded 207, added 12\nProgress: resolved 1044, reused 0, downloaded 208, added 12\nProgress: resolved 1044, reused 0, downloaded 209, added 12\nProgress: resolved 1044, reused 0, downloaded 215, added 12\nProgress: resolved 1044, reused 0, downloaded 216, added 12\nProgress: resolved 1044, reused 0, downloaded 217, added 12\nProgress: resolved 1044, reused 0, downloaded 219, added 12\nProgress: resolved 1044, reused 0, downloaded 224, added 12\nProgress: resolved 1044, reused 0, downloaded 232, added 12\nProgress: resolved 1044, reused 0, downloaded 237, added 12\nProgress: resolved 1044, reused 0, downloaded 253, added 16\nProgress: resolved 1044, reused 0, downloaded 263, added 16\nProgress: resolved 1044, reused 0, downloaded 264, added 16\nProgress: resolved 1044, reused 0, downloaded 265, added 16\nProgress: resolved 1044, reused 0, downloaded 268, added 16\nProgress: resolved 1044, reused 0, downloaded 269, added 16\nProgress: resolved 1044, reused 0, downloaded 280, added 16\nProgress: resolved 1044, reused 0, downloaded 296, added 16\nProgress: resolved 1044, reused 0, downloaded 299, added 16\nProgress: resolved 1044, reused 0, downloaded 326, added 20\nProgress: resolved 1044, reused 0, downloaded 330, added 20\nProgress: resolved 1044, reused 0, downloaded 396, added 24\nProgress: resolved 1044, reused 0, downloaded 452, added 65\nProgress: resolved 1044, reused 0, downloaded 452, added 70\nProgress: resolved 1044, reused 0, downloaded 522, added 77\nProgress: resolved 1044, reused 0, downloaded 596, added 139\nProgress: resolved 1044, reused 0, downloaded 643, added 646\nProgre'... 2659 more characters,
+    expected: /API_ORIGIN is required in production/u,
+    operator: 'match',
+    diff: 'simple'
+  }

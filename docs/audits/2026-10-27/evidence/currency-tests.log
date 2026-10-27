@@ -1,0 +1,9 @@
+
+ RUN  v4.1.10 <AUDIT_WORKTREE>/apps/api
+
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  23:36:06
+   Duration  503ms (transform 177ms, setup 195ms, import 75ms, tests 5ms, environment 0ms)
+

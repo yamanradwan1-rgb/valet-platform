@@ -1,0 +1,16 @@
+const auditPaths = require('../reproduction-paths.cjs');
+const fs = require('node:fs');
+const ts = auditPaths.dependencyRequire('typescript');
+const vm = require('node:vm');
+const file=auditPaths.sourceRoot+'/apps/valet/src/components/shell/employee-workspace.ts';
+const code = ts.transpileModule(fs.readFileSync(file,'utf8'), {compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText;
+const target = { exports: {} };
+vm.runInNewContext(code, target, {filename:file});
+const api=target.exports;
+const identity={authenticated:true,identityGeneration:7};
+const oldScope={membershipId:'m-a',locationId:'loc-a',shiftId:'shift-a'};
+const newScope={membershipId:'m-b',locationId:'loc-b',shiftId:'shift-b'};
+const workspace={identityStamp:api.makeWorkspaceStamp(identity),targets:{...api.emptyWorkspaceTargets(),screenOverride:'retrieval',activeRetrievalTarget:{sessionId:'session-a',taskId:'task-a',taskStatus:'ACCEPTED',taskVersion:1}}};
+const result=api.rescopeWorkspace(workspace,identity);
+if(result !== workspace || result.targets.activeRetrievalTarget.sessionId !== 'session-a') throw Error('Unexpected source behavior');
+console.log(JSON.stringify({oldScope,newScope,sameIdentity:true,workspaceRetainedByReference:result===workspace,retainedScreen:result.targets.screenOverride,retainedSession:result.targets.activeRetrievalTarget.sessionId,conclusion:'Changing active operational scope is not expressible at workspace fence; real EmployeeApp feeds only this identity input.'},null,2));

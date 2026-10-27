@@ -1,0 +1,1050 @@
+[
+  {
+    "path": "packages/database/prisma/migrations/20260808000100_tenant_staff_foundation/migration.sql",
+    "lines": 144,
+    "sha256": "5adf3587db527396ea212814166381130bc5af7a182d415fbd11f18d118bd634",
+    "create_tables": [
+      "\"organizations\"",
+      "\"locations\"",
+      "\"users\"",
+      "\"organization_memberships\"",
+      "\"membership_location_access\"",
+      "\"shifts\""
+    ],
+    "function_declarations": 0,
+    "unique_declarations": 6,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260808000200_blueprint_location_and_supervisor/migration.sql",
+    "lines": 12,
+    "sha256": "ffbf7dc42747f6d65d9b7a7339d82f094c07b169775c733363b9cedb4f98e0ce",
+    "create_tables": [],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260808000300_customer_vehicle_foundation/migration.sql",
+    "lines": 74,
+    "sha256": "abeba43644d23e7e096ddfbb6f035f332f857ecbf094e27dfecbcab7a999e56b",
+    "create_tables": [
+      "\"customers\"",
+      "\"vehicles\""
+    ],
+    "function_declarations": 0,
+    "unique_declarations": 1,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260808000400_parking_spot_key_slot_foundation/migration.sql",
+    "lines": 66,
+    "sha256": "1254edb80fdd022d28fe40064c77a4be4c57b9837bb294778d88af04c181047b",
+    "create_tables": [
+      "\"parking_spots\"",
+      "\"key_slots\""
+    ],
+    "function_declarations": 0,
+    "unique_declarations": 2,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260808000500_valet_session_foundation/migration.sql",
+    "lines": 130,
+    "sha256": "066afa8f6506f7b5db97384f53e1d4b42748cd620b53926ad8429b83fc8abaa4",
+    "create_tables": [
+      "\"valet_sessions\""
+    ],
+    "function_declarations": 0,
+    "unique_declarations": 8,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260808000600_restore_valet_session_query_indexes/migration.sql",
+    "lines": 8,
+    "sha256": "4c7fc59d24629b248c4b6c238beafc7621232adae03960fa9c62c0a32697e35a",
+    "create_tables": [],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260808000700_audit_event_foundation/migration.sql",
+    "lines": 49,
+    "sha256": "7c78d39f09010f5487f55c1529a865e529628eb87038a206ef483bb9299e964d",
+    "create_tables": [
+      "\"audit_events\""
+    ],
+    "function_declarations": 0,
+    "unique_declarations": 1,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260808000800_retrieval_request_foundation/migration.sql",
+    "lines": 72,
+    "sha256": "d3958ef5d17ca3654ec014865e151ab854c7e976094b66874f1b03ddcd3ace9c",
+    "create_tables": [
+      "\"retrieval_requests\""
+    ],
+    "function_declarations": 0,
+    "unique_declarations": 2,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260808000900_handoff_verification_foundation/migration.sql",
+    "lines": 68,
+    "sha256": "5c50fa04899aa7f7ac04d048f4411348c822d6e0e7c698a2a86f62cc1b4a9d12",
+    "create_tables": [
+      "\"handoff_verifications\""
+    ],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260809001000_payment_validation_tip_foundation/migration.sql",
+    "lines": 205,
+    "sha256": "09e9ea8694539df00f0927941539fad67ce6aab6810be5df99e8865c4ac00479",
+    "create_tables": [
+      "\"payments\"",
+      "\"validations\""
+    ],
+    "function_declarations": 0,
+    "unique_declarations": 6,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260809001100_cash_entry_provider_event_foundation/migration.sql",
+    "lines": 105,
+    "sha256": "5cbb03b139a3bdcc8729f79065c6cfcb05b0e627a3c19d289fe1d48d5fb6f396",
+    "create_tables": [
+      "\"cash_entries\"",
+      "\"payment_provider_events\""
+    ],
+    "function_declarations": 0,
+    "unique_declarations": 3,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260809001200_refund_foundation/migration.sql",
+    "lines": 94,
+    "sha256": "66b4f3164749eaf63cae23c6e81018ca6709eface6c382689e06aaa145d3d7ff",
+    "create_tables": [
+      "\"refunds\""
+    ],
+    "function_declarations": 0,
+    "unique_declarations": 3,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260809001300_incident_foundation/migration.sql",
+    "lines": 68,
+    "sha256": "ab13aeac27fe8d4ff2424d158106eddf30c7ba46f7a75eee1d91f4d81eb4cd73",
+    "create_tables": [
+      "\"incidents\""
+    ],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260809001400_notification_foundation/migration.sql",
+    "lines": 50,
+    "sha256": "cf156cc992739b8b3183871dd681eb8b63337f377563a0770da48d239a89634a",
+    "create_tables": [
+      "\"notifications\""
+    ],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260809001500_check_in_intake_persistence/migration.sql",
+    "lines": 164,
+    "sha256": "fd2fabf023003b8415a7916448f7868e4157a200c811b1ede55452484186eba8",
+    "create_tables": [
+      "\"condition_notes\"",
+      "\"vehicle_photos\""
+    ],
+    "function_declarations": 0,
+    "unique_declarations": 2,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260810001600_intake_session_creation/migration.sql",
+    "lines": 38,
+    "sha256": "967ad49474bc8de84214ccbceeba01659e8109967a1e9e6871aa1470e882ef89",
+    "create_tables": [
+      "\"intake_operations\""
+    ],
+    "function_declarations": 0,
+    "unique_declarations": 1,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260810001700_staff_authentication/migration.sql",
+    "lines": 85,
+    "sha256": "3798dbb799d10e5d6f4d79d1fc5f5a1ffb4b033f17c992d14eb14a0de22aa56d",
+    "create_tables": [
+      "\"staff_auth_sessions\"",
+      "\"staff_refresh_credentials\""
+    ],
+    "function_declarations": 0,
+    "unique_declarations": 5,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260810001800_shared_durable_anti_abuse/migration.sql",
+    "lines": 48,
+    "sha256": "24d698a10b67071e28d709f8323d5c76d4cd8aee5243149c8b92795b68224ad2",
+    "create_tables": [
+      "\"anti_abuse_events\""
+    ],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260811001900_phase3_key_parking_persistence/migration.sql",
+    "lines": 164,
+    "sha256": "2fd805bc6234f3aa2bf35809b39859baed8f83e412d9a27936e1893ba0f3b9e6",
+    "create_tables": [
+      "\"parking_zones\"",
+      "\"key_custody_events\""
+    ],
+    "function_declarations": 0,
+    "unique_declarations": 5,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260812002000_phase3_task_dispatch_persistence/migration.sql",
+    "lines": 149,
+    "sha256": "de20805acf4d88ee6755d2dd8b3fe97bafdecf418176cfd3d745d36c3056c8cf",
+    "create_tables": [
+      "\"tasks\"",
+      "\"dispatch_events\""
+    ],
+    "function_declarations": 0,
+    "unique_declarations": 2,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260813002100_guest_retrieval_requester_consistency/migration.sql",
+    "lines": 16,
+    "sha256": "822eba8c776c5fdef2a1369ed7934675596b9d75bc08e56bc94ebffe68ba45d7",
+    "create_tables": [],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260813002200_secure_handoff_policy_and_anti_abuse/migration.sql",
+    "lines": 28,
+    "sha256": "6dfca29a2f16988dd2b29048a62b0c09ba65acc48280a1980cf025050d594cb1",
+    "create_tables": [],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260814002300_phase5_maps_tracking_persistence/migration.sql",
+    "lines": 226,
+    "sha256": "a506b54d8cc209c5c4b2b3de5854ac685834b9e474ce3e6ff08c026ade382534",
+    "create_tables": [
+      "\"location_map_points\"",
+      "\"location_map_areas\"",
+      "\"location_map_area_vertices\"",
+      "\"task_tracking_sessions\"",
+      "\"raw_gps_samples\"",
+      "\"geofence_events\""
+    ],
+    "function_declarations": 1,
+    "unique_declarations": 8,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260814002400_phase5_map_setup_write_authority/migration.sql",
+    "lines": 468,
+    "sha256": "3fb7748107e0756a10ca29578ac3233688e80d04bb01a832250ef9a2ceebb0bb",
+    "create_tables": [],
+    "function_declarations": 8,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260815002500_phase5_raw_gps_retention_cleanup/migration.sql",
+    "lines": 54,
+    "sha256": "66dba00dda643a7eace9be3bee177b6fc13ff34804439d3cbb83fc3b385764f5",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260815002600_phase6_financial_policy_payment_core/migration.sql",
+    "lines": 31,
+    "sha256": "213969eaca59d43bef81fb63aa6a4018d28dbdbda429934338d51ab4ed29a461",
+    "create_tables": [],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260816002700_phase6_cash_reconciliation/migration.sql",
+    "lines": 70,
+    "sha256": "7afeff30c6d3760718ad2ade1703f41672931287474e50d669e1a91a23960ac2",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260816002800_phase6_payment_collection_operation/migration.sql",
+    "lines": 113,
+    "sha256": "3b2ed3a2408793d60738896de1bc695f11a6451c17c8e369f4ec6befac32f153",
+    "create_tables": [
+      "\"payment_collection_operations\""
+    ],
+    "function_declarations": 0,
+    "unique_declarations": 3,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260822002900_phase7_location_configuration_authority/migration.sql",
+    "lines": 684,
+    "sha256": "18d614e284e161b07abf7b4288264b33ce3e193496e8b891ad066a35ea2e1d6e",
+    "create_tables": [],
+    "function_declarations": 6,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260822003000_phase7_basic_branding_subscription_entitlements/migration.sql",
+    "lines": 476,
+    "sha256": "3fceb58bd66391ab69395666952cd44ab0395e4db5eb42e87577566d453cd9b5",
+    "create_tables": [
+      "\"organization_subscriptions\""
+    ],
+    "function_declarations": 7,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260823003100_phase7_basic_branding_hardening/migration.sql",
+    "lines": 99,
+    "sha256": "a0e600cbbf91b7102f311444d2932b9d8a2d7ff963f0bf60184478d9d5d93435",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260910003200_mob_020a_staff_push_persistence/migration.sql",
+    "lines": 396,
+    "sha256": "0cfe9f483b68d3a22888781be1d84b724f1b9f2237f94403ae1116dc836156fd",
+    "create_tables": [
+      "\"staff_push_registrations\"",
+      "\"staff_push_intents\"",
+      "\"staff_push_deliveries\""
+    ],
+    "function_declarations": 3,
+    "unique_declarations": 6,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260911003300_mob_020d_staff_push_cleanup/migration.sql",
+    "lines": 83,
+    "sha256": "b413e8f3f9ee3de19ac948b43771c9620b41dc61ec12540d59a08a9765c5875b",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260912003400_mob_023b_incident_recovery_intents/migration.sql",
+    "lines": 98,
+    "sha256": "c1d31f760b0a19a9bbfbf69502e9280e9310ffd096076f8acb032eb9c4cef6ba",
+    "create_tables": [
+      "\"incident_recovery_intents\""
+    ],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260916003500_mgt_be_01_audit_foundation/migration.sql",
+    "lines": 216,
+    "sha256": "756ecc2c847fe4cb779ee97138b7d32f8424c0b94510072a22b8c5100dfc2a53",
+    "create_tables": [
+      "\"account_security_audit_events\""
+    ],
+    "function_declarations": 3,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260916003600_mgt_be_02_complete_mfa/migration.sql",
+    "lines": 258,
+    "sha256": "b9c4b2ea924c80311c8cdc84cec718640e28db1947b88c1ab6f6bb9f38d426b6",
+    "create_tables": [
+      "\"user_mfa_totp_factors\"",
+      "\"mfa_recovery_codes\""
+    ],
+    "function_declarations": 2,
+    "unique_declarations": 4,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260916003700_mgt_be_04_staff_roles_access/migration.sql",
+    "lines": 324,
+    "sha256": "ab62433ca965b281fdd7773bcdf578ec24d042f875030bb601a5d690a0d6678e",
+    "create_tables": [],
+    "function_declarations": 8,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260916003800_mgt_be_05_company_settings_branding/migration.sql",
+    "lines": 1530,
+    "sha256": "4d25afef96fa0766cf462786cd7c5e6200e71e9d6f858f179d6764ef7a8aebee",
+    "create_tables": [
+      "public.organization_operating_hours",
+      "public.location_operating_hours_overrides"
+    ],
+    "function_declarations": 24,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260917003900_mgt_be_06_management_audit_log/migration.sql",
+    "lines": 2,
+    "sha256": "f681df5d36b539ac0fd4c48cb0c7f7ffb653de7c9f74970a8c5d5fb336f16681",
+    "create_tables": [],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260917004000_mgt_be_07_location_management/migration.sql",
+    "lines": 299,
+    "sha256": "e28591137203acee85878ad577771ffc79277def8143e24cacf33b10ed5b51ea",
+    "create_tables": [],
+    "function_declarations": 12,
+    "unique_declarations": 1,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260917004100_mgt_be_08_visit_contacts/migration.sql",
+    "lines": 143,
+    "sha256": "e4096804c21392871e6736400844e88a4fb4b578b830554116435712a2df975e",
+    "create_tables": [],
+    "function_declarations": 5,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260917004200_mgt_be_09_guest_rating/migration.sql",
+    "lines": 124,
+    "sha256": "ae193d9d91a070c1fd1471ed60f23cd730f67eecd96fc604bf8e368d2e5ee6be",
+    "create_tables": [
+      "\"guest_ratings\""
+    ],
+    "function_declarations": 2,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260917004300_mgt_be_10_kpi_analytics/migration.sql",
+    "lines": 241,
+    "sha256": "220220c3aa55eb863592b1564d125c41af626ed71a0ca1bd574c4b389f3fd4ea",
+    "create_tables": [],
+    "function_declarations": 5,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260918004400_mgt_be_11_all_locations_reports/migration.sql",
+    "lines": 5,
+    "sha256": "c9e7d35c1aa3a9b69cd62c1f9fddae5d9d02579b9b32d3ca4ff09616708dcf59",
+    "create_tables": [],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260919004500_mgt_fix_02_pagination_snapshot_membership/migration.sql",
+    "lines": 47,
+    "sha256": "7a9f38316532d1f248043e43a54c76628937500d621b6b924096f65db87794cc",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260929004600_mgt_232_physical_resource_creation/migration.sql",
+    "lines": 300,
+    "sha256": "03fcebc1c3f91eddf4751898c1c6f791c1cb01f98b714cf796a41beb53c928b7",
+    "create_tables": [],
+    "function_declarations": 6,
+    "unique_declarations": 1,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260929004700_map_setup_client_cas/migration.sql",
+    "lines": 91,
+    "sha256": "8656e6ca1db66e611069c1e67a613da52eaa3a622af1d756ae812db34f007f71",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261001004800_mgt_236_parking_zone_creation/migration.sql",
+    "lines": 235,
+    "sha256": "6bbe1fb49bcb2b0204262a9cc37aa8ba5484841f213d0d18398518773b9af551",
+    "create_tables": [],
+    "function_declarations": 5,
+    "unique_declarations": 1,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261001004900_mgt_240a_staff_identity/migration.sql",
+    "lines": 19,
+    "sha256": "fcb671e030a5ff7f4d12695ad59839c998c5e77f954e7ece5a8af85d337b8143",
+    "create_tables": [],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261001005000_mgt_240b_lm_staff_authority/migration.sql",
+    "lines": 394,
+    "sha256": "89436ac6969dab45029a8322d2cd4b128fa4f922b3d29d20ce30be8bdb3c944d",
+    "create_tables": [],
+    "function_declarations": 6,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261001005100_mgt_240c_staff_onboarding_invites/migration.sql",
+    "lines": 522,
+    "sha256": "29049bb6a59edbbbbbdd4a313d3ae76cc1023d36add29614583c704babd63b0f",
+    "create_tables": [
+      "public.staff_onboarding_invitations"
+    ],
+    "function_declarations": 11,
+    "unique_declarations": 4,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261001005200_mgt_240c_invitation_anti_abuse_scope/migration.sql",
+    "lines": 19,
+    "sha256": "7bf501d3d8cea771abe24db3421fa3c4ca685a22d60806f4a5334ccaa8e688d2",
+    "create_tables": [],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261001005300_mgt_240d_staff_activation/migration.sql",
+    "lines": 121,
+    "sha256": "ede5a14a69445cb0424909a513a13de02e9ef57026108255cb2b06b287a0ecab",
+    "create_tables": [],
+    "function_declarations": 2,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261002005400_mgt_240f_force_end_shift/migration.sql",
+    "lines": 203,
+    "sha256": "4ce525b59d46792b5ce618ab100156b6bd6bcd63298c8ad033934669a61718cf",
+    "create_tables": [
+      "public.shift_force_end_closures"
+    ],
+    "function_declarations": 3,
+    "unique_declarations": 4,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261003005500_check_in_cancelled_enum/migration.sql",
+    "lines": 2,
+    "sha256": "7cf561a4f8f0973290520fb28c4df0898b64d6f4d99b4cbb6ab5ea28b8b0d903",
+    "create_tables": [],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261003005600_check_in_cancelled_terminal/migration.sql",
+    "lines": 37,
+    "sha256": "44856e8e3a72743b752395099f3e9487e1d88e44ea15680581f1f1ed5eb3a0a2",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 1,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261003005700_pre_custody_parking_cancellation/migration.sql",
+    "lines": 17,
+    "sha256": "abf09a680687b8e97fd532d1c0d5da8bd0073ba25c91960a862a5481570ee707",
+    "create_tables": [],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004005800_shift_presence_foundation/migration.sql",
+    "lines": 444,
+    "sha256": "12a5362224407475c6c9812326bcae32b719a5fe54cbc1e6904197a1b8b40dab",
+    "create_tables": [
+      "public.shift_presence_zones",
+      "public.shift_presence_operations",
+      "public.shift_presence_challenges",
+      "public.shift_presence_exceptions",
+      "public.shift_presence_decisions"
+    ],
+    "function_declarations": 3,
+    "unique_declarations": 11,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004005900_shift_presence_decision_privacy/migration.sql",
+    "lines": 170,
+    "sha256": "bab10dee973b0836d9cf2db1480f0a0eb7fb98a76e2b07bdb5d00d9f1add3db1",
+    "create_tables": [],
+    "function_declarations": 2,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004006000_shift_presence_authority_denial/migration.sql",
+    "lines": 149,
+    "sha256": "b58e9432acab675215624197b42a3aea4e3ed56e26cd0a7764aea90acda64b38",
+    "create_tables": [],
+    "function_declarations": 2,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004006100_shift_presence_policy_commands/migration.sql",
+    "lines": 99,
+    "sha256": "bdcd039974bc580eeac3a917263d041de778cc59dbe225f1f9086ed6b94e8e97",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004006200_shift_presence_retention_execution/migration.sql",
+    "lines": 60,
+    "sha256": "45532491557bd3d0bfb9321407dab5934d9435794cc59933145be3eea930969b",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004006300_shift_presence_management_entitlement/migration.sql",
+    "lines": 21,
+    "sha256": "ce5d025383b25a1cd408d33c208d5b2a030087ea05b7766528c2d6ec340bcd98",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004006400_shift_presence_management_results/migration.sql",
+    "lines": 70,
+    "sha256": "43ff1b1818abf37fc8fee0ae5187955e42e1f25b8843ba77fed4191d77613550",
+    "create_tables": [
+      "public.shift_presence_management_results"
+    ],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004006500_shift_presence_anti_abuse_scopes/migration.sql",
+    "lines": 16,
+    "sha256": "5652ccc0fb587e2fdb98c2a7db353707af8558e9176d251820d8b8e52cb067a0",
+    "create_tables": [],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004006600_shift_presence_consumer_denial/migration.sql",
+    "lines": 25,
+    "sha256": "541c426451acf5162cfd80480e22e81c4a36ac3e205dd1fde0c505f26bd3053b",
+    "create_tables": [],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004006700_shift_presence_evidence_free_completion/migration.sql",
+    "lines": 67,
+    "sha256": "d83d12fbe6e9ffc6f0a8467033b3dcd4497dc8acd1f17d342fa340bf91fbbba6",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261004006800_shift_presence_converged_completion/migration.sql",
+    "lines": 71,
+    "sha256": "b7db72ca29c3738c5c86526e5f057d39ebca2e70e1c26966337fff3635dc0e93",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261007006900_shift_presence_strict_rollout_activation/migration.sql",
+    "lines": 98,
+    "sha256": "119512f3ba283c8eca6e5da4068bd3e42dbdd63c54302cdce3ef3ca56858e3d9",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261007007000_guest_browser_session_continuity/migration.sql",
+    "lines": 625,
+    "sha256": "be4351fb16a74861205f85423e16dd3aecb45bb1b0a1a1f7588e6c4c25ff5da6",
+    "create_tables": [
+      "public.guest_browser_enrollments",
+      "public.guest_browser_sessions"
+    ],
+    "function_declarations": 9,
+    "unique_declarations": 5,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261008007100_guest_browser_context_schema/migration.sql",
+    "lines": 250,
+    "sha256": "0e818d0ff7449a0c4c8fac43337d8b52acca8c7ccf8033e1fd3964df4f393c33",
+    "create_tables": [],
+    "function_declarations": 2,
+    "unique_declarations": 1,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261008007200_guest_browser_context_prepare/migration.sql",
+    "lines": 228,
+    "sha256": "aeb1e1be255e6ddcc0448dd92c8b401451a5a59a44dd743cd8da2977c4729f36",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261008007300_guest_browser_context_switch/migration.sql",
+    "lines": 251,
+    "sha256": "52885c8984b40728849318bcc44f5f911b0d7433b449b2b4a45658ec4da4a06e",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261008007400_guest_browser_context_reconcile/migration.sql",
+    "lines": 143,
+    "sha256": "722db7637bca8e174cb38bd6c787a026bcdabf4819972ccbd5e52797aa1d7d5a",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261008007500_guest_t3_classified_anti_abuse/migration.sql",
+    "lines": 40,
+    "sha256": "a610b19d62bb498bd0e7cb6edbf67f4ec2087cc5c79053c7132c04eaf243510c",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261008007600_guest_t3_visit_budget_binding/migration.sql",
+    "lines": 6,
+    "sha256": "49763d25e9e8de1d410be984b471d47a5473bdfa0b1b982d9ee406654880ed53",
+    "create_tables": [],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261008007700_guest_t3_group_window_index/migration.sql",
+    "lines": 5,
+    "sha256": "368236521382b86d981febaa762fde955b7d36b9e2273e7f433c45913b9bbafe",
+    "create_tables": [],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261008007800_guest_web_push_v1/migration.sql",
+    "lines": 852,
+    "sha256": "9dff65c7082a444cde6b79fc943e1357284c02222def7de0b81c2666b746500b",
+    "create_tables": [
+      "public.guest_push_registrations",
+      "public.guest_push_intents",
+      "public.guest_push_deliveries"
+    ],
+    "function_declarations": 8,
+    "unique_declarations": 8,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261010007900_live_history_parked_audit_indexes/migration.sql",
+    "lines": 87,
+    "sha256": "8a3e0d6d90707159e07934b0f1816ea8e128472005f7d09b6d700a4cee04509d",
+    "create_tables": [],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261014008000_issue_215_verified_condition_photo_p1/migration.sql",
+    "lines": 1231,
+    "sha256": "026d4f1e4bf35d43b490761d032ce44308ff67abf20a64db58fb14db804a390a",
+    "create_tables": [
+      "\"condition_photo_upload_operations\"",
+      "\"condition_photo_upload_attempts\"",
+      "\"vehicle_photo_verifications\"",
+      "\"vehicle_photo_availability\"",
+      "\"condition_photo_upload_admission\""
+    ],
+    "function_declarations": 15,
+    "unique_declarations": 20,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015008100_issue_215_photo_anti_abuse_scopes/migration.sql",
+    "lines": 21,
+    "sha256": "f9ae530f188aa42a4cf39fce646b1bf35cb4722ed3bf3c0f62365b5cf8ba8e08",
+    "create_tables": [],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015008200_issue_215_condition_photo_policy_recovery/migration.sql",
+    "lines": 242,
+    "sha256": "60375d87340e6d4115d376577a7524ec0bd57607ad369199c11c4c7e5e98d28d",
+    "create_tables": [],
+    "function_declarations": 4,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015008300_issue_215_condition_photo_policy_recovery_finish/migration.sql",
+    "lines": 253,
+    "sha256": "879b98b3f594656c2ef9f719b0cfb5af58e2df5fd5634971e2f055b735b53018",
+    "create_tables": [],
+    "function_declarations": 3,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015008400_issue_215_p5_photo_maintenance_claims/migration.sql",
+    "lines": 158,
+    "sha256": "ac62e1e0fbf6c8da6b3856f42634582022e13360abaa135bb4dbcd7deb77a613",
+    "create_tables": [
+      "public.condition_photo_cleanup_claims"
+    ],
+    "function_declarations": 4,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015008500_issue_215_p5_photo_integrity_system/migration.sql",
+    "lines": 94,
+    "sha256": "e716b332cdd7ddc91cdff15903a6ea1db00209e7c8ab88f314d8309ac96a942d",
+    "create_tables": [],
+    "function_declarations": 2,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015008600_outbound_messaging_foundation/migration.sql",
+    "lines": 296,
+    "sha256": "575503f22fa014a61792bc88e631693b854dc82dd81e007de06d0b9be31ecb66",
+    "create_tables": [
+      "outbound_provider_bindings",
+      "outbound_messaging_policies",
+      "outbound_messaging_control",
+      "outbound_messaging_permissions",
+      "outbound_permission_events",
+      "outbound_message_intents",
+      "outbound_message_deliveries",
+      "outbound_message_attempts",
+      "outbound_message_envelopes",
+      "outbound_message_events",
+      "outbound_message_budgets",
+      "outbound_recipient_budgets"
+    ],
+    "function_declarations": 4,
+    "unique_declarations": 18,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015008700_outbound_sender_functions/migration.sql",
+    "lines": 183,
+    "sha256": "85ff2d599df70ab0246e9655bf7ae1e30f561d493143d318e2bd1866c7527d57",
+    "create_tables": [],
+    "function_declarations": 4,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015008800_outbound_webhook_recovery_functions/migration.sql",
+    "lines": 239,
+    "sha256": "5b032a194a36726abe7497f8f05148ce64b7f8f7663f171663dd356e9c8ecc4c",
+    "create_tables": [],
+    "function_declarations": 9,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015008900_outbound_callback_and_suppression_fences/migration.sql",
+    "lines": 255,
+    "sha256": "f268f72eaac084f434efb871197a11cf49faf757edd3d5887442250fb4c5a414",
+    "create_tables": [],
+    "function_declarations": 8,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015009000_outbound_binding_insert_acl/migration.sql",
+    "lines": 25,
+    "sha256": "d38f144d5cb3649f0680450efe108d2b9304e84b64788945dd312b6132c3513c",
+    "create_tables": [],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015009100_outbound_authenticated_crash_recovery/migration.sql",
+    "lines": 61,
+    "sha256": "98dfbfbe67f26220f00faad660977abfbe8d24c2c871b64cea36b4380539ff70",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015009200_outbound_phone_change_suppression/migration.sql",
+    "lines": 44,
+    "sha256": "0632284451eff8e4f6d626d2b1603eee8a708edfd88bb0863e733dd45e0faaf1",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261015009300_outbound_post_result_phone_fence/migration.sql",
+    "lines": 179,
+    "sha256": "e38d5e4f6ad32748da997ba6749b2f31099187972108512bd6cb97754b44c631",
+    "create_tables": [],
+    "function_declarations": 4,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261018009400_issue_300_u05_birth_xid/migration.sql",
+    "lines": 53,
+    "sha256": "09e267382040c295c209f085718dd7ed010355501457c12258fcde96af3f74cf",
+    "create_tables": [],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261018009500_issue_300_option_b_task_relation_provenance/migration.sql",
+    "lines": 84,
+    "sha256": "b24775792febd2a89901c8c6fcfb41e6ea3c0e037423fc82d92584dc7294c432",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261018009600_issue_300_option_b_attribution_freeze/migration.sql",
+    "lines": 41,
+    "sha256": "fa67521424caa40606f18f40172998c59e3b8b59e983a32ba5dabfb77cb0f498",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261020009700_issue304_key_slot_label/migration.sql",
+    "lines": 53,
+    "sha256": "4398f3f552a8dfba82946d98ae7b4d0849e6224e8f900da014edfc912af61e48",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261021009800_issue309_photo_view_anti_abuse_scope/migration.sql",
+    "lines": 67,
+    "sha256": "acc4ecaae6365a4829e889db59dd1152ed3b8cd0e99b6122af672dc07c04f990",
+    "create_tables": [],
+    "function_declarations": 0,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261021009900_issue_309_management_photo_evidence_lock/migration.sql",
+    "lines": 72,
+    "sha256": "bee6e6181d369b2b8cf8c7553656a00a3894541cfcc52fb3e491128c8edf05ca",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261022010000_issue313_rating_analytics_read/migration.sql",
+    "lines": 131,
+    "sha256": "6b0eb127b2c7d80b3aed797302efd80fbf54ca07341814833363cbdbbca86c22",
+    "create_tables": [],
+    "function_declarations": 1,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261022010100_issue316_guest_information_contracts/migration.sql",
+    "lines": 188,
+    "sha256": "9b4374014b75cfb7dd5e82536ffd960c06e01c2143911153fcd299502871c981",
+    "create_tables": [
+      "public.guest_location_privacy",
+      "public.guest_privacy_publications",
+      "public.guest_contact_company_defaults",
+      "public.guest_contact_location_overrides"
+    ],
+    "function_declarations": 2,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261022010200_issue316_guest_information_authority/migration.sql",
+    "lines": 263,
+    "sha256": "ed3b95e80b18a67019f83f32d2af41de6e5aaa6aae9ec1885c5d0648726a0e71",
+    "create_tables": [],
+    "function_declarations": 7,
+    "unique_declarations": 0,
+    "explicit_begin": true
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261026010300_issue346_resume_location_intake/migration.sql",
+    "lines": 61,
+    "sha256": "ed278e1a7f06ad30787e08b74f616f895eda09ecd88f8ac678e29ab7927942e2",
+    "create_tables": [],
+    "function_declarations": 2,
+    "unique_declarations": 0,
+    "explicit_begin": false
+  }
+]

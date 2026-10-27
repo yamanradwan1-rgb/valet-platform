@@ -1,0 +1,11 @@
+{
+  "ownership_label": "66968655-read-only",
+  "version": "17.11",
+  "migration_sql_applied": 103,
+  "public_tables_after_application": 84,
+  "prisma_ledger_tested": false,
+  "runtime_provisioning_tested": false,
+  "operational_integration_suite_files_failed_setup": 3,
+  "operational_integration_cases_skipped": 23,
+  "container_removed": true
+}
