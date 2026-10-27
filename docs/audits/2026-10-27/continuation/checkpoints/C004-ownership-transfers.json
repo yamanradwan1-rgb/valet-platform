@@ -1,0 +1,1764 @@
+{
+  "checkpoint": "C004",
+  "reason": "worker chats 8,9,10,12,14 failed startup with zero credited work; native 35 transferred to prime for direct full review",
+  "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+  "prior_audit_checkpoint": "5cb77a09d2495325940e2c330d9c4b63e89f9a5f",
+  "transfers": [
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/app.controller.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4d24bd1b4b041e31f95506a0fefcd6feddd1b2edc0ed6a3640d9d679e1dc098a",
+      "lines": 27,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/database/runtime-database-readiness.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "f13ad6ff7e40aeb5de065b8773eee3f079c9fe9c43b588e459588bb73b93964c",
+      "lines": 71,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/database/runtime-database.module.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "59874037e60f8d234a21c520a5f403ad99bd80fc4e31551892cfb516fa357353",
+      "lines": 76,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/database/runtime-postgres-policy.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "9ef1ec7856d37aff498197eb39c29c641261ee03f89fec7a632befc8428eae27",
+      "lines": 108,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/financial/currency-minor-units.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "9b88bb6acb4e1c8b71a94d9ae4805fdbf23b4ab0e4653e05da8947b04abb5e55",
+      "lines": 207,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/http/handoff-operation-routes.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "40fa47fbcdb783d53ad35ef39155e0d413dffd76b30616286ae650106fb0f7e4",
+      "lines": 43,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/http/http-infrastructure.module.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ab32b6ed69c07e419374611025954fc7ab3e2a1815f24897b05c2c4c50d45d5a",
+      "lines": 18,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/http/no-store-response.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "da879b188b99ac4c3054c699ac2986006aec6fe02c2550ba88deaf6d627d86a2",
+      "lines": 8,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/http/payment-operation-routes.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "cf13d8cb21bf264a1fe0ae789c49773c2206ec1c3d0a00ada9aafff3bc421272",
+      "lines": 37,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/http/presence-api-errors.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "1128e0c959626a9bc433114634279e0e2915d293c6e114260e983d14c0ff270f",
+      "lines": 54,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/http/presence-operation-routes.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "90f275977aef1647bb02d60198e10812524fa791627028080cbdcef37e2af9c1",
+      "lines": 63,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/http/staff-auth-operation-routes.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "d33d0db3052eb4627b4a52175ce93cb4991be2ddf3dc33442fe3298f840d0a45",
+      "lines": 71,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/http/staff-onboarding-operation-routes.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "cb0fad6a2c087eaff48d91e2e78276cb7f4611348d8ec177771af5f6fec5db52",
+      "lines": 16,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/http/staff-shift-force-end-operation-routes.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "072f43abffcfe0ac709803491ed2599ec50817e0ca2be408cbc3d115259bf37a",
+      "lines": 7,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/observability/console-operation-observer.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "135d0bca4af4e870e04cf34e308e45a5bd8814ac1c7fa0be372b97c0bd65feda",
+      "lines": 61,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/observability/guest-operation-metrics.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2278d3a8590f99416803108589b63b146702c0e6e3bb2a5dd7669f362a3d3b9c",
+      "lines": 60,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/observability/http-metrics.middleware.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "a3f481c1ef9df885c0a767d2cd5be92ea269705df57df136cf8e9e65149372aa",
+      "lines": 54,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/observability/http-operation-metrics.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "19177aaa783765417d5590776ff853d42915ce87b7e5fc32337a35a2ea1980a1",
+      "lines": 73,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/observability/limiter-maintenance-metrics.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "132ecfbdb389aa7d8cc30d1107bdc74feb19168da1753abae79dfdbc6c5b9f2f",
+      "lines": 33,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/observability/observability.module.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4e29bcd7a08de1aa2be5d72732271d118cd2e1ef05dc00305251d2157ad8d78f",
+      "lines": 17,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/observability/operation-observability.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "5e207495b072fcebc31506c35855cbe6639ef75fa638a96c4033d7f12b274a34",
+      "lines": 31,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/common/observability/runtime-metrics-pulse.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "21cc7265b554065efb6953f63a0ce44f87f11708b3379f61d09d4b28b21a651d",
+      "lines": 89,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/condition-photo-maintenance-worker.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "262d8e4b94568f0c5aced336b741dc86a04a44bd1e90bde3091df6922ca6996d",
+      "lines": 89,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/guest-push-worker.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "03e09e95da4748422ea87f34e4544820d7e77ca1cde204409b8ad7e243341f7e",
+      "lines": 77,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/health/application-drain-middleware.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "5da1b0b8ba947ef9b866f67d27548ec2ef90807995c2726e73319cd111aaae79",
+      "lines": 35,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/health/early-shutdown-withdrawal.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ec1f4daef8279ad2ad4c93e06265828281793a9cc819c4b995466cc1b9e5f4b4",
+      "lines": 37,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/health/graceful-drain.lifecycle.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "d011a3e4c80575fcffe7a223b8a037ab9bca042dbe7522b2cf401a961ec7472e",
+      "lines": 39,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/health/health-readiness.service.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "d87a81686a61e637274cc64a1da6b3ae2457062e09473899ffdbbee566265806",
+      "lines": 88,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/health/health.controller.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "3beaf5e7b0307301d7a56da997bd45b8c00f6165118eba45ab95d41767814043",
+      "lines": 46,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/health/health.module.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4a3bc2164703295c0f34224f515116fc98a69505ec62bf5a6d2a5a3bc72011db",
+      "lines": 23,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/modules/anti-abuse/anti-abuse-key.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "8e2e118f54c7e14d63a3bb0963653aee980f947760310195f56ae34b7ea0b213",
+      "lines": 65,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/modules/anti-abuse/anti-abuse-maintenance.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c0c61b4a1efd14f873667f27e5b11f8dae250dec4c1723bd3e6dcbb3d26cda12",
+      "lines": 84,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/modules/anti-abuse/anti-abuse.module.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "eb3f3f49ed3712ed547e1536dd33b9cee55b9ee2ec4c9f9ca750a2907544a42b",
+      "lines": 23,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/modules/anti-abuse/anti-abuse.service.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "f8f361913bc3dba27afd441d2355f3d2a65fa6be07143a0e5fa4a0e864b69209",
+      "lines": 300,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_core",
+      "path": "apps/api/src/modules/anti-abuse/classified-guest-counter.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "e4829960128b413527cca6de773be19a22d2a5a727c2689f283edfb60cb5c877",
+      "lines": 118,
+      "original_worker": "api_core",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/anti-abuse/client-address.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ad2a7aa9407a0de64fb76e5e98cc559fe33f86f1c9dc27059de66f4a0e8ca099",
+      "lines": 205,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/audit/account-security-audit-writer.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c026328eababac1c1022e3ac6592164325e1491117b793a83b05e590782a4fd9",
+      "lines": 117,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/audit/audit-foundation-validation.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "02af96b7b4a11b8b9b6a5570f5265d4bcd964f86cdbf806b298ebd5467417988",
+      "lines": 161,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/audit/custody-audit-event-writer.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "0dfcf03f168431055c9b8a6193c84124f0f30d86017380c955433f196cfd35ac",
+      "lines": 107,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/audit/organization-audit-writer.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6dbcf5197ba7aa9d908174d3599f9bcaf56ea945e8640e70a9b632f4be922c43",
+      "lines": 109,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/check-in-api/cancel-check-in.controller.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7368d6897900823faef1f833a676016881ed0bb1a37a66d8f3daf0ac474daeb0",
+      "lines": 100,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/check-in-api/cancel-check-in.service.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "392a5410e9811007b675fb6023436eb5e7d3ba3a66f82e74b7b4236444b3a63e",
+      "lines": 45,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/check-in-api/check-in.module.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2f004414badc91f7f84abf2399f3d656d83c2b44ebe25f927c6fa2883d471d01",
+      "lines": 68,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/check-in-api/condition-photo-auth.guard.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "559fcc042533772f308f194fe7be5d37ec04092ea377e877427d9527e9d4fd3b",
+      "lines": 91,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/check-in-api/condition-photo-ingress.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "3cdbebda1bb03d7d15b56f030f0036048847f66c1f6369a07eae41c24fe1d15e",
+      "lines": 20,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/check-in-api/condition-photo-multipart.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "a7745849039b98a7c5b4f5bcf721a9a153be61f652ddf3e68488fab38b892efb",
+      "lines": 151,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/check-in-api/condition-photo.controller.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "85cb0177279f0c9e99b2841acd12cc6e0f10bc401a63bd25768813b9ab6c092c",
+      "lines": 141,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/check-in-api/plate-ocr-auth.guard.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b514e55c0c0396ba212d5f8c4b4427b286a67239e146dce8391ff115acb1fbcc",
+      "lines": 52,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/check-in-api/plate-ocr-boundary-diagnostics.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "1aa8aaed432171e554ee45ef902c85815d363a7418c006d15ff9d1fddbce2df9",
+      "lines": 31,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/analytics-incidents-query.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "46cae67e009580e386fc42f1c359e527530385686b0a8f2828aee893e0f50cf3",
+      "lines": 118,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/analytics-kpi-key-exceptions-query.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "5bd7ea995304f218824a7a41b681ccd25b88ac9658026b65aecbc64fbac74053",
+      "lines": 38,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/analytics-kpi-snapshot-transaction.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "703b7e64b106e34343dcecb52f5befc10dca6badc5283513b4730d6adb2e6db5",
+      "lines": 168,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/analytics.controller.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "982559714925f51019e41a7cbb2f621f9e3cdb322f6a9b789b3b3738cfec5960",
+      "lines": 217,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/branding-command.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "f0fd96461ed1d4164dc969a60ea703f3ecaf4d21fd9771683223e1b82ba340e2",
+      "lines": 234,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/branding.controller.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "29498cfde4fdc414eaf69564aba3c29e1496b094252116d85c30b47b6b009b0c",
+      "lines": 136,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/dashboard-configuration-errors.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b6d2347a104f1c4b10762db3a0f637ca2093de9840f801fce557427a8df06417",
+      "lines": 42,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/dashboard-configuration-projection.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "3fefc3caa2149272ad9a44af92d914c9da4fc9d5c3e7d82691bac7e02dc4a1ab",
+      "lines": 194,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/dashboard-configuration.controller.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "f8a40c6101c9de78929c48303a7c381683519871db2163c7b2ba90d7ef86c0f1",
+      "lines": 144,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/dashboard-feature-authority.controller.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c483ea39ad05a8a0d0d581655e6f61bf0b3e53ae5cb5b458a1b5364eba6081e5",
+      "lines": 58,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/dashboard-feature-authority.service.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6ecdc437f716583c19e7bb7b6d79d314373bf0639ee294c5aa4787b8ae81fcfd",
+      "lines": 66,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/dashboard-location-authorization.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "681a4789fbde59bf0d0dde2a4a20b32144a09bcd36e1d64ef4b1588dc900dedb",
+      "lines": 54,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/dashboard-location-scope-query.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "1045ffcc718350594bdb1a3273dd18060d68486afdaa7a50d6dee67862c4874a",
+      "lines": 36,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/dashboard-overview-error.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "87c4f9bf2c409f3c8ddc2ccf36f538046d27888a1634c5f5e76cce04deed8744",
+      "lines": 29,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/dashboard-presence.controller.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "39d3879ba4d519de6932d12277ecc2d131ba1d74b0e18efcc3d898ad152205ff",
+      "lines": 24,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/dashboard-read-authorization.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4cbd56a928a2f29fbed368422a2eee1f3bdd6d57b36e30847ad7bcb4ccedb6d7",
+      "lines": 119,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/dashboard-scope-discovery-cursor.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "410583a10a259c37d5b6c6203858db596ff7bd84db0e79c22a3440d2cc0d2c51",
+      "lines": 68,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/dashboard-scope-discovery.controller.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "48329074913a7ff0ce13b414639ad96dd0daea1c68120701fcc67b7fcfd03001",
+      "lines": 102,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/dashboard-scope-discovery.service.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "3368714f85cb8b684e42f52c793e421384d983c47830c91d1f7b9b164a9dbafe",
+      "lines": 158,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/dashboard.module.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c51156ad207bc67ab2f1de26a091133039eb3941565df457437bcdce5501db81",
+      "lines": 96,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "api_modules",
+      "path": "apps/api/src/modules/dashboard/incidents-query.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "9faa3bd615319807bbe3f039e45cc8aeaffe02c1d01c2408ccf78a9c9ac93eff",
+      "lines": 145,
+      "original_worker": "api_modules",
+      "temporary_reviewer": "database"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/qa/issue-338/render.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "19e748541e742962ef32204e517a522ea60a22ed5bbb4279f3a2a0428ae93870",
+      "lines": 63,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/app/document-bootstrap-script.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7c97769486a2f38531a0b0d074148ca4214819bb0e4fb3f335cd9145eb21e66e",
+      "lines": 78,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/app/guest-auto-rating-eligibility.mounted.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "d9c859ba7573fcc2ac0a81a8e1b050b1a9464cc9e1c169fd3d88d42901be68f5",
+      "lines": 122,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/app/guest-refresh-mounted.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2afa74ce85c85c88d2d83c3f9f659a3c8fb1c93e28ee38a99cc61608950817f1",
+      "lines": 233,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/app/guest-web-push-mount.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "69cfed96eb92ce335ec7eeb30ab0ff63328fc5cfd2777dd29d76fd5893105bb2",
+      "lines": 39,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/app/readyz/readiness-concurrency.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "d38932faca0fda87836476a1bfd42c725623a24da723d7dacb2919bb67cb9c3e",
+      "lines": 147,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/app/readyz/route.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "9afe0101cf3a70eea9c90770c41d1adfbed0fb25a138a328d2089906aa787fc6",
+      "lines": 63,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/components/layout/bottom-sheet.mounted.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7dd5db6f6384c51956946147e138062d63e9282b577a6f281d34a502b793c6a9",
+      "lines": 242,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/components/primitives/pickup-pin.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "39dc7859c834ab0ccde375895d65ea6005762667f8e3f12dfa72952587d516d9",
+      "lines": 101,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/auth/guest-auth-bootstrap-rate-limit.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ef087474b81c9a8c4ffadb99e4055c4fe3fb08281deecdf5f6a6112cb67eb735",
+      "lines": 262,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/auth/guest-auth-bootstrap.mounted.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "84bc0594db1fafce768623deeb240fb3cf6afec6fd7482fe788af3f688b4b15b",
+      "lines": 234,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/auth/guest-auth-context-switch.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "a1dfef3bbea51d95ba861b37b1daff55290f74594663b1400416f7cc182576af",
+      "lines": 168,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/auth/guest-auth-context.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "d49c64a2739f243bcc26eac59812afcc6c20a60421a2cc4c3aaefa5a192a5caf",
+      "lines": 283,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/auth/guest-token-adapter.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "1f5abb9dac74db357f0235085de934d26753282494571d5eac82c1c469ce1ca3",
+      "lines": 78,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/auth/overlay-guest-context-conflict.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "abd9ae6dcf9fd1937d2347508cc59de5b0979ee3c0c1878b9127d518ce28209b",
+      "lines": 121,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/deferred/guest-information-content.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "913b9f9f117bb80fd44456da03f02ce4fc0faace1c3909cf2d1f8306ac2c5fb2",
+      "lines": 58,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/deferred/overlay-guest-information.mounted.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6bd9f6e179c2048d84c9d8c2e11bb6d5527d45ce109c9d4e4302be1981aa466a",
+      "lines": 105,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/demo/customer-navigation-removal.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b977ac73a32268a7c103a26edd97c2be2e7cf069474e6ef41f1ab5560d9c6d1e",
+      "lines": 95,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/demo/demo-registry.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "185c1926e97a81b3ecd1486a211d190199dbbf750bf90c0e5fa9763fb2bbf9da",
+      "lines": 75,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/demo/demo-safety.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "0c9796989cc50ce87aaf87d22bf73e4a40aed9e5628cd1013265748eb026a185",
+      "lines": 244,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/demo/demo-screen-renderer.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "63970835c40ec53866682933af06a9b57df98c262111a9adcda48c3cb34c670b",
+      "lines": 192,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/demo/demo-visual-matrix.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c2dc5d636818a7d527d8f60ad02ca4344303a63c8e8a6f84bf239b2224705768",
+      "lines": 104,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/handoff/qr-code.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6fdd2d0145aef87253f561a800ea44f58e47e88665b7b8447e5f005b75d2f9b3",
+      "lines": 45,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/handoff/use-handoff.mounted.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "94fe7c116335cc168dd5fc30f07db5ab6f963847800bd6cf0c855c81e92d2494",
+      "lines": 294,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/handoff/use-handoff.reconcile-failure.mounted.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4972c82a67bebadce7ed529c95e19395070830f3f3901157e2c046d0b23848a7",
+      "lines": 140,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/handoff/use-handoff.recovery.mounted.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b3f332b06b494ab140cb26d885bc5980fc932a87391e8709a8d2c101dd6c00fd",
+      "lines": 298,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/handoff/use-handoff.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "26bf773c033e2d0591aa0b72040ed1160a7a7ce2518cbcace36b68b801bbbbab",
+      "lines": 125,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/post-visit/guest-auto-rating.mounted.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4a38f0dd859851e67cb25019fb69cb8fcee04958af1a89c3e6d3b7fb16da7420",
+      "lines": 252,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/post-visit/guest-post-visit.mounted.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "176bf0b538fb0604debc27e507b466eb323ebdc3c0ac0a782ec8ebe5ed6ad1f2",
+      "lines": 150,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/rating/guest-rating-submission.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "293b40197e861e68fc9ceceaf0a1d72cbd403b12758f1774f436213d08a0f06d",
+      "lines": 93,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/rating/rating-presentation-outcome.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "9371b8786138398c844d37ab94b53328c500a5793be8acd22176c4f07a3c95a2",
+      "lines": 53,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/rating/rating-presentation-policy.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7160919391cca127b23b25d6f23aa16058205942a3d39b1b693647e57ae71ca9",
+      "lines": 92,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/ready-alert/guest-ready-alert-audio.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b7729d26fd8116d5327658a597abfc8ca3665cc43c43dd4533fde77aa4876efc",
+      "lines": 46,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/ready-alert/guest-ready-alert-tracker.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2e96ff8810a0479d7e823e4e19fe75942d8dd925b7b355caad8534b99fc4b416",
+      "lines": 122,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "customer",
+      "path": "apps/customer/src/features/ready-alert/guest-vehicle-ready-alert.test.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "0cf4acb61774a05abc3e7e7a8f93dde8fc9101cc43691c7ca0c47da9987d0fdc",
+      "lines": 55,
+      "original_worker": "customer",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/api-errors.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b5035b6ee25b4a44dce83f0a2854a860005fc8c0d5e87832aed2ac332d693248",
+      "lines": 11,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/audit-investigation-common.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "21eb8de4478218201237970ad68d1ee523fe5af2f4cca553dda114f413825339",
+      "lines": 126,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/audit-investigation-common.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "633032da3221a35422d045716a0a1427bd912636b9b0808aae2939c965a573c8",
+      "lines": 204,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/audit-investigation-detail.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4cae2d6398a2da694edaf8cfb039fc42992783338df50d0f30c7568ee9e1eddd",
+      "lines": 70,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/audit-investigation-detail.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "0bd81894e2cf1406942c3f346b0acfb256d0679979bf9d46dff2fb942bdb7d63",
+      "lines": 76,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/audit-investigation-filters.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7b8c9ffba6f23cd74e7924e3cb3828633333b6567a73f0ced64a38b6accc5cc1",
+      "lines": 33,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/audit-investigation-filters.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "026e2feb9cacc3cd45ede57f37cd9e82636358a8d91a24cde427b8b389e9404f",
+      "lines": 32,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/audit-investigation-search.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "db66bea219a45f10de331d1fc4a856f720d20bfbbc4ceb63f44de0a188162671",
+      "lines": 95,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/audit-investigation-search.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6d62474062c6391e9a57f8d387ca6653d6854e57f4ce27f1abaac7cc2cbe2096",
+      "lines": 87,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/audit-investigation-timeline.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4fa7cb9d9a3c647d269466631c163b402d57a15598d50742c7d9fd8063ff250f",
+      "lines": 68,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/audit-investigation-timeline.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "f7eb24248cacafc0b911a78cbd31db38fbf3a3a5fdf3dc3053205ee0fd701b77",
+      "lines": 68,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/cancel-before-parking.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "64b2cfb155471e3d44454841779fbca2f540ace2d108edfb7c34c8129c68aa5c",
+      "lines": 72,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/cancel-before-parking.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7ffda524357a3f33ede90b98389ee6b169bb346c11589a4eeffef142dc8084b1",
+      "lines": 57,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/cancel-check-in.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "bb66a8c411ba591d7be2b1cf27b6d9b8db32b5260d881f8f68b1c60f02ed7a24",
+      "lines": 91,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/cancel-check-in.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "1eb0a7f3f16361bc4802869cbe38fae34b4e1120401a1cb3d31f292a717b0442",
+      "lines": 36,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/check-in-common.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "3ef60df1330f3b693e16cfe34c558ed574049ff8e4e7faef3774879e38ca6cc9",
+      "lines": 69,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/check-in-guest-access.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "68c570dbfcf53bb1a9b7f5efca64158814d3bfe01f898f9103870ab48004cef5",
+      "lines": 85,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/check-in-phone.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2eed822ba1a1df9566776fb57f9f25a3632ab6cbf635826b85c28321f64208bd",
+      "lines": 51,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/check-in.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "a5de61e6a4433a412d13069c2495dd328631c1d5c5f29d6441bf2a80108b5832",
+      "lines": 266,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/company-analytics.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "a03907dc0f2a0a9dd9b53fb4223fc97f18235e690d374a515856696d06e20918",
+      "lines": 226,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/company-analytics.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "949966253a67c00e24ae91b76f5810658e3f81ca1962bbf5bf0445aa4d496d06",
+      "lines": 160,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/company-report.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "9bb9caf050b06b8cd9acc27c7f105656707c670e537a6d86db0d05e753504142",
+      "lines": 187,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/company-report.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4b1b463f743fa379945c0bde0e66b3f96386369b1c152a28494adbf1ec91739a",
+      "lines": 82,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/complete-handoff.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "1a2215992bb7701fb624847cae31859faaec8c9c4d3b2314711e48174e52a04e",
+      "lines": 40,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/complete-handoff.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "924f85f93c24e56d97cacca865faa422e151988db1f4a0d1c8087aea825e46e9",
+      "lines": 26,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/condition-photo-upload.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "fe6a7a3a4d1c7665afc22c1f16f48aedceeaf673c4b221dcb3c6ca3a76cef254",
+      "lines": 170,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/condition-photo-upload.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "23a0fce5ee1e9d37f2575cb42e5ce5312b2402c8a50d64f520d53fa2d97d65a9",
+      "lines": 160,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/confirm-parked.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4835db79d9d98034d01c8aa1b3967080dde1d122bfc07ea175bb6924e5fa7bf2",
+      "lines": 107,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/confirm-parked.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b9f2cae7a035fb2ca768e13afaa4edf4ea069dcc33f0861fd39409b2423a31c9",
+      "lines": 45,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/customer-feedback-analytics.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "e32e640386806db5b3ca3ec071327359bcb4c87c9ee01705bc5702cb87c56657",
+      "lines": 61,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/customer-feedback-analytics.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b38d2f82ddd356765801390f9981da37e44cbaa9de6dee425f218ad393eff598",
+      "lines": 68,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/dashboard-feature-authority.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "0fe86795c3042dbc53074fce16fb34c380d739ac5bc66daa5bfb541b71850c05",
+      "lines": 72,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/dashboard-feature-authority.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "d484e2fc7b18dc6f8dce66e9397ec47b52f6100d7fab86ee8fbbd4c6db3d4da6",
+      "lines": 63,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/dispatch.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4c79a773c000bd9c06262abb943f325c5d59ed4248151848e12fc827e1ab0b41",
+      "lines": 198,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "contracts",
+      "path": "packages/contracts/src/dispatch.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "64ccabb6d4f73bc98f64c385e65baeda50a28c7ef7334d67d5e03c9849b793d0",
+      "lines": 150,
+      "original_worker": "contracts",
+      "temporary_reviewer": "dashboard"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/modules/vaylet-battery-status/android/src/main/java/expo/modules/vayletbatterystatus/VayletBatteryStatusModule.kt",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "173dcfe3aa13b1b16ed7dff881f5fe4c5a547bd5e2a6fba95e1d465c2d2dca23",
+      "lines": 50,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/modules/vaylet-battery-status/index.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "3f574703aa14d2f41853607219ecfd45cdad97296f7fa9120f0bb6b6993ac86a",
+      "lines": 18,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/plugins/with-native-push-backup-exclusion.cjs",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "794be8203daf6243ea3138525e66a76bc41a844ff4d8041b2812fe141917d92c",
+      "lines": 84,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/plugins/with-shift-presence-foreground-only.cjs",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7f06a915042c8eb4b82ad31d679bc90c294d3585562772a9e58f65f76692a7d4",
+      "lines": 27,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/scripts/native-android-build.mjs",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "df58b5204cdfd44fd7362f209b056f0fbacabc523e01df20b886371ee00450bf",
+      "lines": 65,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/appearance/employee-appearance-context.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ae6f9ceac10aa75c50a0c3f9ee243ff896bb70826839ba1d68294940488e5096",
+      "lines": 62,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/appearance/employee-palette.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "8331ea931a514ab959c5d930f1ef9548c7712d30bfd107cdb546fbe47b8a3152",
+      "lines": 134,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/appearance/employee-themed-styles.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7082afbedb3d06b9ef098e2bf15d99ba97f2067de08444c2eefcffaefb33825f",
+      "lines": 21,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/appearance/native-appearance-owner.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "b79e794a69c14f38afdf22a2ec4fc59c83e2646da048d8457db1ccca61dd74d9",
+      "lines": 68,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/appearance/native-appearance-store.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2f71e41bc5a3dbbc0a31bf36e80d336e094b76474179facb071eb0ba7150ffdc",
+      "lines": 47,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/assets.d.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "597159c3ae384177ed4b5ec52b424addb894c3beefa9ce83c40947ac67a05375",
+      "lines": 6,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/auth/native-auth-copy.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "dcb965c36d4d5e5f410648cafd180f7097696dca21f7fefa307b01d96516e268",
+      "lines": 43,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/auth/native-auth-foundation-panel.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "11789766f860bccbd8afafe78fad6b3b21fc7cc33cd7af63ba1f05ad8f37812d",
+      "lines": 156,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/auth/native-check-in-runtime.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "1dc0af023b40042c8e1ae4985e681952752d1ff694b03e2dcd0b950510b47dfb",
+      "lines": 58,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/auth/native-poc-panel.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "135dd59804cec8abfc09dc57bb91d9e3e157744ed555df5b8430ceb1e90f57c1",
+      "lines": 118,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/auth/native-poc-presentation.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "eef29951e609c1b044300735c2d5040f7440163dca7318296fe06577c73cd323",
+      "lines": 33,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/auth/native-poc-probes.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "dbbb69d2aab887703b9fed04bb70ae96c124cd93d1ab3897d714e2d5212c703e",
+      "lines": 146,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/build/native-android-build-mode.mjs",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "dbd9ef1cd868b05d35f620d3e2a9e1c94859ac40250f85a4fc6990aff39adc98",
+      "lines": 75,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/check-in/native-check-in-actions.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "09107464cb0d84d648c127167ec568a4cbaf59ba1e4291f542e0a0b0d96f0cc2",
+      "lines": 130,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/check-in/native-check-in-capture-step.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "76f99c97beefc16fb716984353442710249b629ff98e618f6b81657fb0bd03fa",
+      "lines": 152,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/check-in/native-check-in-condition-copy.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "5540f6a417292477a511ad7e3860a378ade39dfb8507f749d415084bd65605c4",
+      "lines": 43,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/check-in/native-check-in-confirm-step.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "3d80eab4a2c3cecb0404699d018f44569a2941b2784ccb1a8d73cdb6290350a3",
+      "lines": 61,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/check-in/native-check-in-continuation-copy.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "218fa91aa20507abe531769978cdb807d804fefb61363c2ad50280061257b722",
+      "lines": 81,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/check-in/native-check-in-continuation-editors.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6d9bc8a30ffc27037aa62cd39a349e11d0f5edc679a373632c2e7c0ded39fc51",
+      "lines": 177,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/check-in/native-check-in-continuation-step.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2dcc99ffef6e3dddac5f2a5432900b0fb48604cea1052d90b9aae430f13abe24",
+      "lines": 193,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/check-in/native-check-in-copy.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "9a629174063c0ea6adc5103164326a9758fbeedd55c41a68c7be25ddf3496010",
+      "lines": 179,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/check-in/native-check-in-identity-context.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "8effaab4b32020249f51af386386e1e3199bbe6cd0c8c55d9280a437c32e866e",
+      "lines": 186,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/check-in/native-check-in-input-steps.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "87c3b975e1f0f4fc2ce14e7e42f2e283421bbbb70ff9cd86f28cafb0bbbd9487",
+      "lines": 91,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/check-in/native-check-in-ownership.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "02152f89214855c3ba08a1e63c0be027ed2d80761ae18f546ecae444f9df101f",
+      "lines": 10,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/check-in/native-check-in-parking-task-step.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "e9238818201401be06899d45b9d30be6ab97e2f918b66662bfec3622599ccafc",
+      "lines": 143,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/check-in/native-check-in-presentation.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c9cfc6257700fa1a14118292477fe3f0f2579487733d93e6f7b2b6395d4df272",
+      "lines": 131,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/check-in/native-check-in-primitives.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "1638db96c7aa36ccd41a0a5509b1e9caa1f6c7ee36860e17f2ed0ced8d1f5687",
+      "lines": 248,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/check-in/native-check-in-returning-step.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "78882a43f44304828831359ce2fbeca07397f1aee8b4ab517bb7487f5520482e",
+      "lines": 167,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/check-in/native-check-in-state-steps.tsx",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ea7a8b90f0d41138815026228dd123245831a476affffe16a32c6f9113b2ed8f",
+      "lines": 185,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    },
+    {
+      "batch": "C004",
+      "worker": "native",
+      "path": "apps/valet-native/src/check-in/native-check-in-styles.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "285e2dc314b9ec081e1a30f18150e2f2247938df77366de1fa9cb7f5b03939d5",
+      "lines": 80,
+      "original_worker": "native",
+      "temporary_reviewer": "prime"
+    }
+  ],
+  "temporary_reviewer_counts": {
+    "dashboard": 70,
+    "database": 70,
+    "prime": 35
+  },
+  "original_owner_preserved": true
+}

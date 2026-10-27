@@ -1,0 +1,807 @@
+[
+  {
+    "path": "apps/valet-native/modules/vaylet-battery-status/android/src/main/java/expo/modules/vayletbatterystatus/VayletBatteryStatusModule.kt",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "173dcfe3aa13b1b16ed7dff881f5fe4c5a547bd5e2a6fba95e1d465c2d2dca23",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 50
+      }
+    ],
+    "semantic_review_notes": "Android optional native module reports only the framework battery optimization allowlist state; API<23/missing context/exceptions return unknown. Settings launch tries allowlist screen then application details with NEW_TASK and returns success only for started intents. OEM behavior and real device settings outcome are untested.",
+    "callers_consumers": "native battery diagnostics consumer; Android PowerManager/Settings",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/modules/vaylet-battery-status/index.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3f574703aa14d2f41853607219ecfd45cdad97296f7fa9120f0bb6b6993ac86a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 18
+      }
+    ],
+    "semantic_review_notes": "Expo bridge resolves an optional Kotlin module under exact VayletBatteryStatus name; missing bridge returns null, and callers must handle unavailable native capability. No platform battery state is inferred by this TS wrapper.",
+    "callers_consumers": "battery settings/readiness UI consumers",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/plugins/with-native-push-backup-exclusion.cjs",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "794be8203daf6243ea3138525e66a76bc41a844ff4d8041b2812fe141917d92c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 84
+      }
+    ],
+    "semantic_review_notes": "Expo Android manifest plugin configures legacy fullBackupContent plus Android 12 dataExtractionRules, writes exact XML excluding SecureStore shared preferences and push installation JSON for cloud/device migration. Effect depends on generated manifests and Android behavior.",
+    "callers_consumers": "app.json; native-push-installation; native-push-backup-config.test.mjs",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/plugins/with-shift-presence-foreground-only.cjs",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7f06a915042c8eb4b82ad31d679bc90c294d3585562772a9e58f65f76692a7d4",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 27
+      }
+    ],
+    "semantic_review_notes": "Manifest plugin removes expo-location background task service and both ACCESS_BACKGROUND_LOCATION/FOREGROUND_SERVICE_LOCATION via tools:node remove, preserving foreground-only declared policy. Generated manifest merging and device provider behavior remain untested.",
+    "callers_consumers": "app.json expo-location foreground-only config",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/scripts/native-android-build.mjs",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "df58b5204cdfd44fd7362f209b056f0fbacabc523e01df20b886371ee00450bf",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 65
+      }
+    ],
+    "semantic_review_notes": "Explicit parseArgs maps native/debug/dev-client/release, JS mode and devEnabled to guarded Expo run:android variant; production guards inspect build.gradle and fail if Expo CLI unavailable. This is a build launcher, not runtime feature execution.",
+    "callers_consumers": "src/build/native-android-build-mode.mjs; native-android-build-mode.test.mjs",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/appearance/employee-appearance-context.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ae6f9ceac10aa75c50a0c3f9ee243ff896bb70826839ba1d68294940488e5096",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 62
+      }
+    ],
+    "semantic_review_notes": "React provider owns one NativeAppearanceOwner; subscription snapshot drives immutable light/dark palette, async restore starts on mount, and select delegates to serialized owner. Theme is presentation-only independent of auth ownership.",
+    "callers_consumers": "native-appearance-owner; provider/settings tests",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/appearance/employee-palette.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8331ea931a514ab959c5d930f1ef9548c7712d30bfd107cdb546fbe47b8a3152",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 134
+      }
+    ],
+    "semantic_review_notes": "Immutable light/dark semantic palette tokens and status variants drive native presentation; dark overrides core contrast/surfaces while light retains frozen baseline. Verify accessibility/color contrast on devices separately.",
+    "callers_consumers": "employee-themed-styles; native-header-theme-geometry tests",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/appearance/employee-themed-styles.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7082afbedb3d06b9ef098e2bf15d99ba97f2067de08444c2eefcffaefb33825f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 21
+      }
+    ],
+    "semantic_review_notes": "Style factories produce immutable precomputed light and dark StyleSheet objects; hooks choose by palette instead of constructing styles during render. State/security authority is intentionally absent.",
+    "callers_consumers": "employee-appearance-context; screen style consumers",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/appearance/native-appearance-owner.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b79e794a69c14f38afdf22a2ec4fc59c83e2646da048d8457db1ccca61dd74d9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 68
+      }
+    ],
+    "semantic_review_notes": "Appearance owner starts not ready, one bounded 1500ms restore then publishes snapshot, rejects selection before ready, orders persisted writes sequentially and absorbs storage exceptions. Late store reads cannot overwrite post-timeout user selection.",
+    "callers_consumers": "employee-appearance-context; native-appearance-owner.test.ts",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/appearance/native-appearance-store.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2f71e41bc5a3dbbc0a31bf36e80d336e094b76474179facb071eb0ba7150ffdc",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 47
+      }
+    ],
+    "semantic_review_notes": "Strict version-one JSON preference accepts only theme light/dark with exactly two keys; file-system store uses document file and defaults safely on parse errors; failure handling occurs in owner. Device-backup/privacy policy not claimed by this preference.",
+    "callers_consumers": "native-appearance-owner; native-appearance-storage.test.ts",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/assets.d.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "597159c3ae384177ed4b5ec52b424addb894c3beefa9ce83c40947ac67a05375",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 6
+      }
+    ],
+    "semantic_review_notes": "PNG module declaration supplies React Native ImageSourcePropType for bundler typing only; no runtime enforcement or asset validation.",
+    "callers_consumers": "native branding/image component imports",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/auth/native-auth-copy.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "dcb965c36d4d5e5f410648cafd180f7097696dca21f7fefa307b01d96516e268",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 43
+      }
+    ],
+    "semantic_review_notes": "Builds auth-localized strings from shared employee and platform dictionaries; no session credential or authorization decision in copy mapping. Missing dictionary coverage may be caught only by localization tests.",
+    "callers_consumers": "native-auth-foundation-panel; native employee dictionary",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/auth/native-auth-foundation-panel.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "11789766f860bccbd8afafe78fad6b3b21fc7cc33cd7af63ba1f05ad8f37812d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 156
+      }
+    ],
+    "semantic_review_notes": "Foundation-only login UI routes restoring/fatal/transient/authenticated phases to status, retry, logout, or credential form. Password is submitted to NativeAuthSession and cleared in finally; secureTextEntry and busy/empty guards limit accidental invocation. Production shell excludes foundation POC panel.",
+    "callers_consumers": "NativeAuthSession; native-production-entry.test.mjs",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/auth/native-check-in-runtime.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1dc0af023b40042c8e1ae4985e681952752d1ff694b03e2dcd0b950510b47dfb",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 58
+      }
+    ],
+    "semantic_review_notes": "Creates shared employee-client check-in/vehicle-directory/cancel sessions using auth-bound native HTTP transports and UUIDv4 secure operation IDs; cancellation observer clears active matching intake and refreshes directory. NativeCheckInActions supplies foreground/scope ownership.",
+    "callers_consumers": "native-auth-runtime; NativeCheckInActions; @valet/employee-client",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/auth/native-poc-panel.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "135dd59804cec8abfc09dc57bb91d9e3e157744ed555df5b8430ceb1e90f57c1",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 118
+      }
+    ],
+    "semantic_review_notes": "DEV-only capability panel expands diagnostics and runs API/SecureStore/file probes on demand; use mounted ref to avoid setState after unmount, busy blocks duplicate probe requests. Production entry does not expose this POC destination.",
+    "callers_consumers": "native-poc-presentation; native-poc-probes; native-production-entry.test.mjs",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/auth/native-poc-presentation.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "eef29951e609c1b044300735c2d5040f7440163dca7318296fe06577c73cd323",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 33
+      }
+    ],
+    "semantic_review_notes": "Formats only development probe states plus API origin/auth phase/generation, returns null outside development; does not expose refresh or password credentials. Source guard is __DEV__ and release build mode separately guarded.",
+    "callers_consumers": "NativePocPanel; native-android-build-mode",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/auth/native-poc-probes.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "dbbb69d2aab887703b9fed04bb70ae96c124cd93d1ab3897d714e2d5212c703e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 146
+      }
+    ],
+    "semantic_review_notes": "DEV capability checks use short-lived synthetic SecureStore/file keys with finally-style deletion attempts; fetch reachability uses AbortController 3s timeout and omit cookies. Probe failures are diagnostics, not production auth acceptance signals.",
+    "callers_consumers": "NativePocPanel; native-auth-storage",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/build/native-android-build-mode.mjs",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "dbd9ef1cd868b05d35f620d3e2a9e1c94859ac40250f85a4fc6990aff39adc98",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 75
+      }
+    ],
+    "semantic_review_notes": "Fail-closed native build planner requires nativeMode/jsMode/devEnabled explicit consistent trio, forbids dev JS in release and prod JS in dev. Source guard detects common Gradle dev overrides and direct embed dev flag. Cannot prove generated APK release properties without build.",
+    "callers_consumers": "scripts/native-android-build.mjs; native-android-build-mode.test.mjs",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-actions.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "09107464cb0d84d648c127167ec568a4cbaf59ba1e4291f542e0a0b0d96f0cc2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 130
+      }
+    ],
+    "semantic_review_notes": "Vehicles-origin adapter requires foreground/online authenticated generation matching ready operational scope, serializes Continue, checks revision/same scope after async hydration and fences on clear/background. Cancel binds same owner; return origin is single-use and refreshes directory once.",
+    "callers_consumers": "native-check-in-runtime; issue-255-native-action-ownership.test.ts",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-capture-step.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "76f99c97beefc16fb716984353442710249b629ff98e618f6b81657fb0bd03fa",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 152
+      }
+    ],
+    "semantic_review_notes": "Check-in capture presentation chooses camera/manual/temporary descriptor, mutates draft identity through session and delegates OCR capture to camera child. Manual plate+country and descriptor enter review, with errors represented from session; shared session performs authoritative validation.",
+    "callers_consumers": "native-check-in-workflow; NativePlateCameraStep; EmployeeCheckInSession",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-condition-copy.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5540f6a417292477a511ad7e3860a378ade39dfb8507f749d415084bd65605c4",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 43
+      }
+    ],
+    "semantic_review_notes": "Localized Vehicle Condition/completion labels only; actual photo policy and completion state enforcement reside in employee-client and server, not this mapping.",
+    "callers_consumers": "NativeCheckInContinuationStep; NativeCheckInConditionStep",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-confirm-step.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3d80eab4a2c3cecb0404699d018f44569a2941b2784ccb1a8d73cdb6290350a3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 61
+      }
+    ],
+    "semantic_review_notes": "Identity confirmation displays contextual vehicle and routes confirm/edit/continue-without-recognition to the shared check-in session. Recognition errors enable fallback explicitly; UI alone does not assert server vehicle custody.",
+    "callers_consumers": "NativeCheckInIdentityContext; EmployeeCheckInSession",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-continuation-copy.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "218fa91aa20507abe531769978cdb807d804fefb61363c2ad50280061257b722",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 81
+      }
+    ],
+    "semantic_review_notes": "Locale dictionary for created-session continuation and correction states including unknown/conflict/custody/mutability labels; presentation-only. Error codes are interpreted downstream by editor.",
+    "callers_consumers": "native-check-in-continuation-editors; EmployeeCheckInSession",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-continuation-editors.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6d9bc8a30ffc27037aa62cd39a349e11d0f5edc679a373632c2e7c0ded39fc51",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 177
+      }
+    ],
+    "semantic_review_notes": "Details editor maps make/model/color draft mutations and submits through session. Identity editor offers plate/descriptor modes, distinct review/confirm stages, cancellation and explicit conflict/invalid/custody error labels. No direct server bypass in JSX handlers.",
+    "callers_consumers": "NativeCheckInContinuationStep; EmployeeCheckInSession",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-continuation-step.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2dcc99ffef6e3dddac5f2a5432900b0fb48604cea1052d90b9aae430f13abe24",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 193
+      }
+    ],
+    "semantic_review_notes": "Routes created-session continuation by correction/condition intent, keeps ambiguous condition pending on condition presentation, uses progress during submit/reconcile and blocks bypass via session calls. Vehicle overview displays authoritative active vehicle and recovery path.",
+    "callers_consumers": "NativeCheckInWorkflow; NativeCheckInConditionStep; EmployeeCheckInSession",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-copy.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9a629174063c0ea6adc5103164326a9758fbeedd55c41a68c7be25ddf3496010",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 179
+      }
+    ],
+    "semantic_review_notes": "Shared native dictionary adapter for check-in phases, recovered/ambiguous states, parking and customer details, and plate-country names; no state mutation. User-visible copy must still be checked for AR/EN layout independently.",
+    "callers_consumers": "NativeCheckInWorkflow; native employee dictionary",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-identity-context.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8effaab4b32020249f51af386386e1e3199bbe6cd0c8c55d9280a437c32e866e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 186
+      }
+    ],
+    "semantic_review_notes": "Renders confirmed plate or descriptor context, recognized/entered status and vehicle details; normalized plate/country inherited from snapshot; accessibility provides composite vehicle label. No auth/custody mutation.",
+    "callers_consumers": "NativeConfirmStep; NativeBusyStep; plate-country selector",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-input-steps.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "87c3b975e1f0f4fc2ce14e7e42f2e283421bbbb70ff9cd86f28cafb0bbbd9487",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 91
+      }
+    ],
+    "semantic_review_notes": "Customer phone stage runs normalizeJordanCheckInPhone to disable invalid nonempty number; explicit no-phone bypass clears number and submits through authoritative session. UI cannot vouch for backend phone/guest delivery correctness.",
+    "callers_consumers": "NativeCheckInWorkflow; EmployeeCheckInSession",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-ownership.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "02152f89214855c3ba08a1e63c0be027ed2d80761ae18f546ecae444f9df101f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 10
+      }
+    ],
+    "semantic_review_notes": "Constructs workflow owner key from organization, membership, shift and role; excludes location because locationId is passed separately to openExistingCheckIn and verified by operational scope. Key is client isolation hint, not server authorization.",
+    "callers_consumers": "NativeCheckInActions; native production route",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-parking-task-step.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e9238818201401be06899d45b9d30be6ab97e2f918b66662bfec3622599ccafc",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 143
+      }
+    ],
+    "semantic_review_notes": "Created intake awaiting parking displays real vehicle, warning/tracking and offers start-parking action only when active session is present and not busy; Guest Access shortcut uses active session ID. Actual GPS/task transitions are delegated upstream.",
+    "callers_consumers": "NativeCompleteStep; native task tracking/guest-access",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-presentation.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c9cfc6257700fa1a14118292477fe3f0f2579487733d93e6f7b2b6395d4df272",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 131
+      }
+    ],
+    "semantic_review_notes": "Pure presentation helpers derive capture default, per-phase header, network/validation error copy, back-navigation safety for busy/unknown conditions, and plate/descriptor identity text. Session remains sole authority.",
+    "callers_consumers": "NativeCheckInWorkflow; native check-in state components",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-primitives.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1638db96c7aa36ccd41a0a5509b1e9caa1f6c7ee36860e17f2ed0ced8d1f5687",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 248
+      }
+    ],
+    "semantic_review_notes": "Reusable accessible Check-In buttons, fields, vehicle/recoverable cards and headers compose shared employee UI tokens; busy/disabled forwarded to EmployeeButton. Display is scoped to provided snapshot, not a direct backend mutation.",
+    "callers_consumers": "NativeCheckInWorkflow; EmployeeButton/EmployeeField",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-returning-step.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "78882a43f44304828831359ce2fbeca07397f1aee8b4ab517bb7487f5520482e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 167
+      }
+    ],
+    "semantic_review_notes": "Recognized vehicle/returning customer suggestion is shown with masked phone suffix; employee may choose saved customer or different customer, and correct draft make/model/color locally before session mutation. Server must revalidate association/authority.",
+    "callers_consumers": "NativeCheckInWorkflow; EmployeeCheckInSession",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-state-steps.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ea7a8b90f0d41138815026228dd123245831a476affffe16a32c6f9113b2ed8f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 185
+      }
+    ],
+    "semantic_review_notes": "Maps discovering/errors/recoverables/recognizing/submitting/intake-ambiguous/created to concrete UI; unknown submit requires server reconciliation before repeat action. Recovery and parking callbacks delegate to shared session/parent.",
+    "callers_consumers": "NativeCheckInWorkflow; EmployeeCheckInSession; NativeCheckInParkingTaskStep",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-styles.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "285e2dc314b9ec081e1a30f18150e2f2247938df77366de1fa9cb7f5b03939d5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 80
+      }
+    ],
+    "semantic_review_notes": "Presentation-only light/dark check-in style factory composes shared design tokens/field/feedback styles with RTL-compatible text choices in caller; no business-state or auth decisions.",
+    "callers_consumers": "Check-In primitives, workflow and state components",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset."
+  }
+]

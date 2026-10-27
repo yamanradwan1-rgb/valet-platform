@@ -1,0 +1,673 @@
+[
+  {
+    "path": "apps/customer/qa/issue-338/render.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "19e748541e742962ef32204e517a522ea60a22ed5bbb4279f3a2a0428ae93870",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 63
+      }
+    ],
+    "semantic_review_notes": "Opt-in QA renderer exports real Customer components across locale/theme/brand-color permutations for Issue #338 visual comparison. Uses production providers/components and writes only when QA338_RENDER is explicitly set.",
+    "callers_consumers": [
+      "manual Issue #338 browser color-comparison QA",
+      "AppShell/demo/overlay/primitives production components"
+    ],
+    "invariants_error_checks": [
+      "covers EN/AR",
+      "covers light/dark",
+      "covers valid primary colors plus fallback",
+      "output gated by environment variable"
+    ],
+    "test_refs": [
+      "production components imported directly by the renderer"
+    ],
+    "finding_ids": [],
+    "limits": "QA artifact generator rather than runtime code; file output path is operator-supplied."
+  },
+  {
+    "path": "apps/customer/src/app/document-bootstrap-script.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7c97769486a2f38531a0b0d074148ca4214819bb0e4fb3f335cd9145eb21e66e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 78
+      }
+    ],
+    "semantic_review_notes": "Verifies pre-hydration document bootstrap applies persisted Arabic RTL/dark theme before React hydration, defaults unsupported values to English/light, updates theme-color metadata, and is installed through Next beforeInteractive.",
+    "callers_consumers": [
+      "src/app/document-bootstrap-script.ts",
+      "RootLayout"
+    ],
+    "invariants_error_checks": [
+      "only ar selects RTL",
+      "only dark selects dark theme",
+      "unsupported persisted values fail to safe defaults",
+      "bootstrap script runs beforeInteractive"
+    ],
+    "test_refs": [
+      "src/app/document-bootstrap-script.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Tests presentation preference storage only; no guest credential/session data is persisted by this bootstrap."
+  },
+  {
+    "path": "apps/customer/src/app/guest-auto-rating-eligibility.mounted.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d9c859ba7573fcc2ac0a81a8e1b050b1a9464cc9e1c169fd3d88d42901be68f5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 122
+      }
+    ],
+    "semantic_review_notes": "Mounted root test proves completed-session rating is exposed only after latest authority revalidation and blocks entry under absent client, incomplete/unavailable bootstrap, context switching/ambiguity/conflict, expired/network/stale session states. Opening does not submit a rating.",
+    "callers_consumers": [
+      "src/app/guest-app-root.tsx",
+      "useGuestPostVisit",
+      "GuestApiClient.loadSession"
+    ],
+    "invariants_error_checks": [
+      "authoritative loadSession precedes rating route",
+      "all auth-conflict states block rating",
+      "stale/expired/network session blocks rating",
+      "no implicit submitRating side effect"
+    ],
+    "test_refs": [
+      "src/app/guest-app-root.tsx lines 58-67"
+    ],
+    "finding_ids": [],
+    "limits": "Auth/session hooks are mocked but root wiring and mounted behavior are real."
+  },
+  {
+    "path": "apps/customer/src/app/guest-refresh-mounted.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2afa74ce85c85c88d2d83c3f9f659a3c8fb1c93e28ee38a99cc61608950817f1",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 233
+      }
+    ],
+    "semantic_review_notes": "Mounted refresh regressions cover manual-refresh coalescing, overlap with scheduled polling, recovery from temporary initial failure, client-context replacement fencing, and prevention of stale-notice refresh while Request Vehicle mutation is pending.",
+    "callers_consumers": [
+      "GuestSessionProvider",
+      "GuestAppRoot",
+      "GuestApiClient"
+    ],
+    "invariants_error_checks": [
+      "fast duplicate refresh does not add GET",
+      "manual/poll overlap shares one GET",
+      "retry recovers temporary failure",
+      "late Visit A response cannot repaint Visit B",
+      "no read races pending retrieval mutation"
+    ],
+    "test_refs": [
+      "GuestSessionProvider",
+      "src/app/guest-app-root.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Mounted fake DOM with fetch mocks; no live server execution."
+  },
+  {
+    "path": "apps/customer/src/app/guest-web-push-mount.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "69cfed96eb92ce335ec7eeb30ab0ff63328fc5cfd2777dd29d76fd5893105bb2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 39
+      }
+    ],
+    "semantic_review_notes": "Validates production Web Push permission card mounts only for an authoritative pre-READY visit when both caller gate and server policy flag are affirmative; missing/false policy or READY session suppresses the prompt. Also asserts the mount follows freshness handling in the live root.",
+    "callers_consumers": [
+      "GuestWebPushMount",
+      "GuestAppRoot",
+      "guest web-push permission card"
+    ],
+    "invariants_error_checks": [
+      "policy must be true",
+      "caller enabled must be true",
+      "READY/readyAt suppresses permission UI",
+      "freshness notice precedes push mount"
+    ],
+    "test_refs": [
+      "src/app/guest-app-root.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Static-render gate test; browser Push API behavior is covered elsewhere."
+  },
+  {
+    "path": "apps/customer/src/app/readyz/readiness-concurrency.test.ts",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d38932faca0fda87836476a1bfd42c725623a24da723d7dacb2919bb67cb9c3e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 147
+      }
+    ],
+    "semantic_review_notes": "Readiness concurrency coverage validates 100-call coalescing, no permanent cache, bounded timeout even if fetch ignores abort, 128-waiter cap, stale success rejection after artifact API origin changes, and generic/no-store route responses.",
+    "callers_consumers": [
+      "src/lib/readiness/customer-readiness.ts",
+      "readyz route"
+    ],
+    "invariants_error_checks": [
+      "single upstream probe for matching concurrent callers",
+      "success/failure not cached across waves",
+      "hung probe resolves false by deadline",
+      "waiters >128 fail closed",
+      "origin change invalidates old success"
+    ],
+    "test_refs": [
+      "src/lib/readiness/customer-readiness.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Concurrency is unit-level; real process/network saturation is not exercised."
+  },
+  {
+    "path": "apps/customer/src/app/readyz/route.test.ts",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9afe0101cf3a70eea9c90770c41d1adfbed0fb25a138a328d2089906aa787fc6",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 63
+      }
+    ],
+    "semantic_review_notes": "Readiness route tests pin the build artifact API origin, ignore runtime API_ORIGIN override, enforce no-store GET with redirect:error, fail closed for unreachable/not-ready/malformed-origin cases, bound hung transports, and expose only generic unavailable state.",
+    "callers_consumers": [
+      "src/lib/readiness/customer-readiness.ts",
+      "app/readyz/route.ts"
+    ],
+    "invariants_error_checks": [
+      "origin must be exact origin without path/userinfo",
+      "runtime override ignored",
+      "failure returns false/503",
+      "response body leaks no upstream detail",
+      "cache-control no-store"
+    ],
+    "test_refs": [
+      "src/lib/readiness/customer-readiness.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Tests mocked fetch; TLS/DNS behavior is outside scope."
+  },
+  {
+    "path": "apps/customer/src/components/layout/bottom-sheet.mounted.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7dd5db6f6384c51956946147e138062d63e9282b577a6f281d34a502b793c6a9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 242
+      }
+    ],
+    "semantic_review_notes": "Mounted accessibility contract for stacked BottomSheets: only topmost handles Escape/Tab, focus is trapped/wrapped from inside and outside, disabled controls are skipped in LTR/RTL, and focus is not restored to a trigger removed while open.",
+    "callers_consumers": [
+      "src/components/layout/bottom-sheet.tsx",
+      "guest overlays"
+    ],
+    "invariants_error_checks": [
+      "topmost modal owns keyboard",
+      "focus cannot escape active sheet",
+      "disabled controls skipped",
+      "disconnected trigger never refocused"
+    ],
+    "test_refs": [
+      "src/components/layout/bottom-sheet.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Custom fake DOM models focus behavior; native browser accessibility tree is not exercised."
+  },
+  {
+    "path": "apps/customer/src/components/primitives/pickup-pin.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "39dc7859c834ab0ccde375895d65ea6005762667f8e3f12dfa72952587d516d9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 101
+      }
+    ],
+    "semantic_review_notes": "Presentation tests preserve pickup PIN digit order with explicit LTR inside Arabic RTL, QR scan contrast independent of theme, accessible More button, and one localized dark-mode switch with proper aria state in both locales.",
+    "callers_consumers": [
+      "PickupPIN",
+      "DynamicQRCode",
+      "AppHeader",
+      "OverlayMoreMenu"
+    ],
+    "invariants_error_checks": [
+      "PIN digits LTR",
+      "QR white quiet surface/dark modules",
+      "localized aria labels",
+      "switch aria-checked matches theme"
+    ],
+    "test_refs": [
+      "src/components/primitives/pickup-pin.tsx",
+      "src/features/handoff/qr-code.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Static markup presentation coverage; QR decode reliability is covered by matrix/QR tests elsewhere."
+  },
+  {
+    "path": "apps/customer/src/features/auth/guest-auth-bootstrap-rate-limit.test.ts",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ef087474b81c9a8c4ffadb99e4055c4fe3fb08281deecdf5f6a6112cb67eb735",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 262
+      }
+    ],
+    "semantic_review_notes": "Guest bootstrap rate-limit tests cover authoritative Retry-After handling including overflow, one deferred retry at the exact PREPARE/EXCHANGE/RECONCILE_SWITCH stage, lost exchange response reconciliation, long-window explicit retry eligibility, context-generation fencing, terminal invalid bearer clearing, and preservation of explicit context-switch intent without immediate replay.",
+    "callers_consumers": [
+      "src/features/auth/guest-auth-bootstrap.ts",
+      "src/features/auth/guest-auth-rate-limit.ts",
+      "GuestApiClient browser-session operations"
+    ],
+    "invariants_error_checks": [
+      "never retry before server deadline",
+      "at most one automatic 429 replay",
+      "same bootstrap stage retained",
+      "context change cancels deferred attempt",
+      "GUEST_ACCESS_INVALID clears bearer/retry",
+      "no fallback to another visit"
+    ],
+    "test_refs": [
+      "guest-auth-bootstrap.ts",
+      "guest-auth-rate-limit.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fake timers/fetch mocks; server limiter semantics are not asserted here."
+  },
+  {
+    "path": "apps/customer/src/features/auth/guest-auth-bootstrap.mounted.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "84bc0594db1fafce768623deeb240fb3cf6afec6fd7482fe788af3f688b4b15b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 234
+      }
+    ],
+    "semantic_review_notes": "Mounted GuestAuthProvider tests prove fragment credentials are scrubbed immediately, one short 429 is deferred then transitions to cookie authority, context change cancels pending replay, and a long Retry-After remains explicit/scheduled and is canceled if authority changes.",
+    "callers_consumers": [
+      "GuestAuthProvider",
+      "guest-auth-bootstrap.ts",
+      "guest-auth-rate-limit.ts"
+    ],
+    "invariants_error_checks": [
+      "fragment removed before bootstrap settles",
+      "no retry before Retry-After",
+      "authority epoch cancels stale retry",
+      "successful enrollment clears in-memory token"
+    ],
+    "test_refs": [
+      "src/features/auth/guest-auth-context.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Mounted fake DOM/fake timers; cookie is represented by browser-session client behavior rather than a live Set-Cookie exchange."
+  },
+  {
+    "path": "apps/customer/src/features/auth/guest-auth-context-switch.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a1dfef3bbea51d95ba861b37b1daff55290f74594663b1400416f7cc182576af",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 168
+      }
+    ],
+    "semantic_review_notes": "Context-switch state tests distinguish SAME_VISIT continuity from ACTIVE/POST_VISIT conflict, retry only ambiguous switch outcomes once, preserve current authority while an explicit switch is pending/ambiguous, and discard only the invalid new-link intent on definitive denial.",
+    "callers_consumers": [
+      "guest-auth-bootstrap.ts",
+      "GuestAuthProvider",
+      "GuestApiClient.switchBrowserContext"
+    ],
+    "invariants_error_checks": [
+      "same visit adopts cookie authority without conflict",
+      "conflicting bearer stays memory-only pending decision",
+      "definite 401 not retried",
+      "ambiguous failure preserves current client and pending intent"
+    ],
+    "test_refs": [
+      "src/features/auth/guest-auth-context.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Transport behavior is mocked; server-side switch atomicity is outside this file."
+  },
+  {
+    "path": "apps/customer/src/features/auth/guest-auth-context.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d49c64a2739f243bcc26eac59812afcc6c20a60421a2cc4c3aaefa5a192a5caf",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 283
+      }
+    ],
+    "semantic_review_notes": "Bootstrap tests cover deterministic SSR/first-render state, legacy bearer mode when enrollment is disabled, prepare→exchange→cookie authority when enabled, cookie-only restore, retry classification, one replay for ambiguous exchange failure, exact-stage recovery, and fail-closed behavior after invalid authority.",
+    "callers_consumers": [
+      "GuestAuthProvider",
+      "guest-auth-bootstrap.ts",
+      "GuestApiClient"
+    ],
+    "invariants_error_checks": [
+      "first render does not inspect fragment",
+      "invalid prepare stops before exchange",
+      "5xx/network bootstrap is retryable",
+      "400/401/429 exchange not blindly retried by ambiguous-recovery path",
+      "one retry maximum",
+      "invalid exchange has no legacy fallback"
+    ],
+    "test_refs": [
+      "src/features/auth/guest-auth-context.tsx",
+      "guest-auth-bootstrap.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Primarily transport/state tests with mocked fetch."
+  },
+  {
+    "path": "apps/customer/src/features/auth/guest-token-adapter.test.ts",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1f5abb9dac74db357f0235085de934d26753282494571d5eac82c1c469ce1ca3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 78
+      }
+    ],
+    "semantic_review_notes": "Fragment adapter tests enforce exact 43-character base64url credential shape, browser-only extraction, immediate history.replaceState scrub preserving path/query, malformed/extra-content rejection, fail-closed adoption when scrub fails, and no interference with unrelated hashes.",
+    "callers_consumers": [
+      "src/features/auth/guest-token-adapter.ts",
+      "GuestAuthProvider"
+    ],
+    "invariants_error_checks": [
+      "credential never adopted before successful scrub",
+      "malformed secret still scrubbed",
+      "unrelated hash untouched",
+      "SSR reads no browser state"
+    ],
+    "test_refs": [
+      "src/features/auth/guest-token-adapter.ts"
+    ],
+    "finding_ids": [],
+    "limits": "History API is stubbed; browser referrer/history edge behavior is not live-tested here."
+  },
+  {
+    "path": "apps/customer/src/features/auth/overlay-guest-context-conflict.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "abd9ae6dcf9fd1937d2347508cc59de5b0979ee3c0c1878b9127d518ce28209b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 121
+      }
+    ],
+    "semantic_review_notes": "Conflict overlay tests verify approved ACTIVE/POST_VISIT messaging in EN/AR, LTR/RTL, disabled implicit decisions while switch outcome is ambiguous, and gating that waits for an authoritative current snapshot while preserving the last snapshot only during ambiguity.",
+    "callers_consumers": [
+      "OverlayGuestContextConflict",
+      "guest-context-conflict-gate.tsx",
+      "BottomSheet"
+    ],
+    "invariants_error_checks": [
+      "no conflict UI before current snapshot exists",
+      "definitely expired source hidden",
+      "ambiguous outcome preserves snapshot",
+      "actions disabled during ambiguous state"
+    ],
+    "test_refs": [
+      "src/features/auth/overlay-guest-context-conflict.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Presentation/state-gate coverage; explicit switch transport is tested separately."
+  },
+  {
+    "path": "apps/customer/src/features/deferred/guest-information-content.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "913b9f9f117bb80fd44456da03f02ce4fc0faace1c3909cf2d1f8306ac2c5fb2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 58
+      }
+    ],
+    "semantic_review_notes": "Guest information presentation renders only published privacy text/URL and returned contact fields, uses safe external-link rel attributes, preserves line breaks, and presents localized unavailable states without inventing policy/contact facts.",
+    "callers_consumers": [
+      "GuestInformationContent",
+      "GuestInformationResponse contract"
+    ],
+    "invariants_error_checks": [
+      "UNAVAILABLE privacy hides content/link",
+      "missing contact fields are omitted",
+      "https links use noopener noreferrer",
+      "phone uses returned tel value"
+    ],
+    "test_refs": [
+      "src/features/deferred/guest-information-content.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Trusts the contract/API to validate supportUrl/phone syntax before rendering."
+  },
+  {
+    "path": "apps/customer/src/features/deferred/overlay-guest-information.mounted.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6bd9f6e179c2048d84c9d8c2e11bb6d5527d45ce109c9d4e4302be1981aa466a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 105
+      }
+    ],
+    "semantic_review_notes": "Mounted More-menu information flow preserves approved rows, removes Photos, opens privacy/contact in a single-dialog transition with focus restoration, fences an old visit information response after credential-client replacement, and retries read failure only on explicit user action.",
+    "callers_consumers": [
+      "OverlayMoreMenu",
+      "OverlayGuestInformationSheet",
+      "GuestApiClient.loadInformation"
+    ],
+    "invariants_error_checks": [
+      "one dialog at a time",
+      "old-client result cannot repaint new client",
+      "failed read does not auto-loop",
+      "closing detail restores triggering button"
+    ],
+    "test_refs": [
+      "src/features/deferred/overlay-more-menu.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Mounted fake DOM; server authorization/tenant binding is assumed from GuestApiClient/API."
+  },
+  {
+    "path": "apps/customer/src/features/demo/customer-navigation-removal.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b977ac73a32268a7c103a26edd97c2be2e7cf069474e6ef41f1ab5560d9c6d1e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 95
+      }
+    ],
+    "semantic_review_notes": "Regression test confirms bottom navigation/Help/tab routes and Photos row remain removed in production/development while Payment and Rating stay as independent preview surfaces; Rating Done returns to Completed.",
+    "callers_consumers": [
+      "AppShell",
+      "GuestAppRoot",
+      "GuestPostVisit screen",
+      "DemoScreenRenderer",
+      "OverlayMoreMenu"
+    ],
+    "invariants_error_checks": [
+      "no bottom-nav file/nav markup",
+      "no Help/tab routing source symbols",
+      "preview Payment/Rating retained",
+      "More rows localized and Photos absent"
+    ],
+    "test_refs": [
+      "src/app/guest-app-root.tsx",
+      "demo-registry.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Partially source-string based architectural regression check."
+  },
+  {
+    "path": "apps/customer/src/features/demo/demo-registry.test.ts",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "185c1926e97a81b3ecd1486a211d190199dbbf750bf90c0e5fa9763fb2bbf9da",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 75
+      }
+    ],
+    "semantic_review_notes": "Demo registry contract enforces five approved groups, unique IDs, valid EN/AR label keys, removal of legacy duplicated Arabic screens, and a strict kind split between live, screens, and the three approved overlays.",
+    "callers_consumers": [
+      "demo-registry.ts",
+      "DemoNavigator",
+      "DemoScreenRenderer"
+    ],
+    "invariants_error_checks": [
+      "unique IDs",
+      "translation key parity per item",
+      "no legacy ar-* duplicates",
+      "exact overlay key set"
+    ],
+    "test_refs": [
+      "src/features/demo/demo-registry.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Dev-preview-only registry."
+  },
+  {
+    "path": "apps/customer/src/features/demo/demo-safety.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0c9796989cc50ce87aaf87d22bf73e4a40aed9e5628cd1013265748eb026a185",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 244
+      }
+    ],
+    "semantic_review_notes": "Dev-preview safety tests ensure Confirm Request is local-only with zero retrieval/API imports, production root retains real retrieval wiring, demo vehicle details use deterministic non-custody fixture data, payment/report previews state that no real action occurred, every registered screen renders, and EN/AR dictionaries have full key parity.",
+    "callers_consumers": [
+      "DevPreviewOverlayHost",
+      "GuestAppRoot",
+      "DemoScreenRenderer",
+      "preview payment/report screens"
+    ],
+    "invariants_error_checks": [
+      "dev confirm cannot call API",
+      "production confirm still invokes requestVehicle",
+      "demo details omit employee/custody identifiers",
+      "preview copy avoids real payment/report claims",
+      "all screen keys render"
+    ],
+    "test_refs": [
+      "src/features/demo/dev-preview-overlays.tsx",
+      "src/app/guest-app-root.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Some safety assertions inspect source strings; compile-time/runtime import graph is not independently built in C004."
+  }
+]

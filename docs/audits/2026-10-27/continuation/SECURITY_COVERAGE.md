@@ -9,3 +9,5 @@ Covered trust boundary in detail: password-authenticated management session vers
 Unfinished: remaining security-owned files; complete tenant/role graph; durable limiter/worker identity/revocation; private storage/integration boundaries; runtime privileges; all other inventory paths. Original formal scan, PostgreSQL integration, physical-device and external-provider limitations remain. No production or destructive security probing.
 
 C003: Selected staff login/password/session revalidation and DB runtime-grant/provisioning source received semantic review. No new formal scan or live exploit/PG/HTTP test was executed. SEC-011 remains existing #363, with scope and runtime limits unchanged. DASH-AUTH-01 is new P2 high-source-confidence logout continuity risk under denied localStorage plus retained refresh cookie; browser runtime is unverified.
+
+C004: Native foreground/check-in owner, push backup and release guard source reviewed; Dashboard auth/authority fixture sources inspected. No live exploit, security scanner pass, production test or user-device verification. Existing release risks remain unchanged.

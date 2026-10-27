@@ -1,0 +1,48 @@
+{
+  "finding_id": "C004-DASH-001",
+  "batch": "C004",
+  "worker": "dashboard",
+  "severity": "P3",
+  "confidence": "HIGH",
+  "status": "static_test_suite_debt",
+  "summary": "Three assigned administration fixture E2E cases still assert the retired standalone Integrations navigation/page after Issue #238 moved service status under Policies.",
+  "source_chain": [
+    {
+      "path": "apps/dashboard/e2e/administration-authority.spec.ts",
+      "lines": "30-47",
+      "observation": "Company Admin navigation assertion still requires an Integrations link."
+    },
+    {
+      "path": "apps/dashboard/e2e/administration-behavior.spec.ts",
+      "lines": "183-223",
+      "observation": "Legacy /integrations is opened and the retired Integrations & Connectors presentation is expected."
+    },
+    {
+      "path": "apps/dashboard/e2e/administration-concurrency.spec.ts",
+      "lines": "192-242",
+      "observation": "Cross-scope race test opens /integrations and expects the retired Integrations & Connectors heading."
+    },
+    {
+      "path": "apps/dashboard/src/features/administration/administration-navigation.ts",
+      "lines": "24-109",
+      "observation": "Current MD-02 navigation registrations contain no Integrations destination."
+    },
+    {
+      "path": "apps/dashboard/src/app/integrations/page.tsx",
+      "lines": "1-5",
+      "observation": "Legacy /integrations route redirects with replace semantics to /policies?tab=services."
+    },
+    {
+      "path": "apps/dashboard/e2e/issue238-service-status.spec.ts",
+      "lines": "17-63",
+      "observation": "Current accepted test explicitly expects no Integrations nav and validates the Service Status compatibility redirect."
+    }
+  ],
+  "impact": "These stale fixture E2E assertions can fail or exercise the wrong UI contract when the legacy/default E2E suite is run, reducing regression-suite confidence. Prime independently confirmed the current CI runtime E2E gate targets ./e2e-runtime, so this is not presently evidenced as a CI gate blocker.",
+  "competing_explanations": [
+    "The stale specs are outside the current CI runtime E2E testDir and may be retained only as legacy/manual coverage.",
+    "A test-only routing layer could theoretically alter behavior, but the production route plus the newer Issue #238 E2E encode the same replacement contract."
+  ],
+  "runtime_confirmation": "not_run_in_C004",
+  "recommended_followup": "Prime/owner should reconcile the legacy assertions with the accepted Service Status behavior under UI Freeze. No test or source edits were made."
+}

@@ -1,0 +1,1104 @@
+[
+  {
+    "path": "apps/dashboard/e2e-runtime/auth-principals.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "feebc5d61b590c988acb4834be20158111858f91a15a2f797f45942df06df03d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 218
+      }
+    ],
+    "semantic_review_notes": "Runtime browser coverage for guest/disabled denial, tenant/grant visibility, narrow supervisor access, employee exclusion, full Company Admin MFA enrollment/recovery/freshness/refresh/logout, #268 scope restoration, and revoked-session fail-closed behavior. Sensitive MFA artifacts explicitly disable retained trace/screenshot/video and clear DOM after each test.",
+    "callers_consumers": [
+      "Playwright runtime suite via ./support/runtime-test",
+      "./support/runtime-fixture helpers",
+      "real dashboard auth/workspace/navigation routes"
+    ],
+    "invariants_error_checks": [
+      "cross-tenant and ungranted resources return 404",
+      "Location Manager cannot select All Locations",
+      "recovery codes absent from local/session storage and URL",
+      "revoked session restores to Sign in",
+      "one refresh request on reload with authorized scope restoration"
+    ],
+    "test_refs": [
+      "self: auth-principals.spec.ts runtime E2E"
+    ],
+    "finding_ids": [],
+    "limits": "Browser E2E evidence depends on provisioned runtime fixture and real API; no heavy test execution performed in C004."
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/authority-loss.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "473e99db195849521e2ec4b47660e3259a695bed1078af4ac843a9fe8ffb8edd",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 99
+      }
+    ],
+    "semantic_review_notes": "Exercises live entitlement, membership, location-grant, and role loss while protected forms are open. Verifies stale protected content is unmounted and exact-location authority loss does not trigger a branding write probe.",
+    "callers_consumers": [
+      "Playwright runtime suite",
+      "control-management-dashboard-e2e fixture mutations",
+      "Branding/Analytics/Reports navigation authorization refresh"
+    ],
+    "invariants_error_checks": [
+      "entitlement loss hides protected resource",
+      "membership/role/grant loss returns chooser",
+      "unsaved form disappears",
+      "zero branding writes after grant removal"
+    ],
+    "test_refs": [
+      "self: authority-loss.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Checks authority loss on subsequent navigation, not passive invalidation with no user action."
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/cross-feature-races.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5e1ed3915e0f7cc9a8bb8a48b59092d3028586846f81f73b6fd903b0bff01261",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 88
+      }
+    ],
+    "semantic_review_notes": "Tests cross-feature scope fencing: delayed Organization A Audit read cannot populate Organization B; delayed protected Organization A branding write may commit to its original authoritative scope but must not surface success or mutate visible B state after scope change.",
+    "callers_consumers": [
+      "installDelayedRealResponse",
+      "Branding controller/UI",
+      "Audit Log controller/UI",
+      "scope chooser"
+    ],
+    "invariants_error_checks": [
+      "old-scope read excluded from new scope",
+      "old-scope write result cannot present new-scope success",
+      "committed old-scope value is observable only when returning to A"
+    ],
+    "test_refs": [
+      "self: cross-feature-races.spec.ts",
+      "support/delayed-real-response.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Post-release stale-result observation uses a 150ms dwell before assertions; implementation fencing is being cross-checked separately."
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/issue234-security.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2ae0b9a47e1bb64c7c0df4a1e7bf13db8948c8919a0a3e64702dd25cd3474011",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 106
+      }
+    ],
+    "semantic_review_notes": "Validates #234 Security as scopeless shell route using real MFA without organization/location/operational-context reads. Separately proves sensitive-write MFA freshness is stricter than ordinary ASSURED state and that a denied write is not automatically replayed after re-verification.",
+    "callers_consumers": [
+      "Security route",
+      "MFA state/verify endpoints",
+      "Branding sensitive write",
+      "runtime fixture controls"
+    ],
+    "invariants_error_checks": [
+      "zero business-scope reads on /security",
+      "freshness-aged branding PUT returns 403",
+      "re-verification does not auto-retry",
+      "explicit retry succeeds"
+    ],
+    "test_refs": [
+      "self: issue234-security.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Uses trace/screenshot/video off due ephemeral MFA data; does not retain browser artifacts."
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/issue300-browser-safety.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "015d70283e123b86b16511160704b4dad170a602fa96c7b9d64f5e2e40f309b5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 246
+      }
+    ],
+    "semantic_review_notes": "Test-only Issue #300 browser proof guard pins an owner Ed25519 public key, binds attestation to candidate SHA/checkout SHA/lease/digest, permits only isolated loopback origins and a <=15-minute lease, constrains audit route/query, validates exact refresh-cookie attributes, single-consumes normalized refresh credential, and verifies signed pagination continuity/no replay.",
+    "callers_consumers": [
+      "issue300-closure.spec.ts"
+    ],
+    "invariants_error_checks": [
+      "pinned owner signature",
+      "immutable candidate SHA match",
+      "dedicated non-forbidden loopback ports",
+      "single allowed dashboard origin",
+      "one-time secure HttpOnly Strict refresh cookie",
+      "exclusive-create spent marker",
+      "continuation snapshot stability and source-ID uniqueness"
+    ],
+    "test_refs": [
+      "issue300-closure.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Audit harness code, not production authorization. Filesystem spent-state marker durability is local to the checkout/task proof environment."
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/issue300-closure.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4b9818336847750e6aa643902d8b6aa18440a7f3a46e5f42d9c5c1c174c4c5e6",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 299
+      }
+    ],
+    "semantic_review_notes": "Independent one-time real-candidate closure suite for Issue #300. Requires owner-attested isolated browser target, exact candidate/lease/scenario, one fresh MFA storage state per selected case, authenticated investigation pagination/detail/focus/error behavior, legacy audit-events separation, and exact frozen visual hashes across locale/theme/viewport/real browser zoom matrix.",
+    "callers_consumers": [
+      "issue300-browser-safety.ts",
+      "real /audit-log candidate UI and audit-investigation endpoints"
+    ],
+    "invariants_error_checks": [
+      "suite-time skip before context when prerequisites absent",
+      "one-time storage state consumption",
+      "no fallback to legacy /audit-events during investigation search",
+      "no automatic retry after network abort",
+      "real browser 200% zoom proof",
+      "exact frozen screenshot hash"
+    ],
+    "test_refs": [
+      "self: issue300-closure.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Each case intentionally requires an independently issued MFA cookie/lease; suite is not suitable for routine batch execution and was not run in C004."
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/md-r11-administration.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e6a6f2cfe1cd99ed9d3bdc0a9a5d7b07fcfcde711d127518e9f4b1da14fb91bd",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 113
+      }
+    ],
+    "semantic_review_notes": "Real R11 administration coverage spans company defaults, location overrides/inheritance, bounds on SLA input, location branding override/clear, read-only Roles & Permissions, Employees directory, legacy Integrations redirect to Service Status, billing/help, plus narrowed Location Manager settings and navigation.",
+    "callers_consumers": [
+      "Policies",
+      "Branding",
+      "Roles & Permissions",
+      "Employees",
+      "Service Status",
+      "Billing",
+      "Help dashboard pages"
+    ],
+    "invariants_error_checks": [
+      "company/default and location/override writes return 200",
+      "invalid SLA 29 disables save while 180 is accepted",
+      "inheritance restored after clear",
+      "Location Manager cannot see company-only settings or roles/integrations nav"
+    ],
+    "test_refs": [
+      "self: md-r11-administration.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Runtime baseline reset is relied on to isolate mutations between tests."
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/operational-separation.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b7369a63d7142eabead59c3be38a596df173c48ab75f2c306b0d8ea241b50284",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 94
+      }
+    ],
+    "semantic_review_notes": "Checks separation between Management authority/entitlement and physical operations. A Company Admin Management principal is denied a valet key-slot custody mutation without state/version change, while disabling Management entitlement leaves Employee shift-end and Guest retrieval operational.",
+    "callers_consumers": [
+      "staff key-slot assign endpoint",
+      "staff shift end endpoint",
+      "guest request-retrieval endpoint",
+      "fixture session-snapshot control"
+    ],
+    "invariants_error_checks": [
+      "management-only principal receives AUTHORIZATION_DENIED/404 on custody mutation",
+      "custody snapshot unchanged",
+      "employee shift end still 200",
+      "guest retrieval still 200 and advances only guest session"
+    ],
+    "test_refs": [
+      "self: operational-separation.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Guest API origin is hardcoded to localhost:3001 for this runtime fixture."
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/report-generation-race.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "88e9e1683e419f0fbc8f0072d232183e45e0ab2238302724679dc23d72320d2e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 49
+      }
+    ],
+    "semantic_review_notes": "Fences a delayed real report-export response across logout/session generation change. The POST may have occurred, but after logout the released old result must not create a browser download or retain preview content.",
+    "callers_consumers": [
+      "Reports preview/export UI",
+      "installDelayedRealResponse",
+      "staff logout/session generation"
+    ],
+    "invariants_error_checks": [
+      "exactly one export POST",
+      "zero downloads after logout",
+      "preview removed after session termination"
+    ],
+    "test_refs": [
+      "self: report-generation-race.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Post-release observation includes a 150ms dwell; cross-checking generation fence implementation separately."
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/reports-privacy.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6e119fd58fe0be9ce5c3935eb909991e0e5ec5c53ef74765f8a96dd4a42f97a9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 146
+      }
+    ],
+    "semantic_review_notes": "Exercises real company/location CSV/PDF export artifacts, unknown-outcome handling after response loss, entitlement revocation, protected Visit Contact search, object-URL revocation, and absence of protected contact/export data from localStorage/sessionStorage/IndexedDB/CacheStorage before logout/back-navigation checks.",
+    "callers_consumers": [
+      "Reports UI/export endpoints",
+      "Visit Contacts UI",
+      "support/persistent-state.ts",
+      "runtime entitlement control"
+    ],
+    "invariants_error_checks": [
+      "response MIME/content-disposition/filename and non-empty artifact",
+      "CSV header/PDF framing",
+      "one interrupted POST with no silent retry",
+      "revoked entitlement prevents download",
+      "all object URLs revoked",
+      "sensitive needles absent from persistent browser stores",
+      "back after logout remains signed out"
+    ],
+    "test_refs": [
+      "self: reports-privacy.spec.ts",
+      "support/persistent-state.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Persistent-state inspection requires Chromium support for indexedDB.databases(); downloaded temporary file contents are intentionally inspected by the test."
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/request-bounds.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0e44f88d34ff39ae9dd9bdb5a611d523831126ecfaf4bbfbab6fd961b5084c3e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 60
+      }
+    ],
+    "semantic_review_notes": "Verifies Company analytics uses the organization aggregate endpoint with no per-Location fan-out, preserves explicit from/to filters, closes the custom-period dialog, and keeps the user-facing apply path bounded.",
+    "callers_consumers": [
+      "Analytics page",
+      "Company all-locations analytics endpoint"
+    ],
+    "invariants_error_checks": [
+      "two company reads total for initial+custom query",
+      "zero location analytics reads",
+      "exact from/to query values",
+      "apply completes within test budget"
+    ],
+    "test_refs": [
+      "self: request-bounds.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "The <2s wall-clock assertion is environment-sensitive and is a performance smoke bound rather than a service SLO."
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/scope-races.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8f0f5f7a7d6135bd2417a5cb930c3bbd5e82538cc7cc1b35d0a4637160189456",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 130
+      }
+    ],
+    "semantic_review_notes": "Exercises A→B→A generation fencing for Company and exact-Location branding, covering both delayed real success and response-loss failure. Returning to A must use fresh authoritative state and suppress the first-A result/error; also traverses Maps, Audit Log, and Reports after the race.",
+    "callers_consumers": [
+      "Branding state owners",
+      "scope chooser",
+      "ScopeGenerationGuard-style feature owners",
+      "Maps/Audit/Reports navigation"
+    ],
+    "invariants_error_checks": [
+      "stale first-A success cannot overwrite fresh A",
+      "stale failure cannot surface alert",
+      "same property holds for Location A→B→A"
+    ],
+    "test_refs": [
+      "self: scope-races.spec.ts",
+      "support/delayed-real-response.ts",
+      "src/lib/scope/scope-generation.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Runtime release is followed by a 150ms dwell; static inspection confirms generation-based correctness mechanisms exist, so no defect is claimed from timing alone."
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/session-generation.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0193d643aa3a96ba29dc05109459db3922c0db299ae0a853ba7db17483ce98a0",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 46
+      }
+    ],
+    "semantic_review_notes": "Validates session-generation fencing after server-side revocation: an old delayed Branding read cannot repaint protected content after failed sign-out confirmation, and a replacement browser session for the same principal still requires MFA.",
+    "callers_consumers": [
+      "StaffAuth generation handling",
+      "Branding read",
+      "sign-out/revocation flow"
+    ],
+    "invariants_error_checks": [
+      "old delayed result hidden",
+      "Management nav and Branding heading absent after revocation",
+      "replacement session MFA not inherited"
+    ],
+    "test_refs": [
+      "self: session-generation.spec.ts",
+      "src/lib/api/dashboard-api-client.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Covers one protected read path and a replacement browser context."
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/support/delayed-real-response.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "438f312a6674eea3fa94fa2d7ff4f1f89c36ac9aba4d7afa75b4802d31d1a38e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 59
+      }
+    ],
+    "semantic_review_notes": "Single-arm Playwright route helper fetches the real upstream response first, signals that it started, then releases either the real response or a synthetic connection failure. It disarms before waiting, preventing accidental interception of subsequent matching requests.",
+    "callers_consumers": [
+      "cross-feature-races.spec.ts",
+      "scope-races.spec.ts",
+      "session-generation.spec.ts",
+      "report-generation-race.spec.ts"
+    ],
+    "invariants_error_checks": [
+      "only one armed response consumed",
+      "unmatched traffic continues",
+      "failure occurs after real upstream execution to model lost response"
+    ],
+    "test_refs": [
+      "runtime race specs listed in callers_consumers"
+    ],
+    "finding_ids": [],
+    "limits": "Routes only /v1/staff/** and models connection failure after route.fetch; it does not simulate every transport failure phase."
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/support/persistent-state.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a6b420a160143e28d63d7ea7c7a533c543dc7e2916b70fa5d23a29c761461c4a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 109
+      }
+    ],
+    "semantic_review_notes": "Privacy test support wraps object-URL create/revoke to prove all generated download URLs are revoked, and searches localStorage, sessionStorage, IndexedDB values, CacheStorage URLs and bodies for protected needles.",
+    "callers_consumers": [
+      "reports-privacy.spec.ts"
+    ],
+    "invariants_error_checks": [
+      "active object URL list empty",
+      "revoke count equals creation history",
+      "all persistent browser stores searched for exact sensitive substrings"
+    ],
+    "test_refs": [
+      "reports-privacy.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "IndexedDB enumeration must be supported by the browser; storage metadata not containing the needles is outside this content scan."
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/support/runtime-fixture.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "56d23c029971a125c19ddadf3315aa4edfc5d45a5987b94cd4adbff2192c7e2d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 196
+      }
+    ],
+    "semantic_review_notes": "Defines fixed test organizations/locations/principals/operations, signs in through the real browser UI, performs MFA TOTP, selects authorized scope, invokes test-only API fixture provision/control tools with explicit confirmation and MIGRATION_DATABASE_URL, and exposes a direct status helper.",
+    "callers_consumers": [
+      "all e2e-runtime specs except independent Issue #300 closure"
+    ],
+    "invariants_error_checks": [
+      "fixture control refuses missing MIGRATION_DATABASE_URL",
+      "NODE_ENV=test and E2E fixture confirmation passed",
+      "runtime MFA keys come from env or deterministic test-local derivation",
+      "TOTP is standards-style 30s HMAC-SHA1"
+    ],
+    "test_refs": [
+      "e2e-runtime/support/runtime-test.ts",
+      "auth/authority/race/privacy/runtime specs"
+    ],
+    "finding_ids": [],
+    "limits": "Contains deliberate test-only credentials/tokens and deterministic fallback MFA keys; not production code."
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/support/runtime-test.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "894f640c84da3aeb53be237d3f9e9160bfbab44a54ab2784c1681fc422a1f540",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 12
+      }
+    ],
+    "semantic_review_notes": "Extends Playwright with an automatic runtimeBaseline fixture that reprovisions the runtime fixture before each test, providing isolation for mutable database-backed scenarios.",
+    "callers_consumers": [
+      "most apps/dashboard/e2e-runtime/*.spec.ts"
+    ],
+    "invariants_error_checks": [
+      "resetRuntimeFixture executes before test use"
+    ],
+    "test_refs": [
+      "runtime fixture consumers"
+    ],
+    "finding_ids": [],
+    "limits": "Per-test full fixture reset is intentionally heavier than mocked E2E and depends on the test database."
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/two-tab-concurrency.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "12232cd3030448536a94dc2c3893d8501238d31f7fe25650074147bab6cdf5e9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 149
+      }
+    ],
+    "semantic_review_notes": "Covers MFA assurance isolation across separate browser contexts and a same-context two-page Branding CAS conflict. It proves duplicate-click suppression, 409 on stale expectedUpdatedAt, authoritative reload, explicit retry, and #268 scope restoration on both pages.",
+    "callers_consumers": [
+      "Branding CAS endpoint/UI",
+      "auth refresh",
+      "scope restoration"
+    ],
+    "invariants_error_checks": [
+      "MFA in context A does not assure context B",
+      "single first write despite forced second click",
+      "stale CAS returns 409",
+      "no stale client value after reload",
+      "explicit retry succeeds"
+    ],
+    "test_refs": [
+      "self: two-tab-concurrency.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "The manual stale request issued from pageB uses the access token captured from pageA refresh; this still exercises resource CAS but is not independent per-tab authentication proof."
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-authority.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1ef90f362ebaae5266b025956c5a6e0247b2a8b8fd5260599cac06afd7987c16",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 143
+      }
+    ],
+    "semantic_review_notes": "Fixture E2E covers Company Admin/Location Manager administration navigation, billing recovery when dashboardAccess is false, branding entitlement composition, exact-location billing, and direct-route denial for supervisor/employee. One Company Admin navigation assertion still expects standalone Integrations, which contradicts the current navigation registry and Issue #238 Service Status redirect design.",
+    "callers_consumers": [
+      "DashboardApiFixture",
+      "administration navigation registry",
+      "subscription/branding authority"
+    ],
+    "invariants_error_checks": [
+      "billing recovery avoids ordinary context read",
+      "dashboardAccess false denies ordinary administration",
+      "Branding requires both dashboard and branding entitlement",
+      "supervisor/employee cannot enter business route"
+    ],
+    "test_refs": [
+      "src/features/administration/administration-navigation.ts",
+      "e2e/issue238-service-status.spec.ts"
+    ],
+    "finding_ids": [
+      "C004-DASH-001"
+    ],
+    "limits": "Static contradiction identified; C004 did not execute Playwright."
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-behavior.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e262b799e876611857103520b9d197f08a4d89b5ea53a8c6020ee17273978025",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 247
+      }
+    ],
+    "semantic_review_notes": "Fixture E2E validates sensitive Branding MFA explicit retry, freshness independent of ordinary ASSURED, CAS conflict reload, read-only commercial projection, and null subscription presentation. The Integrations case opens legacy /integrations and expects the retired Integrations & Connectors page instead of the current /policies?tab=services redirect/Service Status UI.",
+    "callers_consumers": [
+      "Branding UI",
+      "MFA step-up",
+      "commercial API",
+      "Billing UI",
+      "legacy /integrations route"
+    ],
+    "invariants_error_checks": [
+      "no automatic mutation replay after MFA",
+      "CAS reloads server value",
+      "commercial UI has no provider secret/config controls",
+      "null subscription has no mutation controls"
+    ],
+    "test_refs": [
+      "src/app/integrations/page.tsx",
+      "e2e/issue238-service-status.spec.ts"
+    ],
+    "finding_ids": [
+      "C004-DASH-001"
+    ],
+    "limits": "Static contradiction identified; commercial read-only intent remains valid, but route/presentation expectation is stale."
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-concurrency.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "74361e92f21b0b2ee87e798a33e0903dcefb77e90f53bb3c5f7bb620ad903735",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 242
+      }
+    ],
+    "semantic_review_notes": "Covers unknown-outcome Location create retry with stable operationId, staff-role VERSION_CONFLICT reconciliation to authoritative detail, and delayed cross-organization commercial read fencing. The commercial race still opens the retired /integrations presentation and expects the legacy Integrations & Connectors heading.",
+    "callers_consumers": [
+      "Location create UI/API",
+      "Employees role mutation/detail reload",
+      "commercial service-status read",
+      "scope change"
+    ],
+    "invariants_error_checks": [
+      "unknown create retry reuses identical request body and operationId",
+      "409 role conflict reloads authoritative role/version",
+      "late Organization A response cannot repaint B"
+    ],
+    "test_refs": [
+      "src/app/integrations/page.tsx",
+      "e2e/issue238-service-status.spec.ts"
+    ],
+    "finding_ids": [
+      "C004-DASH-001"
+    ],
+    "limits": "Static legacy-route contradiction only; Playwright not executed in C004."
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-locations.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "175cb4ac3f8c705fc20443b9911b9ea736afa5cebf02bf9ae4585cfc235a80d3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 66
+      }
+    ],
+    "semantic_review_notes": "Company Admin lifecycle read is intentionally sensitive: initial GET returns MFA_STEP_UP_REQUIRED, successful verification causes an explicit safe reread, readiness facts render, and no Edit Location mutation control is exposed by this read-only view.",
+    "callers_consumers": [
+      "Location lifecycle page",
+      "MFA step-up",
+      "management lifecycle endpoint"
+    ],
+    "invariants_error_checks": [
+      "one MFA step-up",
+      "lifecycle read occurs again after assurance",
+      "currency/timezone readiness rendered",
+      "Edit Location absent"
+    ],
+    "test_refs": [
+      "self: administration-locations.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Uses fixture authority rather than a live database/API runtime."
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-authority-budget.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a20a0c9f03c056bc35794850fe5f58047c3e4a9501ac0052a3588f0130bd1104",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 253
+      }
+    ],
+    "semantic_review_notes": "R05 authority/budget coverage checks Company Admin and Location Manager directory/history reads, lazy Employees loading for LM, entitlement denial before staff reads, zero business reads for supervisor/employee/unauthenticated users, settled request counts, no hidden detail joins or writes, and memory-only staff rows.",
+    "callers_consumers": [
+      "Employees & Shifts page",
+      "staff directory endpoint",
+      "shift history endpoint",
+      "persistent-storage helper"
+    ],
+    "invariants_error_checks": [
+      "unauthorized principals send zero directory/history reads",
+      "dashboardAccess=false blocks directory request",
+      "Location Manager sees only authorized location choices",
+      "no unexpected writes/detail joins",
+      "sentinel absent from browser persistent stores"
+    ],
+    "test_refs": [
+      "support/administration-r05-fixtures.ts",
+      "support/issue240e-history.ts",
+      "support/persistent-storage.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Several request-settlement checks use finite dwell windows as test-budget assertions."
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-cursor-generation.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "14df275db98558c7403583ab81daa64f0bdb36759f35be73011314aac657fc6b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 188
+      }
+    ],
+    "semantic_review_notes": "Exercises shift-history generation fencing for both Company Admin and Location Manager across A→B→A, for stale success and stale failure, plus logout followed by same-user sign-in. It rejects stale rows, stale errors, and stale pagination state after scope/session replacement.",
+    "callers_consumers": [
+      "Employees Shifts history state",
+      "organization/location scope switching",
+      "auth session generation"
+    ],
+    "invariants_error_checks": [
+      "first-A delayed result cannot repaint returned A",
+      "B data remains tenant-specific",
+      "stale Next cursor not retained",
+      "old-session result cannot repaint after reauthentication"
+    ],
+    "test_refs": [
+      "support/staff-directory-ui.ts",
+      "support/issue240e-history.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture E2E; networkidle is used as the post-release settlement boundary."
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-controls.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "84810b81395e1e874604ad5a48a2642e1cc85a059437f466f8fe91c7e24f9d8f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 70
+      }
+    ],
+    "semantic_review_notes": "Ensures Employees search/role/status controls are generation-owned UI state: organization scope replacement resets prior filters, and sign-out followed by a replacement identity/session also resets them.",
+    "callers_consumers": [
+      "Employees controls",
+      "scope chooser",
+      "staff auth replacement"
+    ],
+    "invariants_error_checks": [
+      "search and role reset on A→B",
+      "search and status reset after replacement sign-in"
+    ],
+    "test_refs": [
+      "self: administration-r05-employees-controls.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Covers control reset semantics with mocked API data."
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-generation.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9ce65e4dc97ed2eb5f7c086c1991d76d61c06caf5a0ea04f9f4d953fd8fb90ff",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 91
+      }
+    ],
+    "semantic_review_notes": "Tests Employees A→B→A generation fencing for delayed first-A success and failure. Fresh A data must remain visible after release while stale row/error is suppressed.",
+    "callers_consumers": [
+      "Employees directory state",
+      "organization scope switching"
+    ],
+    "invariants_error_checks": [
+      "B row visible in B",
+      "fresh second-A row visible on return",
+      "stale first-A success/failure cannot repaint"
+    ],
+    "test_refs": [
+      "support/staff-directory-ui.ts",
+      "support/administration-r05-fixtures.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture E2E and networkidle settlement."
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-page-scope.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a7c31d49d1de2a9f17e90f67a4a05c04ced70bdc612fd149eb434847064a49bf",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 88
+      }
+    ],
+    "semantic_review_notes": "Proves an opaque Organization A directory cursor is not carried into Organization B and that a delayed A page-2 response cannot repaint B after the scope switch.",
+    "callers_consumers": [
+      "Employees pagination",
+      "organization scope switching"
+    ],
+    "invariants_error_checks": [
+      "all B requests use null initial cursor",
+      "stale A page-2 row absent after release"
+    ],
+    "test_refs": [
+      "support/administration-r05-fixtures.ts"
+    ],
+    "finding_ids": [],
+    "limits": "One-direction A→B cursor isolation; complementary A→B→A coverage exists in scope-cursor spec."
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-pagination.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "408475a0b8876434a9b65de036d0f28c3ffd1fe389babc42d438af1f2b1db207",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 92
+      }
+    ],
+    "semantic_review_notes": "Validates opaque server cursor forwarding while preserving active search/role/status filters on continuation, back navigation to cached first page, and no fabricated total-page count.",
+    "callers_consumers": [
+      "Employees directory pagination/filter controls"
+    ],
+    "invariants_error_checks": [
+      "cursor value forwarded unchanged",
+      "filters retained on next/previous",
+      "Next disabled when nextCursor=null",
+      "no Page X of Y claim"
+    ],
+    "test_refs": [
+      "support/administration-r05-fixtures.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Filter request-count expectation assumes current immediate request behavior of the UI."
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-presentation.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5a2d4ebd3dc085b45bd33af387ca029581dd9289d0a5e906efe782f5b91dddfb",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 118
+      }
+    ],
+    "semantic_review_notes": "Checks truthful directory presentation and server-backed filters: role/status/email facts are shown, internal membership IDs and unsupported Add Employee/Attendance controls/photos are hidden, and the Details dialog restores focus to its opener.",
+    "callers_consumers": [
+      "Employees table",
+      "directory filters",
+      "staff detail drawer"
+    ],
+    "invariants_error_checks": [
+      "no internal membership ID in table/drawer",
+      "server filters narrow rows",
+      "unsupported controls absent",
+      "Escape closes dialog and restores focus"
+    ],
+    "test_refs": [
+      "support/administration-r05-fixtures.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Presentation fixture asserts current approved R05 surface, not backend authorization independently."
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-scope-cursor.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c7da901cfa6e6453b6274e8b2a955d6ec658a8c3eda05b3af8d159604bf00ea1",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 112
+      }
+    ],
+    "semantic_review_notes": "Exercises cursor-history ownership across A→B→A. Each organization receives only its own opaque cursor, returning to A restarts from null rather than old page history, and a delayed old A page cannot repaint the returned A state.",
+    "callers_consumers": [
+      "Employees pagination state",
+      "organization scope switching"
+    ],
+    "invariants_error_checks": [
+      "A and B cursors never cross",
+      "returned A starts at null cursor",
+      "delayed old A page suppressed"
+    ],
+    "test_refs": [
+      "support/staff-directory-ui.ts",
+      "support/administration-r05-fixtures.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture E2E and networkidle settlement."
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-session.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0bb2964d9f03914a2e8dd66f4903fdc752291a96684be438189194572766720d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 131
+      }
+    ],
+    "semantic_review_notes": "Tests pending Employees success/failure across logout and across a replacement signed-in session. Released old-session responses must not repaint the sign-in screen or the replacement session's authoritative directory state.",
+    "callers_consumers": [
+      "Employees directory state",
+      "sign-out",
+      "replacement Staff session"
+    ],
+    "invariants_error_checks": [
+      "no stale success/error after logout",
+      "replacement session data remains visible",
+      "old-session result cannot repaint replacement identity"
+    ],
+    "test_refs": [
+      "support/staff-directory-ui.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture E2E; same page is reused across auth replacement."
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-mutations.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "eebcc77be3be85622af2f2a280aa4083878ce64b2d5358223f7111d53c35be90",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 251
+      }
+    ],
+    "semantic_review_notes": "R05 mutation safety coverage proves expectedVersion is sent, MFA step-up never auto-replays a rejected role mutation, auth reconciliation after 401 does not replay the mutation, and entitlement denial preserves old role until an explicit retry. Successful retry refreshes directory/detail authority.",
+    "callers_consumers": [
+      "staff role mutation",
+      "staff detail/directory reload",
+      "MFA/auth reconciliation"
+    ],
+    "invariants_error_checks": [
+      "one POST before explicit MFA retry",
+      "same expectedVersion/body on explicit retry",
+      "401 triggers refresh but not mutation replay",
+      "entitlement denial leaves authoritative old role",
+      "explicit later retry required"
+    ],
+    "test_refs": [
+      "support/administration-r05-fixtures.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture responses model server behavior; live mutation path is separately covered elsewhere."
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-presentation.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d9ed49337032ef045bef8c22fd4cfee69a8712e32ed4fa172535a660bbeb9663",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 197
+      }
+    ],
+    "semantic_review_notes": "Validates truthful Shift presentation: row-specific accessible actions, Location timezone rendering, authoritative identity/location detail, internal shift/membership IDs hidden from visible text and aria labels, no operational shift mutation controls, plus Arabic RTL/bidi-safe email and localized time labels.",
+    "callers_consumers": [
+      "Employees Shifts table/detail drawer",
+      "history endpoint",
+      "localization/bidi presentation"
+    ],
+    "invariants_error_checks": [
+      "unique row action labels",
+      "internal IDs absent from labels/UI",
+      "times rendered in location timezone",
+      "unsupported start/end/attendance/payroll controls absent",
+      "Arabic uses RTL and bdi LTR for email"
+    ],
+    "test_refs": [
+      "support/issue240e-history.ts",
+      "support/administration-r05-fixtures.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Presentation-level checks use deterministic fixture timestamps and location timezone."
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-visual.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6150e70ae61780ec44b309feb65895220462cd614d812ffec9e6aa1094b78d21",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 253
+      }
+    ],
+    "semantic_review_notes": "Visual proof covers Employees and Shifts geometry, no horizontal overflow, theme changes, Arabic RTL, narrow 480px layouts, action visibility, and a Location Manager Shifts reference. Screenshots are written to OS temp output, not tracked source.",
+    "callers_consumers": [
+      "Employees/Shifts presentation",
+      "theme/language shell",
+      "visual evidence output"
+    ],
+    "invariants_error_checks": [
+      "desktop geometry assertions",
+      "document scrollWidth equals viewport width",
+      "light/dark and LTR/RTL states exercised",
+      "details controls remain visible on narrow layout"
+    ],
+    "test_refs": [
+      "support/administration-r05-fixtures.ts",
+      "support/issue240e-history.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Pixel geometry is browser/font/environment sensitive; C004 did not regenerate screenshots due audit-only/no-expensive-test constraint."
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r06-accessibility.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b1c30f251b6627a07aa3c631786db4acd796008321fae1c87972e8198de47105",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 61
+      }
+    ],
+    "semantic_review_notes": "Accessibility test covers nested Create Location and MFA dialogs: outer dialog focus wraps, MFA challenge takes focus and traps it, Escape closes only the top challenge and restores focus to Create submit, then a second Escape closes Create and restores focus to Add Location.",
+    "callers_consumers": [
+      "Create Location dialog",
+      "MFA step-up dialog",
+      "focus restoration"
+    ],
+    "invariants_error_checks": [
+      "focus trap in outer dialog",
+      "focus trap in MFA challenge",
+      "nested Escape semantics",
+      "focus restored at each dialog boundary"
+    ],
+    "test_refs": [
+      "support/r06-locations.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Focused keyboard-dialog behavior; broader axe/semantic accessibility coverage is outside this file."
+  }
+]

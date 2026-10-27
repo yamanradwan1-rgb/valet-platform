@@ -23,3 +23,7 @@ No UI or application source changed. No whole-system state-transition or histori
 ## C003 incremental depth
 
 Reassigned reviews added database/schema/least-privilege/worker proof, staff-auth boundaries, Customer guest UI and QA harnesses, and management Dashboard interfaces. These are file-semantic records only; no entire feature path or physical/provider release gate is newly qualified. Exact file evidence and remaining edges are in C003 review records.
+
+## C004 partial source review
+
+Native Android/check-in presentation and custody adapter, Dashboard E2E/management fixture, Customer-related transfer files and database runtime/provisioning source received full-file semantic records. This is not end-to-end feature qualification; pending C004 paths are explicit in the checkpoint.

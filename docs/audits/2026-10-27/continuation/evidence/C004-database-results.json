@@ -1,0 +1,1134 @@
+[
+  {
+    "path": "packages/database/prisma/demo-operational-seed.mjs",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8ee8af6b785cab5f2f622eb52459cb98eed94abfe0f6d084f2a7ada2c6e29388",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 90
+      }
+    ],
+    "semantic_review_notes": "Seeds two ACTIVE shifts and three canonical PARKING/RETRIEVAL tasks with deterministic demo ownership/status. The READY demo retrieval task is intentionally left IN_PROGRESS under the supervisor; upserts only refresh mutable demo status/assignee/timestamps.",
+    "callers_consumers": [
+      "packages/database/prisma/seed.mjs (imports seedDemoShifts/seedDemoTasks; calls at seed flow lines found by rg)",
+      "apps/api/src/modules/shifts/start-shift-command.ts consumes the same active-shift uniqueness invariant"
+    ],
+    "invariants_error_checks": [
+      "Uses organization/location/membership/session ids supplied by the parent seed",
+      "Task enum casts and version=1 align with task persistence",
+      "No production request path calls this module"
+    ],
+    "test_refs": [
+      "packages/database/src/seed.integration.test.ts",
+      "packages/database/src/seed-operational-fixture-state.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static seed/caller review only; no seed execution in C004."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260808000100_tenant_staff_foundation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5adf3587db527396ea212814166381130bc5af7a182d415fbd11f18d118bd634",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 144
+      }
+    ],
+    "semantic_review_notes": "Establishes tenant/staff/location/shift ownership with composite tenant FKs and normalized unique email. The partial active-shift index is the DB race fence used by shift start; membership_location_access binds membership and location to one organization.",
+    "callers_consumers": [
+      "apps/api/src/modules/shifts/start-shift-command.ts",
+      "apps/api/src/modules/dashboard/dashboard-location-scope-query.ts",
+      "apps/api/src/modules/staff/custody-staff-authorizer.ts"
+    ],
+    "invariants_error_checks": [
+      "Composite organization/location and organization/membership FKs reject cross-tenant rows",
+      "shifts_one_active_per_membership_idx enforces one ACTIVE shift",
+      "ended_at cannot predate started_at"
+    ],
+    "test_refs": [
+      "packages/database/src/schema.integration.test.ts",
+      "packages/database/src/runtime-authority-privileges.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Historical foundation was compared with current schema and later authority migrations; no runtime DB execution."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260808000200_blueprint_location_and_supervisor/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ffbf7dc42747f6d65d9b7a7339d82f094c07b169775c733363b9cedb4f98e0ce",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 12
+      }
+    ],
+    "semantic_review_notes": "Adds VALET_SUPERVISOR and required location timezone/currency; currency is constrained to uppercase three-letter form. This migration assumes existing locations are backfilled/absent when adding NOT NULL columns, consistent with its early-foundation ordering.",
+    "callers_consumers": [
+      "apps/api/src/modules/vehicles/vehicle-identity-command.ts",
+      "apps/api/src/modules/tracking/route-history-authorization.ts",
+      "apps/api/src/modules/payments/payment-projection-authorization.ts"
+    ],
+    "invariants_error_checks": [
+      "membership_role enum gains supervisor",
+      "locations_currency_format_check enforces ^[A-Z]{3}$"
+    ],
+    "test_refs": [
+      "packages/database/src/schema.integration.test.ts",
+      "packages/database/src/location-configuration-currency.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static migration review; historical install ordering considered."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260808000400_parking_spot_key_slot_foundation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1254edb80fdd022d28fe40064c77a4be4c57b9837bb294778d88af04c181047b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 66
+      }
+    ],
+    "semantic_review_notes": "Creates parking_spots/key_slots with location-scoped codes and composite tenant/location FKs. Later session and zone migrations add the composite resource keys needed by custody/session references; current schema retains the tenant/location binding.",
+    "callers_consumers": [
+      "apps/api/src/modules/parking/parking-spot-validation-query.ts",
+      "apps/api/src/modules/keys/key-session-authorization.ts",
+      "packages/database/prisma/migrations/20260808000500_valet_session_foundation/migration.sql"
+    ],
+    "invariants_error_checks": [
+      "location code uniqueness",
+      "organization/location FKs block cross-tenant resource placement"
+    ],
+    "test_refs": [
+      "packages/database/src/schema.integration.test.ts",
+      "packages/database/src/physical-resource-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static review; later zone/resource hardening also inspected via current schema/search."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260808000600_restore_valet_session_query_indexes/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4c7fc59d24629b248c4b6c238beafc7621232adae03960fa9c62c0a32697e35a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 8
+      }
+    ],
+    "semantic_review_notes": "Restores three read-path indexes for location/state, vehicle history, and location retrieval ordering. No mutation or authorization semantics are introduced.",
+    "callers_consumers": [
+      "apps/api/src/modules/dashboard/* session queries",
+      "apps/api/src/modules/staff/staff-valet-session-queries.ts"
+    ],
+    "invariants_error_checks": [
+      "Performance-only indexes; no uniqueness semantics"
+    ],
+    "test_refs": [
+      "packages/database/src/schema.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Index usefulness assessed statically; no EXPLAIN/production workload in C004."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260808000700_audit_event_foundation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7c78d39f09010f5487f55c1529a865e529628eb87038a206ef483bb9299e964d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 49
+      }
+    ],
+    "semantic_review_notes": "Creates tenant/location-scoped audit_events with optional session/actor references and session timeline index. Later audit-foundation migrations add actor typing, append-only/runtime privileges and stricter write guards; current writers use atomic transaction boundaries with domain mutations.",
+    "callers_consumers": [
+      "apps/api/src/modules/audit/custody-audit-event-writer.ts",
+      "apps/api/src/modules/audit/organization-audit-writer.ts",
+      "apps/api/src/modules/management/audit-investigation/timeline/timeline-source-query.ts"
+    ],
+    "invariants_error_checks": [
+      "Composite session FK ties audit row to tenant/location",
+      "Actor membership FK ties actor to organization",
+      "Historical base itself does not enforce append-only privileges; later migration/provisioning does"
+    ],
+    "test_refs": [
+      "packages/database/src/audit-foundation-constraints.integration.test.ts",
+      "packages/database/src/audit-foundation-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Reviewed as a historical base in the full migration chain; no claim that this migration alone is production hardening."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260809001000_payment_validation_tip_foundation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "09e9ea8694539df00f0927941539fad67ce6aab6810be5df99e8865c4ac00479",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 205
+      }
+    ],
+    "semantic_review_notes": "Defines one payment per tenant/session, payment state/method shape, nonnegative money, provider-reference uniqueness, and versioned current validation history. Composite FKs prevent cross-tenant payment/validation references; later payment-operation migrations harden write authority and transitions.",
+    "callers_consumers": [
+      "apps/api/src/modules/payments/payment-repository.ts",
+      "apps/api/src/modules/payments/validation-command.ts",
+      "apps/api/src/modules/payments/payment-recompute.ts"
+    ],
+    "invariants_error_checks": [
+      "amount_paid <= amount_due",
+      "method/status/provider shape checks",
+      "one current validation via partial unique index",
+      "superseding validation constrained to same organization/payment"
+    ],
+    "test_refs": [
+      "packages/database/src/schema.integration.test.ts",
+      "packages/database/src/payment-collection-constraints.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Historical schema semantics reviewed with later payment collection controls; no financial mutation tests executed."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260809001100_cash_entry_provider_event_foundation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5cbb03b139a3bdcc8729f79065c6cfcb05b0e627a3c19d289fe1d48d5fb6f396",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 105
+      }
+    ],
+    "semantic_review_notes": "Creates append-style cash ledger rows and provider-event ingress records. Cash entry amounts are positive with reasons required for adjustments; idempotency is organization-scoped and a partial unique index prevents duplicate RECEIPT per payment.",
+    "callers_consumers": [
+      "apps/api/src/modules/payments/cash-command.ts",
+      "apps/api/src/modules/payments/provider-event-repository.ts",
+      "packages/database/scripts/provider-event-runtime-privileges.mjs"
+    ],
+    "invariants_error_checks": [
+      "Cash payment FK is tenant composite",
+      "Provider event initially forbids refund_id until refund migration",
+      "Provider event uniqueness is organization+provider+event id"
+    ],
+    "test_refs": [
+      "packages/database/src/schema.integration.test.ts",
+      "packages/database/src/payment-collection-constraints.integration.test.ts",
+      "packages/database/src/payment-collection-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static migration and consumer review; runtime role tests not executed."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260809001200_refund_foundation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "66b4f3164749eaf63cae23c6e81018ca6709eface6c382689e06aaa145d3d7ff",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 94
+      }
+    ],
+    "semantic_review_notes": "Adds tenant/payment-bound refund records, authorization actor, retry key and provider correlation; then safely enables provider events to point at a refund within the same organization/payment. Status/provider/completion constraints distinguish asynchronous provider refunds from succeeded local records.",
+    "callers_consumers": [
+      "apps/api/src/modules/payments/refund-repository.ts",
+      "apps/api/src/modules/payments/refund-command.ts",
+      "apps/api/src/modules/payments/provider-event-refund.ts"
+    ],
+    "invariants_error_checks": [
+      "Positive amount and nonblank reason",
+      "provider_reference requires provider",
+      "provider-event refund composite FK prevents cross-payment/cross-tenant linkage"
+    ],
+    "test_refs": [
+      "packages/contracts/src/payments.test.ts",
+      "packages/database/src/payment-collection-constraints.integration.test.ts",
+      "packages/database/src/refund-runtime-role-assertions.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Refund amount-vs-payment business cap is enforced in command/transaction layers rather than this foundation migration; static review only."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260809001300_incident_foundation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ab13aeac27fe8d4ff2424d158106eddf30c7ba46f7a75eee1d91f4d81eb4cd73",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 68
+      }
+    ],
+    "semantic_review_notes": "Creates incident records separately from session state with tenant/location/session and reporter/resolver membership FKs. Reporting code inserts OPEN incidents plus audit atomically; later recovery/resolution work adds controlled mutation authority and recovery-intent durability.",
+    "callers_consumers": [
+      "apps/api/src/modules/incidents/incident-reporting-command.ts",
+      "apps/api/src/modules/dashboard/incident-resolution-command.ts",
+      "apps/api/src/modules/management/company-analytics-incidents-query.ts"
+    ],
+    "invariants_error_checks": [
+      "Cross-tenant session and actor references are DB-rejected",
+      "Location/status index supports operational lists",
+      "Resolution shape is controlled by later command/privilege layers"
+    ],
+    "test_refs": [
+      "packages/database/src/schema.integration.test.ts",
+      "packages/database/src/incident-runtime-read-privilege.integration.test.ts",
+      "packages/database/src/incident-recovery-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Historical foundation reviewed with later incident migrations and current command paths; no runtime execution."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260809001400_notification_foundation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "cf156cc992739b8b3183871dd681eb8b63337f377563a0770da48d239a89634a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 50
+      }
+    ],
+    "semantic_review_notes": "Creates notification delivery state independently from session state with organization/session ownership and required terminal timestamps for SENT/FAILED. Current outbound messaging paths consume the table while newer push persistence uses separate records.",
+    "callers_consumers": [
+      "apps/api/src/outbound-message-worker.ts",
+      "apps/api/src/modules/valet-sessions/initial-guest-issuance.ts"
+    ],
+    "invariants_error_checks": [
+      "Optional session FK is tenant composite",
+      "SENT requires sent_at; FAILED requires failed_at"
+    ],
+    "test_refs": [
+      "packages/database/src/schema.integration.test.ts",
+      "packages/database/src/seed.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static review; provider delivery behavior not exercised."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260809001500_check_in_intake_persistence/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fd2fabf023003b8415a7916448f7868e4157a200c811b1ede55452484186eba8",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 164
+      }
+    ],
+    "semantic_review_notes": "Adds company/location photo policy, paired condition-completion fields, append/supersede condition notes, and private vehicle-photo metadata with tenant/location/session/capturer binding. Supersession is constrained to the same session/context and storage keys are globally unique.",
+    "callers_consumers": [
+      "apps/api/src/modules/valet-sessions/check-in-condition-command.ts",
+      "apps/api/src/modules/vehicle-photos/condition-photo-discovery-query.ts",
+      "apps/api/src/modules/valet-sessions/check-in-photo-preflight.ts"
+    ],
+    "invariants_error_checks": [
+      "Completion timestamp/actor pair",
+      "Nonblank condition note and no self-supersession",
+      "Composite note supersedes FK",
+      "Photo tenant/location/session/capturer FKs"
+    ],
+    "test_refs": [
+      "packages/database/src/condition-photo-p1-integrity.integration.test.ts",
+      "packages/database/src/condition-photo-runtime-privileges.integration.test.ts",
+      "packages/database/src/schema.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Later condition-photo migrations add upload/verification authority; reviewed as historical base."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260810001700_staff_authentication/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3798dbb799d10e5d6f4d79d1fc5f5a1ffb4b033f17c992d14eb14a0de22aa56d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 85
+      }
+    ],
+    "semantic_review_notes": "Persists hashed staff access/refresh credentials with bounded expiry, monotonic refresh generations, one unconsumed refresh per session, and same-session replacement linkage. Current auth service rotates/revokes through these records; MFA is added later without weakening these token hashes.",
+    "callers_consumers": [
+      "apps/api/src/modules/auth/staff-auth.service.ts",
+      "apps/api/src/modules/auth/staff-session-revalidation.ts",
+      "apps/api/src/modules/auth/staff-auth-logout.ts"
+    ],
+    "invariants_error_checks": [
+      "Versioned SHA-256 hash formats",
+      "access <= absolute expiry",
+      "positive refresh generation",
+      "replacement cannot self-reference and must be same session"
+    ],
+    "test_refs": [
+      "packages/database/src/schema.integration.test.ts",
+      "packages/database/src/mfa-migration.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static DB/auth consumer review; authentication flows not executed."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260810001800_shared_durable_anti_abuse/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "24d698a10b67071e28d709f8323d5c76d4cd8aee5243149c8b92795b68224ad2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 48
+      }
+    ],
+    "semantic_review_notes": "Creates durable hashed anti-abuse counters with a closed scope/state allowlist and an indexed one-hour retention cleanup. Cleanup is SECURITY DEFINER with fixed search_path and PUBLIC execution revoked; later migrations extend allowed scopes deliberately.",
+    "callers_consumers": [
+      "apps/api/src/modules/anti-abuse/anti-abuse.service.ts",
+      "apps/api/src/modules/anti-abuse/anti-abuse-maintenance.ts",
+      "apps/api/src/modules/anti-abuse/classified-guest-counter.ts"
+    ],
+    "invariants_error_checks": [
+      "HMAC hash format",
+      "Closed scope/state values",
+      "Cleanup lock_timeout limits maintenance blocking",
+      "PUBLIC EXECUTE revoked"
+    ],
+    "test_refs": [
+      "packages/database/src/guest-anti-abuse-schema-assertions.ts",
+      "packages/database/src/schema.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Grant target/provisioning reviewed through callers/search, not executed against PostgreSQL."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260812002000_phase3_task_dispatch_persistence/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "de20805acf4d88ee6755d2dd8b3fe97bafdecf418176cfd3d745d36c3056c8cf",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 149
+      }
+    ],
+    "semantic_review_notes": "Establishes Task lifecycle separately from ValetSession and append-style dispatch events. A partial unique index prevents multiple active tasks of the same type per session; task/session/location and event/task FKs carry the tenant/location/session scope into dispatch history.",
+    "callers_consumers": [
+      "apps/api/src/modules/dispatch/dispatch-event-writer.ts",
+      "apps/api/src/modules/dispatch/assign-task-command.ts",
+      "apps/api/src/modules/dispatch/reassign-task-command.ts"
+    ],
+    "invariants_error_checks": [
+      "Task assignee/status shape",
+      "Active task uniqueness",
+      "Dispatch assignee-event shape",
+      "Composite event->task scope FK"
+    ],
+    "test_refs": [
+      "packages/database/src/task-dispatch-persistence.integration.test.ts",
+      "packages/database/src/task-active-concurrency.integration.test.ts",
+      "packages/database/src/task-dispatch-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static migration/caller review; no concurrency test run."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260813002100_guest_retrieval_requester_consistency/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "822eba8c776c5fdef2a1369ed7934675596b9d75bc08e56bc94ebffe68ba45d7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 16
+      }
+    ],
+    "semantic_review_notes": "Replaces requester consistency so CUSTOMER retrieval requests cannot carry a staff membership, while STAFF requests require a membership and cannot carry a customer id. Customer identity remains optional because guest-token/browser-session flows can legitimately request retrieval without a persisted Customer row.",
+    "callers_consumers": [
+      "apps/api/src/modules/retrieval/* retrieval request commands",
+      "apps/customer guest retrieval flow"
+    ],
+    "invariants_error_checks": [
+      "CUSTOMER => membership NULL",
+      "STAFF => customer NULL and membership NOT NULL"
+    ],
+    "test_refs": [
+      "packages/database/src/schema.integration.test.ts",
+      "packages/database/src/phase4-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Constraint semantics checked against current guest-token model; no request execution."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260813002200_secure_handoff_policy_and_anti_abuse/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6dfca29a2f16988dd2b29048a62b0c09ba65acc48280a1980cf025050d594cb1",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 28
+      }
+    ],
+    "semantic_review_notes": "Adds company-default/location-override handoff method policy and extends the durable anti-abuse allowlist for handoff issuance/verification session scopes. This preserves typed Configuration First precedence and explicit anti-abuse classification.",
+    "callers_consumers": [
+      "apps/api/src/modules/retrieval/handoff-policy.ts",
+      "apps/api/src/modules/retrieval/issue-handoff-command.ts",
+      "apps/api/src/modules/retrieval/verify-handoff-command.ts"
+    ],
+    "invariants_error_checks": [
+      "Typed PICKUP_CODE/DYNAMIC_QR/EITHER policy",
+      "Anti-abuse scopes remain closed via CHECK"
+    ],
+    "test_refs": [
+      "packages/database/src/secure-handoff-policy.integration.test.ts",
+      "packages/database/src/location-configuration-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static policy/anti-abuse review."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260814002300_phase5_maps_tracking_persistence/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a506b54d8cc209c5c4b2b3de5854ac685834b9e474ce3e6ff08c026ade382534",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 226
+      }
+    ],
+    "semantic_review_notes": "Adds opt-in tracking policy, map geometry, task-scoped tracking sessions, raw GPS samples and geofence events with nested composite scope FKs. Active tracking is unique per task and per valet session; ended_at can only transition once, and GPS coordinates are DB-bounded.",
+    "callers_consumers": [
+      "apps/api/src/modules/tracking/task-tracking-lifecycle.ts",
+      "apps/api/src/modules/tracking/gps-sample-persistence.ts",
+      "apps/api/src/modules/tracking/geofence-evaluation.ts",
+      "apps/api/src/modules/tracking/live-map-query.ts"
+    ],
+    "invariants_error_checks": [
+      "Tracking default false",
+      "positive retention days",
+      "ended tracking cannot reopen/rewrite",
+      "sample tracking FK includes org/location/session/task",
+      "lat/lon bounds and sample idempotency"
+    ],
+    "test_refs": [
+      "packages/database/src/maps-tracking-persistence.integration.test.ts",
+      "packages/database/src/maps-tracking-runtime-role.integration.test.ts",
+      "packages/database/src/raw-gps-retention.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static privacy/scope/race review; no GPS retention job execution."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260814002400_phase5_map_setup_write_authority/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3fb7748107e0756a10ca29578ac3233688e80d04bb01a832250ef9a2ceebb0bb",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 468
+      }
+    ],
+    "semantic_review_notes": "Defines SECURITY DEFINER map-setup commands that derive organization authority from the actor/location instead of caller-supplied tenant ids. Functions use fixed search_path, active org/location/user/membership plus location access, LOCATION_MANAGER role, row locking/CAS on updates, bounded geometry/labels, same-scope parking-zone validation, and audit writes; PUBLIC execution is revoked for every helper/command.",
+    "callers_consumers": [
+      "apps/api/src/modules/map-setup/map-point-command.ts",
+      "apps/api/src/modules/map-setup/map-area-command.ts",
+      "apps/api/src/modules/map-setup/map-setup-projections.ts"
+    ],
+    "invariants_error_checks": [
+      "Authority derives organization id",
+      "Update point/area lock tenant-scoped row before mutation",
+      "Area vertices 3..500 and coordinates bounded",
+      "Audit appended in same DB call",
+      "PUBLIC EXECUTE revoked"
+    ],
+    "test_refs": [
+      "packages/database/src/maps-tracking-runtime-role.integration.test.ts",
+      "packages/database/src/maps-tracking-persistence.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static review of migration and callers; grant/provisioning/runtime invocation not executed."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260815002600_phase6_financial_policy_payment_core/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "213969eaca59d43bef81fb63aa6a4018d28dbdbda429934338d51ab4ed29a461",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 31
+      }
+    ],
+    "semantic_review_notes": "Adds typed company-default/location-override financial policy for fee, payer, payment methods, tips, validation and release gating. Fee values are nonnegative and the current resolver applies location overrides over company defaults.",
+    "callers_consumers": [
+      "apps/api/src/modules/payments/financial-policy-resolver.ts",
+      "apps/api/src/modules/dashboard/dashboard-configuration-projection.ts",
+      "apps/api/src/modules/management/management-settings-projection.ts"
+    ],
+    "invariants_error_checks": [
+      "Nonnegative company/location fee",
+      "Typed payment method/payer enums",
+      "Nullable location fields express override absence"
+    ],
+    "test_refs": [
+      "packages/database/src/financial-policy-migration.integration.test.ts",
+      "packages/database/src/location-configuration-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static configuration-policy review."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260816002700_phase6_cash_reconciliation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7afeff30c6d3760718ad2ade1703f41672931287474e50d669e1a91a23960ac2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 70
+      }
+    ],
+    "semantic_review_notes": "Adds an immutable end-of-shift cash reconciliation snapshot to shifts. The DB requires complete-or-empty reconciliation data, nonnegative expected/reported amounts, exact variance arithmetic, currency shape, the reporting membership to equal the shift owner, and the reconciliation timestamp to equal ended_at on an ENDED shift.",
+    "callers_consumers": [
+      "apps/api/src/modules/shifts/end-shift-command.ts",
+      "apps/api/src/modules/management/staff-shift-cash-read.ts",
+      "apps/api/src/modules/dashboard/analytics-financial-query.ts"
+    ],
+    "invariants_error_checks": [
+      "Tenant-scoped reporter FK",
+      "cash_variance = cash_reported - cash_expected",
+      "snapshot trigger blocks later reconciliation/status/ended_at rewrite",
+      "trigger function has fixed search_path and PUBLIC execution revoked"
+    ],
+    "test_refs": [
+      "packages/database/src/cash-reconciliation-migration.integration.test.ts",
+      "packages/database/src/shift-force-end-migration-test-fixture.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static migration/caller review only; reconciliation integration tests were not executed in C004."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260816002800_phase6_payment_collection_operation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3b2ed3a2408793d60738896de1bc695f11a6451c17c8e369f4ec6befac32f153",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 113
+      }
+    ],
+    "semantic_review_notes": "Introduces durable digital collection operation state for crash/unknown-outcome recovery. State/data checks distinguish PREPARED, guarded unknown outcome, provider-reference attachment, rejection, and resolution; unique submission and provider-reference keys provide idempotency, while a partial unique index permits only one unresolved operation for a payment.",
+    "callers_consumers": [
+      "apps/api/src/modules/payments/digital-collection-repository.ts",
+      "apps/api/src/modules/payments/digital-collection-transitions.ts",
+      "apps/api/src/modules/payments/provider-event-collection.ts"
+    ],
+    "invariants_error_checks": [
+      "Organization/payment composite FK",
+      "positive amount and uppercase currency",
+      "state-specific reference/dispatch/resolution shape",
+      "one unresolved operation per organization/payment"
+    ],
+    "test_refs": [
+      "packages/database/src/payment-collection-migration.integration.test.ts",
+      "packages/database/src/payment-collection-constraints.integration.test.ts",
+      "packages/database/src/payment-collection-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static persistence and consumer review; provider outage/retry behavior was not executed."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260822002900_phase7_location_configuration_authority/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "18d614e284e161b07abf7b4288264b33ce3e193496e8b891ad066a35ea2e1d6e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 684
+      }
+    ],
+    "semantic_review_notes": "Creates narrow Location Manager SECURITY DEFINER configuration commands. Authority is derived from an active actor/user/organization/location plus explicit location access and LOCATION_MANAGER role; values are type/currency-precision validated, the location row is locked, expected_updated_at provides CAS, updated_at advances monotonically, and every mutation appends old/new effective-state audit metadata.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/management-settings-projection.ts",
+      "packages/database/scripts/location-configuration-runtime-privileges.mjs",
+      "later management-settings migration 038 replaces the authorization helper only to add organization serialization while retaining LM authority"
+    ],
+    "invariants_error_checks": [
+      "No caller-supplied organization is trusted by LM authorization helper",
+      "supported-setting allowlist",
+      "JOD and other ISO minor-unit precision enforced for service fee",
+      "all helpers/commands revoke PUBLIC execution"
+    ],
+    "test_refs": [
+      "packages/database/src/location-configuration-runtime-role.integration.test.ts",
+      "packages/database/src/location-configuration-currency.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static review of the full function body and later replacement/grant policy; PostgreSQL privilege tests were not rerun."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260822003000_phase7_basic_branding_subscription_entitlements/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3fceb58bd66391ab69395666952cd44ab0395e4db5eb42e87577566d453cd9b5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 476
+      }
+    ],
+    "semantic_review_notes": "Adds basic branding overrides plus typed organization subscription entitlements and LM branding commands. Branding mutation authority mirrors the location-configuration boundary with active LM/location access checks, row lock/CAS, canonical text/color validation and atomic audit. The original color SET NULL ambiguity in this migration is explicitly corrected by the immediately following forward-only hardening migration 031.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/management-branding-mutation-repository.ts",
+      "apps/api/src/modules/management/management-settings-projection.ts",
+      "packages/database/scripts/basic-branding-runtime-privileges.mjs"
+    ],
+    "invariants_error_checks": [
+      "Uppercase #RRGGBB color format",
+      "bounded/control-free display-name override",
+      "subscription plan-code shape",
+      "PUBLIC execution revoked for command and helper functions"
+    ],
+    "test_refs": [
+      "packages/database/src/basic-branding-runtime-privilege.integration.test.ts",
+      "packages/database/src/management-settings-migration.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Historical migration reviewed as part of the forward chain; the NULL color SET behavior is superseded by migration 031 and is not a current finding."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260823003100_phase7_basic_branding_hardening/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a0e600cbbf91b7102f311444d2932b9d8a2d7ff963f0bf60184478d9d5d93435",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 99
+      }
+    ],
+    "semantic_review_notes": "Forward-only hardening closes NULL-as-clear on primary-color SET and normalizes existing display-name overrides before replacing the check with canonical outer-trim enforcement. Dedicated CLEAR remains the only supported override removal path.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/management-branding-mutation-repository.ts",
+      "migration 038 management branding commands preserve the same NULL rejection/canonicalization"
+    ],
+    "invariants_error_checks": [
+      "Explicit SQL NULL rejection",
+      "canonical trimmed display name",
+      "PUBLIC command execution revoked again after CREATE OR REPLACE"
+    ],
+    "test_refs": [
+      "packages/database/src/basic-branding-runtime-privilege.integration.test.ts",
+      "packages/database/src/management-settings-migration.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static forward-chain review; migration not executed."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260910003200_mob_020a_staff_push_persistence/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0cfe9f483b68d3a22888781be1d84b724f1b9f2237f94403ae1116dc836156fd",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 396
+      }
+    ],
+    "semantic_review_notes": "Defines staff push registrations, tenant/session/task-scoped intents and deliveries with registration/delivery state-machine guards, lease fencing, retry bounds, terminal shapes and dedupe indexes. Registration rows are account-session scoped rather than tenant scoped; the delivery writer and worker eligibility query bind the registration's staff-auth user back to the exact recipient membership, organization, location access and active shift before any provider send.",
+    "callers_consumers": [
+      "apps/api/src/modules/staff-push/retrieval-push-attention-writer.ts",
+      "apps/api/src/modules/staff-push/staff-push-eligibility-repository.ts",
+      "apps/api/src/modules/staff-push/staff-push-registration-repository.ts",
+      "packages/database/scripts/staff-push-runtime-privileges.mjs"
+    ],
+    "invariants_error_checks": [
+      "Intent composite FKs bind organization/location/session/task",
+      "Delivery intent and recipient membership are organization-scoped",
+      "active registration/installation and token-hash uniqueness",
+      "delivery claim increments exactly once and cannot steal an unexpired lease",
+      "runtime role cannot update delivery identity columns"
+    ],
+    "test_refs": [
+      "packages/database/src/staff-push-migration.integration.test.ts",
+      "packages/database/src/staff-push-registration.integration.test.ts",
+      "packages/database/src/staff-push-intent-delivery.integration.test.ts",
+      "apps/api/test/staff-push-worker-eligibility.integration.test.ts"
+    ],
+    "finding_ids": [
+      "#357"
+    ],
+    "limits": "Existing #357 concerns revalidation after an already-started provider-send pause and remains an application delivery-race issue; this migration's persistence review found no additional P0/P1. No provider calls/tests executed."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260911003300_mob_020d_staff_push_cleanup/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b413e8f3f9ee3de19ac948b43771c9620b41dc61ec12540d59a08a9765c5875b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 83
+      }
+    ],
+    "semantic_review_notes": "Adds bounded SKIP LOCKED cleanup for terminal deliveries, orphaned old intents and terminal registrations, with dependency checks preventing deletion of still-referenced rows. Cleanup is SECURITY DEFINER with fixed search_path and PUBLIC execution revoked; runtime provisioning explicitly controls cleanup execution.",
+    "callers_consumers": [
+      "apps/api/src/modules/staff-push/staff-push-maintenance-repository.ts",
+      "packages/database/scripts/runtime-table-privileges.mjs",
+      "apps/api/test/staff-push-cleanup.integration.test.ts"
+    ],
+    "invariants_error_checks": [
+      "1000-row per category transaction bound",
+      "7-day terminal delivery/intent retention and 30-day terminal registration retention",
+      "registration deletion checks both deliveries and predecessor references",
+      "FOR UPDATE SKIP LOCKED supports concurrent maintenance"
+    ],
+    "test_refs": [
+      "apps/api/test/staff-push-cleanup.integration.test.ts",
+      "apps/api/test/staff-push-stale-maintenance.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "The stale-active registration index supports separate stale maintenance semantics; this cleanup function intentionally deletes only terminal registrations. Static review only."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260912003400_mob_023b_incident_recovery_intents/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c1d31f760b0a19a9bbfbf69502e9280e9310ffd096076f8acb032eb9c4cef6ba",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 98
+      }
+    ],
+    "semantic_review_notes": "Reserves UUIDv8 incident identities for crash-recovery intent, rejects any legacy collision during migration, and persists a 15-minute tenant/location/session/reporter-bound RESERVED intent that can transition exactly once to RETIRED. Trigger-authored timing prevents callers from extending expiry or rewriting bindings.",
+    "callers_consumers": [
+      "apps/api/src/modules/incidents/incident-recovery-intent-command.ts",
+      "apps/api/src/modules/incidents/incident-recovery-records.ts",
+      "apps/api/src/modules/incidents/incident-recovery-retirement-command.ts"
+    ],
+    "invariants_error_checks": [
+      "UUIDv8 discriminator",
+      "Composite tenant/location/session/member FKs",
+      "insert forced RESERVED with server timestamp/expiry",
+      "only RESERVED->RETIRED transition; bindings immutable"
+    ],
+    "test_refs": [
+      "packages/database/src/incident-recovery-runtime-role.integration.test.ts",
+      "packages/database/src/staff-management-migration-preservation.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static migration/caller review; crash recovery integration not executed."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260916003500_mgt_be_01_audit_foundation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "756ecc2c847fe4cb779ee97138b7d32f8424c0b94510072a22b8c5100dfc2a53",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 216
+      }
+    ],
+    "semantic_review_notes": "Extends tenant audit events with typed actor provenance and introduces a separate append-only account-security audit stream. The audit actor CHECK is deliberately NOT VALID so legacy null-actor history remains readable, while PostgreSQL still enforces it for new/updated rows; investigation queries explicitly preserve legacy null-as-membership semantics. Account-security append uses a stable-id advisory lock and exact idempotent replay comparison.",
+    "callers_consumers": [
+      "apps/api/src/modules/audit/account-security-audit-writer.ts",
+      "apps/api/src/modules/management/audit-investigation/timeline/timeline-source-query.ts",
+      "apps/api/src/modules/management/audit-investigation/search/search-selector-query.ts",
+      "packages/database/scripts/audit-foundation-runtime-privileges.mjs"
+    ],
+    "invariants_error_checks": [
+      "Session audit requires location",
+      "actor provenance distinguishes membership/guest/system/provider/controlled operator",
+      "runtime wrapper rejects CONTROLLED_OPERATOR",
+      "account-security table direct runtime access revoked; only narrow append wrapper granted"
+    ],
+    "test_refs": [
+      "packages/database/src/audit-foundation-migration.integration.test.ts",
+      "packages/database/src/audit-foundation-constraints.integration.test.ts",
+      "packages/database/src/audit-foundation-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Legacy null actor rows are an explicitly tested compatibility state, not treated as a new finding. No DB test execution."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260916003600_mgt_be_02_complete_mfa/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b9c4b2ea924c80311c8cdc84cec718640e28db1947b88c1ab6f6bb9f38d426b6",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 258
+      }
+    ],
+    "semantic_review_notes": "Adds protected TOTP factor state, ten-slot versioned recovery-code sets and exact-session MFA assurance fields. DB guards make factor identity/secret immutable, prevent ACTIVE->PENDING or RETIRED reactivation, enforce monotonically advancing accepted TOTP steps and recovery generation, and make recovery verifiers immutable except one-way consumption.",
+    "callers_consumers": [
+      "apps/api/src/modules/auth/mfa/mfa-factor-repository.ts",
+      "apps/api/src/modules/auth/mfa/mfa-enrollment.service.ts",
+      "apps/api/src/modules/auth/mfa/mfa-step-up.service.ts",
+      "apps/api/src/modules/auth/mfa/mfa-recovery.service.ts",
+      "packages/database/scripts/mfa-runtime-privileges.mjs"
+    ],
+    "invariants_error_checks": [
+      "One live PENDING/ACTIVE factor per user",
+      "factor secret/verifier storage format checks",
+      "staff session assurance factor must belong to same user",
+      "recovery selector unique and code slots 1..10",
+      "runtime write privileges restricted to exact MFA columns"
+    ],
+    "test_refs": [
+      "packages/database/src/mfa-migration.integration.test.ts",
+      "packages/database/src/mfa-constraints.integration.test.ts",
+      "packages/database/src/mfa-recovery-constraints.integration.test.ts",
+      "packages/database/src/mfa-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [
+      "#363"
+    ],
+    "limits": "Existing #363/SEC-011 is an application recovery-ceremony/session-binding defect outside this persistence migration; these DB invariants do not by themselves repair it. No MFA test execution in C004."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260916003700_mgt_be_04_staff_roles_access/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ab62433ca965b281fdd7773bcdf578ec24d042f875030bb601a5d690a0d6678e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 324
+      }
+    ],
+    "semantic_review_notes": "Introduces versioned Staff Management mutation commands with organization serialization, actor/target row locks, last-usable-admin protection, operational handover blockers, bounded tenant-scoped access arrays and CAS. Later LM-authority/onboarding migrations CREATE OR REPLACE these three commands, so current behavior was checked against the replacement chain rather than treating this historical body as final.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/staff-management-mutation-repository.ts",
+      "packages/database/scripts/staff-management-runtime-privileges.mjs",
+      "migrations 20261001005000 and 20261001005100 replace the command bodies"
+    ],
+    "invariants_error_checks": [
+      "ORG_ADMIN actor authority and active user/org",
+      "one organization advisory lock for staff-management mutations",
+      "last usable admin requires ACTIVE MFA factor",
+      "active shift/task/check-in/recovery blockers",
+      "requested location IDs are distinct, bounded <=50 and same tenant"
+    ],
+    "test_refs": [
+      "packages/database/src/staff-management-migration.integration.test.ts",
+      "packages/database/src/staff-management-lm-authority-migration.integration.test.ts",
+      "packages/database/src/runtime-authority-privileges.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Historical body has later forward replacements that add LM authority/onboarding rules; no runtime staff-management tests were rerun."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260916003800_mgt_be_05_company_settings_branding/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4d25afef96fa0766cf462786cd7c5e6200e71e9d6f858f179d6764ef7a8aebee",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 420
+      },
+      {
+        "start": 421,
+        "end": 840
+      },
+      {
+        "start": 841,
+        "end": 1260
+      },
+      {
+        "start": 1261,
+        "end": 1530
+      }
+    ],
+    "semantic_review_notes": "Adds five typed settings plus seven-day company/location operating-hours persistence and consolidates ORG_ADMIN company/location settings and branding commands. Organization advisory serialization precedes row/CAS mutation, company-default fee changes validate every inheriting location's currency precision, location overrides preserve Company->Location precedence, operating hours require exactly seven distinct weekdays and valid same-day intervals, and audit captures canonical old/new values. The migration also strengthens existing LM configuration/branding helpers with the same organization settings lock.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/management-settings-mutation-repository.ts",
+      "apps/api/src/modules/management/management-branding-mutation-repository.ts",
+      "apps/api/src/modules/management/management-settings-projection.ts",
+      "packages/database/scripts/management-settings-runtime-privileges.mjs"
+    ],
+    "invariants_error_checks": [
+      "Active ORG_ADMIN/user/organization authority",
+      "tenant-scoped active target location",
+      "CAS and monotonic updated_at",
+      "read-only direct runtime access to operating-hours tables",
+      "only public command surface receives runtime EXECUTE; helpers remain private"
+    ],
+    "test_refs": [
+      "packages/database/src/management-settings-migration.integration.test.ts",
+      "packages/database/src/management-settings-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Full 1530-line source read in four contiguous ranges; tests were inspected/referenced but not executed."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260917003900_mgt_be_06_management_audit_log/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f681df5d36b539ac0fd4c48cb0c7f7ffb653de7c9f74970a8c5d5fb336f16681",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 2
+      }
+    ],
+    "semantic_review_notes": "Adds the organization + occurred_at DESC + id DESC index used for deterministic management audit pagination. It changes only query performance/order support and introduces no new write authority.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/audit-investigation/timeline/timeline-source-query.ts",
+      "management audit list/search projections"
+    ],
+    "invariants_error_checks": [
+      "Index includes stable id tiebreaker after descending event time"
+    ],
+    "test_refs": [
+      "packages/database/src/audit-foundation-migration.integration.test.ts",
+      "management audit query tests in apps/api/test"
+    ],
+    "finding_ids": [],
+    "limits": "No EXPLAIN/workload benchmark performed."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260917004000_mgt_be_07_location_management/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e28591137203acee85878ad577771ffc79277def8143e24cacf33b10ed5b51ea",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 299
+      }
+    ],
+    "semantic_review_notes": "Introduces explicit location intake fencing and narrow ORG_ADMIN lifecycle commands. New locations start INACTIVE/not accepting intake; activation validates timezone/currency readiness, stop-intake precedes drain/deactivation, blockers cover live sessions/shifts/tasks, and currency/timezone corrections require an inactive drained location with CAS. Audit event types are protected from generic runtime forgery. A later issue-346 migration adds the currently provisioned resume-intake command and extends the audit guard.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/management-location-repository.ts",
+      "apps/api/src/modules/check-in-api/check-in-location-authorization.ts",
+      "packages/database/scripts/location-lifecycle-runtime-privileges.mjs",
+      "migration 20261026010300_issue346_resume_location_intake"
+    ],
+    "invariants_error_checks": [
+      "Inactive location cannot accept intake",
+      "tenant-scoped ORG_ADMIN authority",
+      "lifecycle advisory lock plus row lock/CAS",
+      "deactivation blocked by noncompleted sessions/active shifts/nonterminal tasks",
+      "runtime direct location writes denied by privilege policy"
+    ],
+    "test_refs": [
+      "packages/database/src/location-lifecycle-migration.integration.test.ts",
+      "packages/database/src/location-lifecycle-runtime-role.integration.test.ts",
+      "packages/database/src/parking-zone-authority-races.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Historical migration reviewed with issue-346 forward migration; no lifecycle integration tests executed."
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260917004100_mgt_be_08_visit_contacts/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e4096804c21392871e6736400844e88a4fb4b578b830554116435712a2df975e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 143
+      }
+    ],
+    "semantic_review_notes": "Adds query indexes and two narrow ORG_ADMIN customer contact correction commands. Both lock the exact tenant-owned Customer, support convergent exact retries before stale-token conflict, advance updated_at monotonically and append non-PII correction audit metadata atomically. Phone corrections are explicitly limited to the Jordan mobile normalization contract used by this feature.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/management-visit-contact-correction.ts",
+      "packages/database/scripts/visit-contact-runtime-privileges.mjs"
+    ],
+    "invariants_error_checks": [
+      "Active ORG_ADMIN/user/organization authority",
+      "Customer selected by id + organization",
+      "name bounded/control-free; phone matches +9627########",
+      "generic runtime Customer UPDATE/DELETE denied; only two SECURITY DEFINER commands granted",
+      "audit guard blocks forged correction event types"
+    ],
+    "test_refs": [
+      "packages/database/src/visit-contact-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Runtime-role test source inspected; no PostgreSQL test execution in C004."
+  }
+]

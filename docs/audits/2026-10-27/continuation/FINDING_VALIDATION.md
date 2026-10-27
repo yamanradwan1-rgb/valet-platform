@@ -17,3 +17,7 @@ Prime independently read staff-auth-client.ts lines 80–89, 141–148 and 265�
 ## C003 — DASH-I18N-01 independent source challenge
 
 Prime re-read Dashboard locale.ts lines 19–39 and locale-provider.tsx lines 41–61. Denied localStorage makes readDashboardLocale return EN after commitDashboardLocale sets AR/RTL and notifies subscribers. The provider derives t/direction from the EN snapshot and may reset document language/direction. This duplicates the general failure class of CUST-001 but is independent Dashboard code. No denied-storage mounted UI test was run; retain HIGH_SOURCE_CONFIDENCE / RUNTIME_UNVERIFIED.
+
+## C004 — C004-DASH-001 independent static challenge
+
+Prime independently read three legacy specs' cited ranges, administration-navigation.ts, the five-line redirect and issue238-service-status.spec.ts; then checked package.json, playwright.config.ts and playwright.runtime.config.ts and .github/workflows/ci.yml:374–375. The contradiction is direct, but current CI targets e2e-runtime and not legacy e2e. Severity downgraded from P2 to P3, HIGH_STATIC/RUNTIME_UNVERIFIED. No Playwright run, no UI change, no issue filed.

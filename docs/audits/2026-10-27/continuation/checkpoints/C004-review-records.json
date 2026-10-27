@@ -1,0 +1,3907 @@
+[
+  {
+    "path": "apps/valet-native/modules/vaylet-battery-status/android/src/main/java/expo/modules/vayletbatterystatus/VayletBatteryStatusModule.kt",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "173dcfe3aa13b1b16ed7dff881f5fe4c5a547bd5e2a6fba95e1d465c2d2dca23",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 50
+      }
+    ],
+    "semantic_review_notes": "Android optional native module reports only the framework battery optimization allowlist state; API<23/missing context/exceptions return unknown. Settings launch tries allowlist screen then application details with NEW_TASK and returns success only for started intents. OEM behavior and real device settings outcome are untested.",
+    "callers_consumers": "native battery diagnostics consumer; Android PowerManager/Settings",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/modules/vaylet-battery-status/index.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3f574703aa14d2f41853607219ecfd45cdad97296f7fa9120f0bb6b6993ac86a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 18
+      }
+    ],
+    "semantic_review_notes": "Expo bridge resolves an optional Kotlin module under exact VayletBatteryStatus name; missing bridge returns null, and callers must handle unavailable native capability. No platform battery state is inferred by this TS wrapper.",
+    "callers_consumers": "battery settings/readiness UI consumers",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/plugins/with-native-push-backup-exclusion.cjs",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "794be8203daf6243ea3138525e66a76bc41a844ff4d8041b2812fe141917d92c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 84
+      }
+    ],
+    "semantic_review_notes": "Expo Android manifest plugin configures legacy fullBackupContent plus Android 12 dataExtractionRules, writes exact XML excluding SecureStore shared preferences and push installation JSON for cloud/device migration. Effect depends on generated manifests and Android behavior.",
+    "callers_consumers": "app.json; native-push-installation; native-push-backup-config.test.mjs",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/plugins/with-shift-presence-foreground-only.cjs",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7f06a915042c8eb4b82ad31d679bc90c294d3585562772a9e58f65f76692a7d4",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 27
+      }
+    ],
+    "semantic_review_notes": "Manifest plugin removes expo-location background task service and both ACCESS_BACKGROUND_LOCATION/FOREGROUND_SERVICE_LOCATION via tools:node remove, preserving foreground-only declared policy. Generated manifest merging and device provider behavior remain untested.",
+    "callers_consumers": "app.json expo-location foreground-only config",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/scripts/native-android-build.mjs",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "df58b5204cdfd44fd7362f209b056f0fbacabc523e01df20b886371ee00450bf",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 65
+      }
+    ],
+    "semantic_review_notes": "Explicit parseArgs maps native/debug/dev-client/release, JS mode and devEnabled to guarded Expo run:android variant; production guards inspect build.gradle and fail if Expo CLI unavailable. This is a build launcher, not runtime feature execution.",
+    "callers_consumers": "src/build/native-android-build-mode.mjs; native-android-build-mode.test.mjs",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/appearance/employee-appearance-context.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ae6f9ceac10aa75c50a0c3f9ee243ff896bb70826839ba1d68294940488e5096",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 62
+      }
+    ],
+    "semantic_review_notes": "React provider owns one NativeAppearanceOwner; subscription snapshot drives immutable light/dark palette, async restore starts on mount, and select delegates to serialized owner. Theme is presentation-only independent of auth ownership.",
+    "callers_consumers": "native-appearance-owner; provider/settings tests",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/appearance/employee-palette.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8331ea931a514ab959c5d930f1ef9548c7712d30bfd107cdb546fbe47b8a3152",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 134
+      }
+    ],
+    "semantic_review_notes": "Immutable light/dark semantic palette tokens and status variants drive native presentation; dark overrides core contrast/surfaces while light retains frozen baseline. Verify accessibility/color contrast on devices separately.",
+    "callers_consumers": "employee-themed-styles; native-header-theme-geometry tests",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/appearance/employee-themed-styles.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7082afbedb3d06b9ef098e2bf15d99ba97f2067de08444c2eefcffaefb33825f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 21
+      }
+    ],
+    "semantic_review_notes": "Style factories produce immutable precomputed light and dark StyleSheet objects; hooks choose by palette instead of constructing styles during render. State/security authority is intentionally absent.",
+    "callers_consumers": "employee-appearance-context; screen style consumers",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/appearance/native-appearance-owner.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b79e794a69c14f38afdf22a2ec4fc59c83e2646da048d8457db1ccca61dd74d9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 68
+      }
+    ],
+    "semantic_review_notes": "Appearance owner starts not ready, one bounded 1500ms restore then publishes snapshot, rejects selection before ready, orders persisted writes sequentially and absorbs storage exceptions. Late store reads cannot overwrite post-timeout user selection.",
+    "callers_consumers": "employee-appearance-context; native-appearance-owner.test.ts",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/appearance/native-appearance-store.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2f71e41bc5a3dbbc0a31bf36e80d336e094b76474179facb071eb0ba7150ffdc",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 47
+      }
+    ],
+    "semantic_review_notes": "Strict version-one JSON preference accepts only theme light/dark with exactly two keys; file-system store uses document file and defaults safely on parse errors; failure handling occurs in owner. Device-backup/privacy policy not claimed by this preference.",
+    "callers_consumers": "native-appearance-owner; native-appearance-storage.test.ts",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/assets.d.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "597159c3ae384177ed4b5ec52b424addb894c3beefa9ce83c40947ac67a05375",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 6
+      }
+    ],
+    "semantic_review_notes": "PNG module declaration supplies React Native ImageSourcePropType for bundler typing only; no runtime enforcement or asset validation.",
+    "callers_consumers": "native branding/image component imports",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/auth/native-auth-copy.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "dcb965c36d4d5e5f410648cafd180f7097696dca21f7fefa307b01d96516e268",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 43
+      }
+    ],
+    "semantic_review_notes": "Builds auth-localized strings from shared employee and platform dictionaries; no session credential or authorization decision in copy mapping. Missing dictionary coverage may be caught only by localization tests.",
+    "callers_consumers": "native-auth-foundation-panel; native employee dictionary",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/auth/native-auth-foundation-panel.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "11789766f860bccbd8afafe78fad6b3b21fc7cc33cd7af63ba1f05ad8f37812d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 156
+      }
+    ],
+    "semantic_review_notes": "Foundation-only login UI routes restoring/fatal/transient/authenticated phases to status, retry, logout, or credential form. Password is submitted to NativeAuthSession and cleared in finally; secureTextEntry and busy/empty guards limit accidental invocation. Production shell excludes foundation POC panel.",
+    "callers_consumers": "NativeAuthSession; native-production-entry.test.mjs",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/auth/native-check-in-runtime.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1dc0af023b40042c8e1ae4985e681952752d1ff694b03e2dcd0b950510b47dfb",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 58
+      }
+    ],
+    "semantic_review_notes": "Creates shared employee-client check-in/vehicle-directory/cancel sessions using auth-bound native HTTP transports and UUIDv4 secure operation IDs; cancellation observer clears active matching intake and refreshes directory. NativeCheckInActions supplies foreground/scope ownership.",
+    "callers_consumers": "native-auth-runtime; NativeCheckInActions; @valet/employee-client",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/auth/native-poc-panel.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "135dd59804cec8abfc09dc57bb91d9e3e157744ed555df5b8430ceb1e90f57c1",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 118
+      }
+    ],
+    "semantic_review_notes": "DEV-only capability panel expands diagnostics and runs API/SecureStore/file probes on demand; use mounted ref to avoid setState after unmount, busy blocks duplicate probe requests. Production entry does not expose this POC destination.",
+    "callers_consumers": "native-poc-presentation; native-poc-probes; native-production-entry.test.mjs",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/auth/native-poc-presentation.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "eef29951e609c1b044300735c2d5040f7440163dca7318296fe06577c73cd323",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 33
+      }
+    ],
+    "semantic_review_notes": "Formats only development probe states plus API origin/auth phase/generation, returns null outside development; does not expose refresh or password credentials. Source guard is __DEV__ and release build mode separately guarded.",
+    "callers_consumers": "NativePocPanel; native-android-build-mode",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/auth/native-poc-probes.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "dbbb69d2aab887703b9fed04bb70ae96c124cd93d1ab3897d714e2d5212c703e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 146
+      }
+    ],
+    "semantic_review_notes": "DEV capability checks use short-lived synthetic SecureStore/file keys with finally-style deletion attempts; fetch reachability uses AbortController 3s timeout and omit cookies. Probe failures are diagnostics, not production auth acceptance signals.",
+    "callers_consumers": "NativePocPanel; native-auth-storage",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/build/native-android-build-mode.mjs",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "dbd9ef1cd868b05d35f620d3e2a9e1c94859ac40250f85a4fc6990aff39adc98",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 75
+      }
+    ],
+    "semantic_review_notes": "Fail-closed native build planner requires nativeMode/jsMode/devEnabled explicit consistent trio, forbids dev JS in release and prod JS in dev. Source guard detects common Gradle dev overrides and direct embed dev flag. Cannot prove generated APK release properties without build.",
+    "callers_consumers": "scripts/native-android-build.mjs; native-android-build-mode.test.mjs",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-actions.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "09107464cb0d84d648c127167ec568a4cbaf59ba1e4291f542e0a0b0d96f0cc2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 130
+      }
+    ],
+    "semantic_review_notes": "Vehicles-origin adapter requires foreground/online authenticated generation matching ready operational scope, serializes Continue, checks revision/same scope after async hydration and fences on clear/background. Cancel binds same owner; return origin is single-use and refreshes directory once.",
+    "callers_consumers": "native-check-in-runtime; issue-255-native-action-ownership.test.ts",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-capture-step.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "76f99c97beefc16fb716984353442710249b629ff98e618f6b81657fb0bd03fa",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 152
+      }
+    ],
+    "semantic_review_notes": "Check-in capture presentation chooses camera/manual/temporary descriptor, mutates draft identity through session and delegates OCR capture to camera child. Manual plate+country and descriptor enter review, with errors represented from session; shared session performs authoritative validation.",
+    "callers_consumers": "native-check-in-workflow; NativePlateCameraStep; EmployeeCheckInSession",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-condition-copy.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5540f6a417292477a511ad7e3860a378ade39dfb8507f749d415084bd65605c4",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 43
+      }
+    ],
+    "semantic_review_notes": "Localized Vehicle Condition/completion labels only; actual photo policy and completion state enforcement reside in employee-client and server, not this mapping.",
+    "callers_consumers": "NativeCheckInContinuationStep; NativeCheckInConditionStep",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-confirm-step.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3d80eab4a2c3cecb0404699d018f44569a2941b2784ccb1a8d73cdb6290350a3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 61
+      }
+    ],
+    "semantic_review_notes": "Identity confirmation displays contextual vehicle and routes confirm/edit/continue-without-recognition to the shared check-in session. Recognition errors enable fallback explicitly; UI alone does not assert server vehicle custody.",
+    "callers_consumers": "NativeCheckInIdentityContext; EmployeeCheckInSession",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-continuation-copy.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "218fa91aa20507abe531769978cdb807d804fefb61363c2ad50280061257b722",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 81
+      }
+    ],
+    "semantic_review_notes": "Locale dictionary for created-session continuation and correction states including unknown/conflict/custody/mutability labels; presentation-only. Error codes are interpreted downstream by editor.",
+    "callers_consumers": "native-check-in-continuation-editors; EmployeeCheckInSession",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-continuation-editors.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6d9bc8a30ffc27037aa62cd39a349e11d0f5edc679a373632c2e7c0ded39fc51",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 177
+      }
+    ],
+    "semantic_review_notes": "Details editor maps make/model/color draft mutations and submits through session. Identity editor offers plate/descriptor modes, distinct review/confirm stages, cancellation and explicit conflict/invalid/custody error labels. No direct server bypass in JSX handlers.",
+    "callers_consumers": "NativeCheckInContinuationStep; EmployeeCheckInSession",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-continuation-step.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2dcc99ffef6e3dddac5f2a5432900b0fb48604cea1052d90b9aae430f13abe24",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 193
+      }
+    ],
+    "semantic_review_notes": "Routes created-session continuation by correction/condition intent, keeps ambiguous condition pending on condition presentation, uses progress during submit/reconcile and blocks bypass via session calls. Vehicle overview displays authoritative active vehicle and recovery path.",
+    "callers_consumers": "NativeCheckInWorkflow; NativeCheckInConditionStep; EmployeeCheckInSession",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-copy.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9a629174063c0ea6adc5103164326a9758fbeedd55c41a68c7be25ddf3496010",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 179
+      }
+    ],
+    "semantic_review_notes": "Shared native dictionary adapter for check-in phases, recovered/ambiguous states, parking and customer details, and plate-country names; no state mutation. User-visible copy must still be checked for AR/EN layout independently.",
+    "callers_consumers": "NativeCheckInWorkflow; native employee dictionary",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-identity-context.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8effaab4b32020249f51af386386e1e3199bbe6cd0c8c55d9280a437c32e866e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 186
+      }
+    ],
+    "semantic_review_notes": "Renders confirmed plate or descriptor context, recognized/entered status and vehicle details; normalized plate/country inherited from snapshot; accessibility provides composite vehicle label. No auth/custody mutation.",
+    "callers_consumers": "NativeConfirmStep; NativeBusyStep; plate-country selector",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-input-steps.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "87c3b975e1f0f4fc2ce14e7e42f2e283421bbbb70ff9cd86f28cafb0bbbd9487",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 91
+      }
+    ],
+    "semantic_review_notes": "Customer phone stage runs normalizeJordanCheckInPhone to disable invalid nonempty number; explicit no-phone bypass clears number and submits through authoritative session. UI cannot vouch for backend phone/guest delivery correctness.",
+    "callers_consumers": "NativeCheckInWorkflow; EmployeeCheckInSession",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-ownership.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "02152f89214855c3ba08a1e63c0be027ed2d80761ae18f546ecae444f9df101f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 10
+      }
+    ],
+    "semantic_review_notes": "Constructs workflow owner key from organization, membership, shift and role; excludes location because locationId is passed separately to openExistingCheckIn and verified by operational scope. Key is client isolation hint, not server authorization.",
+    "callers_consumers": "NativeCheckInActions; native production route",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-parking-task-step.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e9238818201401be06899d45b9d30be6ab97e2f918b66662bfec3622599ccafc",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 143
+      }
+    ],
+    "semantic_review_notes": "Created intake awaiting parking displays real vehicle, warning/tracking and offers start-parking action only when active session is present and not busy; Guest Access shortcut uses active session ID. Actual GPS/task transitions are delegated upstream.",
+    "callers_consumers": "NativeCompleteStep; native task tracking/guest-access",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-presentation.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c9cfc6257700fa1a14118292477fe3f0f2579487733d93e6f7b2b6395d4df272",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 131
+      }
+    ],
+    "semantic_review_notes": "Pure presentation helpers derive capture default, per-phase header, network/validation error copy, back-navigation safety for busy/unknown conditions, and plate/descriptor identity text. Session remains sole authority.",
+    "callers_consumers": "NativeCheckInWorkflow; native check-in state components",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-primitives.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1638db96c7aa36ccd41a0a5509b1e9caa1f6c7ee36860e17f2ed0ced8d1f5687",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 248
+      }
+    ],
+    "semantic_review_notes": "Reusable accessible Check-In buttons, fields, vehicle/recoverable cards and headers compose shared employee UI tokens; busy/disabled forwarded to EmployeeButton. Display is scoped to provided snapshot, not a direct backend mutation.",
+    "callers_consumers": "NativeCheckInWorkflow; EmployeeButton/EmployeeField",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-returning-step.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "78882a43f44304828831359ce2fbeca07397f1aee8b4ab517bb7487f5520482e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 167
+      }
+    ],
+    "semantic_review_notes": "Recognized vehicle/returning customer suggestion is shown with masked phone suffix; employee may choose saved customer or different customer, and correct draft make/model/color locally before session mutation. Server must revalidate association/authority.",
+    "callers_consumers": "NativeCheckInWorkflow; EmployeeCheckInSession",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-state-steps.tsx",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ea7a8b90f0d41138815026228dd123245831a476affffe16a32c6f9113b2ed8f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 185
+      }
+    ],
+    "semantic_review_notes": "Maps discovering/errors/recoverables/recognizing/submitting/intake-ambiguous/created to concrete UI; unknown submit requires server reconciliation before repeat action. Recovery and parking callbacks delegate to shared session/parent.",
+    "callers_consumers": "NativeCheckInWorkflow; EmployeeCheckInSession; NativeCheckInParkingTaskStep",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-styles.ts",
+    "worker": "prime",
+    "original_worker": "native",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "285e2dc314b9ec081e1a30f18150e2f2247938df77366de1fa9cb7f5b03939d5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 80
+      }
+    ],
+    "semantic_review_notes": "Presentation-only light/dark check-in style factory composes shared design tokens/field/feedback styles with RTL-compatible text choices in caller; no business-state or auth decisions.",
+    "callers_consumers": "Check-In primitives, workflow and state components",
+    "invariants_error_checks": "Read full source; state/custody/foreground/authorization delegated to noted owner where applicable; no new runtime-confirmed issue.",
+    "test_refs": [
+      "Source inspection only; representative tests checked: issue-255 Native action/cancel, native-appearance-owner, native-android-build-mode, native-push-backup-config, native-production-entry. None rerun."
+    ],
+    "finding_ids": [],
+    "limits": "No runtime device/Android manifest merge/Playwright/API/provider execution. Referenced shared-client and server paths not exhaustively reaudited in this native subset.",
+    "reviewer": "prime"
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/auth-principals.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "feebc5d61b590c988acb4834be20158111858f91a15a2f797f45942df06df03d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 218
+      }
+    ],
+    "semantic_review_notes": "Runtime browser coverage for guest/disabled denial, tenant/grant visibility, narrow supervisor access, employee exclusion, full Company Admin MFA enrollment/recovery/freshness/refresh/logout, #268 scope restoration, and revoked-session fail-closed behavior. Sensitive MFA artifacts explicitly disable retained trace/screenshot/video and clear DOM after each test.",
+    "callers_consumers": [
+      "Playwright runtime suite via ./support/runtime-test",
+      "./support/runtime-fixture helpers",
+      "real dashboard auth/workspace/navigation routes"
+    ],
+    "invariants_error_checks": [
+      "cross-tenant and ungranted resources return 404",
+      "Location Manager cannot select All Locations",
+      "recovery codes absent from local/session storage and URL",
+      "revoked session restores to Sign in",
+      "one refresh request on reload with authorized scope restoration"
+    ],
+    "test_refs": [
+      "self: auth-principals.spec.ts runtime E2E"
+    ],
+    "finding_ids": [],
+    "limits": "Browser E2E evidence depends on provisioned runtime fixture and real API; no heavy test execution performed in C004.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/authority-loss.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "473e99db195849521e2ec4b47660e3259a695bed1078af4ac843a9fe8ffb8edd",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 99
+      }
+    ],
+    "semantic_review_notes": "Exercises live entitlement, membership, location-grant, and role loss while protected forms are open. Verifies stale protected content is unmounted and exact-location authority loss does not trigger a branding write probe.",
+    "callers_consumers": [
+      "Playwright runtime suite",
+      "control-management-dashboard-e2e fixture mutations",
+      "Branding/Analytics/Reports navigation authorization refresh"
+    ],
+    "invariants_error_checks": [
+      "entitlement loss hides protected resource",
+      "membership/role/grant loss returns chooser",
+      "unsaved form disappears",
+      "zero branding writes after grant removal"
+    ],
+    "test_refs": [
+      "self: authority-loss.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Checks authority loss on subsequent navigation, not passive invalidation with no user action.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/cross-feature-races.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5e1ed3915e0f7cc9a8bb8a48b59092d3028586846f81f73b6fd903b0bff01261",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 88
+      }
+    ],
+    "semantic_review_notes": "Tests cross-feature scope fencing: delayed Organization A Audit read cannot populate Organization B; delayed protected Organization A branding write may commit to its original authoritative scope but must not surface success or mutate visible B state after scope change.",
+    "callers_consumers": [
+      "installDelayedRealResponse",
+      "Branding controller/UI",
+      "Audit Log controller/UI",
+      "scope chooser"
+    ],
+    "invariants_error_checks": [
+      "old-scope read excluded from new scope",
+      "old-scope write result cannot present new-scope success",
+      "committed old-scope value is observable only when returning to A"
+    ],
+    "test_refs": [
+      "self: cross-feature-races.spec.ts",
+      "support/delayed-real-response.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Post-release stale-result observation uses a 150ms dwell before assertions; implementation fencing is being cross-checked separately.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/issue234-security.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2ae0b9a47e1bb64c7c0df4a1e7bf13db8948c8919a0a3e64702dd25cd3474011",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 106
+      }
+    ],
+    "semantic_review_notes": "Validates #234 Security as scopeless shell route using real MFA without organization/location/operational-context reads. Separately proves sensitive-write MFA freshness is stricter than ordinary ASSURED state and that a denied write is not automatically replayed after re-verification.",
+    "callers_consumers": [
+      "Security route",
+      "MFA state/verify endpoints",
+      "Branding sensitive write",
+      "runtime fixture controls"
+    ],
+    "invariants_error_checks": [
+      "zero business-scope reads on /security",
+      "freshness-aged branding PUT returns 403",
+      "re-verification does not auto-retry",
+      "explicit retry succeeds"
+    ],
+    "test_refs": [
+      "self: issue234-security.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Uses trace/screenshot/video off due ephemeral MFA data; does not retain browser artifacts.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/issue300-browser-safety.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "015d70283e123b86b16511160704b4dad170a602fa96c7b9d64f5e2e40f309b5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 246
+      }
+    ],
+    "semantic_review_notes": "Test-only Issue #300 browser proof guard pins an owner Ed25519 public key, binds attestation to candidate SHA/checkout SHA/lease/digest, permits only isolated loopback origins and a <=15-minute lease, constrains audit route/query, validates exact refresh-cookie attributes, single-consumes normalized refresh credential, and verifies signed pagination continuity/no replay.",
+    "callers_consumers": [
+      "issue300-closure.spec.ts"
+    ],
+    "invariants_error_checks": [
+      "pinned owner signature",
+      "immutable candidate SHA match",
+      "dedicated non-forbidden loopback ports",
+      "single allowed dashboard origin",
+      "one-time secure HttpOnly Strict refresh cookie",
+      "exclusive-create spent marker",
+      "continuation snapshot stability and source-ID uniqueness"
+    ],
+    "test_refs": [
+      "issue300-closure.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Audit harness code, not production authorization. Filesystem spent-state marker durability is local to the checkout/task proof environment.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/issue300-closure.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4b9818336847750e6aa643902d8b6aa18440a7f3a46e5f42d9c5c1c174c4c5e6",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 299
+      }
+    ],
+    "semantic_review_notes": "Independent one-time real-candidate closure suite for Issue #300. Requires owner-attested isolated browser target, exact candidate/lease/scenario, one fresh MFA storage state per selected case, authenticated investigation pagination/detail/focus/error behavior, legacy audit-events separation, and exact frozen visual hashes across locale/theme/viewport/real browser zoom matrix.",
+    "callers_consumers": [
+      "issue300-browser-safety.ts",
+      "real /audit-log candidate UI and audit-investigation endpoints"
+    ],
+    "invariants_error_checks": [
+      "suite-time skip before context when prerequisites absent",
+      "one-time storage state consumption",
+      "no fallback to legacy /audit-events during investigation search",
+      "no automatic retry after network abort",
+      "real browser 200% zoom proof",
+      "exact frozen screenshot hash"
+    ],
+    "test_refs": [
+      "self: issue300-closure.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Each case intentionally requires an independently issued MFA cookie/lease; suite is not suitable for routine batch execution and was not run in C004.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/md-r11-administration.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e6a6f2cfe1cd99ed9d3bdc0a9a5d7b07fcfcde711d127518e9f4b1da14fb91bd",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 113
+      }
+    ],
+    "semantic_review_notes": "Real R11 administration coverage spans company defaults, location overrides/inheritance, bounds on SLA input, location branding override/clear, read-only Roles & Permissions, Employees directory, legacy Integrations redirect to Service Status, billing/help, plus narrowed Location Manager settings and navigation.",
+    "callers_consumers": [
+      "Policies",
+      "Branding",
+      "Roles & Permissions",
+      "Employees",
+      "Service Status",
+      "Billing",
+      "Help dashboard pages"
+    ],
+    "invariants_error_checks": [
+      "company/default and location/override writes return 200",
+      "invalid SLA 29 disables save while 180 is accepted",
+      "inheritance restored after clear",
+      "Location Manager cannot see company-only settings or roles/integrations nav"
+    ],
+    "test_refs": [
+      "self: md-r11-administration.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Runtime baseline reset is relied on to isolate mutations between tests.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/operational-separation.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b7369a63d7142eabead59c3be38a596df173c48ab75f2c306b0d8ea241b50284",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 94
+      }
+    ],
+    "semantic_review_notes": "Checks separation between Management authority/entitlement and physical operations. A Company Admin Management principal is denied a valet key-slot custody mutation without state/version change, while disabling Management entitlement leaves Employee shift-end and Guest retrieval operational.",
+    "callers_consumers": [
+      "staff key-slot assign endpoint",
+      "staff shift end endpoint",
+      "guest request-retrieval endpoint",
+      "fixture session-snapshot control"
+    ],
+    "invariants_error_checks": [
+      "management-only principal receives AUTHORIZATION_DENIED/404 on custody mutation",
+      "custody snapshot unchanged",
+      "employee shift end still 200",
+      "guest retrieval still 200 and advances only guest session"
+    ],
+    "test_refs": [
+      "self: operational-separation.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Guest API origin is hardcoded to localhost:3001 for this runtime fixture.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/report-generation-race.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "88e9e1683e419f0fbc8f0072d232183e45e0ab2238302724679dc23d72320d2e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 49
+      }
+    ],
+    "semantic_review_notes": "Fences a delayed real report-export response across logout/session generation change. The POST may have occurred, but after logout the released old result must not create a browser download or retain preview content.",
+    "callers_consumers": [
+      "Reports preview/export UI",
+      "installDelayedRealResponse",
+      "staff logout/session generation"
+    ],
+    "invariants_error_checks": [
+      "exactly one export POST",
+      "zero downloads after logout",
+      "preview removed after session termination"
+    ],
+    "test_refs": [
+      "self: report-generation-race.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Post-release observation includes a 150ms dwell; cross-checking generation fence implementation separately.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/reports-privacy.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6e119fd58fe0be9ce5c3935eb909991e0e5ec5c53ef74765f8a96dd4a42f97a9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 146
+      }
+    ],
+    "semantic_review_notes": "Exercises real company/location CSV/PDF export artifacts, unknown-outcome handling after response loss, entitlement revocation, protected Visit Contact search, object-URL revocation, and absence of protected contact/export data from localStorage/sessionStorage/IndexedDB/CacheStorage before logout/back-navigation checks.",
+    "callers_consumers": [
+      "Reports UI/export endpoints",
+      "Visit Contacts UI",
+      "support/persistent-state.ts",
+      "runtime entitlement control"
+    ],
+    "invariants_error_checks": [
+      "response MIME/content-disposition/filename and non-empty artifact",
+      "CSV header/PDF framing",
+      "one interrupted POST with no silent retry",
+      "revoked entitlement prevents download",
+      "all object URLs revoked",
+      "sensitive needles absent from persistent browser stores",
+      "back after logout remains signed out"
+    ],
+    "test_refs": [
+      "self: reports-privacy.spec.ts",
+      "support/persistent-state.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Persistent-state inspection requires Chromium support for indexedDB.databases(); downloaded temporary file contents are intentionally inspected by the test.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/request-bounds.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0e44f88d34ff39ae9dd9bdb5a611d523831126ecfaf4bbfbab6fd961b5084c3e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 60
+      }
+    ],
+    "semantic_review_notes": "Verifies Company analytics uses the organization aggregate endpoint with no per-Location fan-out, preserves explicit from/to filters, closes the custom-period dialog, and keeps the user-facing apply path bounded.",
+    "callers_consumers": [
+      "Analytics page",
+      "Company all-locations analytics endpoint"
+    ],
+    "invariants_error_checks": [
+      "two company reads total for initial+custom query",
+      "zero location analytics reads",
+      "exact from/to query values",
+      "apply completes within test budget"
+    ],
+    "test_refs": [
+      "self: request-bounds.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "The <2s wall-clock assertion is environment-sensitive and is a performance smoke bound rather than a service SLO.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/scope-races.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8f0f5f7a7d6135bd2417a5cb930c3bbd5e82538cc7cc1b35d0a4637160189456",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 130
+      }
+    ],
+    "semantic_review_notes": "Exercises A→B→A generation fencing for Company and exact-Location branding, covering both delayed real success and response-loss failure. Returning to A must use fresh authoritative state and suppress the first-A result/error; also traverses Maps, Audit Log, and Reports after the race.",
+    "callers_consumers": [
+      "Branding state owners",
+      "scope chooser",
+      "ScopeGenerationGuard-style feature owners",
+      "Maps/Audit/Reports navigation"
+    ],
+    "invariants_error_checks": [
+      "stale first-A success cannot overwrite fresh A",
+      "stale failure cannot surface alert",
+      "same property holds for Location A→B→A"
+    ],
+    "test_refs": [
+      "self: scope-races.spec.ts",
+      "support/delayed-real-response.ts",
+      "src/lib/scope/scope-generation.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Runtime release is followed by a 150ms dwell; static inspection confirms generation-based correctness mechanisms exist, so no defect is claimed from timing alone.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/session-generation.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0193d643aa3a96ba29dc05109459db3922c0db299ae0a853ba7db17483ce98a0",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 46
+      }
+    ],
+    "semantic_review_notes": "Validates session-generation fencing after server-side revocation: an old delayed Branding read cannot repaint protected content after failed sign-out confirmation, and a replacement browser session for the same principal still requires MFA.",
+    "callers_consumers": [
+      "StaffAuth generation handling",
+      "Branding read",
+      "sign-out/revocation flow"
+    ],
+    "invariants_error_checks": [
+      "old delayed result hidden",
+      "Management nav and Branding heading absent after revocation",
+      "replacement session MFA not inherited"
+    ],
+    "test_refs": [
+      "self: session-generation.spec.ts",
+      "src/lib/api/dashboard-api-client.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Covers one protected read path and a replacement browser context.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/support/delayed-real-response.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "438f312a6674eea3fa94fa2d7ff4f1f89c36ac9aba4d7afa75b4802d31d1a38e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 59
+      }
+    ],
+    "semantic_review_notes": "Single-arm Playwright route helper fetches the real upstream response first, signals that it started, then releases either the real response or a synthetic connection failure. It disarms before waiting, preventing accidental interception of subsequent matching requests.",
+    "callers_consumers": [
+      "cross-feature-races.spec.ts",
+      "scope-races.spec.ts",
+      "session-generation.spec.ts",
+      "report-generation-race.spec.ts"
+    ],
+    "invariants_error_checks": [
+      "only one armed response consumed",
+      "unmatched traffic continues",
+      "failure occurs after real upstream execution to model lost response"
+    ],
+    "test_refs": [
+      "runtime race specs listed in callers_consumers"
+    ],
+    "finding_ids": [],
+    "limits": "Routes only /v1/staff/** and models connection failure after route.fetch; it does not simulate every transport failure phase.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/support/persistent-state.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a6b420a160143e28d63d7ea7c7a533c543dc7e2916b70fa5d23a29c761461c4a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 109
+      }
+    ],
+    "semantic_review_notes": "Privacy test support wraps object-URL create/revoke to prove all generated download URLs are revoked, and searches localStorage, sessionStorage, IndexedDB values, CacheStorage URLs and bodies for protected needles.",
+    "callers_consumers": [
+      "reports-privacy.spec.ts"
+    ],
+    "invariants_error_checks": [
+      "active object URL list empty",
+      "revoke count equals creation history",
+      "all persistent browser stores searched for exact sensitive substrings"
+    ],
+    "test_refs": [
+      "reports-privacy.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "IndexedDB enumeration must be supported by the browser; storage metadata not containing the needles is outside this content scan.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/support/runtime-fixture.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "56d23c029971a125c19ddadf3315aa4edfc5d45a5987b94cd4adbff2192c7e2d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 196
+      }
+    ],
+    "semantic_review_notes": "Defines fixed test organizations/locations/principals/operations, signs in through the real browser UI, performs MFA TOTP, selects authorized scope, invokes test-only API fixture provision/control tools with explicit confirmation and MIGRATION_DATABASE_URL, and exposes a direct status helper.",
+    "callers_consumers": [
+      "all e2e-runtime specs except independent Issue #300 closure"
+    ],
+    "invariants_error_checks": [
+      "fixture control refuses missing MIGRATION_DATABASE_URL",
+      "NODE_ENV=test and E2E fixture confirmation passed",
+      "runtime MFA keys come from env or deterministic test-local derivation",
+      "TOTP is standards-style 30s HMAC-SHA1"
+    ],
+    "test_refs": [
+      "e2e-runtime/support/runtime-test.ts",
+      "auth/authority/race/privacy/runtime specs"
+    ],
+    "finding_ids": [],
+    "limits": "Contains deliberate test-only credentials/tokens and deterministic fallback MFA keys; not production code.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/support/runtime-test.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "894f640c84da3aeb53be237d3f9e9160bfbab44a54ab2784c1681fc422a1f540",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 12
+      }
+    ],
+    "semantic_review_notes": "Extends Playwright with an automatic runtimeBaseline fixture that reprovisions the runtime fixture before each test, providing isolation for mutable database-backed scenarios.",
+    "callers_consumers": [
+      "most apps/dashboard/e2e-runtime/*.spec.ts"
+    ],
+    "invariants_error_checks": [
+      "resetRuntimeFixture executes before test use"
+    ],
+    "test_refs": [
+      "runtime fixture consumers"
+    ],
+    "finding_ids": [],
+    "limits": "Per-test full fixture reset is intentionally heavier than mocked E2E and depends on the test database.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e-runtime/two-tab-concurrency.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "12232cd3030448536a94dc2c3893d8501238d31f7fe25650074147bab6cdf5e9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 149
+      }
+    ],
+    "semantic_review_notes": "Covers MFA assurance isolation across separate browser contexts and a same-context two-page Branding CAS conflict. It proves duplicate-click suppression, 409 on stale expectedUpdatedAt, authoritative reload, explicit retry, and #268 scope restoration on both pages.",
+    "callers_consumers": [
+      "Branding CAS endpoint/UI",
+      "auth refresh",
+      "scope restoration"
+    ],
+    "invariants_error_checks": [
+      "MFA in context A does not assure context B",
+      "single first write despite forced second click",
+      "stale CAS returns 409",
+      "no stale client value after reload",
+      "explicit retry succeeds"
+    ],
+    "test_refs": [
+      "self: two-tab-concurrency.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "The manual stale request issued from pageB uses the access token captured from pageA refresh; this still exercises resource CAS but is not independent per-tab authentication proof.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-authority.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1ef90f362ebaae5266b025956c5a6e0247b2a8b8fd5260599cac06afd7987c16",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 143
+      }
+    ],
+    "semantic_review_notes": "Fixture E2E covers Company Admin/Location Manager administration navigation, billing recovery when dashboardAccess is false, branding entitlement composition, exact-location billing, and direct-route denial for supervisor/employee. One Company Admin navigation assertion still expects standalone Integrations, which contradicts the current navigation registry and Issue #238 Service Status redirect design.",
+    "callers_consumers": [
+      "DashboardApiFixture",
+      "administration navigation registry",
+      "subscription/branding authority"
+    ],
+    "invariants_error_checks": [
+      "billing recovery avoids ordinary context read",
+      "dashboardAccess false denies ordinary administration",
+      "Branding requires both dashboard and branding entitlement",
+      "supervisor/employee cannot enter business route"
+    ],
+    "test_refs": [
+      "src/features/administration/administration-navigation.ts",
+      "e2e/issue238-service-status.spec.ts"
+    ],
+    "finding_ids": [
+      "C004-DASH-001"
+    ],
+    "limits": "Static contradiction identified; C004 did not execute Playwright.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-behavior.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e262b799e876611857103520b9d197f08a4d89b5ea53a8c6020ee17273978025",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 247
+      }
+    ],
+    "semantic_review_notes": "Fixture E2E validates sensitive Branding MFA explicit retry, freshness independent of ordinary ASSURED, CAS conflict reload, read-only commercial projection, and null subscription presentation. The Integrations case opens legacy /integrations and expects the retired Integrations & Connectors page instead of the current /policies?tab=services redirect/Service Status UI.",
+    "callers_consumers": [
+      "Branding UI",
+      "MFA step-up",
+      "commercial API",
+      "Billing UI",
+      "legacy /integrations route"
+    ],
+    "invariants_error_checks": [
+      "no automatic mutation replay after MFA",
+      "CAS reloads server value",
+      "commercial UI has no provider secret/config controls",
+      "null subscription has no mutation controls"
+    ],
+    "test_refs": [
+      "src/app/integrations/page.tsx",
+      "e2e/issue238-service-status.spec.ts"
+    ],
+    "finding_ids": [
+      "C004-DASH-001"
+    ],
+    "limits": "Static contradiction identified; commercial read-only intent remains valid, but route/presentation expectation is stale.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-concurrency.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "74361e92f21b0b2ee87e798a33e0903dcefb77e90f53bb3c5f7bb620ad903735",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 242
+      }
+    ],
+    "semantic_review_notes": "Covers unknown-outcome Location create retry with stable operationId, staff-role VERSION_CONFLICT reconciliation to authoritative detail, and delayed cross-organization commercial read fencing. The commercial race still opens the retired /integrations presentation and expects the legacy Integrations & Connectors heading.",
+    "callers_consumers": [
+      "Location create UI/API",
+      "Employees role mutation/detail reload",
+      "commercial service-status read",
+      "scope change"
+    ],
+    "invariants_error_checks": [
+      "unknown create retry reuses identical request body and operationId",
+      "409 role conflict reloads authoritative role/version",
+      "late Organization A response cannot repaint B"
+    ],
+    "test_refs": [
+      "src/app/integrations/page.tsx",
+      "e2e/issue238-service-status.spec.ts"
+    ],
+    "finding_ids": [
+      "C004-DASH-001"
+    ],
+    "limits": "Static legacy-route contradiction only; Playwright not executed in C004.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-locations.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "175cb4ac3f8c705fc20443b9911b9ea736afa5cebf02bf9ae4585cfc235a80d3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 66
+      }
+    ],
+    "semantic_review_notes": "Company Admin lifecycle read is intentionally sensitive: initial GET returns MFA_STEP_UP_REQUIRED, successful verification causes an explicit safe reread, readiness facts render, and no Edit Location mutation control is exposed by this read-only view.",
+    "callers_consumers": [
+      "Location lifecycle page",
+      "MFA step-up",
+      "management lifecycle endpoint"
+    ],
+    "invariants_error_checks": [
+      "one MFA step-up",
+      "lifecycle read occurs again after assurance",
+      "currency/timezone readiness rendered",
+      "Edit Location absent"
+    ],
+    "test_refs": [
+      "self: administration-locations.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Uses fixture authority rather than a live database/API runtime.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-authority-budget.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a20a0c9f03c056bc35794850fe5f58047c3e4a9501ac0052a3588f0130bd1104",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 253
+      }
+    ],
+    "semantic_review_notes": "R05 authority/budget coverage checks Company Admin and Location Manager directory/history reads, lazy Employees loading for LM, entitlement denial before staff reads, zero business reads for supervisor/employee/unauthenticated users, settled request counts, no hidden detail joins or writes, and memory-only staff rows.",
+    "callers_consumers": [
+      "Employees & Shifts page",
+      "staff directory endpoint",
+      "shift history endpoint",
+      "persistent-storage helper"
+    ],
+    "invariants_error_checks": [
+      "unauthorized principals send zero directory/history reads",
+      "dashboardAccess=false blocks directory request",
+      "Location Manager sees only authorized location choices",
+      "no unexpected writes/detail joins",
+      "sentinel absent from browser persistent stores"
+    ],
+    "test_refs": [
+      "support/administration-r05-fixtures.ts",
+      "support/issue240e-history.ts",
+      "support/persistent-storage.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Several request-settlement checks use finite dwell windows as test-budget assertions.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-cursor-generation.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "14df275db98558c7403583ab81daa64f0bdb36759f35be73011314aac657fc6b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 188
+      }
+    ],
+    "semantic_review_notes": "Exercises shift-history generation fencing for both Company Admin and Location Manager across A→B→A, for stale success and stale failure, plus logout followed by same-user sign-in. It rejects stale rows, stale errors, and stale pagination state after scope/session replacement.",
+    "callers_consumers": [
+      "Employees Shifts history state",
+      "organization/location scope switching",
+      "auth session generation"
+    ],
+    "invariants_error_checks": [
+      "first-A delayed result cannot repaint returned A",
+      "B data remains tenant-specific",
+      "stale Next cursor not retained",
+      "old-session result cannot repaint after reauthentication"
+    ],
+    "test_refs": [
+      "support/staff-directory-ui.ts",
+      "support/issue240e-history.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture E2E; networkidle is used as the post-release settlement boundary.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-controls.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "84810b81395e1e874604ad5a48a2642e1cc85a059437f466f8fe91c7e24f9d8f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 70
+      }
+    ],
+    "semantic_review_notes": "Ensures Employees search/role/status controls are generation-owned UI state: organization scope replacement resets prior filters, and sign-out followed by a replacement identity/session also resets them.",
+    "callers_consumers": [
+      "Employees controls",
+      "scope chooser",
+      "staff auth replacement"
+    ],
+    "invariants_error_checks": [
+      "search and role reset on A→B",
+      "search and status reset after replacement sign-in"
+    ],
+    "test_refs": [
+      "self: administration-r05-employees-controls.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Covers control reset semantics with mocked API data.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-generation.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9ce65e4dc97ed2eb5f7c086c1991d76d61c06caf5a0ea04f9f4d953fd8fb90ff",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 91
+      }
+    ],
+    "semantic_review_notes": "Tests Employees A→B→A generation fencing for delayed first-A success and failure. Fresh A data must remain visible after release while stale row/error is suppressed.",
+    "callers_consumers": [
+      "Employees directory state",
+      "organization scope switching"
+    ],
+    "invariants_error_checks": [
+      "B row visible in B",
+      "fresh second-A row visible on return",
+      "stale first-A success/failure cannot repaint"
+    ],
+    "test_refs": [
+      "support/staff-directory-ui.ts",
+      "support/administration-r05-fixtures.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture E2E and networkidle settlement.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-page-scope.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a7c31d49d1de2a9f17e90f67a4a05c04ced70bdc612fd149eb434847064a49bf",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 88
+      }
+    ],
+    "semantic_review_notes": "Proves an opaque Organization A directory cursor is not carried into Organization B and that a delayed A page-2 response cannot repaint B after the scope switch.",
+    "callers_consumers": [
+      "Employees pagination",
+      "organization scope switching"
+    ],
+    "invariants_error_checks": [
+      "all B requests use null initial cursor",
+      "stale A page-2 row absent after release"
+    ],
+    "test_refs": [
+      "support/administration-r05-fixtures.ts"
+    ],
+    "finding_ids": [],
+    "limits": "One-direction A→B cursor isolation; complementary A→B→A coverage exists in scope-cursor spec.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-pagination.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "408475a0b8876434a9b65de036d0f28c3ffd1fe389babc42d438af1f2b1db207",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 92
+      }
+    ],
+    "semantic_review_notes": "Validates opaque server cursor forwarding while preserving active search/role/status filters on continuation, back navigation to cached first page, and no fabricated total-page count.",
+    "callers_consumers": [
+      "Employees directory pagination/filter controls"
+    ],
+    "invariants_error_checks": [
+      "cursor value forwarded unchanged",
+      "filters retained on next/previous",
+      "Next disabled when nextCursor=null",
+      "no Page X of Y claim"
+    ],
+    "test_refs": [
+      "support/administration-r05-fixtures.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Filter request-count expectation assumes current immediate request behavior of the UI.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-presentation.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5a2d4ebd3dc085b45bd33af387ca029581dd9289d0a5e906efe782f5b91dddfb",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 118
+      }
+    ],
+    "semantic_review_notes": "Checks truthful directory presentation and server-backed filters: role/status/email facts are shown, internal membership IDs and unsupported Add Employee/Attendance controls/photos are hidden, and the Details dialog restores focus to its opener.",
+    "callers_consumers": [
+      "Employees table",
+      "directory filters",
+      "staff detail drawer"
+    ],
+    "invariants_error_checks": [
+      "no internal membership ID in table/drawer",
+      "server filters narrow rows",
+      "unsupported controls absent",
+      "Escape closes dialog and restores focus"
+    ],
+    "test_refs": [
+      "support/administration-r05-fixtures.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Presentation fixture asserts current approved R05 surface, not backend authorization independently.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-scope-cursor.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c7da901cfa6e6453b6274e8b2a955d6ec658a8c3eda05b3af8d159604bf00ea1",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 112
+      }
+    ],
+    "semantic_review_notes": "Exercises cursor-history ownership across A→B→A. Each organization receives only its own opaque cursor, returning to A restarts from null rather than old page history, and a delayed old A page cannot repaint the returned A state.",
+    "callers_consumers": [
+      "Employees pagination state",
+      "organization scope switching"
+    ],
+    "invariants_error_checks": [
+      "A and B cursors never cross",
+      "returned A starts at null cursor",
+      "delayed old A page suppressed"
+    ],
+    "test_refs": [
+      "support/staff-directory-ui.ts",
+      "support/administration-r05-fixtures.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture E2E and networkidle settlement.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-employees-session.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0bb2964d9f03914a2e8dd66f4903fdc752291a96684be438189194572766720d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 131
+      }
+    ],
+    "semantic_review_notes": "Tests pending Employees success/failure across logout and across a replacement signed-in session. Released old-session responses must not repaint the sign-in screen or the replacement session's authoritative directory state.",
+    "callers_consumers": [
+      "Employees directory state",
+      "sign-out",
+      "replacement Staff session"
+    ],
+    "invariants_error_checks": [
+      "no stale success/error after logout",
+      "replacement session data remains visible",
+      "old-session result cannot repaint replacement identity"
+    ],
+    "test_refs": [
+      "support/staff-directory-ui.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture E2E; same page is reused across auth replacement.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-mutations.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "eebcc77be3be85622af2f2a280aa4083878ce64b2d5358223f7111d53c35be90",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 251
+      }
+    ],
+    "semantic_review_notes": "R05 mutation safety coverage proves expectedVersion is sent, MFA step-up never auto-replays a rejected role mutation, auth reconciliation after 401 does not replay the mutation, and entitlement denial preserves old role until an explicit retry. Successful retry refreshes directory/detail authority.",
+    "callers_consumers": [
+      "staff role mutation",
+      "staff detail/directory reload",
+      "MFA/auth reconciliation"
+    ],
+    "invariants_error_checks": [
+      "one POST before explicit MFA retry",
+      "same expectedVersion/body on explicit retry",
+      "401 triggers refresh but not mutation replay",
+      "entitlement denial leaves authoritative old role",
+      "explicit later retry required"
+    ],
+    "test_refs": [
+      "support/administration-r05-fixtures.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture responses model server behavior; live mutation path is separately covered elsewhere.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-presentation.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d9ed49337032ef045bef8c22fd4cfee69a8712e32ed4fa172535a660bbeb9663",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 197
+      }
+    ],
+    "semantic_review_notes": "Validates truthful Shift presentation: row-specific accessible actions, Location timezone rendering, authoritative identity/location detail, internal shift/membership IDs hidden from visible text and aria labels, no operational shift mutation controls, plus Arabic RTL/bidi-safe email and localized time labels.",
+    "callers_consumers": [
+      "Employees Shifts table/detail drawer",
+      "history endpoint",
+      "localization/bidi presentation"
+    ],
+    "invariants_error_checks": [
+      "unique row action labels",
+      "internal IDs absent from labels/UI",
+      "times rendered in location timezone",
+      "unsupported start/end/attendance/payroll controls absent",
+      "Arabic uses RTL and bdi LTR for email"
+    ],
+    "test_refs": [
+      "support/issue240e-history.ts",
+      "support/administration-r05-fixtures.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Presentation-level checks use deterministic fixture timestamps and location timezone.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r05-visual.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6150e70ae61780ec44b309feb65895220462cd614d812ffec9e6aa1094b78d21",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 253
+      }
+    ],
+    "semantic_review_notes": "Visual proof covers Employees and Shifts geometry, no horizontal overflow, theme changes, Arabic RTL, narrow 480px layouts, action visibility, and a Location Manager Shifts reference. Screenshots are written to OS temp output, not tracked source.",
+    "callers_consumers": [
+      "Employees/Shifts presentation",
+      "theme/language shell",
+      "visual evidence output"
+    ],
+    "invariants_error_checks": [
+      "desktop geometry assertions",
+      "document scrollWidth equals viewport width",
+      "light/dark and LTR/RTL states exercised",
+      "details controls remain visible on narrow layout"
+    ],
+    "test_refs": [
+      "support/administration-r05-fixtures.ts",
+      "support/issue240e-history.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Pixel geometry is browser/font/environment sensitive; C004 did not regenerate screenshots due audit-only/no-expensive-test constraint.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r06-accessibility.spec.ts",
+    "worker": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b1c30f251b6627a07aa3c631786db4acd796008321fae1c87972e8198de47105",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 61
+      }
+    ],
+    "semantic_review_notes": "Accessibility test covers nested Create Location and MFA dialogs: outer dialog focus wraps, MFA challenge takes focus and traps it, Escape closes only the top challenge and restores focus to Create submit, then a second Escape closes Create and restores focus to Add Location.",
+    "callers_consumers": [
+      "Create Location dialog",
+      "MFA step-up dialog",
+      "focus restoration"
+    ],
+    "invariants_error_checks": [
+      "focus trap in outer dialog",
+      "focus trap in MFA challenge",
+      "nested Escape semantics",
+      "focus restored at each dialog boundary"
+    ],
+    "test_refs": [
+      "support/r06-locations.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Focused keyboard-dialog behavior; broader axe/semantic accessibility coverage is outside this file.",
+    "original_worker": "dashboard",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "packages/database/prisma/demo-operational-seed.mjs",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8ee8af6b785cab5f2f622eb52459cb98eed94abfe0f6d084f2a7ada2c6e29388",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 90
+      }
+    ],
+    "semantic_review_notes": "Seeds two ACTIVE shifts and three canonical PARKING/RETRIEVAL tasks with deterministic demo ownership/status. The READY demo retrieval task is intentionally left IN_PROGRESS under the supervisor; upserts only refresh mutable demo status/assignee/timestamps.",
+    "callers_consumers": [
+      "packages/database/prisma/seed.mjs (imports seedDemoShifts/seedDemoTasks; calls at seed flow lines found by rg)",
+      "apps/api/src/modules/shifts/start-shift-command.ts consumes the same active-shift uniqueness invariant"
+    ],
+    "invariants_error_checks": [
+      "Uses organization/location/membership/session ids supplied by the parent seed",
+      "Task enum casts and version=1 align with task persistence",
+      "No production request path calls this module"
+    ],
+    "test_refs": [
+      "packages/database/src/seed.integration.test.ts",
+      "packages/database/src/seed-operational-fixture-state.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static seed/caller review only; no seed execution in C004.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260808000100_tenant_staff_foundation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5adf3587db527396ea212814166381130bc5af7a182d415fbd11f18d118bd634",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 144
+      }
+    ],
+    "semantic_review_notes": "Establishes tenant/staff/location/shift ownership with composite tenant FKs and normalized unique email. The partial active-shift index is the DB race fence used by shift start; membership_location_access binds membership and location to one organization.",
+    "callers_consumers": [
+      "apps/api/src/modules/shifts/start-shift-command.ts",
+      "apps/api/src/modules/dashboard/dashboard-location-scope-query.ts",
+      "apps/api/src/modules/staff/custody-staff-authorizer.ts"
+    ],
+    "invariants_error_checks": [
+      "Composite organization/location and organization/membership FKs reject cross-tenant rows",
+      "shifts_one_active_per_membership_idx enforces one ACTIVE shift",
+      "ended_at cannot predate started_at"
+    ],
+    "test_refs": [
+      "packages/database/src/schema.integration.test.ts",
+      "packages/database/src/runtime-authority-privileges.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Historical foundation was compared with current schema and later authority migrations; no runtime DB execution.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260808000200_blueprint_location_and_supervisor/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ffbf7dc42747f6d65d9b7a7339d82f094c07b169775c733363b9cedb4f98e0ce",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 12
+      }
+    ],
+    "semantic_review_notes": "Adds VALET_SUPERVISOR and required location timezone/currency; currency is constrained to uppercase three-letter form. This migration assumes existing locations are backfilled/absent when adding NOT NULL columns, consistent with its early-foundation ordering.",
+    "callers_consumers": [
+      "apps/api/src/modules/vehicles/vehicle-identity-command.ts",
+      "apps/api/src/modules/tracking/route-history-authorization.ts",
+      "apps/api/src/modules/payments/payment-projection-authorization.ts"
+    ],
+    "invariants_error_checks": [
+      "membership_role enum gains supervisor",
+      "locations_currency_format_check enforces ^[A-Z]{3}$"
+    ],
+    "test_refs": [
+      "packages/database/src/schema.integration.test.ts",
+      "packages/database/src/location-configuration-currency.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static migration review; historical install ordering considered.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260808000400_parking_spot_key_slot_foundation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1254edb80fdd022d28fe40064c77a4be4c57b9837bb294778d88af04c181047b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 66
+      }
+    ],
+    "semantic_review_notes": "Creates parking_spots/key_slots with location-scoped codes and composite tenant/location FKs. Later session and zone migrations add the composite resource keys needed by custody/session references; current schema retains the tenant/location binding.",
+    "callers_consumers": [
+      "apps/api/src/modules/parking/parking-spot-validation-query.ts",
+      "apps/api/src/modules/keys/key-session-authorization.ts",
+      "packages/database/prisma/migrations/20260808000500_valet_session_foundation/migration.sql"
+    ],
+    "invariants_error_checks": [
+      "location code uniqueness",
+      "organization/location FKs block cross-tenant resource placement"
+    ],
+    "test_refs": [
+      "packages/database/src/schema.integration.test.ts",
+      "packages/database/src/physical-resource-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static review; later zone/resource hardening also inspected via current schema/search.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260808000600_restore_valet_session_query_indexes/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4c7fc59d24629b248c4b6c238beafc7621232adae03960fa9c62c0a32697e35a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 8
+      }
+    ],
+    "semantic_review_notes": "Restores three read-path indexes for location/state, vehicle history, and location retrieval ordering. No mutation or authorization semantics are introduced.",
+    "callers_consumers": [
+      "apps/api/src/modules/dashboard/* session queries",
+      "apps/api/src/modules/staff/staff-valet-session-queries.ts"
+    ],
+    "invariants_error_checks": [
+      "Performance-only indexes; no uniqueness semantics"
+    ],
+    "test_refs": [
+      "packages/database/src/schema.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Index usefulness assessed statically; no EXPLAIN/production workload in C004.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260808000700_audit_event_foundation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7c78d39f09010f5487f55c1529a865e529628eb87038a206ef483bb9299e964d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 49
+      }
+    ],
+    "semantic_review_notes": "Creates tenant/location-scoped audit_events with optional session/actor references and session timeline index. Later audit-foundation migrations add actor typing, append-only/runtime privileges and stricter write guards; current writers use atomic transaction boundaries with domain mutations.",
+    "callers_consumers": [
+      "apps/api/src/modules/audit/custody-audit-event-writer.ts",
+      "apps/api/src/modules/audit/organization-audit-writer.ts",
+      "apps/api/src/modules/management/audit-investigation/timeline/timeline-source-query.ts"
+    ],
+    "invariants_error_checks": [
+      "Composite session FK ties audit row to tenant/location",
+      "Actor membership FK ties actor to organization",
+      "Historical base itself does not enforce append-only privileges; later migration/provisioning does"
+    ],
+    "test_refs": [
+      "packages/database/src/audit-foundation-constraints.integration.test.ts",
+      "packages/database/src/audit-foundation-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Reviewed as a historical base in the full migration chain; no claim that this migration alone is production hardening.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260809001000_payment_validation_tip_foundation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "09e9ea8694539df00f0927941539fad67ce6aab6810be5df99e8865c4ac00479",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 205
+      }
+    ],
+    "semantic_review_notes": "Defines one payment per tenant/session, payment state/method shape, nonnegative money, provider-reference uniqueness, and versioned current validation history. Composite FKs prevent cross-tenant payment/validation references; later payment-operation migrations harden write authority and transitions.",
+    "callers_consumers": [
+      "apps/api/src/modules/payments/payment-repository.ts",
+      "apps/api/src/modules/payments/validation-command.ts",
+      "apps/api/src/modules/payments/payment-recompute.ts"
+    ],
+    "invariants_error_checks": [
+      "amount_paid <= amount_due",
+      "method/status/provider shape checks",
+      "one current validation via partial unique index",
+      "superseding validation constrained to same organization/payment"
+    ],
+    "test_refs": [
+      "packages/database/src/schema.integration.test.ts",
+      "packages/database/src/payment-collection-constraints.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Historical schema semantics reviewed with later payment collection controls; no financial mutation tests executed.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260809001100_cash_entry_provider_event_foundation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5cbb03b139a3bdcc8729f79065c6cfcb05b0e627a3c19d289fe1d48d5fb6f396",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 105
+      }
+    ],
+    "semantic_review_notes": "Creates append-style cash ledger rows and provider-event ingress records. Cash entry amounts are positive with reasons required for adjustments; idempotency is organization-scoped and a partial unique index prevents duplicate RECEIPT per payment.",
+    "callers_consumers": [
+      "apps/api/src/modules/payments/cash-command.ts",
+      "apps/api/src/modules/payments/provider-event-repository.ts",
+      "packages/database/scripts/provider-event-runtime-privileges.mjs"
+    ],
+    "invariants_error_checks": [
+      "Cash payment FK is tenant composite",
+      "Provider event initially forbids refund_id until refund migration",
+      "Provider event uniqueness is organization+provider+event id"
+    ],
+    "test_refs": [
+      "packages/database/src/schema.integration.test.ts",
+      "packages/database/src/payment-collection-constraints.integration.test.ts",
+      "packages/database/src/payment-collection-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static migration and consumer review; runtime role tests not executed.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260809001200_refund_foundation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "66b4f3164749eaf63cae23c6e81018ca6709eface6c382689e06aaa145d3d7ff",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 94
+      }
+    ],
+    "semantic_review_notes": "Adds tenant/payment-bound refund records, authorization actor, retry key and provider correlation; then safely enables provider events to point at a refund within the same organization/payment. Status/provider/completion constraints distinguish asynchronous provider refunds from succeeded local records.",
+    "callers_consumers": [
+      "apps/api/src/modules/payments/refund-repository.ts",
+      "apps/api/src/modules/payments/refund-command.ts",
+      "apps/api/src/modules/payments/provider-event-refund.ts"
+    ],
+    "invariants_error_checks": [
+      "Positive amount and nonblank reason",
+      "provider_reference requires provider",
+      "provider-event refund composite FK prevents cross-payment/cross-tenant linkage"
+    ],
+    "test_refs": [
+      "packages/contracts/src/payments.test.ts",
+      "packages/database/src/payment-collection-constraints.integration.test.ts",
+      "packages/database/src/refund-runtime-role-assertions.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Refund amount-vs-payment business cap is enforced in command/transaction layers rather than this foundation migration; static review only.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260809001300_incident_foundation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ab13aeac27fe8d4ff2424d158106eddf30c7ba46f7a75eee1d91f4d81eb4cd73",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 68
+      }
+    ],
+    "semantic_review_notes": "Creates incident records separately from session state with tenant/location/session and reporter/resolver membership FKs. Reporting code inserts OPEN incidents plus audit atomically; later recovery/resolution work adds controlled mutation authority and recovery-intent durability.",
+    "callers_consumers": [
+      "apps/api/src/modules/incidents/incident-reporting-command.ts",
+      "apps/api/src/modules/dashboard/incident-resolution-command.ts",
+      "apps/api/src/modules/management/company-analytics-incidents-query.ts"
+    ],
+    "invariants_error_checks": [
+      "Cross-tenant session and actor references are DB-rejected",
+      "Location/status index supports operational lists",
+      "Resolution shape is controlled by later command/privilege layers"
+    ],
+    "test_refs": [
+      "packages/database/src/schema.integration.test.ts",
+      "packages/database/src/incident-runtime-read-privilege.integration.test.ts",
+      "packages/database/src/incident-recovery-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Historical foundation reviewed with later incident migrations and current command paths; no runtime execution.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260809001400_notification_foundation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "cf156cc992739b8b3183871dd681eb8b63337f377563a0770da48d239a89634a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 50
+      }
+    ],
+    "semantic_review_notes": "Creates notification delivery state independently from session state with organization/session ownership and required terminal timestamps for SENT/FAILED. Current outbound messaging paths consume the table while newer push persistence uses separate records.",
+    "callers_consumers": [
+      "apps/api/src/outbound-message-worker.ts",
+      "apps/api/src/modules/valet-sessions/initial-guest-issuance.ts"
+    ],
+    "invariants_error_checks": [
+      "Optional session FK is tenant composite",
+      "SENT requires sent_at; FAILED requires failed_at"
+    ],
+    "test_refs": [
+      "packages/database/src/schema.integration.test.ts",
+      "packages/database/src/seed.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static review; provider delivery behavior not exercised.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260809001500_check_in_intake_persistence/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fd2fabf023003b8415a7916448f7868e4157a200c811b1ede55452484186eba8",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 164
+      }
+    ],
+    "semantic_review_notes": "Adds company/location photo policy, paired condition-completion fields, append/supersede condition notes, and private vehicle-photo metadata with tenant/location/session/capturer binding. Supersession is constrained to the same session/context and storage keys are globally unique.",
+    "callers_consumers": [
+      "apps/api/src/modules/valet-sessions/check-in-condition-command.ts",
+      "apps/api/src/modules/vehicle-photos/condition-photo-discovery-query.ts",
+      "apps/api/src/modules/valet-sessions/check-in-photo-preflight.ts"
+    ],
+    "invariants_error_checks": [
+      "Completion timestamp/actor pair",
+      "Nonblank condition note and no self-supersession",
+      "Composite note supersedes FK",
+      "Photo tenant/location/session/capturer FKs"
+    ],
+    "test_refs": [
+      "packages/database/src/condition-photo-p1-integrity.integration.test.ts",
+      "packages/database/src/condition-photo-runtime-privileges.integration.test.ts",
+      "packages/database/src/schema.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Later condition-photo migrations add upload/verification authority; reviewed as historical base.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260810001700_staff_authentication/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3798dbb799d10e5d6f4d79d1fc5f5a1ffb4b033f17c992d14eb14a0de22aa56d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 85
+      }
+    ],
+    "semantic_review_notes": "Persists hashed staff access/refresh credentials with bounded expiry, monotonic refresh generations, one unconsumed refresh per session, and same-session replacement linkage. Current auth service rotates/revokes through these records; MFA is added later without weakening these token hashes.",
+    "callers_consumers": [
+      "apps/api/src/modules/auth/staff-auth.service.ts",
+      "apps/api/src/modules/auth/staff-session-revalidation.ts",
+      "apps/api/src/modules/auth/staff-auth-logout.ts"
+    ],
+    "invariants_error_checks": [
+      "Versioned SHA-256 hash formats",
+      "access <= absolute expiry",
+      "positive refresh generation",
+      "replacement cannot self-reference and must be same session"
+    ],
+    "test_refs": [
+      "packages/database/src/schema.integration.test.ts",
+      "packages/database/src/mfa-migration.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static DB/auth consumer review; authentication flows not executed.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260810001800_shared_durable_anti_abuse/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "24d698a10b67071e28d709f8323d5c76d4cd8aee5243149c8b92795b68224ad2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 48
+      }
+    ],
+    "semantic_review_notes": "Creates durable hashed anti-abuse counters with a closed scope/state allowlist and an indexed one-hour retention cleanup. Cleanup is SECURITY DEFINER with fixed search_path and PUBLIC execution revoked; later migrations extend allowed scopes deliberately.",
+    "callers_consumers": [
+      "apps/api/src/modules/anti-abuse/anti-abuse.service.ts",
+      "apps/api/src/modules/anti-abuse/anti-abuse-maintenance.ts",
+      "apps/api/src/modules/anti-abuse/classified-guest-counter.ts"
+    ],
+    "invariants_error_checks": [
+      "HMAC hash format",
+      "Closed scope/state values",
+      "Cleanup lock_timeout limits maintenance blocking",
+      "PUBLIC EXECUTE revoked"
+    ],
+    "test_refs": [
+      "packages/database/src/guest-anti-abuse-schema-assertions.ts",
+      "packages/database/src/schema.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Grant target/provisioning reviewed through callers/search, not executed against PostgreSQL.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260812002000_phase3_task_dispatch_persistence/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "de20805acf4d88ee6755d2dd8b3fe97bafdecf418176cfd3d745d36c3056c8cf",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 149
+      }
+    ],
+    "semantic_review_notes": "Establishes Task lifecycle separately from ValetSession and append-style dispatch events. A partial unique index prevents multiple active tasks of the same type per session; task/session/location and event/task FKs carry the tenant/location/session scope into dispatch history.",
+    "callers_consumers": [
+      "apps/api/src/modules/dispatch/dispatch-event-writer.ts",
+      "apps/api/src/modules/dispatch/assign-task-command.ts",
+      "apps/api/src/modules/dispatch/reassign-task-command.ts"
+    ],
+    "invariants_error_checks": [
+      "Task assignee/status shape",
+      "Active task uniqueness",
+      "Dispatch assignee-event shape",
+      "Composite event->task scope FK"
+    ],
+    "test_refs": [
+      "packages/database/src/task-dispatch-persistence.integration.test.ts",
+      "packages/database/src/task-active-concurrency.integration.test.ts",
+      "packages/database/src/task-dispatch-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static migration/caller review; no concurrency test run.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260813002100_guest_retrieval_requester_consistency/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "822eba8c776c5fdef2a1369ed7934675596b9d75bc08e56bc94ebffe68ba45d7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 16
+      }
+    ],
+    "semantic_review_notes": "Replaces requester consistency so CUSTOMER retrieval requests cannot carry a staff membership, while STAFF requests require a membership and cannot carry a customer id. Customer identity remains optional because guest-token/browser-session flows can legitimately request retrieval without a persisted Customer row.",
+    "callers_consumers": [
+      "apps/api/src/modules/retrieval/* retrieval request commands",
+      "apps/customer guest retrieval flow"
+    ],
+    "invariants_error_checks": [
+      "CUSTOMER => membership NULL",
+      "STAFF => customer NULL and membership NOT NULL"
+    ],
+    "test_refs": [
+      "packages/database/src/schema.integration.test.ts",
+      "packages/database/src/phase4-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Constraint semantics checked against current guest-token model; no request execution.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260813002200_secure_handoff_policy_and_anti_abuse/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6dfca29a2f16988dd2b29048a62b0c09ba65acc48280a1980cf025050d594cb1",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 28
+      }
+    ],
+    "semantic_review_notes": "Adds company-default/location-override handoff method policy and extends the durable anti-abuse allowlist for handoff issuance/verification session scopes. This preserves typed Configuration First precedence and explicit anti-abuse classification.",
+    "callers_consumers": [
+      "apps/api/src/modules/retrieval/handoff-policy.ts",
+      "apps/api/src/modules/retrieval/issue-handoff-command.ts",
+      "apps/api/src/modules/retrieval/verify-handoff-command.ts"
+    ],
+    "invariants_error_checks": [
+      "Typed PICKUP_CODE/DYNAMIC_QR/EITHER policy",
+      "Anti-abuse scopes remain closed via CHECK"
+    ],
+    "test_refs": [
+      "packages/database/src/secure-handoff-policy.integration.test.ts",
+      "packages/database/src/location-configuration-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static policy/anti-abuse review.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260814002300_phase5_maps_tracking_persistence/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a506b54d8cc209c5c4b2b3de5854ac685834b9e474ce3e6ff08c026ade382534",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 226
+      }
+    ],
+    "semantic_review_notes": "Adds opt-in tracking policy, map geometry, task-scoped tracking sessions, raw GPS samples and geofence events with nested composite scope FKs. Active tracking is unique per task and per valet session; ended_at can only transition once, and GPS coordinates are DB-bounded.",
+    "callers_consumers": [
+      "apps/api/src/modules/tracking/task-tracking-lifecycle.ts",
+      "apps/api/src/modules/tracking/gps-sample-persistence.ts",
+      "apps/api/src/modules/tracking/geofence-evaluation.ts",
+      "apps/api/src/modules/tracking/live-map-query.ts"
+    ],
+    "invariants_error_checks": [
+      "Tracking default false",
+      "positive retention days",
+      "ended tracking cannot reopen/rewrite",
+      "sample tracking FK includes org/location/session/task",
+      "lat/lon bounds and sample idempotency"
+    ],
+    "test_refs": [
+      "packages/database/src/maps-tracking-persistence.integration.test.ts",
+      "packages/database/src/maps-tracking-runtime-role.integration.test.ts",
+      "packages/database/src/raw-gps-retention.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static privacy/scope/race review; no GPS retention job execution.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260814002400_phase5_map_setup_write_authority/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3fb7748107e0756a10ca29578ac3233688e80d04bb01a832250ef9a2ceebb0bb",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 468
+      }
+    ],
+    "semantic_review_notes": "Defines SECURITY DEFINER map-setup commands that derive organization authority from the actor/location instead of caller-supplied tenant ids. Functions use fixed search_path, active org/location/user/membership plus location access, LOCATION_MANAGER role, row locking/CAS on updates, bounded geometry/labels, same-scope parking-zone validation, and audit writes; PUBLIC execution is revoked for every helper/command.",
+    "callers_consumers": [
+      "apps/api/src/modules/map-setup/map-point-command.ts",
+      "apps/api/src/modules/map-setup/map-area-command.ts",
+      "apps/api/src/modules/map-setup/map-setup-projections.ts"
+    ],
+    "invariants_error_checks": [
+      "Authority derives organization id",
+      "Update point/area lock tenant-scoped row before mutation",
+      "Area vertices 3..500 and coordinates bounded",
+      "Audit appended in same DB call",
+      "PUBLIC EXECUTE revoked"
+    ],
+    "test_refs": [
+      "packages/database/src/maps-tracking-runtime-role.integration.test.ts",
+      "packages/database/src/maps-tracking-persistence.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static review of migration and callers; grant/provisioning/runtime invocation not executed.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260815002600_phase6_financial_policy_payment_core/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "213969eaca59d43bef81fb63aa6a4018d28dbdbda429934338d51ab4ed29a461",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 31
+      }
+    ],
+    "semantic_review_notes": "Adds typed company-default/location-override financial policy for fee, payer, payment methods, tips, validation and release gating. Fee values are nonnegative and the current resolver applies location overrides over company defaults.",
+    "callers_consumers": [
+      "apps/api/src/modules/payments/financial-policy-resolver.ts",
+      "apps/api/src/modules/dashboard/dashboard-configuration-projection.ts",
+      "apps/api/src/modules/management/management-settings-projection.ts"
+    ],
+    "invariants_error_checks": [
+      "Nonnegative company/location fee",
+      "Typed payment method/payer enums",
+      "Nullable location fields express override absence"
+    ],
+    "test_refs": [
+      "packages/database/src/financial-policy-migration.integration.test.ts",
+      "packages/database/src/location-configuration-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static configuration-policy review.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260816002700_phase6_cash_reconciliation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7afeff30c6d3760718ad2ade1703f41672931287474e50d669e1a91a23960ac2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 70
+      }
+    ],
+    "semantic_review_notes": "Adds an immutable end-of-shift cash reconciliation snapshot to shifts. The DB requires complete-or-empty reconciliation data, nonnegative expected/reported amounts, exact variance arithmetic, currency shape, the reporting membership to equal the shift owner, and the reconciliation timestamp to equal ended_at on an ENDED shift.",
+    "callers_consumers": [
+      "apps/api/src/modules/shifts/end-shift-command.ts",
+      "apps/api/src/modules/management/staff-shift-cash-read.ts",
+      "apps/api/src/modules/dashboard/analytics-financial-query.ts"
+    ],
+    "invariants_error_checks": [
+      "Tenant-scoped reporter FK",
+      "cash_variance = cash_reported - cash_expected",
+      "snapshot trigger blocks later reconciliation/status/ended_at rewrite",
+      "trigger function has fixed search_path and PUBLIC execution revoked"
+    ],
+    "test_refs": [
+      "packages/database/src/cash-reconciliation-migration.integration.test.ts",
+      "packages/database/src/shift-force-end-migration-test-fixture.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static migration/caller review only; reconciliation integration tests were not executed in C004.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260816002800_phase6_payment_collection_operation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3b2ed3a2408793d60738896de1bc695f11a6451c17c8e369f4ec6befac32f153",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 113
+      }
+    ],
+    "semantic_review_notes": "Introduces durable digital collection operation state for crash/unknown-outcome recovery. State/data checks distinguish PREPARED, guarded unknown outcome, provider-reference attachment, rejection, and resolution; unique submission and provider-reference keys provide idempotency, while a partial unique index permits only one unresolved operation for a payment.",
+    "callers_consumers": [
+      "apps/api/src/modules/payments/digital-collection-repository.ts",
+      "apps/api/src/modules/payments/digital-collection-transitions.ts",
+      "apps/api/src/modules/payments/provider-event-collection.ts"
+    ],
+    "invariants_error_checks": [
+      "Organization/payment composite FK",
+      "positive amount and uppercase currency",
+      "state-specific reference/dispatch/resolution shape",
+      "one unresolved operation per organization/payment"
+    ],
+    "test_refs": [
+      "packages/database/src/payment-collection-migration.integration.test.ts",
+      "packages/database/src/payment-collection-constraints.integration.test.ts",
+      "packages/database/src/payment-collection-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static persistence and consumer review; provider outage/retry behavior was not executed.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260822002900_phase7_location_configuration_authority/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "18d614e284e161b07abf7b4288264b33ce3e193496e8b891ad066a35ea2e1d6e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 684
+      }
+    ],
+    "semantic_review_notes": "Creates narrow Location Manager SECURITY DEFINER configuration commands. Authority is derived from an active actor/user/organization/location plus explicit location access and LOCATION_MANAGER role; values are type/currency-precision validated, the location row is locked, expected_updated_at provides CAS, updated_at advances monotonically, and every mutation appends old/new effective-state audit metadata.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/management-settings-projection.ts",
+      "packages/database/scripts/location-configuration-runtime-privileges.mjs",
+      "later management-settings migration 038 replaces the authorization helper only to add organization serialization while retaining LM authority"
+    ],
+    "invariants_error_checks": [
+      "No caller-supplied organization is trusted by LM authorization helper",
+      "supported-setting allowlist",
+      "JOD and other ISO minor-unit precision enforced for service fee",
+      "all helpers/commands revoke PUBLIC execution"
+    ],
+    "test_refs": [
+      "packages/database/src/location-configuration-runtime-role.integration.test.ts",
+      "packages/database/src/location-configuration-currency.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static review of the full function body and later replacement/grant policy; PostgreSQL privilege tests were not rerun.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260822003000_phase7_basic_branding_subscription_entitlements/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3fceb58bd66391ab69395666952cd44ab0395e4db5eb42e87577566d453cd9b5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 476
+      }
+    ],
+    "semantic_review_notes": "Adds basic branding overrides plus typed organization subscription entitlements and LM branding commands. Branding mutation authority mirrors the location-configuration boundary with active LM/location access checks, row lock/CAS, canonical text/color validation and atomic audit. The original color SET NULL ambiguity in this migration is explicitly corrected by the immediately following forward-only hardening migration 031.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/management-branding-mutation-repository.ts",
+      "apps/api/src/modules/management/management-settings-projection.ts",
+      "packages/database/scripts/basic-branding-runtime-privileges.mjs"
+    ],
+    "invariants_error_checks": [
+      "Uppercase #RRGGBB color format",
+      "bounded/control-free display-name override",
+      "subscription plan-code shape",
+      "PUBLIC execution revoked for command and helper functions"
+    ],
+    "test_refs": [
+      "packages/database/src/basic-branding-runtime-privilege.integration.test.ts",
+      "packages/database/src/management-settings-migration.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Historical migration reviewed as part of the forward chain; the NULL color SET behavior is superseded by migration 031 and is not a current finding.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260823003100_phase7_basic_branding_hardening/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a0e600cbbf91b7102f311444d2932b9d8a2d7ff963f0bf60184478d9d5d93435",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 99
+      }
+    ],
+    "semantic_review_notes": "Forward-only hardening closes NULL-as-clear on primary-color SET and normalizes existing display-name overrides before replacing the check with canonical outer-trim enforcement. Dedicated CLEAR remains the only supported override removal path.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/management-branding-mutation-repository.ts",
+      "migration 038 management branding commands preserve the same NULL rejection/canonicalization"
+    ],
+    "invariants_error_checks": [
+      "Explicit SQL NULL rejection",
+      "canonical trimmed display name",
+      "PUBLIC command execution revoked again after CREATE OR REPLACE"
+    ],
+    "test_refs": [
+      "packages/database/src/basic-branding-runtime-privilege.integration.test.ts",
+      "packages/database/src/management-settings-migration.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static forward-chain review; migration not executed.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260910003200_mob_020a_staff_push_persistence/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0cfe9f483b68d3a22888781be1d84b724f1b9f2237f94403ae1116dc836156fd",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 396
+      }
+    ],
+    "semantic_review_notes": "Defines staff push registrations, tenant/session/task-scoped intents and deliveries with registration/delivery state-machine guards, lease fencing, retry bounds, terminal shapes and dedupe indexes. Registration rows are account-session scoped rather than tenant scoped; the delivery writer and worker eligibility query bind the registration's staff-auth user back to the exact recipient membership, organization, location access and active shift before any provider send.",
+    "callers_consumers": [
+      "apps/api/src/modules/staff-push/retrieval-push-attention-writer.ts",
+      "apps/api/src/modules/staff-push/staff-push-eligibility-repository.ts",
+      "apps/api/src/modules/staff-push/staff-push-registration-repository.ts",
+      "packages/database/scripts/staff-push-runtime-privileges.mjs"
+    ],
+    "invariants_error_checks": [
+      "Intent composite FKs bind organization/location/session/task",
+      "Delivery intent and recipient membership are organization-scoped",
+      "active registration/installation and token-hash uniqueness",
+      "delivery claim increments exactly once and cannot steal an unexpired lease",
+      "runtime role cannot update delivery identity columns"
+    ],
+    "test_refs": [
+      "packages/database/src/staff-push-migration.integration.test.ts",
+      "packages/database/src/staff-push-registration.integration.test.ts",
+      "packages/database/src/staff-push-intent-delivery.integration.test.ts",
+      "apps/api/test/staff-push-worker-eligibility.integration.test.ts"
+    ],
+    "finding_ids": [
+      "#357"
+    ],
+    "limits": "Existing #357 concerns revalidation after an already-started provider-send pause and remains an application delivery-race issue; this migration's persistence review found no additional P0/P1. No provider calls/tests executed.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260911003300_mob_020d_staff_push_cleanup/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b413e8f3f9ee3de19ac948b43771c9620b41dc61ec12540d59a08a9765c5875b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 83
+      }
+    ],
+    "semantic_review_notes": "Adds bounded SKIP LOCKED cleanup for terminal deliveries, orphaned old intents and terminal registrations, with dependency checks preventing deletion of still-referenced rows. Cleanup is SECURITY DEFINER with fixed search_path and PUBLIC execution revoked; runtime provisioning explicitly controls cleanup execution.",
+    "callers_consumers": [
+      "apps/api/src/modules/staff-push/staff-push-maintenance-repository.ts",
+      "packages/database/scripts/runtime-table-privileges.mjs",
+      "apps/api/test/staff-push-cleanup.integration.test.ts"
+    ],
+    "invariants_error_checks": [
+      "1000-row per category transaction bound",
+      "7-day terminal delivery/intent retention and 30-day terminal registration retention",
+      "registration deletion checks both deliveries and predecessor references",
+      "FOR UPDATE SKIP LOCKED supports concurrent maintenance"
+    ],
+    "test_refs": [
+      "apps/api/test/staff-push-cleanup.integration.test.ts",
+      "apps/api/test/staff-push-stale-maintenance.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "The stale-active registration index supports separate stale maintenance semantics; this cleanup function intentionally deletes only terminal registrations. Static review only.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260912003400_mob_023b_incident_recovery_intents/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c1d31f760b0a19a9bbfbf69502e9280e9310ffd096076f8acb032eb9c4cef6ba",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 98
+      }
+    ],
+    "semantic_review_notes": "Reserves UUIDv8 incident identities for crash-recovery intent, rejects any legacy collision during migration, and persists a 15-minute tenant/location/session/reporter-bound RESERVED intent that can transition exactly once to RETIRED. Trigger-authored timing prevents callers from extending expiry or rewriting bindings.",
+    "callers_consumers": [
+      "apps/api/src/modules/incidents/incident-recovery-intent-command.ts",
+      "apps/api/src/modules/incidents/incident-recovery-records.ts",
+      "apps/api/src/modules/incidents/incident-recovery-retirement-command.ts"
+    ],
+    "invariants_error_checks": [
+      "UUIDv8 discriminator",
+      "Composite tenant/location/session/member FKs",
+      "insert forced RESERVED with server timestamp/expiry",
+      "only RESERVED->RETIRED transition; bindings immutable"
+    ],
+    "test_refs": [
+      "packages/database/src/incident-recovery-runtime-role.integration.test.ts",
+      "packages/database/src/staff-management-migration-preservation.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static migration/caller review; crash recovery integration not executed.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260916003500_mgt_be_01_audit_foundation/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "756ecc2c847fe4cb779ee97138b7d32f8424c0b94510072a22b8c5100dfc2a53",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 216
+      }
+    ],
+    "semantic_review_notes": "Extends tenant audit events with typed actor provenance and introduces a separate append-only account-security audit stream. The audit actor CHECK is deliberately NOT VALID so legacy null-actor history remains readable, while PostgreSQL still enforces it for new/updated rows; investigation queries explicitly preserve legacy null-as-membership semantics. Account-security append uses a stable-id advisory lock and exact idempotent replay comparison.",
+    "callers_consumers": [
+      "apps/api/src/modules/audit/account-security-audit-writer.ts",
+      "apps/api/src/modules/management/audit-investigation/timeline/timeline-source-query.ts",
+      "apps/api/src/modules/management/audit-investigation/search/search-selector-query.ts",
+      "packages/database/scripts/audit-foundation-runtime-privileges.mjs"
+    ],
+    "invariants_error_checks": [
+      "Session audit requires location",
+      "actor provenance distinguishes membership/guest/system/provider/controlled operator",
+      "runtime wrapper rejects CONTROLLED_OPERATOR",
+      "account-security table direct runtime access revoked; only narrow append wrapper granted"
+    ],
+    "test_refs": [
+      "packages/database/src/audit-foundation-migration.integration.test.ts",
+      "packages/database/src/audit-foundation-constraints.integration.test.ts",
+      "packages/database/src/audit-foundation-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Legacy null actor rows are an explicitly tested compatibility state, not treated as a new finding. No DB test execution.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260916003600_mgt_be_02_complete_mfa/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b9c4b2ea924c80311c8cdc84cec718640e28db1947b88c1ab6f6bb9f38d426b6",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 258
+      }
+    ],
+    "semantic_review_notes": "Adds protected TOTP factor state, ten-slot versioned recovery-code sets and exact-session MFA assurance fields. DB guards make factor identity/secret immutable, prevent ACTIVE->PENDING or RETIRED reactivation, enforce monotonically advancing accepted TOTP steps and recovery generation, and make recovery verifiers immutable except one-way consumption.",
+    "callers_consumers": [
+      "apps/api/src/modules/auth/mfa/mfa-factor-repository.ts",
+      "apps/api/src/modules/auth/mfa/mfa-enrollment.service.ts",
+      "apps/api/src/modules/auth/mfa/mfa-step-up.service.ts",
+      "apps/api/src/modules/auth/mfa/mfa-recovery.service.ts",
+      "packages/database/scripts/mfa-runtime-privileges.mjs"
+    ],
+    "invariants_error_checks": [
+      "One live PENDING/ACTIVE factor per user",
+      "factor secret/verifier storage format checks",
+      "staff session assurance factor must belong to same user",
+      "recovery selector unique and code slots 1..10",
+      "runtime write privileges restricted to exact MFA columns"
+    ],
+    "test_refs": [
+      "packages/database/src/mfa-migration.integration.test.ts",
+      "packages/database/src/mfa-constraints.integration.test.ts",
+      "packages/database/src/mfa-recovery-constraints.integration.test.ts",
+      "packages/database/src/mfa-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [
+      "#363"
+    ],
+    "limits": "Existing #363/SEC-011 is an application recovery-ceremony/session-binding defect outside this persistence migration; these DB invariants do not by themselves repair it. No MFA test execution in C004.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260916003700_mgt_be_04_staff_roles_access/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ab62433ca965b281fdd7773bcdf578ec24d042f875030bb601a5d690a0d6678e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 324
+      }
+    ],
+    "semantic_review_notes": "Introduces versioned Staff Management mutation commands with organization serialization, actor/target row locks, last-usable-admin protection, operational handover blockers, bounded tenant-scoped access arrays and CAS. Later LM-authority/onboarding migrations CREATE OR REPLACE these three commands, so current behavior was checked against the replacement chain rather than treating this historical body as final.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/staff-management-mutation-repository.ts",
+      "packages/database/scripts/staff-management-runtime-privileges.mjs",
+      "migrations 20261001005000 and 20261001005100 replace the command bodies"
+    ],
+    "invariants_error_checks": [
+      "ORG_ADMIN actor authority and active user/org",
+      "one organization advisory lock for staff-management mutations",
+      "last usable admin requires ACTIVE MFA factor",
+      "active shift/task/check-in/recovery blockers",
+      "requested location IDs are distinct, bounded <=50 and same tenant"
+    ],
+    "test_refs": [
+      "packages/database/src/staff-management-migration.integration.test.ts",
+      "packages/database/src/staff-management-lm-authority-migration.integration.test.ts",
+      "packages/database/src/runtime-authority-privileges.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Historical body has later forward replacements that add LM authority/onboarding rules; no runtime staff-management tests were rerun.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260916003800_mgt_be_05_company_settings_branding/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4d25afef96fa0766cf462786cd7c5e6200e71e9d6f858f179d6764ef7a8aebee",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 420
+      },
+      {
+        "start": 421,
+        "end": 840
+      },
+      {
+        "start": 841,
+        "end": 1260
+      },
+      {
+        "start": 1261,
+        "end": 1530
+      }
+    ],
+    "semantic_review_notes": "Adds five typed settings plus seven-day company/location operating-hours persistence and consolidates ORG_ADMIN company/location settings and branding commands. Organization advisory serialization precedes row/CAS mutation, company-default fee changes validate every inheriting location's currency precision, location overrides preserve Company->Location precedence, operating hours require exactly seven distinct weekdays and valid same-day intervals, and audit captures canonical old/new values. The migration also strengthens existing LM configuration/branding helpers with the same organization settings lock.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/management-settings-mutation-repository.ts",
+      "apps/api/src/modules/management/management-branding-mutation-repository.ts",
+      "apps/api/src/modules/management/management-settings-projection.ts",
+      "packages/database/scripts/management-settings-runtime-privileges.mjs"
+    ],
+    "invariants_error_checks": [
+      "Active ORG_ADMIN/user/organization authority",
+      "tenant-scoped active target location",
+      "CAS and monotonic updated_at",
+      "read-only direct runtime access to operating-hours tables",
+      "only public command surface receives runtime EXECUTE; helpers remain private"
+    ],
+    "test_refs": [
+      "packages/database/src/management-settings-migration.integration.test.ts",
+      "packages/database/src/management-settings-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Full 1530-line source read in four contiguous ranges; tests were inspected/referenced but not executed.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260917003900_mgt_be_06_management_audit_log/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f681df5d36b539ac0fd4c48cb0c7f7ffb653de7c9f74970a8c5d5fb336f16681",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 2
+      }
+    ],
+    "semantic_review_notes": "Adds the organization + occurred_at DESC + id DESC index used for deterministic management audit pagination. It changes only query performance/order support and introduces no new write authority.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/audit-investigation/timeline/timeline-source-query.ts",
+      "management audit list/search projections"
+    ],
+    "invariants_error_checks": [
+      "Index includes stable id tiebreaker after descending event time"
+    ],
+    "test_refs": [
+      "packages/database/src/audit-foundation-migration.integration.test.ts",
+      "management audit query tests in apps/api/test"
+    ],
+    "finding_ids": [],
+    "limits": "No EXPLAIN/workload benchmark performed.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260917004000_mgt_be_07_location_management/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e28591137203acee85878ad577771ffc79277def8143e24cacf33b10ed5b51ea",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 299
+      }
+    ],
+    "semantic_review_notes": "Introduces explicit location intake fencing and narrow ORG_ADMIN lifecycle commands. New locations start INACTIVE/not accepting intake; activation validates timezone/currency readiness, stop-intake precedes drain/deactivation, blockers cover live sessions/shifts/tasks, and currency/timezone corrections require an inactive drained location with CAS. Audit event types are protected from generic runtime forgery. A later issue-346 migration adds the currently provisioned resume-intake command and extends the audit guard.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/management-location-repository.ts",
+      "apps/api/src/modules/check-in-api/check-in-location-authorization.ts",
+      "packages/database/scripts/location-lifecycle-runtime-privileges.mjs",
+      "migration 20261026010300_issue346_resume_location_intake"
+    ],
+    "invariants_error_checks": [
+      "Inactive location cannot accept intake",
+      "tenant-scoped ORG_ADMIN authority",
+      "lifecycle advisory lock plus row lock/CAS",
+      "deactivation blocked by noncompleted sessions/active shifts/nonterminal tasks",
+      "runtime direct location writes denied by privilege policy"
+    ],
+    "test_refs": [
+      "packages/database/src/location-lifecycle-migration.integration.test.ts",
+      "packages/database/src/location-lifecycle-runtime-role.integration.test.ts",
+      "packages/database/src/parking-zone-authority-races.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Historical migration reviewed with issue-346 forward migration; no lifecycle integration tests executed.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20260917004100_mgt_be_08_visit_contacts/migration.sql",
+    "worker": "database",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e4096804c21392871e6736400844e88a4fb4b578b830554116435712a2df975e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 143
+      }
+    ],
+    "semantic_review_notes": "Adds query indexes and two narrow ORG_ADMIN customer contact correction commands. Both lock the exact tenant-owned Customer, support convergent exact retries before stale-token conflict, advance updated_at monotonically and append non-PII correction audit metadata atomically. Phone corrections are explicitly limited to the Jordan mobile normalization contract used by this feature.",
+    "callers_consumers": [
+      "apps/api/src/modules/management/management-visit-contact-correction.ts",
+      "packages/database/scripts/visit-contact-runtime-privileges.mjs"
+    ],
+    "invariants_error_checks": [
+      "Active ORG_ADMIN/user/organization authority",
+      "Customer selected by id + organization",
+      "name bounded/control-free; phone matches +9627########",
+      "generic runtime Customer UPDATE/DELETE denied; only two SECURITY DEFINER commands granted",
+      "audit guard blocks forged correction event types"
+    ],
+    "test_refs": [
+      "packages/database/src/visit-contact-runtime-role.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Runtime-role test source inspected; no PostgreSQL test execution in C004.",
+    "original_worker": "database",
+    "reviewer": "database"
+  },
+  {
+    "path": "apps/customer/qa/issue-338/render.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "19e748541e742962ef32204e517a522ea60a22ed5bbb4279f3a2a0428ae93870",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 63
+      }
+    ],
+    "semantic_review_notes": "Opt-in QA renderer exports real Customer components across locale/theme/brand-color permutations for Issue #338 visual comparison. Uses production providers/components and writes only when QA338_RENDER is explicitly set.",
+    "callers_consumers": [
+      "manual Issue #338 browser color-comparison QA",
+      "AppShell/demo/overlay/primitives production components"
+    ],
+    "invariants_error_checks": [
+      "covers EN/AR",
+      "covers light/dark",
+      "covers valid primary colors plus fallback",
+      "output gated by environment variable"
+    ],
+    "test_refs": [
+      "production components imported directly by the renderer"
+    ],
+    "finding_ids": [],
+    "limits": "QA artifact generator rather than runtime code; file output path is operator-supplied.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/app/document-bootstrap-script.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7c97769486a2f38531a0b0d074148ca4214819bb0e4fb3f335cd9145eb21e66e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 78
+      }
+    ],
+    "semantic_review_notes": "Verifies pre-hydration document bootstrap applies persisted Arabic RTL/dark theme before React hydration, defaults unsupported values to English/light, updates theme-color metadata, and is installed through Next beforeInteractive.",
+    "callers_consumers": [
+      "src/app/document-bootstrap-script.ts",
+      "RootLayout"
+    ],
+    "invariants_error_checks": [
+      "only ar selects RTL",
+      "only dark selects dark theme",
+      "unsupported persisted values fail to safe defaults",
+      "bootstrap script runs beforeInteractive"
+    ],
+    "test_refs": [
+      "src/app/document-bootstrap-script.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Tests presentation preference storage only; no guest credential/session data is persisted by this bootstrap.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/app/guest-auto-rating-eligibility.mounted.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d9c859ba7573fcc2ac0a81a8e1b050b1a9464cc9e1c169fd3d88d42901be68f5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 122
+      }
+    ],
+    "semantic_review_notes": "Mounted root test proves completed-session rating is exposed only after latest authority revalidation and blocks entry under absent client, incomplete/unavailable bootstrap, context switching/ambiguity/conflict, expired/network/stale session states. Opening does not submit a rating.",
+    "callers_consumers": [
+      "src/app/guest-app-root.tsx",
+      "useGuestPostVisit",
+      "GuestApiClient.loadSession"
+    ],
+    "invariants_error_checks": [
+      "authoritative loadSession precedes rating route",
+      "all auth-conflict states block rating",
+      "stale/expired/network session blocks rating",
+      "no implicit submitRating side effect"
+    ],
+    "test_refs": [
+      "src/app/guest-app-root.tsx lines 58-67"
+    ],
+    "finding_ids": [],
+    "limits": "Auth/session hooks are mocked but root wiring and mounted behavior are real.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/app/guest-refresh-mounted.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2afa74ce85c85c88d2d83c3f9f659a3c8fb1c93e28ee38a99cc61608950817f1",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 233
+      }
+    ],
+    "semantic_review_notes": "Mounted refresh regressions cover manual-refresh coalescing, overlap with scheduled polling, recovery from temporary initial failure, client-context replacement fencing, and prevention of stale-notice refresh while Request Vehicle mutation is pending.",
+    "callers_consumers": [
+      "GuestSessionProvider",
+      "GuestAppRoot",
+      "GuestApiClient"
+    ],
+    "invariants_error_checks": [
+      "fast duplicate refresh does not add GET",
+      "manual/poll overlap shares one GET",
+      "retry recovers temporary failure",
+      "late Visit A response cannot repaint Visit B",
+      "no read races pending retrieval mutation"
+    ],
+    "test_refs": [
+      "GuestSessionProvider",
+      "src/app/guest-app-root.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Mounted fake DOM with fetch mocks; no live server execution.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/app/guest-web-push-mount.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "69cfed96eb92ce335ec7eeb30ab0ff63328fc5cfd2777dd29d76fd5893105bb2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 39
+      }
+    ],
+    "semantic_review_notes": "Validates production Web Push permission card mounts only for an authoritative pre-READY visit when both caller gate and server policy flag are affirmative; missing/false policy or READY session suppresses the prompt. Also asserts the mount follows freshness handling in the live root.",
+    "callers_consumers": [
+      "GuestWebPushMount",
+      "GuestAppRoot",
+      "guest web-push permission card"
+    ],
+    "invariants_error_checks": [
+      "policy must be true",
+      "caller enabled must be true",
+      "READY/readyAt suppresses permission UI",
+      "freshness notice precedes push mount"
+    ],
+    "test_refs": [
+      "src/app/guest-app-root.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Static-render gate test; browser Push API behavior is covered elsewhere.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/app/readyz/readiness-concurrency.test.ts",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d38932faca0fda87836476a1bfd42c725623a24da723d7dacb2919bb67cb9c3e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 147
+      }
+    ],
+    "semantic_review_notes": "Readiness concurrency coverage validates 100-call coalescing, no permanent cache, bounded timeout even if fetch ignores abort, 128-waiter cap, stale success rejection after artifact API origin changes, and generic/no-store route responses.",
+    "callers_consumers": [
+      "src/lib/readiness/customer-readiness.ts",
+      "readyz route"
+    ],
+    "invariants_error_checks": [
+      "single upstream probe for matching concurrent callers",
+      "success/failure not cached across waves",
+      "hung probe resolves false by deadline",
+      "waiters >128 fail closed",
+      "origin change invalidates old success"
+    ],
+    "test_refs": [
+      "src/lib/readiness/customer-readiness.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Concurrency is unit-level; real process/network saturation is not exercised.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/app/readyz/route.test.ts",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9afe0101cf3a70eea9c90770c41d1adfbed0fb25a138a328d2089906aa787fc6",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 63
+      }
+    ],
+    "semantic_review_notes": "Readiness route tests pin the build artifact API origin, ignore runtime API_ORIGIN override, enforce no-store GET with redirect:error, fail closed for unreachable/not-ready/malformed-origin cases, bound hung transports, and expose only generic unavailable state.",
+    "callers_consumers": [
+      "src/lib/readiness/customer-readiness.ts",
+      "app/readyz/route.ts"
+    ],
+    "invariants_error_checks": [
+      "origin must be exact origin without path/userinfo",
+      "runtime override ignored",
+      "failure returns false/503",
+      "response body leaks no upstream detail",
+      "cache-control no-store"
+    ],
+    "test_refs": [
+      "src/lib/readiness/customer-readiness.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Tests mocked fetch; TLS/DNS behavior is outside scope.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/components/layout/bottom-sheet.mounted.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7dd5db6f6384c51956946147e138062d63e9282b577a6f281d34a502b793c6a9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 242
+      }
+    ],
+    "semantic_review_notes": "Mounted accessibility contract for stacked BottomSheets: only topmost handles Escape/Tab, focus is trapped/wrapped from inside and outside, disabled controls are skipped in LTR/RTL, and focus is not restored to a trigger removed while open.",
+    "callers_consumers": [
+      "src/components/layout/bottom-sheet.tsx",
+      "guest overlays"
+    ],
+    "invariants_error_checks": [
+      "topmost modal owns keyboard",
+      "focus cannot escape active sheet",
+      "disabled controls skipped",
+      "disconnected trigger never refocused"
+    ],
+    "test_refs": [
+      "src/components/layout/bottom-sheet.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Custom fake DOM models focus behavior; native browser accessibility tree is not exercised.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/components/primitives/pickup-pin.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "39dc7859c834ab0ccde375895d65ea6005762667f8e3f12dfa72952587d516d9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 101
+      }
+    ],
+    "semantic_review_notes": "Presentation tests preserve pickup PIN digit order with explicit LTR inside Arabic RTL, QR scan contrast independent of theme, accessible More button, and one localized dark-mode switch with proper aria state in both locales.",
+    "callers_consumers": [
+      "PickupPIN",
+      "DynamicQRCode",
+      "AppHeader",
+      "OverlayMoreMenu"
+    ],
+    "invariants_error_checks": [
+      "PIN digits LTR",
+      "QR white quiet surface/dark modules",
+      "localized aria labels",
+      "switch aria-checked matches theme"
+    ],
+    "test_refs": [
+      "src/components/primitives/pickup-pin.tsx",
+      "src/features/handoff/qr-code.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Static markup presentation coverage; QR decode reliability is covered by matrix/QR tests elsewhere.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/auth/guest-auth-bootstrap-rate-limit.test.ts",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ef087474b81c9a8c4ffadb99e4055c4fe3fb08281deecdf5f6a6112cb67eb735",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 262
+      }
+    ],
+    "semantic_review_notes": "Guest bootstrap rate-limit tests cover authoritative Retry-After handling including overflow, one deferred retry at the exact PREPARE/EXCHANGE/RECONCILE_SWITCH stage, lost exchange response reconciliation, long-window explicit retry eligibility, context-generation fencing, terminal invalid bearer clearing, and preservation of explicit context-switch intent without immediate replay.",
+    "callers_consumers": [
+      "src/features/auth/guest-auth-bootstrap.ts",
+      "src/features/auth/guest-auth-rate-limit.ts",
+      "GuestApiClient browser-session operations"
+    ],
+    "invariants_error_checks": [
+      "never retry before server deadline",
+      "at most one automatic 429 replay",
+      "same bootstrap stage retained",
+      "context change cancels deferred attempt",
+      "GUEST_ACCESS_INVALID clears bearer/retry",
+      "no fallback to another visit"
+    ],
+    "test_refs": [
+      "guest-auth-bootstrap.ts",
+      "guest-auth-rate-limit.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fake timers/fetch mocks; server limiter semantics are not asserted here.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/auth/guest-auth-bootstrap.mounted.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "84bc0594db1fafce768623deeb240fb3cf6afec6fd7482fe788af3f688b4b15b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 234
+      }
+    ],
+    "semantic_review_notes": "Mounted GuestAuthProvider tests prove fragment credentials are scrubbed immediately, one short 429 is deferred then transitions to cookie authority, context change cancels pending replay, and a long Retry-After remains explicit/scheduled and is canceled if authority changes.",
+    "callers_consumers": [
+      "GuestAuthProvider",
+      "guest-auth-bootstrap.ts",
+      "guest-auth-rate-limit.ts"
+    ],
+    "invariants_error_checks": [
+      "fragment removed before bootstrap settles",
+      "no retry before Retry-After",
+      "authority epoch cancels stale retry",
+      "successful enrollment clears in-memory token"
+    ],
+    "test_refs": [
+      "src/features/auth/guest-auth-context.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Mounted fake DOM/fake timers; cookie is represented by browser-session client behavior rather than a live Set-Cookie exchange.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/auth/guest-auth-context-switch.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a1dfef3bbea51d95ba861b37b1daff55290f74594663b1400416f7cc182576af",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 168
+      }
+    ],
+    "semantic_review_notes": "Context-switch state tests distinguish SAME_VISIT continuity from ACTIVE/POST_VISIT conflict, retry only ambiguous switch outcomes once, preserve current authority while an explicit switch is pending/ambiguous, and discard only the invalid new-link intent on definitive denial.",
+    "callers_consumers": [
+      "guest-auth-bootstrap.ts",
+      "GuestAuthProvider",
+      "GuestApiClient.switchBrowserContext"
+    ],
+    "invariants_error_checks": [
+      "same visit adopts cookie authority without conflict",
+      "conflicting bearer stays memory-only pending decision",
+      "definite 401 not retried",
+      "ambiguous failure preserves current client and pending intent"
+    ],
+    "test_refs": [
+      "src/features/auth/guest-auth-context.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Transport behavior is mocked; server-side switch atomicity is outside this file.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/auth/guest-auth-context.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d49c64a2739f243bcc26eac59812afcc6c20a60421a2cc4c3aaefa5a192a5caf",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 283
+      }
+    ],
+    "semantic_review_notes": "Bootstrap tests cover deterministic SSR/first-render state, legacy bearer mode when enrollment is disabled, prepare→exchange→cookie authority when enabled, cookie-only restore, retry classification, one replay for ambiguous exchange failure, exact-stage recovery, and fail-closed behavior after invalid authority.",
+    "callers_consumers": [
+      "GuestAuthProvider",
+      "guest-auth-bootstrap.ts",
+      "GuestApiClient"
+    ],
+    "invariants_error_checks": [
+      "first render does not inspect fragment",
+      "invalid prepare stops before exchange",
+      "5xx/network bootstrap is retryable",
+      "400/401/429 exchange not blindly retried by ambiguous-recovery path",
+      "one retry maximum",
+      "invalid exchange has no legacy fallback"
+    ],
+    "test_refs": [
+      "src/features/auth/guest-auth-context.tsx",
+      "guest-auth-bootstrap.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Primarily transport/state tests with mocked fetch.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/auth/guest-token-adapter.test.ts",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1f5abb9dac74db357f0235085de934d26753282494571d5eac82c1c469ce1ca3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 78
+      }
+    ],
+    "semantic_review_notes": "Fragment adapter tests enforce exact 43-character base64url credential shape, browser-only extraction, immediate history.replaceState scrub preserving path/query, malformed/extra-content rejection, fail-closed adoption when scrub fails, and no interference with unrelated hashes.",
+    "callers_consumers": [
+      "src/features/auth/guest-token-adapter.ts",
+      "GuestAuthProvider"
+    ],
+    "invariants_error_checks": [
+      "credential never adopted before successful scrub",
+      "malformed secret still scrubbed",
+      "unrelated hash untouched",
+      "SSR reads no browser state"
+    ],
+    "test_refs": [
+      "src/features/auth/guest-token-adapter.ts"
+    ],
+    "finding_ids": [],
+    "limits": "History API is stubbed; browser referrer/history edge behavior is not live-tested here.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/auth/overlay-guest-context-conflict.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "abd9ae6dcf9fd1937d2347508cc59de5b0979ee3c0c1878b9127d518ce28209b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 121
+      }
+    ],
+    "semantic_review_notes": "Conflict overlay tests verify approved ACTIVE/POST_VISIT messaging in EN/AR, LTR/RTL, disabled implicit decisions while switch outcome is ambiguous, and gating that waits for an authoritative current snapshot while preserving the last snapshot only during ambiguity.",
+    "callers_consumers": [
+      "OverlayGuestContextConflict",
+      "guest-context-conflict-gate.tsx",
+      "BottomSheet"
+    ],
+    "invariants_error_checks": [
+      "no conflict UI before current snapshot exists",
+      "definitely expired source hidden",
+      "ambiguous outcome preserves snapshot",
+      "actions disabled during ambiguous state"
+    ],
+    "test_refs": [
+      "src/features/auth/overlay-guest-context-conflict.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Presentation/state-gate coverage; explicit switch transport is tested separately.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/deferred/guest-information-content.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "913b9f9f117bb80fd44456da03f02ce4fc0faace1c3909cf2d1f8306ac2c5fb2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 58
+      }
+    ],
+    "semantic_review_notes": "Guest information presentation renders only published privacy text/URL and returned contact fields, uses safe external-link rel attributes, preserves line breaks, and presents localized unavailable states without inventing policy/contact facts.",
+    "callers_consumers": [
+      "GuestInformationContent",
+      "GuestInformationResponse contract"
+    ],
+    "invariants_error_checks": [
+      "UNAVAILABLE privacy hides content/link",
+      "missing contact fields are omitted",
+      "https links use noopener noreferrer",
+      "phone uses returned tel value"
+    ],
+    "test_refs": [
+      "src/features/deferred/guest-information-content.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Trusts the contract/API to validate supportUrl/phone syntax before rendering.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/deferred/overlay-guest-information.mounted.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6bd9f6e179c2048d84c9d8c2e11bb6d5527d45ce109c9d4e4302be1981aa466a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 105
+      }
+    ],
+    "semantic_review_notes": "Mounted More-menu information flow preserves approved rows, removes Photos, opens privacy/contact in a single-dialog transition with focus restoration, fences an old visit information response after credential-client replacement, and retries read failure only on explicit user action.",
+    "callers_consumers": [
+      "OverlayMoreMenu",
+      "OverlayGuestInformationSheet",
+      "GuestApiClient.loadInformation"
+    ],
+    "invariants_error_checks": [
+      "one dialog at a time",
+      "old-client result cannot repaint new client",
+      "failed read does not auto-loop",
+      "closing detail restores triggering button"
+    ],
+    "test_refs": [
+      "src/features/deferred/overlay-more-menu.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Mounted fake DOM; server authorization/tenant binding is assumed from GuestApiClient/API.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/demo/customer-navigation-removal.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b977ac73a32268a7c103a26edd97c2be2e7cf069474e6ef41f1ab5560d9c6d1e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 95
+      }
+    ],
+    "semantic_review_notes": "Regression test confirms bottom navigation/Help/tab routes and Photos row remain removed in production/development while Payment and Rating stay as independent preview surfaces; Rating Done returns to Completed.",
+    "callers_consumers": [
+      "AppShell",
+      "GuestAppRoot",
+      "GuestPostVisit screen",
+      "DemoScreenRenderer",
+      "OverlayMoreMenu"
+    ],
+    "invariants_error_checks": [
+      "no bottom-nav file/nav markup",
+      "no Help/tab routing source symbols",
+      "preview Payment/Rating retained",
+      "More rows localized and Photos absent"
+    ],
+    "test_refs": [
+      "src/app/guest-app-root.tsx",
+      "demo-registry.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Partially source-string based architectural regression check.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/demo/demo-registry.test.ts",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "185c1926e97a81b3ecd1486a211d190199dbbf750bf90c0e5fa9763fb2bbf9da",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 75
+      }
+    ],
+    "semantic_review_notes": "Demo registry contract enforces five approved groups, unique IDs, valid EN/AR label keys, removal of legacy duplicated Arabic screens, and a strict kind split between live, screens, and the three approved overlays.",
+    "callers_consumers": [
+      "demo-registry.ts",
+      "DemoNavigator",
+      "DemoScreenRenderer"
+    ],
+    "invariants_error_checks": [
+      "unique IDs",
+      "translation key parity per item",
+      "no legacy ar-* duplicates",
+      "exact overlay key set"
+    ],
+    "test_refs": [
+      "src/features/demo/demo-registry.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Dev-preview-only registry.",
+    "reviewer": "dashboard"
+  },
+  {
+    "path": "apps/customer/src/features/demo/demo-safety.test.tsx",
+    "worker": "dashboard",
+    "original_worker": "customer",
+    "temporary_reviewer": "dashboard",
+    "batch": "C004",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0c9796989cc50ce87aaf87d22bf73e4a40aed9e5628cd1013265748eb026a185",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 244
+      }
+    ],
+    "semantic_review_notes": "Dev-preview safety tests ensure Confirm Request is local-only with zero retrieval/API imports, production root retains real retrieval wiring, demo vehicle details use deterministic non-custody fixture data, payment/report previews state that no real action occurred, every registered screen renders, and EN/AR dictionaries have full key parity.",
+    "callers_consumers": [
+      "DevPreviewOverlayHost",
+      "GuestAppRoot",
+      "DemoScreenRenderer",
+      "preview payment/report screens"
+    ],
+    "invariants_error_checks": [
+      "dev confirm cannot call API",
+      "production confirm still invokes requestVehicle",
+      "demo details omit employee/custody identifiers",
+      "preview copy avoids real payment/report claims",
+      "all screen keys render"
+    ],
+    "test_refs": [
+      "src/features/demo/dev-preview-overlays.tsx",
+      "src/app/guest-app-root.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Some safety assertions inspect source strings; compile-time/runtime import graph is not independently built in C004.",
+    "reviewer": "dashboard"
+  }
+]

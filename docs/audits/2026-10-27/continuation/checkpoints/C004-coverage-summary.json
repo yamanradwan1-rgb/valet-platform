@@ -1,0 +1,21 @@
+{
+  "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+  "prior_checkpoint": "5cb77a09d2495325940e2c330d9c4b63e89f9a5f",
+  "candidate_files": 4705,
+  "candidate_lines": 610400,
+  "previous_fully_reviewed": 796,
+  "previous_fully_reviewed_lines": 83751,
+  "newly_reviewed": 125,
+  "newly_reviewed_lines": 17998,
+  "fully_reviewed": 921,
+  "fully_reviewed_lines": 101749,
+  "remaining": 3784,
+  "file_percent": 19.574920297555792,
+  "line_percent": 16.669233289646133,
+  "c004_assigned": 245,
+  "c004_completed": 125,
+  "c004_pending": 120,
+  "runtime_tests_executed": 0,
+  "static_test_suite_debt": 1,
+  "new_runtime_confirmed_findings": 0
+}

@@ -66,3 +66,13 @@ Original ten findings remain in the [original complete report](../VAYLET_AUDIT_2
 - **Regression risks:** Hydration, cross-tab storage events, theme/locale independence, translations, document direction, private/restricted browsers and persistence recovery.
 - **Duplicate/owner decision:** Related cause to CUST-001 but distinct Dashboard source/route. No issue created; owner may extend #356 or register separately after deduplication.
 - **Evidence:** [structured C003 record](evidence/C003-DASH-I18N-01.json).
+
+## C004-DASH-001 — old standalone Integrations fixture assertions after Service Status relocation
+
+- **Priority/confidence:** P3; HIGH static source confidence, RUNTIME_UNVERIFIED.
+- **Expected:** Default Dashboard E2E cases exercise accepted #238 navigation under Policies → Service Status.
+- **Observed:** administration-authority.spec.ts:30–47 requires the retired Integrations navigation link; administration-behavior.spec.ts:183–223 and administration-concurrency.spec.ts:192–242 expect the old /integrations page/projection. Current administration-navigation.ts:24–109 has no such destination and /integrations/page.tsx redirects to /policies?tab=services; issue238-service-status.spec.ts explicitly asserts the new contract.
+- **Impact and limits:** Running the legacy/default `pnpm --filter @valet/dashboard test:e2e` can yield obsolete failures; current CI runs `test:e2e:runtime` using `./e2e-runtime`, so this is **not** evidence of present CI blocking. No test was run in C004.
+- **Proposed action:** Reconcile legacy fixture assertions under UI Freeze without restoring the retired navigation. Preserve new Service Status behavior, adjust race tests to its accepted route and review suite ownership.
+- **Duplicates:** Different from VAL-002 (#355) audit event count and TEST-001 (#361) official GPS discovery exclusion. GitHub issue duplicate check/owner disposition pending; no issue created.
+- **Evidence:** [structured source chain](evidence/C004-DASH-001.json).
