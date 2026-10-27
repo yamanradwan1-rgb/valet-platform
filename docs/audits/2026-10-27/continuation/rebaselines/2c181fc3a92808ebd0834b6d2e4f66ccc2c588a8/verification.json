@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "old_source_sha": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+  "current_main_sha": "2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8",
+  "current_tracked": 7509,
+  "candidates": 4711,
+  "credited": 1297,
+  "remaining": 3414,
+  "source_sha256_checked": 4711,
+  "source_sha256_mismatches": 0,
+  "reusable_published_reviews": 1297,
+  "stale_published_reviews": 9,
+  "new_candidates": 6,
+  "verified_provisional_records": 110,
+  "dependency_impacts_flagged": 16,
+  "changed_paths": 16,
+  "runtime_tests_executed": 0,
+  "errors": [],
+  "error_count": 0
+}

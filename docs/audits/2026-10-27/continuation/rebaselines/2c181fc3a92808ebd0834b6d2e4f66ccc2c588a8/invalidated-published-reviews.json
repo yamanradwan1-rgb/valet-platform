@@ -1,0 +1,74 @@
+[
+  {
+    "path": "apps/api/src/common/database/bounded-postgres-pool.ts",
+    "original_checkpoint": "C001",
+    "old_sha256": "2bfe0d606bfc7b5f4694a5938a4646da2c31309de612c68427b494193193877f",
+    "new_sha256": "7cec5c3499b58f4302fdba963eeefb4af43526362b59de8b432ba55ef3ffac3e",
+    "old_lines": 152,
+    "new_lines": 221
+  },
+  {
+    "path": "apps/api/src/common/database/bounded-postgres-query.ts",
+    "original_checkpoint": "C001",
+    "old_sha256": "84e3602c6367dad4887ca3c8b96c4b8d211b552ff7001368ff582c0b84912bc8",
+    "new_sha256": "e41dd525d792f1ea3bbc1c320aebac946e5c29d7bf55ae6ef050d8960b42c469",
+    "old_lines": 74,
+    "new_lines": 75
+  },
+  {
+    "path": "apps/api/src/common/database/postgres-lease.ts",
+    "original_checkpoint": "C001",
+    "old_sha256": "e061466e1d950410d8e46424866562562e86f7bf492e1563d2fb5c9a400a3567",
+    "new_sha256": "cd563bb03cbadac7a64faf320aa57d571fed6eb9e950d06a069c3285d94e96e0",
+    "old_lines": 97,
+    "new_lines": 104
+  },
+  {
+    "path": "apps/api/src/common/database/runtime-database-deadline.ts",
+    "original_checkpoint": "original",
+    "old_sha256": "4af9c6b3d41af12d2f3f2b6da312b1909ab3395c59c1cb7d4770fa5f26572a63",
+    "new_sha256": "6fc90c5efa4d53460965d3c94aab9fc305af56a33b37d464390ba45f350b7ab6",
+    "old_lines": 109,
+    "new_lines": 119
+  },
+  {
+    "path": "apps/api/src/common/database/runtime-database.module.ts",
+    "original_checkpoint": "C005",
+    "old_sha256": "59874037e60f8d234a21c520a5f403ad99bd80fc4e31551892cfb516fa357353",
+    "new_sha256": "29e6dba37a1e5aba3b0ab5a6bc9583f5f776c231f2eb537df783ff4bead8236f",
+    "old_lines": 76,
+    "new_lines": 99
+  },
+  {
+    "path": "apps/api/src/common/http/api-operation-runner.ts",
+    "original_checkpoint": "C003",
+    "old_sha256": "ca94f4a1d09e2cea9b3b06e714a2aa78ada72c4b116742893bf2e138d30385a2",
+    "new_sha256": "ddb9995ed75a7d86013e963abe6352321221bb4b89ac3746fea1c7664fa085e1",
+    "old_lines": 94,
+    "new_lines": 96
+  },
+  {
+    "path": "apps/api/src/common/observability/http-metrics.middleware.ts",
+    "original_checkpoint": "C005",
+    "old_sha256": "a3f481c1ef9df885c0a767d2cd5be92ea269705df57df136cf8e9e65149372aa",
+    "new_sha256": "6b86aefb8a95c468196c74015f92adb9d9be4b84eace883af1d9a306fdac6427",
+    "old_lines": 54,
+    "new_lines": 63
+  },
+  {
+    "path": "apps/api/src/common/observability/runtime-metrics-pulse.ts",
+    "original_checkpoint": "C005",
+    "old_sha256": "21cc7265b554065efb6953f63a0ce44f87f11708b3379f61d09d4b28b21a651d",
+    "new_sha256": "69aa62328bb586e306e516e8d07ae44562dfa449d7c5d4bfbbeff267bd7c9c1e",
+    "old_lines": 89,
+    "new_lines": 106
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-operational-context-query.ts",
+    "original_checkpoint": "original",
+    "old_sha256": "dcc92318da42ff43cfcb3c5fa6fd81176a25016ebca4b6fed99393f548b1a82a",
+    "new_sha256": "b1aee63733b0cc10a1f5fcc444335a827b0c36eb1478f11326e7d65b7011be2f",
+    "old_lines": 196,
+    "new_lines": 123
+  }
+]

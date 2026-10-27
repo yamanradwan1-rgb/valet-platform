@@ -1,0 +1,32 @@
+[
+  {
+    "path": "apps/api/src/common/database/database-failure-reason.ts",
+    "sha256": "a8fe78758b7f5d5ef927b029099d8c05bf002431f2be99fa3c0884618d17b4bf",
+    "lines": 31
+  },
+  {
+    "path": "apps/api/src/common/observability/performance-request-diagnostics.ts",
+    "sha256": "482672658e653042d2fc9bf6a41373d0c214befdb86d71f099b571e5430863bd",
+    "lines": 95
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-operational-context-details.ts",
+    "sha256": "27a81a5c740b26fc13d7121f1a4953f2da340a43441dad2b77c564256e2e4cfb",
+    "lines": 99
+  },
+  {
+    "path": "apps/api/test/performance-pool-diagnostics.test.ts",
+    "sha256": "8dea5ccdf55376858d518e76ad9ee299f80d918611815d5c5714543edd1c33fa",
+    "lines": 166
+  },
+  {
+    "path": "apps/api/test/performance-request-diagnostics.test.ts",
+    "sha256": "d1dbab33f3aafca405bf574f64398be92cafb40a962d91483a571be52bcd459e",
+    "lines": 125
+  },
+  {
+    "path": "apps/api/test/staff-operational-context-batching.integration.test.ts",
+    "sha256": "442a9966cd9db74608a7b7823b69b108f4c4dc5b58d5857e486ad60493d92232",
+    "lines": 57
+  }
+]

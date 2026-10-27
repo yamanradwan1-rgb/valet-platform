@@ -1,0 +1,130 @@
+[
+  {
+    "path": "apps/api/src/common/database/postgres.ts",
+    "reason": "Pool construction consumes changed admission/lease/query wrappers; verify cross-request behavior.",
+    "current_sha256": "e035a0dd7d7a7fc646f79944cac64ad7ff88101947a0af04a99767752c2f7ed9",
+    "currently_credited": true,
+    "provisional_evidence": null,
+    "revalidation_status": "pending"
+  },
+  {
+    "path": "apps/api/src/common/database/runtime-postgres-policy.ts",
+    "reason": "Capacity/timeout policy is applied by changed bounded pool.",
+    "current_sha256": "9ef1ec7856d37aff498197eb39c29c641261ee03f89fec7a632befc8428eae27",
+    "currently_credited": true,
+    "provisional_evidence": null,
+    "revalidation_status": "pending"
+  },
+  {
+    "path": "apps/api/src/common/database/postgres-transaction-outcome.ts",
+    "reason": "Changed forced lease disposal now reports unavailable outcomes.",
+    "current_sha256": "f7d1bbb1dacd6b15027d1f8540489d96466875cf19918d9c7a8b8c055f34956b",
+    "currently_credited": true,
+    "provisional_evidence": null,
+    "revalidation_status": "pending"
+  },
+  {
+    "path": "apps/api/src/common/http/api-errors.ts",
+    "reason": "Changed failure taxonomy and runner must still map safe HTTP responses.",
+    "current_sha256": "cd7fcfb86fdfd4e8471869cb662e88801b5b9abdcd93de8127267efdb0ba9888",
+    "currently_credited": true,
+    "provisional_evidence": null,
+    "revalidation_status": "pending"
+  },
+  {
+    "path": "apps/api/src/common/http/api-request.ts",
+    "reason": "New performance logging consumes request IDs; preserve strict header validation.",
+    "current_sha256": "7b3b376bb48f3712c54fa9557b0ce1bea0e12a24606d687535a52d26c22ab911",
+    "currently_credited": true,
+    "provisional_evidence": null,
+    "revalidation_status": "pending"
+  },
+  {
+    "path": "apps/api/src/common/observability/http-operation-metrics.ts",
+    "reason": "Changed middleware appends diagnostics to fixed metric classification.",
+    "current_sha256": "19177aaa783765417d5590776ff853d42915ce87b7e5fc32337a35a2ea1980a1",
+    "currently_credited": true,
+    "provisional_evidence": null,
+    "revalidation_status": "pending"
+  },
+  {
+    "path": "apps/api/src/main.ts",
+    "reason": "New HTTP metrics behavior runs before authorization middleware.",
+    "current_sha256": "7b54d43141bd5707e42d704a3f681890dc0ef84ae22c5aca1c416dedbb804a26",
+    "currently_credited": true,
+    "provisional_evidence": null,
+    "revalidation_status": "pending"
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-operational-context.service.ts",
+    "reason": "Unchanged service delegates to newly batched membership details.",
+    "current_sha256": "53dc721014719018dfb68b7de449fcb6d96c57c154aaba10744d6fcfc535bde6",
+    "currently_credited": false,
+    "provisional_evidence": null,
+    "revalidation_status": "pending"
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-operational-context.controller.ts",
+    "reason": "Unchanged endpoint consumes changed query batching and grant projection.",
+    "current_sha256": "016dbe6096b3e6fc0ab3abf14f91e7049d9c7346b03c13dda9c5fa9501611d3f",
+    "currently_credited": false,
+    "provisional_evidence": null,
+    "revalidation_status": "pending"
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline.controller.ts",
+    "reason": "C009 provisional reviewer: direct imports of changed database module and API runner.",
+    "current_sha256": "6a1a67a1f613d42e565d2d98451b7f135beccba6bb6ab048afceaa9bd3521e34",
+    "currently_credited": false,
+    "provisional_evidence": "C009:prime:reusable_source",
+    "revalidation_status": "pending"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-authority.spec.ts",
+    "reason": "C008 provisional E2E fixture exercises operational context changed to batching.",
+    "current_sha256": "9aedd63f7e2260a2fcb0d17a5feb0bd032e1da52d2589491b7db14e7e05f9bd6",
+    "currently_credited": false,
+    "provisional_evidence": "C008:dashboard:reusable_source",
+    "revalidation_status": "pending"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue242-roles-reference.spec.ts",
+    "reason": "C008 provisional E2E authority fixture consumes changed operational context.",
+    "current_sha256": "8b93a67fa53bd46f918784bed88ffff096c7a3a7a97e98ac1cb6f845dc10019e",
+    "currently_credited": false,
+    "provisional_evidence": "C008:dashboard:reusable_source",
+    "revalidation_status": "pending"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue268-scope-restoration-races.spec.ts",
+    "reason": "C008 provisional scope-race fixture transitively consumes operational context.",
+    "current_sha256": "d43b00fbd63cfda98048151beb9a3a61238d22a0dd9fc0d56ad053d064721ed5",
+    "currently_credited": false,
+    "provisional_evidence": "C008:dashboard:reusable_source",
+    "revalidation_status": "pending"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue268-scope-restoration.spec.ts",
+    "reason": "C008 provisional restoration fixture transitively consumes operational context.",
+    "current_sha256": "5acc8dc9f0b390f41e9640f36a277dfe7f8aca2a91a57603a916c6578cf36796",
+    "currently_credited": false,
+    "provisional_evidence": "C008:dashboard:reusable_source",
+    "revalidation_status": "pending"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-help-authority.spec.ts",
+    "reason": "C008 provisional role/help fixture transitively consumes operational context.",
+    "current_sha256": "31ccccadb118b0925a3696d0a1a3f9e2962e882d6430fcfd900ce22a7a215279",
+    "currently_credited": false,
+    "provisional_evidence": "C008:dashboard:reusable_source",
+    "revalidation_status": "pending"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-help-lifecycle.spec.ts",
+    "reason": "C008 provisional help lifecycle fixture transitively consumes operational context.",
+    "current_sha256": "30ad00e538caea7c6f994c66eaf619062a819e74422ac791dc6c379c89fb0bd4",
+    "currently_credited": false,
+    "provisional_evidence": "C008:dashboard:reusable_source",
+    "revalidation_status": "pending"
+  }
+]

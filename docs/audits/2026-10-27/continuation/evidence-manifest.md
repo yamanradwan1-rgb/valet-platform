@@ -10,8 +10,8 @@ No evidence archive, Git LFS, dependency installation or size-limit bypass. New 
 
 | Path | SHA-256 |
 |---|---|
-|[AUDIT_PROGRESS.md](AUDIT_PROGRESS.md)|`142d1d3a74418a541d60916e3b45c8f9b875e412710421809e9f24272230ac3d`|
-|[CHECKPOINTS.md](CHECKPOINTS.md)|`988b2bbcc5df5559f95ca3340b5011568936cb461edc36a51b0e99c3e259fdda`|
+|[AUDIT_PROGRESS.md](AUDIT_PROGRESS.md)|`e6ff143ddb0aa6c014db460cec77ca45570cb53e3872b41689f6e7eda394fb5b`|
+|[CHECKPOINTS.md](CHECKPOINTS.md)|`4103b2b384ecdf660c0dbbb1034a2147d5c42f99a543aac4e635be46a7565374`|
 |[CROSS_FEATURE_RISKS.md](CROSS_FEATURE_RISKS.md)|`c18c0e6a56fa15e4f7889539cf2d4664d73b80b4f371d234f273c201b1a24872`|
 |[FALSE_POSITIVE_DISPOSITIONS.md](FALSE_POSITIVE_DISPOSITIONS.md)|`c292f9ebb470be6bb36a18c0fcaf5efc7d86920d1bf881ef8e0f7852baff5677`|
 |[FEATURE_COVERAGE.md](FEATURE_COVERAGE.md)|`1f111a17f490cf4cb072befde002017ff5a1b88ab1d91d40a4feb8cd1adfc18d`|
@@ -121,3 +121,23 @@ No evidence archive, Git LFS, dependency installation or size-limit bypass. New 
 |[evidence/C007-customer-results.json](evidence/C007-customer-results.json)|`57e9fb1504df29c733d349fd0684522456da459dec0c6e76aec2f903f35a80a8`|
 |[evidence/C007-dashboard-transfers.json](evidence/C007-dashboard-transfers.json)|`7f3411477ebc9e3993310f57f51c18bc7e4b947cbabca06558f8837b90936a0f`|
 |[evidence/C007-customer-transfers.json](evidence/C007-customer-transfers.json)|`1677b686f30870fbc4b3d04642130113324830e28a733e4bd7bbba10bf0ff783`|
+
+## RB-001 additions (new immutable main source)
+
+| Path | SHA-256 |
+|---|---|
+|[checkpoints/REBASELINE-2c181fc3.md](checkpoints/REBASELINE-2c181fc3.md)|`37c7c7474f75da1194a59e433eb96a8498bc01e2ce2b1c3d2c5758a0c34e50fe`|
+|[rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/README.md](rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/README.md)|`f2e6a78ff276376470d5507565d519b4bb3e28556705fade13b928ac4d526c26`|
+|[rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/cross-feature-impact.md](rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/cross-feature-impact.md)|`6d7ec59a1ce88fdeff979ed1aa66c8ef372aefbb36690c0289a0aae2a25ded8c`|
+|[rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/summary.json](rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/summary.json)|`9206e4a3e920afc0c9285e9c985cfca2e2d82c07c817c3f108abc662df8f23a1`|
+|[rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/git-diff-inventory.json](rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/git-diff-inventory.json)|`4ca5ef5559a1973edbed5184cfaf386a8d7a438324acb0f5ffbc0e39457e53f0`|
+|[rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/current-coverage-ledger.csv](rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/current-coverage-ledger.csv)|`c8d456a7344e56e4464ce5842e41cbb2a3416d3c6be40f14c62deb25b0c2e1b5`|
+|[rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/current-remaining-files.txt](rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/current-remaining-files.txt)|`034a9c829525850fbc24ab766b7f2af80c2b3bf0c276ddec5559ec4609f275f3`|
+|[rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/reusable-published-reviews.json](rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/reusable-published-reviews.json)|`67c54073a731bf3e7b31834ef728b158ea05a7eb7108284cc1a1e0382ec2a347`|
+|[rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/invalidated-published-reviews.json](rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/invalidated-published-reviews.json)|`3ca90a5ecf2784ba70652fb841127467bd6d0da6d7343a575fb17f9dc7f69d17`|
+|[rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/new-source-candidates.json](rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/new-source-candidates.json)|`504853781df9f338e026f6a820ebe6fc31f17e76679c5fbabb078d6969696370`|
+|[rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/recovered-provisional-evidence.json](rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/recovered-provisional-evidence.json)|`c548798eaafa9af27fee27dc1f587050a6a2816baf3834a521759b2ae6fce1f1`|
+|[rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/historical-removed-files.json](rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/historical-removed-files.json)|`37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570`|
+|[rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/input-file-hashes.json](rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/input-file-hashes.json)|`71e03c64384539770ca24d88137f4a7b7ab8422ecbc2bc267b17a0196a6e601d`|
+|[rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/targeted-dependency-impacts.json](rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/targeted-dependency-impacts.json)|`b1dc727c7cd2ab9a508559e72991b421bd7697772c32e0620df0429b21fff48d`|
+|[rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/verification.json](rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/verification.json)|`e19533d8cdc1971e3cd103e4058a9a263e29be925d7db557a2e63fcc95ff999b`|

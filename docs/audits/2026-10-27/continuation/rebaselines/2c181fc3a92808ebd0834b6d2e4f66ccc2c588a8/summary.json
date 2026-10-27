@@ -1,0 +1,47 @@
+{
+  "old_source_sha": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+  "current_main_sha": "2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8",
+  "published_checkpoint_sha": "7addcf163b6338d794898b6739ab6c1f90af14d0",
+  "git_diff_files": 16,
+  "modified_paths": 9,
+  "added_paths": 7,
+  "deleted_paths": 0,
+  "renamed_paths": 0,
+  "previous_tracked": 7502,
+  "current_tracked": 7509,
+  "byte_identical_paths_verified": 7493,
+  "historical_published_reviewed": 1306,
+  "reusable_published_reviews": 1297,
+  "stale_published_reviews": 9,
+  "new_source_candidates": 6,
+  "candidate_files": 4711,
+  "candidate_lines": 611038,
+  "current_fully_reviewed": 1297,
+  "current_reviewed_lines": 147052,
+  "current_remaining": 3414,
+  "file_percent": 27.53130970070049,
+  "line_percent": 24.065933706250675,
+  "provisional_recovered": [
+    {
+      "batch": "C008",
+      "expected": 180,
+      "verified_records": 55,
+      "unchanged_source": 55,
+      "stale_source": 0,
+      "pending": 125
+    },
+    {
+      "batch": "C009",
+      "expected": 180,
+      "verified_records": 55,
+      "unchanged_source": 55,
+      "stale_source": 0,
+      "pending": 125
+    }
+  ],
+  "provisional_records_total": 110,
+  "provisional_records_not_yet_credited": 110,
+  "runtime_tests_executed": 0,
+  "dependency_impact_flagged": 16,
+  "dependency_impact_analysis": "Targeted unchanged consumers flagged for interaction revalidation; source-identical review credit preserved."
+}

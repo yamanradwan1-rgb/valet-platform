@@ -1,0 +1,3212 @@
+[
+  {
+    "path": "apps/dashboard/e2e/issue240e-session-read.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "da64288b4fe1065a6b83f3496dbd1e07621f5076c6f1613acf15cf770df28367",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 77
+      }
+    ],
+    "semantic_review_notes": "Exact-session history refresh race: an open shift-detail read is held while the list triggers a 401/authorization refresh and the UI leaves/re-enters Shifts. Late detail success or failure must not reopen the drawer, restore stale identity/email, or surface stale error after the refreshed session/read generation changes.",
+    "callers_consumers": [
+      "StaffShiftsBody",
+      "useStaffShiftQuery",
+      "StaffShiftManagementDrawer",
+      "useAuthoritativeRead"
+    ],
+    "invariants_error_checks": [
+      "history list refresh may reconcile staff auth exactly once",
+      "detail response is fenced by current read/session generation",
+      "late detail cannot restore PII or dialog state after scope/session refresh"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue240e-session-read.spec.ts",
+      "apps/dashboard/e2e/issue240e-history-races.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with production caller/auth/scope/fencing context inspected; no tests, server, database, or product changes run in C008.",
+    "new_main_sha256": "da64288b4fe1065a6b83f3496dbd1e07621f5076c6f1613acf15cf770df28367",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-auth-cancellation.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9b1dd56e61b3a3128fa5a0c78c46693a67db6e76d7a6f9d63d6b1ab26bd0d4a3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 81
+      }
+    ],
+    "semantic_review_notes": "Force End auth-retry cancellation coverage proves a consumed authentication reconciliation cannot resurrect a cancelled intent. Closing/navigating clears reason/confirmation and rotates operationId for a fresh intent; a pending 401 finishing after Cancel cannot repopulate the private reason or trigger an extra POST.",
+    "callers_consumers": [
+      "useStaffShiftForceEnd",
+      "StaffForceEndDialog",
+      "staff-force-end-recovery"
+    ],
+    "invariants_error_checks": [
+      "Cancel increments sequence and disables auth recovery for the old dialog",
+      "volatile recovery is scope/session-generation bound",
+      "fresh materially identical intent gets a new operationId after cancellation",
+      "no automatic POST replay after auth refresh"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue240g-auth-cancellation.spec.ts",
+      "src/features/administration/staff/staff-force-end-recovery.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with production caller/auth/scope/fencing context inspected; no tests, server, database, or product changes run in C008.",
+    "new_main_sha256": "9b1dd56e61b3a3128fa5a0c78c46693a67db6e76d7a6f9d63d6b1ab26bd0d4a3",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-authority.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9aedd63f7e2260a2fcb0d17a5feb0bd032e1da52d2589491b7db14e7e05f9bd6",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 117
+      }
+    ],
+    "semantic_review_notes": "Authority-loss matrix delays Force End completion while LM grant, entitlement, or role authority is revoked. A forced refresh/401 reconciliation then destroys the dialog, identity and private reason before delayed success/failure returns. Supervisor/Employee direct navigation has no Employees & Shifts management surface and issues no shift history reads.",
+    "callers_consumers": [
+      "StaffPage",
+      "StaffShiftManagementDrawer",
+      "useStaffShiftForceEnd",
+      "protected-dashboard authority/scope revalidation"
+    ],
+    "invariants_error_checks": [
+      "management action visible only for authorized CA/LM context",
+      "grant/entitlement/role loss closes protected intent before late mutation result",
+      "revoked scope must not retain employee PII",
+      "non-management roles do not fetch management shift history"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue240g-authority.spec.ts",
+      "dashboard authority/revocation integration coverage"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with production caller/auth/scope/fencing context inspected; no tests, server, database, or product changes run in C008.",
+    "new_main_sha256": "9aedd63f7e2260a2fcb0d17a5feb0bd032e1da52d2589491b7db14e7e05f9bd6",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-freeze.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "96db3586f783f75d4d444b2f0ede95f55fe456e1ab702962ade2428876361d5b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 129
+      }
+    ],
+    "semantic_review_notes": "Visual freeze for Employees/employee drawer/Shifts/shift drawer across EN/AR, light/dark and 480/1440 widths. It fixes the clock minute so active-duration rendering cannot redistribute columns, checks no narrow overflow and established table padding, and captures only Playwright output artifacts.",
+    "callers_consumers": [
+      "StaffEmployeesBody",
+      "StaffDetailDrawer",
+      "StaffShiftsBody",
+      "StaffShiftDrawer",
+      "administration CSS/theme/locale shell"
+    ],
+    "invariants_error_checks": [
+      "history/employee surfaces remain reachable under RTL/dark/narrow combinations",
+      "active duration does not destabilize frozen geometry",
+      "document width stays at viewport width on narrow mode",
+      "table cell padding stays frozen"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue240g-freeze.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with production caller/auth/scope/fencing context inspected; no tests, server, database, or product changes run in C008.",
+    "new_main_sha256": "96db3586f783f75d4d444b2f0ede95f55fe456e1ab702962ade2428876361d5b",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-keyboard.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "135cc9a2d124898656d6eb431a9772ffc1e06cf7a80a05207e5c7c7f5e428d0c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 50
+      }
+    ],
+    "semantic_review_notes": "Nested Force End/MFA focus regression verifies Shift+Tab trap in the top dialog, Escape closes only topmost MFA first, returns focus to the Force End reason while preserving explicit checkbox intent, then a second Escape closes Force End and restores focus to the Shift drawer action. No key sequence triggers another POST.",
+    "callers_consumers": [
+      "FocusDialog",
+      "StaffForceEndDialog",
+      "SensitiveMfaDialog",
+      "StaffShiftManagementDrawer"
+    ],
+    "invariants_error_checks": [
+      "topmost modal exclusively owns Escape/focus",
+      "closing MFA does not submit/retry Force End",
+      "explicit confirmation survives MFA close",
+      "closing Force End returns focus to drawer action"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue240g-keyboard.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with production caller/auth/scope/fencing context inspected; no tests, server, database, or product changes run in C008.",
+    "new_main_sha256": "135cc9a2d124898656d6eb431a9772ffc1e06cf7a80a05207e5c7c7f5e428d0c",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-mfa-baseline.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "52fbb0a5b22691aab8ae8c00f1af9975fbe9d1bb3898256bab761a0e4f0d0292",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 65
+      }
+    ],
+    "semantic_review_notes": "Regression baseline for the shared sensitive MFA UI using Create Employee across EN/AR, light/dark and desktop/narrow widths. A protected mutation receiving MFA_STEP_UP_REQUIRED must expose the existing 6-digit authenticator ceremony without changing the baseline component semantics.",
+    "callers_consumers": [
+      "useSensitiveMutation",
+      "SensitiveMfaDialog",
+      "StaffCreateDialog",
+      "dashboard MFA client"
+    ],
+    "invariants_error_checks": [
+      "MFA challenge is surfaced only after server-required response",
+      "existing MFA component remains locale/theme/responsive compatible",
+      "protected mutation is not silently replayed by this visual baseline"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue240g-mfa-baseline.spec.ts",
+      "src/features/administration/use-sensitive-mutation.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with production caller/auth/scope/fencing context inspected; no tests, server, database, or product changes run in C008.",
+    "new_main_sha256": "52fbb0a5b22691aab8ae8c00f1af9975fbe9d1bb3898256bab761a0e4f0d0292",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-mutation-races.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fce96c952f0521a65c69882145aab1a50a1a3a56d3bd0bcba7f6bcb890f2aa89",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 148
+      }
+    ],
+    "semantic_review_notes": "Force End mutation race matrix delays success/failure across organization A→B→A, location A→B→A, target replacement, filter change, manual refresh, logout and auth-session replacement. The hook sequence+mounted+scope/session generation fences ensure old finally/reconcile paths cannot repaint a new explicit reason, reopen stale identity, or trigger a second POST.",
+    "callers_consumers": [
+      "useStaffShiftForceEnd",
+      "forceEndRecoveryScope",
+      "StaffShiftManagementDrawer",
+      "ProtectedDashboardContext"
+    ],
+    "invariants_error_checks": [
+      "old mutation result is fenced across every identity/scope/target/read generation change",
+      "logout clears dialog and employee PII",
+      "new current intent remains editable and free of old status/error",
+      "exactly one old POST is ever dispatched"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue240g-mutation-races.spec.ts",
+      "src/features/administration/staff/staff-force-end-recovery.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with production caller/auth/scope/fencing context inspected; no tests, server, database, or product changes run in C008.",
+    "new_main_sha256": "fce96c952f0521a65c69882145aab1a50a1a3a56d3bd0bcba7f6bcb890f2aa89",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-page-fences.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9ce8bf575d7f9d49df5e9c94e91f3fda82f6b39f0d8707502bfe22166ec042c3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 163
+      }
+    ],
+    "semantic_review_notes": "Pagination/filter fencing proves a delayed Force End mutation from an old list generation cannot disturb a current target, busy state or cursor after filter A→B→A or moving to page two. A successful page-two force end deliberately resets cursor history to the first page and refreshes the selected detail once; browser-side reason validation blocks programmatic >500 characters before POST.",
+    "callers_consumers": [
+      "StaffShiftsBody",
+      "useStaffShiftQuery",
+      "useStaffShiftForceEnd",
+      "staffShiftForceEndReasonSchema"
+    ],
+    "invariants_error_checks": [
+      "old mutation cannot alter current page/cursor/dialog intent",
+      "successful mutation reconciles authoritative list/detail and resets stale cursor history",
+      "reason schema/maxLength validated before protected command",
+      "no duplicate POST"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue240g-page-fences.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with production caller/auth/scope/fencing context inspected; no tests, server, database, or product changes run in C008.",
+    "new_main_sha256": "9ce8bf575d7f9d49df5e9c94e91f3fda82f6b39f0d8707502bfe22166ec042c3",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-reconcile-fences.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "395b39558e92517f847273df3c87a443510f106dcd5fa356492b92e2fd25d2f8",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 197
+      }
+    ],
+    "semantic_review_notes": "Force End unknown-outcome reconciliation is fail-closed. Authorization/entitlement denial on POST clears identity and intent; failed list/detail reconciliation keeps Force End disabled and never sends another POST. Delayed MFA or reconciliation from an old target is discarded after target replacement. Parsed success whose subsequent list refresh fails retains safe success/pending-cash feedback without exposing another submit action.",
+    "callers_consumers": [
+      "useStaffShiftForceEnd",
+      "StaffForceEndDialog",
+      "StaffShiftManagementDrawer",
+      "staff-force-end-intent"
+    ],
+    "invariants_error_checks": [
+      "unknown mutation outcome cannot enable resend until authoritative read resolves",
+      "denial closes protected surface and removes private reason",
+      "target change fences delayed MFA/reconcile callbacks",
+      "known parsed success cannot regress to a re-submittable state if refresh fails"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue240g-reconcile-fences.spec.ts",
+      "src/features/administration/staff/staff-force-end-intent.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with production caller/auth/scope/fencing context inspected; no tests, server, database, or product changes run in C008.",
+    "new_main_sha256": "395b39558e92517f847273df3c87a443510f106dcd5fa356492b92e2fd25d2f8",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-submit.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "745085bb3023c8620b5e8e1277d42dfa8a38ade2c907d852ffdbcbdee8364214",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 121
+      }
+    ],
+    "semantic_review_notes": "CA/LM Force End submit path enforces explicit confirmation, trimmed 1..500 reason, MFA step-up followed by a second explicit click, stable operationId/material for same-intent retries, bounded list/detail reconciliation, and cash-reconciliation-pending success feedback. Double-submit is coalesced; handoff blocker keeps the same idempotency key; editing material rotates it.",
+    "callers_consumers": [
+      "ForceEndIntent",
+      "useStaffShiftForceEnd",
+      "forceEndShift",
+      "StaffForceEndDialog"
+    ],
+    "invariants_error_checks": [
+      "MFA assurance does not auto-replay POST",
+      "same material retry reuses operationId",
+      "changed reason rotates operationId",
+      "busy fence collapses double-click to one POST",
+      "server result identity must match operation/shift/membership/location"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue240g-submit.spec.ts",
+      "src/features/administration/staff/staff-shift-force-end-api.test.ts",
+      "src/features/administration/staff/staff-force-end-intent.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with production caller/auth/scope/fencing context inspected; no tests, server, database, or product changes run in C008.",
+    "new_main_sha256": "745085bb3023c8620b5e8e1277d42dfa8a38ade2c907d852ffdbcbdee8364214",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-unknown.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4dca210c7d2847b659674f0c4400582890816ab7bebe83e9dad249074fb2449d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 203
+      }
+    ],
+    "semantic_review_notes": "Unknown Force End outcomes from network abort or malformed response lock the intent and require an explicit list/detail reconciliation before any retry. If canonical state is ENDED no retry exists; if still ACTIVE the same material/operation may be retried explicitly. SHIFT_ALREADY_ENDED and IDEMPOTENCY_CONFLICT likewise freeze editing/submission until read reconciliation, and a 401 auth refresh yields explicit same-operation retry rather than auto-POST.",
+    "callers_consumers": [
+      "useStaffShiftForceEnd",
+      "ForceEndIntent",
+      "staff-force-end-intent",
+      "StaffForceEndDialog"
+    ],
+    "invariants_error_checks": [
+      "unknown/malformed result cannot enable immediate resend",
+      "canonical ENDED removes retry path",
+      "canonical ACTIVE permits only explicit same-operation retry",
+      "conflict phases prevent editing and new operation allocation",
+      "401 reconciliation never auto-replays mutation"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue240g-unknown.spec.ts",
+      "src/features/administration/staff/staff-force-end-intent.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production caller/auth/tenant/fencing/test context inspected; no tests, DB, server, or product changes run in C008.",
+    "new_main_sha256": "4dca210c7d2847b659674f0c4400582890816ab7bebe83e9dad249074fb2449d",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue240g-visual.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5ba1ad8abb898fda8f3940a8028810829489c1532eb16e1e77b5e30083f39bff",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 174
+      }
+    ],
+    "semantic_review_notes": "End-to-end Force End visual/keyboard flow across EN/AR, light/dark and 480/1440 includes nested MFA, unknown-outcome reconciliation and final pending-cash success. It validates focus order/return, no horizontal overflow, stable same-operation retries, and verifies private reason plus operationId do not appear in URL, cookies, local/session storage, Cache Storage, IndexedDB, resource URLs or console messages.",
+    "callers_consumers": [
+      "StaffForceEndDialog",
+      "SensitiveMfaDialog",
+      "FocusDialog",
+      "useStaffShiftForceEnd"
+    ],
+    "invariants_error_checks": [
+      "private Force End material stays memory-only",
+      "nested MFA and parent dialog maintain explicit focus ownership",
+      "unknown outcome requires refresh then explicit retry",
+      "all retries for unchanged material retain operationId"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue240g-visual.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production caller/auth/tenant/fencing/test context inspected; no tests, DB, server, or product changes run in C008.",
+    "new_main_sha256": "5ba1ad8abb898fda8f3940a8028810829489c1532eb16e1e77b5e30083f39bff",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue241-live-operations.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "32457b297cdaacef5fc9927141a2c7ebe78c746ef8462b6a8675ce810effb14c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 177
+      }
+    ],
+    "semantic_review_notes": "Live Operations uses server-projected session/retrieval facts rather than per-row employee/resource lookups. Session filters and pagination are server-side; changing filter resets cursor and stale page completion is fenced. Drawer renders projected key/spot/zone facts without extra session read, state counts are loaded once, retrieval queue is lazy, and narrow RTL presentation remains stable.",
+    "callers_consumers": [
+      "LiveOperationsPage",
+      "LiveOperationsTable",
+      "RetrievalQueueTable",
+      "operations-api"
+    ],
+    "invariants_error_checks": [
+      "exact location/CA-or-LM authority gates the page",
+      "session/filter generation key fences late cursor pages",
+      "filter change clears cursor history",
+      "no staff-directory/key-slot/parking-resource row fan-out",
+      "drawer consumes current projection rather than hidden row fetch"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue241-live-operations.spec.ts",
+      "src/features/operations/live-operations/live-sessions-transport.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production caller/auth/tenant/fencing/test context inspected; no tests, DB, server, or product changes run in C008.",
+    "new_main_sha256": "32457b297cdaacef5fc9927141a2c7ebe78c746ef8462b6a8675ce810effb14c",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue242-roles-reference.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8b93a67fa53bd46f918784bed88ffff096c7a3a7a97e98ac1cb6f845dc10019e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 201
+      }
+    ],
+    "semantic_review_notes": "Roles & Permissions is a fixed presentation-only reference for Company Admin, with no staff-directory/per-role permission probes or editable controls; two Help buttons are informational only. It renders the static server-boundary documentation in EN/AR and preserves accessible horizontal scrolling on narrow RTL. Location Manager navigation/direct route must not expose the page or issue feature-specific requests.",
+    "callers_consumers": [
+      "roles-page.tsx",
+      "role-reference.ts",
+      "administration navigation authority"
+    ],
+    "invariants_error_checks": [
+      "reference text never grants or infers permission",
+      "Company Admin surface performs zero staff-directory/per-role probe requests",
+      "LM cannot navigate to or render roles reference",
+      "surface contains no editable role controls"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue242-roles-reference.spec.ts",
+      "src/features/administration/roles/roles-page.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production caller/auth/tenant/fencing/test context inspected; no tests, DB, server, or product changes run in C008.",
+    "new_main_sha256": "8b93a67fa53bd46f918784bed88ffff096c7a3a7a97e98ac1cb6f845dc10019e",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue254-resource-races.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "19e6e5d3345b51d51f7d1281c883520e3c03cdcab19427731308d9c3d2a7b554",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 206
+      }
+    ],
+    "semantic_review_notes": "Key Slot and Parking Spot reads are fenced by location/scope epochs. A→B→A delayed old success/failure cannot repaint fresh vehicle occupancy or errors; page cursors reset on every location epoch; logout and same-account identity replacement clear old vehicle data and ignore late responses. Both resource families use the same authoritative generation semantics.",
+    "callers_consumers": [
+      "physical-resources panel/table",
+      "useAuthoritativeRead",
+      "selected scope lifecycle"
+    ],
+    "invariants_error_checks": [
+      "resource reads are location-epoch scoped",
+      "late success/error cannot cross A→B→A",
+      "cursor history cannot survive location switch",
+      "logout/identity replacement removes occupancy PII and fences old completion"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue254-resource-races.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production caller/auth/tenant/fencing/test context inspected; no tests, DB, server, or product changes run in C008.",
+    "new_main_sha256": "19e6e5d3345b51d51f7d1281c883520e3c03cdcab19427731308d9c3d2a7b554",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue254-resource-rows.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3ec1ef5d665420fffd9ac3c9c872b2515823c8b3950cf47383aad2504a7d483e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 180
+      }
+    ],
+    "semantic_review_notes": "Operational Key/Spot rows distinguish configuration status from current usage and load each family lazily with bounded reads. Vehicle plate/descriptor uses direction-safe rendering, internal session IDs are hidden, no row-level overview/vehicle fetches occur, and occupancy facts are not stored in browser persistence. Inactive historical Locations suppress availability/occupant claims, while a newer authorization denial removes previously held occupancy immediately.",
+    "callers_consumers": [
+      "physical-resources-panel.tsx",
+      "physical-resource-table.tsx",
+      "issue254 resource transport"
+    ],
+    "invariants_error_checks": [
+      "inactive historical location cannot present live availability/occupancy",
+      "browser persistence must not retain vehicle/resource occupancy facts",
+      "family reads are lazy/bounded without row fan-out",
+      "new denial clears browser-held occupancy"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue254-resource-rows.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production caller/auth/tenant/fencing/test context inspected; no tests, DB, server, or product changes run in C008.",
+    "new_main_sha256": "3ec1ef5d665420fffd9ac3c9c872b2515823c8b3950cf47383aad2504a7d483e",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue254-visual.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "87b5f0e92a0e90c3690f132b4dfdc32d3064ced142b78d4f4256ddadd1fe4279",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 106
+      }
+    ],
+    "semantic_review_notes": "Keys & Spots visual freeze covers EN/AR, light/dark, desktop/narrow for operational keys and parking spots. It preserves five-column composition, direction-safe vehicle identifiers/descriptors, occupied/available semantics, physical-resource card geometry and <=480px document width, with visual artifacts directed to temp/explicit evidence output.",
+    "callers_consumers": [
+      "physical-resources-panel.tsx",
+      "physical-resource-table.tsx",
+      "operations/keys presentation"
+    ],
+    "invariants_error_checks": [
+      "vehicle mixed-direction text uses bdi semantics",
+      "resource table composition remains stable across locale/theme",
+      "narrow page does not overflow document"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue254-visual.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production caller/auth/tenant/fencing/test context inspected; no tests, DB, server, or product changes run in C008.",
+    "new_main_sha256": "87b5f0e92a0e90c3690f132b4dfdc32d3064ced142b78d4f4256ddadd1fe4279",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue268-scope-restoration-races.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d43b00fbd63cfda98048151beb9a3a61238d22a0dd9fc0d56ad053d064721ed5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 64
+      }
+    ],
+    "semantic_review_notes": "A delayed server-authoritative scope restoration is fenced against definitive logout. The restore request may return 401 after logout, but the lifecycle generation guard/session epoch prevents republishing the prior Location or protected Help route/content once authentication is gone.",
+    "callers_consumers": [
+      "useSelectedScopeLifecycle",
+      "ScopeGenerationGuard",
+      "selected-scope-restoration"
+    ],
+    "invariants_error_checks": [
+      "logout invalidates in-flight restoration generation",
+      "restored scope cannot publish after auth/session epoch changes",
+      "prior location label/protected route content remain absent after definitive logout"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue268-scope-restoration-races.spec.ts",
+      "src/components/foundation/selected-scope-restoration-lifecycle.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production caller/auth/tenant/fencing/test context inspected; no tests, DB, server, or product changes run in C008.",
+    "new_main_sha256": "d43b00fbd63cfda98048151beb9a3a61238d22a0dd9fc0d56ad053d064721ed5",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue268-scope-restoration.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5acc8dc9f0b390f41e9640f36a277dfe7f8aca2a91a57603a916c6578cf36796",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 278
+      }
+    ],
+    "semantic_review_notes": "Scope continuity stores only a restoration hint and revalidates exact authority on reload: Company Admin active Location, LM exact granted active Location, Supervisor exact membership Location/Shift, organization-only subscription scope and LM grant-set scope. Removed locations fail closed instead of selecting another; intentional Change scope clears the hint; fresh logical session cannot inherit it; transient failures preserve it for later recovery while definitive auth/authorization failures clear it. Restoration uses loading state and bounded paged exact-ID lookup.",
+    "callers_consumers": [
+      "selected-scope-restoration-hint.ts",
+      "selected-scope-restoration.ts",
+      "use-selected-scope-lifecycle.ts",
+      "management-foundation-app.tsx"
+    ],
+    "invariants_error_checks": [
+      "hint is bound to staffAuthSessionId",
+      "restoration publishes only after fresh server authority proof",
+      "missing prior exact scope fails closed without fallback selection",
+      "identity/session/selection epochs fence delayed restore",
+      "definitive failures clear hint; transient failures may preserve it",
+      "paged lookup is bounded and rejects non-advancing cursors"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue268-scope-restoration.spec.ts",
+      "src/components/foundation/selected-scope-restoration*.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production caller/auth/tenant/fencing/test context inspected; no tests, DB, server, or product changes run in C008.",
+    "new_main_sha256": "5acc8dc9f0b390f41e9640f36a277dfe7f8aca2a91a57603a916c6578cf36796",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue270-live-map-refresh.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "92378cee4b3b7f10f199f5e5a700b995146e2c0daa28f486bf7b1785150063d8",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 171
+      }
+    ],
+    "semantic_review_notes": "Live Operations map refresh polls only after request settlement, updates marker position/freshness every 10s, stops immediately while document is hidden or map is in SETUP mode, and resumes with an immediate read when visible/active again. An initial empty success leaves first real coordinate auto-fit available; after first fit later refreshes preserve the user's camera.",
+    "callers_consumers": [
+      "useLiveMapRead",
+      "LiveMapRefreshOwner",
+      "operations maps page",
+      "operations-api readLiveOperationsMap"
+    ],
+    "invariants_error_checks": [
+      "generation/AbortController fences retired map reads",
+      "hidden/inactive mode has no polling",
+      "definitive auth/MFA/authorization/entitlement failure disables automatic polling",
+      "transient failures use bounded backoff",
+      "first real coordinates may fit once while later polls preserve user camera"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue270-live-map-refresh.spec.ts",
+      "src/features/operations/maps/live-map-refresh-owner.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production caller/auth/tenant/fencing/test context inspected; no tests, DB, server, or product changes run in C008.",
+    "new_main_sha256": "92378cee4b3b7f10f199f5e5a700b995146e2c0daa28f486bf7b1785150063d8",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue277-audit-identity-visual.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8002973548f53cd5cb21dea47cc511322412a2e544656b6614cc5ac7dd0400e9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 107
+      }
+    ],
+    "semantic_review_notes": "Audit identity visual regression distinguishes immutable audit actor identity from current directory presentation. Membership events may display currentDisplayName and current vehicle description/confirmed plate, while the drawer still exposes canonical membership/entity identifiers and explicitly labels the name source as Current staff directory. EN/AR light/dark narrow/desktop geometry stays bounded and no historical actor identity is silently rewritten.",
+    "callers_consumers": [
+      "AuditPage",
+      "AuditTable",
+      "AuditDetailDrawer",
+      "auditActorLabel",
+      "auditEntityLabel"
+    ],
+    "invariants_error_checks": [
+      "currentDisplayName is optional presentation enrichment, not historical actor replacement",
+      "membershipId and entity/session identifiers remain available in detail",
+      "current directory source is explicitly disclosed when a current name is shown",
+      "unknown events do not fabricate enriched actor/entity facts"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue277-audit-identity-visual.spec.ts",
+      "src/features/audit/audit-event-labels.test.ts",
+      "src/features/audit/audit-safe-renderer.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production callers, authorization/scope lifecycle, focus/fencing and tests inspected; no tests, DB, browser suite, or product/tracked-file changes run in C008.",
+    "new_main_sha256": "8002973548f53cd5cb21dea47cc511322412a2e544656b6614cc5ac7dd0400e9",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-activation-help-focus.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1e2cb4cac748d2d99f011323144ca06c0ed576abe92163235d988d55d028498a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 82
+      }
+    ],
+    "semantic_review_notes": "Standalone activation Help remains presentation-only during an in-flight activation. Opening nested Help neither issues a second activation nor persists invitation/browser credentials; activation completion remounts the scope-keyed Help owner, closes the stale dialog and restores focus to the connected Sign in link. Closing Help while activation is pending preserves the password draft, and an invalid hash transition clears the credential/form, closes Help and focuses the stable heading.",
+    "callers_consumers": [
+      "StaffActivationPage",
+      "ContextHelp",
+      "FocusDialog",
+      "staff-activation-api"
+    ],
+    "invariants_error_checks": [
+      "invite fragment is removed before interactive Help use",
+      "Help never submits activation",
+      "scopeIdentity remount closes stale activation Help on form/complete/unavailable transition",
+      "detached trigger uses connected safe focus fallback",
+      "password remains local form state unless activation/hash generation changes"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue278-activation-help-focus.spec.ts",
+      "src/features/help/context-help.test.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production callers, authorization/scope lifecycle, focus/fencing and tests inspected; no tests, DB, browser suite, or product/tracked-file changes run in C008.",
+    "new_main_sha256": "1e2cb4cac748d2d99f011323144ca06c0ed576abe92163235d988d55d028498a",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-administration-mobile-help.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2bc8eb08be8afb27823d374de5cdcdb50ead75cdec5ccf491d611d49d2194680",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 299
+      }
+    ],
+    "semantic_review_notes": "Administration mobile Help verifies every authorized settings row has an initially visible, hittable >=24px label trigger at 320/390px with the same accessible label as the Actions Help, while desktop keeps only the Actions trigger. Context Help is type=button and mutation-free, so dirty ordinary settings, seven-day Operating Hours, invalid SLA and Shift Presence drafts survive open/close, responsive remount and 200% page/CSS zoom without writes or stranded focus.",
+    "callers_consumers": [
+      "MobileSettingContextHelp",
+      "SettingRow",
+      "OperatingHoursEditor",
+      "SlaSettingRow",
+      "ShiftPresencePolicyRow",
+      "ScopedContextHelp"
+    ],
+    "invariants_error_checks": [
+      "mobile duplicate exists only at <=700px and never submits form",
+      "Help open/close preserves unsaved setting state",
+      "responsive unmount closes stale Help and connected fallback handles focus",
+      "Company/override/LM row inventories remain authority-specific",
+      "Help interaction performs zero settings mutation"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue278-administration-mobile-help.spec.ts",
+      "src/features/help/context-help-administration-mounts.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production callers, authorization/scope lifecycle, focus/fencing and tests inspected; no tests, DB, browser suite, or product/tracked-file changes run in C008.",
+    "new_main_sha256": "2bc8eb08be8afb27823d374de5cdcdb50ead75cdec5ccf491d611d49d2194680",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-administration-presence-help.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8d28d494ddc20392991944f82f04ace95b642f819368a7dcfe514244e45f7ca0",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 239
+      }
+    ],
+    "semantic_review_notes": "Shift Presence Help is mounted only on the existing authorized Presence surfaces and policy rows. Nested Help preserves stale/conflicted drafts, Add Zone and Review parent dialogs, and returns focus without invoking policy/zone/review writes. Policy conflict remains authoritative: server revision/current value replaces the baseline while the local draft stays visible and Save remains blocked until the user explicitly reconciles/reapplies.",
+    "callers_consumers": [
+      "ShiftPresencePolicyRow",
+      "ShiftPresenceSettings",
+      "ShiftPresenceZoneForm",
+      "ShiftPresenceReviewDialog",
+      "ScopedContextHelp"
+    ],
+    "invariants_error_checks": [
+      "Help never bypasses presence revision conflict or enables Save",
+      "nested Help owns Escape while parent remains mounted",
+      "unsaved zone/policy drafts are not submitted by Help",
+      "review Help does not approve/reject an exception",
+      "mobile Presence Help is visible/hittable without widening authority"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue278-administration-presence-help.spec.ts",
+      "src/features/administration/settings/shift-presence-policy.test.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production callers, authorization/scope lifecycle, focus/fencing and tests inspected; no tests, DB, browser suite, or product/tracked-file changes run in C008.",
+    "new_main_sha256": "8d28d494ddc20392991944f82f04ace95b642f819368a7dcfe514244e45f7ca0",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-administration-settings-help.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "00d915472aa663163dfdbd14e34480379ea02ee4feae8ec7a08bc638f8428015",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 130
+      }
+    ],
+    "semantic_review_notes": "Settings Help coverage matches the typed setting manifests: Company Admin company defaults expose all 15 ordinary keys plus Operating Hours; location overrides add SLA; Location Manager exposes only the ten legacy location-eligible keys and excludes languageDefault/other company-only settings. Opening Help is a read-free local presentation action and preserves dirty drafts without saving.",
+    "callers_consumers": [
+      "help-setting-manifest.ts",
+      "SettingRow",
+      "SettingsPage",
+      "OperatingHoursEditor",
+      "SlaSettingRow",
+      "ScopedContextHelp"
+    ],
+    "invariants_error_checks": [
+      "ordinarySettingHelpKeys exhaust typed ordinary management settings",
+      "LM Help cannot expose a setting row the LM page does not authorize",
+      "Operating Hours/SLA Help mount only where their real controls exist",
+      "Help trigger type=button and causes zero management writes"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue278-administration-settings-help.spec.ts",
+      "src/features/help/context-help-coverage.test.ts",
+      "src/features/help/context-help-administration-mounts.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production callers, authorization/scope lifecycle, focus/fencing and tests inspected; no tests, DB, browser suite, or product/tracked-file changes run in C008.",
+    "new_main_sha256": "00d915472aa663163dfdbd14e34480379ea02ee4feae8ec7a08bc638f8428015",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-audit-long-timezone.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2e244f0c48ee3707962fdc67c7250686586fb1531edb34ade8c73cc63a971eb9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 99
+      }
+    ],
+    "semantic_review_notes": "Audit table Help placement is tested against a real long timezone label across EN/AR, 320/390/768/1440, CSS zoom and native page scale. The table renders timezone in an LTR bdi from the currently authorized audit time context; Help stays within the card and does not cover timezone ink, opens locally, restores focus, and causes no writes.",
+    "callers_consumers": [
+      "AuditTable",
+      "auditTimeContext",
+      "ContextHelp",
+      "ScopedContextHelp"
+    ],
+    "invariants_error_checks": [
+      "timezone comes from current selected location context, not Help copy",
+      "Help trigger never obscures visible timezone/header content",
+      "Help remains keyboard/pointer reachable under zoom",
+      "opening Help has no API mutation side effect"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue278-audit-long-timezone.spec.ts",
+      "src/features/audit/audit-presentation.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production callers, authorization/scope lifecycle, focus/fencing and tests inspected; no tests, DB, browser suite, or product/tracked-file changes run in C008.",
+    "new_main_sha256": "2e244f0c48ee3707962fdc67c7250686586fb1531edb34ade8c73cc63a971eb9",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-e-account-activation-help.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4e75f7e62662b35e5b631433963ec2d62815b78fbaaf78d6ece570ee93894d5e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 116
+      }
+    ],
+    "semantic_review_notes": "Account-scoped Help uses identity/session generation rather than Location scope, so Security/Help pages can mount without an operational workspace. Security Help performs no MFA/network action and is deliberately hidden while authenticator enrollment secret or recovery codes are disclosed. Standalone activation Help keeps the invitation fragment stripped, preserves the unsaved password, issues zero staff writes and never establishes a browser-session secret.",
+    "callers_consumers": [
+      "AccountContextHelp",
+      "AccountSecurityWorkspace",
+      "AccountSecurityPanel",
+      "HelpFoundation",
+      "StaffActivationPage"
+    ],
+    "invariants_error_checks": [
+      "account Help lifecycle is fenced by identityGeneration+sessionGeneration",
+      "Help is absent during sensitive MFA secret/recovery-code disclosure",
+      "activation Help never reads/persists invitation credential or submits form",
+      "Help page disclosure does not change MFA ceremony state or FAQ state"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue278-e-account-activation-help.spec.ts",
+      "src/features/help/context-help.test.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production callers, authorization/scope lifecycle, focus/fencing and tests inspected; no tests, DB, browser suite, or product/tracked-file changes run in C008.",
+    "new_main_sha256": "4e75f7e62662b35e5b631433963ec2d62815b78fbaaf78d6ece570ee93894d5e",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-e-audit-contacts-help.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b2d9f1235af0509f23ebad53a666dfa31a8f30eb3490da657d40e4e9de9df311",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 105
+      }
+    ],
+    "semantic_review_notes": "Audit and Visit Contacts contextual Help is nested into already-authorized route/detail/correction surfaces. Page/filter/table/detail Help performs no additional reads or writes after the underlying data is loaded, preserves filter/search and correction drafts, and FocusDialog topmost ownership lets Escape close only the child Help before the parent drawer/dialog.",
+    "callers_consumers": [
+      "AuditPage",
+      "AuditDetailDrawer",
+      "Contacts page/detail/correction surfaces",
+      "ScopedContextHelp",
+      "FocusDialog"
+    ],
+    "invariants_error_checks": [
+      "Help cannot trigger audit/contact mutation or extra data lookup",
+      "parent drawer/dialog remains mounted under nested Help",
+      "unsaved search/correction draft survives Help lifecycle",
+      "focus returns to the Help trigger after child close"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue278-e-audit-contacts-help.spec.ts",
+      "src/features/help/context-help.test.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production callers, authorization/scope lifecycle, focus/fencing and tests inspected; no tests, DB, browser suite, or product/tracked-file changes run in C008.",
+    "new_main_sha256": "b2d9f1235af0509f23ebad53a666dfa31a8f30eb3490da657d40e4e9de9df311",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-e-f-audit-geometry.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "88382a8e3efe4fc49c97300308dc0ace7e2c00303793420240948e099d023eda",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 124
+      }
+    ],
+    "semantic_review_notes": "Geometry regression measures only visible/clipped Help targets against Audit pagination/header text and Contacts search controls across 320/390/768/1440, EN/AR and RTL CSS zoom. It requires zero intersection with actionable controls/text, keeps Help inside its owning card, and verifies close restores trigger focus; the checks are presentation-only and do not alter authority or data.",
+    "callers_consumers": [
+      "AuditTable Help slot",
+      "Contacts search Help slot",
+      "ContextHelp"
+    ],
+    "invariants_error_checks": [
+      "visible Help cannot cover pagination/search/form hit targets",
+      "Help remains inside owning surface bounds",
+      "RTL/zoom geometry does not change semantic control ownership",
+      "keyboard close restores connected trigger"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue278-e-f-audit-geometry.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production callers, authorization/scope lifecycle, focus/fencing and tests inspected; no tests, DB, browser suite, or product/tracked-file changes run in C008.",
+    "new_main_sha256": "88382a8e3efe4fc49c97300308dc0ace7e2c00303793420240948e099d023eda",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-e-f-visual-evidence.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "50f1570cb23d15455fcb68a95ff9fc49ff9eef4cc39909e2cc971f4fb51eebdc",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 210
+      }
+    ],
+    "semantic_review_notes": "Cross-route evidence harness covers the declared Dashboard content inventory with synthetic authorized CA/LM/account/pre-auth contexts and responsive/theme/locale/200% zoom variants. In after mode every CONTENT route must mount its manifest Help key; geometry records visible rects/hit targets/overflow while deep routes exercise more variants. Help route manifest is explicit, with redirects/test-only routes excluded, so coverage does not infer authorization from Help presence.",
+    "callers_consumers": [
+      "help-route-manifest.ts",
+      "context-help-registry.ts",
+      "route-owned ScopedContextHelp/AccountContextHelp/activation ContextHelp"
+    ],
+    "invariants_error_checks": [
+      "only declared CONTENT routes require contextual Help",
+      "Help remains mounted inside existing authorized route owners rather than shared shell",
+      "evidence harness uses synthetic route data and does not grant capability",
+      "geometry evidence tracks visibility/hit target without mutating product state"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue278-e-f-visual-evidence.spec.ts",
+      "src/features/help/context-help-coverage.test.ts",
+      "src/features/help/context-help-phase-e-mounts.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production callers, authorization/scope lifecycle, focus/fencing and tests inspected; no tests, DB, browser suite, or product/tracked-file changes run in C008.",
+    "new_main_sha256": "50f1570cb23d15455fcb68a95ff9fc49ff9eef4cc39909e2cc971f4fb51eebdc",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-final-visible-help-overlaps.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b64ab6bf3d53678295457e881938dbccbb8bb24817c515f002c270278779b7cb",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 79
+      }
+    ],
+    "semantic_review_notes": "Final overlap matrix computes clipped visible bounds for Help and non-Help actions on narrow Overview/Live/Payments/Analytics/Policies/root surfaces in EN/AR. Every case must have visible contextual Help and zero meaningful intersection with another actionable control, protecting real hit targets rather than relying only on raw layout rectangles.",
+    "callers_consumers": [
+      "route-owned Help slots",
+      "ContextHelp trigger styling",
+      "operations/intelligence/settings surfaces"
+    ],
+    "invariants_error_checks": [
+      "visible Help targets must not cover visible action targets",
+      "clipping/scroll containers are included in collision calculation",
+      "authority fixtures select only the route role already allowed to render the surface"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue278-final-visible-help-overlaps.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production callers, authorization/scope lifecycle, focus/fencing and tests inspected; no tests, DB, browser suite, or product/tracked-file changes run in C008.",
+    "new_main_sha256": "b64ab6bf3d53678295457e881938dbccbb8bb24817c515f002c270278779b7cb",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-header-help-geometry.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "313e7acfd6feea08197a1b05a643208e0d9b3fbde415da5a71e3fbeed3f0c768",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 104
+      }
+    ],
+    "semantic_review_notes": "Audit and Contacts header Help is validated across EN/AR, themes, 320–1440 widths, CSS 200% zoom and native page-scale. The target stays within the viewport, receives pointer/keyboard activation, and does not overlap scope badge, title or subtitle. Opening/closing Help causes zero writes and leaves the route unchanged.",
+    "callers_consumers": [
+      "AuditPage header Help",
+      "Contacts page header Help",
+      "ContextHelp",
+      "help-slot CSS"
+    ],
+    "invariants_error_checks": [
+      "header Help cannot obscure title/subtitle/scope badge",
+      "target center is actually hittable",
+      "zoom variants preserve keyboard/pointer activation and focus return",
+      "Help interaction has no write or route-navigation side effect"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue278-header-help-geometry.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production callers, authorization/scope lifecycle, focus/fencing and tests inspected; no tests, DB, browser suite, or product/tracked-file changes run in C008.",
+    "new_main_sha256": "313e7acfd6feea08197a1b05a643208e0d9b3fbde415da5a71e3fbeed3f0c768",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-heading-safety.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6e2478409ff5c12696e5b4d1c9e19f6f017296689f08bfd93662965b7cb8cb09",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 74
+      }
+    ],
+    "semantic_review_notes": "Operations-route heading safety covers Live Operations, Vehicles, Tasks, Maps & Zones, Keys and Incidents for an authorized Location Manager in EN/AR at 1440/390/320. The page Help target stays >=24px, inside viewport and clear of title/subtitle ink, so contextual Help does not replace or obscure the route heading.",
+    "callers_consumers": [
+      "OperationsPage/helpHeading presentation",
+      "route-owned ScopedContextHelp"
+    ],
+    "invariants_error_checks": [
+      "Help target remains usable on narrow RTL/LTR routes",
+      "heading/subtitle text remains unobstructed",
+      "role/scope comes from the existing authorized LM route owner"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue278-heading-safety.spec.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production callers, authorization/scope lifecycle, focus/fencing and tests inspected; no tests, DB, browser suite, or product/tracked-file changes run in C008.",
+    "new_main_sha256": "6e2478409ff5c12696e5b4d1c9e19f6f017296689f08bfd93662965b7cb8cb09",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-help-authority.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "31ccccadb118b0925a3696d0a1a3f9e2962e882d6430fcfd900ce22a7a215279",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 139
+      }
+    ],
+    "semantic_review_notes": "Contextual Help follows existing server-authorized surfaces instead of becoming an authority source. LM without Dashboard entitlement sees setup Help but no Live/legend Help or live reads; Supervisor sees operational Live map Help but no setup/resource-configuration Help; inactive Company Admin location keeps configuration Help while hiding operational/create detail Help. Wrong-organization context and revoked LM grant remove Location-owned Help, including closing an already-open dialog on scope lifecycle change.",
+    "callers_consumers": [
+      "ScopedContextHelp",
+      "selectedScopeAuthorityKey",
+      "ContextHelp scopeIdentity",
+      "Maps/Keys/Vehicle authorized route surfaces"
+    ],
+    "invariants_error_checks": [
+      "ScopedContextHelp never performs permission reads or grants access",
+      "help scopeIdentity includes identity/session/selection/selected-authority key and remounts on revocation",
+      "wrong organization context cannot mount location-owned Help",
+      "entitlement/grant/role boundaries control owning surface and therefore Help availability",
+      "revoked scope closes stale open Help before new selection"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue278-help-authority.spec.ts",
+      "src/features/help/context-help-coverage.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production callers, authorization/scope lifecycle, focus/fencing and tests inspected; no tests, DB, browser suite, or product/tracked-file changes run in C008.",
+    "new_main_sha256": "31ccccadb118b0925a3696d0a1a3f9e2962e882d6430fcfd900ce22a7a215279",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/dashboard/e2e/issue278-help-lifecycle.spec.ts",
+    "worker": "dashboard",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "30ad00e538caea7c6f994c66eaf619062a819e74422ac791dc6c379c89fb0bd4",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 176
+      }
+    ],
+    "semantic_review_notes": "Help lifecycle handles route unmount, logout, denied routes and nested parent dialogs without stale disclosure or lost focus. ContextHelp is keyed by authorized scope identity/help key; cleanup restores only a connected visible non-hidden fallback, while FocusDialog gives Escape/Tab to the topmost modal. Route change/logout unmount stale Help; browser back cannot revive it; nested Reports/Keys Help preserves parent drafts and produces no new requests or mutations.",
+    "callers_consumers": [
+      "ContextHelp",
+      "ScopedContextHelp",
+      "useConnectedHelpFallback",
+      "FocusDialog",
+      "selected dashboard route owners"
+    ],
+    "invariants_error_checks": [
+      "route/scope/auth generation change synchronously remounts and closes stale Help",
+      "detached trigger focus cannot return to hidden/inert/departed route element",
+      "topmost nested dialog exclusively owns Escape/Tab",
+      "denied/no-grant surfaces mount no contextual Help",
+      "nested Help preserves parent drafts and has no mutation/read side effects"
+    ],
+    "test_refs": [
+      "apps/dashboard/e2e/issue278-help-lifecycle.spec.ts",
+      "src/features/help/context-help.test.tsx",
+      "src/components/presentation/focus-dialog.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Static full-file semantic audit on frozen source with relevant production callers, authorization/scope lifecycle, focus/fencing and tests inspected; no tests, DB, browser suite, or product/tracked-file changes run in C008.",
+    "new_main_sha256": "30ad00e538caea7c6f994c66eaf619062a819e74422ac791dc6c379c89fb0bd4",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/customer/src/i18n/translations/guest-post-visit-ar.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c13d53ecd8e2aa69347fc02e88680da3dff518c447252ca728387709cafab379",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 29
+      }
+    ],
+    "semantic_review_notes": "Arabic post-visit payment summary, refund and 1–5 rating keys match the exact typed dictionary. Terms label NOT_REQUIRED/UNPAID/PENDING/PAID/FAILED without implying payment succeeded. Presentation-only; no state mutation.",
+    "callers_consumers": "GuestPostVisitTranslationDictionary; post-visit/rating/payment summary UI",
+    "invariants_error_checks": "Read every assigned line and relevant implementation; guest API scope/cookie-bearer separation, CSRF, bounded timeout/retry ambiguity, public-only SW cache, no production payments, and bilingual source keys examined. No new static confirmed P0/P1 from these files.",
+    "test_refs": [
+      "Assigned test source inspected, not run; linked GuestApiClient/guest-http-transport/api-origin/api-error/PWA implementations read for real behavior."
+    ],
+    "finding_ids": [],
+    "limits": "Static source review only; no live browser, server, provider, PostgreSQL, PWA physical device or deployment tests executed; other feature code was not exhaustively reaudited.",
+    "new_main_sha256": "c13d53ecd8e2aa69347fc02e88680da3dff518c447252ca728387709cafab379",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/customer/src/i18n/translations/guest-post-visit-en.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "69f4dcef95a11757f2363cc6f30db1bafc7deacc0260e8929c9953b952f63fd8",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 29
+      }
+    ],
+    "semantic_review_notes": "English post-visit/rating/payment summary labels parallel Arabic keys, including the distinct no-payment-required, pending/failed, and succeeded-refund cases. Typed complete dictionary, not payment authority.",
+    "callers_consumers": "GuestPostVisitTranslationDictionary; Guest PaymentSummary UI",
+    "invariants_error_checks": "Read every assigned line and relevant implementation; guest API scope/cookie-bearer separation, CSRF, bounded timeout/retry ambiguity, public-only SW cache, no production payments, and bilingual source keys examined. No new static confirmed P0/P1 from these files.",
+    "test_refs": [
+      "Assigned test source inspected, not run; linked GuestApiClient/guest-http-transport/api-origin/api-error/PWA implementations read for real behavior."
+    ],
+    "finding_ids": [],
+    "limits": "Static source review only; no live browser, server, provider, PostgreSQL, PWA physical device or deployment tests executed; other feature code was not exhaustively reaudited.",
+    "new_main_sha256": "69f4dcef95a11757f2363cc6f30db1bafc7deacc0260e8929c9953b952f63fd8",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/customer/src/i18n/translations/guest-post-visit-translation-types.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d4eafa2c65038f40116a75af94fd0dd56e17a53a24dec072e2780d6b07cf353c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 31
+      }
+    ],
+    "semantic_review_notes": "Typed bilingual post-visit surface enumerates rating stars and summary status/refund/method keys; mapped readonly type enforces exact dictionaries at compile-time. No runtime validation/payment behavior.",
+    "callers_consumers": "GuestPostVisitTranslationDictionary; customer i18n assembly",
+    "invariants_error_checks": "Read every assigned line and relevant implementation; guest API scope/cookie-bearer separation, CSRF, bounded timeout/retry ambiguity, public-only SW cache, no production payments, and bilingual source keys examined. No new static confirmed P0/P1 from these files.",
+    "test_refs": [
+      "Assigned test source inspected, not run; linked GuestApiClient/guest-http-transport/api-origin/api-error/PWA implementations read for real behavior."
+    ],
+    "finding_ids": [],
+    "limits": "Static source review only; no live browser, server, provider, PostgreSQL, PWA physical device or deployment tests executed; other feature code was not exhaustively reaudited.",
+    "new_main_sha256": "d4eafa2c65038f40116a75af94fd0dd56e17a53a24dec072e2780d6b07cf353c",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/customer/src/i18n/translations/guest-rating-translation-types.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8eccc1d193c3804f1f56c4f676fdb0d6cdbd123496bb1bc59db3a0af737fda33",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 11
+      }
+    ],
+    "semantic_review_notes": "Nine live-rating keys type safe user copy including submitting, conflict, unknown and unavailable outcomes; UI/server rating command still governs mutation. No executable branch or credential handling.",
+    "callers_consumers": "Guest rating UI and shared i18n TranslationDictionary",
+    "invariants_error_checks": "Read every assigned line and relevant implementation; guest API scope/cookie-bearer separation, CSRF, bounded timeout/retry ambiguity, public-only SW cache, no production payments, and bilingual source keys examined. No new static confirmed P0/P1 from these files.",
+    "test_refs": [
+      "Assigned test source inspected, not run; linked GuestApiClient/guest-http-transport/api-origin/api-error/PWA implementations read for real behavior."
+    ],
+    "finding_ids": [],
+    "limits": "Static source review only; no live browser, server, provider, PostgreSQL, PWA physical device or deployment tests executed; other feature code was not exhaustively reaudited.",
+    "new_main_sha256": "8eccc1d193c3804f1f56c4f676fdb0d6cdbd123496bb1bc59db3a0af737fda33",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/customer/src/i18n/translations/preview-ar.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "371e04eba34885b1b46f63252bb684539676712efa3d5fd45aba6f018fb05d7f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 76
+      }
+    ],
+    "semantic_review_notes": "Arabic preview dictionaries explicitly label service/payment/issue report examples as preview; local demonstration of payment/rating/issue flows is not a production mutation path. Partial dictionary is presentation-only.",
+    "callers_consumers": "Demo navigator and preview payment/issue screens",
+    "invariants_error_checks": "Read every assigned line and relevant implementation; guest API scope/cookie-bearer separation, CSRF, bounded timeout/retry ambiguity, public-only SW cache, no production payments, and bilingual source keys examined. No new static confirmed P0/P1 from these files.",
+    "test_refs": [
+      "Assigned test source inspected, not run; linked GuestApiClient/guest-http-transport/api-origin/api-error/PWA implementations read for real behavior."
+    ],
+    "finding_ids": [],
+    "limits": "Static source review only; no live browser, server, provider, PostgreSQL, PWA physical device or deployment tests executed; other feature code was not exhaustively reaudited.",
+    "new_main_sha256": "371e04eba34885b1b46f63252bb684539676712efa3d5fd45aba6f018fb05d7f",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/customer/src/i18n/translations/preview-en.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "cbd862f680d944cdb362d07df60b63ac19d788e0f7408ed2b97e5c7c7088c27a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 76
+      }
+    ],
+    "semantic_review_notes": "English preview copy keeps payment method, receipt, issue submission and failure states explicitly illustrative; it does not initiate payment/provider requests. Partial dictionary checked against shared key types.",
+    "callers_consumers": "Demo navigator and preview payment/issue screens",
+    "invariants_error_checks": "Read every assigned line and relevant implementation; guest API scope/cookie-bearer separation, CSRF, bounded timeout/retry ambiguity, public-only SW cache, no production payments, and bilingual source keys examined. No new static confirmed P0/P1 from these files.",
+    "test_refs": [
+      "Assigned test source inspected, not run; linked GuestApiClient/guest-http-transport/api-origin/api-error/PWA implementations read for real behavior."
+    ],
+    "finding_ids": [],
+    "limits": "Static source review only; no live browser, server, provider, PostgreSQL, PWA physical device or deployment tests executed; other feature code was not exhaustively reaudited.",
+    "new_main_sha256": "cbd862f680d944cdb362d07df60b63ac19d788e0f7408ed2b97e5c7c7088c27a",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/customer/src/i18n/translations/types.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9e6819d14ffe645b457b086844c3d554d16fd3e4a38c7830f947853ebd74f62d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 286
+      }
+    ],
+    "semantic_review_notes": "Central TranslationDictionary intersects guest error/info/rating/post-visit typed keys and enumerates lifecycle, handoff PIN/QR, privacy, payment and preview labels. Static typing allows the UI to present distinct statuses; not an authentication gate.",
+    "callers_consumers": "Customer i18n locale selectors, EN/AR dictionaries, Guest presentation screens",
+    "invariants_error_checks": "Read every assigned line and relevant implementation; guest API scope/cookie-bearer separation, CSRF, bounded timeout/retry ambiguity, public-only SW cache, no production payments, and bilingual source keys examined. No new static confirmed P0/P1 from these files.",
+    "test_refs": [
+      "Assigned test source inspected, not run; linked GuestApiClient/guest-http-transport/api-origin/api-error/PWA implementations read for real behavior."
+    ],
+    "finding_ids": [],
+    "limits": "Static source review only; no live browser, server, provider, PostgreSQL, PWA physical device or deployment tests executed; other feature code was not exhaustively reaudited.",
+    "new_main_sha256": "9e6819d14ffe645b457b086844c3d554d16fd3e4a38c7830f947853ebd74f62d",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/customer/src/lib/api/api-error.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0433280c14cda5cd56db65697bb0c60bf2e6b9626485db0851af17d1202e7208",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 31
+      }
+    ],
+    "semantic_review_notes": "Safe error mapper tests known invalid-access/rate-limit/state-transition copy plus fallback for malformed/500 payload. Implementation api-error.ts strips raw backend messages and never echoes bearer. No HTTP integration run.",
+    "callers_consumers": "api-error.ts; GuestApiClient; Guest session error UI",
+    "invariants_error_checks": "Read every assigned line and relevant implementation; guest API scope/cookie-bearer separation, CSRF, bounded timeout/retry ambiguity, public-only SW cache, no production payments, and bilingual source keys examined. No new static confirmed P0/P1 from these files.",
+    "test_refs": [
+      "Assigned test source inspected, not run; linked GuestApiClient/guest-http-transport/api-origin/api-error/PWA implementations read for real behavior."
+    ],
+    "finding_ids": [],
+    "limits": "Static source review only; no live browser, server, provider, PostgreSQL, PWA physical device or deployment tests executed; other feature code was not exhaustively reaudited.",
+    "new_main_sha256": "0433280c14cda5cd56db65697bb0c60bf2e6b9626485db0851af17d1202e7208",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/customer/src/lib/api/api-origin.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "210249ed6e63c1d0d266e3f37ff3a85e8ea6944c5e5f34d143a3d58a18a1ee3f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 94
+      }
+    ],
+    "semantic_review_notes": "Production API_ORIGIN tests fail when missing, enforce HTTPS except deliberate loopback, reject credentials/path/query/fragments, and keep browser fetch same-origin under /api/v1/guest rewrite. Tests are configuration contracts, not deployment TLS evidence.",
+    "callers_consumers": "api-origin.ts; api-config.ts; Next rewrite configuration",
+    "invariants_error_checks": "Read every assigned line and relevant implementation; guest API scope/cookie-bearer separation, CSRF, bounded timeout/retry ambiguity, public-only SW cache, no production payments, and bilingual source keys examined. No new static confirmed P0/P1 from these files.",
+    "test_refs": [
+      "Assigned test source inspected, not run; linked GuestApiClient/guest-http-transport/api-origin/api-error/PWA implementations read for real behavior."
+    ],
+    "finding_ids": [],
+    "limits": "Static source review only; no live browser, server, provider, PostgreSQL, PWA physical device or deployment tests executed; other feature code was not exhaustively reaudited.",
+    "new_main_sha256": "210249ed6e63c1d0d266e3f37ff3a85e8ea6944c5e5f34d143a3d58a18a1ee3f",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/customer/src/lib/api/guest-api-client-context-switch.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "48b02cc9496ea0516436386be43c3803ae30b258e89d67745b3f77f38785fdae",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 135
+      }
+    ],
+    "semantic_review_notes": "Tests narrow bearer+CSRF prepare/switch and cookie-only reconcile, rejection of stale browser context marker before request and stale in-flight read after marker rotation. Client constructor snapshots context and request checks it before and after transport; server still enforces cookie/Origin authority.",
+    "callers_consumers": "GuestApiClient; guest-browser-context-marker.ts; server browser-session transport",
+    "invariants_error_checks": "Read every assigned line and relevant implementation; guest API scope/cookie-bearer separation, CSRF, bounded timeout/retry ambiguity, public-only SW cache, no production payments, and bilingual source keys examined. No new static confirmed P0/P1 from these files.",
+    "test_refs": [
+      "Assigned test source inspected, not run; linked GuestApiClient/guest-http-transport/api-origin/api-error/PWA implementations read for real behavior."
+    ],
+    "finding_ids": [],
+    "limits": "Static source review only; no live browser, server, provider, PostgreSQL, PWA physical device or deployment tests executed; other feature code was not exhaustively reaudited.",
+    "new_main_sha256": "48b02cc9496ea0516436386be43c3803ae30b258e89d67745b3f77f38785fdae",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/customer/src/lib/api/guest-api-client.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d3c811cf96e49fdb7ef5cf31fed49984bd38bf6b041d285091b27261a837faca",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 278
+      }
+    ],
+    "semantic_review_notes": "Guest transport tests legacy bearer and no-store GET, explicit POST retrieval/cancel/handoff, safe 401/network handling, credential-free enrollment, bearer exchange, browser cookie reads/mutations with CSRF header. Actual GuestApiClient delegates to bounded transport and Zod contracts.",
+    "callers_consumers": "guest-api-client.ts; guest-http-transport.ts; guest API routes/contracts",
+    "invariants_error_checks": "Read every assigned line and relevant implementation; guest API scope/cookie-bearer separation, CSRF, bounded timeout/retry ambiguity, public-only SW cache, no production payments, and bilingual source keys examined. No new static confirmed P0/P1 from these files.",
+    "test_refs": [
+      "Assigned test source inspected, not run; linked GuestApiClient/guest-http-transport/api-origin/api-error/PWA implementations read for real behavior."
+    ],
+    "finding_ids": [],
+    "limits": "Static source review only; no live browser, server, provider, PostgreSQL, PWA physical device or deployment tests executed; other feature code was not exhaustively reaudited.",
+    "new_main_sha256": "d3c811cf96e49fdb7ef5cf31fed49984bd38bf6b041d285091b27261a837faca",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/customer/src/lib/api/guest-api-types.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4e11de0528a1fc813ef1f87b87586a34de06e2fad38aea94573c9c2303176b21",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 27
+      }
+    ],
+    "semantic_review_notes": "GuestSafeSession inferred from accepted shared schema, with optional branding; handoff union types discriminate PICKUP_CODE and DYNAMIC_QR methods. Compile-time typing only; actual runtime checks reside in client response schemas.",
+    "callers_consumers": "GuestApiClient; GuestSessionProvider; handoff verification components",
+    "invariants_error_checks": "Read every assigned line and relevant implementation; guest API scope/cookie-bearer separation, CSRF, bounded timeout/retry ambiguity, public-only SW cache, no production payments, and bilingual source keys examined. No new static confirmed P0/P1 from these files.",
+    "test_refs": [
+      "Assigned test source inspected, not run; linked GuestApiClient/guest-http-transport/api-origin/api-error/PWA implementations read for real behavior."
+    ],
+    "finding_ids": [],
+    "limits": "Static source review only; no live browser, server, provider, PostgreSQL, PWA physical device or deployment tests executed; other feature code was not exhaustively reaudited.",
+    "new_main_sha256": "4e11de0528a1fc813ef1f87b87586a34de06e2fad38aea94573c9c2303176b21",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/customer/src/lib/api/guest-http-transport.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3e821be89ad9b947acac0123a091113234b50a64e8306601497ba6eea325b45a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 93
+      }
+    ],
+    "semantic_review_notes": "Deadline tests cover hanging fetch AND body (8s reads, 12s mutations), classify unknown POST outcomes without replay, invalid JSON/schema rejection, safe Retry-After, external read cancellation, and terminal 401. Source uses AbortController plus Promise.race with cleanup.",
+    "callers_consumers": "guest-http-transport.ts; GuestApiClient; guest-read/mutation orchestrators",
+    "invariants_error_checks": "Read every assigned line and relevant implementation; guest API scope/cookie-bearer separation, CSRF, bounded timeout/retry ambiguity, public-only SW cache, no production payments, and bilingual source keys examined. No new static confirmed P0/P1 from these files.",
+    "test_refs": [
+      "Assigned test source inspected, not run; linked GuestApiClient/guest-http-transport/api-origin/api-error/PWA implementations read for real behavior."
+    ],
+    "finding_ids": [],
+    "limits": "Static source review only; no live browser, server, provider, PostgreSQL, PWA physical device or deployment tests executed; other feature code was not exhaustively reaudited.",
+    "new_main_sha256": "3e821be89ad9b947acac0123a091113234b50a64e8306601497ba6eea325b45a",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/customer/src/lib/api/guest-information-client.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e1fd676f2b59bb39968f03b4be13523df68453f45133a83eebf59a1a05b15ba3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 63
+      }
+    ],
+    "semantic_review_notes": "Authenticated Guest information read tests bearer vs cookie authority, no-store, locale binding and fail-closed mismatched locale, unsafe javascript contact URL and unpublished privacy projection. Source parses guestInformationResponseSchema and exact locale; server owns tenancy/published policy.",
+    "callers_consumers": "GuestApiClient.loadInformation; guest information contracts/API service",
+    "invariants_error_checks": "Read every assigned line and relevant implementation; guest API scope/cookie-bearer separation, CSRF, bounded timeout/retry ambiguity, public-only SW cache, no production payments, and bilingual source keys examined. No new static confirmed P0/P1 from these files.",
+    "test_refs": [
+      "Assigned test source inspected, not run; linked GuestApiClient/guest-http-transport/api-origin/api-error/PWA implementations read for real behavior."
+    ],
+    "finding_ids": [],
+    "limits": "Static source review only; no live browser, server, provider, PostgreSQL, PWA physical device or deployment tests executed; other feature code was not exhaustively reaudited.",
+    "new_main_sha256": "e1fd676f2b59bb39968f03b4be13523df68453f45133a83eebf59a1a05b15ba3",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/customer/src/lib/api/guest-t5-api.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bb5b25e0e837cf5cf6b7cfdbf157261c863a0c543365c457763f3f738ab85db5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 120
+      }
+    ],
+    "semantic_review_notes": "Real rating transport tests one CSRF-fenced POST, 1–5 strict local schema, lost response unknown/no automatic replay, conflict/not-available and malformed success. Payment projection is read-only exact visit URL and rejects extra provider secrets.",
+    "callers_consumers": "GuestApiClient.submitRating/loadPaymentProjection; rating/payment contracts",
+    "invariants_error_checks": "Read every assigned line and relevant implementation; guest API scope/cookie-bearer separation, CSRF, bounded timeout/retry ambiguity, public-only SW cache, no production payments, and bilingual source keys examined. No new static confirmed P0/P1 from these files.",
+    "test_refs": [
+      "Assigned test source inspected, not run; linked GuestApiClient/guest-http-transport/api-origin/api-error/PWA implementations read for real behavior."
+    ],
+    "finding_ids": [],
+    "limits": "Static source review only; no live browser, server, provider, PostgreSQL, PWA physical device or deployment tests executed; other feature code was not exhaustively reaudited.",
+    "new_main_sha256": "bb5b25e0e837cf5cf6b7cfdbf157261c863a0c543365c457763f3f738ab85db5",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/customer/src/lib/app-info.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7aa9dc5e7cb88d12c12323598d3b8e392c769c862cc850bfb77b62410915583b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 9
+      }
+    ],
+    "semantic_review_notes": "One scaffold smoke assertion checks the Customer app title only; carries no auth/persistence/production proof and must not be counted as functional E2E coverage.",
+    "callers_consumers": "app-info.ts; Customer app shell",
+    "invariants_error_checks": "Read every assigned line and relevant implementation; guest API scope/cookie-bearer separation, CSRF, bounded timeout/retry ambiguity, public-only SW cache, no production payments, and bilingual source keys examined. No new static confirmed P0/P1 from these files.",
+    "test_refs": [
+      "Assigned test source inspected, not run; linked GuestApiClient/guest-http-transport/api-origin/api-error/PWA implementations read for real behavior."
+    ],
+    "finding_ids": [],
+    "limits": "Static source review only; no live browser, server, provider, PostgreSQL, PWA physical device or deployment tests executed; other feature code was not exhaustively reaudited.",
+    "new_main_sha256": "7aa9dc5e7cb88d12c12323598d3b8e392c769c862cc850bfb77b62410915583b",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/customer/src/lib/guest-presentation-context.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c2b09180fe3f8ee693bc4f84d840df600ec6981628d9da693bd48a45af59f666",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 33
+      }
+    ],
+    "semantic_review_notes": "Browser sessionStorage namespace stores only fresh randomUUID, rotates on exchange, and returns null if storage denied. Implementation explicitly treats nonce as presentation-only, not bearer/cookie authority.",
+    "callers_consumers": "guest-presentation-context.ts; guest UI local state namespace",
+    "invariants_error_checks": "Read every assigned line and relevant implementation; guest API scope/cookie-bearer separation, CSRF, bounded timeout/retry ambiguity, public-only SW cache, no production payments, and bilingual source keys examined. No new static confirmed P0/P1 from these files.",
+    "test_refs": [
+      "Assigned test source inspected, not run; linked GuestApiClient/guest-http-transport/api-origin/api-error/PWA implementations read for real behavior."
+    ],
+    "finding_ids": [],
+    "limits": "Static source review only; no live browser, server, provider, PostgreSQL, PWA physical device or deployment tests executed; other feature code was not exhaustively reaudited.",
+    "new_main_sha256": "c2b09180fe3f8ee693bc4f84d840df600ec6981628d9da693bd48a45af59f666",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/customer/src/lib/pwa/guest-static-cache.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3c07803bc54ffe97307855ea0da389ed7667c08370f11685eba89491aec266f4",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 145
+      }
+    ],
+    "semantic_review_notes": "Executes public/sw.js in isolated fake Service Worker context: never intercept APIs/navigation/PIN/payment, caches only same-origin public assets without authorization or private/no-store/Set-Cookie, migrates selected legacy cache, and prunes to 240. No browser/device runtime run.",
+    "callers_consumers": "public/sw.js; PWA CacheStorage public-static whitelist",
+    "invariants_error_checks": "Read every assigned line and relevant implementation; guest API scope/cookie-bearer separation, CSRF, bounded timeout/retry ambiguity, public-only SW cache, no production payments, and bilingual source keys examined. No new static confirmed P0/P1 from these files.",
+    "test_refs": [
+      "Assigned test source inspected, not run; linked GuestApiClient/guest-http-transport/api-origin/api-error/PWA implementations read for real behavior."
+    ],
+    "finding_ids": [],
+    "limits": "Static source review only; no live browser, server, provider, PostgreSQL, PWA physical device or deployment tests executed; other feature code was not exhaustively reaudited.",
+    "new_main_sha256": "3c07803bc54ffe97307855ea0da389ed7667c08370f11685eba89491aec266f4",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/customer/src/lib/pwa/register-pwa.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "26a825d1bf29b6ca271367d4766f9292596d77db4a5558e0d9819bad5adc843e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 171
+      }
+    ],
+    "semantic_review_notes": "Registration lifecycle tests one production-only /sw.js attempt after ready/load, coalesced in-flight calls, graceful failure/retry, listener cleanup, no registration in development or absent APIs. register-pwa.ts avoids waiting for activation.",
+    "callers_consumers": "register-pwa.ts; Customer app startup PWA registration",
+    "invariants_error_checks": "Read every assigned line and relevant implementation; guest API scope/cookie-bearer separation, CSRF, bounded timeout/retry ambiguity, public-only SW cache, no production payments, and bilingual source keys examined. No new static confirmed P0/P1 from these files.",
+    "test_refs": [
+      "Assigned test source inspected, not run; linked GuestApiClient/guest-http-transport/api-origin/api-error/PWA implementations read for real behavior."
+    ],
+    "finding_ids": [],
+    "limits": "Static source review only; no live browser, server, provider, PostgreSQL, PWA physical device or deployment tests executed; other feature code was not exhaustively reaudited.",
+    "new_main_sha256": "26a825d1bf29b6ca271367d4766f9292596d77db4a5558e0d9819bad5adc843e",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/customer/src/lib/theme/colors.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C008",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "32672f99165ef1b0bf54a7b41a80f8655e0b4d3762a2ac3cd7543cf0e736a966",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 56
+      }
+    ],
+    "semantic_review_notes": "Shared Customer palette exports brand constants plus semantic CSS-variable tokens for dark/light themes. This file is presentation-only; contrast and high-zoom/browser display require independent visual checks, with UI Freeze unchanged.",
+    "callers_consumers": "Customer theme CSS and component style consumers",
+    "invariants_error_checks": "Read every assigned line and relevant implementation; guest API scope/cookie-bearer separation, CSRF, bounded timeout/retry ambiguity, public-only SW cache, no production payments, and bilingual source keys examined. No new static confirmed P0/P1 from these files.",
+    "test_refs": [
+      "Assigned test source inspected, not run; linked GuestApiClient/guest-http-transport/api-origin/api-error/PWA implementations read for real behavior."
+    ],
+    "finding_ids": [],
+    "limits": "Static source review only; no live browser, server, provider, PostgreSQL, PWA physical device or deployment tests executed; other feature code was not exhaustively reaudited.",
+    "new_main_sha256": "32672f99165ef1b0bf54a7b41a80f8655e0b4d3762a2ac3cd7543cf0e736a966",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/foundation/foundation-styles.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "71c649008222a56444c290181f870a863b358bdca724e071f5e5757c4e012419",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 160
+      }
+    ],
+    "semantic_review_notes": "Theme-only shared foundation styles bind action, input, locale, diagnostics, task and shell primitives to centralized employee palette/touch/spacing/typography tokens. No workflow state, credentials, network data or tenant authority is stored or derived here.",
+    "callers_consumers": "Foundation/auth/task shell screens using stylesTheme/styles; employee appearance context",
+    "invariants_error_checks": "Minimum touch targets and palette tokens are inherited from centralized UI primitives. Static light export is derived from the same theme factory; no business or authorization branch exists in this file.",
+    "test_refs": [
+      "employee-themed-styles.ts; employee-tokens.ts; employee-typography.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "71c649008222a56444c290181f870a863b358bdca724e071f5e5757c4e012419",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/guest-access/native-customer-app-origin-rules.mjs",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0473e8bd76e999ab0e51c2879c24dac33f06f8c9c7332a2892e86c37cf09f253",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 44
+      }
+    ],
+    "semantic_review_notes": "Canonical Customer App origin parser requires a bare origin with no credentials, query, fragment or path. Production accepts HTTPS only; non-production permits HTTP only for localhost/127.0.0.1/[::1]. Release helper throws on missing or invalid configuration.",
+    "callers_consumers": "native-customer-app-origin.ts; build/runtime release configuration checks",
+    "invariants_error_checks": "Untrusted configured origin cannot inject path, query, fragment or userinfo. Plain HTTP is impossible in production and limited to loopback in development.",
+    "test_refs": [
+      "native-customer-app-origin.ts; configuration/build callers",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "0473e8bd76e999ab0e51c2879c24dac33f06f8c9c7332a2892e86c37cf09f253",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/guest-access/native-customer-app-origin.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2575cf53f61372075928e5850666feef515e60055ec65a3513ee8da9d93d13c3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 60
+      }
+    ],
+    "semantic_review_notes": "Native boundary resolves release/dev origin and builds exactly origin plus hash guestToken URLs with a 43-character base64url token. Canonical validation reparses the URL, revalidates origin policy, forbids credentials/path/query, requires the exact hash form and exact reconstructed string equality.",
+    "callers_consumers": "NativeGuestAccessSession issue flow; NativeGuestAccessQr; customer app deep-link handoff",
+    "invariants_error_checks": "Invalid token or origin returns null or false, preventing credential rendering and QR generation. Production mode is derived from __DEV__ or NODE_ENV and cannot relax HTTPS through a URL value.",
+    "test_refs": [
+      "native-customer-app-origin-rules.mjs; native-guest-access-session.ts; native-guest-access-qr.tsx",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "2575cf53f61372075928e5850666feef515e60055ec65a3513ee8da9d93d13c3",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/guest-access/native-guest-access-confirm-sheet.tsx",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4421cc42bb5d02a33b2fbf5c797db3dea4736752bffbf1f4ca9ab7d4900e07c7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 66
+      }
+    ],
+    "semantic_review_notes": "Presentation-only confirmation modal for reissue and revoke. It receives already-localized copy and callbacks, exposes explicit confirm/cancel actions, marks modal accessibility scope, and mirrors RTL/LTR direction from textAlign.",
+    "callers_consumers": "NativeGuestAccessScreen reissue/revoke actions",
+    "invariants_error_checks": "No mutation occurs on backdrop or cancel. Confirmation callback is supplied by the screen/session owner, so this component cannot bypass guest-access state or authority checks.",
+    "test_refs": [
+      "native-guest-access-screen.tsx; native-guest-access-session.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "4421cc42bb5d02a33b2fbf5c797db3dea4736752bffbf1f4ca9ab7d4900e07c7",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/guest-access/native-guest-access-copy.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "968ab2a29e9019f0f738521bdc519f38fb25b2bb8b04357f026a86381b7094b0",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 48
+      }
+    ],
+    "semantic_review_notes": "Locale adapter maps the complete guest-access state, error and action vocabulary to the central EN/AR employee dictionary, including offline, ambiguous outcome, intent conflict, invalid generated credential and revoke/update failures.",
+    "callers_consumers": "NativeGuestAccessScreen; NativeGuestAccessStatusCard; check-in parking task and handoff pending surfaces",
+    "invariants_error_checks": "Error keys are a closed NativeGuestAccessError union; unknown backend strings are not surfaced directly. Locale only changes copy and does not affect authority or mutation rules.",
+    "test_refs": [
+      "native-guest-access-types.ts; native-employee-dictionary.ts; guest-access screen/status card",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "968ab2a29e9019f0f738521bdc519f38fb25b2bb8b04357f026a86381b7094b0",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/guest-access/native-guest-access-credential-memory.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5f52ab3f1df2d9c7f2c2b6305df95def630f2fcbb6303367e486508e7b384cf8",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 35
+      }
+    ],
+    "semantic_review_notes": "One-time guest credential URL is held only in process memory, keyed to the issuing session. Exposure requires the current snapshot to be ready, ACTIVE and on the same session; clear and replacement are explicit.",
+    "callers_consumers": "NativeGuestAccessSession freshCredentialUrl/publish/background/revalidate/clear",
+    "invariants_error_checks": "Credential is not part of the public snapshot. Session open, retry, background, revalidate, clear and ambiguous recovery clear memory, preventing stale link reuse across target or lifecycle changes.",
+    "test_refs": [
+      "native-guest-access-session.ts; native-guest-access-types.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "5f52ab3f1df2d9c7f2c2b6305df95def630f2fcbb6303367e486508e7b384cf8",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/guest-access/native-guest-access-qr.tsx",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "095fd61c8469c63a2670ee1aca8a1feae3a6a3d50b5d9d77e2deed891ca1f5d6",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 75
+      }
+    ],
+    "semantic_review_notes": "Pure-JS QR encoder renders only a credential URL that first passes canonical Guest Access URL validation. It stores no credential, rejects invalid matrix dimensions, and returns null on any encoding failure; the SVG contains only derived path geometry.",
+    "callers_consumers": "NativeGuestAccessStatusCard",
+    "invariants_error_checks": "QR cannot encode arbitrary URLs or malformed guest tokens. Credential rendering is additionally gated by ACTIVE status, credentialFresh and suppression state in the status card.",
+    "test_refs": [
+      "native-customer-app-origin.ts; native-guest-access-status-card.tsx",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "095fd61c8469c63a2670ee1aca8a1feae3a6a3d50b5d9d77e2deed891ca1f5d6",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/guest-access/native-guest-access-status-card.tsx",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "de1e424eaad7c9deeb80dbc7721e3eb27ff5662eceffaf9bcf39a9070b4ae003",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 168
+      }
+    ],
+    "semantic_review_notes": "Status UI renders QR and copy surfaces only when status is ACTIVE, credentialFresh is true, a non-null credential URL exists, and credential surfaces are not suppressed by invalid configuration. Other states expose status/date copy only.",
+    "callers_consumers": "NativeGuestAccessScreen; NativeGuestAccessQr",
+    "invariants_error_checks": "No stale credential is inferred from server ACTIVE state alone: process-memory freshness is separately required. Date formatting is locale-only; copy feedback never changes workflow state.",
+    "test_refs": [
+      "native-guest-access-screen.tsx; native-guest-access-session.ts; native-guest-access-qr.tsx",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "de1e424eaad7c9deeb80dbc7721e3eb27ff5662eceffaf9bcf39a9070b4ae003",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/guest-access/native-guest-access-styles.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e38e2bbb4ba4e9be59ec89d64c45d19fe95d194f7f0a162fc2035c0c1af84c47",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 78
+      }
+    ],
+    "semantic_review_notes": "Theme-only styles for Guest Access cards, QR, feedback and confirmation sheet use centralized employee palette, spacing, radii and typography. QR surface is fixed and clipped; error/success feedback use semantic palette tokens.",
+    "callers_consumers": "Guest Access screen/status/QR/confirm sheet",
+    "invariants_error_checks": "No credential, route, state or auth data is embedded in styles. Theme switching changes presentation only.",
+    "test_refs": [
+      "native-guest-access-screen.tsx; native-guest-access-status-card.tsx; native-guest-access-confirm-sheet.tsx",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "e38e2bbb4ba4e9be59ec89d64c45d19fe95d194f7f0a162fc2035c0c1af84c47",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/guest-access/native-guest-access-transport.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "45fa3e49c7c7ce41536f4baec6a83059f83ebbef729f60fc64ed347fae6e9d05",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 49
+      }
+    ],
+    "semantic_review_notes": "Thin authenticated EmployeeClient transport exposes canonical GET session, POST issue and POST revoke routes. It classifies only network, 408, 504 and explicit intent-conflict cases for reconciliation; other failures remain definitive at the session layer.",
+    "callers_consumers": "NativeGuestAccessSession; StaffGuestAccessController and GuestAccessService",
+    "invariants_error_checks": "Transport does not retry mutations. Staff endpoint authenticates exactly one Authorization header, derives principal user ID server-side, validates strict bodies and emits no-store responses. Ambiguous writes are reconciled by session reread instead of replay.",
+    "test_refs": [
+      "native-guest-access-session.ts; apps/api/src/modules/guest-access/guest-access.controller.ts; guest-access.service.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "45fa3e49c7c7ce41536f4baec6a83059f83ebbef729f60fc64ed347fae6e9d05",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/guest-access/native-guest-access-types.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "50f4a266dc27d4a90d1d36798144dbdf14c4443819f9d83041d692ecb0165594",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 77
+      }
+    ],
+    "semantic_review_notes": "Defines the nonsecret Guest Access snapshot, closed error/mutation phases, canonical target-vs-session matching, and allowed primary/revoke actions by server status. For HANDOFF origin it additionally requires HANDOFF_PENDING, pendingAt present and no verified proof before accepting a session detail.",
+    "callers_consumers": "NativeGuestAccessSession; NativeGuestAccessScreen; handoff recovery navigation",
+    "invariants_error_checks": "Credential URL is deliberately excluded from snapshot. Handoff-origin target validation prevents guest-access recovery after identity verification or against a different session. Action mapping cannot invent unsupported transitions.",
+    "test_refs": [
+      "native-guest-access-session.ts; native-guest-access-screen.tsx; native-handoff-guest-access-recovery.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "50f4a266dc27d4a90d1d36798144dbdf14c4443819f9d83041d692ecb0165594",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/handoff/native-handoff-copy.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ea954646c26036c1efa3fe494cf1d5fa0958aa215347377f259cad5fe8ff67f8",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 113
+      }
+    ],
+    "semantic_review_notes": "Locale adapter maps handoff READY/pending/verified/error/scanner/supervisor/abort copy to central employee/platform dictionaries for EN/AR. Failure presentation appends bounded retry-after guidance without parsing backend authority or proof content.",
+    "callers_consumers": "NativeHandoffPanel; NativeHandoffPending; NativeHandoffScanner",
+    "invariants_error_checks": "Copy layer is presentation-only and preserves proof placeholders rather than user-entered secrets. Locale changes wording and direction only.",
+    "test_refs": [
+      "native-handoff-panel.tsx; native-handoff-pending.tsx; native-employee-dictionary.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "ea954646c26036c1efa3fe494cf1d5fa0958aa215347377f259cad5fe8ff67f8",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/handoff/native-handoff-guest-access-recovery.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "42f7d34140d9c32bae563fa67da9580b9d61b6867206c07a6d7cc425b12b770d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 38
+      }
+    ],
+    "semantic_review_notes": "Derives Guest Access recovery target only from a stable canonical pending handoff: valid employee/supervisor scope, matching location, retrieval IN_PROGRESS task, matching session/state/version and no verified handoff timestamp. It returns only origin HANDOFF plus sessionId.",
+    "callers_consumers": "NativeHandoffPanel; native-production-workflow-navigation; NativeGuestAccessSession target validation",
+    "invariants_error_checks": "This helper does not grant server authority. It suppresses recovery when scope/task/session coherence is broken or handoff is already verified; server Guest Access authorization remains authoritative.",
+    "test_refs": [
+      "native-production-workflow-navigation.ts; native-guest-access-types.ts; employee handoff state/session",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "42f7d34140d9c32bae563fa67da9580b9d61b6867206c07a6d7cc425b12b770d",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/handoff/native-handoff-panel.tsx",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2d73c38f28e5c4c28dddce16357a3acf3c811b8a8c56fe8cc0c73bbcdbdafa33",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 218
+      }
+    ],
+    "semantic_review_notes": "Top-level handoff UI derives busy/pending/verified/error presentation from EmployeeHandoffSnapshot, clears all ephemeral proof/reason fields on back, disables navigation while protected phases run, and only exposes Guest Access recovery when the canonical recovery helper succeeds.",
+    "callers_consumers": "NativeProductionWorkspace; EmployeeHandoffSession; NativeHandoffPending; production back handler",
+    "invariants_error_checks": "Protected actions delegate to the fenced EmployeeHandoffSession. Supervisor controls are derived from canonical scope role, report/recovery callbacks use the current canonical session, and ambiguous/unavailable/conflict states offer reread rather than mutation replay.",
+    "test_refs": [
+      "native-production-workspace.tsx; employee-handoff-flow-session.ts; native-handoff-guest-access-recovery.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "2d73c38f28e5c4c28dddce16357a3acf3c811b8a8c56fe8cc0c73bbcdbdafa33",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/handoff/native-handoff-pending.tsx",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8cf0403fdecf833a46f2c85ce5ceb3f7e9b50955a4a03a11251f1436241b2728",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 188
+      }
+    ],
+    "semantic_review_notes": "Pending handoff form constrains pickup input to four digits, requires DYNAMIC_QR_PATTERN for QR verification, clears proof immediately before dispatch, exposes supervisor override only when parent canonical scope says supervisor, and keeps abort/reason actions bounded. Camera scan supplies only candidate input; explicit Verify owns mutation.",
+    "callers_consumers": "NativeHandoffPanel; EmployeeHandoffSession; NativeHandoffScanner; NativeHandoffReasonAction",
+    "invariants_error_checks": "Busy state disables input/actions. Raw pickup/QR proof is not retained after submit; session independently revalidates proof format, ownership/role and target generation before dispatch. Guest Access recovery is disabled during protected work.",
+    "test_refs": [
+      "employee-handoff-flow-session.ts; employee-handoff-flow-session.test.ts; native-handoff-scanner.tsx",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "8cf0403fdecf833a46f2c85ce5ceb3f7e9b50955a4a03a11251f1436241b2728",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/handoff/native-handoff-privacy.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7e0d5549266cdbd5806c82a9602bd55f152ed434c7cff77238af1189cb2f47c2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 51
+      }
+    ],
+    "semantic_review_notes": "Privacy hook clears pickup code and QR proof whenever app leaves active state, clears all proof/reason inputs on identity/scope/role/task/assignee/session changes, and clears proof whenever phase leaves pending.",
+    "callers_consumers": "NativeHandoffPanel; React Native AppState",
+    "invariants_error_checks": "Sensitive proof lifetime is bounded to the active pending UI and current authority tuple. Reason fields also retire on authority/target changes, preventing cross-task leakage.",
+    "test_refs": [
+      "native-handoff-panel.tsx; employee-handoff-flow-fences.test.ts; native-production-lifecycle-owner.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "7e0d5549266cdbd5806c82a9602bd55f152ed434c7cff77238af1189cb2f47c2",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/handoff/native-handoff-protection.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fc3d4d9a669c65bcfd66fed9e7d1a4941b3029fec024da56f8fd030dffd8ff40",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 11
+      }
+    ],
+    "semantic_review_notes": "Defines the exact protected handoff phases that block native hardware/back navigation: aborting, initiating, overriding, reconciling and verifying.",
+    "callers_consumers": "native-production-back-handler.ts",
+    "invariants_error_checks": "Navigation cannot clear/abandon a protected handoff while a mutation or canonical reconciliation is in progress; nonprotected states use normal cleanup navigation.",
+    "test_refs": [
+      "native-production-back-handler.ts; employee-handoff-flow-session.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "fc3d4d9a669c65bcfd66fed9e7d1a4941b3029fec024da56f8fd030dffd8ff40",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/handoff/native-handoff-reason-action.tsx",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5f4c607fb78bc28f04b58d411e5881639fdf2eb29749d1dd21dd1969b6770eda",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 64
+      }
+    ],
+    "semantic_review_notes": "Reusable reason control bounds input to 500 characters, requires trimmed nonempty content, disables editing/submission while busy, supports localized human alignment and surfaces operation error separately.",
+    "callers_consumers": "NativeHandoffPending supervisor override and abort controls",
+    "invariants_error_checks": "UI bounds match the handoff contract/session reason rules; it cannot submit empty or oversized reasons, while server/session remain authoritative for role/state.",
+    "test_refs": [
+      "native-handoff-pending.tsx; packages/contracts/src/handoff.ts; employee-handoff-flow-session.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "5f4c607fb78bc28f04b58d411e5881639fdf2eb29749d1dd21dd1969b6770eda",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/handoff/native-handoff-route-presentation.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "50eef0bbecf4d295333196936e077463f54688b96b7331570cdaf8b35fa234ab",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 27
+      }
+    ],
+    "semantic_review_notes": "Presentation router chooses Handoff/Release versus Retrieval based on canonical release/handoff phases and session state. Release always wins; loading/ambiguous/unavailable handoff is shown only for compatible retrieval phases, avoiding a UI jump that would discard unresolved protected state.",
+    "callers_consumers": "NativeProductionWorkspace retrieval destination",
+    "invariants_error_checks": "This function selects presentation only; it does not grant task authority. Workspace uses the existing runtime sessions whose state is generation/scope fenced and clears all three flows together on close.",
+    "test_refs": [
+      "native-production-workspace.tsx; native-production-workflow-navigation.ts; employee handoff/retrieval/release sessions",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "50eef0bbecf4d295333196936e077463f54688b96b7331570cdaf8b35fa234ab",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/handoff/native-handoff-scanner.tsx",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3f6aa50b1b782ebd3181a033de4bc9452be591164f64c9228fa1472979d770ad",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 142
+      }
+    ],
+    "semantic_review_notes": "Dynamic-handoff scanner binds camera eligibility directly to current auth generation, identity invalidation and foreground AppState. Camera barcode decoding only produces a dynamic-handoff candidate and closes capture; explicit Verify remains separate. Manual edits close camera and are trimmed; denied permanent permission offers OS settings.",
+    "callers_consumers": "NativeHandoffPending; NativeQrController; bindNativeQrLifecycle",
+    "invariants_error_checks": "Stale/auth-lost/background camera generations are made ineligible and cleared. Controller does not serialize dynamic proof into its snapshot; only the ephemeral input owner receives it. Non-QR or wrong-kind inputs are rejected.",
+    "test_refs": [
+      "native-qr-controller.ts; native-qr-lifecycle.ts; employee handoff flow tests",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "3f6aa50b1b782ebd3181a033de4bc9452be591164f64c9228fa1472979d770ad",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/handoff/native-handoff-styles.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7b334e18f34cf759ae648b14a8d23f8c8ab9afd0139a27b0ef0a28686d6e7266",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 64
+      }
+    ],
+    "semantic_review_notes": "Theme-only handoff/release presentation styles use centralized employee palette, spacing and typography for cards, inputs, warning surfaces, vehicle identity and camera area. Pickup/QR inputs are explicitly LTR even inside Arabic flow.",
+    "callers_consumers": "NativeHandoffPanel/Pending/Scanner/Vehicle; NativeReleasePanel",
+    "invariants_error_checks": "No workflow state, proof, role, credential or server data is stored in styles. Warning colors come from semantic theme tokens and the same theme factory supplies light/dark presentation.",
+    "test_refs": [
+      "native-handoff-panel.tsx; native-release-panel.tsx; employee appearance tokens",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "7b334e18f34cf759ae648b14a8d23f8c8ab9afd0139a27b0ef0a28686d6e7266",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/handoff/native-handoff-vehicle.tsx",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fc487885decc0d27e5c5582842e780aadf1cae6bbd0f3a6e9ed1cb32f3e5a88a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 56
+      }
+    ],
+    "semantic_review_notes": "Read-only vehicle summary chooses canonical task vehicle first, falling back to canonical session vehicle, then renders make/model plus plate or temporary descriptor and optional key-slot code. Identifier styling remains isolated from human text direction.",
+    "callers_consumers": "NativeHandoffPanel; NativeReleasePanel",
+    "invariants_error_checks": "No editable data or mutation is exposed. Values come from EmployeeHandoff/Release snapshots that are loaded from canonical task/session projections; missing vehicle safely renders nothing.",
+    "test_refs": [
+      "native-handoff-panel.tsx; native-release-panel.tsx; employee handoff/release state loaders",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "fc487885decc0d27e5c5582842e780aadf1cae6bbd0f3a6e9ed1cb32f3e5a88a",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/handoff/native-release-copy.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6ea373fa2cc29412b1a1929c7e8c1aa3a3a8447acd72b8944922670b307d6145",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 59
+      }
+    ],
+    "semantic_review_notes": "Locale adapter maps final-release states, verification methods, authority/payment/verification blocks, irreversible release warning, retry and issue-reporting copy from the central EN/AR employee dictionary.",
+    "callers_consumers": "NativeReleasePanel",
+    "invariants_error_checks": "Presentation copy does not choose release eligibility; canonical EmployeeReleaseSession state controls whether release is ready, blocked, ambiguous or released.",
+    "test_refs": [
+      "native-release-panel.tsx; employee-release-flow-session.ts; native employee dictionaries",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "6ea373fa2cc29412b1a1929c7e8c1aa3a3a8447acd72b8944922670b307d6145",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/handoff/native-release-panel.tsx",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3b682dc73e23b68997bed8ff2d809124e73c80ebccee7aa02a5b7a07627e1f4f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 173
+      }
+    ],
+    "semantic_review_notes": "Final-release UI delegates the protected mutation to EmployeeReleaseSession, disables back while releasing/reconciling/ambiguous, exposes reread for ambiguous/conflict/unavailable, and shows separate financial/authority/verification blocks. Canonical session logic independently requires verified handoff, task ownership and satisfied payment before release. Confirmed presentation defect C009-NATIVE-001: every non-loading/reconciling state renders a vehicle eyebrow built as Identity verified plus a method label, so phase=blocked/block=verification can falsely claim identity verified and defaults the method label to pickup code when verification is absent.",
+    "callers_consumers": "NativeProductionWorkspace; EmployeeReleaseSession; NativeHandoffVehicle; production back handler",
+    "invariants_error_checks": "No authorization bypass found: release button exists only in ready/releasing and EmployeeReleaseSession.release() rechecks releaseSatisfied, HANDOFF_PENDING, VERIFIED verification and current task owner. The finding is UI truthfulness only, not command authority.",
+    "test_refs": [
+      "employee-release-flow-state.ts; employee-release-flow-session.ts; employee-release-flow-lifecycle.test.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [
+      "C009-NATIVE-001"
+    ],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "3b682dc73e23b68997bed8ff2d809124e73c80ebccee7aa02a5b7a07627e1f4f",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/handoff/native-release-protection.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5087b07b13988beb5674491152a31684d6fbb57aa28ab656c44c9f3d7f378258",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 7
+      }
+    ],
+    "semantic_review_notes": "Back-navigation guard marks releasing, reconciling and ambiguous release phases as protected.",
+    "callers_consumers": "NativeReleasePanel; native-production-back-handler.ts",
+    "invariants_error_checks": "Hardware/header back cannot clear an unresolved or in-flight final release. Other states can navigate through the normal cleanup path.",
+    "test_refs": [
+      "native-release-panel.tsx; native-production-back-handler.ts; employee-release-flow-lifecycle.test.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "5087b07b13988beb5674491152a31684d6fbb57aa28ab656c44c9f3d7f378258",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/i18n/native-dictionary-ar-check-in-actions.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b8a0e57e59a3fd3bedf7769f2872e6ff1b6518ad5ba5db7b7692a8c9303bcaf2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 21
+      }
+    ],
+    "semantic_review_notes": "Arabic Check-In continuation/cancellation copy mirrors the 14 English action keys and explicitly describes incomplete history retention, unknown cancellation outcome, server-state checking, conflict and unavailable states without claiming success prematurely.",
+    "callers_consumers": "native-check-in-actions-copy.ts; Vehicles Check-In action surfaces",
+    "invariants_error_checks": "Static key comparison found exact 14/14 parity with English. Copy keeps ambiguous cancellation honest and does not expose backend error strings.",
+    "test_refs": [
+      "native-dictionary-en-check-in-actions.ts; vehicles/native-check-in-actions-copy.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "b8a0e57e59a3fd3bedf7769f2872e6ff1b6518ad5ba5db7b7692a8c9303bcaf2",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/i18n/native-dictionary-ar-check-in.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e7cac6d128185e56d4ff86836102a528e09368f53116d300ac3bbc4be75ede90",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 40
+      }
+    ],
+    "semantic_review_notes": "Arabic Check-In field/vehicle/camera copy mirrors all 32 English fragment keys, including intake stopped, returning-customer, vehicle description and plate-camera labels. Native camera phase presentation actually consumes platform camera denial/error/unavailable copy while this fragment supplies open/close/start/preview/retry and check-in form text.",
+    "callers_consumers": "getNativeCheckInCopy; getNativePlateCameraCopy; check-in screens",
+    "invariants_error_checks": "Static key comparison found exact 32/32 parity with English. Locale changes only human-facing text; country/state/mutation semantics remain contract/session controlled. Browser-specific legacy strings in this fragment are not used by NativePlateCameraCopy for denied/error/unavailable phases.",
+    "test_refs": [
+      "native-dictionary-en-check-in.ts; native-check-in-copy.ts; native-plate-camera-copy.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "e7cac6d128185e56d4ff86836102a528e09368f53116d300ac3bbc4be75ede90",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/i18n/native-dictionary-ar-parking.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ada9e3642a4c99d9e652893a1d7b4066f36f93df75de9afb38a2290bf65daeb5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 7
+      }
+    ],
+    "semantic_review_notes": "Arabic parking validation fragment provides the three exact English keys for validation pending, unavailable spot and validation transport retry, preserving the distinction between authoritative spot unavailability and inability to validate.",
+    "callers_consumers": "getNativeParkingConfirmCopy; parking confirmation UI",
+    "invariants_error_checks": "Static key comparison found 3/3 parity. Copy does not infer availability; EmployeeParkingSpotValidation and server response determine state.",
+    "test_refs": [
+      "native-dictionary-en-parking.ts; native-parking-confirm-copy.ts; employee parking validation flow",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "ada9e3642a4c99d9e652893a1d7b4066f36f93df75de9afb38a2290bf65daeb5",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/i18n/native-dictionary-ar-scan-hub.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9111582bcaa547b1c12c123e386e1b204091741a079fa22f2603f773d177f10b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 15
+      }
+    ],
+    "semantic_review_notes": "Arabic scan-hub fragment mirrors all eight English keys and describes the hub as workflow-context navigation: disabled reasons require opening the relevant vehicle/parking/retrieval workflow rather than implying that scanning grants authority.",
+    "callers_consumers": "getNativeScanHubCopy; NativeScanHubScreen/gates",
+    "invariants_error_checks": "Static key comparison found 8/8 parity. Scan-hub gating remains code-derived from current workflow scope; copy is descriptive only.",
+    "test_refs": [
+      "native-dictionary-en-scan-hub.ts; native-scan-hub-copy.ts; native-scan-hub-gates.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "9111582bcaa547b1c12c123e386e1b204091741a079fa22f2603f773d177f10b",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/i18n/native-dictionary-ar-scanner.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "733bc3b55d9c9efa9ead620ace044af1c104bbc71ffe124dba52b1704dbeaadf",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 30
+      }
+    ],
+    "semantic_review_notes": "Arabic QR/camera fragment is explicitly typed as Pick of the English scanner keys, covering camera lifecycle, manual fallback and wrong-type QR classifications for handoff/key-slot/parking. Operational codes remain LTR through existing scanner/input presentation.",
+    "callers_consumers": "getNativeQrCopy; NativeHandoffScanner; shared native scanner surfaces",
+    "invariants_error_checks": "Type shape enforces exact English scanner-key parity at compile time. Wrong-type copy distinguishes candidate type errors without exposing decoded proof content.",
+    "test_refs": [
+      "native-dictionary-en-scanner.ts; native-qr-copy.ts; native-handoff-scanner.tsx",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "733bc3b55d9c9efa9ead620ace044af1c104bbc71ffe124dba52b1704dbeaadf",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/i18n/native-dictionary-ar-shift.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "46669e20ddde534eff8b532491fc05463b2724b5a615996dd34fb32c7aa0bd44",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 44
+      }
+    ],
+    "semantic_review_notes": "Arabic shift lifecycle fragment mirrors all 32 English keys for start/end, cash reconciliation, active-shift context and ambiguous network outcomes. Uncertain start/end wording explicitly says not to assume success and to reconnect/retry the same action.",
+    "callers_consumers": "getNativeShiftCopy; Native active/start/end shift panels",
+    "invariants_error_checks": "Static key comparison found 32/32 parity. Cash validation wording matches nonnegative max-three-decimal input; mutation authority and ambiguity reconciliation remain in Employee shift sessions.",
+    "test_refs": [
+      "native-dictionary-en-shift.ts; native-shift-copy.ts; employee shift session/fence tests",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "46669e20ddde534eff8b532491fc05463b2724b5a615996dd34fb32c7aa0bd44",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/i18n/native-dictionary-ar-vehicles.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4adf4d13126a67a975939665d3333b884846c424037e4cb398e1a34ef6600693",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 22
+      }
+    ],
+    "semantic_review_notes": "Arabic active-Vehicles fragment mirrors all 11 English keys and keeps the surface explicitly read-only, location-scoped and potentially truncated, with no claim that the visible page is exhaustive.",
+    "callers_consumers": "getNativeVehiclesCopy; NativeVehiclesRoute/list/detail",
+    "invariants_error_checks": "Static key comparison found 11/11 parity. Copy sends users to task workflows for actions and does not imply that list contents grant mutation authority.",
+    "test_refs": [
+      "native-dictionary-en-vehicles.ts; native-vehicles-copy.ts; vehicles route",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "4adf4d13126a67a975939665d3333b884846c424037e4cb398e1a34ef6600693",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/i18n/native-dictionary-ar.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d722b719e98f110b120ee2f603a4a1f57ca0a075014a38a0ccb03cd46f16ca33",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 295
+      }
+    ],
+    "semantic_review_notes": "Composes all Arabic fragments into a NativeEmployeeDictionary typed against the complete English dictionary key set, then supplies the remaining shared operational, handoff/release, guest-access, incident and shell copy. Guest-access ambiguous outcome text and release/shift wording preserve server-state uncertainty rather than claiming completion.",
+    "callers_consumers": "getNativeEmployeeDictionary and all Arabic native screens/copy adapters",
+    "invariants_error_checks": "The root type ties Arabic keys to the English dictionary surface, while fragment parity checks confirmed assigned split modules. Strings are presentation-only; auth/scope/state decisions remain in runtime sessions and shell controllers.",
+    "test_refs": [
+      "native-employee-dictionary.ts; native-dictionary-en.ts; native handoff/guest/shift/check-in copy adapters",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "d722b719e98f110b120ee2f603a4a1f57ca0a075014a38a0ccb03cd46f16ca33",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/i18n/native-dictionary-en-check-in-actions.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a54eb6934d9c4c4b5215d9868a8c0617ac4d8f0b6bf1ba2643105cc670ed27a9",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 21
+      }
+    ],
+    "semantic_review_notes": "English Check-In continuation/cancellation fragment defines the same 14 keys as Arabic and explicitly distinguishes incomplete, cancelling, outcome-unknown, conflict, unavailable and cancelled states.",
+    "callers_consumers": "native-check-in-actions-copy.ts; Vehicles Check-In action surfaces",
+    "invariants_error_checks": "Static key comparison found exact EN/AR parity. Unknown cancellation directs a server-state check before retry and does not imply that a lost response failed.",
+    "test_refs": [
+      "native-dictionary-ar-check-in-actions.ts; vehicles/native-check-in-actions-copy.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "a54eb6934d9c4c4b5215d9868a8c0617ac4d8f0b6bf1ba2643105cc670ed27a9",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/valet-native/src/i18n/native-dictionary-en-check-in.ts",
+    "worker": "native",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3182e141c6128df74f5bdb74119e937d417e6bd3d088c7e84c1b0b752a4bd1d5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 43
+      }
+    ],
+    "semantic_review_notes": "English Check-In fragment defines the same 32 keys as Arabic for vehicle identity, returning customer and plate-camera/check-in guidance. Native camera presentation consumes this fragment for open/close/start/preview/retry while platform camera copy owns denial/error/unavailable phases.",
+    "callers_consumers": "getNativeCheckInCopy; getNativePlateCameraCopy; check-in screens",
+    "invariants_error_checks": "Static key comparison found exact 32/32 EN/AR parity. These strings do not alter camera permission, OCR, intake or customer association authority.",
+    "test_refs": [
+      "native-dictionary-ar-check-in.ts; native-check-in-copy.ts; native-plate-camera-copy.ts",
+      "Static semantic review only; no tests, DB, CI, GitHub, commit/push, merge or deploy executed."
+    ],
+    "finding_ids": [],
+    "limits": "Frozen-source static review at assigned commit; runtime behavior was not executed.",
+    "new_main_sha256": "3182e141c6128df74f5bdb74119e937d417e6bd3d088c7e84c1b0b752a4bd1d5",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/search/search-integrity.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "655498dfd08896a09a2c7b132b7fd3d30dda96681887884776f0ed9edcc09abb",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 107
+      }
+    ],
+    "semantic_review_notes": "Location-scoped SQL integrity probe compares persisted direct Session with entity Session, Vehicle, Task, Incident and PARKED metadata/task hints at the captured snapshot; records generic anomaly and does not treat absent legacy S0 parents as automatically corrupt. Uses positional params, no client SQL interpolation.",
+    "callers_consumers": "searchAuditInvestigationSessions; four-source coverage indicator",
+    "invariants_error_checks": "Read all lines and separately inspected linked canonical Investigation Search service, Company Analytics composer and per-location bounds. Kept role/MFA/CSRF, tenant isolation, snapshot keyset, cursor integrity, observed actor provenance, no-store and group-limit semantics in scope; no new confirmed P0/P1 from assigned files.",
+    "test_refs": [
+      "Relevant issue300 Investigation SQL/static/PG integration suites and Company Analytics Issue319 integration tests located but NOT run. Source and service calls reviewed."
+    ],
+    "finding_ids": [],
+    "limits": "Static frozen-source semantic assessment only; actual PostgreSQL schema/data, race execution, authenticated browser/HTTP, Company Analytics large datasets and CI were not run in this session.",
+    "new_main_sha256": "655498dfd08896a09a2c7b132b7fd3d30dda96681887884776f0ed9edcc09abb",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/search/search-page-query.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9c07fa405d2c9a49fae239bf82a3e3cf46c9498c66082d143dfbc46d102fc45c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 204
+      }
+    ],
+    "semantic_review_notes": "Search witness SQL groups source-event evidence per Session, paginates by exact PostgreSQL microsecond last timestamp and UUID, bounds reason rows per category and sanitizes current vehicle/key labels. Vehicle prefix and exact plate/country are bound parameters; current identity labels are not historical proof.",
+    "callers_consumers": "audit-investigation-search.service.ts; Dashboard Investigation results",
+    "invariants_error_checks": "Read all lines and separately inspected linked canonical Investigation Search service, Company Analytics composer and per-location bounds. Kept role/MFA/CSRF, tenant isolation, snapshot keyset, cursor integrity, observed actor provenance, no-store and group-limit semantics in scope; no new confirmed P0/P1 from assigned files.",
+    "test_refs": [
+      "Relevant issue300 Investigation SQL/static/PG integration suites and Company Analytics Issue319 integration tests located but NOT run. Source and service calls reviewed."
+    ],
+    "finding_ids": [],
+    "limits": "Static frozen-source semantic assessment only; actual PostgreSQL schema/data, race execution, authenticated browser/HTTP, Company Analytics large datasets and CI were not run in this session.",
+    "new_main_sha256": "9c07fa405d2c9a49fae239bf82a3e3cf46c9498c66082d143dfbc46d102fc45c",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/search/search-selector-authorization.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "366a01eaec0317b714103b6dbb628a6638ff3fb2363a3a8fd0d86ce36e316355",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 37
+      }
+    ],
+    "semantic_review_notes": "Pre-search key slot UUID must exist in exact Org+Location; membership UUID must belong to Org and have recorded exact-Location historical participation. Both foreign and absent selectors produce generic denial before source query. The filter UUID itself grants no read authority.",
+    "callers_consumers": "AuditInvestigationSearchService.search; search-selector-query historical participation SQL",
+    "invariants_error_checks": "Read all lines and separately inspected linked canonical Investigation Search service, Company Analytics composer and per-location bounds. Kept role/MFA/CSRF, tenant isolation, snapshot keyset, cursor integrity, observed actor provenance, no-store and group-limit semantics in scope; no new confirmed P0/P1 from assigned files.",
+    "test_refs": [
+      "Relevant issue300 Investigation SQL/static/PG integration suites and Company Analytics Issue319 integration tests located but NOT run. Source and service calls reviewed."
+    ],
+    "finding_ids": [],
+    "limits": "Static frozen-source semantic assessment only; actual PostgreSQL schema/data, race execution, authenticated browser/HTTP, Company Analytics large datasets and CI were not run in this session.",
+    "new_main_sha256": "366a01eaec0317b714103b6dbb628a6638ff3fb2363a3a8fd0d86ce36e316355",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/search/search-selector-cursor.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6411ff1fd70bd84a78ddca7b1fe2053892746b5aa5c9e5d9b3846257b5297bdc",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 97
+      }
+    ],
+    "semantic_review_notes": "Member directory pagination cursor HMAC-SHA256 uses strict 32-byte canonical environment secret, distinct signature/viewer/filter domains, current auth-session and location/role binding, 5-minute lifetime, canonical base64url and timing-safe compare. Decode is only after W4 authorization and rejects altered/expired context.",
+    "callers_consumers": "AuditInvestigationSearchService.filters; issue300-search/search-selector-cursor.test.ts",
+    "invariants_error_checks": "Read all lines and separately inspected linked canonical Investigation Search service, Company Analytics composer and per-location bounds. Kept role/MFA/CSRF, tenant isolation, snapshot keyset, cursor integrity, observed actor provenance, no-store and group-limit semantics in scope; no new confirmed P0/P1 from assigned files.",
+    "test_refs": [
+      "Relevant issue300 Investigation SQL/static/PG integration suites and Company Analytics Issue319 integration tests located but NOT run. Source and service calls reviewed."
+    ],
+    "finding_ids": [],
+    "limits": "Static frozen-source semantic assessment only; actual PostgreSQL schema/data, race execution, authenticated browser/HTTP, Company Analytics large datasets and CI were not run in this session.",
+    "new_main_sha256": "6411ff1fd70bd84a78ddca7b1fe2053892746b5aa5c9e5d9b3846257b5297bdc",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/search/search-selector-query.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b54cc0ffbb3ed785eac81d445a44c769b0b68770d9d68aa3530c19ecc2faad78",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 156
+      }
+    ],
+    "semantic_review_notes": "Exact-location key slot and historical member selector SQL escapes literal prefix LIKE wildcard characters and limits rows; member list requires one of Key/Dispatch/Audit/Incident participation witnesses, with actor type and canonical Session relation guards. Sanitized present-day labels have CURRENT basis; hasMore/nextCursor is owned by service.",
+    "callers_consumers": "AuditInvestigationSearchService.filters; search-selector-authorization.ts; issue300-search/search-selectors.test.ts",
+    "invariants_error_checks": "Read all lines and separately inspected linked canonical Investigation Search service, Company Analytics composer and per-location bounds. Kept role/MFA/CSRF, tenant isolation, snapshot keyset, cursor integrity, observed actor provenance, no-store and group-limit semantics in scope; no new confirmed P0/P1 from assigned files.",
+    "test_refs": [
+      "Relevant issue300 Investigation SQL/static/PG integration suites and Company Analytics Issue319 integration tests located but NOT run. Source and service calls reviewed."
+    ],
+    "finding_ids": [],
+    "limits": "Static frozen-source semantic assessment only; actual PostgreSQL schema/data, race execution, authenticated browser/HTTP, Company Analytics large datasets and CI were not run in this session.",
+    "new_main_sha256": "b54cc0ffbb3ed785eac81d445a44c769b0b68770d9d68aa3530c19ecc2faad78",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/search/search-witness-sql.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "57e84e5ababb715084e50f722b900c7b7ceecd153b635b550a78d8bb1691058d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 180
+      }
+    ],
+    "semantic_review_notes": "Four independently Org+Location-scoped witness arms (Audit/Key/Dispatch/Incident) preserve persisted source identity, birth-XID visibility and cutoff; direct Session or literal Session-entity source anchors Audit, rejecting contradictory Vehicle/Task/Incident/PARKED links. No mutable current assignee/slot is used as historical attribution; incident visibility restricted to active location.",
+    "callers_consumers": "search-page-query.ts; issue300-search/search-query.test.ts; issue300-pg late-writer proofs",
+    "invariants_error_checks": "Read all lines and separately inspected linked canonical Investigation Search service, Company Analytics composer and per-location bounds. Kept role/MFA/CSRF, tenant isolation, snapshot keyset, cursor integrity, observed actor provenance, no-store and group-limit semantics in scope; no new confirmed P0/P1 from assigned files.",
+    "test_refs": [
+      "Relevant issue300 Investigation SQL/static/PG integration suites and Company Analytics Issue319 integration tests located but NOT run. Source and service calls reviewed."
+    ],
+    "finding_ids": [],
+    "limits": "Static frozen-source semantic assessment only; actual PostgreSQL schema/data, race execution, authenticated browser/HTTP, Company Analytics large datasets and CI were not run in this session.",
+    "new_main_sha256": "57e84e5ababb715084e50f722b900c7b7ceecd153b635b550a78d8bb1691058d",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/security/audit-investigation-authorization.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "5cfaf00bd06d7128f3f516716f99a7141f59588cf73536774632702795c31813",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 56
+      }
+    ],
+    "semantic_review_notes": "W4 Investigation guard derives real authorized Org, Location, Membership and role inside same DB transaction from canonical management-audit authorization. Only ORG_ADMIN and LOCATION_MANAGER survive; Supervisor and supplied user role cannot extend scope, and inherited MFA/session/grant checks stay authoritative.",
+    "callers_consumers": "Search/Timeline services; issue300-security/investigation-authorization.test.ts",
+    "invariants_error_checks": "Read all lines and separately inspected linked canonical Investigation Search service, Company Analytics composer and per-location bounds. Kept role/MFA/CSRF, tenant isolation, snapshot keyset, cursor integrity, observed actor provenance, no-store and group-limit semantics in scope; no new confirmed P0/P1 from assigned files.",
+    "test_refs": [
+      "Relevant issue300 Investigation SQL/static/PG integration suites and Company Analytics Issue319 integration tests located but NOT run. Source and service calls reviewed."
+    ],
+    "finding_ids": [],
+    "limits": "Static frozen-source semantic assessment only; actual PostgreSQL schema/data, race execution, authenticated browser/HTTP, Company Analytics large datasets and CI were not run in this session.",
+    "new_main_sha256": "5cfaf00bd06d7128f3f516716f99a7141f59588cf73536774632702795c31813",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/security/audit-investigation-source-boundary.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "aa03fed29268038137de0c2087206c919cfe833c44f04e14e52d06fc412537fa",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 85
+      }
+    ],
+    "semantic_review_notes": "Point-detail boundary selects a fixed allowlisted table for one source, proves persisted event and Session share exact Org+Location and Session id, and holds FOR SHARE on the Session row only; incident detail also requires location currently ACTIVE. No raw metadata/description/photo selected, and unrecognized source fails closed.",
+    "callers_consumers": "timeline-read-service.ts detail; issue300-security/investigation-source-boundary.test.ts",
+    "invariants_error_checks": "Read all lines and separately inspected linked canonical Investigation Search service, Company Analytics composer and per-location bounds. Kept role/MFA/CSRF, tenant isolation, snapshot keyset, cursor integrity, observed actor provenance, no-store and group-limit semantics in scope; no new confirmed P0/P1 from assigned files.",
+    "test_refs": [
+      "Relevant issue300 Investigation SQL/static/PG integration suites and Company Analytics Issue319 integration tests located but NOT run. Source and service calls reviewed."
+    ],
+    "finding_ids": [],
+    "limits": "Static frozen-source semantic assessment only; actual PostgreSQL schema/data, race execution, authenticated browser/HTTP, Company Analytics large datasets and CI were not run in this session.",
+    "new_main_sha256": "aa03fed29268038137de0c2087206c919cfe833c44f04e14e52d06fc412537fa",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline-indirect-audit.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fe0af48c20762d476f28611c088701efc4a10750a3c4c4a768310271b7584c7b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 126
+      }
+    ],
+    "semantic_review_notes": "Indirect NULL-direct Audit point reference requires own canonical Session entity and safe PARKED metadata Task containment. Separate snapshot-scoped anomaly flag validates known direct Session entity conflicts without exposing wrong-session records or inferring links from current mutable Task/Incident.",
+    "callers_consumers": "timeline-read-service.ts; issue300-timeline/timeline-indirect-audit.test.mjs",
+    "invariants_error_checks": "Read all lines and separately inspected linked canonical Investigation Search service, Company Analytics composer and per-location bounds. Kept role/MFA/CSRF, tenant isolation, snapshot keyset, cursor integrity, observed actor provenance, no-store and group-limit semantics in scope; no new confirmed P0/P1 from assigned files.",
+    "test_refs": [
+      "Relevant issue300 Investigation SQL/static/PG integration suites and Company Analytics Issue319 integration tests located but NOT run. Source and service calls reviewed."
+    ],
+    "finding_ids": [],
+    "limits": "Static frozen-source semantic assessment only; actual PostgreSQL schema/data, race execution, authenticated browser/HTTP, Company Analytics large datasets and CI were not run in this session.",
+    "new_main_sha256": "fe0af48c20762d476f28611c088701efc4a10750a3c4c4a768310271b7584c7b",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline-read-service.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "455181997a5afaec7d71d152f3758a717e0006e942b7360c8b6a867d631b207d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 273
+      }
+    ],
+    "semantic_review_notes": "Timeline/detail load reauthorize current staff session/MFA/location inside transaction; signed cursor binds session, policy, frozen database XID snapshot and exact sort, and vetoes unprovable multi-page indirect cohort. Source detail locks/proves direct Session or narrow indirect Audit, rereads same restricted source and projects contract-validated DTO; Company Admin touch occurs inside transaction.",
+    "callers_consumers": "timeline.controller.ts; issue300-closure-timeline.integration.test.ts; issue300-timeline/timeline-boundaries.test.mjs",
+    "invariants_error_checks": "Read all lines and separately inspected linked canonical Investigation Search service, Company Analytics composer and per-location bounds. Kept role/MFA/CSRF, tenant isolation, snapshot keyset, cursor integrity, observed actor provenance, no-store and group-limit semantics in scope; no new confirmed P0/P1 from assigned files.",
+    "test_refs": [
+      "Relevant issue300 Investigation SQL/static/PG integration suites and Company Analytics Issue319 integration tests located but NOT run. Source and service calls reviewed."
+    ],
+    "finding_ids": [],
+    "limits": "Static frozen-source semantic assessment only; actual PostgreSQL schema/data, race execution, authenticated browser/HTTP, Company Analytics large datasets and CI were not run in this session.",
+    "new_main_sha256": "455181997a5afaec7d71d152f3758a717e0006e942b7360c8b6a867d631b207d",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline-safe-projection.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bd10f2f482f1f527920e8a9a3a13239e3a4e626af6b4f0f59c1af10be76f4669",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 228
+      }
+    ],
+    "semantic_review_notes": "Timeline projects only source kind, bounded current display names, safe membership roles and whitelisted IDs; unsupported event kinds become UNKNOWN/UNVERIFIABLE, raw Audit metadata and Incident text never pass. Incident detail only whitelists type/severity/current status, no resolution narrative.",
+    "callers_consumers": "timeline-read-service.ts; auditInvestigationEventDetailSchema; issue300-timeline provenance tests",
+    "invariants_error_checks": "Read all lines and separately inspected linked canonical Investigation Search service, Company Analytics composer and per-location bounds. Kept role/MFA/CSRF, tenant isolation, snapshot keyset, cursor integrity, observed actor provenance, no-store and group-limit semantics in scope; no new confirmed P0/P1 from assigned files.",
+    "test_refs": [
+      "Relevant issue300 Investigation SQL/static/PG integration suites and Company Analytics Issue319 integration tests located but NOT run. Source and service calls reviewed."
+    ],
+    "finding_ids": [],
+    "limits": "Static frozen-source semantic assessment only; actual PostgreSQL schema/data, race execution, authenticated browser/HTTP, Company Analytics large datasets and CI were not run in this session.",
+    "new_main_sha256": "bd10f2f482f1f527920e8a9a3a13239e3a4e626af6b4f0f59c1af10be76f4669",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline-session-query.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "17435b08b00963682d03a91e36ab0fb585da404170fe1461373182cddce9bc9c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 77
+      }
+    ],
+    "semantic_review_notes": "Exact Org+Location+Session SQL joins current vehicle/slot labels, holds share lock of canonical Session, fences snapshot birth XID, and marks all mutable state/labels as CURRENT rather than historical. Missing/foreign Session returns generic denied.",
+    "callers_consumers": "timeline-read-service.ts; issue300-closure-security.integration.test.ts",
+    "invariants_error_checks": "Read all lines and separately inspected linked canonical Investigation Search service, Company Analytics composer and per-location bounds. Kept role/MFA/CSRF, tenant isolation, snapshot keyset, cursor integrity, observed actor provenance, no-store and group-limit semantics in scope; no new confirmed P0/P1 from assigned files.",
+    "test_refs": [
+      "Relevant issue300 Investigation SQL/static/PG integration suites and Company Analytics Issue319 integration tests located but NOT run. Source and service calls reviewed."
+    ],
+    "finding_ids": [],
+    "limits": "Static frozen-source semantic assessment only; actual PostgreSQL schema/data, race execution, authenticated browser/HTTP, Company Analytics large datasets and CI were not run in this session.",
+    "new_main_sha256": "17435b08b00963682d03a91e36ab0fb585da404170fe1461373182cddce9bc9c",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline-source-query.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2707daa61e89da4a4dd0879b4ebfd084809efffc7bf56258b394a76f43381050",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 263
+      }
+    ],
+    "semantic_review_notes": "Single SQL statement unions four trusted source tables with independent Org/Location/Session containment, strict direct-or-canonical-Session Audit linking, matching PARKED metadata checks, Snapshot-XID and created_at cutoff. Ordered microsecond keyset; projects known columns and actor names only, no free text, credentials or raw metadata.",
+    "callers_consumers": "timeline-read-service.ts; issue300-search/query + issue300-timeline/provenance tests",
+    "invariants_error_checks": "Read all lines and separately inspected linked canonical Investigation Search service, Company Analytics composer and per-location bounds. Kept role/MFA/CSRF, tenant isolation, snapshot keyset, cursor integrity, observed actor provenance, no-store and group-limit semantics in scope; no new confirmed P0/P1 from assigned files.",
+    "test_refs": [
+      "Relevant issue300 Investigation SQL/static/PG integration suites and Company Analytics Issue319 integration tests located but NOT run. Source and service calls reviewed."
+    ],
+    "finding_ids": [],
+    "limits": "Static frozen-source semantic assessment only; actual PostgreSQL schema/data, race execution, authenticated browser/HTTP, Company Analytics large datasets and CI were not run in this session.",
+    "new_main_sha256": "2707daa61e89da4a4dd0879b4ebfd084809efffc7bf56258b394a76f43381050",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline.controller.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6a1a67a1f613d42e565d2d98451b7f135beccba6bb6ab048afceaa9bd3521e34",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 166
+      }
+    ],
+    "semantic_review_notes": "GET timeline/detail use session resolver and singular Authorization header validation, Zod URL/query schemas, no-store headers and fixed operation runner codes. Nest service executes canonical W4 reauth plus data reads in one transaction; no unauthenticated read or additional mutations.",
+    "callers_consumers": "AuditInvestigationTimelineService; issue300-production-route-registration.test.ts",
+    "invariants_error_checks": "Read all lines and separately inspected linked canonical Investigation Search service, Company Analytics composer and per-location bounds. Kept role/MFA/CSRF, tenant isolation, snapshot keyset, cursor integrity, observed actor provenance, no-store and group-limit semantics in scope; no new confirmed P0/P1 from assigned files.",
+    "test_refs": [
+      "Relevant issue300 Investigation SQL/static/PG integration suites and Company Analytics Issue319 integration tests located but NOT run. Source and service calls reviewed."
+    ],
+    "finding_ids": [],
+    "limits": "Static frozen-source semantic assessment only; actual PostgreSQL schema/data, race execution, authenticated browser/HTTP, Company Analytics large datasets and CI were not run in this session.",
+    "new_main_sha256": "6a1a67a1f613d42e565d2d98451b7f135beccba6bb6ab048afceaa9bd3521e34",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/api/src/modules/management/company-admin-rr-snapshot.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "46584f7d7705ee9ca3cc1ff01c0629dd9a37aed4e6030fe0d11840328562d891",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 43
+      }
+    ],
+    "semantic_review_notes": "Company Admin analytics/report reads run REPEATABLE READ only after fresh canonical management authorization and current MFA-factor SHARE lock in the same transaction; retry on SQLSTATE 40001 repeats the entire authorization/projection/touch max five times. No stale statement-only replay.",
+    "callers_consumers": "Company analytics and report services; issue319-ca-rr-company-analytics-gate.integration.test.ts",
+    "invariants_error_checks": "Read all lines and separately inspected linked canonical Investigation Search service, Company Analytics composer and per-location bounds. Kept role/MFA/CSRF, tenant isolation, snapshot keyset, cursor integrity, observed actor provenance, no-store and group-limit semantics in scope; no new confirmed P0/P1 from assigned files.",
+    "test_refs": [
+      "Relevant issue300 Investigation SQL/static/PG integration suites and Company Analytics Issue319 integration tests located but NOT run. Source and service calls reviewed."
+    ],
+    "finding_ids": [],
+    "limits": "Static frozen-source semantic assessment only; actual PostgreSQL schema/data, race execution, authenticated browser/HTTP, Company Analytics large datasets and CI were not run in this session.",
+    "new_main_sha256": "46584f7d7705ee9ca3cc1ff01c0629dd9a37aed4e6030fe0d11840328562d891",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/api/src/modules/management/company-analytics-coverage-query.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "23b962066b4af9054ee3e1255f8b02b14b3cccb7b39b35d8197bb91c5b72a0ce",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 84
+      }
+    ],
+    "semantic_review_notes": "Org-only location_bounds CTE aggregates active/inactive totals and timezone windows; bounds per-timezone response to 501 with separate unbounded group count checked by source composition before result. No per-Location unauthorized raw row exposed; UTC boundaries are declared.",
+    "callers_consumers": "composeCompanyAnalyticsSources; management-company-analytics-boundaries.integration.test.ts",
+    "invariants_error_checks": "Read all lines and separately inspected linked canonical Investigation Search service, Company Analytics composer and per-location bounds. Kept role/MFA/CSRF, tenant isolation, snapshot keyset, cursor integrity, observed actor provenance, no-store and group-limit semantics in scope; no new confirmed P0/P1 from assigned files.",
+    "test_refs": [
+      "Relevant issue300 Investigation SQL/static/PG integration suites and Company Analytics Issue319 integration tests located but NOT run. Source and service calls reviewed."
+    ],
+    "finding_ids": [],
+    "limits": "Static frozen-source semantic assessment only; actual PostgreSQL schema/data, race execution, authenticated browser/HTTP, Company Analytics large datasets and CI were not run in this session.",
+    "new_main_sha256": "23b962066b4af9054ee3e1255f8b02b14b3cccb7b39b35d8197bb91c5b72a0ce",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/api/src/modules/management/company-analytics-financial-query.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "b0007de7d6cef9a7fdbb1d0c7d6957c8edc633231bc935ae0f3272b8fbf9530e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 147
+      }
+    ],
+    "semantic_review_notes": "Aggregates payments/refunds/validations by currency with Org/Location/session joins, period windows and PAID/SUCCEEDED statuses; uses numeric strings for monetary totals, current validation flags and denominator protection. Cash reconciliation is separated by shift currency; group counts checked at composer.",
+    "callers_consumers": "composeCompanyAnalyticsSources; management-company-analytics-financial.integration.test.ts",
+    "invariants_error_checks": "Read all lines and separately inspected linked canonical Investigation Search service, Company Analytics composer and per-location bounds. Kept role/MFA/CSRF, tenant isolation, snapshot keyset, cursor integrity, observed actor provenance, no-store and group-limit semantics in scope; no new confirmed P0/P1 from assigned files.",
+    "test_refs": [
+      "Relevant issue300 Investigation SQL/static/PG integration suites and Company Analytics Issue319 integration tests located but NOT run. Source and service calls reviewed."
+    ],
+    "finding_ids": [],
+    "limits": "Static frozen-source semantic assessment only; actual PostgreSQL schema/data, race execution, authenticated browser/HTTP, Company Analytics large datasets and CI were not run in this session.",
+    "new_main_sha256": "b0007de7d6cef9a7fdbb1d0c7d6957c8edc633231bc935ae0f3272b8fbf9530e",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/api/src/modules/management/company-analytics-incidents-query.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c21fde45a5338f537458fb56014a07c67acc335d8e373383b04dcc333ddd0a10",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 76
+      }
+    ],
+    "semantic_review_notes": "Org-bound incident creation cohort is grouped by severity/type and normalizes count per 1,000 completed Sessions within per-location day windows. Zero completed sessions produce null rate; result type bounded by full type-group count.",
+    "callers_consumers": "composeCompanyAnalyticsSources; management-company-analytics-boundaries.integration.test.ts",
+    "invariants_error_checks": "Read all lines and separately inspected linked canonical Investigation Search service, Company Analytics composer and per-location bounds. Kept role/MFA/CSRF, tenant isolation, snapshot keyset, cursor integrity, observed actor provenance, no-store and group-limit semantics in scope; no new confirmed P0/P1 from assigned files.",
+    "test_refs": [
+      "Relevant issue300 Investigation SQL/static/PG integration suites and Company Analytics Issue319 integration tests located but NOT run. Source and service calls reviewed."
+    ],
+    "finding_ids": [],
+    "limits": "Static frozen-source semantic assessment only; actual PostgreSQL schema/data, race execution, authenticated browser/HTTP, Company Analytics large datasets and CI were not run in this session.",
+    "new_main_sha256": "c21fde45a5338f537458fb56014a07c67acc335d8e373383b04dcc333ddd0a10",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/api/src/modules/management/company-analytics-kpi-query.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4ec446d269e366e78bc57083f851df5579fd313abff420494fd25ac99c445e8b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 177
+      }
+    ],
+    "semantic_review_notes": "KPI cohorts include non-cancelled retrieval and valid SLA timestamp ordering, task/work participants from observed operational evidence, attributed completed sessions, and four whitelisted key exception categories. Guards against zero work denominator and includes explicit missing-attribution/interval metrics; no customer identities projected.",
+    "callers_consumers": "composeCompanyAnalyticsSources; management-company-analytics-weighting.integration.test.ts",
+    "invariants_error_checks": "Read all lines and separately inspected linked canonical Investigation Search service, Company Analytics composer and per-location bounds. Kept role/MFA/CSRF, tenant isolation, snapshot keyset, cursor integrity, observed actor provenance, no-store and group-limit semantics in scope; no new confirmed P0/P1 from assigned files.",
+    "test_refs": [
+      "Relevant issue300 Investigation SQL/static/PG integration suites and Company Analytics Issue319 integration tests located but NOT run. Source and service calls reviewed."
+    ],
+    "finding_ids": [],
+    "limits": "Static frozen-source semantic assessment only; actual PostgreSQL schema/data, race execution, authenticated browser/HTTP, Company Analytics large datasets and CI were not run in this session.",
+    "new_main_sha256": "4ec446d269e366e78bc57083f851df5579fd313abff420494fd25ac99c445e8b",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  },
+  {
+    "path": "apps/api/src/modules/management/company-analytics-operations-query.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C009",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4bf24727eafe3775024e4d6b880e4692ab753b11f6e0def90879073c638e9d5b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 112
+      }
+    ],
+    "semantic_review_notes": "Five duration cohorts use their actual completion timestamps within each scoped Location-local interval and reject negative or missing ordering; average seconds and distinct contributing Location counts are output. Per-day handled counts use local timezone and date series, with explicit zeros.",
+    "callers_consumers": "composeCompanyAnalyticsSources; management-company-analytics-weighting.integration.test.ts",
+    "invariants_error_checks": "Read all lines and separately inspected linked canonical Investigation Search service, Company Analytics composer and per-location bounds. Kept role/MFA/CSRF, tenant isolation, snapshot keyset, cursor integrity, observed actor provenance, no-store and group-limit semantics in scope; no new confirmed P0/P1 from assigned files.",
+    "test_refs": [
+      "Relevant issue300 Investigation SQL/static/PG integration suites and Company Analytics Issue319 integration tests located but NOT run. Source and service calls reviewed."
+    ],
+    "finding_ids": [],
+    "limits": "Static frozen-source semantic assessment only; actual PostgreSQL schema/data, race execution, authenticated browser/HTTP, Company Analytics large datasets and CI were not run in this session.",
+    "new_main_sha256": "4bf24727eafe3775024e4d6b880e4692ab753b11f6e0def90879073c638e9d5b",
+    "new_main_source_unchanged": true,
+    "historical_review_not_yet_published": true
+  }
+]

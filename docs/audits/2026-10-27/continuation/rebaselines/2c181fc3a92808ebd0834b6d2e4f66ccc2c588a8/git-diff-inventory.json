@@ -1,0 +1,130 @@
+[
+  {
+    "status": "M",
+    "old_path": "apps/api/src/common/database/bounded-postgres-pool.ts",
+    "path": "apps/api/src/common/database/bounded-postgres-pool.ts",
+    "candidate_old": true,
+    "candidate_new": true,
+    "current_classification": "MODIFIED_REVIEW_STALE"
+  },
+  {
+    "status": "M",
+    "old_path": "apps/api/src/common/database/bounded-postgres-query.ts",
+    "path": "apps/api/src/common/database/bounded-postgres-query.ts",
+    "candidate_old": true,
+    "candidate_new": true,
+    "current_classification": "MODIFIED_REVIEW_STALE"
+  },
+  {
+    "status": "A",
+    "old_path": null,
+    "path": "apps/api/src/common/database/database-failure-reason.ts",
+    "candidate_old": false,
+    "candidate_new": true,
+    "current_classification": "NEW_UNREVIEWED"
+  },
+  {
+    "status": "M",
+    "old_path": "apps/api/src/common/database/postgres-lease.ts",
+    "path": "apps/api/src/common/database/postgres-lease.ts",
+    "candidate_old": true,
+    "candidate_new": true,
+    "current_classification": "MODIFIED_REVIEW_STALE"
+  },
+  {
+    "status": "M",
+    "old_path": "apps/api/src/common/database/runtime-database-deadline.ts",
+    "path": "apps/api/src/common/database/runtime-database-deadline.ts",
+    "candidate_old": true,
+    "candidate_new": true,
+    "current_classification": "MODIFIED_REVIEW_STALE"
+  },
+  {
+    "status": "M",
+    "old_path": "apps/api/src/common/database/runtime-database.module.ts",
+    "path": "apps/api/src/common/database/runtime-database.module.ts",
+    "candidate_old": true,
+    "candidate_new": true,
+    "current_classification": "MODIFIED_REVIEW_STALE"
+  },
+  {
+    "status": "M",
+    "old_path": "apps/api/src/common/http/api-operation-runner.ts",
+    "path": "apps/api/src/common/http/api-operation-runner.ts",
+    "candidate_old": true,
+    "candidate_new": true,
+    "current_classification": "MODIFIED_REVIEW_STALE"
+  },
+  {
+    "status": "M",
+    "old_path": "apps/api/src/common/observability/http-metrics.middleware.ts",
+    "path": "apps/api/src/common/observability/http-metrics.middleware.ts",
+    "candidate_old": true,
+    "candidate_new": true,
+    "current_classification": "MODIFIED_REVIEW_STALE"
+  },
+  {
+    "status": "A",
+    "old_path": null,
+    "path": "apps/api/src/common/observability/performance-request-diagnostics.ts",
+    "candidate_old": false,
+    "candidate_new": true,
+    "current_classification": "NEW_UNREVIEWED"
+  },
+  {
+    "status": "M",
+    "old_path": "apps/api/src/common/observability/runtime-metrics-pulse.ts",
+    "path": "apps/api/src/common/observability/runtime-metrics-pulse.ts",
+    "candidate_old": true,
+    "candidate_new": true,
+    "current_classification": "MODIFIED_REVIEW_STALE"
+  },
+  {
+    "status": "A",
+    "old_path": null,
+    "path": "apps/api/src/modules/staff/staff-operational-context-details.ts",
+    "candidate_old": false,
+    "candidate_new": true,
+    "current_classification": "NEW_UNREVIEWED"
+  },
+  {
+    "status": "M",
+    "old_path": "apps/api/src/modules/staff/staff-operational-context-query.ts",
+    "path": "apps/api/src/modules/staff/staff-operational-context-query.ts",
+    "candidate_old": true,
+    "candidate_new": true,
+    "current_classification": "MODIFIED_REVIEW_STALE"
+  },
+  {
+    "status": "A",
+    "old_path": null,
+    "path": "apps/api/test/performance-pool-diagnostics.test.ts",
+    "candidate_old": false,
+    "candidate_new": true,
+    "current_classification": "NEW_UNREVIEWED"
+  },
+  {
+    "status": "A",
+    "old_path": null,
+    "path": "apps/api/test/performance-request-diagnostics.test.ts",
+    "candidate_old": false,
+    "candidate_new": true,
+    "current_classification": "NEW_UNREVIEWED"
+  },
+  {
+    "status": "A",
+    "old_path": null,
+    "path": "apps/api/test/staff-operational-context-batching.integration.test.ts",
+    "candidate_old": false,
+    "candidate_new": true,
+    "current_classification": "NEW_UNREVIEWED"
+  },
+  {
+    "status": "A",
+    "old_path": null,
+    "path": "docs/reference/backend-pool-performance-investigation.md",
+    "candidate_old": false,
+    "candidate_new": false,
+    "current_classification": "NEW_UNREVIEWED"
+  }
+]

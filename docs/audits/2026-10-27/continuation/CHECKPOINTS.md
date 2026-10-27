@@ -13,3 +13,5 @@ The commit containing this file is the checkpoint publication identifier; inspec
 |C006|Additional Dashboard E2E, API Dashboard and Employee Client review|1131/4,705 files;125491/610,400 lines|[report](checkpoints/C006.md), [summary](checkpoints/C006-coverage-summary.json)|
 
 |C007|Seven-area semantic review with explicit startup-failure transfers|1306/4,705 files;147993/610,400 lines|[report](checkpoints/C007.md), [summary](checkpoints/C007-coverage-summary.json)|
+
+|RB-001|Rebaseline to fetched `origin/main` `2c181fc3`; C001–C007 unchanged|1297/4,711 current-source files;147052/611038 lines;110 provisional files saved but not credited|[checkpoint](checkpoints/REBASELINE-2c181fc3.md), [full record](rebaselines/2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8/README.md)|
