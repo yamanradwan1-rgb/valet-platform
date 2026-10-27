@@ -1,0 +1,103 @@
+{
+  "finding_id": "C006-DASH-001",
+  "batch": "C006",
+  "worker": "dashboard",
+  "severity": "P3",
+  "confidence": "HIGH",
+  "status": "static_test_suite_debt",
+  "title": "Legacy Issue #232/#236/#237 Dashboard E2E still targets the pre-#304 Keys & Spots tab shell",
+  "summary": "Thirteen reviewed default-E2E specs still enter /keys through e2e/support/keys-spots.ts, which requires a Keys & Spots tablist with an outer Physical Resources tab. Current production KeysPage explicitly renders the #304 Option 3 ResourceInspectorLive directly and no longer exposes those former page-level tabs. The assigned legacy tests therefore encode obsolete UI navigation even where their underlying race, idempotency, privacy and authority intents remain valid.",
+  "severity_rationale": "This is test-suite debt, not a demonstrated product defect or security bypass. The current Dashboard CI gate runs test:e2e:runtime against ./e2e-runtime, so the stale default ./e2e paths are not shown to block current CI. They can still fail or misrepresent coverage when pnpm --filter @valet/dashboard test:e2e is run manually or by another workflow.",
+  "affected_assigned_paths": [
+    "apps/dashboard/e2e/issue232-physical-resource-closure.spec.ts",
+    "apps/dashboard/e2e/issue232-physical-resource-races.spec.ts",
+    "apps/dashboard/e2e/issue232-physical-resource-visual.spec.ts",
+    "apps/dashboard/e2e/issue232-physical-resources.spec.ts",
+    "apps/dashboard/e2e/issue236-parking-zones.spec.ts",
+    "apps/dashboard/e2e/issue236-zone-auth-retry.spec.ts",
+    "apps/dashboard/e2e/issue236-zone-authority-races.spec.ts",
+    "apps/dashboard/e2e/issue236-zone-mfa-race.spec.ts",
+    "apps/dashboard/e2e/issue236-zone-selector-races.spec.ts",
+    "apps/dashboard/e2e/issue236-zone-visual.spec.ts",
+    "apps/dashboard/e2e/issue237-keys-spots.spec.ts",
+    "apps/dashboard/e2e/issue237-physical-resource-cursor-race.spec.ts",
+    "apps/dashboard/e2e/issue237-physical-resource-session-races.spec.ts"
+  ],
+  "source_chain": [
+    {
+      "path": "apps/dashboard/e2e/support/keys-spots.ts",
+      "lines": "6-37",
+      "observation": "enterKeysSpots expects an h1 named Keys & Spots; openPhysicalResources requires role=tablist name=Keys & Spots and tab name=Physical Resources."
+    },
+    {
+      "path": "apps/dashboard/e2e/issue237-keys-spots.spec.ts",
+      "lines": "65-79",
+      "observation": "The reviewed legacy test explicitly drives the former Operational Keys / Physical Resources outer tabs."
+    },
+    {
+      "path": "apps/dashboard/src/features/operations/keys/keys-page.tsx",
+      "lines": "6-12",
+      "observation": "Current source states Exact Option 3 interior replaces both former Keys & Spots page-level tabs and renders ResourceInspectorLive directly."
+    },
+    {
+      "path": "apps/dashboard/src/features/operations/keys/option3-resource-inspector.tsx",
+      "lines": "81-136",
+      "observation": "Current Option 3 surface is Resource inspector with direct Key Slots/Parking Spots family buttons and add actions, not the former outer tab shell."
+    },
+    {
+      "path": "apps/dashboard/tests/issue304-contract.ts",
+      "lines": "22-28",
+      "observation": "Current #304 test contract enters /keys and expects the Resource Inspector directly after exact Location selection."
+    },
+    {
+      "path": "apps/dashboard/tests/issue304-interactions.spec.ts",
+      "lines": "6-31",
+      "observation": "Current #304 suite exercises live pagination and A→B→A reset on ResourceInspectorLive, preserving an important legacy safety intent on the new UI."
+    }
+  ],
+  "default_playwright_execution": {
+    "executes_legacy_specs": true,
+    "evidence": [
+      {
+        "path": "apps/dashboard/package.json",
+        "lines": "11-13",
+        "observation": "test:e2e is plain playwright test."
+      },
+      {
+        "path": "apps/dashboard/playwright.config.ts",
+        "lines": "3-6",
+        "observation": "Default Playwright testDir is ./e2e, which contains the affected issue232/236/237 specs."
+      }
+    ]
+  },
+  "current_ci_scope": {
+    "legacy_default_suite_is_current_dashboard_ci_gate": false,
+    "evidence": [
+      {
+        "path": ".github/workflows/ci.yml",
+        "lines": "374-377",
+        "observation": "Dashboard CI runs pnpm --filter @valet/dashboard test:e2e:runtime."
+      },
+      {
+        "path": "apps/dashboard/playwright.runtime.config.ts",
+        "lines": "3-6",
+        "observation": "Runtime E2E config uses testDir ./e2e-runtime."
+      }
+    ]
+  },
+  "underlying_intents_still_present": [
+    "Current physical-resource mutation code retains identity/location/draft-keyed operation IDs and explicit user retry after uncertain/MFA outcomes.",
+    "Current authoritative reads use scope/generation fencing and AbortController semantics.",
+    "Current ResourceInspectorLive uses request epochs and aborts appended-page requests on filter/scope/disposal transitions.",
+    "Dedicated #304 tests cover current Resource Inspector authority, interactions, paging, accessibility and visual behavior."
+  ],
+  "competing_explanations": [
+    "The legacy specs may intentionally be retained as historical documentation, but they are still executable by the package's default test:e2e command and therefore are not inert documentation.",
+    "A compatibility wrapper could theoretically recreate the former tab semantics, but current KeysPage and the #304 contract explicitly define direct Resource Inspector entry instead."
+  ],
+  "runtime_confirmation": "not_run_in_C006",
+  "tests_run_in_C006": false,
+  "product_source_modified": false,
+  "recommended_followup": "Migrate or retire the affected default-E2E specs and support/keys-spots.ts against the accepted #304 Resource Inspector contract while preserving their race/idempotency/privacy/authority assertions. Do not change the frozen Option 3 UI solely to satisfy the obsolete tests.",
+  "suggested_evidence_path": "docs/audits/2026-10-27/continuation/tmp/C006-DASH-001.json"
+}

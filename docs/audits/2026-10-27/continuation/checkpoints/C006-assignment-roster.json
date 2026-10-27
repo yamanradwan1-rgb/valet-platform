@@ -1,0 +1,746 @@
+{
+  "checkpoint": "C006",
+  "prior_audit_checkpoint": "d5ad3654d31f2c3b64de52dc24cdf174a39536eb",
+  "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+  "source_candidates_remaining_before": 3664,
+  "planned_assigned": 90,
+  "groups": [
+    {
+      "worker": "dashboard",
+      "count": 35,
+      "prefix": "apps/dashboard/"
+    },
+    {
+      "worker": "database",
+      "count": 35,
+      "prefix": "apps/api/src/modules/"
+    },
+    {
+      "worker": "prime",
+      "count": 20,
+      "prefix": "packages/employee-client/"
+    }
+  ],
+  "assignments": [
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/administration-r06-authority-budget.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7b031042ec9ecce9baae95a7c3a8228ded63968ac738dd2c1e03a7b52550dc38",
+      "lines": 139,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/administration-r06-corrections.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "730e8aea426febba2be87cfb78f2c24eecb8f8ccede894237209716a8e2dbf6c",
+      "lines": 176,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/administration-r06-cursor-selection.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "993d4288de2e3548a224ea332e82fa706f18d8395cba3b611ec07efcc92c584d",
+      "lines": 185,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/administration-r06-mfa-state.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6b24815be49de8bdfafa9f529589317ccd46e727e4ea45148ba8bbd6e4091ddc",
+      "lines": 81,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/administration-r06-mutations.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7251dde0c751d3f9c15492b3c35164060bbba0ad0a81d95f657048cd5c017007",
+      "lines": 244,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/administration-r06-presentation.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4175b95e64aeb6e07900aa513fcc5612a034986a16943827ee900e276d7daed5",
+      "lines": 58,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/administration-r06-session-fencing.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6f3107623f8e3431130c6d974f022125ee0caa6dc72ad2a2111424219a529ca0",
+      "lines": 124,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/administration-r06-states.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "757b573b7db607ab74e3beeabdbc7cc36f7234914aef124502136038a00c863e",
+      "lines": 107,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/administration-r06-visual.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "e79bedbb776f8e2e575bd3eb1212518209029c97b1ce2ab752c2d56d96070ed1",
+      "lines": 273,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/administration-settings-validation.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c982351d1ec8886801753f684b4a918422e8156a82753b15858713e6e439e081",
+      "lines": 190,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/administration-settings.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "e39fa5875a6251604408cccf2303081e9ca92710a54b2be79a85b5b16c39ec88",
+      "lines": 100,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/administration-staff.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "e58d656ff0ecb36f547446e2aa814b10ba8bc09fa55d85a48bfa6a91e64fc602",
+      "lines": 86,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/administration-visual-freeze.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "50f2651ea3e4014c14e57cf2073c0c5c58cd48ace145a7c378da4ad66c38a36f",
+      "lines": 126,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/auth-session.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "3d313e929aa77397845c7a66079f47e0a40da425df48c54402f8115ae9747ffb",
+      "lines": 130,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/foundation-authority-follow-up.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "e84076e86464380a440f1fe41beda37216c3ba3fd82412d82da3a4559df840d0",
+      "lines": 82,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue232-physical-resource-closure.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c3fb972afe5ca429feffecde514b95232d3a392d773137f65e7421a34551d4f3",
+      "lines": 122,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue232-physical-resource-races.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "df0b1eef263b87b3b3bdf615221d53a38fce1aa74d672eacaa094788152bcd54",
+      "lines": 227,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue232-physical-resource-visual.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7872ca05bd27e300e5d5ad42004548baddeeebf7264322c271c7cda0a48d9f03",
+      "lines": 132,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue232-physical-resources.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "75b106566828a952b738bd66c6d3757057006923872222b5122b03c2d8de7d82",
+      "lines": 246,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue234-security-accessibility.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "4662e996a5f8f88e2472b523982bda423d165e06e1d437cbd82282482852c27e",
+      "lines": 122,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue234-security-authority.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c3115ef5d62b71f45f92d2efc0049945ea0e282182b1afb75095214efad298e3",
+      "lines": 148,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue234-security-lifecycle.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "dbdc6182e0576592ee3d8d2b81560544716abb6b470f865bd894f98c303e1c8d",
+      "lines": 299,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue234-security-privacy.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7c5f309bf996e1fd345d114cbe1d9c87d1636657820a4e2539c568a1e2b9bf32",
+      "lines": 236,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue234-security-shell.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "43ad3ca17a70e1d4f406bcfb82404717a978e7fdaa441bfb9e03fd6cef64e5c5",
+      "lines": 182,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue234-security-visual.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "e5d543a347fbbde0631b87a87ee3973ae08d8c698d4483e01f04f6375927f18f",
+      "lines": 185,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue236-parking-zones.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ef7039f5ebf353c7e5ff26b8eee1ad1b6c50925f65ed1a9311d6d5449c666c5f",
+      "lines": 148,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue236-zone-auth-retry.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "eb3b165c7e0cc68ce087f812dd07a70d1184d316c14a9da56cc321cb20eb5d9c",
+      "lines": 68,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue236-zone-authority-races.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "a2a4d1fe92199f38262546f6e4fb59f98ecfad20b0df5b7717414371f2161174",
+      "lines": 197,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue236-zone-mfa-race.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "d776a61e23135485f75d6738973a2af515c821f37250e99f4eb253906fba9392",
+      "lines": 90,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue236-zone-selector-races.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "fd79fe8ae4e52b127a2c0703ab1d2ffcf61772e5c9ec404bf4f98ae5568d357d",
+      "lines": 113,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue236-zone-visual.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "15bde559f2ced050ddde0f5829dc10f4788964672a3144ff91864c4c3d1bebbd",
+      "lines": 123,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue237-keys-spots.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "a16edf27a050bb4ada13a41bed9af942ea8ed93eb524e6cb51453a482f5a2a7a",
+      "lines": 290,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue237-physical-resource-cursor-race.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "cd0e3a2ba0787de5c3e9717bb06678785f1124fc2eb188cdea6cff6deda7b52b",
+      "lines": 111,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue237-physical-resource-session-races.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "201154343a88cefe3cbab548c0db0b2c2db09d1d787f5c63c37998b5622e85b7",
+      "lines": 90,
+      "batch": "C006"
+    },
+    {
+      "worker": "dashboard",
+      "path": "apps/dashboard/e2e/issue238-service-status.spec.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2ecdd1750f0fb8d942c4e97f899994b185ddde9fb0055b31448a3273ee2e51fb",
+      "lines": 88,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/incidents.controller.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "74cad63e55f4c8f4e9abd1c90216d930f0ace31bce817686df225871713c4fc5",
+      "lines": 102,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/live-history-read-authorization.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "f9bf3cf8a6f7e5f9d88359b8bc8159c8468020a1c1aee54a88e1d0388c7f9318",
+      "lines": 287,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/live-session-overview-cursor.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c37978dd38c21be601ceccab67c3fef6e56f324dcc43eded7880b573fe255306",
+      "lines": 43,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/live-sessions-query.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "8b818e89999707e569870118255778907275849b245d66c2d7cf0f933f60a8ae",
+      "lines": 65,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/live-sessions.controller.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "706127c8f59a2bf18833d4589d39b3456d057ab19233adb690db9f1f2dfff656",
+      "lines": 72,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/operational-assignee-projection.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "250915a232bcdf9e9088ae30c6c67c49b7ead995154c3c54e82859a882647738",
+      "lines": 34,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/operational-history-atomic-evidence.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2200aba846f9058dc27659ff4b9980cd4c3f585787aaae123de02d1916cf5574",
+      "lines": 95,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/operational-history-audit-discovery.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "9b769f89d2d92dacb6091f57af1775d6cc89b74ed58e6de0adad0e85039865f8",
+      "lines": 101,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/operational-history-evidence-classifier.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "87c8a7432b00d251afac5deabb08cd815ace42442f78a29c1c1bfe5a0a72d5db",
+      "lines": 155,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/operational-history-identity-projection.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "0a6fcab98ea09292fdd349cd1e3104e673fb7d38782bcab50c40f38652f218a2",
+      "lines": 34,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/operational-history-projection.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "17c524a66e809d7fb79e8e007bc8c877d49ce03f0072ee5a36470e9f61a8cfa5",
+      "lines": 113,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/overview-cursor.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "215964530e05dd825d037e6670c8d978e5eff383cee3f7c494c0553ac0bdb4d0",
+      "lines": 65,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/overview-financial-query.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c5f1b0426faeadae5afcbcc94ec9fa9ba46dee343a6c56b7fc3d8aaee3b36012",
+      "lines": 149,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/overview-query-input.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "1cbfbd78bc58a96df511eec362e49216530bbf5abfa8e6c5294469c0ad165ee2",
+      "lines": 19,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/overview-retrieval-tasks-query.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "38408993c8c7607abadc10113a1ee7f0b0b83a176066cb68dee30aa8715c8dc5",
+      "lines": 218,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/overview-sessions-query.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "bf5dcea97350812d4522d30c0abaed2b60ac94ae845ccb9a813a611833644097",
+      "lines": 238,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/overview-shifts-keys-incidents-query.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "86c587c04138ab66d5395449210ea61e70b1ce6b66b1a0d402a5504fa64b85bb",
+      "lines": 180,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/overview.controller.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "aebb2b5b562d9df0c838c4d7aee7489cc605d28dbaa505eccb76153865b8e5f4",
+      "lines": 254,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/physical-resource-authorization.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "055acefbeee4526ba6b1175a67b32591d122f893b5588b5fe814fde79554279c",
+      "lines": 115,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/physical-resource-command.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "8b86c1464c2aacca95b87e44beb956c0b1e24cea8dd28c19cfdb11f601c5ac45",
+      "lines": 157,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/physical-resource-cursor.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "a8d56b7da1f707f2a21eef4f4999176ba53b7399d40393620ae17e3946160fd7",
+      "lines": 61,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/physical-resource-custody-query.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "bef3a54e20d498d04cff96310f314767718f18aeaa20aabb95c7eed1987bab01",
+      "lines": 59,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/physical-resource-errors.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "e34c753d85c2f497258ec84f70800c0c9eb2a3a197be1c2fca5a6267e1622b5f",
+      "lines": 36,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/physical-resource-overview-query.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "199141f64ffec4133ee6ee6023eac65fb42f4d3a10472001941738c6c026a74c",
+      "lines": 217,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/physical-resource-overview-transaction.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "6473da2111d685c642bc6c04698786c9ade9d4efcb47ededc89f19f810a82d61",
+      "lines": 214,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/physical-resource-policy.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "c6ebfc753572dec9f0ffd61218853af99fb959d198f212a07238e86f841d39fd",
+      "lines": 49,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/physical-resource-query.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "cef148ec3c3f5ae3ac0e64b5e98428401ced3a55a4d64b980505cd6a68bdde48",
+      "lines": 235,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/physical-resource-read.service.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ea57a3373fb2c09192ecd3ff6cf298fc65ca5677e3ca6fc80bb33a701e1a9add",
+      "lines": 164,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/physical-resource-write.controller.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "d750b8fc6de3d7e46eb10f3ce751a9257b86c3aa3f4e6087211fec75953c1fd0",
+      "lines": 126,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/physical-resource-write.service.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "a331e966813661936aad121da716c4168b73f4b3cce6a1a13b894478bae6f77b",
+      "lines": 81,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/physical-resource.controller.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ef303a7ae033d5165f54eb2b4fafa56eab7138e62ea2328fbf0867dca4543516",
+      "lines": 258,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/rating-analytics-query.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "54bdf3d9a9058f5fcf6cd00e7e56e792683108ae44031b4024de9ef051b3b8b2",
+      "lines": 35,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/rating-analytics.controller.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2572edee72a929bf4a4b7507bb5580f7c1dd28f536b0050f74d4b53b74e4137d",
+      "lines": 49,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/report-audit-writer.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "e75ddcf55da06d1875269b625dc0ecdd88fb7c324a2df8bba65a4a6f8a1cbabb",
+      "lines": 45,
+      "batch": "C006"
+    },
+    {
+      "worker": "database",
+      "path": "apps/api/src/modules/dashboard/report-daily-activity-query.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "442930e606e84a5525314605c2c7f860f2c7d6645f676e744d22ae08351ea1d0",
+      "lines": 97,
+      "batch": "C006"
+    },
+    {
+      "worker": "prime",
+      "path": "packages/employee-client/src/api-error.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "30177aea615048608d23e4bf74cb3f007a3d7c829bb32f60aa0c924f5de814ec",
+      "lines": 56,
+      "batch": "C006"
+    },
+    {
+      "worker": "prime",
+      "path": "packages/employee-client/src/employee-auth-read-concurrency.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "17bb9774d116cf429fae694b67b9906d9bd9828f96b12fc345841cbdd786a9ba",
+      "lines": 55,
+      "batch": "C006"
+    },
+    {
+      "worker": "prime",
+      "path": "packages/employee-client/src/employee-cancel-check-in-session.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ad9e03eedd72fbdf70c1ec6f8baf5b7b4cfc59a03452e94688ea902815354d53",
+      "lines": 171,
+      "batch": "C006"
+    },
+    {
+      "worker": "prime",
+      "path": "packages/employee-client/src/employee-cancel-check-in-transport.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "d285a077f5ed1aa12ab75c9a04f331ca25089a8a127a2566d14541d6ac8c1038",
+      "lines": 56,
+      "batch": "C006"
+    },
+    {
+      "worker": "prime",
+      "path": "packages/employee-client/src/employee-check-in-condition-recovery.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "9087ddaff7bf7544ab3127c6c5b0f14a33ddae6de2311e08f768c40752493598",
+      "lines": 269,
+      "batch": "C006"
+    },
+    {
+      "worker": "prime",
+      "path": "packages/employee-client/src/employee-check-in-condition-replay.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "409b8e4fdb23c664074a0d41013eea729deef41417e74769708561c368fc8fd3",
+      "lines": 182,
+      "batch": "C006"
+    },
+    {
+      "worker": "prime",
+      "path": "packages/employee-client/src/employee-check-in-condition.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "605860ec542668d81db5e7ec30c3067d6d67c34bb6beb756a465dc8edfee2a55",
+      "lines": 191,
+      "batch": "C006"
+    },
+    {
+      "worker": "prime",
+      "path": "packages/employee-client/src/employee-check-in-continuation.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "62cb38c25192116408147bdad9ced6dd1cb39eff7e69815a139f552574725f01",
+      "lines": 251,
+      "batch": "C006"
+    },
+    {
+      "worker": "prime",
+      "path": "packages/employee-client/src/employee-check-in-correction-recovery.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "2293203019c411ce48229f5a194dd2f17f4d0e0e61dfcb383d92bc2d4480c98c",
+      "lines": 291,
+      "batch": "C006"
+    },
+    {
+      "worker": "prime",
+      "path": "packages/employee-client/src/employee-check-in-intake-stopped.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "46cf0a8cd1fb3d9668a04481076fda0f023d5db92b8eb34ff2fbc68098b1cd04",
+      "lines": 167,
+      "batch": "C006"
+    },
+    {
+      "worker": "prime",
+      "path": "packages/employee-client/src/employee-check-in-lifecycle-fence.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "7455a79f21c15074ccb110d8be22b009e6103f12ca0a6b39678f903de16c60ab",
+      "lines": 65,
+      "batch": "C006"
+    },
+    {
+      "worker": "prime",
+      "path": "packages/employee-client/src/employee-check-in-phone.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "01513a13ca3625bd587b46035a79fa202f4935702ca64980212a8d6aba139b6f",
+      "lines": 80,
+      "batch": "C006"
+    },
+    {
+      "worker": "prime",
+      "path": "packages/employee-client/src/employee-check-in-recovery.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "04610b9e515bcb172a180eaeebf80bbd8227b2b1850c333f14e315db56fd507d",
+      "lines": 130,
+      "batch": "C006"
+    },
+    {
+      "worker": "prime",
+      "path": "packages/employee-client/src/employee-check-in-returning-correction.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "0e7702dd937f895b42152120cf3d786fd61281a4da4a8e783048a08773dac3c3",
+      "lines": 89,
+      "batch": "C006"
+    },
+    {
+      "worker": "prime",
+      "path": "packages/employee-client/src/employee-check-in-revalidation.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "a6a6012d3117a585a411e36f39226a45aeeb2b65c7634d7bf3f7c0efc1cb5642",
+      "lines": 95,
+      "batch": "C006"
+    },
+    {
+      "worker": "prime",
+      "path": "packages/employee-client/src/employee-check-in-secure-id.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "ed4324d01c0505dd2eb44cf647be61110ed0237e66ea73882876b685d5507b98",
+      "lines": 28,
+      "batch": "C006"
+    },
+    {
+      "worker": "prime",
+      "path": "packages/employee-client/src/employee-check-in-session.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "1f8243c733750f525cf92f2d5d3848b8322a4bf4d399e2c1c55bda1bd095ca76",
+      "lines": 294,
+      "batch": "C006"
+    },
+    {
+      "worker": "prime",
+      "path": "packages/employee-client/src/employee-check-in-state.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "24a57b64ef5dcd4c174078d44b1662460d8401f7e5a72ac6930fbb0a457aa957",
+      "lines": 44,
+      "batch": "C006"
+    },
+    {
+      "worker": "prime",
+      "path": "packages/employee-client/src/employee-check-in-targeted-entry.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "faa931095b642dc2367692ac09fc81464811f52ff55aef6e5355f8004441ad9e",
+      "lines": 89,
+      "batch": "C006"
+    },
+    {
+      "worker": "prime",
+      "path": "packages/employee-client/src/employee-check-in-transport.test.ts",
+      "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+      "source_sha256": "a7844e384748e8301ffa9db3225c2964fe90dc08daf90e36e98d6ad7f15e4d4b",
+      "lines": 234,
+      "batch": "C006"
+    }
+  ]
+}

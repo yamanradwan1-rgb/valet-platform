@@ -1,0 +1,1147 @@
+[
+  {
+    "path": "apps/api/src/modules/dashboard/incidents.controller.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "74cad63e55f4c8f4e9abd1c90216d930f0ace31bce817686df225871713c4fc5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 102
+      }
+    ],
+    "semantic_review_notes": "No-store incident list/resolve HTTP boundary. Requires one management Authorization header, resolves exact Staff session context, validates location/incident UUIDs and request/query contracts, then delegates to tenant-scoped list and resolution commands with response schema validation.",
+    "callers_consumers": [
+      "DashboardModule",
+      "incidents-query.ts",
+      "incident-resolution-command.ts"
+    ],
+    "invariants_error_checks": [
+      "single raw Authorization",
+      "exact StaffSessionContext",
+      "strict contract parse",
+      "no direct state mutation in controller"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-incident-resolution-integrity.integration.test.ts",
+      "dashboard incident HTTP/integration coverage"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/live-history-read-authorization.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "f9bf3cf8a6f7e5f9d88359b8bc8159c8468020a1c1aee54a88e1d0388c7f9318",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 287
+      }
+    ],
+    "semantic_review_notes": "Purpose-built live-history authorization holds shared Staff user/session security locks, current MFA/factor locks for Company Admin, shared staff-management organization fencing, and a SECURITY DEFINER entitlement row SHARE lock through projection. It then rechecks active membership/organization/location and exact LM location grant before granting scope, suppressing stale role-hint MFA disclosure.",
+    "callers_consumers": [
+      "live-sessions-query.ts",
+      "session-photo authorization",
+      "live-history native HTTP paths"
+    ],
+    "invariants_error_checks": [
+      "context user must match authenticated user",
+      "session/token/createdAt/current user revalidated under SHARE",
+      "CA MFA current factor required unless local bypass",
+      "entitlement locked through commit",
+      "LM exact membership_location_access required",
+      "stale hint cannot leak MFA distinction"
+    ],
+    "test_refs": [
+      "apps/api/test/live-history-read-authorization.test.ts",
+      "apps/api/test/live-history-native-http.integration.test.ts",
+      "apps/api/test/issue309-session-photo-authorization.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/live-session-overview-cursor.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c37978dd38c21be601ceccab67c3fef6e56f324dcc43eded7880b573fe255306",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 43
+      }
+    ],
+    "semantic_review_notes": "Strict versioned cursor domain for live sessions. Decoder requires canonical base64url, contract schema and exact organization/location/filter binding; malformed, cross-scope or cross-filter cursors become transport validation errors.",
+    "callers_consumers": [
+      "live-sessions-query.ts"
+    ],
+    "invariants_error_checks": [
+      "canonical base64url roundtrip",
+      "v3 live-sessions schema",
+      "organization/location/filter rebound on decode"
+    ],
+    "test_refs": [
+      "apps/api/test/live-session-overview-cursor.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/live-sessions-query.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8b818e89999707e569870118255778907275849b245d66c2d7cf0f933f60a8ae",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 65
+      }
+    ],
+    "semantic_review_notes": "Runs authorization and all live-session/history projection in one transaction. It refuses projection without current live-history authority, uses a scope-bound cursor, fetches only the authorized page, then requires a complete operational-history attribution for every returned session and fails on partial history.",
+    "callers_consumers": [
+      "live-sessions.controller.ts"
+    ],
+    "invariants_error_checks": [
+      "authorization precedes session query",
+      "scope-derived organization/location used for history",
+      "history map must cover every page item"
+    ],
+    "test_refs": [
+      "apps/api/test/live-sessions-query-unit.test.ts",
+      "apps/api/test/live-history-native-http.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/live-sessions.controller.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "706127c8f59a2bf18833d4589d39b3456d057ab19233adb690db9f1f2dfff656",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 72
+      }
+    ],
+    "semantic_review_notes": "HTTP boundary for live sessions requires exactly one raw Authorization header, resolves full Staff session context, validates location UUID and query schema, delegates to the transaction-scoped live history service and validates the response contract.",
+    "callers_consumers": [
+      "DashboardModule",
+      "live-sessions-query.ts"
+    ],
+    "invariants_error_checks": [
+      "duplicate/missing auth rejected",
+      "query contract validation",
+      "no client-supplied tenant/membership accepted"
+    ],
+    "test_refs": [
+      "apps/api/test/live-history-native-http.integration.test.ts",
+      "apps/api/test/live-sessions-query-unit.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/operational-assignee-projection.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "250915a232bcdf9e9088ae30c6c67c49b7ead995154c3c54e82859a882647738",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 34
+      }
+    ],
+    "semantic_review_notes": "Assignee projection joins membership only within the task organization and only when the membership has access to the task exact location. Current views restrict active assignment states; historical task views may retain terminal assignee attribution. User email is joined only from the membership linked account.",
+    "callers_consumers": [
+      "overview-sessions-query.ts",
+      "overview-retrieval-tasks-query.ts",
+      "task history projections"
+    ],
+    "invariants_error_checks": [
+      "organization-scoped membership join",
+      "exact location-access EXISTS",
+      "status-specific attribution",
+      "no unrelated membership identity"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-task-assignee-history.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/operational-history-atomic-evidence.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2200aba846f9058dc27659ff4b9980cd4c3f585787aaae123de02d1916cf5574",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 95
+      }
+    ],
+    "semantic_review_notes": "Reads PARKING task/COMPLETED dispatch evidence and all discoverable canonical parking audits in one SQL statement snapshot, preventing READ COMMITTED skew between task/dispatch and audit evidence. Input is already authorized organization/location/session page and empty session sets short-circuit.",
+    "callers_consumers": [
+      "operational-history-projection.ts"
+    ],
+    "invariants_error_checks": [
+      "organization/location/session predicates on task evidence",
+      "audit discovery shares same statement snapshot",
+      "unknown discriminator/malformed payload fails closed"
+    ],
+    "test_refs": [
+      "apps/api/test/operational-history-audit-discovery.test.ts",
+      "operational history evidence tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/operational-history-audit-discovery.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9b769f89d2d92dacb6091f57af1775d6cc89b74ed58e6de0adad0e85039865f8",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 101
+      }
+    ],
+    "semantic_review_notes": "DEC-103 audit discovery deliberately finds all parking-completion candidates through session reference, canonical entity reference and page-scoped taskId metadata paths, then hydrates by primary key. Discovery is tenant-scoped and task metadata matching is limited to PARKING tasks in the already authorized location; contradictory evidence is retained for later fail-closed classification.",
+    "callers_consumers": [
+      "operational-history-atomic-evidence.ts",
+      "direct discovery tests"
+    ],
+    "invariants_error_checks": [
+      "organization always constrained",
+      "page task CTE constrained by location/session/task type",
+      "no candidate cap that could hide contradictions",
+      "wrong-location evidence is discovered rather than filtered before validation"
+    ],
+    "test_refs": [
+      "apps/api/test/operational-history-audit-discovery.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Comments identify DEC-103 indexes as experimental deployment dependencies; C006 did not run performance evidence.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/operational-history-evidence-classifier.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "87c8a7432b00d251afac5deabb08cd815ace42442f78a29c1c1bfe5a0a72d5db",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 155
+      }
+    ],
+    "semantic_review_notes": "Fail-closed classifier proves a historical parker only when exactly one COMPLETED dispatch and one canonical VALET_SESSION_PARKED audit agree on task/session versions, actor, timestamps and transition metadata. Any malformed, contradictory, duplicate or unexpected candidate makes the session UNVERIFIABLE; ties between multiple valid completions also fail closed.",
+    "callers_consumers": [
+      "operational-history-projection.ts"
+    ],
+    "invariants_error_checks": [
+      "PostgreSQL int4 version bounds",
+      "exact task/audit/session actor and timestamp equality",
+      "completed task owner must equal completion actor",
+      "unexpected evidence sets anomaly",
+      "no evidence => NO_RECORD"
+    ],
+    "test_refs": [
+      "apps/api/test/operational-history-audit-discovery.test.ts",
+      "apps/api/test/operational-history-evidence-versions.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/operational-history-identity-projection.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0a6fcab98ea09292fdd349cd1e3104e673fb7d38782bcab50c40f38652f218a2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 34
+      }
+    ],
+    "semantic_review_notes": "Projects historical staff names only when both current membership name components are nonempty, canonically trimmed, <=100 Unicode code points and free of isolated UTF-16 surrogate code units. Missing/invalid identity becomes null instead of displaying malformed data.",
+    "callers_consumers": [
+      "operational-history-projection.ts",
+      "incidents-query.ts",
+      "task-cancellation-projection.ts"
+    ],
+    "invariants_error_checks": [
+      "complete first+last name required",
+      "bounded canonical components",
+      "historical attribution does not require current active/granted status"
+    ],
+    "test_refs": [
+      "operational history and incident projection tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/operational-history-projection.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "17c524a66e809d7fb79e8e007bc8c877d49ce03f0072ee5a36470e9f61a8cfa5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 113
+      }
+    ],
+    "semantic_review_notes": "Set-based historical attribution requires a distinct already-authorized session page, re-reads every session under exact organization/location scope, reads parking task/dispatch/audit evidence atomically, fail-closed classifies proof, then resolves only membership names from the same organization. Missing scoped sessions or duplicate requested ids are integrity failures.",
+    "callers_consumers": [
+      "live-sessions-query.ts"
+    ],
+    "invariants_error_checks": [
+      "exact scoped session count must match input",
+      "organization-scoped historical membership lookup",
+      "parkedBy emitted only for PROVEN evidence",
+      "no per-session unbounded query loop"
+    ],
+    "test_refs": [
+      "apps/api/test/operational-history-projection.test.ts",
+      "apps/api/test/live-sessions-query-unit.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/overview-cursor.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "215964530e05dd825d037e6670c8d978e5eff383cee3f7c494c0553ac0bdb4d0",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 65
+      }
+    ],
+    "semantic_review_notes": "Bounded versioned opaque pagination cursor for overview domains. Decoder enforces exact four-field shape, domain equality, nonempty <=64 sort key and UUID tiebreaker; malformed cursors fail as transport errors. Cursor is not an authorization token and all consumers still reauthorize and tenant-scope SQL.",
+    "callers_consumers": [
+      "overview retrieval/tasks/shifts/keys/incidents queries"
+    ],
+    "invariants_error_checks": [
+      "domain-bound cursor",
+      "bounded sort key",
+      "UUID tiebreaker",
+      "consumer SQL remains parameterized and authorized"
+    ],
+    "test_refs": [
+      "dashboard overview domain/cursor integration tests"
+    ],
+    "finding_ids": [],
+    "limits": "Cursor is base64url opaque rather than signed; tampering can alter pagination position only, not tenant authority, because consumers reauthorize and scope every query.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/overview-financial-query.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c5f1b0426faeadae5afcbcc94ec9fa9ba46dee343a6c56b7fc3d8aaee3b36012",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 149
+      }
+    ],
+    "semantic_review_notes": "Financial operational overview authorizes the exact dashboard location before querying. Payments are joined to nonterminal sessions with matching organization/location/session, and refund/validation totals are further composite-bound to the same payment organization. Results are grouped by currency to avoid cross-currency aggregation.",
+    "callers_consumers": [
+      "overview.controller.ts"
+    ],
+    "invariants_error_checks": [
+      "authorization before projection",
+      "payment organization+location predicates",
+      "session composite join",
+      "refund/validation organization+payment join",
+      "nonterminal sessions only",
+      "per-currency totals"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-overview-financial.integration.test.ts",
+      "apps/api/test/dashboard-overview-authz.integration.test.ts",
+      "apps/api/test/cancel-before-parking-financial.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/overview-query-input.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1cbfbd78bc58a96df511eec362e49216530bbf5abfa8e6c5294469c0ad165ee2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 19
+      }
+    ],
+    "semantic_review_notes": "Shared overview transport parser uses contract schema for list limits/cursor and a strict UUID format check for location parameters; invalid input becomes the generic transport validation error.",
+    "callers_consumers": [
+      "overview.controller.ts",
+      "live-sessions.controller.ts"
+    ],
+    "invariants_error_checks": [
+      "contract parsing",
+      "UUID shape validation"
+    ],
+    "test_refs": [
+      "dashboard overview HTTP/input tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/overview-retrieval-tasks-query.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "38408993c8c7607abadc10113a1ee7f0b0b83a176066cb68dee30aa8715c8dc5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 218
+      }
+    ],
+    "semantic_review_notes": "Retrieval queue and task list reauthorize the dashboard location in-transaction, use organization/location predicates and bounded limit+1 cursors. Retrieval current task selection is restricted to the request session/location, RETRIEVAL type and active task states; assignee identity requires exact location grant. Historical tasks retain scoped assignee and cancellation attribution.",
+    "callers_consumers": [
+      "overview.controller.ts"
+    ],
+    "invariants_error_checks": [
+      "organization/location authorization before query",
+      "retrieval request joined to same-org session",
+      "current task same org/session/location/type",
+      "assignee exact location grant",
+      "parameterized cursor",
+      "bounded page"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-overview-authz.integration.test.ts",
+      "apps/api/test/dashboard-overview-domains.integration.test.ts",
+      "apps/api/test/dashboard-task-cancellation.integration.test.ts",
+      "apps/api/test/dashboard-task-native-cancellation.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/overview-sessions-query.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bf5dcea97350812d4522d30c0abaed2b60ac94ae845ccb9a813a611833644097",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 238
+      }
+    ],
+    "semantic_review_notes": "Session overview and state counts reauthorize the exact dashboard location. Session page requires organization/location/state predicates, same-organization vehicle join, active PARKING/RETRIEVAL task selection in the same session/location, scoped resource joins and scope-bound cursor. Live-history reuse can inject its stricter cursor while retaining the already-authorized scope.",
+    "callers_consumers": [
+      "overview.controller.ts",
+      "live-sessions-query.ts"
+    ],
+    "invariants_error_checks": [
+      "organization/location/state filters",
+      "same-org vehicle join",
+      "active task same org/location/session",
+      "bounded page",
+      "state counts scoped org+location"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-overview-authz.integration.test.ts",
+      "apps/api/test/dashboard-overview-domains.integration.test.ts",
+      "apps/api/test/live-sessions-query-unit.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/overview-shifts-keys-incidents-query.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "86c587c04138ab66d5395449210ea61e70b1ce6b66b1a0d402a5504fa64b85bb",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 180
+      }
+    ],
+    "semantic_review_notes": "Active-shift and key-accountability lists authorize the dashboard location before projection, scope rows by organization/location, and use deterministic bounded pagination. Key occupancy lateral lookup only accepts nonterminal same-org/same-location sessions and the vehicle join stays within the slot organization. Open incidents compatibility delegates to the already-authorized incident list path.",
+    "callers_consumers": [
+      "overview.controller.ts"
+    ],
+    "invariants_error_checks": [
+      "active shifts only and exact org/location",
+      "key holder same org/location/slot",
+      "nonterminal occupancy only",
+      "vehicle same organization",
+      "bounded cursors"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-overview-authz.integration.test.ts",
+      "apps/api/test/dashboard-overview-domains.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/overview.controller.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "aebb2b5b562d9df0c838c4d7aee7489cc605d28dbaa505eccb76153865b8e5f4",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 254
+      }
+    ],
+    "semantic_review_notes": "Dashboard overview HTTP boundary requires exactly one raw Authorization header and resolves full StaffSessionContext before any domain read. It validates UUID/list/session-filter contracts and delegates each endpoint to independently authorized transaction services, validating all response contracts.",
+    "callers_consumers": [
+      "DashboardModule"
+    ],
+    "invariants_error_checks": [
+      "duplicate/missing Authorization rejected",
+      "exact session context passed",
+      "UUID/list schemas validated",
+      "no direct SQL or trust of client tenant/membership"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-overview-authz.integration.test.ts",
+      "apps/api/test/dashboard-overview-domains.integration.test.ts",
+      "apps/api/test/dashboard-overview-financial.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-authorization.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "055acefbeee4526ba6b1175a67b32591d122f893b5588b5fe814fde79554279c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 115
+      }
+    ],
+    "semantic_review_notes": "Physical-resource authority supports explicit read fencing modes. PRELOCKED RR rechecks the exact LM membership/org from the fresh snapshot; CA path uses management capability and standard/sensitive assurance; READ COMMITTED LM acquires the shared staff-management org advisory then rechecks exact scope. RR CA-only refuses late LM promotion. CREATE preserves the existing LM authorization path, with the downstream SECURITY DEFINER create command providing the authoritative mutation boundary.",
+    "callers_consumers": [
+      "physical-resource-read.service.ts",
+      "physical-resource-write.service.ts",
+      "physical-resource-overview-transaction.ts"
+    ],
+    "invariants_error_checks": [
+      "exact LM membership/org equality across fence",
+      "CA capability PHYSICAL_RESOURCES_MANAGE_ELIGIBLE",
+      "CREATE CA sensitive assurance",
+      "LIST may include inactive location per intended read semantics",
+      "READ_COMMITTED isolation checked",
+      "no RR lock upgrade/promotion"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-issue319-remediation-races.integration.test.ts",
+      "apps/api/test/dashboard-issue319-http.integration.test.ts",
+      "apps/api/test/dashboard-issue319-extension-http.integration.test.ts",
+      "physical-resource authority integration tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-command.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "8b86c1464c2aacca95b87e44beb956c0b1e24cea8dd28c19cfdb11f601c5ac45",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 157
+      }
+    ],
+    "semantic_review_notes": "Physical-resource create functions invoke narrow SECURITY DEFINER DB commands with actor membership, organization, location, operationId and a deterministic request fingerprint, then re-read the created key slot/parking spot only under exact organization/location scope. Parking Spot projection also composite-joins its zone. Known DB/result codes map to bounded domain errors; missing/mismatched projection fails.",
+    "callers_consumers": [
+      "physical-resource-write.service.ts"
+    ],
+    "invariants_error_checks": [
+      "idempotency operationId+fingerprint",
+      "authority ids passed to DB command",
+      "post-create projection exact org/location",
+      "parking zone composite org/location join",
+      "unknown DB failures not silently treated as success"
+    ],
+    "test_refs": [
+      "apps/api/test/physical-resource-key-label-idempotency.test.ts",
+      "physical-resource creation/runtime-role integration tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-cursor.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a8d56b7da1f707f2a21eef4f4999176ba53b7399d40393620ae17e3946160fd7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 61
+      }
+    ],
+    "semantic_review_notes": "Versioned physical-resource pagination cursor is bound to resource domain, exact location and non-all usage filter, with a bounded sort key and UUID id. Decode rejects wrong domain/location/filter/shape; it is pagination state only and downstream queries still authorize and tenant-scope every page.",
+    "callers_consumers": [
+      "physical-resource-query.ts",
+      "physical-resource-overview-query.ts",
+      "parking-zone selector queries"
+    ],
+    "invariants_error_checks": [
+      "domain + location rebound on decode",
+      "filter rebound when non-all",
+      "sortKey 1..160",
+      "UUID tiebreaker",
+      "not used as authorization state"
+    ],
+    "test_refs": [
+      "apps/api/test/physical-resource-cursor.test.ts",
+      "apps/api/test/physical-resource-overview-filters.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Cursor is opaque base64url rather than signed; tampering can only alter a bounded pagination boundary because authority/scope is independently rechecked.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-custody-query.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "bef3a54e20d498d04cff96310f314767718f18aeaa20aabb95c7eed1987bab01",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 59
+      }
+    ],
+    "semantic_review_notes": "Historical Key Slot custody first proves the requested slot exists in the exact authorized organization/location, including inactive historical resources, then returns only custody events for that same organization/location/key slot. Actor identity is joined only from a membership in the event organization and the page is bounded by limit+1.",
+    "callers_consumers": [
+      "physical-resource-read.service.ts"
+    ],
+    "invariants_error_checks": [
+      "resource exact org/location before history",
+      "event org/location/key_slot predicates",
+      "actor membership organization join",
+      "bounded page and hasMore",
+      "unknown/foreign slot concealed as AUTHORIZATION_DENIED"
+    ],
+    "test_refs": [
+      "apps/api/test/physical-resource-overview.integration.test.ts",
+      "physical resource custody HTTP/integration tests"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-errors.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e34c753d85c2f497258ec84f70800c0c9eb2a3a197be1c2fca5a6267e1622b5f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 36
+      }
+    ],
+    "semantic_review_notes": "Maps only known authorization and value-domain PostgreSQL states to fixed non-disclosing physical-resource errors. Resource/idempotency/zone conflict codes have bounded public messages; unknown database failures propagate to the generic infrastructure handler rather than being mislabeled.",
+    "callers_consumers": [
+      "physical-resource-command.ts",
+      "parking-zone-command.ts",
+      "HTTP error mapping"
+    ],
+    "invariants_error_checks": [
+      "42501 => authorization denial",
+      "selected 22xxx => configuration invalid",
+      "unknown SQL errors rethrown",
+      "fixed public messages"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-physical-resources.integration.test.ts",
+      "physical resource error/HTTP integration coverage"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-overview-query.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "199141f64ffec4133ee6ee6023eac65fb42f4d3a10472001941738c6c026a74c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 217
+      }
+    ],
+    "semantic_review_notes": "Builds physical-resource counts and unified key/spot pages entirely inside an already-authorized transaction. All location/resource/holder joins are constrained by organization/location; only nonterminal same-location sessions count as occupancy. Inactive locations intentionally convert active resource availability/occupancy to UNKNOWN/null rather than showing stale operational state, while server-side filters are applied before pagination.",
+    "callers_consumers": [
+      "physical-resource-read.service.ts",
+      "physical-resource-overview-transaction.ts"
+    ],
+    "invariants_error_checks": [
+      "location exact org/id",
+      "key/spot holder same org/location and nonterminal",
+      "vehicle same holder organization",
+      "inactive location makes usage unknown",
+      "filter before keyset pagination",
+      "counts independent of page size"
+    ],
+    "test_refs": [
+      "apps/api/test/physical-resource-overview-query.test.ts",
+      "apps/api/test/physical-resource-overview.integration.test.ts",
+      "apps/api/test/physical-resource-overview-filters.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-overview-transaction.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6473da2111d685c642bc6c04698786c9ade9d4efcb47ededc89f19f810a82d61",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 214
+      }
+    ],
+    "semantic_review_notes": "Provides one bounded REPEATABLE READ snapshot for the Physical Resources overview while preserving authority freshness. LM eligibility is only a pre-BEGIN hint; a shared staff-management organization advisory is acquired before RR and exact membership/org scope is rechecked inside the fresh snapshot. CA uses fresh pre-BEGIN eligibility/MFA and then the management authorization path; the active MFA factor is SHARE-locked through projection. Serialization failures retry fresh up to five attempts and ambiguous advisory/transaction outcomes poison the connection lease.",
+    "callers_consumers": [
+      "physical-resource-read.service.ts"
+    ],
+    "invariants_error_checks": [
+      "LM advisory acquired before RR snapshot",
+      "PRELOCKED RR exact scope recheck",
+      "CA MFA preflight plus active factor SHARE lock",
+      "40001 retry bounded to five",
+      "commit/rollback/lock ambiguity destroys pooled lease",
+      "shared advisory explicitly unlocked before safe release",
+      "transaction_timeout reset when shortened"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-issue319-physical-lease.integration.test.ts",
+      "apps/api/test/dashboard-issue319-remediation-races.integration.test.ts",
+      "apps/api/test/physical-resource-overview.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-policy.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c6ebfc753572dec9f0ffd61218853af99fb959d198f212a07238e86f841d39fd",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 49
+      }
+    ],
+    "semantic_review_notes": "Deterministic SHA-256 request fingerprints domain-separate parking-zone, key-slot and parking-spot creates and include location plus all material request fields. Key-slot label is canonically trimmed when present while omission preserves the legacy fingerprint, keeping old retries compatible and changed-label retries distinguishable.",
+    "callers_consumers": [
+      "physical-resource-command.ts",
+      "parking-zone-command.ts"
+    ],
+    "invariants_error_checks": [
+      "resource kind domain separation",
+      "location included",
+      "parking zone id included for spots",
+      "key label canonicalization",
+      "omitted label preserves legacy replay identity"
+    ],
+    "test_refs": [
+      "apps/api/test/physical-resource-key-label-idempotency.test.ts",
+      "apps/api/test/physical-resource-key-label-idempotency.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-query.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "cef148ec3c3f5ae3ac0e64b5e98428401ced3a55a4d64b980505cd6a68bdde48",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 235
+      }
+    ],
+    "semantic_review_notes": "Lists Key Slots and Parking Spots strictly under the authorized organization/location, with bounded location-bound cursors. Parking Spot zone, occupancy session and vehicle joins all carry organization/location ownership; only nonterminal same-location sessions count as occupancy. Inactive locations suppress operational occupancy. Label reads require active exact-scope resource and active location before emitting the V2 QR payload.",
+    "callers_consumers": [
+      "physical-resource-read.service.ts",
+      "physical-resource-overview-query.ts"
+    ],
+    "invariants_error_checks": [
+      "resource org/location predicates",
+      "zone composite org/location join",
+      "occupancy same org/location and nonterminal",
+      "vehicle same organization",
+      "server-side usage filters",
+      "active resource/location required for label",
+      "bounded keyset pages"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-physical-resources.integration.test.ts",
+      "apps/api/test/physical-resource-v2-operational.integration.test.ts",
+      "apps/api/test/physical-resource-overview-filters.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-read.service.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ea57a3373fb2c09192ecd3ff6cf298fc65ca5677e3ca6fc80bb33a701e1a9add",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 164
+      }
+    ],
+    "semantic_review_notes": "Central read service applies the RR overview authority wrapper for multi-source overview and READ COMMITTED shared-fence authorization for custody, lists, selectors and labels. Company Admin activity is recorded in the same transaction after a successful projection; Location Manager reads retain exact grant fencing.",
+    "callers_consumers": [
+      "physical-resource.controller.ts"
+    ],
+    "invariants_error_checks": [
+      "overview uses inAuthorizedPhysicalResourceOverview",
+      "other reads use READ_COMMITTED authority fence",
+      "LIST allows intended historical/inactive location semantics",
+      "LABEL requires active scope downstream",
+      "CA admin activity recorded transactionally"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-physical-resources-authority.integration.test.ts",
+      "apps/api/test/physical-resource-overview.integration.test.ts",
+      "apps/api/test/dashboard-issue319-physical-lease.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-write.controller.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d750b8fc6de3d7e46eb10f3ce751a9257b86c3aa3f4e6087211fec75953c1fd0",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 126
+      }
+    ],
+    "semantic_review_notes": "No-store HTTP create boundary for Key Slots, Parking Zones and Parking Spots. Every route requires exactly one management Authorization header, resolves the exact Staff session context, validates location UUID and strict request schema, delegates to the write service and contract-validates the result.",
+    "callers_consumers": [
+      "DashboardModule",
+      "physical-resource-write.service.ts"
+    ],
+    "invariants_error_checks": [
+      "single management Authorization",
+      "strict request schemas",
+      "location UUID validation",
+      "no caller-supplied organization/membership",
+      "no-store responses"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-physical-resources.integration.test.ts",
+      "apps/api/test/dashboard-physical-resources-authority.integration.test.ts",
+      "apps/api/test/physical-resource-key-label-idempotency.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource-write.service.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a331e966813661936aad121da716c4168b73f4b3cce6a1a13b894478bae6f77b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 81
+      }
+    ],
+    "semantic_review_notes": "Each physical-resource create runs authorization, the narrow audited/idempotent DB create command and Company Admin activity recording in one transaction. CREATE uses the sensitive Company Admin assurance path or current Location Manager scope; the SECURITY DEFINER command reauthorizes the actor/location/entitlement and provides the authoritative race/idempotency boundary.",
+    "callers_consumers": [
+      "physical-resource-write.controller.ts"
+    ],
+    "invariants_error_checks": [
+      "single transaction for auth+create+CA activity",
+      "CREATE authority action",
+      "DB command reauthorization downstream",
+      "no success returned before projection/audit path completes"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-physical-resources-authority.integration.test.ts",
+      "apps/api/test/dashboard-physical-resources.integration.test.ts",
+      "apps/api/test/physical-resource-key-label-idempotency.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/physical-resource.controller.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ef303a7ae033d5165f54eb2b4fafa56eab7138e62ea2328fbf0867dca4543516",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 258
+      }
+    ],
+    "semantic_review_notes": "No-store read HTTP surface for overview, custody, Key Slots, Parking Spots, Parking Zones and labels. It consistently requires single management Authorization, resolves StaffSessionContext, validates location/resource UUIDs and bounded query contracts, then delegates to the fenced read service and validates response schemas.",
+    "callers_consumers": [
+      "DashboardModule",
+      "physical-resource-read.service.ts"
+    ],
+    "invariants_error_checks": [
+      "single management Authorization on all shared helpers",
+      "no-store on read responses",
+      "strict overview/list/custody schemas",
+      "UUID validation for location/resource",
+      "response contract parsing"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-physical-resources.integration.test.ts",
+      "apps/api/test/physical-resource-overview.integration.test.ts",
+      "apps/api/test/physical-resource-overview-filters.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/rating-analytics-query.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "54bdf3d9a9058f5fcf6cd00e7e56e792683108ae44031b4024de9ef051b3b8b2",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 35
+      }
+    ],
+    "semantic_review_notes": "Location rating analytics locks and rechecks the exact Staff session first, then uses the canonical dashboard location authorization fence for ANALYTICS_READ and runs the aggregate rating projection in the same transaction. Thus canonical grant revocation is serialized through projection rather than authorizing from a stale role/location hint.",
+    "callers_consumers": [
+      "rating-analytics.controller.ts",
+      "management rating projection query"
+    ],
+    "invariants_error_checks": [
+      "exact Staff session revalidation",
+      "dashboard location/capability authorization",
+      "projection uses scope organization/location",
+      "same transaction holds authority fence"
+    ],
+    "test_refs": [
+      "apps/api/test/rating-analytics-location-http.integration.test.ts",
+      "apps/api/test/rating-analytics-browser-e2e.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/rating-analytics.controller.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2572edee72a929bf4a4b7507bb5580f7c1dd28f536b0050f74d4b53b74e4137d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 49
+      }
+    ],
+    "semantic_review_notes": "No-store rating analytics HTTP boundary applies the shared rating-management Authorization header check, bounded period parser and UUID validator, resolves the Staff session context, then contract-validates the location analytics projection.",
+    "callers_consumers": [
+      "DashboardModule",
+      "rating-analytics-query.ts"
+    ],
+    "invariants_error_checks": [
+      "single authorization boundary via requireRatingAnalyticsAuthorization",
+      "caller cannot select timezone",
+      "bounded period contract",
+      "location UUID validation",
+      "no-store response"
+    ],
+    "test_refs": [
+      "apps/api/test/rating-analytics-location-http.integration.test.ts",
+      "apps/api/test/rating-analytics-browser-e2e.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/report-audit-writer.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e75ddcf55da06d1875269b625dc0ecdd88fb7c324a2df8bba65a4a6f8a1cbabb",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 45
+      }
+    ],
+    "semantic_review_notes": "Appends the DASHBOARD_REPORT_EXPORT_GENERATED audit fact using the fresh organization/location/membership scope supplied by the export finalizer. Metadata contains only artifact hash/length, format, report kind and period, not report rows or sensitive customer data; the insert occurs in the same final authorization transaction so audit failure rolls back delivery.",
+    "callers_consumers": [
+      "report-export-service.ts finalizeAuditedExport"
+    ],
+    "invariants_error_checks": [
+      "fresh finalizer-derived scope",
+      "actor membership stored",
+      "entity is exact Location",
+      "metadata excludes report contents",
+      "content SHA-256 + length bind artifact",
+      "atomic with final authorization transaction"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-reports-api.integration.test.ts",
+      "apps/api/test/dashboard-report-commercial.integration.test.ts",
+      "apps/api/test/dashboard-issue319-final-reader-export.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Static source/caller/test review only; no heavy/runtime tests run in C006.",
+    "original_worker": "database"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/report-daily-activity-query.ts",
+    "batch": "C006",
+    "worker": "database",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "442930e606e84a5525314605c2c7f860f2c7d6645f676e744d22ae08351ea1d0",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 97
+      }
+    ],
+    "semantic_review_notes": "Daily report activity returns aggregate retrieval, dispatch and key-custody counts only. Every SQL statement is constrained by the caller-authorized organization/location and the same timezone-derived half-open period; dispatch events composite-join their Task by organization/location/id. The three aggregates use successive READ COMMITTED statements on one pool client, so they may reflect slightly different operational snapshots under concurrent writes, but no row-level/customer data is returned.",
+    "callers_consumers": [
+      "report-read-service.ts composeReport for DAILY reports",
+      "report-export-service.ts via composeReport"
+    ],
+    "invariants_error_checks": [
+      "organization/location predicate on every aggregate",
+      "retrieval request joined to same-org session and location",
+      "dispatch task composite org/location/id join",
+      "half-open timezone window",
+      "aggregate counts only"
+    ],
+    "test_refs": [
+      "apps/api/test/dashboard-reports-api.integration.test.ts",
+      "apps/api/test/dashboard-reports-fix.integration.test.ts",
+      "apps/api/test/dashboard-issue319-final-reader-export.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Three activity SELECTs are not pinned to one snapshot. Ordinary report reads perform a final REPORTS_READ authorization before returning, and exports perform a fresh REPORT_EXPORT finalizer after rendering, so C006 found no authority leak; cross-aggregate point-in-time consistency remains a reporting-consistency limitation.",
+    "original_worker": "database"
+  }
+]

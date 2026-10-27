@@ -13,3 +13,5 @@ C003: Selected staff login/password/session revalidation and DB runtime-grant/pr
 C004: Native foreground/check-in owner, push backup and release guard source reviewed; Dashboard auth/authority fixture sources inspected. No live exploit, security scanner pass, production test or user-device verification. Existing release risks remain unchanged.
 
 C005: Transfer reviews inspected scope, auth, anti-abuse and contract edges. No formal security scan/live exploit or risk acceptance; prior P1 gates remain.
+
+C006: Statically inspected dashboard MFA/CAS/tenant fences, API exact Staff/session/entitlement read scope, and Check-In ambiguity/custody tests. No provider/DB/device security scan was executed; earlier security findings and release gates unchanged.

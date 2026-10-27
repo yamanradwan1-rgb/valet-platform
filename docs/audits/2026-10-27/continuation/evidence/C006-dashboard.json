@@ -1,0 +1,1222 @@
+[
+  {
+    "path": "apps/dashboard/e2e/administration-r06-authority-budget.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7b031042ec9ecce9baae95a7c3a8228ded63968ac738dd2c1e03a7b52550dc38",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 139
+      }
+    ],
+    "semantic_review_notes": "R06 authority/budget coverage verifies Company Admin exact-detail privacy and bounded settled requests, Location Manager grant-only projection with zero Company enumeration/lifecycle reads, complete denial for supervisor/employee/guest/unauthenticated roles, and entitlement fail-closed before Locations business reads. Protected address content is also checked against browser persistent storage.",
+    "callers_consumers": [
+      "LocationsPage",
+      "useAuthoritativeRead",
+      "management Locations/lifecycle endpoints",
+      "selected-scope authorization"
+    ],
+    "invariants_error_checks": [
+      "LM receives no lifecycle/address or company enumeration",
+      "non-management roles issue zero business reads",
+      "dashboardAccess=false blocks Locations reads and Add Location",
+      "protected address absent from local/session/IndexedDB/cache"
+    ],
+    "test_refs": [
+      "src/features/administration/locations/locations-page.tsx",
+      "src/features/administration/use-authoritative-read.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture E2E; settled request budget uses a 1200ms observation window and no live server/load test was run.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r06-corrections.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "730e8aea426febba2be87cfb78f2c24eecb8f8ccede894237209716a8e2dbf6c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 176
+      }
+    ],
+    "semantic_review_notes": "Lifecycle correction tests enforce explicit re-submit after MFA or CAS conflict for activate/currency/timezone operations, use authoritative refreshed updatedAt tokens, clear stale reason/drafts on conflict, normalize currency, bound timezone reason to 500 characters, and surface server validation errors without hidden replay.",
+    "callers_consumers": [
+      "LocationLifecyclePanel",
+      "useSensitiveMutation",
+      "locations-api lifecycle/correction commands"
+    ],
+    "invariants_error_checks": [
+      "first denied mutation is not auto-replayed after MFA",
+      "CAS conflict reloads canonical values before retry",
+      "explicit second intent uses current expectedUpdatedAt",
+      "invalid local inputs do not issue mutation"
+    ],
+    "test_refs": [
+      "src/features/administration/locations/location-lifecycle-panel.tsx",
+      "src/features/administration/use-sensitive-mutation.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Server conflict/MFA responses are fixture-controlled; database lifecycle command behavior is not executed here.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r06-cursor-selection.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "993d4288de2e3548a224ea332e82fa706f18d8395cba3b611ec07efcc92c584d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 185
+      }
+    ],
+    "semantic_review_notes": "Tests A→B→A detail generation fencing for stale success/error, opaque pagination cursor reset across organization replacement, selection reset, and logout fencing. Production LocationsPage is keyed by scope and useAuthoritativeRead uses logical generations plus AbortController, so stale response suppression has an implementation-backed correctness mechanism.",
+    "callers_consumers": [
+      "LocationsPage",
+      "useAuthoritativeRead",
+      "LocationMaster pagination"
+    ],
+    "invariants_error_checks": [
+      "stale first-A response/error cannot repaint returned A",
+      "organization B starts with null cursor/history",
+      "logout removes pending protected detail",
+      "stale MFA dialog cannot appear after replacement"
+    ],
+    "test_refs": [
+      "src/features/administration/locations/locations-page.tsx",
+      "src/features/administration/use-authoritative-read.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture E2E; post-release rendering is drained with requestAnimationFrame rather than live transport timing.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r06-mfa-state.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6b24815be49de8bdfafa9f529589317ccd46e727e4ea45148ba8bbd6e4091ddc",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 81
+      }
+    ],
+    "semantic_review_notes": "Lifecycle MFA-state coverage verifies successful step-up causes exactly one explicit read refresh, does not fabricate success while the protected read is pending, and reopens a fresh MFA challenge when the authoritative lifecycle endpoint still denies access after verification. No protected write is triggered by the read ceremony.",
+    "callers_consumers": [
+      "LocationsPage SensitiveMfaDialog",
+      "useAuthoritativeRead",
+      "dashboard MFA client"
+    ],
+    "invariants_error_checks": [
+      "one step-up request",
+      "one post-assurance lifecycle reread",
+      "repeated server MFA denial remains authoritative",
+      "zero Location POST mutations during read step-up"
+    ],
+    "test_refs": [
+      "src/features/administration/locations/locations-page.tsx",
+      "src/lib/mfa/dashboard-mfa-client.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Uses fixture MFA state and code; backend MFA ceremony/session binding is outside this E2E file.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r06-mutations.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7251dde0c751d3f9c15492b3c35164060bbba0ad0a81d95f657048cd5c017007",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 244
+      }
+    ],
+    "semantic_review_notes": "Mutation coverage preserves caller-owned Location create operationId across unknown outcome/MFA/authorization recovery, prevents operationId and address persistence in browser stores, requires explicit retry, prevents duplicate in-flight create, rotates operationId only for a new dialog intent, chains exact lifecycle updatedAt tokens, and preserves truthful timezone-correction impact.",
+    "callers_consumers": [
+      "LocationCreateDialog",
+      "LocationLifecyclePanel",
+      "useSensitiveMutation",
+      "locations-api"
+    ],
+    "invariants_error_checks": [
+      "same explicit create intent reuses identical operationId/body",
+      "new intent gets new operationId",
+      "one in-flight create only",
+      "lifecycle CAS token advances from authoritative response",
+      "MFA does not auto-replay mutation"
+    ],
+    "test_refs": [
+      "src/features/administration/locations/location-create-dialog.tsx",
+      "src/features/administration/locations/location-lifecycle-panel.tsx",
+      "src/features/administration/use-sensitive-mutation.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Idempotency persistence is in-memory for the mounted dialog; browser reload recovery is not claimed by these tests.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r06-presentation.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4175b95e64aeb6e07900aa513fcc5612a034986a16943827ee900e276d7daed5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 58
+      }
+    ],
+    "semantic_review_notes": "Presentation test verifies keyboard selection, visible focus outline, aria-pressed state, real Location identity/configuration facts, and absence of internal location ID, placeholder image, unsupported prototype metrics and Edit Location mutation control.",
+    "callers_consumers": [
+      "LocationMaster",
+      "LocationDetail",
+      "LocationsPage"
+    ],
+    "invariants_error_checks": [
+      "selected row aria-pressed=true",
+      "internal locationId not rendered",
+      "truthful MAIN/timezone/currency/address shown",
+      "unsupported prototype content absent"
+    ],
+    "test_refs": [
+      "src/features/administration/locations/location-master.tsx",
+      "src/features/administration/locations/location-detail.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Presentation-only fixture coverage; does not independently establish server authority.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r06-session-fencing.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "6f3107623f8e3431130c6d974f022125ee0caa6dc72ad2a2111424219a529ca0",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 124
+      }
+    ],
+    "semantic_review_notes": "Session/organization replacement races hold either a list continuation or lifecycle detail response and prove stale rows, stale MFA challenges and pagination history cannot repaint the replacement scope/session. Production scope-key remounting plus useAuthoritativeRead generation/disposal fencing support the asserted behavior.",
+    "callers_consumers": [
+      "LocationsPage keyed scope lifecycle",
+      "useAuthoritativeRead",
+      "selected-scope provider"
+    ],
+    "invariants_error_checks": [
+      "stale list/detail response suppressed after organization change",
+      "stale response suppressed after logout/new identity",
+      "no stale challenge dialog",
+      "replacement organization has disabled Previous history"
+    ],
+    "test_refs": [
+      "src/features/administration/locations/locations-page.tsx",
+      "src/features/administration/use-authoritative-read.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture network handlers model delayed responses; no real cross-tab/browser-session race was executed.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r06-states.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "757b573b7db607ab74e3beeabdbc7cc36f7234914aef124502136038a00c863e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 107
+      }
+    ],
+    "semantic_review_notes": "Lifecycle state tests render the exact drain blocker facts separately for active shifts, non-completed sessions and non-terminal tasks, disable deactivation/corrections while blocked, and verify readiness=false prevents activation. Read failures remain visible with one explicit retry path.",
+    "callers_consumers": [
+      "LocationLifecyclePanel",
+      "LocationLifecycleFacts",
+      "LocationsPage read state"
+    ],
+    "invariants_error_checks": [
+      "each drain blocker displayed independently",
+      "deactivate disabled while drain blocked",
+      "readiness false disables activate",
+      "503 read error requires explicit Retry"
+    ],
+    "test_refs": [
+      "src/features/administration/locations/location-lifecycle-panel.tsx",
+      "src/features/administration/locations/location-lifecycle-facts.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Drain/readiness facts are fixture-authoritative; server computation of those facts is outside this file.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-r06-visual.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e79bedbb776f8e2e575bd3eb1212518209029c97b1ce2ab752c2d56d96070ed1",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 273
+      }
+    ],
+    "semantic_review_notes": "Visual R06 coverage pins approved Locations geometry/surfaces at desktop, dark-mode contrast, Arabic RTL, narrow 480px reachability, truthful active/drain states, Location Manager exact-scope presentation, and nested MFA/create-dialog viewport fit. Screenshots are written to OS temp output and do not alter tracked assets.",
+    "callers_consumers": [
+      "LocationsPage and reference CSS",
+      "Location lifecycle/create dialogs",
+      "theme/locale shell"
+    ],
+    "invariants_error_checks": [
+      "no horizontal overflow at 480px",
+      "dark selection contrast differs from unreadable prototype",
+      "LM has no Add Location",
+      "nested MFA remains in viewport",
+      "required controls reachable"
+    ],
+    "test_refs": [
+      "src/features/administration/locations/locations-reference.module.css",
+      "locations components"
+    ],
+    "finding_ids": [],
+    "limits": "Pixel geometry depends on Chromium/font/DPR assumptions; C006 did not execute screenshots due audit-only constraints.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-settings-validation.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c982351d1ec8886801753f684b4a918422e8156a82753b15858713e6e439e081",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 190
+      }
+    ],
+    "semantic_review_notes": "Settings validation coverage confirms invalid integer, excessive-precision/negative money and reversed operating-hours intervals are rejected before mutation across Company Admin defaults, Company Admin location override and Location Manager legacy configuration paths. Valid decimal values retain exact string precision into the shared contract and CAS updatedAt.",
+    "callers_consumers": [
+      "CompanySettingsPanel",
+      "ManagementLocationSettingsPanel",
+      "LocationManagerSettingsPanel",
+      "SettingRow",
+      "OperatingHoursEditor",
+      "shared Zod setting contracts"
+    ],
+    "invariants_error_checks": [
+      "invalid client draft produces zero write",
+      "valid monetary string preserves approved precision",
+      "operating-hours reversed interval rejected locally",
+      "all settings writes include expectedUpdatedAt"
+    ],
+    "test_refs": [
+      "src/features/administration/settings/company-settings-panel.tsx",
+      "management-location-settings-panel.tsx",
+      "location-manager-settings-panel.tsx",
+      "setting-row.tsx",
+      "operating-hours-editor.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture E2E validates client-side and shared-schema rejection; server setting validation is not independently exercised.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-settings.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e39fa5875a6251604408cccf2303081e9ca92710a54b2be79a85b5b16c39ec88",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 100
+      }
+    ],
+    "semantic_review_notes": "Location Manager settings coverage preserves semantic distinction between explicit false override and cleared/inherited value, advances CAS updatedAt after the first authoritative mutation, and excludes unsupported SLA control from the legacy LM configuration surface.",
+    "callers_consumers": [
+      "LocationManagerSettingsPanel",
+      "settings-api",
+      "configuration override contracts"
+    ],
+    "invariants_error_checks": [
+      "false override remains an override",
+      "clear sends no value and uses latest updatedAt",
+      "post-clear effective value returns to Company default",
+      "unsupported SLA row absent"
+    ],
+    "test_refs": [
+      "src/features/administration/settings/location-manager-settings-panel.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture-backed endpoint behavior; server configuration precedence and persistence are not reexecuted.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-staff.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e58d656ff0ecb36f547446e2aa814b10ba8bc09fa55d85a48bfa6a91e64fc602",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 86
+      }
+    ],
+    "semantic_review_notes": "Staff history tests verify Company Admin and Location Manager use the bounded organization history projection instead of active-shift fan-out, render truthful ended/history facts without raw shift IDs, and expose no operational start/end/force-end/attendance/payroll controls from the read-only history view.",
+    "callers_consumers": [
+      "Employees & Shifts history UI",
+      "issue240e history API/query state"
+    ],
+    "invariants_error_checks": [
+      "one history read",
+      "zero active-shifts fan-out",
+      "raw shiftId hidden",
+      "history surface has no operational mutation controls"
+    ],
+    "test_refs": [
+      "support/issue240e-history.ts",
+      "staff history presentation components"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture history authorization is not a live server proof; detailed R05 staff authority was reviewed in C004.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/administration-visual-freeze.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "50f2651ea3e4014c14e57cf2073c0c5c58cd48ace145a7c378da4ad66c38a36f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 126
+      }
+    ],
+    "semantic_review_notes": "MD-02 visual-freeze test pins hierarchy, typography, selected resource styling, policy tabs, role presentation without internal role code, branding input/action geometry and billing card/table styling across light/dark states. It encodes the UI Freeze contract across multiple Administration routes.",
+    "callers_consumers": [
+      "Management navigation",
+      "Employees/Locations/Policies/Roles/Branding/Billing pages and shared CSS"
+    ],
+    "invariants_error_checks": [
+      "approved font weights/sizes and selected colors",
+      "internal ORG_ADMIN role code not rendered",
+      "dark theme reference colors retained",
+      "route hierarchy remains frozen"
+    ],
+    "test_refs": [
+      "Administration route components/reference styles"
+    ],
+    "finding_ids": [],
+    "limits": "Browser/CSS pixel assertions were inspected only; C006 did not execute Playwright or regenerate visual artifacts.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/auth-session.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "3d313e929aa77397845c7a66079f47e0a40da425df48c54402f8115ae9747ffb",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 130
+      }
+    ],
+    "semantic_review_notes": "Auth-session E2E covers cookie refresh/scope restoration, confirmed logout with browser-back fail-closed behavior, failed logout persistence across reload with refresh suppression until explicit retry succeeds, and single protected-GET refresh/replay. StaffAuthClient source confirms in-memory session generations, refresh coalescing and immediate identity clearing on logout attempt.",
+    "callers_consumers": [
+      "StaffAuthClient",
+      "protected dashboard auth bootstrap",
+      "selected-scope restoration",
+      "DashboardApiClient 401 reconciliation"
+    ],
+    "invariants_error_checks": [
+      "refresh cookie restores authorized selected Location",
+      "logout clears protected state",
+      "failed logout suppresses refresh while persisted marker is readable",
+      "one 401 reconciliation cycle replays GET with replacement access token"
+    ],
+    "test_refs": [
+      "src/lib/auth/staff-auth-client.ts",
+      "src/lib/api/dashboard-api-client.test.ts"
+    ],
+    "finding_ids": [
+      "C003-DASH-AUTH-01"
+    ],
+    "limits": "This E2E assumes localStorage is usable. StaffAuthClient.hasUnconfirmedLogout catches storage read failure and returns false after reload, so the existing C003-DASH-AUTH-01 P2 source-confidence candidate remains applicable; C006 did not rerun its denied-storage browser reproduction.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/foundation-authority-follow-up.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e84076e86464380a440f1fe41beda37216c3ba3fd82412d82da3a4559df840d0",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 82
+      }
+    ],
+    "semantic_review_notes": "Foundation follow-up proves selected-scope MFA denial removes protected route content until fresh route authority revalidation succeeds, then composes navigation from resolved authority rather than route assumptions. Security/Help remain account destinations while obsolete Workspace navigation is absent.",
+    "callers_consumers": [
+      "selected management shell",
+      "useNavigationAuthority",
+      "resolveNavigationAuthority",
+      "selected-scope revalidation"
+    ],
+    "invariants_error_checks": [
+      "MFA-required authority state hides Employees content",
+      "post-step-up authority is reread before content",
+      "navigation derives from authority",
+      "obsolete Workspace link absent"
+    ],
+    "test_refs": [
+      "src/components/foundation/use-navigation-authority.ts",
+      "src/components/foundation/resolve-navigation-authority.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture authority resolver responses; server subscription/grant state is not live-tested.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue232-physical-resource-closure.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c3fb972afe5ca429feffecde514b95232d3a392d773137f65e7421a34551d4f3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 122
+      }
+    ],
+    "semantic_review_notes": "Issue #232 closure verifies physical-resource reads stay Standard assurance even when lifecycle would require step-up, lost create response triggers authority reread and explicit same-operation retry, and identity replacement cannot reuse a pending create operation ID. Production operation IDs are keyed by identityGeneration/location/kind/request material and old generations are purged.",
+    "callers_consumers": [
+      "PhysicalResourcesPanel",
+      "PhysicalResourceCreateDialog",
+      "physical-resource-operation-id.ts",
+      "physical-resources API"
+    ],
+    "invariants_error_checks": [
+      "read/label needs no lifecycle MFA",
+      "unknown create outcome does not auto-replay",
+      "explicit retry reuses operationId",
+      "new identity cannot reuse old operationId"
+    ],
+    "test_refs": [
+      "src/features/administration/physical-resources/physical-resource-operation-id.ts",
+      "physical-resource-create-dialog.tsx"
+    ],
+    "finding_ids": [
+      "C006-DASH-001"
+    ],
+    "limits": "Fixture state models server idempotency and 401 behavior; database resource command is not executed. This legacy default-E2E path still enters Physical Resources through the pre-#304 Keys & Spots tab shell, so it is structurally stale against the current Option 3 /keys UI.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue232-physical-resource-races.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "df0b1eef263b87b3b3bdf615221d53a38fce1aa74d672eacaa094788152bcd54",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 227
+      }
+    ],
+    "semantic_review_notes": "Physical-resource race suite covers A→B→A stale list success/failure, delayed A create completion after switching to B, and delayed label read. Production panel keys reads by scope/location with useAuthoritativeRead generation fencing, create dialogs remount by scope/family, and ResourceLabelDialog uses scope-key/mounted/AbortController checks.",
+    "callers_consumers": [
+      "PhysicalResourcesPanel",
+      "useAuthoritativeRead",
+      "PhysicalResourceCreateDialog",
+      "ResourceLabelDialog"
+    ],
+    "invariants_error_checks": [
+      "old A rows/errors cannot repaint fresh A",
+      "A create completion cannot refresh/render B",
+      "A label cannot appear in B",
+      "return to A reveals authoritative committed resource only by fresh read"
+    ],
+    "test_refs": [
+      "src/features/administration/physical-resources/physical-resources-panel.tsx",
+      "resource-label-dialog.tsx"
+    ],
+    "finding_ids": [
+      "C006-DASH-001"
+    ],
+    "limits": "Race settlement uses fixed 900/1000ms fixture delays; correctness is also backed by production generation/scope fences, but no real network race was run. The legacy helper path that opens Physical Resources is stale after #304 Option 3.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue232-physical-resource-visual.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7872ca05bd27e300e5d5ad42004548baddeeebf7264322c271c7cda0a48d9f03",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 132
+      }
+    ],
+    "semantic_review_notes": "Issue #232 visual proof covers physical-resource panel geometry, code directionality, light/dark, Arabic RTL, 480px overflow/dialog focus, validation conflict, QR-label dialog and empty state under the frozen visual language.",
+    "callers_consumers": [
+      "PhysicalResourcesPanel",
+      "PhysicalResourceCreateDialog",
+      "ResourceLabelDialog",
+      "physical-resources.module.css"
+    ],
+    "invariants_error_checks": [
+      "resource codes stay LTR in RTL shell",
+      "no horizontal overflow narrow",
+      "create dialog <=448px and initial code focus",
+      "label dialog <=560px",
+      "empty/populated surfaces preserve reference radius"
+    ],
+    "test_refs": [
+      "physical-resources presentation components/styles"
+    ],
+    "finding_ids": [
+      "C006-DASH-001"
+    ],
+    "limits": "Screenshots write to test-results and were not regenerated in C006; visual assertions are environment-sensitive. The test's pre-#304 Physical Resources entry path is no longer the current /keys UI contract.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue232-physical-resources.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "75b106566828a952b738bd66c6d3757057006923872222b5122b03c2d8de7d82",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 246
+      }
+    ],
+    "semantic_review_notes": "Core physical-resource E2E verifies persisted Key Slot/Parking Spot reads and creates, double-submit suppression, explicit 401 reconciliation without POST replay, same operation ID on user retry, accessible duplicate-conflict focus restoration, real 1200x1500 PNG generation with decodable V2 QR, object-URL revocation, absence of QR payload/resource ID from persistent browser stores, and print-mode chrome exclusion.",
+    "callers_consumers": [
+      "PhysicalResourcesPanel",
+      "PhysicalResourceCreateDialog",
+      "ResourceLabelDialog",
+      "resource-label-png.ts",
+      "physical-resources API"
+    ],
+    "invariants_error_checks": [
+      "one POST on double click",
+      "401 reconciliation never auto-replays mutation",
+      "retry keeps original operation identity",
+      "QR label bytes decode to canonical payload",
+      "object URL revoked",
+      "label secret/id not persisted to browser stores"
+    ],
+    "test_refs": [
+      "src/features/administration/physical-resources/physical-resource-create-dialog.tsx",
+      "resource-label-dialog.tsx",
+      "resource-label-png.ts"
+    ],
+    "finding_ids": [
+      "C006-DASH-001"
+    ],
+    "limits": "Server persistence/idempotency is simulated by Issue232PhysicalState; generated PNG/QR behavior was source-inspected, not rerun. The test still depends on the removed outer Keys & Spots tab path and therefore represents legacy/default-suite debt after #304.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue234-security-accessibility.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "4662e996a5f8f88e2472b523982bda423d165e06e1d437cbd82282482852c27e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 122
+      }
+    ],
+    "semantic_review_notes": "Security accessibility suite keeps TOTP/recovery codes LTR under EN/AR, associates verification errors with the exact input and restores focus, and validates approved focus sequence across enrollment, recovery-code disclosure and recovery-code reissue. AccountSecurityPanel wires a shared error id and explicit disclosure/reissue focus restoration.",
+    "callers_consumers": [
+      "AccountSecurityPanel",
+      "mfa-ceremonies",
+      "use-account-security-ceremony"
+    ],
+    "invariants_error_checks": [
+      "invalid code input gets aria-invalid/describedby and focus",
+      "security workspace/setup/disclosure headings receive focus in sequence",
+      "reissue action regains focus after disclosure",
+      "secret-like codes remain LTR in RTL"
+    ],
+    "test_refs": [
+      "src/components/security/account-security-panel.tsx",
+      "src/components/security/mfa-ceremonies.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Accessibility/fixture ceremony coverage; backend recovery-session binding remains governed by existing #363/SEC-011 and is not proven by this file.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue234-security-authority.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "c3115ef5d62b71f45f92d2efc0049945ea0e282182b1afb75095214efad298e3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 148
+      }
+    ],
+    "semantic_review_notes": "Security authority coverage treats MFA eligibility as account/session authority rather than selected business scope. An authoritative 409 MFA_ENROLLMENT_NOT_AVAILABLE hides Security and exposes no ceremony actions, LM-only accounts remain unavailable, while mixed eligible accounts retain Security from LM or Supervisor workspaces without changing the resolved workspace navigation.",
+    "callers_consumers": [
+      "AccountSecurityAccessProvider",
+      "AccountSecurityWorkspace",
+      "management navigation authority"
+    ],
+    "invariants_error_checks": [
+      "only status=409 with MFA_ENROLLMENT_NOT_AVAILABLE is definitive ineligible",
+      "ineligible state issues zero ceremony mutations",
+      "business workspace context cannot grant account eligibility",
+      "eligible mixed-role account preserves Security"
+    ],
+    "test_refs": [
+      "src/components/security/account-security-access-provider.tsx",
+      "src/components/security/account-security-workspace.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Fixture account-eligibility responses only; backend enrollment eligibility policy and #363 recovery-session binding are not proven here.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue234-security-lifecycle.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "dbdc6182e0576592ee3d8d2b81560544716abb6b470f865bd894f98c303e1c8d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 299
+      }
+    ],
+    "semantic_review_notes": "Security lifecycle races cover failed mutation reconciliation removing stale Verified state, late enrollment/recovery disclosure after route exit/logout, stale MFA-state success after logout, cached ASSURED not overriding a fresh Management MFA denial, same-identity refresh replacing an obsolete pending state read, and replacement-session fencing for late old success/error. AccountSecurityAccessProvider binds state reads to identityGeneration:sessionGeneration and ScopeGenerationGuard; ceremony mutations use their own generation guard and clear sensitive state before reconciliation.",
+    "callers_consumers": [
+      "AccountSecurityAccessProvider",
+      "useAccountSecurityCeremony",
+      "DashboardMfaClient",
+      "StaffAuth generations"
+    ],
+    "invariants_error_checks": [
+      "old auth generation cannot publish state",
+      "late ceremony result cannot publish after unmount/invalidation",
+      "uncertain mutation clears sensitive material then rereads authority",
+      "fresh server STEP_UP_REQUIRED remains authoritative",
+      "replacement session waits for its own state"
+    ],
+    "test_refs": [
+      "src/components/security/account-security-access-provider.tsx",
+      "src/components/security/use-account-security-ceremony.ts"
+    ],
+    "finding_ids": [
+      "#363"
+    ],
+    "limits": "UI/session-generation fencing is source-backed. Existing #363/SEC-011 concerns backend recovery replacement/session binding and is not repaired or disproved by these browser lifecycle tests.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue234-security-privacy.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7c5f309bf996e1fd345d114cbe1d9c87d1636657820a4e2539c568a1e2b9bf32",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 236
+      }
+    ],
+    "semantic_review_notes": "Security privacy coverage keeps enrollment secret, TOTP input and raw recovery codes ephemeral: they are absent from localStorage/sessionStorage/IndexedDB/CacheStorage and browser logs, removed from DOM after acknowledgement/route exit/logout, and not resurrected by a replacement session. Production ceremony state holds enrollment/recovery codes only in component memory, clears them on ineligibility/reconciliation/acknowledgement and generation-invalidates late callbacks.",
+    "callers_consumers": [
+      "useAccountSecurityCeremony",
+      "AccountSecurityPanel",
+      "mfa-ceremonies",
+      "issue234 privacy helpers"
+    ],
+    "invariants_error_checks": [
+      "one-time secret/recovery material never persisted",
+      "sensitive DOM removed after disclosure lifecycle",
+      "route/logout/replacement session cannot restore old material",
+      "browser console/page errors contain no sentinels"
+    ],
+    "test_refs": [
+      "src/components/security/use-account-security-ceremony.ts",
+      "src/components/security/account-security-panel.tsx"
+    ],
+    "finding_ids": [
+      "#363"
+    ],
+    "limits": "Privacy assertions are browser-side and do not prove backend factor ownership or exact-session recovery authorization; existing #363 remains separate.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue234-security-shell.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "43ad3ca17a70e1d4f406bcfb82404717a978e7fdaa441bfb9e03fd6cef64e5c5",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 182
+      }
+    ],
+    "semantic_review_notes": "Security shell coverage proves direct /security can run with null business scope and zero management/dashboard/operational-context discovery, preserves an already resolved workspace only as shell presentation, never sends organization/location identifiers in MFA state calls, distinguishes authoritative 409 ineligibility from retryable 5xx, and permits one auth reconciliation plus one state GET replay after a 401.",
+    "callers_consumers": [
+      "AccountSecurityAccessProvider",
+      "Security route/shell",
+      "DashboardMfaClient",
+      "DashboardApiClient auth reconciliation"
+    ],
+    "invariants_error_checks": [
+      "account-security state read is scopeless",
+      "business-scope reads do not start for direct Security",
+      "5xx cannot become definitive ineligible",
+      "401 state read has bounded auth reconciliation",
+      "LM-only definitive ineligible account gets no ceremony"
+    ],
+    "test_refs": [
+      "src/components/security/account-security-access-provider.tsx",
+      "src/lib/api/dashboard-api-client.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Uses fixture request accounting; production backend authorization of MFA endpoints is outside this file.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue234-security-visual.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "e5d543a347fbbde0631b87a87ee3973ae08d8c698d4483e01f04f6375927f18f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 185
+      }
+    ],
+    "semantic_review_notes": "Security visual matrix covers EN/AR, light/dark, desktop/narrow and checking/error/enrollment/step-up/recovery-disclosure states using the same Dashboard shell. It also verifies resolved business scope remains presentation context only while Security itself stays account-scoped.",
+    "callers_consumers": [
+      "AccountSecurityWorkspace",
+      "AccountSecurityPanel",
+      "Dashboard shell/theme/locale"
+    ],
+    "invariants_error_checks": [
+      "one h1 and approved typography",
+      "RTL/LTR and narrow navigation remain reachable",
+      "no horizontal overflow",
+      "all ceremony states stay inside the same shell",
+      "resolved scope presentation does not alter Security authority semantics"
+    ],
+    "test_refs": [
+      "src/components/security/account-security-workspace.tsx",
+      "src/components/security/account-security-panel.tsx"
+    ],
+    "finding_ids": [],
+    "limits": "Visual screenshots were not executed or regenerated in C006; synthetic secrets/codes are fixture-only.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue236-parking-zones.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ef7039f5ebf353c7e5ff26b8eee1ad1b6c50925f65ed1a9311d6d5449c666c5f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 148
+      }
+    ],
+    "semantic_review_notes": "Legacy zone-flow tests encode useful safety semantics: nested zone creation preserves the parking-spot draft/focus, code/label normalization, single-flight create, 100-item cursor paging with retained selection, duplicate draft preservation, no browser persistence, and unknown-outcome reconciliation plus explicit same-operation retry. Current production zone dialog still uses identity/location/draft-keyed operation IDs and explicit reconciliation.",
+    "callers_consumers": [
+      "ParkingZoneCreateDialog",
+      "PhysicalResourceCreateDialog",
+      "useParkingZonePage",
+      "physical-resources API"
+    ],
+    "invariants_error_checks": [
+      "one POST on double-submit",
+      "unknown outcome never auto-replays",
+      "explicit retry reuses operationId",
+      "zone selector uses bounded cursor pages",
+      "nested dialog restores draft/focus"
+    ],
+    "test_refs": [
+      "src/features/administration/physical-resources/parking-zone-create-dialog.tsx",
+      "src/features/administration/physical-resources/use-parking-zone-page.ts"
+    ],
+    "finding_ids": [
+      "C006-DASH-001"
+    ],
+    "limits": "The test enters the removed pre-#304 Keys & Spots → Physical Resources tab shell via support/keys-spots.ts, so it is legacy/default-suite debt even though the underlying zone safety mechanisms remain present in current source.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue236-zone-auth-retry.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "eb3b165c7e0cc68ce087f812dd07a70d1184d316c14a9da56cc321cb20eb5d9c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 68
+      }
+    ],
+    "semantic_review_notes": "Legacy auth-retry scenario verifies a dispatched zone POST that receives 401 triggers auth reconciliation without mutation replay, while a later explicit user retry keeps the original operation ID. Production physical-resource operation IDs survive same-identity dialog reconstruction by their identity/location/kind/draft key.",
+    "callers_consumers": [
+      "ParkingZoneCreateDialog",
+      "physical-resource-operation-id.ts",
+      "DashboardApiClient mutation reconciliation"
+    ],
+    "invariants_error_checks": [
+      "401 does not auto-replay POST",
+      "one refresh occurs",
+      "explicit retry is required",
+      "same logical draft retains operation identity"
+    ],
+    "test_refs": [
+      "src/features/administration/physical-resources/parking-zone-create-dialog.tsx",
+      "src/features/administration/physical-resources/physical-resource-operation-id.ts"
+    ],
+    "finding_ids": [
+      "C006-DASH-001"
+    ],
+    "limits": "The helper that opens legacy Physical Resources no longer matches the #304 Resource Inspector /keys surface; this is static test debt, not a product auth finding.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue236-zone-authority-races.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a2a4d1fe92199f38262546f6e4fb59f98ecfad20b0df5b7717414371f2161174",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 197
+      }
+    ],
+    "semantic_review_notes": "Legacy zone mutation races cover A→B→A stale success/conflict/MFA callbacks, logout/replacement identity, and delayed MFA success/failure. Current ParkingZoneCreateDialog uses scope tickets plus operation IDs and explicit MFA retry; current #304 action dialogs also bind actions to scopeKey/identityGeneration before rendering.",
+    "callers_consumers": [
+      "ParkingZoneCreateDialog",
+      "physical-resource-operation-id.ts",
+      "Issue304ActionDialogs/action intent"
+    ],
+    "invariants_error_checks": [
+      "old scope mutation callback cannot repaint current draft",
+      "old identity callback ignored",
+      "MFA does not replay mutation",
+      "explicit retry uses same logical operation"
+    ],
+    "test_refs": [
+      "src/features/administration/physical-resources/parking-zone-create-dialog.tsx",
+      "src/features/administration/physical-resources/issue304-action-intent.ts"
+    ],
+    "finding_ids": [
+      "C006-DASH-001"
+    ],
+    "limits": "The race test is wired through the retired pre-#304 tab shell; current source has equivalent scope/identity fences but this specific default-E2E path is stale.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue236-zone-mfa-race.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d776a61e23135485f75d6738973a2af515c821f37250e99f4eb253906fba9392",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 90
+      }
+    ],
+    "semantic_review_notes": "Legacy zone MFA race ensures a delayed step-up success or failure from first-A cannot restore its draft/error after A→B→A. ParkingZoneCreateDialog checks its current scope ticket before applying MFA close/error state and requires explicit resubmission.",
+    "callers_consumers": [
+      "ParkingZoneCreateDialog",
+      "SensitiveMfaDialog",
+      "scope-keyed resource actions"
+    ],
+    "invariants_error_checks": [
+      "late MFA callback cannot republish old draft",
+      "no stale error",
+      "one original mutation only",
+      "current dialog remains usable"
+    ],
+    "test_refs": [
+      "src/features/administration/physical-resources/parking-zone-create-dialog.tsx"
+    ],
+    "finding_ids": [
+      "C006-DASH-001"
+    ],
+    "limits": "Uses the removed legacy Physical Resources entry path; current Option 3 tests/source must carry the live regression obligation.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue236-zone-selector-races.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "fd79fe8ae4e52b127a2c0703ab1d2ffcf61772e5c9ec404bf4f98ae5568d357d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 113
+      }
+    ],
+    "semantic_review_notes": "Legacy selector race checks stale first-A zone page success/failure cannot contaminate B or returned A. Production useParkingZonePage delegates each cursor/scope key to useAuthoritativeRead, whose generation and AbortController fences suppress obsolete pages.",
+    "callers_consumers": [
+      "useParkingZonePage",
+      "useAuthoritativeRead",
+      "ParkingZonePicker"
+    ],
+    "invariants_error_checks": [
+      "scope-specific selector read",
+      "old page/error cannot repaint returned A",
+      "cursor is keyed into authoritative read",
+      "no stale alert"
+    ],
+    "test_refs": [
+      "src/features/administration/physical-resources/use-parking-zone-page.ts",
+      "src/features/administration/physical-resources/parking-zone-picker.tsx"
+    ],
+    "finding_ids": [
+      "C006-DASH-001"
+    ],
+    "limits": "The old test helper cannot reach the live #304 /keys surface today; current source has the read fence but this default-E2E scenario needs migration.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue236-zone-visual.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "15bde559f2ced050ddde0f5829dc10f4788964672a3144ff91864c4c3d1bebbd",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 123
+      }
+    ],
+    "semantic_review_notes": "Legacy visual tests cover EN/AR, dark/narrow zone dialogs, LTR code input, focus wrapping/restore, <=448px modal width and fresh authoritative zone read after standalone creation. Current dialog still supports the same input/focus/scope mechanics, while #304 supplies a dedicated Option 3 visual/test suite.",
+    "callers_consumers": [
+      "ParkingZoneCreateDialog",
+      "PhysicalResourceCreateDialog",
+      "Issue304 Option 3 dialogs/tests"
+    ],
+    "invariants_error_checks": [
+      "code remains LTR in RTL shell",
+      "focus trap/restore",
+      "no horizontal overflow",
+      "standalone create followed by fresh selector read"
+    ],
+    "test_refs": [
+      "src/features/administration/physical-resources/parking-zone-create-dialog.tsx",
+      "apps/dashboard/tests/issue304-modal-visual.spec.ts"
+    ],
+    "finding_ids": [
+      "C006-DASH-001"
+    ],
+    "limits": "This legacy visual file writes under tmp/issue236 and depends on the removed outer Physical Resources tab; current Option 3 visual suite is the relevant live UI surface.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue237-keys-spots.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a16edf27a050bb4ada13a41bed9af942ea8ed93eb524e6cb51453a482f5a2a7a",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 290
+      }
+    ],
+    "semantic_review_notes": "This file documents the former Keys & Spots composition: Operational Keys and Physical Resources outer tabs, lazy resource reads, active/inactive exact-location authority, LM grant restrictions and removal of resources from Locations. Current source explicitly replaced both former page-level tabs with #304 Option 3 ResourceInspectorLive, whose dedicated tests now exercise exact-location authority, family switching, pagination, QR and create actions.",
+    "callers_consumers": [
+      "current KeysPage",
+      "ResourceInspectorLive",
+      "Option3 ResourceInspector",
+      "legacy support/keys-spots.ts"
+    ],
+    "invariants_error_checks": [
+      "historical test expects outer Keys & Spots tablist",
+      "current KeysPage renders ResourceInspectorLive directly",
+      "current inspector still requires Company Admin or exact LM location",
+      "inactive location disables mutation actions"
+    ],
+    "test_refs": [
+      "src/features/operations/keys/keys-page.tsx",
+      "src/features/operations/keys/resource-inspector-live.tsx",
+      "apps/dashboard/tests/issue304-contract.ts",
+      "apps/dashboard/tests/issue304-interactions.spec.ts"
+    ],
+    "finding_ids": [
+      "C006-DASH-001"
+    ],
+    "limits": "Static source contradiction is definitive: the asserted outer tabs were intentionally removed by #304. This is legacy/default-E2E debt, not a product regression.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue237-physical-resource-cursor-race.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "cd0e3a2ba0787de5c3e9717bb06678785f1124fc2eb188cdea6cff6deda7b52b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 111
+      }
+    ],
+    "semantic_review_notes": "Legacy cursor-race intent is to prevent a delayed page-2 cursor/result from carrying into B or revisited A. Current ResourceInspectorLive replaces this paging model with first-page useAuthoritativeRead plus family-specific appended pages guarded by requestEpoch and AbortControllers; #304 interactions explicitly tests A→B→A pagination reset.",
+    "callers_consumers": [
+      "ResourceInspectorLive",
+      "useAuthoritativeRead",
+      "issue304-interactions.spec.ts"
+    ],
+    "invariants_error_checks": [
+      "old appended page cannot survive scope epoch",
+      "A/B pagination cursors remain location-scoped",
+      "scope remount resets appended pages",
+      "current #304 test verifies A→B→A reset"
+    ],
+    "test_refs": [
+      "src/features/operations/keys/resource-inspector-live.tsx",
+      "apps/dashboard/tests/issue304-interactions.spec.ts"
+    ],
+    "finding_ids": [
+      "C006-DASH-001"
+    ],
+    "limits": "The assigned legacy test cannot reach current /keys through support/keys-spots.ts; its safety intent is represented by the newer #304 implementation/tests.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue237-physical-resource-session-races.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "201154343a88cefe3cbab548c0db0b2c2db09d1d787f5c63c37998b5622e85b7",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 90
+      }
+    ],
+    "semantic_review_notes": "Legacy session-race intent ensures a delayed physical-resource response cannot repaint after logout or replacement identity. Current KeysPage is keyed by operations scopeKey and ResourceInspectorLive first reads use useAuthoritativeRead; appended pages are separately aborted/epoch-fenced, preserving the same authority principle.",
+    "callers_consumers": [
+      "KeysPage",
+      "ResourceInspectorLive",
+      "useAuthoritativeRead",
+      "StaffAuth identity generations"
+    ],
+    "invariants_error_checks": [
+      "logout removes old surface",
+      "new identity read owns the rendered data",
+      "old scope/session request cannot publish through generation fence",
+      "appended page controllers are aborted on inspector disposal"
+    ],
+    "test_refs": [
+      "src/features/operations/keys/keys-page.tsx",
+      "src/features/operations/keys/resource-inspector-live.tsx"
+    ],
+    "finding_ids": [
+      "C006-DASH-001"
+    ],
+    "limits": "The old test relies on the retired Physical Resources tab shell; current implementation was source-inspected but no replacement-session #304 browser test was executed in C006.",
+    "original_worker": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue238-service-status.spec.ts",
+    "worker": "dashboard",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2ecdd1750f0fb8d942c4e97f899994b185ddde9fb0055b31448a3273ee2e51fb",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 88
+      }
+    ],
+    "semantic_review_notes": "Issue #238 encodes the current Service Status contract: Company Admin Policies lazily reads integration status only when Service Status is selected, supports explicit refresh, exposes no standalone Integrations navigation, and legacy /integrations redirects with replace semantics to /policies?tab=services. Location Manager compatibility bookmark lands on Policies without Service Status or a status probe.",
+    "callers_consumers": [
+      "SettingsPage",
+      "ServiceStatusPanel",
+      "app/integrations/page.tsx",
+      "app/policies/page.tsx"
+    ],
+    "invariants_error_checks": [
+      "status endpoint is lazy and Company Admin only",
+      "Service Status is read-only",
+      "LM gets zero integration-status reads",
+      "legacy route redirects to services tab",
+      "standalone Integrations nav absent"
+    ],
+    "test_refs": [
+      "src/features/administration/settings/settings-page.tsx",
+      "src/features/administration/commercial/service-status-panel.tsx",
+      "src/app/integrations/page.tsx"
+    ],
+    "finding_ids": [
+      "C004-DASH-001"
+    ],
+    "limits": "This file supports the accepted current behavior behind existing C004-DASH-001 legacy Integrations test-suite debt; C006 did not execute Playwright.",
+    "original_worker": "dashboard"
+  }
+]

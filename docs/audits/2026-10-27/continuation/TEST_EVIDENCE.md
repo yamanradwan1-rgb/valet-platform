@@ -19,3 +19,5 @@ C003: zero new application/DB/browser/physical-device/provider tests executed. R
 C004: Zero application/DB/browser/device/provider tests rerun. Historical Dashboard fixture/default E2E specs and native tests were read only. C004-DASH-001 is a static stale-default-suite contradiction, not a current CI-runtime gate result.
 
 C005: Zero new tests executed. Reviewed existing test source as references; no claim of CI/browser/provider pass.
+
+C006: Existing test sources reviewed as code evidence only; **zero tests executed**. Assertions described in reviewed files are not reported as observed pass results.

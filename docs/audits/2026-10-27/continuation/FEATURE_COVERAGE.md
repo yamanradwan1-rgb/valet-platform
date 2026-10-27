@@ -31,3 +31,7 @@ Native Android/check-in presentation and custody adapter, Dashboard E2E/manageme
 ## C005 continuation
 
 Additional Backend Core/Modules and Customer/Contracts transfer files reviewed. Semantic evidence only; no entire feature flow newly qualified.
+
+## C006 continuation
+
+Reviewed selected Dashboard administration/physical-resource/security E2E, API Dashboard projection/authorization, and Employee Client Check-In tests/state. End-to-end live execution remains unverified.

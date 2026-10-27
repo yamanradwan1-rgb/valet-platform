@@ -10,16 +10,16 @@ No evidence archive, Git LFS, dependency installation or size-limit bypass. New 
 
 | Path | SHA-256 |
 |---|---|
-|[AUDIT_PROGRESS.md](AUDIT_PROGRESS.md)|`41d30660a006f62b3819311f344a9b4b8a983b051f47b7803446b3598405bd17`|
-|[CHECKPOINTS.md](CHECKPOINTS.md)|`42fed74d33e11063fb8b8fa61d61809a39221988ba1ecdef29d8d061eb62dc9a`|
+|[AUDIT_PROGRESS.md](AUDIT_PROGRESS.md)|`c3b50c8af0c1142dfec9ed58577f9043a406ea06f1c242ebb617a7d84c5ef76f`|
+|[CHECKPOINTS.md](CHECKPOINTS.md)|`ebbf11b0e2ef636ffb01f5370faf85cc8e73c120ce20dbbf8b50d243462a096d`|
 |[CROSS_FEATURE_RISKS.md](CROSS_FEATURE_RISKS.md)|`c18c0e6a56fa15e4f7889539cf2d4664d73b80b4f371d234f273c201b1a24872`|
 |[FALSE_POSITIVE_DISPOSITIONS.md](FALSE_POSITIVE_DISPOSITIONS.md)|`c292f9ebb470be6bb36a18c0fcaf5efc7d86920d1bf881ef8e0f7852baff5677`|
-|[FEATURE_COVERAGE.md](FEATURE_COVERAGE.md)|`9ce632874b9357998a31f9a0207fbfb6e188e755f53077c3f5fdee0650e452b5`|
-|[FINDINGS_REGISTER.md](FINDINGS_REGISTER.md)|`9a72c0134529247e9afe1ddca84f57a5ada61ccaea28de2317ccb48d83cffd91`|
+|[FEATURE_COVERAGE.md](FEATURE_COVERAGE.md)|`e2cc70e97c4a842fd675bdc025a2fd14f09fc4a49eba8017e943bae81de827e4`|
+|[FINDINGS_REGISTER.md](FINDINGS_REGISTER.md)|`7b1f31568a7a23169848e041977f7584a3b9c11d9a968258a4dfd0ce7e06d0b0`|
 |[FINDING_VALIDATION.md](FINDING_VALIDATION.md)|`0a7524f26c7a50b3046ed7caaad1e1dbc309e070efde98b37701b50cda51ecdc`|
 |[README.md](README.md)|`1e8c1f4f6e6fad421417fd1ee900afc96ab73f34d7fe591d1073bddf88d5f182`|
-|[SECURITY_COVERAGE.md](SECURITY_COVERAGE.md)|`18ae64043bdd1e4bdd5b5851b270b58073120aff2c75f79d000f4d6116055e3d`|
-|[TEST_EVIDENCE.md](TEST_EVIDENCE.md)|`d7713b8b904a7f1a5fad1603ed4c0d527fc57867925a6d6f395bd03e1af4b0cc`|
+|[SECURITY_COVERAGE.md](SECURITY_COVERAGE.md)|`c2af4d106b37413e69ab489812b0450f604a3792a62a698c67b330f83b7ae13c`|
+|[TEST_EVIDENCE.md](TEST_EVIDENCE.md)|`c2a19785f1f3ffd45d02508fe1bcd5e0002f45b215098ab8d1cbfc538eed3e65`|
 |[checkpoints/C001-assignments.json](checkpoints/C001-assignments.json)|`01b5e193f8ce4d782e3e1080c1548efd554dc66342f54e2c3ebc541d817d9e9a`|
 |[checkpoints/C001-coverage-summary.json](checkpoints/C001-coverage-summary.json)|`2a268b1a55db35335cc1a6d5f6488b66426d397ede4e79f3d2d06278d45cf99b`|
 |[checkpoints/C001-pending-files.txt](checkpoints/C001-pending-files.txt)|`46b8e0c75777785eafecb40b2ace46498dbbbb88b24d6185bf824a273271d2fb`|
@@ -27,7 +27,7 @@ No evidence archive, Git LFS, dependency installation or size-limit bypass. New 
 |[checkpoints/C001-starting-plan.json](checkpoints/C001-starting-plan.json)|`b720e961d38219dc37a824f1544dedf734dc3cf23de5d96f5e89ffc2a9c53be3`|
 |[checkpoints/C001.md](checkpoints/C001.md)|`551fb92ff48dea356b2e3b429572afa1f96ac210ad795d536cd203b521cb7b81`|
 |[checkpoints/initial-remaining-ownership.json](checkpoints/initial-remaining-ownership.json)|`6a074f7595eaee2f81871527096f9bf4e141b1de5d2da2e0124897bb7bf05976`|
-|[coverage-ledger-progress.csv](coverage-ledger-progress.csv)|`062648c4026dd728353625b3a3aaa8cbfd222f2ba8a6ae428152c1f23eddeaf7`|
+|[coverage-ledger-progress.csv](coverage-ledger-progress.csv)|`4ce14336fa1071cb70aabdfe2c8a728495bcac602da2e382517cadca762f68b1`|
 |[evidence/C001-backend_operations-saved-results.json](evidence/C001-backend_operations-saved-results.json)|`f821e43cd83b2fcd4cd51a29deac4fa17f26d74b4091034c40e4afb8202bf97d`|
 |[evidence/C001-coordinator-saved-results.json](evidence/C001-coordinator-saved-results.json)|`c4e71aa94b824c60ac56db4da66f6aab25b95c75cef7177c5be02a83ae3ca8e3`|
 |[evidence/C001-customer-saved-results.json](evidence/C001-customer-saved-results.json)|`347ff3aa7f1ac540e588b07eed30b33d326d5bd6373cef661f25c4faa0538048`|
@@ -37,7 +37,7 @@ No evidence archive, Git LFS, dependency installation or size-limit bypass. New 
 |[evidence/C001-security-saved-results.json](evidence/C001-security-saved-results.json)|`92f5dbf89fda7a1c1f907119f22a1e61ba6a9b455f7e36e07de0d0e63572c4fe`|
 |[evidence/mfa-recovery-session-model.cjs](evidence/mfa-recovery-session-model.cjs)|`586e58d79509a4dd255d277e217f553c2d4b43f469cca4625d7dc0fd01af44e8`|
 |[evidence/mfa-recovery-session-model.txt](evidence/mfa-recovery-session-model.txt)|`d555d6fec32b0b3641beec480152cab77add08668cbcacfae998409635e20914`|
-|[remaining-files.txt](remaining-files.txt)|`8bcfe267179408020519eb5de0e96c21c4d0cdf9b15207560c4f00c822a76cca`|
+|[remaining-files.txt](remaining-files.txt)|`6faafb41364e080558a98c965efba5a3e06b342189650012719e0d35f040acd5`|
 
 ## C002 additions (same frozen source)
 
@@ -92,3 +92,16 @@ No evidence archive, Git LFS, dependency installation or size-limit bypass. New 
 |[checkpoints/C005-pending-files.json](checkpoints/C005-pending-files.json)|`37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570`|
 |[evidence/C005-C004-dashboard-transfers.json](evidence/C005-C004-dashboard-transfers.json)|`6eabadfd1f9b10d8428cd0bf3faff3bd7290c2c2728bd02cbd588de5e969c7aa`|
 |[evidence/C005-C004-database-transfers.json](evidence/C005-C004-database-transfers.json)|`945c3341386cd1a0574ffeb7cda77d4f36e0d96b92917b2cc579db42f238b89f`|
+
+## C006 additions
+
+| Path | SHA-256 |
+|---|---|
+|[checkpoints/C006.md](checkpoints/C006.md)|`2a7e25e400b619dd571f1d26c4dafc841da18fd39ae78607a6f3779be958f481`|
+|[checkpoints/C006-coverage-summary.json](checkpoints/C006-coverage-summary.json)|`ebe8622b74c35d314aacaa203f3dc3fe0defe4c26ec18f2ea85ed3bfbdcb6c97`|
+|[checkpoints/C006-review-records.json](checkpoints/C006-review-records.json)|`09488fc33f990f16addbefef110686996115996b42c34b040491c506a9b0c1ed`|
+|[checkpoints/C006-assignment-roster.json](checkpoints/C006-assignment-roster.json)|`66422377763c89aa06894e2a734c3e2be06c66aa4ace8e9f1914679e1cc8869c`|
+|[evidence/C006-DASH-001.json](evidence/C006-DASH-001.json)|`cb68b4004ad5d035c24fad51400d4fb1aac6c84bbdaa83e7cf814063ba6707d4`|
+|[evidence/C006-dashboard.json](evidence/C006-dashboard.json)|`b9b2164441d8a6c8bf60c0b32592391e435c0541215971bb0033aa882e4de233`|
+|[evidence/C006-database.json](evidence/C006-database.json)|`347b50bb2e6931bf5b852f4ba25250d18f0ba574bae21e97c6d23cf37b576c78`|
+|[evidence/C006-prime.json](evidence/C006-prime.json)|`b9cc000ad03d43e4107c32bff259006c92bc61912e953516eb59a28220398c0b`|

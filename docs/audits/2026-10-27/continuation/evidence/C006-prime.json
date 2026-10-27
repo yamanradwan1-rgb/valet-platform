@@ -1,0 +1,462 @@
+[
+  {
+    "path": "packages/employee-client/src/api-error.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "30177aea615048608d23e4bf74cb3f007a3d7c829bb32f60aa0c924f5de814ec",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 56
+      }
+    ],
+    "semantic_review_notes": "API error tests exercise parsed known status/error code fallback, network failure classification and request metadata. Parsing remains in api-error.ts; unknown mutation outcomes must not be treated as definitive failures.",
+    "callers_consumers": "api-error.ts; EmployeeClient; employee-operational-recovery",
+    "invariants_error_checks": "All source lines read; verified check-in auth/owner generation, accepted API request/response, CAS, retry ambiguity, customer/vehicle identity, cancellation and readback test intent against linked implementation. No new statically confirmed security or workflow defect in these 20 files.",
+    "test_refs": [
+      "Static examination of each assigned test source and linked implementation only. No Vitest/device/API/DB run in C006."
+    ],
+    "finding_ids": [],
+    "limits": "Review is bounded to assigned files plus linked implementation; test expectations are not runtime proof, and server/Native counterparts not fully re-reviewed here."
+  },
+  {
+    "path": "packages/employee-client/src/employee-auth-read-concurrency.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "17bb9774d116cf429fae694b67b9906d9bd9828f96b12fc345841cbdd786a9ba",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 55
+      }
+    ],
+    "semantic_review_notes": "Generation-scoped concurrent authenticated reads share one refresh/renewal attempt while preventing stale-auth reuse; tests deliberately model overlapped read requests and auth transition. The server owns bearer/session truth.",
+    "callers_consumers": "employee-client.ts; native-auth runtime and staff authenticated read consumers",
+    "invariants_error_checks": "All source lines read; verified check-in auth/owner generation, accepted API request/response, CAS, retry ambiguity, customer/vehicle identity, cancellation and readback test intent against linked implementation. No new statically confirmed security or workflow defect in these 20 files.",
+    "test_refs": [
+      "Static examination of each assigned test source and linked implementation only. No Vitest/device/API/DB run in C006."
+    ],
+    "finding_ids": [],
+    "limits": "Review is bounded to assigned files plus linked implementation; test expectations are not runtime proof, and server/Native counterparts not fully re-reviewed here."
+  },
+  {
+    "path": "packages/employee-client/src/employee-cancel-check-in-session.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ad9e03eedd72fbdf70c1ec6f8baf5b7b4cfc59a03452e94688ea902815354d53",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 171
+      }
+    ],
+    "semantic_review_notes": "Cancellation test scenarios assert PREPARE before user-confirmed POST, one outbound mutation, response and status reconciliation for ambiguous results, no automatic retry, plus authorization/scope/background/identity generation retirement.",
+    "callers_consumers": "employee-cancel-check-in-session.ts; employee-cancel-check-in-transport.ts; NativeCheckInActions",
+    "invariants_error_checks": "All source lines read; verified check-in auth/owner generation, accepted API request/response, CAS, retry ambiguity, customer/vehicle identity, cancellation and readback test intent against linked implementation. No new statically confirmed security or workflow defect in these 20 files.",
+    "test_refs": [
+      "Static examination of each assigned test source and linked implementation only. No Vitest/device/API/DB run in C006."
+    ],
+    "finding_ids": [],
+    "limits": "Review is bounded to assigned files plus linked implementation; test expectations are not runtime proof, and server/Native counterparts not fully re-reviewed here."
+  },
+  {
+    "path": "packages/employee-client/src/employee-cancel-check-in-transport.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "d285a077f5ed1aa12ab75c9a04f331ca25089a8a127a2566d14541d6ac8c1038",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 56
+      }
+    ],
+    "semantic_review_notes": "Transport tests constrain cancellation endpoints/method/body and authoritative parsing; command carries expectedShiftId and expectedVersion and does not derive custody from UI state.",
+    "callers_consumers": "employee-cancel-check-in-transport.ts; EmployeeClient; staff check-in server",
+    "invariants_error_checks": "All source lines read; verified check-in auth/owner generation, accepted API request/response, CAS, retry ambiguity, customer/vehicle identity, cancellation and readback test intent against linked implementation. No new statically confirmed security or workflow defect in these 20 files.",
+    "test_refs": [
+      "Static examination of each assigned test source and linked implementation only. No Vitest/device/API/DB run in C006."
+    ],
+    "finding_ids": [],
+    "limits": "Review is bounded to assigned files plus linked implementation; test expectations are not runtime proof, and server/Native counterparts not fully re-reviewed here."
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-condition-recovery.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "9087ddaff7bf7544ab3127c6c5b0f14a33ddae6de2311e08f768c40752493598",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 269
+      }
+    ],
+    "semantic_review_notes": "Condition-note and condition-completion ambiguous write tests require persisted read reconciliation before continuing or retrying, preserving session evidence identity. No client proof of server commit without readback.",
+    "callers_consumers": "employee-check-in-continuation-session.ts; EmployeeCheckInTransport; staff condition endpoints",
+    "invariants_error_checks": "All source lines read; verified check-in auth/owner generation, accepted API request/response, CAS, retry ambiguity, customer/vehicle identity, cancellation and readback test intent against linked implementation. No new statically confirmed security or workflow defect in these 20 files.",
+    "test_refs": [
+      "Static examination of each assigned test source and linked implementation only. No Vitest/device/API/DB run in C006."
+    ],
+    "finding_ids": [],
+    "limits": "Review is bounded to assigned files plus linked implementation; test expectations are not runtime proof, and server/Native counterparts not fully re-reviewed here."
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-condition-replay.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "409b8e4fdb23c664074a0d41013eea729deef41417e74769708561c368fc8fd3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 182
+      }
+    ],
+    "semantic_review_notes": "Tests prohibit blind replay of condition note/completion POST on timeout, network errors and malformed response; unknown phase and readback preserve mutation idempotence assumptions.",
+    "callers_consumers": "employee-check-in-continuation-session.ts; EmployeeCheckInTransport; condition evidence server",
+    "invariants_error_checks": "All source lines read; verified check-in auth/owner generation, accepted API request/response, CAS, retry ambiguity, customer/vehicle identity, cancellation and readback test intent against linked implementation. No new statically confirmed security or workflow defect in these 20 files.",
+    "test_refs": [
+      "Static examination of each assigned test source and linked implementation only. No Vitest/device/API/DB run in C006."
+    ],
+    "finding_ids": [],
+    "limits": "Review is bounded to assigned files plus linked implementation; test expectations are not runtime proof, and server/Native counterparts not fully re-reviewed here."
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-condition.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "605860ec542668d81db5e7ec30c3067d6d67c34bb6beb756a465dc8edfee2a55",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 191
+      }
+    ],
+    "semantic_review_notes": "Tests cover condition selection, note content, completion and legal continuation sequencing from created intake. Server still validates verified photo policy and custody.",
+    "callers_consumers": "employee-check-in-continuation-session.ts; native condition step; staff check-in API",
+    "invariants_error_checks": "All source lines read; verified check-in auth/owner generation, accepted API request/response, CAS, retry ambiguity, customer/vehicle identity, cancellation and readback test intent against linked implementation. No new statically confirmed security or workflow defect in these 20 files.",
+    "test_refs": [
+      "Static examination of each assigned test source and linked implementation only. No Vitest/device/API/DB run in C006."
+    ],
+    "finding_ids": [],
+    "limits": "Review is bounded to assigned files plus linked implementation; test expectations are not runtime proof, and server/Native counterparts not fully re-reviewed here."
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-continuation.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "62cb38c25192116408147bdad9ced6dd1cb39eff7e69815a139f552574725f01",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 251
+      }
+    ],
+    "semantic_review_notes": "Tests cover reload of only authorized persisted CHECKING_IN sessions, active session continuation through corrected details and condition stages, and failure/transition fencing.",
+    "callers_consumers": "employee-check-in-continuation-session.ts; EmployeeCheckInSession; native Continue Check-In",
+    "invariants_error_checks": "All source lines read; verified check-in auth/owner generation, accepted API request/response, CAS, retry ambiguity, customer/vehicle identity, cancellation and readback test intent against linked implementation. No new statically confirmed security or workflow defect in these 20 files.",
+    "test_refs": [
+      "Static examination of each assigned test source and linked implementation only. No Vitest/device/API/DB run in C006."
+    ],
+    "finding_ids": [],
+    "limits": "Review is bounded to assigned files plus linked implementation; test expectations are not runtime proof, and server/Native counterparts not fully re-reviewed here."
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-correction-recovery.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "2293203019c411ce48229f5a194dd2f17f4d0e0e61dfcb383d92bc2d4480c98c",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 291
+      }
+    ],
+    "semantic_review_notes": "Post-create vehicle identity/details mutations use expected vehicleUpdatedAt CAS; ambiguous responses are reconciled by loading authoritative session before retry and cannot silently change returned identity.",
+    "callers_consumers": "employee-check-in-continuation-session.ts; vehicle correction transport and database version fence",
+    "invariants_error_checks": "All source lines read; verified check-in auth/owner generation, accepted API request/response, CAS, retry ambiguity, customer/vehicle identity, cancellation and readback test intent against linked implementation. No new statically confirmed security or workflow defect in these 20 files.",
+    "test_refs": [
+      "Static examination of each assigned test source and linked implementation only. No Vitest/device/API/DB run in C006."
+    ],
+    "finding_ids": [],
+    "limits": "Review is bounded to assigned files plus linked implementation; test expectations are not runtime proof, and server/Native counterparts not fully re-reviewed here."
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-intake-stopped.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "46cf0a8cd1fb3d9668a04481076fda0f023d5db92b8eb34ff2fbc68098b1cd04",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 167
+      }
+    ],
+    "semantic_review_notes": "Definitive stopped-intake and pre-dispatch validation outcomes disallow replay and preserve a new operation identity only for a new customer intent. Ambiguity classification distinct from hard rejection.",
+    "callers_consumers": "employee-check-in-intake.ts; EmployeeCheckInSession; staff intake endpoint",
+    "invariants_error_checks": "All source lines read; verified check-in auth/owner generation, accepted API request/response, CAS, retry ambiguity, customer/vehicle identity, cancellation and readback test intent against linked implementation. No new statically confirmed security or workflow defect in these 20 files.",
+    "test_refs": [
+      "Static examination of each assigned test source and linked implementation only. No Vitest/device/API/DB run in C006."
+    ],
+    "finding_ids": [],
+    "limits": "Review is bounded to assigned files plus linked implementation; test expectations are not runtime proof, and server/Native counterparts not fully re-reviewed here."
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-lifecycle-fence.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "7455a79f21c15074ccb110d8be22b009e6103f12ca0a6b39678f903de16c60ab",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 65
+      }
+    ],
+    "semantic_review_notes": "Late asynchronous discovery/recognition/intake replies after clear, background, identity generation or scope ownership changes cannot repopulate the retired check-in snapshot.",
+    "callers_consumers": "employee-check-in-continuation-session.ts; EmployeeCheckInSession; native foreground owner",
+    "invariants_error_checks": "All source lines read; verified check-in auth/owner generation, accepted API request/response, CAS, retry ambiguity, customer/vehicle identity, cancellation and readback test intent against linked implementation. No new statically confirmed security or workflow defect in these 20 files.",
+    "test_refs": [
+      "Static examination of each assigned test source and linked implementation only. No Vitest/device/API/DB run in C006."
+    ],
+    "finding_ids": [],
+    "limits": "Review is bounded to assigned files plus linked implementation; test expectations are not runtime proof, and server/Native counterparts not fully re-reviewed here."
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-phone.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "01513a13ca3625bd587b46035a79fa202f4935702ca64980212a8d6aba139b6f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 80
+      }
+    ],
+    "semantic_review_notes": "Jordan phone normalization accepts canonical local input, rejects malformed nonblank phone and keeps no-phone as explicit separate customer intent rather than fabricated contact.",
+    "callers_consumers": "employee-check-in-state.ts; normalizeJordanCheckInPhone from @valet/contracts; EmployeeCheckInSession",
+    "invariants_error_checks": "All source lines read; verified check-in auth/owner generation, accepted API request/response, CAS, retry ambiguity, customer/vehicle identity, cancellation and readback test intent against linked implementation. No new statically confirmed security or workflow defect in these 20 files.",
+    "test_refs": [
+      "Static examination of each assigned test source and linked implementation only. No Vitest/device/API/DB run in C006."
+    ],
+    "finding_ids": [],
+    "limits": "Review is bounded to assigned files plus linked implementation; test expectations are not runtime proof, and server/Native counterparts not fully re-reviewed here."
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-recovery.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "04610b9e515bcb172a180eaeebf80bbd8227b2b1850c333f14e315db56fd507d",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 130
+      }
+    ],
+    "semantic_review_notes": "Discovery recovers authoritative drafts/continuations and enforces bounded recoverable collection, exact selected session, and safe error-state presentation; cannot infer ownership from local cache.",
+    "callers_consumers": "employee-check-in-continuation-session.ts; employee-check-in-transport.ts; native recovery UI",
+    "invariants_error_checks": "All source lines read; verified check-in auth/owner generation, accepted API request/response, CAS, retry ambiguity, customer/vehicle identity, cancellation and readback test intent against linked implementation. No new statically confirmed security or workflow defect in these 20 files.",
+    "test_refs": [
+      "Static examination of each assigned test source and linked implementation only. No Vitest/device/API/DB run in C006."
+    ],
+    "finding_ids": [],
+    "limits": "Review is bounded to assigned files plus linked implementation; test expectations are not runtime proof, and server/Native counterparts not fully re-reviewed here."
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-returning-correction.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "0e7702dd937f895b42152120cf3d786fd61281a4da4a8e783048a08773dac3c3",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 89
+      }
+    ],
+    "semantic_review_notes": "Recognized returning vehicle details may be proposed as a correction after intake; customer suggestion remains server revalidated and correction follows explicit post-create CAS path.",
+    "callers_consumers": "employee-check-in-session.ts; employee-check-in-continuation-session.ts; NativeCheckInReturningStep",
+    "invariants_error_checks": "All source lines read; verified check-in auth/owner generation, accepted API request/response, CAS, retry ambiguity, customer/vehicle identity, cancellation and readback test intent against linked implementation. No new statically confirmed security or workflow defect in these 20 files.",
+    "test_refs": [
+      "Static examination of each assigned test source and linked implementation only. No Vitest/device/API/DB run in C006."
+    ],
+    "finding_ids": [],
+    "limits": "Review is bounded to assigned files plus linked implementation; test expectations are not runtime proof, and server/Native counterparts not fully re-reviewed here."
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-revalidation.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a6a6012d3117a585a411e36f39226a45aeeb2b65c7634d7bf3f7c0efc1cb5642",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 95
+      }
+    ],
+    "semantic_review_notes": "Correction and Check-In completion tests enforce fresh version/state before continuing after conflict or stale result; post-hydration semantics tied to authoritative persisted session.",
+    "callers_consumers": "employee-check-in-continuation-session.ts; employee-check-in-transport.ts; server version guard",
+    "invariants_error_checks": "All source lines read; verified check-in auth/owner generation, accepted API request/response, CAS, retry ambiguity, customer/vehicle identity, cancellation and readback test intent against linked implementation. No new statically confirmed security or workflow defect in these 20 files.",
+    "test_refs": [
+      "Static examination of each assigned test source and linked implementation only. No Vitest/device/API/DB run in C006."
+    ],
+    "finding_ids": [],
+    "limits": "Review is bounded to assigned files plus linked implementation; test expectations are not runtime proof, and server/Native counterparts not fully re-reviewed here."
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-secure-id.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "ed4324d01c0505dd2eb44cf647be61110ed0237e66ea73882876b685d5507b98",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 28
+      }
+    ],
+    "semantic_review_notes": "A missing secure native UUID generator fails closed before any intake dispatch; no Math.random fallback or reused insecure operation identity; user can correct local condition and try later.",
+    "callers_consumers": "employee-check-in-session.ts; employee-check-in-intake.ts; native-check-in-runtime.ts",
+    "invariants_error_checks": "All source lines read; verified check-in auth/owner generation, accepted API request/response, CAS, retry ambiguity, customer/vehicle identity, cancellation and readback test intent against linked implementation. No new statically confirmed security or workflow defect in these 20 files.",
+    "test_refs": [
+      "Static examination of each assigned test source and linked implementation only. No Vitest/device/API/DB run in C006."
+    ],
+    "finding_ids": [],
+    "limits": "Review is bounded to assigned files plus linked implementation; test expectations are not runtime proof, and server/Native counterparts not fully re-reviewed here."
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-session.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "1f8243c733750f525cf92f2d5d3848b8322a4bf4d399e2c1c55bda1bd095ca76",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 294
+      }
+    ],
+    "semantic_review_notes": "Explicit human plate confirmation precedes recognition and intake; returning customer suggestion and unknown plate/no-plate paths remain separated. Ambiguous HTTP 0/408/5xx rehydrates before exact payload/operationId retry; definitive phone/custody correction gets fresh operation identity.",
+    "callers_consumers": "employee-check-in-session.ts; employee-check-in-intake.ts; EmployeeCheckInTransport",
+    "invariants_error_checks": "All source lines read; verified check-in auth/owner generation, accepted API request/response, CAS, retry ambiguity, customer/vehicle identity, cancellation and readback test intent against linked implementation. No new statically confirmed security or workflow defect in these 20 files.",
+    "test_refs": [
+      "Static examination of each assigned test source and linked implementation only. No Vitest/device/API/DB run in C006."
+    ],
+    "finding_ids": [],
+    "limits": "Review is bounded to assigned files plus linked implementation; test expectations are not runtime proof, and server/Native counterparts not fully re-reviewed here."
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-state.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "24a57b64ef5dcd4c174078d44b1662460d8401f7e5a72ac6930fbb0a457aa957",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 44
+      }
+    ],
+    "semantic_review_notes": "Pure initial snapshot and continuation state constructors set inactive/null owner, empty customer and recovery, default JO confirmed plate, no pending mutation; phone parser reexport comes from authoritative shared contracts.",
+    "callers_consumers": "employee-check-in-continuation-session.ts; EmployeeCheckInSession; NativeCheckInWorkflow",
+    "invariants_error_checks": "All source lines read; verified check-in auth/owner generation, accepted API request/response, CAS, retry ambiguity, customer/vehicle identity, cancellation and readback test intent against linked implementation. No new statically confirmed security or workflow defect in these 20 files.",
+    "test_refs": [
+      "Static examination of each assigned test source and linked implementation only. No Vitest/device/API/DB run in C006."
+    ],
+    "finding_ids": [],
+    "limits": "Review is bounded to assigned files plus linked implementation; test expectations are not runtime proof, and server/Native counterparts not fully re-reviewed here."
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-targeted-entry.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "faa931095b642dc2367692ac09fc81464811f52ff55aef6e5355f8004441ad9e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 89
+      }
+    ],
+    "semantic_review_notes": "Selected persisted CHECKING_IN session alone hydrates Continue Check-In without any discovery/intake. Wrong target, location, state and late response after clear/background are rejected; old edits do not leak.",
+    "callers_consumers": "employee-check-in-continuation-session.ts; native-check-in-actions.ts; EmployeeCheckInTransport",
+    "invariants_error_checks": "All source lines read; verified check-in auth/owner generation, accepted API request/response, CAS, retry ambiguity, customer/vehicle identity, cancellation and readback test intent against linked implementation. No new statically confirmed security or workflow defect in these 20 files.",
+    "test_refs": [
+      "Static examination of each assigned test source and linked implementation only. No Vitest/device/API/DB run in C006."
+    ],
+    "finding_ids": [],
+    "limits": "Review is bounded to assigned files plus linked implementation; test expectations are not runtime proof, and server/Native counterparts not fully re-reviewed here."
+  },
+  {
+    "path": "packages/employee-client/src/employee-check-in-transport.test.ts",
+    "worker": "prime",
+    "original_worker": "prime",
+    "batch": "C006",
+    "source_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "source_sha256": "a7844e384748e8301ffa9db3225c2964fe90dc08daf90e36e98d6ad7f15e4d4b",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 234
+      }
+    ],
+    "semantic_review_notes": "Endpoint contract tests constrain accepted drafts/continuations/recognition, GET session identity, PUT versioned vehicle correction, and POST condition note/completion/Check-In completion routes. Authenticated client factory is refreshed for each generation and response schema validation is delegated to transport.",
+    "callers_consumers": "employee-check-in-transport.ts; EmployeeClient; @valet/contracts; staff check-in API",
+    "invariants_error_checks": "All source lines read; verified check-in auth/owner generation, accepted API request/response, CAS, retry ambiguity, customer/vehicle identity, cancellation and readback test intent against linked implementation. No new statically confirmed security or workflow defect in these 20 files.",
+    "test_refs": [
+      "Static examination of each assigned test source and linked implementation only. No Vitest/device/API/DB run in C006."
+    ],
+    "finding_ids": [],
+    "limits": "Review is bounded to assigned files plus linked implementation; test expectations are not runtime proof, and server/Native counterparts not fully re-reviewed here."
+  }
+]

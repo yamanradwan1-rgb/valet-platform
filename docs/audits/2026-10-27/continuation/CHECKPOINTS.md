@@ -9,3 +9,5 @@
 |C005|Additional C004 transfer semantic reviews|1041/4,705 files;113114/610,400 lines|[report](checkpoints/C005.md), [summary](checkpoints/C005-coverage-summary.json)|
 
 The commit containing this file is the checkpoint publication identifier; inspect branch history to obtain it without a circular embedded commit hash. Original checkpoint38dd20039c051de39d172a2e3f440c68f3d60515 remains the direct documentation parent. No application code was rebased or changed.
+
+|C006|Additional Dashboard E2E, API Dashboard and Employee Client review|1131/4,705 files;125491/610,400 lines|[report](checkpoints/C006.md), [summary](checkpoints/C006-coverage-summary.json)|

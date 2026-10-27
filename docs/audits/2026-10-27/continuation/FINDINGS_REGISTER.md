@@ -76,3 +76,11 @@ Original ten findings remain in the [original complete report](../VAYLET_AUDIT_2
 - **Proposed action:** Reconcile legacy fixture assertions under UI Freeze without restoring the retired navigation. Preserve new Service Status behavior, adjust race tests to its accepted route and review suite ownership.
 - **Duplicates:** Different from VAL-002 (#355) audit event count and TEST-001 (#361) official GPS discovery exclusion. GitHub issue duplicate check/owner disposition pending; no issue created.
 - **Evidence:** [structured source chain](evidence/C004-DASH-001.json).
+
+## C006-DASH-001 — legacy Keys & Spots default E2E entry after #304 Option 3
+
+- **Severity/confidence:** P3; HIGH static source confidence, RUNTIME_UNVERIFIED. This is test-suite debt, not a product runtime/security vulnerability.
+- **Observed:** `apps/dashboard/e2e/support/keys-spots.ts` (lines 15–27) expects retired `Keys & Spots` heading and `Physical Resources` outer tab. Thirteen assigned Issue #232/#236/#237 tests enter through that helper. Current `keys-page.tsx` (lines 3–12) renders `ResourceInspectorLive` directly and explicitly replaces the former page-level tabs after #304. New `apps/dashboard/tests/issue304-*` tests encode the current presentation and authority semantics.
+- **Impact:** Default `pnpm --filter @valet/dashboard test:e2e` uses `playwright.config.ts` with `./e2e`; stale tests can fail before exercising their intended race, CAS, reconciliation and privacy assertions. CI currently uses `test:e2e:runtime` with a different test directory, so no current CI-gate blocker is claimed.
+- **Suggested follow-up:** Migrate the old regression intents onto #304 Option 3 or retire/relabel deliberately obsolete fixture tests, preserving UI Freeze and authoritative scope/MFA/idempotency. No test run or code change was made.
+- **Evidence:** [frozen source chain](evidence/C006-DASH-001.json).
