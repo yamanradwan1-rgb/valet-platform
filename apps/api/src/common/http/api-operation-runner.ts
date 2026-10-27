@@ -1,3 +1,4 @@
+import { recordRequestFailure } from "../observability/performance-request-diagnostics";
 import { Inject, Injectable } from "@nestjs/common";
 
 import {
@@ -72,6 +73,7 @@ export class ApiOperationRunner {
       outcome = "ERROR";
       const mapped = mapApiError(error, guest);
       errorCode = mapped.code;
+      recordRequestFailure(request, mapped.code, error);
       throw apiHttpException(mapped, requestId);
     } finally {
       const durationMs = Math.max(0, this.clock.now() - startedAt);

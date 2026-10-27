@@ -3,6 +3,15 @@ import { performance } from "node:perf_hooks";
 
 import { runtimeDatabaseBudgets } from "./runtime-postgres-policy";
 
+export type DatabaseFailureReason =
+  | "DATABASE_UNAVAILABLE"
+  | "QUEUE_FULL"
+  | "ACQUISITION_TIMEOUT"
+  | "CONNECT_ERROR"
+  | "POOL_CLOSING"
+  | "OPERATION_DEADLINE"
+  | "QUERY_TIMEOUT";
+
 interface OperationDeadline {
   readonly at: number;
   readonly clients: Set<{ end(): Promise<void> }>;
@@ -13,7 +22,7 @@ const deadlines = new AsyncLocalStorage<OperationDeadline>();
 export class RuntimeDatabaseUnavailableError extends Error {
   readonly code = "INTERNAL_ERROR";
 
-  constructor() {
+  constructor(readonly reason: DatabaseFailureReason = "DATABASE_UNAVAILABLE") {
     super("Service temporarily unavailable.");
   }
 }
@@ -44,7 +53,7 @@ export function withDatabaseDeadline<T>(
           // bound work if the network is lost; later queries fail the same deadline.
           for (const client of scope.clients)
             void client.end().catch(() => undefined);
-          reject(new RuntimeDatabaseUnavailableError());
+          reject(new RuntimeDatabaseUnavailableError("OPERATION_DEADLINE"));
         }, maximumMs);
         void Promise.resolve()
           .then(action)
@@ -76,7 +85,8 @@ export function remainingDatabaseOperationMs(
     deadline === undefined
       ? maximum
       : Math.floor(deadline.at - performance.now());
-  if (remaining <= 0) throw new RuntimeDatabaseUnavailableError();
+  if (remaining <= 0)
+    throw new RuntimeDatabaseUnavailableError("OPERATION_DEADLINE");
   return Math.min(maximum, remaining);
 }
 

@@ -37,6 +37,7 @@ export function ownPostgresLease(
   client: PoolClient,
   general: GeneralDatabaseBudgets,
   returned: () => void,
+  measurements?: { releaseFailures: number; leaseExpirations: number },
 ): () => void {
   const nativeRelease = client.release.bind(client);
   const guest = isGuestDatabaseOperation();
@@ -77,7 +78,10 @@ export function ownPostgresLease(
     };
     void client.query(reset).then(
       () => finish(),
-      () => finish(true),
+      () => {
+        if (measurements) measurements.releaseFailures += 1;
+        finish(true);
+      },
     );
   };
   const dispose = () => finish(true);
@@ -86,7 +90,10 @@ export function ownPostgresLease(
   // Scope expiry is checked before/after installation; this step cannot throw
   // between native checkout and assigning ownership of its release.
   const timer = setTimeout(
-    dispose,
+    () => {
+      if (measurements) measurements.leaseExpirations += 1;
+      dispose();
+    },
     guest ? runtimeDatabaseBudgets.operationMs : general.transactionMs,
   );
   client.release = release;

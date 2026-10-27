@@ -9,6 +9,13 @@ import {
   formatHttpMetric,
 } from "./http-operation-metrics";
 
+import type { ApiRequest } from "../http/api-request";
+import {
+  ensurePerformanceRequestId,
+  formatPerformanceRequest,
+  performanceRoute,
+} from "./performance-request-diagnostics";
+
 const logger = new Logger("HttpMetrics");
 
 /**
@@ -21,12 +28,14 @@ export function createHttpMetricsMiddleware(
   emit: (line: string) => void = (line) => logger.log(line),
 ) {
   return (
-    request: IncomingMessage,
+    request: IncomingMessage & Pick<ApiRequest, "requestId">,
     response: ServerResponse,
     next: () => void,
   ): void => {
     const startedAt = performance.now();
     const operation = classifyHttpOperation(request.method, request.url);
+    const route = performanceRoute(request.method, request.url);
+    if (route) ensurePerformanceRequestId(request);
     let emitted = false;
 
     const report = (status: number) => {
@@ -36,7 +45,7 @@ export function createHttpMetricsMiddleware(
         emit(
           formatHttpMetric(
             buildHttpMetric(operation, status, performance.now() - startedAt),
-          ),
+          ) + (route ? formatPerformanceRequest(request, route, status) : ""),
         );
       } catch {
         // Telemetry failure must never modify the business response.

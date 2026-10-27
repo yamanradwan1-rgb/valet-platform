@@ -55,8 +55,9 @@ export function boundPostgresQueries(
         measurements.transactionTimeouts += 1;
       if ((error as { message?: string })?.message === "Query read timeout") {
         // Discard, never recycle, a connection with an ambiguous protocol outcome.
+        measurements.queryTimeouts += 1;
         client.release(true);
-        return new RuntimeDatabaseUnavailableError();
+        return new RuntimeDatabaseUnavailableError("QUERY_TIMEOUT");
       }
       return error;
     };
