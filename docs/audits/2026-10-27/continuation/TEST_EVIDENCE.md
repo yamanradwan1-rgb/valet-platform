@@ -23,3 +23,5 @@ C005: Zero new tests executed. Reviewed existing test source as references; no c
 C006: Existing test sources reviewed as code evidence only; **zero tests executed**. Assertions described in reviewed files are not reported as observed pass results.
 
 C007: Zero new tests executed; existing test files were read and linked to implementation only. Historical test results remain historical.
+
+RB-001/D001: Zero new application/runtime/browser/PostgreSQL/provider/CI tests executed; static source review, SHA/range/ledger verification only. Earlier benchmark/test results remain historical, not retested on current main.

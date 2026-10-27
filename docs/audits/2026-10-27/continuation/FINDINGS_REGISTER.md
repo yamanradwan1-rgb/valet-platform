@@ -84,3 +84,10 @@ Original ten findings remain in the [original complete report](../VAYLET_AUDIT_2
 - **Impact:** Default `pnpm --filter @valet/dashboard test:e2e` uses `playwright.config.ts` with `./e2e`; stale tests can fail before exercising their intended race, CAS, reconciliation and privacy assertions. CI currently uses `test:e2e:runtime` with a different test directory, so no current CI-gate blocker is claimed.
 - **Suggested follow-up:** Migrate the old regression intents onto #304 Option 3 or retire/relabel deliberately obsolete fixture tests, preserving UI Freeze and authoritative scope/MFA/idempotency. No test run or code change was made.
 - **Evidence:** [frozen source chain](evidence/C006-DASH-001.json).
+
+## RB001-OBS-001 — new-main HTTP_METRIC parser/cardinality drift
+
+- **Priority/confidence:** P2 operational, static source/document contradiction confirmed; runtime ingestion/parser impact unverified.
+- **Source:** main `2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8`, appended staff benchmark diagnostics include bounded route/error labels plus per-request requestId. Existing monitoring policy still describes fixed operation/outcome/status/durationMs fields and no provider is deployed.
+- **Impact:** Future fixed-field parsing may reject extended records or incorrectly use high-cardinality requestId as a metric label. No live production failure, tenant disclosure or P0/P1 claim.
+- **Evidence, mitigations and limits:** [standalone analysis](findings/RB001-OBS-001.md). No GitHub Issue was created.

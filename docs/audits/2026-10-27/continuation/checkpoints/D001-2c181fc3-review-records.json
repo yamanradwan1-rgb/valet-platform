@@ -1,0 +1,485 @@
+[
+  {
+    "path": "apps/api/src/common/database/bounded-postgres-pool.ts",
+    "batch": "RB001-DELTA",
+    "worker": "prime",
+    "reviewer": "prime",
+    "source_commit": "2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8",
+    "source_sha256": "7cec5c3499b58f4302fdba963eeefb4af43526362b59de8b432ba55ef3ffac3e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 221
+      }
+    ],
+    "semantic_review_notes": "Local max+waiter admission rejects excess requests with fixed QUEUE_FULL; every connect/setup/closing/deadline failure decrements admitted or disposes an owned lease. Late scope-expired checkout is destroyed before issuing queries. Callback and promise paths preserve fixed errors and counters; snapshot is numeric-only. Actual pool saturation remains unmeasured.",
+    "callers_consumers": [
+      "postgres.ts createRuntimePostgresPool",
+      "postgres-lease.ts",
+      "bounded-postgres-query.ts",
+      "runtime-metrics-pulse.ts"
+    ],
+    "invariants_error_checks": [
+      "no admission leak on rejection/failure",
+      "no reusable late/expired lease",
+      "resource settings reset/destroy on release"
+    ],
+    "test_refs": [
+      "performance-pool-diagnostics.test.ts",
+      "guest-t3-lease-regression.integration.test.ts",
+      "guest-t3-runtime-resilience.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Complete current-file and linked static semantic review only; the cited tests were examined, not executed. Concurrency/provider/database/throughput behavior needs targeted validation."
+  },
+  {
+    "path": "apps/api/src/common/database/bounded-postgres-query.ts",
+    "batch": "RB001-DELTA",
+    "worker": "prime",
+    "reviewer": "prime",
+    "source_commit": "2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8",
+    "source_sha256": "e41dd525d792f1ea3bbc1c320aebac946e5c29d7bf55ae6ef050d8960b42c469",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 75
+      }
+    ],
+    "semantic_review_notes": "Intercepts both callback and promise query forms to apply guest/general bounded query_timeout, preserving tighter caller budgets. ROLLBACK gets bounded cleanup allowance. Known SQLSTATEs increment aggregate counters; ambiguous pg Query read timeout destroys client and normalizes error, forbidding a possibly desynchronized connection from being reused.",
+    "callers_consumers": [
+      "bounded-postgres-pool.ts pool connect hook",
+      "postgres-lease.ts reset query",
+      "guest command transactions"
+    ],
+    "invariants_error_checks": [
+      "callback receives normalized failure once",
+      "query_timeout never exceeds operation/statement limits",
+      "ambiguous protocol timeout destroys client"
+    ],
+    "test_refs": [
+      "performance-pool-diagnostics.test.ts",
+      "guest-t3-protocol-timeout.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Complete current-file and linked static semantic review only; the cited tests were examined, not executed. Concurrency/provider/database/throughput behavior needs targeted validation."
+  },
+  {
+    "path": "apps/api/src/common/database/database-failure-reason.ts",
+    "batch": "RB001-DELTA",
+    "worker": "prime",
+    "reviewer": "prime",
+    "source_commit": "2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8",
+    "source_sha256": "a8fe78758b7f5d5ef927b029099d8c05bf002431f2be99fa3c0884618d17b4bf",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 31
+      }
+    ],
+    "semantic_review_notes": "Maps only RuntimeDatabaseUnavailableError or allowlisted SQLSTATE values into finite internal metric reasons; omits raw SQL, server/host messages and causes. Native acquisition timeout is recognized by two exact driver messages, otherwise it remains generic CONNECT_ERROR downstream.",
+    "callers_consumers": [
+      "runtime-database.module.ts bootstrap logging",
+      "performance-request-diagnostics.ts recordRequestFailure",
+      "bounded-postgres-pool.ts acquisition classification"
+    ],
+    "invariants_error_checks": [
+      "no request secrets in reason string",
+      "unrecognized driver errors do not enter telemetry"
+    ],
+    "test_refs": [
+      "performance-request-diagnostics.test.ts",
+      "performance-pool-diagnostics.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Complete current-file and linked static semantic review only; the cited tests were examined, not executed. Concurrency/provider/database/throughput behavior needs targeted validation."
+  },
+  {
+    "path": "apps/api/src/common/database/postgres-lease.ts",
+    "batch": "RB001-DELTA",
+    "worker": "prime",
+    "reviewer": "prime",
+    "source_commit": "2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8",
+    "source_sha256": "cd563bb03cbadac7a64faf320aa57d571fed6eb9e950d06a069c3285d94e96e0",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 104
+      }
+    ],
+    "semantic_review_notes": "Lease ownership wraps native release exactly once and reports destroyed transaction outcomes as UNAVAILABLE. Normal general release first resets all per-session PostgreSQL budgets; reset rejection and forced interruption destroy the connection. Guest path releases directly; watchdog/operation scope cleanup remove listeners and decrement ownership.",
+    "callers_consumers": [
+      "bounded-postgres-pool.ts",
+      "postgres-transaction-outcome.ts",
+      "runtime-database-deadline.ts"
+    ],
+    "invariants_error_checks": [
+      "no double native release",
+      "never recycle failed reset",
+      "forced release invalidates ambiguous transaction outcome"
+    ],
+    "test_refs": [
+      "performance-pool-diagnostics.test.ts",
+      "guest-t3-lease-regression.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Complete current-file and linked static semantic review only; the cited tests were examined, not executed. Concurrency/provider/database/throughput behavior needs targeted validation."
+  },
+  {
+    "path": "apps/api/src/common/database/runtime-database-deadline.ts",
+    "batch": "RB001-DELTA",
+    "worker": "prime",
+    "reviewer": "prime",
+    "source_commit": "2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8",
+    "source_sha256": "6fc90c5efa4d53460965d3c94aab9fc305af56a33b37d464390ba45f350b7ab6",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 119
+      }
+    ],
+    "semantic_review_notes": "AsyncLocalStorage tracks per-operation deadline and registered leases. Deadline expiry destroys tracked clients and fails fixed OPERATION_DEADLINE; subsequent queries check remaining budget. Registration untracks on lease finish; isGuestDatabaseOperation currently denotes any active deadline scope, which callers must use intentionally.",
+    "callers_consumers": [
+      "api-operation-runner.ts guestOperation",
+      "runtime-database.module.ts startup safety",
+      "postgres-lease.ts trackDatabaseOperationClient"
+    ],
+    "invariants_error_checks": [
+      "deadline cannot be negative/NaN",
+      "active leases are torn down on expiration",
+      "no silent replay of ambiguous mutation"
+    ],
+    "test_refs": [
+      "performance-pool-diagnostics.test.ts",
+      "guest-t3-runtime-resilience.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Complete current-file and linked static semantic review only; the cited tests were examined, not executed. Concurrency/provider/database/throughput behavior needs targeted validation."
+  },
+  {
+    "path": "apps/api/src/common/database/runtime-database.module.ts",
+    "batch": "RB001-DELTA",
+    "worker": "prime",
+    "reviewer": "prime",
+    "source_commit": "2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8",
+    "source_sha256": "29e6dba37a1e5aba3b0ab5a6bc9583f5f776c231f2eb537df783ff4bead8236f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 99
+      }
+    ],
+    "semantic_review_notes": "Singleton runtime pool lifecycle verifies PostgreSQL 16+ and statement/lock/idle timeout configuration at bootstrap, and production safety/TLS role constraints. New startup failure metrics log only classified safe reason, never driver details; instrumentation exceptions cannot replace original error. Shutdown ends pool.",
+    "callers_consumers": [
+      "postgres.ts createRuntimePostgresPool",
+      "RuntimeDatabaseLifecycle",
+      "health-readiness.service.ts",
+      "runtime-metrics-pulse.ts"
+    ],
+    "invariants_error_checks": [
+      "startup fails closed on invalid safety preflight",
+      "bootstrap error retains original identity",
+      "singleton pool ends on shutdown"
+    ],
+    "test_refs": [
+      "performance-pool-diagnostics.test.ts",
+      "production-database-safety.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Complete current-file and linked static semantic review only; the cited tests were examined, not executed. Concurrency/provider/database/throughput behavior needs targeted validation."
+  },
+  {
+    "path": "apps/api/src/common/http/api-operation-runner.ts",
+    "batch": "RB001-DELTA",
+    "worker": "prime",
+    "reviewer": "prime",
+    "source_commit": "2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8",
+    "source_sha256": "ddb9995ed75a7d86013e963abe6352321221bb4b89ac3746fea1c7664fa085e1",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 96
+      }
+    ],
+    "semantic_review_notes": "API runner preserves shared error mapping and guest-specific bounded database operation scope; non-guest actions execute without that wrapper. New failure capture stores mapped public code plus allowlisted internal reason in a request-keyed WeakMap for fixed-route metrics. Observer failure is isolated from the API result.",
+    "callers_consumers": [
+      "guest/staff/dashboard/check-in/dispatch controllers",
+      "api-errors.ts",
+      "http-metrics.middleware.ts"
+    ],
+    "invariants_error_checks": [
+      "public errors contain fixed code/message/requestId",
+      "measurement observer cannot change business response",
+      "guest deadline failure not replayed"
+    ],
+    "test_refs": [
+      "performance-request-diagnostics.test.ts",
+      "guest-t3-runtime-resilience.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Complete current-file and linked static semantic review only; the cited tests were examined, not executed. Concurrency/provider/database/throughput behavior needs targeted validation."
+  },
+  {
+    "path": "apps/api/src/common/observability/http-metrics.middleware.ts",
+    "batch": "RB001-DELTA",
+    "worker": "prime",
+    "reviewer": "prime",
+    "source_commit": "2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8",
+    "source_sha256": "6b86aefb8a95c468196c74015f92adb9d9be4b84eace883af1d9a306fdac6427",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 63
+      }
+    ],
+    "semantic_review_notes": "Installed before authorization by main.ts, the middleware measures actual finish status or disconnected 499 exactly once; response close after finish cannot double-log. Benchmark route diagnostics are appended only for fixed templates; telemetry emitter exceptions are swallowed. Query strings and tenant route selectors are never directly emitted.",
+    "callers_consumers": [
+      "main.ts middleware order",
+      "http-operation-metrics.ts",
+      "performance-request-diagnostics.ts"
+    ],
+    "invariants_error_checks": [
+      "one metric per request even on finish/close race",
+      "unmapped routes omit diagnostic suffix",
+      "middleware never changes response"
+    ],
+    "test_refs": [
+      "performance-request-diagnostics.test.ts",
+      "api-request-id-boundary.test.ts"
+    ],
+    "finding_ids": [
+      "RB001-OBS-001"
+    ],
+    "limits": "Complete current-file and linked static semantic review only; the cited tests were examined, not executed. Concurrency/provider/database/throughput behavior needs targeted validation."
+  },
+  {
+    "path": "apps/api/src/common/observability/performance-request-diagnostics.ts",
+    "batch": "RB001-DELTA",
+    "worker": "prime",
+    "reviewer": "prime",
+    "source_commit": "2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8",
+    "source_sha256": "482672658e653042d2fc9bf6a41373d0c214befdb86d71f099b571e5430863bd",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 95
+      }
+    ],
+    "semantic_review_notes": "Recognizes a finite set of staff benchmark routes and replaces location selectors with a fixed :locationId template. Request failures use fixed API codes and database SQLSTATE reason mapping; 499/401/403/429/5xx fallbacks are finite. Request IDs reuse the restricted ASCII 1-128 character resolver; no raw URL, Authorization header, body or customer token is logged.",
+    "callers_consumers": [
+      "api-operation-runner.ts recordRequestFailure",
+      "http-metrics.middleware.ts",
+      "api-request.ts resolveRequestId"
+    ],
+    "invariants_error_checks": [
+      "route template never contains selector/query",
+      "failure source is request-keyed",
+      "disconnected requests classified independently"
+    ],
+    "test_refs": [
+      "performance-request-diagnostics.test.ts"
+    ],
+    "finding_ids": [
+      "RB001-OBS-001"
+    ],
+    "limits": "Complete current-file and linked static semantic review only; the cited tests were examined, not executed. Concurrency/provider/database/throughput behavior needs targeted validation."
+  },
+  {
+    "path": "apps/api/src/common/observability/runtime-metrics-pulse.ts",
+    "batch": "RB001-DELTA",
+    "worker": "prime",
+    "reviewer": "prime",
+    "source_commit": "2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8",
+    "source_sha256": "69aa62328bb586e306e516e8d07ae44562dfa449d7c5d4bfbbeff267bd7c9c1e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 106
+      }
+    ],
+    "semantic_review_notes": "Samples pool/resource/limiter numeric counters and release SHA every 30 seconds in a fixed-schema RUNTIME_METRIC record; no tenant ID, SQL, URL or credential is included. Timer is unrefed and cleared on module destruction. Metrics exceptions cannot terminate serving process; collection overhead has not been load-tested.",
+    "callers_consumers": [
+      "bounded-postgres-pool.ts runtimePoolSnapshot",
+      "limiter-maintenance-metrics.ts",
+      "ObservabilityModule lifecycle"
+    ],
+    "invariants_error_checks": [
+      "no unbounded user-controlled cardinality",
+      "no secrets in sampled fields",
+      "timer lifecycle cleaned on destroy"
+    ],
+    "test_refs": [
+      "performance-pool-diagnostics.test.ts",
+      "guest-t3-transaction-metrics.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Complete current-file and linked static semantic review only; the cited tests were examined, not executed. Concurrency/provider/database/throughput behavior needs targeted validation."
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-operational-context-details.ts",
+    "batch": "RB001-DELTA",
+    "worker": "prime",
+    "reviewer": "prime",
+    "source_commit": "2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8",
+    "source_sha256": "27a81a5c740b26fc13d7121f1a4953f2da340a43441dad2b77c564256e2e4cfb",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 99
+      }
+    ],
+    "semantic_review_notes": "New batched SQL uses paired unnest arrays derived from active DB membership rows rather than a cross product. Location access, shift existence and projectable shift queries join organization_id plus membership_id and require active locations and same-location grants. ACTIVE-but-unprojectable shifts are preserved for caller fail-closed rejection; separate queries lack a repeatable-read membership snapshot.",
+    "callers_consumers": [
+      "staff-operational-context-query.ts",
+      "staff-operational-context.service.ts",
+      "membership_location_access and shifts tables"
+    ],
+    "invariants_error_checks": [
+      "tenant and membership pair scoped in each join",
+      "revoked active shift never silently appears null",
+      "cross-statement revocation race remains unproven"
+    ],
+    "test_refs": [
+      "staff-operational-context-batching.integration.test.ts",
+      "staff-operational-context.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Complete current-file and linked static semantic review only; the cited tests were examined, not executed. Concurrency/provider/database/throughput behavior needs targeted validation."
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-operational-context-query.ts",
+    "batch": "RB001-DELTA",
+    "worker": "prime",
+    "reviewer": "prime",
+    "source_commit": "2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8",
+    "source_sha256": "b1aee63733b0cc10a1f5fcc444335a827b0c36eb1478f11326e7d65b7011be2f",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 123
+      }
+    ],
+    "semantic_review_notes": "Requires ACTIVE user, eligible employee/supervisor memberships and active Organizations before loading batched details. For each membership, unprojectable persisted ACTIVE shift denies whole response; projected current location and eligibleLocations derive from exact scope. Query count improves 11 to five for three active memberships in inspected test, without proving load-test throughput or concurrent snapshot consistency.",
+    "callers_consumers": [
+      "staff-operational-context.service.ts",
+      "staff-operational-context.controller.ts",
+      "staff client bootstrap/context projection"
+    ],
+    "invariants_error_checks": [
+      "authorization denial before details on no memberships",
+      "no cross-organization location projection",
+      "active shift grant revoked fails closed"
+    ],
+    "test_refs": [
+      "staff-operational-context-batching.integration.test.ts",
+      "staff-operational-context.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Complete current-file and linked static semantic review only; the cited tests were examined, not executed. Concurrency/provider/database/throughput behavior needs targeted validation."
+  },
+  {
+    "path": "apps/api/test/performance-pool-diagnostics.test.ts",
+    "batch": "RB001-DELTA",
+    "worker": "prime",
+    "reviewer": "prime",
+    "source_commit": "2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8",
+    "source_sha256": "8dea5ccdf55376858d518e76ad9ee299f80d918611815d5c5714543edd1c33fa",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 166
+      }
+    ],
+    "semantic_review_notes": "Mock Pool/EventEmitter fixture exercises startup failure count and safe reason, capacity rejection, acquisition timeout, callback masking, expired late checkout with no query, reset failure destruction and watchdog disposal. It does not directly assert new poolErrors/clientErrors/queryTimeouts metrics or both timeout-message variants; test file inspected but not executed.",
+    "callers_consumers": [
+      "bounded-postgres-pool.ts",
+      "runtime-database.module.ts",
+      "runtime-database-deadline.ts"
+    ],
+    "invariants_error_checks": [
+      "counts/cleanup are asserted through runtimePoolSnapshot",
+      "mock does not prove live PostgreSQL protocol behavior"
+    ],
+    "test_refs": [
+      "guest-t3-lease-regression.integration.test.ts",
+      "guest-t3-protocol-timeout.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Complete current-file and linked static semantic review only; the cited tests were examined, not executed. Concurrency/provider/database/throughput behavior needs targeted validation."
+  },
+  {
+    "path": "apps/api/test/performance-request-diagnostics.test.ts",
+    "batch": "RB001-DELTA",
+    "worker": "prime",
+    "reviewer": "prime",
+    "source_commit": "2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8",
+    "source_sha256": "d1dbab33f3aafca405bf574f64398be92cafb40a962d91483a571be52bcd459e",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 125
+      }
+    ],
+    "semantic_review_notes": "Tests fixed-route masking of tenant selector/query, generic 503 response and internal QUEUE_FULL reason without Bearer leaks, 499 disconnect emitted once, logging failure isolation and fixed SQLSTATE classifier. HTTP events are simulated EventEmitter events; no real HTTP server traffic was executed as part of this audit.",
+    "callers_consumers": [
+      "performance-request-diagnostics.ts",
+      "http-metrics.middleware.ts",
+      "api-operation-runner.ts",
+      "database-failure-reason.ts"
+    ],
+    "invariants_error_checks": [
+      "no raw request URL/header secret in log",
+      "unknown route diagnostics excluded",
+      "finish and close produce one event"
+    ],
+    "test_refs": [
+      "api-request-id-boundary.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Complete current-file and linked static semantic review only; the cited tests were examined, not executed. Concurrency/provider/database/throughput behavior needs targeted validation."
+  },
+  {
+    "path": "apps/api/test/staff-operational-context-batching.integration.test.ts",
+    "batch": "RB001-DELTA",
+    "worker": "prime",
+    "reviewer": "prime",
+    "source_commit": "2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8",
+    "source_sha256": "442a9966cd9db74608a7b7823b69b108f4c4dc5b58d5857e486ad60493d92232",
+    "status": "fully_reviewed",
+    "read_ranges": [
+      {
+        "start": 1,
+        "end": 57
+      }
+    ],
+    "semantic_review_notes": "Database harness creates three active memberships for one user and an outsider, asserting five source-level queries, three isolated contexts, exact eligible/active location projection and outsider exclusion. A grant revoked before a second read must fail closed; concurrent mid-query revocation and repeated-read consistency are not exercised. Test read only, not run.",
+    "callers_consumers": [
+      "staff-operational-context-query.ts",
+      "staff-operational-context-details.ts",
+      "staff-operational-context-harness.ts"
+    ],
+    "invariants_error_checks": [
+      "multi-org pair scoping and query count asserted",
+      "revocation before request denied",
+      "no proof of concurrent revocation TOCTOU behavior"
+    ],
+    "test_refs": [
+      "staff-operational-context.integration.test.ts"
+    ],
+    "finding_ids": [],
+    "limits": "Complete current-file and linked static semantic review only; the cited tests were examined, not executed. Concurrency/provider/database/throughput behavior needs targeted validation."
+  }
+]

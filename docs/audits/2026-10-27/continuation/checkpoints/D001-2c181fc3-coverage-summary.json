@@ -1,0 +1,23 @@
+{
+  "checkpoint": "D001",
+  "old_source_sha": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+  "current_main_sha": "2c181fc3a92808ebd0834b6d2e4f66ccc2c588a8",
+  "prior_docs_checkpoint": "58a83b1145907bbf7d3f2db9493970610434ea38",
+  "candidate_files": 4711,
+  "candidate_lines": 611038,
+  "previous_current_reviewed": 1297,
+  "previous_current_reviewed_lines": 147052,
+  "newly_reviewed": 15,
+  "newly_reviewed_lines": 1579,
+  "current_fully_reviewed": 1312,
+  "current_reviewed_lines": 148631,
+  "current_remaining": 3399,
+  "file_percent": 27.849713436637657,
+  "line_percent": 24.324346439992276,
+  "static_source_finding_ids": [
+    "RB001-OBS-001"
+  ],
+  "runtime_tests_executed": 0,
+  "c008_recovered_local_as_of_checkpoint": 80,
+  "c009_recovered_local_as_of_checkpoint": 55
+}
