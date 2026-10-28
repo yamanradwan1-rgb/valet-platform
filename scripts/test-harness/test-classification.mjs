@@ -28,6 +28,9 @@ const compoundMarkers = new Set([
 // This HTTP cross-replica fixture holds the admin and primary runtime pools
 // from ConfirmParkedTestContext plus a second live runtime pool.
 const compoundApiTests = new Set(["guest-t4-mutation-retry.integration.test.ts"]);
+// These suites deliberately require an owner-attested private PostgreSQL cluster.
+// Never collect them in the general CI/non-PostgreSQL test lane.
+const issue319PrivateSuite = /^dashboard-issue319-[^/]+\.integration\.test\.ts$/;
 const lazyPostgresOnlyTests = new Set([
   "postgres.test.ts",
   "shift-test-context-names.test.ts",
@@ -87,7 +90,9 @@ export function classifyPackageTests({ packageKind, rootDir }) {
       throw new Error(`Issue 215 protected test ${relativeFile} lost PostgreSQL ownership.`);
     }
     const project =
-      packageKind === "database" && isIssue215PostgresFile(relativeFile)
+      packageKind === "api" && issue319PrivateSuite.test(relativeFile)
+        ? "api-postgres-issue319-private"
+        : packageKind === "database" && isIssue215PostgresFile(relativeFile)
         ? ISSUE215_PROJECT
         : packageKind === "api" && relativeFile === issue309BrowserTest && dbBacked
         ? ISSUE309_BROWSER_PROJECT
