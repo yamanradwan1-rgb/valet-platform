@@ -48,7 +48,11 @@ export function boundPostgresQueries(
       }
       return Promise.reject(error);
     }
-    const finishMeasurement = beginQueryMeasurement(config?.text, measurements);
+    const finishMeasurement = beginQueryMeasurement(
+      config?.text,
+      measurements,
+      client,
+    );
     const failure = (error: unknown): unknown => {
       const code = (error as { code?: string })?.code;
       if (code === "55P03") measurements.lockTimeouts += 1;

@@ -2,6 +2,7 @@ import { performance } from "node:perf_hooks";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 import { Logger } from "@nestjs/common";
+import { withHttpDatabaseOperation } from "./database-operation-context";
 
 import {
   buildHttpMetric,
@@ -58,6 +59,6 @@ export function createHttpMetricsMiddleware(
       if (!emitted)
         report(response.writableFinished ? response.statusCode : 499);
     });
-    next();
+    withHttpDatabaseOperation(request.method, request.url, next);
   };
 }

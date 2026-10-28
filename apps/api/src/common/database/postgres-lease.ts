@@ -1,5 +1,8 @@
 import { performance } from "node:perf_hooks";
+import { AsyncResource } from "node:async_hooks";
 import type { PoolClient } from "pg";
+import { beginLeaseDiagnostics } from "./postgres-lifecycle-diagnostics";
+import type { RuntimePoolMeasurements } from "./bounded-postgres-pool";
 import { finishTransactionOutcomes } from "./postgres-transaction-outcome";
 import {
   isGuestDatabaseOperation,
@@ -38,15 +41,12 @@ export function ownPostgresLease(
   client: PoolClient,
   general: GeneralDatabaseBudgets,
   returned: () => void,
-  measurements?: {
-    releaseFailures: number;
-    leaseExpirations: number;
-    leaseCompletions: number;
-    leaseMs: number;
-    leaseBuckets: number[];
-  },
+  measurements?: RuntimePoolMeasurements,
 ): () => void {
   const started = performance.now();
+  const diagnostics = measurements
+    ? beginLeaseDiagnostics(client, measurements)
+    : undefined;
   const nativeRelease = client.release.bind(client);
   const guest = isGuestDatabaseOperation();
   let releaseRequested = false;
@@ -55,6 +55,7 @@ export function ownPostgresLease(
   const finish = (destroy?: Error | boolean) => {
     if (finished) return;
     finished = true;
+    diagnostics?.finish(Boolean(destroy));
     if (measurements) {
       const elapsed = performance.now() - started;
       measurements.leaseCompletions += 1;
@@ -85,6 +86,7 @@ export function ownPostgresLease(
       finish();
       return;
     }
+    diagnostics?.resetStarted();
     const reset = {
       text:
         "RESET statement_timeout; RESET idle_in_transaction_session_timeout; " +
@@ -95,7 +97,8 @@ export function ownPostgresLease(
     };
     void client.query(reset).then(
       () => finish(),
-      () => {
+      (error: unknown) => {
+        diagnostics?.resetFailed(error);
         if (measurements) measurements.releaseFailures += 1;
         finish(true);
       },
@@ -113,7 +116,10 @@ export function ownPostgresLease(
     },
     guest ? runtimeDatabaseBudgets.operationMs : general.transactionMs,
   );
-  client.release = release;
+  // pg.Pool.query releases from a socket callback which can retain an expired
+  // startup/previous-operation scope. Cleanup belongs to this lease's owner;
+  // retain its deadlines, watchdog and query bounds, not the callback's scope.
+  client.release = AsyncResource.bind(release);
   client.on("error", onError);
   client.on("end", onEnd);
   untrack = trackDatabaseOperationClient({ end: async () => dispose() });

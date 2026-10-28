@@ -10,8 +10,18 @@ import type { PostgresPool } from "../database/postgres";
 import { RUNTIME_POSTGRES_POOL } from "../database/runtime-database.module";
 import { runtimePoolSnapshot } from "../database/bounded-postgres-pool";
 import { readLimiterMaintenanceSnapshot } from "./limiter-maintenance-metrics";
+import { performance } from "node:perf_hooks";
+import {
+  postgresPhases,
+  resetFailureReasons,
+} from "../database/postgres-lifecycle-diagnostics";
+import { databaseOperations } from "./database-operation-context";
 
 const INTERVAL_MS = 30_000;
+
+function vector(values: number[] | undefined, length: number): number[] {
+  return values ?? Array.from({ length }, () => 0);
+}
 
 function releaseIdentity(): string {
   const value = process.env.VAYLET_RELEASE_GIT_SHA ?? "";
@@ -25,6 +35,9 @@ export function readRuntimeMetrics(pool: PostgresPool) {
   const cpu = process.cpuUsage();
   const limiter = readLimiterMaintenanceSnapshot();
   return {
+    pid: process.pid,
+    processStartedAtMs: Math.floor(performance.timeOrigin),
+    sampledAtMs: Date.now(),
     total: snapshot.total,
     idle: snapshot.idle,
     waiting: snapshot.waiting,
@@ -39,9 +52,60 @@ export function readRuntimeMetrics(pool: PostgresPool) {
     nativeAcquisitionAttempts: snapshot.nativeAcquisitionAttempts ?? 0,
     peakAdmitted: snapshot.peakAdmitted ?? 0,
     peakWaiting: snapshot.peakWaiting ?? 0,
+    peakActive: snapshot.peakActive ?? 0,
+    peakIdle: snapshot.peakIdle ?? 0,
+    peakLeased: snapshot.peakLeased ?? 0,
     leaseCompletions: snapshot.leaseCompletions ?? 0,
     leaseMs: Math.round(snapshot.leaseMs ?? 0),
     leaseBuckets: snapshot.leaseBuckets ?? [0, 0, 0, 0, 0, 0, 0],
+    phaseCounts: vector(snapshot.phaseCounts, postgresPhases.length),
+    phaseMs: vector(snapshot.phaseMs, postgresPhases.length).map(Math.round),
+    phaseMaxMs: vector(snapshot.phaseMaxMs, postgresPhases.length).map(
+      Math.round,
+    ),
+    activeByPhase: vector(snapshot.activeByPhase, postgresPhases.length),
+    oldestLeaseByPhaseMs: vector(
+      snapshot.oldestLeaseByPhaseMs,
+      postgresPhases.length,
+    ).map(Math.round),
+    oldestQueryByPhaseMs: vector(
+      snapshot.oldestQueryByPhaseMs,
+      postgresPhases.length,
+    ).map(Math.round),
+    activeByOperation: vector(
+      snapshot.activeByOperation,
+      databaseOperations.length,
+    ),
+    operationLeases: vector(
+      snapshot.operationLeases,
+      databaseOperations.length,
+    ),
+    operationLeaseMs: vector(
+      snapshot.operationLeaseMs,
+      databaseOperations.length,
+    ).map(Math.round),
+    operationLeaseMaxMs: vector(
+      snapshot.operationLeaseMaxMs,
+      databaseOperations.length,
+    ).map(Math.round),
+    operationAcquisitions: vector(
+      snapshot.operationAcquisitions,
+      databaseOperations.length,
+    ),
+    operationAcquisitionMs: vector(
+      snapshot.operationAcquisitionMs,
+      databaseOperations.length,
+    ).map(Math.round),
+    operationAcquisitionTimeouts: vector(
+      snapshot.operationAcquisitionTimeouts,
+      databaseOperations.length,
+    ),
+    resetFailureReasons: vector(
+      snapshot.resetFailureReasons,
+      resetFailureReasons.length,
+    ),
+    resetFailuresAfterDisposal: snapshot.resetFailuresAfterDisposal ?? 0,
+    resetsInterrupted: snapshot.resetsInterrupted ?? 0,
     queryCounts: snapshot.queryCounts ?? [0, 0, 0, 0],
     queryMs: (snapshot.queryMs ?? [0, 0, 0, 0]).map((value) =>
       Math.round(value),

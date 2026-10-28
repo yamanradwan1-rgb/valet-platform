@@ -4,6 +4,12 @@ import { boundPostgresQueries } from "./bounded-postgres-query";
 import type { GeneralDatabaseBudgets } from "./runtime-postgres-policy";
 import { performance } from "node:perf_hooks";
 import type { Pool, PoolClient } from "pg";
+import {
+  createPostgresLifecycleMeasurements,
+  beginAcquisitionDiagnostics,
+  readLifecycleDiagnostics,
+  type PostgresLifecycleMeasurements,
+} from "./postgres-lifecycle-diagnostics";
 
 import {
   remainingDatabaseOperationMs,
@@ -18,7 +24,7 @@ type ConnectCallback = (
   release: ((error?: Error | boolean) => void) | undefined,
 ) => void;
 
-export interface RuntimePoolMeasurements {
+export interface RuntimePoolMeasurements extends PostgresLifecycleMeasurements {
   acquisitions: number;
   acquisitionsOver200Ms: number;
   rejected: number;
@@ -27,6 +33,9 @@ export interface RuntimePoolMeasurements {
   nativeAcquisitionAttempts: number;
   peakAdmitted: number;
   peakWaiting: number;
+  peakActive: number;
+  peakIdle: number;
+  peakLeased: number;
   leaseCompletions: number;
   leaseMs: number;
   readonly leaseBuckets: number[];
@@ -72,6 +81,7 @@ export function boundPostgresPool(
     return result;
   }) as Pool["end"];
   const measurements: RuntimePoolMeasurements = {
+    ...createPostgresLifecycleMeasurements(),
     acquisitions: 0,
     acquisitionsOver200Ms: 0,
     rejected: 0,
@@ -80,6 +90,9 @@ export function boundPostgresPool(
     nativeAcquisitionAttempts: 0,
     peakAdmitted: 0,
     peakWaiting: 0,
+    peakActive: 0,
+    peakIdle: 0,
+    peakLeased: 0,
     leaseCompletions: 0,
     leaseMs: 0,
     leaseBuckets: [0, 0, 0, 0, 0, 0, 0],
@@ -101,6 +114,14 @@ export function boundPostgresPool(
     statementTimeouts: 0,
     transactionTimeouts: 0,
   };
+  const observePeaks = () => {
+    measurements.peakActive = Math.max(
+      measurements.peakActive,
+      pool.totalCount - pool.idleCount,
+    );
+    measurements.peakIdle = Math.max(measurements.peakIdle, pool.idleCount);
+    measurements.peakLeased = Math.max(measurements.peakLeased, disposals.size);
+  };
   pool.on("error", () => {
     measurements.poolErrors += 1;
     measurements.failures += 1;
@@ -115,6 +136,7 @@ export function boundPostgresPool(
   });
   pool.connect = ((callback?: ConnectCallback) => {
     const started = performance.now();
+    const finishAcquisition = beginAcquisitionDiagnostics(measurements);
     const acquire = async () => {
       remainingDatabaseOperationMs();
       if (closing) throw new RuntimeDatabaseUnavailableError("POOL_CLOSING");
@@ -164,6 +186,7 @@ export function boundPostgresPool(
         measurements,
       );
       disposals.add(dispose);
+      observePeaks();
       try {
         const acquisitionRemaining = Math.floor(
           runtimeDatabaseBudgets.acquireMs - (performance.now() - started),
@@ -195,7 +218,16 @@ export function boundPostgresPool(
       measurements.acquisitionBuckets[bucket < 0 ? 5 : bucket]! += 1;
       return client;
     };
-    const promise = acquire();
+    const promise = acquire().then(
+      (client) => {
+        finishAcquisition();
+        return client;
+      },
+      (error: unknown) => {
+        finishAcquisition(error);
+        throw error;
+      },
+    );
     if (callback === undefined) return promise;
     void promise.then(
       (client) => callback(undefined, client, client.release.bind(client)),
@@ -210,13 +242,16 @@ export function boundPostgresPool(
     );
   }) as Pool["connect"];
   runtimePoolMeasurements.set(pool, measurements);
-  runtimePoolState.set(pool, () => ({
-    configuredMax: max,
-    queueCapacity: maxWaiters,
-    admitted,
-    leased: disposals.size,
-    acquiring: admitted - disposals.size,
-  }));
+  runtimePoolState.set(pool, () => {
+    observePeaks();
+    return {
+      configuredMax: max,
+      queueCapacity: maxWaiters,
+      admitted,
+      leased: disposals.size,
+      acquiring: admitted - disposals.size,
+    };
+  });
   return pool;
 }
 
@@ -237,9 +272,12 @@ const runtimePoolState = new WeakMap<
 >();
 
 export function runtimePoolSnapshot(pool: Pool) {
+  const state = runtimePoolState.get(pool)?.();
+  const measurements = runtimePoolMeasurements.get(pool);
   return {
-    ...runtimePoolMeasurements.get(pool),
-    ...runtimePoolState.get(pool)?.(),
+    ...measurements,
+    ...(measurements ? readLifecycleDiagnostics(measurements) : {}),
+    ...state,
     active: pool.totalCount - pool.idleCount,
     total: pool.totalCount,
     idle: pool.idleCount,
