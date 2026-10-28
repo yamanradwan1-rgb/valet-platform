@@ -1,4 +1,5 @@
 import { performance } from "node:perf_hooks";
+import { AsyncResource } from "node:async_hooks";
 import type { PoolClient } from "pg";
 import { beginLeaseDiagnostics } from "./postgres-lifecycle-diagnostics";
 import type { RuntimePoolMeasurements } from "./bounded-postgres-pool";
@@ -115,7 +116,10 @@ export function ownPostgresLease(
     },
     guest ? runtimeDatabaseBudgets.operationMs : general.transactionMs,
   );
-  client.release = release;
+  // pg.Pool.query releases from a socket callback which can retain an expired
+  // startup/previous-operation scope. Cleanup belongs to this lease's owner;
+  // retain its deadlines, watchdog and query bounds, not the callback's scope.
+  client.release = AsyncResource.bind(release);
   client.on("error", onError);
   client.on("end", onEnd);
   untrack = trackDatabaseOperationClient({ end: async () => dispose() });
