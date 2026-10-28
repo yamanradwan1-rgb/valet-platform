@@ -7,6 +7,7 @@ export const ISSUE215_API_PROJECT = "api-postgres-issue215";
 export const ISSUE309_BROWSER_PROJECT = "api-postgres-issue309-browser";
 export const issue309BrowserTest = "issue309-photo-browser.integration.test.ts";
 export const issue215ApiPostgresFiles = Object.freeze([
+  "condition-photo-concurrent-http.integration.test.ts",
   "issue215-policy-recovery.test.ts",
   "issue215-real-http-integration.test.ts",
   "issue215-real-http-negative.test.ts",
@@ -39,6 +40,9 @@ export function isIssue215ApiPostgresFile(file) {
 }
 
 export function isIssue215ProtectedProject(projectName) {
-  return projectName === ISSUE215_PROJECT || projectName === ISSUE215_API_PROJECT ||
-    projectName === ISSUE309_BROWSER_PROJECT;
+  return (
+    projectName === ISSUE215_PROJECT ||
+    projectName === ISSUE215_API_PROJECT ||
+    projectName === ISSUE309_BROWSER_PROJECT
+  );
 }

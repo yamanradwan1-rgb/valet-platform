@@ -6,6 +6,7 @@ import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AuthModule } from "../auth/auth.module";
 import { ConditionPhotoAdmissionModule } from "../vehicle-photos/condition-photo-admission.module";
 import { ConditionPhotoBackendService } from "../vehicle-photos/condition-photo-backend.service";
+import { ConditionPhotoMetricsPulse } from "../vehicle-photos/condition-photo-metrics-pulse";
 import { ConditionPhotoController } from "./condition-photo.controller";
 import { ConditionPhotoAuthGuard } from "./condition-photo-auth.guard";
 import { CancelCheckInController } from "./cancel-check-in.controller";
@@ -30,7 +31,12 @@ import { PlateRecognizerSnapshotProvider } from "./plate-recognizer-snapshot.pro
     PlateOcrController,
     ConditionPhotoController,
   ],
-  imports: [AuthModule, ConditionPhotoAdmissionModule, RuntimeDatabaseModule, HttpInfrastructureModule],
+  imports: [
+    AuthModule,
+    ConditionPhotoAdmissionModule,
+    RuntimeDatabaseModule,
+    HttpInfrastructureModule,
+  ],
   providers: [
     CheckInApiService,
     CancelCheckInService,
@@ -38,6 +44,7 @@ import { PlateRecognizerSnapshotProvider } from "./plate-recognizer-snapshot.pro
     PlateOcrAuthGuard,
     PlateOcrService,
     ConditionPhotoBackendService,
+    ConditionPhotoMetricsPulse,
     ConditionPhotoAuthGuard,
     {
       provide: PlateOcrCostGuard,

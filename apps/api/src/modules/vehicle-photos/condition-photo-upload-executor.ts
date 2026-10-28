@@ -1,3 +1,5 @@
+import { ConditionPhotoDecodeError } from "./condition-photo-decode-error";
+import { conditionPhotoProcessingMetrics as metrics } from "./condition-photo-processing-metrics";
 import { timingSafeEqual } from "node:crypto";
 
 import type { ConditionPhotoUploadStatus } from "@valet/contracts";
@@ -22,7 +24,9 @@ import { inPostgresTransaction } from "../../common/database/postgres-transactio
 
 export class ConditionPhotoUploadUnavailable extends Error {
   readonly code = "CONDITION_PHOTO_STORAGE_UNAVAILABLE";
-  constructor() { super("Photo storage is temporarily unavailable."); }
+  constructor() {
+    super("Photo storage is temporarily unavailable.");
+  }
 }
 
 async function authorizedStatus(
@@ -46,12 +50,21 @@ async function recordUnknownSafely(
   lease: PhotoLease,
   error: unknown,
 ): Promise<void> {
-  const reason = error instanceof ConditionPhotoStorageError && error.reason === "TIMEOUT"
-    ? "STORAGE_TIMEOUT" :
-    error instanceof ConditionPhotoStorageError && error.reason === "UNKNOWN"
-      ? "STORAGE_OUTCOME_UNKNOWN" : "STORAGE_UNAVAILABLE";
+  const reason =
+    error instanceof ConditionPhotoStorageError && error.reason === "TIMEOUT"
+      ? "STORAGE_TIMEOUT"
+      : error instanceof ConditionPhotoStorageError &&
+          error.reason === "UNKNOWN"
+        ? "STORAGE_OUTCOME_UNKNOWN"
+        : "STORAGE_UNAVAILABLE";
   try {
-    await recordConditionPhotoFailure(pool, credential, sessionId, lease, reason);
+    await recordConditionPhotoFailure(
+      pool,
+      credential,
+      sessionId,
+      lease,
+      reason,
+    );
   } catch {
     // Do not overwrite/relax the authoritative state after a possible commit,
     // revocation, lease expiry, or database outage.
@@ -71,37 +84,67 @@ export async function executeConditionPhotoUpload(
   sessionId: string,
   clientOperationId: string,
   bytes: Buffer,
+  signal?: AbortSignal,
 ): Promise<ConditionPhotoUploadExecution> {
   // Image bytes are fully decoded/normalized before any durable reservation.
-  const canonical = await canonicalizeConditionJpeg(bytes);
+  const canonical = await canonicalizeConditionJpeg(bytes, signal);
   let lease: PhotoLease | undefined;
   try {
+    // Cancellation is safe only before crossing the durable reservation boundary.
+    // After it, preserve unknown-outcome journaling and explicit reconciliation.
+    if (signal?.aborted) {
+      metrics.failures.cancelled++;
+      throw new ConditionPhotoDecodeError(
+        "CONDITION_PHOTO_STORAGE_UNAVAILABLE",
+      );
+    }
     const reserved = await reserveConditionPhoto(
-      pool, credential, sessionId, clientOperationId,
-      canonical.sourceSha256, canonical.sourceByteSize, bucketAlias,
+      pool,
+      credential,
+      sessionId,
+      clientOperationId,
+      canonical.sourceSha256,
+      canonical.sourceByteSize,
+      bucketAlias,
     );
-    if (reserved.replayVerified)
-      return {
-        status: await authorizedStatus(pool, credential, sessionId, clientOperationId),
-        newCommit: false,
-      };
+    if (reserved.replayVerified) {
+      const status = await authorizedStatus(
+        pool,
+        credential,
+        sessionId,
+        clientOperationId,
+      );
+      metrics.verifiedUploadExecutions++;
+      return { status, newCommit: false };
+    }
     lease = reserved.lease;
     if (!lease) throw new ConditionPhotoUploadUnavailable();
 
     let storedVersion: string | null = null;
     try {
-      const written = await store.putIfAbsent(lease.object_key, canonical.canonicalBytes);
+      const written = await store.putIfAbsent(
+        lease.object_key,
+        canonical.canonicalBytes,
+      );
       storedVersion = written.version;
     } catch (error) {
-      if (!(error instanceof ConditionPhotoStorageError) || error.reason !== "CONFLICT")
+      if (
+        !(error instanceof ConditionPhotoStorageError) ||
+        error.reason !== "CONFLICT"
+      )
         throw error;
       // Write-once key already exists. Only the exact read-back can establish
       // whether it contains our canonical bytes; never overwrite the key.
     }
-    const readBack = await store.readExact({ key: lease.object_key, version: storedVersion });
+    const readBack = await store.readExact({
+      key: lease.object_key,
+      version: storedVersion,
+    });
     try {
-      if (readBack.bytes.length !== canonical.canonicalBytes.length ||
-          !timingSafeEqual(readBack.bytes, canonical.canonicalBytes))
+      if (
+        readBack.bytes.length !== canonical.canonicalBytes.length ||
+        !timingSafeEqual(readBack.bytes, canonical.canonicalBytes)
+      )
         throw new ConditionPhotoStorageError("CONFLICT");
       const facts = {
         canonicalSha256: canonical.canonicalSha256,
@@ -112,15 +155,22 @@ export async function executeConditionPhotoUpload(
       };
       await markConditionPhotoStored(pool, credential, sessionId, lease, facts);
       await finalizeConditionPhoto(pool, credential, sessionId, lease, facts);
-      const status = await authorizedStatus(pool, credential, sessionId, clientOperationId);
+      const status = await authorizedStatus(
+        pool,
+        credential,
+        sessionId,
+        clientOperationId,
+      );
       if (status.status !== "VERIFIED")
         throw new Error("Successful finalization has no verification receipt.");
+      metrics.verifiedUploadExecutions++;
       return { status, newCommit: true };
     } finally {
       readBack.bytes.fill(0);
     }
   } catch (error) {
-    if (lease) await recordUnknownSafely(pool, credential, sessionId, lease, error);
+    if (lease)
+      await recordUnknownSafely(pool, credential, sessionId, lease, error);
     if (error instanceof ConditionPhotoStorageError)
       throw new ConditionPhotoUploadUnavailable();
     throw error;

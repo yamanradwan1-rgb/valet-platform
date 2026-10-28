@@ -20,7 +20,10 @@ import { readConditionPhotoDiscovery } from "./condition-photo-discovery-query";
 import { executeConditionPhotoReconcile } from "./condition-photo-reconcile-executor";
 import { readConditionPhotoStatus } from "./condition-photo-status-query";
 import { resolveConditionPhotoStorageConfig } from "./condition-photo-storage-config";
-import { ConditionPhotoUploadUnavailable, executeConditionPhotoUpload } from "./condition-photo-upload-executor";
+import {
+  ConditionPhotoUploadUnavailable,
+  executeConditionPhotoUpload,
+} from "./condition-photo-upload-executor";
 import { S3PrivatePhotoStore } from "./s3-private-photo-store";
 import type { PrivatePhotoStore } from "./private-photo-store";
 import { createCheckInPhotoPreflight } from "../valet-sessions/check-in-photo-preflight";
@@ -29,8 +32,10 @@ import { receiptMatchesCurrentVerifiedEvidence } from "../valet-sessions/conditi
 @Injectable()
 export class ConditionPhotoBackendService {
   private readonly config = resolveConditionPhotoStorageConfig();
-  private readonly store = this.config === undefined ? undefined :
-    new S3PrivatePhotoStore(this.config);
+  private readonly store =
+    this.config === undefined
+      ? undefined
+      : new S3PrivatePhotoStore(this.config);
 
   constructor(
     @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
@@ -38,30 +43,44 @@ export class ConditionPhotoBackendService {
     private readonly staffSessions: StaffSessionContextResolver,
   ) {}
 
-  async authorize(authorization: string | undefined, sessionId: string): Promise<{
+  async authorize(
+    authorization: string | undefined,
+    sessionId: string,
+  ): Promise<{
     credential: StaffSessionContext;
     actorMembershipId: string;
   }> {
     if (!authorization) throw new UnauthorizedException();
     const credential = await this.staffSessions.resolve(authorization);
-    const scope = await resolveAuthorizedConditionPhotoScope(this.pool, credential, sessionId);
+    const scope = await resolveAuthorizedConditionPhotoScope(
+      this.pool,
+      credential,
+      sessionId,
+    );
     return { credential, actorMembershipId: scope.actorMembershipId };
   }
 
   private requireStore(): { store: S3PrivatePhotoStore; bucketAlias: string } {
-    if (!this.store || !this.config) throw new ConditionPhotoUploadUnavailable();
+    if (!this.store || !this.config)
+      throw new ConditionPhotoUploadUnavailable();
     return { store: this.store, bucketAlias: this.config.bucketAlias };
   }
 
   /** An explicit server-side gate; default deployment remains fail closed. */
-  trustedQualificationStore(): {
-    store: PrivatePhotoStore;
-    bucketAlias: string;
-  } | undefined {
+  trustedQualificationStore():
+    | {
+        store: PrivatePhotoStore;
+        bucketAlias: string;
+      }
+    | undefined {
     // P3 is locally testable but production promotion awaits #282-#285 proof.
-    if (process.env.NODE_ENV !== "test" ||
-        process.env.CONDITION_PHOTO_P3_QUALIFICATION_ENABLED !== "true" ||
-        !this.config || !this.store) return undefined;
+    if (
+      process.env.NODE_ENV !== "test" ||
+      process.env.CONDITION_PHOTO_P3_QUALIFICATION_ENABLED !== "true" ||
+      !this.config ||
+      !this.store
+    )
+      return undefined;
     return { store: this.store, bucketAlias: this.config.bucketAlias };
   }
 
@@ -70,10 +89,18 @@ export class ConditionPhotoBackendService {
     sessionId: string,
     clientOperationId: string,
     bytes: Buffer,
+    signal?: AbortSignal,
   ) {
     const { store, bucketAlias } = this.requireStore();
     return await executeConditionPhotoUpload(
-      this.pool, store, bucketAlias, credential, sessionId, clientOperationId, bytes,
+      this.pool,
+      store,
+      bucketAlias,
+      credential,
+      sessionId,
+      clientOperationId,
+      bytes,
+      signal,
     );
   }
 
@@ -83,7 +110,11 @@ export class ConditionPhotoBackendService {
     clientOperationId: string,
   ): Promise<ConditionPhotoUploadStatus | undefined> {
     return await inPostgresTransaction(this.pool, async (tx) => {
-      const scope = await authorizeConditionPhotoScope(tx, credential, sessionId);
+      const scope = await authorizeConditionPhotoScope(
+        tx,
+        credential,
+        sessionId,
+      );
       return await readConditionPhotoStatus(tx, scope, clientOperationId);
     });
   }
@@ -95,7 +126,12 @@ export class ConditionPhotoBackendService {
   ): Promise<ConditionPhotoUploadStatus> {
     const { store, bucketAlias } = this.requireStore();
     return await executeConditionPhotoReconcile(
-      this.pool, store, bucketAlias, credential, sessionId, clientOperationId,
+      this.pool,
+      store,
+      bucketAlias,
+      credential,
+      sessionId,
+      clientOperationId,
     );
   }
 
@@ -104,18 +140,33 @@ export class ConditionPhotoBackendService {
     sessionId: string,
   ): Promise<ConditionPhotoStateDiscovery> {
     const qualification = this.trustedQualificationStore();
-    const trusted = qualification === undefined ? undefined :
-      await createCheckInPhotoPreflight(
-        this.pool, qualification.store, qualification.bucketAlias,
-      )({ authenticatedUserId: credential.userId, valetSessionId: sessionId });
+    const trusted =
+      qualification === undefined
+        ? undefined
+        : await createCheckInPhotoPreflight(
+            this.pool,
+            qualification.store,
+            qualification.bucketAlias,
+          )({
+            authenticatedUserId: credential.userId,
+            valetSessionId: sessionId,
+          });
     return await inPostgresTransaction(this.pool, async (tx) => {
-      const scope = await authorizeConditionPhotoScope(tx, credential, sessionId);
+      const scope = await authorizeConditionPhotoScope(
+        tx,
+        credential,
+        sessionId,
+      );
       const discovery = await readConditionPhotoDiscovery(tx, scope);
       if (!discovery.photoPolicy.required || trusted === undefined)
         return discovery;
-      const qualifyingPhotoPresent = await receiptMatchesCurrentVerifiedEvidence(
-        tx, scope, trusted.receipt, trusted.requestNonce,
-      );
+      const qualifyingPhotoPresent =
+        await receiptMatchesCurrentVerifiedEvidence(
+          tx,
+          scope,
+          trusted.receipt,
+          trusted.requestNonce,
+        );
       return { ...discovery, qualifyingPhotoPresent };
     });
   }
