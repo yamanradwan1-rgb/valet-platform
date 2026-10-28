@@ -36,7 +36,7 @@ export {
   type IntakeSessionCommandResult,
 } from "./intake-session-types";
 
-const maximumSerializationAttempts = 3;
+import { retryIntakeSerialization } from "./intake-serialization-retry";
 
 function isDatabaseError(error: unknown, code: string): boolean {
   return (error as Partial<DatabaseError>).code === code;
@@ -144,9 +144,11 @@ async function executeOnce(
     if (isActiveSessionConflict(error)) {
       throw new IntakeSessionCommandError("ACTIVE_VALET_SESSION_CONFLICT");
     }
-    if (isDatabaseError(error, "23505") &&
+    if (
+      isDatabaseError(error, "23505") &&
       (error as Partial<DatabaseError>).constraint ===
-        "valet_sessions_customer_access_token_hash_key") {
+        "valet_sessions_customer_access_token_hash_key"
+    ) {
       throw new GuestAccessError("GUEST_ACCESS_GENERATION_FAILED");
     }
     throw error;
@@ -159,26 +161,14 @@ export function createIntakeSessionCommandExecutor(
   pool: PostgresPool,
   options: IntakeSessionCommandOptions = {},
 ) {
-  const initialGuestIssuance = options.initialGuestIssuance ??
-    createInitialGuestIssuanceFromEnv();
+  const initialGuestIssuance =
+    options.initialGuestIssuance ?? createInitialGuestIssuanceFromEnv();
   return async (
     request: IntakeSessionCommandRequest,
   ): Promise<IntakeSessionCommandResult> => {
     const normalized = normalizeIntakeRequest(request);
-    for (
-      let attempt = 1;
-      attempt <= maximumSerializationAttempts;
-      attempt += 1
-    ) {
-      try {
-        return await executeOnce(pool, normalized, options, initialGuestIssuance);
-      } catch (error) {
-        if (!isDatabaseError(error, "40001")) throw error;
-        if (attempt === maximumSerializationAttempts) {
-          throw new IntakeSessionCommandError("INTAKE_CONCURRENCY_CONFLICT");
-        }
-      }
-    }
-    throw new IntakeSessionCommandError("INTAKE_CONCURRENCY_CONFLICT");
+    return retryIntakeSerialization(() =>
+      executeOnce(pool, normalized, options, initialGuestIssuance),
+    );
   };
 }
