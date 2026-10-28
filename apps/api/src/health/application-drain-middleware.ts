@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 
+import { recordInfrastructureRequestFailure } from "../common/observability/performance-request-diagnostics";
 import type { ApplicationDrainState } from "./application-drain-state";
 
 const healthPaths = new Set(["/health/live", "/health/ready"]);
@@ -21,6 +22,7 @@ export function createApplicationDrainMiddleware(state: ApplicationDrainState) {
 
     const finish = state.tryBeginRequest();
     if (finish === undefined) {
+      recordInfrastructureRequestFailure(request, "DRAINING");
       response.statusCode = 503;
       response.setHeader("Cache-Control", "no-store");
       response.setHeader("Content-Type", "application/json; charset=utf-8");

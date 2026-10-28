@@ -1,3 +1,4 @@
+import { performance } from "node:perf_hooks";
 import type { PoolClient } from "pg";
 import { finishTransactionOutcomes } from "./postgres-transaction-outcome";
 import {
@@ -37,8 +38,15 @@ export function ownPostgresLease(
   client: PoolClient,
   general: GeneralDatabaseBudgets,
   returned: () => void,
-  measurements?: { releaseFailures: number; leaseExpirations: number },
+  measurements?: {
+    releaseFailures: number;
+    leaseExpirations: number;
+    leaseCompletions: number;
+    leaseMs: number;
+    leaseBuckets: number[];
+  },
 ): () => void {
+  const started = performance.now();
   const nativeRelease = client.release.bind(client);
   const guest = isGuestDatabaseOperation();
   let releaseRequested = false;
@@ -47,6 +55,15 @@ export function ownPostgresLease(
   const finish = (destroy?: Error | boolean) => {
     if (finished) return;
     finished = true;
+    if (measurements) {
+      const elapsed = performance.now() - started;
+      measurements.leaseCompletions += 1;
+      measurements.leaseMs += elapsed;
+      const bucket = [5, 25, 100, 500, 1000, 5000].findIndex(
+        (ceiling) => elapsed <= ceiling,
+      );
+      measurements.leaseBuckets[bucket < 0 ? 6 : bucket]! += 1;
+    }
     if (destroy) finishTransactionOutcomes(client, "UNAVAILABLE");
     clearTimeout(timer);
     untrack();

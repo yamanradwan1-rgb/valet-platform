@@ -1,3 +1,4 @@
+import { databaseFailureReason } from "./database-failure-reason";
 import type { PostgresPool } from "./postgres";
 import {
   RuntimeDatabaseUnavailableError,
@@ -66,6 +67,8 @@ export async function verifyRuntimeDatabaseReadiness(
     }
   } catch (error) {
     if (error instanceof RuntimeDatabaseUnavailableError) throw error;
-    throw new RuntimeDatabaseUnavailableError();
+    throw new RuntimeDatabaseUnavailableError(
+      databaseFailureReason(error) ?? "DATABASE_UNAVAILABLE",
+    );
   }
 }

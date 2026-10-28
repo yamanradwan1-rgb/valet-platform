@@ -25,7 +25,7 @@ interface ProjectableShiftRow extends ShiftRow, LocationRow {}
 
 /** Batch only persisted, authorized Organization/membership PAIRS, never a cross product. */
 export async function loadOperationalMembershipDetails(
-  pool: PostgresPool,
+  pool: Pick<PostgresPool, "query">,
   memberships: readonly MembershipScope[],
 ) {
   const pairs = [

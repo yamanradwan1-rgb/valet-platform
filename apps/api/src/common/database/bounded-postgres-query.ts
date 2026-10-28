@@ -1,3 +1,4 @@
+import { beginQueryMeasurement } from "./postgres-query-measurement";
 import type { PoolClient } from "pg";
 
 import {
@@ -47,6 +48,7 @@ export function boundPostgresQueries(
       }
       return Promise.reject(error);
     }
+    const finishMeasurement = beginQueryMeasurement(config?.text, measurements);
     const failure = (error: unknown): unknown => {
       const code = (error as { code?: string })?.code;
       if (code === "55P03") measurements.lockTimeouts += 1;
@@ -62,14 +64,29 @@ export function boundPostgresQueries(
       return error;
     };
     if (typeof callback === "function") {
-      args[args.length - 1] = (error: unknown, result: unknown) =>
-        callback(error == null ? error : failure(error), result);
+      args[args.length - 1] = (error: unknown, result: unknown) => {
+        finishMeasurement();
+        return callback(error == null ? error : failure(error), result);
+      };
     }
-    const result = Reflect.apply(query, client, args);
+    let result: unknown;
+    try {
+      result = Reflect.apply(query, client, args);
+    } catch (error) {
+      finishMeasurement();
+      throw failure(error);
+    }
     return result instanceof Promise
-      ? result.catch((error: unknown) => {
-          throw failure(error);
-        })
+      ? result.then(
+          (value) => {
+            finishMeasurement();
+            return value;
+          },
+          (error: unknown) => {
+            finishMeasurement();
+            throw failure(error);
+          },
+        )
       : result;
   }) as PoolClient["query"];
 }

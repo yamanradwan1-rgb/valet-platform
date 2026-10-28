@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { runtimePoolSnapshot } from "../src/common/database/bounded-postgres-pool";
 import { createStaffOperationalContextQuery } from "../src/modules/staff/staff-operational-context-query";
 import {
   createOperationalContextHarness,
@@ -10,7 +11,7 @@ describe("operational context batches membership scopes", () => {
   beforeAll(() => harness.start(), 120_000);
   afterAll(() => harness.close(), 60_000);
 
-  it("uses five queries for three independent organizations and excludes other users", async () => {
+  it("uses five queries in one lease for three organizations and excludes other users", async () => {
     const first = await harness.context.createFixture();
     const second = await harness.context.createFixture(
       { role: "VALET_SUPERVISOR" },
@@ -20,13 +21,18 @@ describe("operational context batches membership scopes", () => {
     const outsider = await harness.context.createFixture();
     for (const fixture of [first, second, third, outsider])
       await insertActiveShift(harness, fixture);
-    const spy = vi.spyOn(harness.context.runtimePool, "query");
+    const before =
+      runtimePoolSnapshot(harness.context.runtimePool).queryCounts?.[1] ?? 0;
+    const spy = vi.spyOn(harness.context.runtimePool, "connect");
     try {
       const result = await createStaffOperationalContextQuery(
         harness.context.runtimePool,
       )(first.userId);
-      // Count source-level pool acquisitions, excluding the existing lease setup/reset SQL.
-      expect(spy).toHaveBeenCalledTimes(5);
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(
+        (runtimePoolSnapshot(harness.context.runtimePool).queryCounts?.[1] ??
+          0) - before,
+      ).toBe(5);
       expect(result.contexts).toHaveLength(3);
       for (const fixture of [first, second, third]) {
         const context = result.contexts.find(

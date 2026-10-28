@@ -10,7 +10,14 @@ export type DatabaseFailureReason =
   | "CONNECT_ERROR"
   | "POOL_CLOSING"
   | "OPERATION_DEADLINE"
-  | "QUERY_TIMEOUT";
+  | "QUERY_TIMEOUT"
+  | "LOCK_TIMEOUT"
+  | "STATEMENT_TIMEOUT"
+  | "QUERY_CANCELED"
+  | "IDLE_TRANSACTION_TIMEOUT"
+  | "TRANSACTION_TIMEOUT"
+  | "DEADLOCK"
+  | "SERVER_CONNECTION_LIMIT";
 
 interface OperationDeadline {
   readonly at: number;
