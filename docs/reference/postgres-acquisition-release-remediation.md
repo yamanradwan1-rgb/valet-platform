@@ -364,6 +364,9 @@ GROUP BY 2, 3, 4;
 This is a diagnostic handoff with the remediation blocker explicitly retained.
 No PR, merge, deployment, production change or manual GitHub CI trigger.
 The existing CI workflow runs only for main pushes or PRs targeting main, not
-this dedicated branch. The final response and delivered report copy record the
-exact final commit SHA, remote equality and clean-tree verification. A committed
-report cannot contain its own content-addressed commit SHA.
+this dedicated branch. Verified implementation commit:
+`ac3cc766dc7bc3e94e0bdec5cb4b234c11079960`. This final documentation clarification
+does not change the tested code. The final response records the exact delivery
+commit SHA, remote equality and clean-tree verification. A committed report cannot
+contain its own content-addressed commit SHA. Read the report at its immutable
+GitHub blob URL using that final delivery SHA.
