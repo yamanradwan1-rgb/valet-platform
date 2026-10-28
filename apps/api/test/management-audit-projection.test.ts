@@ -64,7 +64,7 @@ describe("management audit projection", () => {
       reason: "private-reason",
       storage_object_key: "private-storage-key",
     };
-    expect(managementAuditKnownEventTypes).toHaveLength(102);
+    expect(managementAuditKnownEventTypes).toHaveLength(103);
     expect(managementAuditKnownEventTypes).toContain("MANAGEMENT_GUEST_INFORMATION_CHANGED");
     for (const eventType of managementAuditKnownEventTypes) {
       const eventMetadata = eventType === "MANAGEMENT_GUEST_INFORMATION_CHANGED"

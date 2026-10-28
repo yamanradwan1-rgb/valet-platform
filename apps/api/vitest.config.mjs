@@ -13,6 +13,7 @@ const ownership = classifyPackageTests({
   packageKind: "api",
   rootDir: testRoot,
 });
+const privateIssue319Project = "api-postgres-issue319-private";
 
 function ownedFiles(projectName) {
   const files = ownership[projectName] ?? [];
@@ -60,6 +61,17 @@ export default defineConfig({
       postgresProject("api-postgres-race", "api-race"),
       postgresProject("api-postgres-issue215", "api-race"),
       postgresProject("api-postgres-issue309-browser", "api-photo-browser"),
+      ...(process.env.CI !== "true" &&
+      process.env.ISSUE319_EPHEMERAL_PG === "I_OWN_THIS_CLUSTER"
+        ? [{ test: {
+            name: privateIssue319Project,
+            include: ownedFiles(privateIssue319Project),
+            pool: "forks",
+            fileParallelism: false,
+            maxWorkers: 1,
+            env: { VAYLET_TEST_PROJECT: privateIssue319Project },
+          } }]
+        : []),
     ],
   },
 });

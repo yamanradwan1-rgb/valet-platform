@@ -15,6 +15,7 @@ export const subsequentAppendedMigrationDirectories = [
   "20261022010000_issue313_rating_analytics_read",
   "20261022010100_issue316_guest_information_contracts",
   "20261022010200_issue316_guest_information_authority",
+  "20261026010300_issue346_resume_location_intake",
 ] as const;
 
 export const expectedCurrentMigrationDirectories = [

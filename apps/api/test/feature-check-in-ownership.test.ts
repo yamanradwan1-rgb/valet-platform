@@ -10,6 +10,7 @@ import { CancelCheckInService } from "../src/modules/check-in-api/cancel-check-i
 import { ConditionPhotoController } from "../src/modules/check-in-api/condition-photo.controller";
 import { ConditionPhotoAuthGuard } from "../src/modules/check-in-api/condition-photo-auth.guard";
 import { ConditionPhotoBackendService } from "../src/modules/vehicle-photos/condition-photo-backend.service";
+import { ConditionPhotoMetricsPulse } from "../src/modules/vehicle-photos/condition-photo-metrics-pulse";
 import { PlateOcrAuthGuard } from "../src/modules/check-in-api/plate-ocr-auth.guard";
 import { PlateOcrController } from "../src/modules/check-in-api/plate-ocr.controller";
 import { PlateOcrCostGuard } from "../src/modules/check-in-api/plate-ocr-cost-guard";
@@ -40,6 +41,7 @@ describe("dedicated Check-In feature module ownership", () => {
       PlateOcrAuthGuard,
       PlateOcrService,
       ConditionPhotoBackendService,
+      ConditionPhotoMetricsPulse,
       ConditionPhotoAuthGuard,
       expect.objectContaining({ provide: PlateOcrCostGuard }),
       expect.objectContaining({ provide: PLATE_OCR_PROVIDER }),
