@@ -27,11 +27,13 @@ interface MembershipRow {
   readonly role: string;
 }
 
-export function createStaffOperationalContextQuery(pool: PostgresPool) {
-  return async (
-    authenticatedUserId: string,
-  ): Promise<StaffOperationalContextResponse> => {
-    const userResult = await pool.query<{ status: string }>(
+async function loadContextData(
+  pool: PostgresPool,
+  authenticatedUserId: string,
+) {
+  const client = await pool.connect();
+  try {
+    const userResult = await client.query<{ status: string }>(
       `SELECT status::text
        FROM users
        WHERE id = $1`,
@@ -42,7 +44,7 @@ export function createStaffOperationalContextQuery(pool: PostgresPool) {
       throw new StaffOperationalContextError("AUTHORIZATION_DENIED");
     }
 
-    const membershipsResult = await pool.query<MembershipRow>(
+    const membershipsResult = await client.query<MembershipRow>(
       `SELECT membership.id::text AS membership_id,
               membership.role::text AS role,
               organization.id::text AS organization_id,
@@ -63,12 +65,32 @@ export function createStaffOperationalContextQuery(pool: PostgresPool) {
     }
 
     const details = await loadOperationalMembershipDetails(
-      pool,
+      client,
       membershipsResult.rows,
+    );
+    return { memberships: membershipsResult.rows, details };
+  } catch (error) {
+    // Native pool.query discarded query failures; retain that safety boundary.
+    if (!(error instanceof StaffOperationalContextError)) client.release(true);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export function createStaffOperationalContextQuery(pool: PostgresPool) {
+  return async (
+    authenticatedUserId: string,
+  ): Promise<StaffOperationalContextResponse> => {
+    // Keep the existing per-statement snapshots; no transaction is introduced.
+    // Release the shared lease before projecting the response in application code.
+    const { memberships, details } = await loadContextData(
+      pool,
+      authenticatedUserId,
     );
     const contexts: StaffOperationalMembershipContext[] = [];
 
-    for (const membership of membershipsResult.rows) {
+    for (const membership of memberships) {
       const rawShift = details.shifts.get(membership.membership_id);
       let activeShift: StaffOperationalShift | null = null;
       let currentLocation: StaffOperationalLocation | null = null;

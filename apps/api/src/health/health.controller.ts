@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Header,
+  Req,
   ServiceUnavailableException,
 } from "@nestjs/common";
 import {
@@ -11,6 +12,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 
+import type { ApiRequest } from "../common/http/api-request";
 import { HealthReadinessService } from "./health-readiness.service";
 
 const healthSchema = {
@@ -37,8 +39,8 @@ export class HealthController {
   @ApiOperation({ summary: "Bounded serving readiness" })
   @ApiOkResponse({ schema: healthSchema })
   @ApiServiceUnavailableResponse({ schema: healthSchema })
-  async ready() {
-    if (!(await this.readiness.isReady())) {
+  async ready(@Req() request?: ApiRequest) {
+    if (!(await this.readiness.isReady(request))) {
       throw new ServiceUnavailableException({ status: "unavailable" });
     }
     return { status: "ok" } as const;

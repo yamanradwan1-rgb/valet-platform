@@ -23,7 +23,17 @@ export function recordRequestFailure(
   failures.set(request, { code, reason });
 }
 
+export function recordInfrastructureRequestFailure(
+  request: object,
+  reason: "DRAINING" | "CONFIGURATION_UNAVAILABLE" | "READINESS_QUEUE_FULL",
+): void {
+  // These public infrastructure responses have no application error-code field.
+  failures.set(request, { code: "NONE", reason });
+}
+
 const fixedRoutes = [
+  "/health/live",
+  "/health/ready",
   "/v1/staff/operational-context",
   "/v1/staff/tasks/queue",
   "/v1/staff/valet-sessions/directory",

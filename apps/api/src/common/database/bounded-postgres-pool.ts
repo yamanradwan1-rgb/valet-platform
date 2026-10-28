@@ -23,6 +23,15 @@ export interface RuntimePoolMeasurements {
   acquisitionsOver200Ms: number;
   rejected: number;
   acquisitionMs: number;
+  nativeAcquisitionMs: number;
+  nativeAcquisitionAttempts: number;
+  peakAdmitted: number;
+  peakWaiting: number;
+  leaseCompletions: number;
+  leaseMs: number;
+  readonly leaseBuckets: number[];
+  readonly queryCounts: number[];
+  readonly queryMs: number[];
   failures: number;
   initializationFailures: number;
   poolErrors: number;
@@ -67,6 +76,15 @@ export function boundPostgresPool(
     acquisitionsOver200Ms: 0,
     rejected: 0,
     acquisitionMs: 0,
+    nativeAcquisitionMs: 0,
+    nativeAcquisitionAttempts: 0,
+    peakAdmitted: 0,
+    peakWaiting: 0,
+    leaseCompletions: 0,
+    leaseMs: 0,
+    leaseBuckets: [0, 0, 0, 0, 0, 0, 0],
+    queryCounts: [0, 0, 0, 0],
+    queryMs: [0, 0, 0, 0],
     failures: 0,
     initializationFailures: 0,
     poolErrors: 0,
@@ -105,9 +123,16 @@ export function boundPostgresPool(
         throw new RuntimeDatabaseUnavailableError("QUEUE_FULL");
       }
       admitted += 1;
+      measurements.peakAdmitted = Math.max(measurements.peakAdmitted, admitted);
       let client: PoolClient;
+      measurements.nativeAcquisitionAttempts += 1;
       try {
-        client = await connect();
+        const pending = connect();
+        measurements.peakWaiting = Math.max(
+          measurements.peakWaiting,
+          pool.waitingCount,
+        );
+        client = await pending;
       } catch (error) {
         admitted -= 1;
         measurements.failures += 1;
@@ -117,6 +142,8 @@ export function boundPostgresPool(
         throw new RuntimeDatabaseUnavailableError(
           timeout ? "ACQUISITION_TIMEOUT" : "CONNECT_ERROR",
         );
+      } finally {
+        measurements.nativeAcquisitionMs += performance.now() - started;
       }
       try {
         if (closing) throw new RuntimeDatabaseUnavailableError("POOL_CLOSING");

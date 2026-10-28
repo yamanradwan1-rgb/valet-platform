@@ -1,10 +1,13 @@
 import {
+  type DatabaseFailureReason,
   isExpectedDatabaseExhaustion,
   RuntimeDatabaseUnavailableError,
 } from "./runtime-database-deadline";
 
 /** Internal classification only. Never render driver messages, SQL or error causes. */
-export function databaseFailureReason(error: unknown): string | undefined {
+export function databaseFailureReason(
+  error: unknown,
+): DatabaseFailureReason | undefined {
   if (error instanceof RuntimeDatabaseUnavailableError) return error.reason;
   const code = (error as { code?: unknown } | null)?.code;
   if (code === "55P03") return "LOCK_TIMEOUT";

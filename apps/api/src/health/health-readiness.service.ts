@@ -1,5 +1,10 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 
+import type { ApiRequest } from "../common/http/api-request";
+import {
+  recordInfrastructureRequestFailure,
+  recordRequestFailure,
+} from "../common/observability/performance-request-diagnostics";
 import type { PostgresPool } from "../common/database/postgres";
 import { verifyRuntimeDatabaseReadiness } from "../common/database/runtime-database-readiness";
 import { RUNTIME_POSTGRES_POOL } from "../common/database/runtime-database.module";
@@ -25,12 +30,14 @@ export class HealthReadinessService {
     private readonly guestOrigins: GuestAuthOriginPolicy,
   ) {}
 
-  async isReady(): Promise<boolean> {
-    if (this.drain.isDraining() || !this.requiredConfigurationReady()) {
+  async isReady(request?: ApiRequest): Promise<boolean> {
+    if (!this.localReadiness(request)) {
       return this.record(false);
     }
     try {
       if (this.databaseCheckWaiters >= maxReadinessWaiters) {
+        if (request)
+          recordInfrastructureRequestFailure(request, "READINESS_QUEUE_FULL");
         return this.record(false);
       }
       const check = this.sharedDatabaseCheck();
@@ -40,12 +47,22 @@ export class HealthReadinessService {
       } finally {
         this.databaseCheckWaiters -= 1;
       }
-      return this.record(
-        !this.drain.isDraining() && this.requiredConfigurationReady(),
-      );
-    } catch {
+      return this.record(this.localReadiness(request));
+    } catch (error) {
+      if (request) recordRequestFailure(request, "NONE", error);
       return this.record(false);
     }
+  }
+
+  private localReadiness(request?: ApiRequest): boolean {
+    const reason = this.drain.isDraining()
+      ? "DRAINING"
+      : !this.requiredConfigurationReady()
+        ? "CONFIGURATION_UNAVAILABLE"
+        : undefined;
+    if (reason === undefined) return true;
+    if (request) recordInfrastructureRequestFailure(request, reason);
+    return false;
   }
 
   private requiredConfigurationReady(): boolean {
