@@ -51,6 +51,8 @@ export interface EmployeeWorkspaceTargets {
 
 export interface ScopedEmployeeWorkspace {
   readonly identityStamp: string;
+  /** Scope of the operational targets, absent in legacy identity-only workspaces. */
+  readonly operationalStamp?: string | null | undefined;
   readonly targets: EmployeeWorkspaceTargets;
 }
 
@@ -60,9 +62,38 @@ export interface WorkspaceIdentityInput {
   readonly authenticated: boolean;
 }
 
-export function makeWorkspaceStamp(
-  identity: WorkspaceIdentityInput,
-): string {
+export interface WorkspaceOperationalScope {
+  readonly organizationId: string;
+  readonly membershipId: string;
+  readonly locationId: string;
+  readonly shiftId: string;
+  readonly role: string;
+}
+
+export type WorkspaceAuthority =
+  | { readonly kind: "RESOLVED"; readonly scope: WorkspaceOperationalScope }
+  | { readonly kind: "RETIRED" }
+  | { readonly kind: "PENDING" };
+
+/** Pending context is unknown, not evidence that the previous scope ended. */
+export function makeOperationalScopeStamp(
+  authority: WorkspaceAuthority,
+): string | null | undefined {
+  if (authority.kind === "PENDING") return undefined;
+  if (authority.kind === "RETIRED") return null;
+  const { organizationId, membershipId, locationId, shiftId, role } =
+    authority.scope;
+  return [
+    "scope",
+    organizationId,
+    membershipId,
+    locationId,
+    shiftId,
+    role,
+  ].join(":");
+}
+
+export function makeWorkspaceStamp(identity: WorkspaceIdentityInput): string {
   return identity.authenticated
     ? `identity:${String(identity.identityGeneration)}`
     : "anonymous";
@@ -93,15 +124,57 @@ export function initialScopedWorkspace(): ScopedEmployeeWorkspace {
 export function rescopeWorkspace(
   workspace: ScopedEmployeeWorkspace,
   identity: WorkspaceIdentityInput,
+  authority?: WorkspaceAuthority,
 ): ScopedEmployeeWorkspace {
-  const nextStamp = makeWorkspaceStamp(identity);
-  if (workspace.identityStamp === nextStamp) return workspace;
-  return { identityStamp: nextStamp, targets: emptyWorkspaceTargets() };
+  return rescopeWorkspaceStamps(
+    workspace,
+    makeWorkspaceStamp(identity),
+    authority ? makeOperationalScopeStamp(authority) : undefined,
+  );
+}
+
+/** Synchronous read fence, also used by React to commit authoritative changes. */
+export function rescopeWorkspaceStamps(
+  workspace: ScopedEmployeeWorkspace,
+  identityStamp: string,
+  operationalStamp: string | null | undefined,
+): ScopedEmployeeWorkspace {
+  if (workspace.identityStamp !== identityStamp) {
+    return {
+      identityStamp,
+      operationalStamp,
+      targets: emptyWorkspaceTargets(),
+    };
+  }
+  if (
+    operationalStamp === undefined ||
+    workspace.operationalStamp === operationalStamp
+  ) {
+    return workspace;
+  }
+  return { identityStamp, operationalStamp, targets: emptyWorkspaceTargets() };
 }
 
 export function isWorkspaceCurrent(
   workspace: ScopedEmployeeWorkspace,
   identity: WorkspaceIdentityInput,
+  authority?: WorkspaceAuthority,
 ): boolean {
-  return workspace.identityStamp === makeWorkspaceStamp(identity);
+  return isWorkspaceCurrentStamps(
+    workspace,
+    makeWorkspaceStamp(identity),
+    authority ? makeOperationalScopeStamp(authority) : undefined,
+  );
+}
+
+export function isWorkspaceCurrentStamps(
+  workspace: ScopedEmployeeWorkspace,
+  identityStamp: string,
+  operationalStamp: string | null | undefined,
+): boolean {
+  return (
+    workspace.identityStamp === identityStamp &&
+    (operationalStamp === undefined ||
+      workspace.operationalStamp === operationalStamp)
+  );
 }

@@ -3,32 +3,17 @@
 import { useEffect, useMemo, useState, type JSX } from "react";
 
 import type { Screen } from "../types/employee-ui";
-import {
-  createEmployeeAccessActions,
-} from "./shell/employee-access-actions";
+import { createEmployeeAccessActions } from "./shell/employee-access-actions";
 import { buildEmployeeAccessGateProps } from "./shell/employee-access-view";
-import {
-  EmployeeAccessGate,
-} from "./shell/employee-access-gate";
+import { EmployeeAccessGate } from "./shell/employee-access-gate";
 import { EmployeeLiveRouter } from "./shell/employee-live-router";
-import {
-  EmployeeOperationalScreen,
-} from "./shell/employee-operational-screen";
+import { EmployeeOperationalScreen } from "./shell/employee-operational-screen";
 import { EmployeePrototypeFrame } from "./shell/employee-prototype-frame";
-import {
-  initialScopedWorkspace,
-  isWorkspaceCurrent,
-  makeWorkspaceStamp,
-  rescopeWorkspace,
-  type EmployeeWorkspaceTargets,
-  type WorkspaceIdentityInput,
-} from "./shell/employee-workspace";
-import {
-  createEmployeeWorkspaceHandlers,
-} from "./shell/employee-workspace-handlers";
-import {
-  livePermittedScreens,
-} from "./shell/employee-navigation";
+import type { WorkspaceIdentityInput } from "./shell/employee-workspace";
+import { useEmployeeScopedWorkspace } from "./shell/use-employee-scoped-workspace";
+import { useScopedEndShift } from "./shell/use-scoped-end-shift";
+import { createEmployeeWorkspaceHandlers } from "./shell/employee-workspace-handlers";
+import { livePermittedScreens } from "./shell/employee-navigation";
 import { EmployeeActiveShell } from "./shell/employee-active-shell";
 import { useEmployeeSignOut } from "./shell/use-employee-sign-out";
 import {
@@ -37,7 +22,6 @@ import {
 } from "../features/staff-operational-context";
 import {
   shouldReconcileUncertainStart,
-  useEndShift,
   useStartShift,
 } from "../features/shift";
 import { useOptionalStaffAuth } from "../lib/auth/staff-auth-context";
@@ -56,7 +40,10 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
   const isPrototypeMode = mode === "prototype";
   const auth = useOptionalStaffAuth();
   const {
-    onSignOut, notice: signOutNotice, busy: signOutBusy, isLogoutPending,
+    onSignOut,
+    notice: signOutNotice,
+    busy: signOutBusy,
+    isLogoutPending,
   } = useEmployeeSignOut(auth);
   const {
     resolution,
@@ -66,7 +53,6 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
     revalidateOnAuthLoss,
   } = useStaffOperationalContext();
   const [isPrototypeOffline, setIsPrototypeOffline] = useState(false);
-  const [workspace, setWorkspace] = useState(initialScopedWorkspace);
   const [signInError, setSignInError] = useState<string | null>(null);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [isRetryingRestore, setIsRetryingRestore] = useState(false);
@@ -84,7 +70,8 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
   useEffect(() => {
     accessActions.bind({
       login: async (credentials) => {
-        if (isLogoutPending()) throw new Error("Sign-out request is still pending.");
+        if (isLogoutPending())
+          throw new Error("Sign-out request is still pending.");
         await auth?.login(credentials);
       },
       restoreSession: async () => {
@@ -99,18 +86,17 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
     locationId: liveScope?.locationId ?? null,
     onAuthorizationLoss: revalidateOnAuthLoss,
   });
-  // Workspace scoping keys on the STABLE identity epoch, not
-  // sessionGeneration: a same-user token refresh must keep workflows alive.
   const identity: WorkspaceIdentityInput = {
     authenticated: authStatus === "authenticated",
     identityGeneration: auth?.identityGeneration ?? 0,
   };
-  // An identity change (logout/login/generation bump) synchronously
-  // discards every transient target so no workflow can leak across users.
-  const scoped = rescopeWorkspace(workspace, identity);
-  const targets = isWorkspaceCurrent(workspace, identity)
-    ? workspace.targets
-    : scoped.targets;
+  const { targets, patchTargets } = useEmployeeScopedWorkspace({
+    identity,
+    isPrototypeMode,
+    resolution,
+    hasContextResponse: operationalResponse !== null,
+    contextError,
+  });
 
   // VUI-011D: startable Locations come exclusively from the authoritative
   // operational-context eligibleLocations projection (server-derived,
@@ -120,43 +106,23 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
     [operationalResponse],
   );
 
-  const patchTargets = (patch: Partial<EmployeeWorkspaceTargets>): void => {
-    setWorkspace((current) => {
-      const currentScope = rescopeWorkspace(current, identity);
-      return {
-        identityStamp: makeWorkspaceStamp(identity),
-        targets: { ...currentScope.targets, ...patch },
-      };
-    });
-  };
-
   const handlers = createEmployeeWorkspaceHandlers({
     isPrototypeMode,
     patchTargets,
   });
 
-  // DEC-066 §4: the End Shift controller lives at app level so an ambiguous
-  // outcome's transient same-command retry intent survives authoritative
-  // context revalidation (including a NO_ACTIVE_SHIFT result) and identity
-  // changes discard it with the rest of the workspace.
+  // DEC-066 §4: app-level uncertain command recovery, scoped to its source
+  // Shift so that no old command is presented under a new Location header.
   const {
-    endShift,
-    phase: endShiftPhase,
-    resetEndShift,
+    endShift: endShiftForScope,
+    phase: scopedEndShiftPhase,
     retryUncertain: retryUncertainEndShift,
-  } = useEndShift({
-    // Same Staff auth-loss recovery semantics as every other live flow:
-    // missing token and 401/403/404 End Shift responses route through the
-    // authoritative revalidation boundary. Transport/network ambiguity is
-    // handled separately as DEC-066 §4 uncertainty, never as auth loss.
-    onAuthorizationLoss: () => {
-      void revalidateOnAuthLoss();
-    },
-    onEnded: () => void refreshContext(),
+  } = useScopedEndShift({
+    identity,
+    scope: liveScope,
+    onAuthorizationLoss: revalidateOnAuthLoss,
+    onEnded: refreshContext,
   });
-  useEffect(() => {
-    resetEndShift();
-  }, [resetEndShift, identity.authenticated, identity.identityGeneration]);
 
   // VUI-011D: Live Start Shift shares the app-level controller pattern so an
   // ambiguous outcome's same-command retry intent also survives revalidation.
@@ -218,7 +184,11 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
       <>
         <div className="min-h-screen bg-navy-2 flex items-center justify-center">
           <div className="w-full max-w-[390px] h-screen md:h-[844px] bg-navy overflow-hidden md:rounded-[44px] md:shadow-2xl flex flex-col">
-            {signOutBusy ? signOutNotice : <EmployeeAccessGate {...gateProps} />}
+            {signOutBusy ? (
+              signOutNotice
+            ) : (
+              <EmployeeAccessGate {...gateProps} />
+            )}
           </div>
         </div>
         {!signOutBusy && signOutNotice}
@@ -231,7 +201,7 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
       <>
         <EmployeeOperationalScreen
           contextError={contextError}
-          endShiftPhase={endShiftPhase}
+          endShiftPhase={scopedEndShiftPhase}
           hasContextResponse={operationalResponse !== null}
           onDismissStartIntent={() => resetStartShift()}
           onRefreshContext={() => void refreshContext()}
@@ -267,8 +237,8 @@ export function EmployeeApp({ mode }: EmployeeAppProps): JSX.Element {
         <EmployeeLiveRouter
           activeScope={liveScope}
           effectiveScreen={effectiveScreen}
-          endShift={endShift}
-          endShiftPhase={endShiftPhase}
+          endShift={endShiftForScope}
+          endShiftPhase={scopedEndShiftPhase}
           guestAccessTarget={targets.guestAccessTarget}
           incidentTarget={targets.activeIncidentTarget}
           nav={handlers.nav}

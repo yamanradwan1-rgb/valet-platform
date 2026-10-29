@@ -33,9 +33,7 @@ export interface EndShiftControllerOptions {
 }
 
 function isAmbiguousOutcome(error: unknown): boolean {
-  return (
-    error instanceof EmployeeApiError && error.isNetworkError === true
-  );
+  return error instanceof EmployeeApiError && error.isNetworkError === true;
 }
 
 /**
@@ -48,6 +46,8 @@ export class EndShiftController {
   private onStateChange?: ((phase: EndShiftPhase) => void) | undefined;
 
   private phase: EndShiftPhase = { kind: "idle" };
+  /** Invalidates responses from commands retired by a scope/identity reset. */
+  private commandGeneration = 0;
 
   constructor(options: EndShiftControllerOptions) {
     this.apiClient = options.apiClient;
@@ -73,6 +73,7 @@ export class EndShiftController {
   }
 
   reset(): void {
+    this.commandGeneration++;
     this.phase = { kind: "idle" };
     this.onStateChange?.(this.phase);
   }
@@ -88,23 +89,28 @@ export class EndShiftController {
     if (this.phase.kind === "submitting") return;
     if (this.phase.kind === "uncertain") {
       // Explicit retry must reuse the retained SAME-command intent.
-      if (shiftId !== this.phase.shiftId || cashReported !== this.phase.cashReported) {
+      if (
+        shiftId !== this.phase.shiftId ||
+        cashReported !== this.phase.cashReported
+      ) {
         return;
       }
     }
+    const generation = ++this.commandGeneration;
     this.setPhase({ kind: "submitting" });
     void endShiftSession(this.apiClient, shiftId, cashReported).then(
       (result) => {
+        if (generation !== this.commandGeneration) return;
         this.setPhase({ kind: "ended", result });
         this.onEnded?.(result);
       },
       (error: unknown) => {
+        if (generation !== this.commandGeneration) return;
         if (isAmbiguousOutcome(error)) {
           this.setPhase({ cashReported, kind: "uncertain", shiftId });
           return;
         }
-        const apiCode =
-          error instanceof EmployeeApiError ? error.code : null;
+        const apiCode = error instanceof EmployeeApiError ? error.code : null;
         const message =
           error instanceof Error ? error.message : "End Shift failed.";
         this.setPhase({
