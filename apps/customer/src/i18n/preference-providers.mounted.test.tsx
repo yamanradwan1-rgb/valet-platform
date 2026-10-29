@@ -123,6 +123,14 @@ describe('mounted Guest preference providers with restricted localStorage', () =
     expect(html.classList.contains('vaylet-persisted-ar')).toBe(false);
     expect(html.classList.contains('vaylet-hydrated')).toBe(true);
 
+    // Rechecking the store after the Arabic bootstrap guard disappears must stay Arabic.
+    const dispatch = browserWindow.dispatchEvent as (event: Event) => boolean;
+    await act(async () => {
+      dispatch(new Event(LOCALE_CHANGE_EVENT));
+      dispatch(new Event(THEME_CHANGE_EVENT));
+    });
+    expectPreferences('ar', 'dark');
+
     await click('ar');
     await click('dark');
     expectPreferences('en', 'light');

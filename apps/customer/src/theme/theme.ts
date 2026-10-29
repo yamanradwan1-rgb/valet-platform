@@ -46,7 +46,8 @@ export function getPersistedTheme(): Theme {
     // Reuse the successful pre-hydration bootstrap value if reads fail later.
     if (typeof document !== 'undefined' &&
         document.documentElement.getAttribute?.('data-theme') === 'dark') {
-      return 'dark';
+      memoryTheme = 'dark';
+      return memoryTheme;
     }
     return DEFAULT_THEME;
   }

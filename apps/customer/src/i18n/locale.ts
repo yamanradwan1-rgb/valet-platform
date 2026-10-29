@@ -48,7 +48,8 @@ export function getPersistedLocale(): Locale {
     // The bootstrap script may have read Arabic before storage became inaccessible.
     if (typeof document !== 'undefined' &&
         document.documentElement.classList?.contains('vaylet-persisted-ar')) {
-      return 'ar';
+      memoryLocale = 'ar';
+      return memoryLocale;
     }
     return DEFAULT_LOCALE;
   }
