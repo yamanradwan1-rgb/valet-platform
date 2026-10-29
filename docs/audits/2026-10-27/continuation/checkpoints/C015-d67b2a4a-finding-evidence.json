@@ -1,0 +1,111 @@
+{
+  "batch": "C015",
+  "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+  "source_tree": "8731302512f8db4edb8bbb1cdc50b208a0dcb5b8",
+  "classification": "STATIC_SEMANTIC_AUDIT_ONLY",
+  "runtime_tests_executed": 0,
+  "new_confirmed_P0_P1": [],
+  "new_unique_C015_P2_P3_candidates": [
+    {
+      "id": "W6-C015-P2-01",
+      "severity": "P2",
+      "category": "NATIVE_RECOVERY_AVAILABILITY",
+      "confidence": "MEDIUM_SOURCE_CONDITIONAL_RUNTIME",
+      "status": "SOURCE_CANDIDATE_NOT_RUNTIME_CONFIRMED",
+      "primary_source": "apps/valet-native/src/shift/native-shift-presence-runtime.ts:75-92",
+      "consumer_and_guard_refs": [
+        "apps/valet-native/src/shift/native-shift-presence-store.ts:142-147",
+        "apps/valet-native/src/auth/native-auth-runtime.ts:130-132",
+        "apps/valet-native/src/shift/native-shift-presence-runtime.ts:165-170"
+      ],
+      "precondition": "A SecureStore or installation-auth read rejects transiently during same-generation restoration of an unresolved START/END presence descriptor.",
+      "source_inference": "The identity-generation restored latch is committed before awaited reads and the caller swallows rejection; later same-generation restoration short-circuits until purge or identity change.",
+      "impact_and_limitations": "Automatic local shift-presence recovery may be deferred. No server-side wrong shift mutation, authentication bypass, duplicate commit or actual device failure was demonstrated; server reconciliation may mitigate.",
+      "origin": "W6 original 25-file semantic review plus Prime independent source-and-consumer triage",
+      "runtime_validation": "NOT_EXECUTED"
+    },
+    {
+      "id": "C015-W2-W4-MAP-FOCUS-001",
+      "severity": "P2",
+      "category": "DASHBOARD_KEYBOARD_ACCESSIBILITY",
+      "confidence": "MEDIUM_SOURCE_CONDITIONAL_BROWSER",
+      "status": "SOURCE_CANDIDATE_NOT_BROWSER_CONFIRMED",
+      "primary_source": "apps/dashboard/src/features/operations/maps/map-setup-dialog.tsx:28-43",
+      "consumer_and_guard_refs": [
+        "apps/dashboard/src/features/operations/maps/map-setup-panel.tsx:131-145",
+        "apps/dashboard/src/features/operations/maps/use-map-parking-zones.ts:10-37"
+      ],
+      "precondition": "The parent MapSetupPanel re-renders while a map editor modal remains open and the new inline onClose callback changes identity.",
+      "source_inference": "The effect dependency [onClose] reruns, restoring captured focus during cleanup and focusing the first dialog control again, potentially interrupting keyboard editing.",
+      "impact_and_limitations": "Potential focus loss/reposition for keyboard users, not authorization bypass. Actual browser focus timing/frequency and resulting accessibility severity remain untested.",
+      "origin": "W2 review of 5 W4-startup-transferred paths plus Prime independent full-source comparison",
+      "runtime_validation": "NOT_EXECUTED"
+    },
+    {
+      "id": "C015-W7-P2-POINT-BLANK-COORDINATE",
+      "severity": "P2",
+      "category": "MAP_SETUP_DATA_INTEGRITY",
+      "confidence": "HIGH_CONFIDENCE_SOURCE_TRIGGER",
+      "status": "SOURCE_CANDIDATE_NOT_BROWSER_CONFIRMED",
+      "primary_source": "apps/dashboard/src/features/operations/maps/point-editor-dialog.tsx:28-50",
+      "consumer_and_guard_refs": [
+        "packages/contracts/src/map-setup.ts:8-9,28-44",
+        "apps/dashboard/src/features/operations/maps/map-setup-panel.tsx:62-65",
+        "apps/dashboard/src/features/operations/map-setup-api.ts:61-70",
+        "apps/api/src/modules/map-setup/map-point-command.ts:30-62",
+        "packages/database/prisma/migrations/20260814002400_phase5_map_setup_write_authority/migration.sql:111-151",
+        "packages/database/prisma/migrations/20260814002300_phase5_maps_tracking_persistence/migration.sql:28-46",
+        "apps/dashboard/src/features/operations/maps/operational-map-model.ts:143-181"
+      ],
+      "precondition": "An authorized user creates a point, enters a nonempty code and label, leaves both optional-looking latitude and longitude inputs blank, and submits.",
+      "source_inference": "Number('') is 0; both blank inputs pass finite and geographic-range validation and the map-point database insertion accepts (0,0), which enters active operational map camera bounds.",
+      "impact_and_limitations": "Incorrect map coordinates and zoom-out may disrupt operations. Existing authorization, tenant scope and database constraints still apply. No browser submission, deployment or user report confirms frequency.",
+      "origin": "W7 review of 5 W4-startup-transferred paths plus Prime independent full-source/contract/DB-command comparison",
+      "runtime_validation": "NOT_EXECUTED"
+    },
+    {
+      "id": "C015-W5-CAND-001",
+      "severity": "P3",
+      "category": "TEST_ASSERTION_COVERAGE",
+      "confidence": "HIGH_CONFIDENCE_SOURCE",
+      "status": "SOURCE_CANDIDATE_NOT_A_PRODUCTION_AUTH_BYPASS",
+      "primary_source": "apps/valet/src/features/task-queue/task-queue-scoping.test.tsx:75-117",
+      "consumer_and_guard_refs": [
+        "apps/valet/src/features/task-queue/use-task-queue.ts:79-119",
+        "apps/valet/src/features/task-queue/task-queue-controller.test.ts:88-119",
+        "apps/valet/src/features/task-queue/task-queue-controller.ts:61-113,178-268"
+      ],
+      "source_inference": "The test's renderToStaticMarkup does not run useEffect and only asserts non-null output, so its 403 hard-stop/location isolation title overstates its assertions.",
+      "impact_and_limitations": "Narrow test-quality/coverage issue. Separate controller tests directly assert 401/403/404 hard stop and cancellation; no tenant or authorization bypass was found.",
+      "origin": "W5 original Employee Web review plus Prime independent full-source comparison",
+      "runtime_validation": "NOT_EXECUTED"
+    }
+  ],
+  "deduplication": {
+    "new_unique_source_candidates": 4,
+    "P2_candidates": 3,
+    "P3_candidates": 1,
+    "historical_not_reopened_or_duplicated": ["SEC-011", "C011-W2-W1F-CANDIDATE-001"]
+  },
+  "historical_high_priority_source_candidate": {
+    "id": "SEC-011",
+    "github_issue": 363,
+    "severity": "P1",
+    "confidence": "HIGH_CONFIDENCE_SOURCE",
+    "status": "UNCHANGED_NEEDS_ISOLATED_RUNTIME_VALIDATION"
+  },
+  "worker_finding_evidence": [
+    {"actual_reviewer": "W1", "accepted_records": 30, "new_source_candidates": 0},
+    {"actual_reviewer": "W2", "accepted_records": 30, "new_source_candidates": 1},
+    {"actual_reviewer": "W3", "accepted_records": 25, "new_source_candidates": 0},
+    {"actual_reviewer": "W5", "accepted_records": 30, "new_source_candidates": 1},
+    {"actual_reviewer": "W6", "accepted_records": 30, "new_source_candidates": 1},
+    {"actual_reviewer": "W7", "accepted_records": 30, "new_source_candidates": 1}
+  ],
+  "independent_validation": {
+    "strict_full_record_qa": "175/175, zero invalid, missing or duplicate",
+    "prime_source_and_consumer_checks": "C015-d67b2a4a-prime-spot-checks.md",
+    "source_epoch_unmodified": true
+  },
+  "qualification": "The named P2/P3 items are source-backed candidate findings with explicit preconditions, counterevidence and runtime gaps; none is a confirmed production failure. Static source coverage is not equivalent to runtime or release readiness."
+}
