@@ -1,0 +1,56 @@
+{
+  "batch": "C021",
+  "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "corrections": [
+    {
+      "path": "apps/valet-native/test/native-condition-photo-async-copy.test.ts",
+      "original_owner": "W6",
+      "logical_actual_reviewer": "W6",
+      "physical_execution_agent": "worker-16",
+      "independently_detected_by": "W3/worker-19",
+      "corrected_by": "Prime",
+      "kind": "SOURCE_RECORD_OVERCLAIM_NOT_PRODUCT_FINDING",
+      "original_overclaim": "Capture stages and sensitive filename values are not emitted in diagnostics.",
+      "source_counterevidence": [
+        "apps/valet-native/test/native-condition-photo-async-copy.test.ts:94-107 explicitly emits and asserts owned-copy/copy-verify stage labels",
+        "apps/valet-native/test/native-condition-photo-async-copy.test.ts:115-128 asserts raw PRIVATE_COPY_NATIVE_FAILURE absent from emitted stage-label list; does not assert filename redaction"
+      ],
+      "correction": "Stage/outcome diagnostics emitted, native failure marker not present in recorded stage list, filename redaction NOT tested. No runtime.",
+      "record_field": "invariants_error_checks",
+      "preserved_properties": [
+        "pinned raw Git source_sha256",
+        "full read_ranges 1..EOF",
+        "original_owner",
+        "actual_reviewer",
+        "execution_agent_id"
+      ],
+      "process": "Prime amended W6 scratch record after W6 physical executor conversation was finished and non-revivable; strict QA and deterministic promotion rerun after amendment. Independently verified source reader W3 to recheck final corrected saved record."
+    },
+    {
+      "path": "apps/dashboard/src/features/administration/settings/shift-presence-settings.tsx",
+      "original_owner": "W4",
+      "logical_actual_reviewer": "W6",
+      "physical_execution_agent": "worker-16",
+      "independently_detected_by": "W3/worker-19",
+      "corrected_by": "Prime",
+      "kind": "SOURCE_RECORD_SCOPE_OVERCLAIM_NOT_PRODUCT_FINDING",
+      "original_overclaim": "Denies clear cached snapshots/drafts and close dialogs.",
+      "source_counterevidence": [
+        "apps/dashboard/src/features/administration/settings/shift-presence-settings.tsx:97-110 read-error denial clears snapshot, zone and exception state",
+        "apps/dashboard/src/features/administration/settings/shift-presence-settings.tsx:148-154 any denial clears drafts and suppresses data rendering",
+        "apps/dashboard/src/features/administration/settings/shift-presence-settings.tsx:220-249 any denied state suppresses dialog rendering, but mutation.denied does not explicitly clear stored dialog targets"
+      ],
+      "correction": "Precisely limit state clearing to read-error denial; document any-denied draft clear and conditional render suppression. No demonstrated stale dialog resurfacing and no runtime test.",
+      "record_field": "semantic_review_notes",
+      "preserved_properties": [
+        "pinned raw Git source_sha256",
+        "full read_ranges 1..EOF",
+        "original_owner",
+        "actual_reviewer",
+        "execution_agent_id"
+      ],
+      "process": "Prime amended W6 original-W4 transfer scratch record after W6 physical executor became non-revivable, based on W3 full-source independent QA. The correction is explicit metadata and requires rerun of strict verifier and deterministic promotion."
+    }
+  ],
+  "runtime_tests_executed": 0
+}

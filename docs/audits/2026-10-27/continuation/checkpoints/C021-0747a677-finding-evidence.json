@@ -1,0 +1,109 @@
+{
+  "batch": "C021",
+  "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "source_tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "status": "LOCAL_STRICT_175_VALID_ZERO_INVALID_MISSING_INDEPENDENT_SOURCE_AND_LEDGER_QA_PASS_AWAITING_GITHUB_PUBLICATION",
+  "runtime_tests_executed": 0,
+  "strict_review_records": 175,
+  "strict_invalid_records": 0,
+  "strict_missing_records": 0,
+  "new_runtime_confirmed_p0": 0,
+  "new_runtime_confirmed_p1": 0,
+  "new_runtime_confirmed_p2": 0,
+  "source_only_candidates": [
+    {
+      "id": "C021-W3-F001",
+      "triaged_severity": "P2_HIGH_CONFIDENCE_SOURCE_WORKFLOW_RECOVERY_NO_RUNTIME_PROOF",
+      "original_reporter": "W3",
+      "independently_checked_by": "Prime",
+      "status": "SOURCE_SUPPORTED_CONDITIONAL_UI_DEAD_END_NOT_AUTH_BYPASS",
+      "evidence": [
+        "apps/valet/src/features/check-in/check-in-returning-vehicle.ts:138-160,189-195",
+        "apps/valet/src/features/check-in/check-in-returning-mutations.ts:97-114",
+        "apps/valet/src/features/check-in/check-in-controller.ts:262-264",
+        "apps/valet/src/features/check-in/use-check-in.ts:176-178",
+        "apps/valet/src/components/screens/check-in-flow.tsx:199-214",
+        "apps/valet/src/components/screens/check-in/check-in-returning-vehicle-step.tsx:68-72,118-150",
+        "apps/valet/src/features/check-in/check-in-returning-controller.test.ts:219-280"
+      ],
+      "hypothesis": "On a later standalone returning-vehicle Continue retry, correction CAS conflict followed by failing canonical session refetch can propagate rejection without clearing isSubmitting; Back, Continue and correction controls stay disabled until remount.",
+      "counterevidence": "Initial createPreIntakeSession has an outer catch that clears isSubmitting on first invocation; backend CAS remains authoritative; a successful conflict refetch is tested, failed refetch is not; remount can recover. No tenant leakage, unauthorized write or runtime reproduction.",
+      "deduplication": "Different from C018 Parking response overlap and no direct previously recorded same-root Check-In CAS-refetch dead end found in historical finding-text search.",
+      "next": "Separate authorized remediation/test task: regression for 409 followed by failed canonical read in later user retry; handle failure and reset submitting without losing retained intent."
+    },
+    {
+      "id": "C021-W7-P3-UI-SMOKE-001",
+      "triaged_severity": "P3_HIGH_CONFIDENCE_SOURCE_TEST_COVERAGE_ONLY",
+      "original_reporter": "W7",
+      "independently_checked_by": "Prime",
+      "status": "SOURCE_SUPPORTED_TEST_ONLY_NO_PRODUCT_DEFECT_PROVEN",
+      "evidence": [
+        "packages/ui/src/index.test.ts:1-7",
+        "packages/ui/src/index.tsx",
+        "apps/dashboard/package.json",
+        "apps/customer/package.json"
+      ],
+      "hypothesis": "The smoke test checks only a hard-coded string and never imports or exercises the actual public TSX barrel; export breakage could evade that isolated test.",
+      "counterevidence": "Other builds and architecture tests can catch some export problems; package declarations and Next configuration do not prove app runtime import of @valet/ui; no tests executed.",
+      "next": "Separate QA ticket for actual package import/export contract test; do not edit tests in this audit."
+    }
+  ],
+  "low_confidence_unpromoted_hypotheses": [
+    {
+      "id": "C021-W7-P3-CHECKIN-ORDER-002",
+      "confidence": "LOW_SOURCE_HYPOTHESIS",
+      "path": "apps/valet/src/features/check-in/check-in-controller.ts:121-144",
+      "claim": "Same-scope overlapping async hydration might have response-order staleness without generation marker.",
+      "counterevidence": "EmployeeActiveShell is keyed by auth identityGeneration, membershipId, locationId and shiftId (employee-app.tsx:229-237), defeating normal cross-scope stale controller hypothesis; same-scope reachability and impact unproven. Kept out of finding_ids."
+    },
+    {
+      "id": "C021-W6-UNPROMOTED-PRESENCE-EXPIRY",
+      "confidence": "LOW_SOURCE_HYPOTHESIS",
+      "path": "apps/dashboard/src/features/administration/settings/use-presence-expiry.ts:22-34",
+      "claim": "Long >2^31-1 ms expiry delay might fire early and return without rearming.",
+      "counterevidence": "Practical policy deadline horizon and resulting user impact not established, no runtime."
+    },
+    {
+      "id": "C021-W6-UNPROMOTED-HYDRATION-LOCATION",
+      "confidence": "LOW_SOURCE_HYPOTHESIS",
+      "path": "apps/valet/src/features/check-in/check-in-hydration.ts:19-29,53-58",
+      "claim": "Hydration constructs state from passed locationId without local equality check against detail location.",
+      "counterevidence": "Server query authorization and caller scope/lifecycle guards may preclude cross-location data; no BOLA allegation or runtime."
+    }
+  ],
+  "rejected_or_corrected": [
+    {
+      "claim": "P2 cross-location stale check-in UI/BOLA",
+      "counterevidence": "apps/valet/src/components/employee-app.tsx:229-237 keyed EmployeeActiveShell remount on identity, membership, location and shift. Not substantiated."
+    },
+    {
+      "claim": "audit_events runtime INSERT grant contradiction",
+      "counterevidence": "packages/database/scripts/provision-append-only-tables.mjs:60-82 grants allowed-column INSERT; table-level privilege expected false."
+    },
+    {
+      "claim": "W3 test support seeds all four roles with TOTP",
+      "correction": "Only ORG_ADMIN enrolls active TOTP; others get password-based actors. W3 record corrected after independent W2 QA."
+    },
+    {
+      "claim": "W7 architecture import policy detects arbitrary dependency cycles",
+      "correction": "The script checks enumerated forbidden dependency directions; record corrected after independent W2 QA."
+    }
+  ],
+  "historical_residual_not_new": "SEC-011/Issue #363 remains P1 HIGH_CONFIDENCE_SOURCE not CONFIRMED_RUNTIME. C011/C018/C019/C020 source candidates preserved in original published checkpoints; no duplicated credit.",
+  "review_provenance": "Five logical reviewer roles W1/W2/W3/W6/W7, 35 exact assignments each. Physical COS worker-18 executed logical W2 and W1; worker-16 executed logical W7 and W6; worker-19 executed W3. Formal execution-agent handoff addendum e9b9c6bc is published. 50 original W4/W5 ownership transfers retained. Do not imply five distinct physical independent workers.",
+  "prime_record_corrections": {
+    "path": "checkpoints/C021-0747a677-prime-record-corrections.json",
+    "count": 2,
+    "independent_finder": "W3/worker-19",
+    "corrected_by": "Prime",
+    "classification": "REVIEW_RECORD_SOURCE_FIDELITY_ONLY_NOT_NEW_PRODUCT_P2",
+    "details": "Native condition-photo mock test diagnostics overclaim and Dashboard Shift Presence denial cleanup overgeneralization, both narrowed to exact source. W6 finished/non-revivable; corrections explicitly annotated inside saved W6 scratch records, strict and promotion rerun."
+  },
+  "limitations": [
+    "Source static audit only, zero runtime HTTP/PostgreSQL/browser/native/CI tests.",
+    "Strict 175/175 confirms record contract, hashes, EOF and references; it is not proof that every authored semantic assertion is correct.",
+    "Prime 10 complete roster file spot checks (1,541 lines), W2 8 independently read W3/W7 source samples (1,401 lines) and requested two source-fidelity corrections subsequently applied.",
+    "W3 physical worker-19 independently reread 12 full W1/W6 source files 1..EOF, caught two W6 metadata overclaims corrected by Prime with explicit provenance, and revalidated those corrections: PASS, zero remaining record QA findings. W3 also checked all 175 promoted records, 50 transfers, 7,595 ledger rows and 25 raw Git SHA256/EOF samples: PASS, zero errors. Reports are byte-identical to scratch.",
+    "No product, UI, tests, DB migrations, CI, GitHub Issues, PR or production changes."
+  ]
+}

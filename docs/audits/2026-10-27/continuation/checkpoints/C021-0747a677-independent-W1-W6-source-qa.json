@@ -1,0 +1,696 @@
+{
+  "batch": "C021",
+  "kind": "independent_full_source_record_spot_qa",
+  "reviewer": "W3",
+  "physical_reviewer": "worker-19",
+  "distinct_from_primary_executors": [
+    "worker-18",
+    "worker-16"
+  ],
+  "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "source_tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "verified_checked_out_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "verified_tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "handoff_agent_mapping": [
+    {
+      "role": "W1",
+      "agent": "worker-18"
+    },
+    {
+      "role": "W6",
+      "agent": "worker-16"
+    }
+  ],
+  "sampling_method": "Stratified, reproducible, risk-spread fixed zero-based index selection from path-ascending saved record arrays, in six owner/reviewer strata; selection frozen before semantic QA. Indexes are included per sample.",
+  "selected_count": 12,
+  "independently_full_source_read_count": 12,
+  "counts": {
+    "W1_original": 4,
+    "W1_from_W4": 1,
+    "W1_from_W5": 1,
+    "W6_original": 4,
+    "W6_from_W4": 1,
+    "W6_from_W5": 1
+  },
+  "samples": [
+    {
+      "path": "apps/api/test/issue215-http-fixture.ts",
+      "sampled_from": "W1/C021-W1-review-records.json",
+      "zero_based_saved_record_index": 1,
+      "original_owner": "W1",
+      "actual_reviewer": "W1",
+      "physical_primary_executor": "worker-18",
+      "physical_independent_reviewer": "worker-19",
+      "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+      "source_sha256": "99245fdc1ec8f1dbbb53d56351af2ad24aff65f7a27396d28a72e5b695859bf8",
+      "source_bytes": 7965,
+      "saved_read_ranges": [
+        {
+          "start": 1,
+          "end": 199
+        }
+      ],
+      "independently_read_range": {
+        "start": 1,
+        "end": 199
+      },
+      "checkout_eol": "CRLF_WINDOWS_WORKTREE_NORMALIZES_TO_PINNED_GIT",
+      "checks": {
+        "source_blob_hash": true,
+        "pinned_checkout_normalized_text": true,
+        "exact_contiguous_read_range": true,
+        "immutable_roster": true,
+        "record_ownership": true,
+        "execution_agent_id": true,
+        "source_commit": true,
+        "full_source_read_independently": true
+      },
+      "test_references": [
+        {
+          "path": "apps/api/test/issue215-real-http-integration.test.ts",
+          "exists_at_pinned_commit": true
+        },
+        {
+          "path": "apps/api/test/issue215-real-http-negative.test.ts",
+          "exists_at_pinned_commit": true
+        },
+        {
+          "path": "apps/api/test/issue215-real-nest-hardkill.integration.test.ts",
+          "exists_at_pinned_commit": true
+        }
+      ],
+      "semantic_and_caller_review": {
+        "verdict": "PASS",
+        "source_evidence": "1-22,80-110,113-199",
+        "caller_evidence": "issue215-real-http-integration.test.ts:7-17; issue215-real-http-negative.test.ts:6-13; issue215-real-nest-hardkill.integration.test.ts:11,123,156"
+      },
+      "outcome": "PASS"
+    },
+    {
+      "path": "apps/api/test/issue215-real-nest-hardkill.integration.test.ts",
+      "sampled_from": "W1/C021-W1-review-records.json",
+      "zero_based_saved_record_index": 8,
+      "original_owner": "W1",
+      "actual_reviewer": "W1",
+      "physical_primary_executor": "worker-18",
+      "physical_independent_reviewer": "worker-19",
+      "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+      "source_sha256": "f0a7f6da4242cfbf31f3a593336ae815ed40b4d29ba11a4a4451a65f693bdddc",
+      "source_bytes": 11285,
+      "saved_read_ranges": [
+        {
+          "start": 1,
+          "end": 242
+        }
+      ],
+      "independently_read_range": {
+        "start": 1,
+        "end": 242
+      },
+      "checkout_eol": "CRLF_WINDOWS_WORKTREE_NORMALIZES_TO_PINNED_GIT",
+      "checks": {
+        "source_blob_hash": true,
+        "pinned_checkout_normalized_text": true,
+        "exact_contiguous_read_range": true,
+        "immutable_roster": true,
+        "record_ownership": true,
+        "execution_agent_id": true,
+        "source_commit": true,
+        "full_source_read_independently": true
+      },
+      "test_references": [
+        {
+          "path": "apps/api/test/issue215-real-nest-hardkill.integration.test.ts",
+          "exists_at_pinned_commit": true
+        }
+      ],
+      "semantic_and_caller_review": {
+        "verdict": "PASS",
+        "source_evidence": "14-105,116-143,145-242",
+        "caller_evidence": "Imports hardkill child, HTTP fixture, DB fixture and photo store at lines 9-11; drives child and API directly"
+      },
+      "outcome": "PASS"
+    },
+    {
+      "path": "apps/api/test/issue215-recovery-real-s3.integration.test.ts",
+      "sampled_from": "W1/C021-W1-review-records.json",
+      "zero_based_saved_record_index": 15,
+      "original_owner": "W1",
+      "actual_reviewer": "W1",
+      "physical_primary_executor": "worker-18",
+      "physical_independent_reviewer": "worker-19",
+      "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+      "source_sha256": "d6f91a0d186a5b0930b897e53385de06f34efa90d1212e0c4ca5ee7c9bb1e481",
+      "source_bytes": 12168,
+      "saved_read_ranges": [
+        {
+          "start": 1,
+          "end": 265
+        }
+      ],
+      "independently_read_range": {
+        "start": 1,
+        "end": 265
+      },
+      "checkout_eol": "CRLF_WINDOWS_WORKTREE_NORMALIZES_TO_PINNED_GIT",
+      "checks": {
+        "source_blob_hash": true,
+        "pinned_checkout_normalized_text": true,
+        "exact_contiguous_read_range": true,
+        "immutable_roster": true,
+        "record_ownership": true,
+        "execution_agent_id": true,
+        "source_commit": true,
+        "full_source_read_independently": true
+      },
+      "test_references": [
+        {
+          "path": "apps/api/test/issue215-recovery-real-s3.integration.test.ts",
+          "exists_at_pinned_commit": true
+        }
+      ],
+      "semantic_and_caller_review": {
+        "verdict": "PASS",
+        "source_evidence": "19-56,58-116,118-187,189-265",
+        "caller_evidence": "Imports and invokes recovery DB, MinIO, reservation/upload/reconcile executors at lines 9-23,127-163,196-263"
+      },
+      "outcome": "PASS"
+    },
+    {
+      "path": "apps/api/test/issue241-live-operations.integration.test.ts",
+      "sampled_from": "W1/C021-W1-review-records.json",
+      "zero_based_saved_record_index": 20,
+      "original_owner": "W1",
+      "actual_reviewer": "W1",
+      "physical_primary_executor": "worker-18",
+      "physical_independent_reviewer": "worker-19",
+      "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+      "source_sha256": "5e279bd8e95a94c7d5219cb27047a40b88065541ada2352b1848059ee149eca4",
+      "source_bytes": 10619,
+      "saved_read_ranges": [
+        {
+          "start": 1,
+          "end": 294
+        }
+      ],
+      "independently_read_range": {
+        "start": 1,
+        "end": 294
+      },
+      "checkout_eol": "CRLF_WINDOWS_WORKTREE_NORMALIZES_TO_PINNED_GIT",
+      "checks": {
+        "source_blob_hash": true,
+        "pinned_checkout_normalized_text": true,
+        "exact_contiguous_read_range": true,
+        "immutable_roster": true,
+        "record_ownership": true,
+        "execution_agent_id": true,
+        "source_commit": true,
+        "full_source_read_independently": true
+      },
+      "test_references": [
+        {
+          "path": "apps/api/test/issue241-live-operations.integration.test.ts",
+          "exists_at_pinned_commit": true
+        }
+      ],
+      "semantic_and_caller_review": {
+        "verdict": "PASS",
+        "source_evidence": "1-17,18-154,156-231,233-294",
+        "caller_evidence": "Uses DashboardApiTestContext and issue241-overview-fixture at lines 7-16,18-31,156-173"
+      },
+      "outcome": "PASS"
+    },
+    {
+      "path": "apps/dashboard/src/features/administration/settings/shift-presence-retained-intent.test.ts",
+      "sampled_from": "W1/C021-transferred-W4-review-records.json",
+      "zero_based_saved_record_index": 1,
+      "original_owner": "W4",
+      "actual_reviewer": "W1",
+      "physical_primary_executor": "worker-18",
+      "physical_independent_reviewer": "worker-19",
+      "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+      "source_sha256": "0ff19ab9f5d13298d0bf50c53cc300c00559d8be447e6ff4ea5d02907e9cdd40",
+      "source_bytes": 5068,
+      "saved_read_ranges": [
+        {
+          "start": 1,
+          "end": 148
+        }
+      ],
+      "independently_read_range": {
+        "start": 1,
+        "end": 148
+      },
+      "checkout_eol": "CRLF_WINDOWS_WORKTREE_NORMALIZES_TO_PINNED_GIT",
+      "checks": {
+        "source_blob_hash": true,
+        "pinned_checkout_normalized_text": true,
+        "exact_contiguous_read_range": true,
+        "immutable_roster": true,
+        "record_ownership": true,
+        "execution_agent_id": true,
+        "source_commit": true,
+        "full_source_read_independently": true
+      },
+      "test_references": [
+        {
+          "path": "apps/dashboard/src/features/administration/settings/shift-presence-retained-intent.test.ts",
+          "exists_at_pinned_commit": true
+        }
+      ],
+      "semantic_and_caller_review": {
+        "verdict": "PASS",
+        "source_evidence": "1-58,60-85,86-147",
+        "caller_evidence": "use-presence-retained-intent.ts:14-28 imports and uses presenceIntentLifetime/presenceIntentScope"
+      },
+      "outcome": "PASS"
+    },
+    {
+      "path": "apps/valet/src/features/check-in/use-check-in.ts",
+      "sampled_from": "W1/C021-transferred-W5-review-records.json",
+      "zero_based_saved_record_index": 4,
+      "original_owner": "W5",
+      "actual_reviewer": "W1",
+      "physical_primary_executor": "worker-18",
+      "physical_independent_reviewer": "worker-19",
+      "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+      "source_sha256": "c9c4b16a531bc6fe0170823a2785864a2b3a6231b2b946f543ae2104fba50914",
+      "source_bytes": 7980,
+      "saved_read_ranges": [
+        {
+          "start": 1,
+          "end": 267
+        }
+      ],
+      "independently_read_range": {
+        "start": 1,
+        "end": 267
+      },
+      "checkout_eol": "CRLF_WINDOWS_WORKTREE_NORMALIZES_TO_PINNED_GIT",
+      "checks": {
+        "source_blob_hash": true,
+        "pinned_checkout_normalized_text": true,
+        "exact_contiguous_read_range": true,
+        "immutable_roster": true,
+        "record_ownership": true,
+        "execution_agent_id": true,
+        "source_commit": true,
+        "full_source_read_independently": true
+      },
+      "test_references": [
+        {
+          "path": "apps/valet/src/features/check-in/check-in-controller.test.ts",
+          "exists_at_pinned_commit": true
+        },
+        {
+          "path": "apps/valet/src/components/employee-app.live-flow.test.tsx",
+          "exists_at_pinned_commit": true
+        }
+      ],
+      "semantic_and_caller_review": {
+        "verdict": "PASS",
+        "source_evidence": "1-136,138-233,235-267",
+        "caller_evidence": "check-in-flow.tsx:5,46 imports/calls hook; employee-live-router.tsx:6,84 mounts CheckInFlow"
+      },
+      "outcome": "PASS"
+    },
+    {
+      "path": "apps/valet-native/test/native-condition-photo-async-copy.test.ts",
+      "sampled_from": "W6/C021-W6-review-records.json",
+      "zero_based_saved_record_index": 1,
+      "original_owner": "W6",
+      "actual_reviewer": "W6",
+      "physical_primary_executor": "worker-16",
+      "physical_independent_reviewer": "worker-19",
+      "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+      "source_sha256": "c8a73725a316828ff29b98fb11a9323aa0ad49e9e0b4696f0de54070630fbdc2",
+      "source_bytes": 8394,
+      "saved_read_ranges": [
+        {
+          "start": 1,
+          "end": 209
+        }
+      ],
+      "independently_read_range": {
+        "start": 1,
+        "end": 209
+      },
+      "checkout_eol": "CRLF_WINDOWS_WORKTREE_NORMALIZES_TO_PINNED_GIT",
+      "checks": {
+        "source_blob_hash": true,
+        "pinned_checkout_normalized_text": true,
+        "exact_contiguous_read_range": true,
+        "immutable_roster": true,
+        "record_ownership": true,
+        "execution_agent_id": true,
+        "source_commit": true,
+        "full_source_read_independently": true
+      },
+      "test_references": [
+        {
+          "path": "apps/valet-native/test/native-condition-photo-async-copy.test.ts",
+          "exists_at_pinned_commit": true
+        },
+        {
+          "path": "apps/valet-native/test/native-condition-photo-files.test.ts",
+          "exists_at_pinned_commit": true
+        }
+      ],
+      "semantic_and_caller_review": {
+        "verdict": "PASS_CORRECTED_DURING_QA",
+        "source_evidence": "1-79,87-145,147-209",
+        "caller_evidence": "Tests NativeConditionPhotoFiles imported at lines 73-74 and native Expo adapters mocked at lines 13-71",
+        "finding_ids": [
+          "C021-W3-SPOT-P2-001"
+        ]
+      },
+      "outcome": "PASS_CORRECTED_DURING_QA"
+    },
+    {
+      "path": "apps/valet-native/test/native-guest-access-issuance.test.ts",
+      "sampled_from": "W6/C021-W6-review-records.json",
+      "zero_based_saved_record_index": 17,
+      "original_owner": "W6",
+      "actual_reviewer": "W6",
+      "physical_primary_executor": "worker-16",
+      "physical_independent_reviewer": "worker-19",
+      "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+      "source_sha256": "01aed7b769ca5e68ed9a5b66c5c953182bc8acfc31a3684505a473c170664294",
+      "source_bytes": 5508,
+      "saved_read_ranges": [
+        {
+          "start": 1,
+          "end": 163
+        }
+      ],
+      "independently_read_range": {
+        "start": 1,
+        "end": 163
+      },
+      "checkout_eol": "CRLF_WINDOWS_WORKTREE_NORMALIZES_TO_PINNED_GIT",
+      "checks": {
+        "source_blob_hash": true,
+        "pinned_checkout_normalized_text": true,
+        "exact_contiguous_read_range": true,
+        "immutable_roster": true,
+        "record_ownership": true,
+        "execution_agent_id": true,
+        "source_commit": true,
+        "full_source_read_independently": true
+      },
+      "test_references": [
+        {
+          "path": "apps/valet-native/test/native-guest-access-issuance.test.ts",
+          "exists_at_pinned_commit": true
+        },
+        {
+          "path": "apps/valet-native/test/native-guest-access-runtime-test-support.ts",
+          "exists_at_pinned_commit": true
+        }
+      ],
+      "semantic_and_caller_review": {
+        "verdict": "PASS",
+        "source_evidence": "1-14,15-119,122-163",
+        "caller_evidence": "Tests NativeGuestAccessSession and fake request queue, imported at lines 1-13"
+      },
+      "outcome": "PASS"
+    },
+    {
+      "path": "apps/valet-native/test/native-guest-access-recovery.test.ts",
+      "sampled_from": "W6/C021-W6-review-records.json",
+      "zero_based_saved_record_index": 19,
+      "original_owner": "W6",
+      "actual_reviewer": "W6",
+      "physical_primary_executor": "worker-16",
+      "physical_independent_reviewer": "worker-19",
+      "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+      "source_sha256": "b3b2d6edb786da67e1e38d7d3e112258c72cfd42d3f282950a9a4f1fe2a74a3e",
+      "source_bytes": 8903,
+      "saved_read_ranges": [
+        {
+          "start": 1,
+          "end": 289
+        }
+      ],
+      "independently_read_range": {
+        "start": 1,
+        "end": 289
+      },
+      "checkout_eol": "CRLF_WINDOWS_WORKTREE_NORMALIZES_TO_PINNED_GIT",
+      "checks": {
+        "source_blob_hash": true,
+        "pinned_checkout_normalized_text": true,
+        "exact_contiguous_read_range": true,
+        "immutable_roster": true,
+        "record_ownership": true,
+        "execution_agent_id": true,
+        "source_commit": true,
+        "full_source_read_independently": true
+      },
+      "test_references": [
+        {
+          "path": "apps/valet-native/test/native-guest-access-recovery.test.ts",
+          "exists_at_pinned_commit": true
+        },
+        {
+          "path": "apps/valet-native/test/native-contextual-lifecycle-fences.test.ts",
+          "exists_at_pinned_commit": true
+        }
+      ],
+      "semantic_and_caller_review": {
+        "verdict": "PASS",
+        "source_evidence": "1-14,16-157,159-247,249-289",
+        "caller_evidence": "Imports NativeGuestAccessSession, NativeIdentityStateBoundary and fake queue at lines 1-14"
+      },
+      "outcome": "PASS"
+    },
+    {
+      "path": "apps/valet-native/test/native-handoff-panel.test.tsx",
+      "sampled_from": "W6/C021-W6-review-records.json",
+      "zero_based_saved_record_index": 22,
+      "original_owner": "W6",
+      "actual_reviewer": "W6",
+      "physical_primary_executor": "worker-16",
+      "physical_independent_reviewer": "worker-19",
+      "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+      "source_sha256": "6a5239157cd0344b044e0d4adc5bf17a99c5f03088ee6ec00f5cbe477b5c118f",
+      "source_bytes": 10593,
+      "saved_read_ranges": [
+        {
+          "start": 1,
+          "end": 299
+        }
+      ],
+      "independently_read_range": {
+        "start": 1,
+        "end": 299
+      },
+      "checkout_eol": "CRLF_WINDOWS_WORKTREE_NORMALIZES_TO_PINNED_GIT",
+      "checks": {
+        "source_blob_hash": true,
+        "pinned_checkout_normalized_text": true,
+        "exact_contiguous_read_range": true,
+        "immutable_roster": true,
+        "record_ownership": true,
+        "execution_agent_id": true,
+        "source_commit": true,
+        "full_source_read_independently": true
+      },
+      "test_references": [
+        {
+          "path": "apps/valet-native/test/native-handoff-panel.test.tsx",
+          "exists_at_pinned_commit": true
+        },
+        {
+          "path": "apps/valet-native/test/native-handoff-privacy.test.tsx",
+          "exists_at_pinned_commit": true
+        },
+        {
+          "path": "apps/valet-native/test/native-handoff-protection.test.ts",
+          "exists_at_pinned_commit": true
+        }
+      ],
+      "semantic_and_caller_review": {
+        "verdict": "PASS",
+        "source_evidence": "1-43,45-155,157-299",
+        "caller_evidence": "Imports NativeHandoffPanel and pending/scanner helpers at lines 34-43 and renders mock component at 138-155"
+      },
+      "outcome": "PASS"
+    },
+    {
+      "path": "apps/dashboard/src/features/administration/settings/shift-presence-settings.tsx",
+      "sampled_from": "W6/C021-transferred-W4-review-records.json",
+      "zero_based_saved_record_index": 1,
+      "original_owner": "W4",
+      "actual_reviewer": "W6",
+      "physical_primary_executor": "worker-16",
+      "physical_independent_reviewer": "worker-19",
+      "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+      "source_sha256": "23ef5ec0082cf55707cd1f7864cdce56cdc5c14e70a1ca09521ad3497846ff86",
+      "source_bytes": 9123,
+      "saved_read_ranges": [
+        {
+          "start": 1,
+          "end": 260
+        }
+      ],
+      "independently_read_range": {
+        "start": 1,
+        "end": 260
+      },
+      "checkout_eol": "CRLF_WINDOWS_WORKTREE_NORMALIZES_TO_PINNED_GIT",
+      "checks": {
+        "source_blob_hash": true,
+        "pinned_checkout_normalized_text": true,
+        "exact_contiguous_read_range": true,
+        "immutable_roster": true,
+        "record_ownership": true,
+        "execution_agent_id": true,
+        "source_commit": true,
+        "full_source_read_independently": true
+      },
+      "test_references": [
+        {
+          "path": "apps/dashboard/e2e/shift-presence-settings.spec.ts",
+          "exists_at_pinned_commit": true
+        },
+        {
+          "path": "apps/dashboard/e2e/shift-presence-scope.spec.ts",
+          "exists_at_pinned_commit": true
+        },
+        {
+          "path": "apps/dashboard/e2e/shift-presence-auth-continuity.spec.ts",
+          "exists_at_pinned_commit": true
+        }
+      ],
+      "semantic_and_caller_review": {
+        "verdict": "PASS_CORRECTED_DURING_QA",
+        "source_evidence": "1-57,82-110,117-154,174-260",
+        "caller_evidence": "settings-page.tsx:23,199,242,277 imports/mounts ShiftPresenceSettings",
+        "finding_ids": [
+          "C021-W3-SPOT-P2-002"
+        ]
+      },
+      "outcome": "PASS_CORRECTED_DURING_QA"
+    },
+    {
+      "path": "apps/valet/src/features/check-in/check-in-hydration.ts",
+      "sampled_from": "W6/C021-transferred-W5-review-records.json",
+      "zero_based_saved_record_index": 1,
+      "original_owner": "W5",
+      "actual_reviewer": "W6",
+      "physical_primary_executor": "worker-16",
+      "physical_independent_reviewer": "worker-19",
+      "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+      "source_sha256": "762cf4dd154829bc87f1942b03a9e1431463bfd1c09a532270f4f12d9c054712",
+      "source_bytes": 3377,
+      "saved_read_ranges": [
+        {
+          "start": 1,
+          "end": 100
+        }
+      ],
+      "independently_read_range": {
+        "start": 1,
+        "end": 100
+      },
+      "checkout_eol": "CRLF_WINDOWS_WORKTREE_NORMALIZES_TO_PINNED_GIT",
+      "checks": {
+        "source_blob_hash": true,
+        "pinned_checkout_normalized_text": true,
+        "exact_contiguous_read_range": true,
+        "immutable_roster": true,
+        "record_ownership": true,
+        "execution_agent_id": true,
+        "source_commit": true,
+        "full_source_read_independently": true
+      },
+      "test_references": [
+        {
+          "path": "apps/valet/src/features/check-in/check-in-controller.test.ts",
+          "exists_at_pinned_commit": true
+        },
+        {
+          "path": "apps/valet/src/features/check-in/check-in-controller-resume-identity.test.ts",
+          "exists_at_pinned_commit": true
+        }
+      ],
+      "semantic_and_caller_review": {
+        "verdict": "PASS",
+        "source_evidence": "1-22,23-82,84-100",
+        "caller_evidence": "Imported/called by check-in-controller-recovery.ts; source imports check-in-api fetchSessionDetail at line 8"
+      },
+      "outcome": "PASS"
+    }
+  ],
+  "findings": [
+    {
+      "id": "C021-W3-SPOT-P2-001",
+      "severity": "P2",
+      "status": "RESOLVED_IN_W6_SCRATCH_BY_PRIME_DURING_INDEPENDENT_QA",
+      "classification": "RECORD_SEMANTIC_OVERCLAIM_NOT_PRODUCT_DEFECT",
+      "path": "apps/valet-native/test/native-condition-photo-async-copy.test.ts",
+      "saved_record_field": "invariants_error_checks",
+      "reviewer_to_correct": "W6",
+      "execution_agent_id": "worker-16",
+      "source_lines": "94-107,115-128,193-208",
+      "issue": "Record says capture stages and sensitive filenames are not emitted in diagnostics. The test explicitly captures/asserts stage emissions; only raw PRIVATE_COPY_NATIVE_FAILURE absence is asserted, and no filename non-leakage assertion appears.",
+      "required_record_correction": "Completed in latest W6 scratch record with post_review_correction metadata; now says test records stage/outcome labels and raw native error is absent, without unproven filename-redaction assertion."
+    },
+    {
+      "id": "C021-W3-SPOT-P2-002",
+      "severity": "P2",
+      "status": "RESOLVED_IN_W6_SCRATCH_BY_PRIME_DURING_INDEPENDENT_QA",
+      "classification": "RECORD_SEMANTIC_SCOPE_OVERCLAIM_NOT_PRODUCT_DEFECT",
+      "path": "apps/dashboard/src/features/administration/settings/shift-presence-settings.tsx",
+      "saved_record_field": "semantic_review_notes",
+      "reviewer_to_correct": "W6",
+      "execution_agent_id": "worker-16",
+      "source_lines": "97-110,148-154,220-249",
+      "issue": "Record broadly says denials clear cached snapshots/drafts and close dialogs. Only isPresenceDenied(read.error) clears snapshot/zone/exception; any denied state clears drafts and suppresses rendering, while mutation.denied alone does not clear stored snapshot/dialog state. A resurfacing scenario is unproven.",
+      "required_record_correction": "Completed in latest W6 transferred-W4 scratch record with post_review_correction metadata; read-error denial alone clears stored snapshot/dialog targets, any denied hides UI and clears drafts."
+    }
+  ],
+  "severities_discovered": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 2,
+    "P3": 0
+  },
+  "severities_remaining": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 0,
+    "P3": 0
+  },
+  "verified_corrections": [
+    {
+      "path": "apps/valet-native/test/native-condition-photo-async-copy.test.ts",
+      "correction_verified": true
+    },
+    {
+      "path": "apps/dashboard/src/features/administration/settings/shift-presence-settings.tsx",
+      "correction_verified": true
+    }
+  ],
+  "unicode_record_validation": {
+    "proper_arrow": true,
+    "mojibake": false,
+    "codepoints": [
+      65,
+      8594,
+      66
+    ]
+  },
+  "structural_validation": "PASS",
+  "semantic_verdict": "PASS_AFTER_2_RECORD_CORRECTIONS",
+  "errors": [],
+  "excluded_earlier_pending_record": "apps/dashboard/src/features/administration/settings/sla-setting-row.tsx (W1 transferred-W4 record). Prime reports focused metadata corrected and strict validator rerun; it was deliberately outside this 12-file semantic sample, and this report does not make an independent semantic judgement about it.",
+  "limitations": [
+    "No product/docs/source edit; no runtime, browser, PostgreSQL, S3 or native test execution.",
+    "Cross-references were checked in pinned source, but source-only spot QA does not prove integration behavior or absence of untested failures.",
+    "SLA row record is outside this sample; no independent semantic ruling on it despite Prime's separate correction.",
+    "Only 12 of the 70 W1/W6 saved review records received independent full source reread; other entries require separate batch verification."
+  ]
+}

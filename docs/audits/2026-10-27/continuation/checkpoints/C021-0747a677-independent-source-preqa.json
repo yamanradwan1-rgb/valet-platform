@@ -1,0 +1,337 @@
+{
+  "purpose": "C021 W2 independent SOURCE PRE-QA before Prime strict 175/175 freeze",
+  "batch": "C021",
+  "independent_reviewer": "W2",
+  "immutable_source": {
+    "commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+    "tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace"
+  },
+  "provisional": true,
+  "source_only": true,
+  "runtime_tests_executed": 0,
+  "independently_read_count": 8,
+  "full_source_lines_read": 1401,
+  "selection": "Deterministic risk selection of 4 W3 + 4 W7 different original-owner files; excludes Prime 8 samples and W7 packages/ui correction; no own W2 re-review",
+  "exclusion_checks": {
+    "prime_eight_avoided": true,
+    "w7_packages_ui_correction_avoided": true
+  },
+  "record_accuracy": {
+    "match": 5,
+    "match_with_coverage_limit": 1,
+    "wording_correction_requested": 2
+  },
+  "inaccuracies_for_owner_correction": [
+    {
+      "owner": "W3",
+      "path": "apps/api/test/issue309-photo-browser-support.ts",
+      "record_field": "semantic_review_notes",
+      "severity": "record wording accuracy, not a confirmed product defect",
+      "source_lines": [
+        94,
+        115
+      ],
+      "issue": "Record says seeded password/MFA actors for LM/CA/Supervisor/Employee; passwords for all, TOTP factor only ORG_ADMIN.",
+      "recommended_correction": "Seed four password-based role actors; enroll a synthetic encrypted TOTP factor only for ORG_ADMIN."
+    },
+    {
+      "owner": "W7",
+      "path": "scripts/architecture-import-policy.mjs",
+      "record_field": "invariants_error_checks",
+      "severity": "record wording accuracy, not a confirmed product defect",
+      "source_lines": [
+        87,
+        100
+      ],
+      "issue": "Record says rejection of domain cycles; helper enumerates forbidden directional edges and has no generic graph cycle detector.",
+      "recommended_correction": "Rejects explicitly forbidden API domain dependency directions and other static boundary violations."
+    }
+  ],
+  "limitations": [
+    "Only eight full W3/W7 source files were independently sampled; dependent consumers/tests were inspected narrowly and existence checked in immutable Git.",
+    "Raw Git blobs are canonical; Windows checkout CRLF normalization may change on-disk byte SHA256. Both values are shown separately and LF-normalized checkout content is compared against Git.",
+    "No runtime browser, database, API, CI, or security test executed; source-defined expected behavior is not runtime confirmation.",
+    "Do not claim final 12-sample or complete ledger PASS. Await W1 and W6 frozen records, then independently sample 2 W1 + 2 W6.",
+    "No original W3/W7 records, product, docs, UI, schemas, CI, issues, PRs, branches, or remotes were edited."
+  ],
+  "samples": [
+    {
+      "path": "apps/api/test/issue300-r2-positive-signed-gate.integration.test.ts",
+      "original_owner": "W3",
+      "actual_record_reviewer": "W3",
+      "independent_reviewer": "W2",
+      "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+      "raw_git_blob_sha256": "9227a27303fdbe58de7f6e948a248d459b235c9f06cecbcd34f7535a6a13e98f",
+      "checkout_file_sha256": "72e5551ccb2c82c8d79686c3ffd82796870d96bb7c0812efd06665391e465dc8",
+      "checkout_lf_normalized_sha256": "9227a27303fdbe58de7f6e948a248d459b235c9f06cecbcd34f7535a6a13e98f",
+      "checkout_byte_difference": "CRLF checkout normalization matches canonical Git blob",
+      "recorded_source_sha256": "9227a27303fdbe58de7f6e948a248d459b235c9f06cecbcd34f7535a6a13e98f",
+      "eof": 209,
+      "independently_read_full_range": {
+        "start": 1,
+        "end": 209
+      },
+      "ownership_status_read_ranges_hash_match": true,
+      "referenced_tests_exist_in_pinned_git": true,
+      "verified_test_refs": [
+        "apps/api/test/issue300-r2-positive-signed-gate.integration.test.ts"
+      ],
+      "verified_consumer_refs": [],
+      "risk": "test proof-gate false-positive risk; synthetic owner cryptography",
+      "source_evidence": "1-24 mocked node:crypto Ed25519 verification is test-local; 58-65 test environment; 94-137 synthetic manifest/certificate; 161-165 production mode rejects injection; 166-208 signed scope/expiry/lease/build tamper checks",
+      "semantic_crosscheck": "The test establishes model verifier behavior under mocked Owner signing, not a genuine Owner-signed runtime attestation or PostgreSQL proof. W3 explicitly identifies this limit.",
+      "authority_crosscheck": "A nonproduction mock substitutes the exact pinned Owner key under NODE_ENV=test; the production boundary is asserted. It does not establish production owner authority.",
+      "record_fidelity": "MATCH",
+      "dependent_paths": [],
+      "runtime_tests_executed": 0
+    },
+    {
+      "path": "apps/api/test/issue300-search/u05-signed-cursor.test.ts",
+      "original_owner": "W3",
+      "actual_record_reviewer": "W3",
+      "independent_reviewer": "W2",
+      "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+      "raw_git_blob_sha256": "c54a80ea6ee38533bbd36c229caa1e75f2f1201e505b29fcb21892a327120ea9",
+      "checkout_file_sha256": "994d7287a331ac580f4c455172edbbc217c97eabce1c7edb9cb04d58fde7b212",
+      "checkout_lf_normalized_sha256": "c54a80ea6ee38533bbd36c229caa1e75f2f1201e505b29fcb21892a327120ea9",
+      "checkout_byte_difference": "CRLF checkout normalization matches canonical Git blob",
+      "recorded_source_sha256": "c54a80ea6ee38533bbd36c229caa1e75f2f1201e505b29fcb21892a327120ea9",
+      "eof": 132,
+      "independently_read_full_range": {
+        "start": 1,
+        "end": 132
+      },
+      "ownership_status_read_ranges_hash_match": true,
+      "referenced_tests_exist_in_pinned_git": true,
+      "verified_test_refs": [
+        "apps/api/test/issue300-search/u05-signed-cursor.test.ts"
+      ],
+      "verified_consumer_refs": [
+        "apps/api/src/modules/management/audit-investigation/audit-investigation-cursor.ts",
+        "apps/api/src/modules/management/audit-investigation/search/audit-investigation-search.service.ts",
+        "apps/api/src/modules/management/audit-investigation/timeline/timeline-read-service.ts"
+      ],
+      "risk": "signed Search/Timeline cursor context replay",
+      "source_evidence": "30-56 constructs org/location/StaffAuthSession/viewer/window/purpose bindings; 58-105 roundtrip and context/tamper/expiry cases; 106-132 persistence cap",
+      "semantic_crosscheck": "HMAC cursor test varies staff session, location, time window and purpose while binding organization ID; the test does not independently vary organization membership. Search/Timeline production consumers found.",
+      "authority_crosscheck": "Cursor integrity is necessary but independent membership/tenant authorization is not exercised by this pure unit test.",
+      "record_fidelity": "MATCH_WITH_COVERAGE_LIMIT",
+      "dependent_paths": [
+        "apps/api/src/modules/management/audit-investigation/audit-investigation-cursor.ts",
+        "apps/api/src/modules/management/audit-investigation/search/audit-investigation-search.service.ts",
+        "apps/api/src/modules/management/audit-investigation/timeline/timeline-read-service.ts"
+      ],
+      "runtime_tests_executed": 0
+    },
+    {
+      "path": "apps/api/test/issue309-photo-cross-commit-pg17.integration.test.ts",
+      "original_owner": "W3",
+      "actual_record_reviewer": "W3",
+      "independent_reviewer": "W2",
+      "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+      "raw_git_blob_sha256": "d51234c767c616144b3f850bd42e9ebc5971b705a9945978bce18506dd4708f8",
+      "checkout_file_sha256": "0ef26d7c1f56d3a453a3c3aa26333b9e2e379ceeed091415bbee1bbf339e779b",
+      "checkout_lf_normalized_sha256": "d51234c767c616144b3f850bd42e9ebc5971b705a9945978bce18506dd4708f8",
+      "checkout_byte_difference": "CRLF checkout normalization matches canonical Git blob",
+      "recorded_source_sha256": "d51234c767c616144b3f850bd42e9ebc5971b705a9945978bce18506dd4708f8",
+      "eof": 171,
+      "independently_read_full_range": {
+        "start": 1,
+        "end": 171
+      },
+      "ownership_status_read_ranges_hash_match": true,
+      "referenced_tests_exist_in_pinned_git": true,
+      "verified_test_refs": [
+        "apps/api/test/issue309-photo-cross-commit-pg17.integration.test.ts"
+      ],
+      "verified_consumer_refs": [
+        "apps/api/test/issue309-photo-cross-commit-pg17-fixture.ts"
+      ],
+      "risk": "photo authorization revocation across read/commit race",
+      "source_evidence": "11-24 canonical session/grant/photo revokers; 27-48 idle transaction checks; 69-96 revoker-first; 98-121 reader-first; 124-161 queued advisory writer; 163-170 two full reads",
+      "semantic_crosscheck": "PG17/HTTP fixture asserts revoker-first deny 503, reader-first 200 JPEG after witness lock, queued writer 503, and no idle transactions; these are test definitions only.",
+      "authority_crosscheck": "Actual membership_location_access and staff_auth_sessions mutations are tested via fixture writer, but no live PG test was run in C021.",
+      "record_fidelity": "MATCH",
+      "dependent_paths": [
+        "apps/api/test/issue309-photo-cross-commit-pg17-fixture.ts"
+      ],
+      "runtime_tests_executed": 0
+    },
+    {
+      "path": "apps/api/test/issue309-photo-browser-support.ts",
+      "original_owner": "W3",
+      "actual_record_reviewer": "W3",
+      "independent_reviewer": "W2",
+      "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+      "raw_git_blob_sha256": "b6555d5aec0c3254c0c62c252a4f8da04f89582fbc8b1d7a1e11b02e312d0e80",
+      "checkout_file_sha256": "eac179e71ba9e0032a393ee63b71067ee65411975ddbaecc94ef371d9a935fae",
+      "checkout_lf_normalized_sha256": "b6555d5aec0c3254c0c62c252a4f8da04f89582fbc8b1d7a1e11b02e312d0e80",
+      "checkout_byte_difference": "CRLF checkout normalization matches canonical Git blob",
+      "recorded_source_sha256": "b6555d5aec0c3254c0c62c252a4f8da04f89582fbc8b1d7a1e11b02e312d0e80",
+      "eof": 130,
+      "independently_read_full_range": {
+        "start": 1,
+        "end": 130
+      },
+      "ownership_status_read_ranges_hash_match": true,
+      "referenced_tests_exist_in_pinned_git": true,
+      "verified_test_refs": [
+        "apps/api/test/issue309-photo-browser.integration.test.ts"
+      ],
+      "verified_consumer_refs": [
+        "apps/api/test/issue309-photo-browser.integration.test.ts"
+      ],
+      "risk": "test credential and MFA actor setup correctness",
+      "source_evidence": "87-105 creates role-specific actors and password hashes; 106-115 inserts active encrypted TOTP factor ONLY for ORG_ADMIN; 1-86 Chromium/Next/port infrastructure; 116-130 TOTP and exports",
+      "semantic_crosscheck": "The helper creates passwords for four roles but MFA factors only for Company Admin. W3 phrase 'seeded password/MFA actors for LM/CA/Supervisor/Employee' could imply MFA for each, which is unsupported.",
+      "authority_crosscheck": "Location Manager, Supervisor and Employee do not receive a TOTP enrollment in this helper. CA factor is test synthetic and not a production grant.",
+      "record_fidelity": "WORDING_CORRECTION_REQUESTED",
+      "dependent_paths": [
+        "apps/api/test/issue309-photo-browser.integration.test.ts"
+      ],
+      "runtime_tests_executed": 0
+    },
+    {
+      "path": "scripts/architecture-import-policy.mjs",
+      "original_owner": "W7",
+      "actual_record_reviewer": "W7",
+      "independent_reviewer": "W2",
+      "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+      "raw_git_blob_sha256": "49e0499f4fea76d23d5930777bcb329acec1712de5ab6ac7f0784a7d8b27d809",
+      "checkout_file_sha256": "a9da88b353e4aa657b0e2d34f94386be0ed453303297e8765c2dfecc6f3e185e",
+      "checkout_lf_normalized_sha256": "49e0499f4fea76d23d5930777bcb329acec1712de5ab6ac7f0784a7d8b27d809",
+      "checkout_byte_difference": "CRLF checkout normalization matches canonical Git blob",
+      "recorded_source_sha256": "49e0499f4fea76d23d5930777bcb329acec1712de5ab6ac7f0784a7d8b27d809",
+      "eof": 155,
+      "independently_read_full_range": {
+        "start": 1,
+        "end": 155
+      },
+      "ownership_status_read_ranges_hash_match": true,
+      "referenced_tests_exist_in_pinned_git": true,
+      "verified_test_refs": [
+        "apps/api/test/architecture-mobile-boundaries.test.ts",
+        "apps/api/test/architecture-check.test.ts"
+      ],
+      "verified_consumer_refs": [
+        "scripts/architecture-check.mjs"
+      ],
+      "risk": "architecture checker dependency directions and blind spots",
+      "source_evidence": "8-81 resolves source/target classifications; 87-100 apiImportViolation enumerates forbidden directions only; 109-155 portable/native/web module restrictions; architecture-check.mjs:175-197 invokes one import edge at a time",
+      "semantic_crosscheck": "Rejects selected forbidden dependencies, but contains no strongly connected components, graph traversal, or generic cycle detection. W7 'domain cycles' phrase is overbroad.",
+      "authority_crosscheck": "Build-time import boundary, no user session or tenant checks; computed runtime imports remain outside the checker.",
+      "record_fidelity": "WORDING_CORRECTION_REQUESTED",
+      "dependent_paths": [
+        "scripts/architecture-check.mjs"
+      ],
+      "runtime_tests_executed": 0
+    },
+    {
+      "path": "scripts/architecture-portable-globals.mjs",
+      "original_owner": "W7",
+      "actual_record_reviewer": "W7",
+      "independent_reviewer": "W2",
+      "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+      "raw_git_blob_sha256": "24fe7ba715d2de03fec711f83e5b23c4afb6cb3514230d688d9e2355f4812d71",
+      "checkout_file_sha256": "3118d69a7f3915179e2d6c5e8ff386f7a1a6265be1f7a4a80f5c8cf35e1f5f82",
+      "checkout_lf_normalized_sha256": "24fe7ba715d2de03fec711f83e5b23c4afb6cb3514230d688d9e2355f4812d71",
+      "checkout_byte_difference": "CRLF checkout normalization matches canonical Git blob",
+      "recorded_source_sha256": "24fe7ba715d2de03fec711f83e5b23c4afb6cb3514230d688d9e2355f4812d71",
+      "eof": 36,
+      "independently_read_full_range": {
+        "start": 1,
+        "end": 36
+      },
+      "ownership_status_read_ranges_hash_match": true,
+      "referenced_tests_exist_in_pinned_git": true,
+      "verified_test_refs": [
+        "apps/api/test/architecture-mobile-boundaries.test.ts",
+        "apps/api/test/architecture-check.test.ts"
+      ],
+      "verified_consumer_refs": [
+        "scripts/architecture-check.mjs"
+      ],
+      "risk": "portable employee-client global pollution",
+      "source_evidence": "1-36 lexical JS tokenizer guard for employee-client path and direct DOM/Fetch/Request globals; imported in architecture-check.mjs:9",
+      "semantic_crosscheck": "Direct forbidden identifiers are caught; aliases are missed and locally shadowed names can overreport. W7 notes these lexical limitations.",
+      "authority_crosscheck": "Static architecture script only, no auth/tenant context.",
+      "record_fidelity": "MATCH",
+      "dependent_paths": [
+        "scripts/architecture-check.mjs"
+      ],
+      "runtime_tests_executed": 0
+    },
+    {
+      "path": "scripts/issue300-closure-runtime-role-proof.mjs",
+      "original_owner": "W7",
+      "actual_record_reviewer": "W7",
+      "independent_reviewer": "W2",
+      "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+      "raw_git_blob_sha256": "6a80b603390711694b409d1ea9a06789a4a1a274331ee9524416077c38de6d66",
+      "checkout_file_sha256": "93eb80bcc9adf670afd8ca39806c8e9f6ba06d8c680d92e24beadb049eb71413",
+      "checkout_lf_normalized_sha256": "6a80b603390711694b409d1ea9a06789a4a1a274331ee9524416077c38de6d66",
+      "checkout_byte_difference": "CRLF checkout normalization matches canonical Git blob",
+      "recorded_source_sha256": "6a80b603390711694b409d1ea9a06789a4a1a274331ee9524416077c38de6d66",
+      "eof": 274,
+      "independently_read_full_range": {
+        "start": 1,
+        "end": 274
+      },
+      "ownership_status_read_ranges_hash_match": true,
+      "referenced_tests_exist_in_pinned_git": true,
+      "verified_test_refs": [
+        "apps/api/test/issue300-r2-local-proof-gate.integration.test.ts",
+        "apps/api/test/issue300-closure-security.integration.test.ts"
+      ],
+      "verified_consumer_refs": [
+        "packages/database/scripts/provision-append-only-tables.mjs"
+      ],
+      "risk": "PostgreSQL runtime role least privilege and append-only witness",
+      "source_evidence": "1-2 requires explicit --execute; 45-116 role/ownership/grant inspection; 127-166 synthetic fixture; 167-233 SET LOCAL ROLE/rollback denial probes; 258 PARTIAL verdict",
+      "semantic_crosscheck": "Proves only configured candidate runtime-role constraints if actually executed under a valid lease; table-level Audit INSERT false coexists with column-level permitted insert by design.",
+      "authority_crosscheck": "Tests DB role privileges, denial of immutable updates and ability to insert permitted events under a rollback transaction; no real connection was used in C021.",
+      "record_fidelity": "MATCH",
+      "dependent_paths": [
+        "packages/database/scripts/provision-append-only-tables.mjs"
+      ],
+      "runtime_tests_executed": 0
+    },
+    {
+      "path": "scripts/issue300-r2-api-build-provenance.mjs",
+      "original_owner": "W7",
+      "actual_record_reviewer": "W7",
+      "independent_reviewer": "W2",
+      "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+      "raw_git_blob_sha256": "f24410db5e94c3fb44828834f6f2af785acd07b2be7bb262d5a5b1232040c947",
+      "checkout_file_sha256": "b54fe8cee04fa2cc5572a3ce80c91311641798b90a7b2c3af83c49807f4b90e2",
+      "checkout_lf_normalized_sha256": "f24410db5e94c3fb44828834f6f2af785acd07b2be7bb262d5a5b1232040c947",
+      "checkout_byte_difference": "CRLF checkout normalization matches canonical Git blob",
+      "recorded_source_sha256": "f24410db5e94c3fb44828834f6f2af785acd07b2be7bb262d5a5b1232040c947",
+      "eof": 294,
+      "independently_read_full_range": {
+        "start": 1,
+        "end": 294
+      },
+      "ownership_status_read_ranges_hash_match": true,
+      "referenced_tests_exist_in_pinned_git": true,
+      "verified_test_refs": [
+        "scripts/issue300-r2-api-build-provenance.test.mjs",
+        "scripts/issue300-r2-build-proof-binding.test.mjs"
+      ],
+      "verified_consumer_refs": [
+        "scripts/issue300-r2-owner-build-issuer.mjs",
+        "scripts/issue300-r2-build-proof-binding.mjs"
+      ],
+      "risk": "build receipt tamper and stale artifact substitution",
+      "source_evidence": "77-100 tracked source hashing; 151-197 receipt verification; 198-222 currentBuildEvidence revalidation; 243-269 new build under lease; 281-291 CLI dispatch",
+      "semantic_crosscheck": "Rejects path traversal, linkable paths, stale/mismatched build inputs and receipt metadata, and enforces fresh build lifecycle; W7 description matches without suggesting remote deployment attestation.",
+      "authority_crosscheck": "Local Owner lease/build provenance only; production deployment and authenticated runtime access are out of scope.",
+      "record_fidelity": "MATCH",
+      "dependent_paths": [
+        "scripts/issue300-r2-owner-build-issuer.mjs",
+        "scripts/issue300-r2-build-proof-binding.mjs"
+      ],
+      "runtime_tests_executed": 0
+    }
+  ]
+}

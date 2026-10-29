@@ -1,0 +1,532 @@
+{
+  "batch": "C021",
+  "kind": "independent_full_promoted_ledger_qa",
+  "logical_reviewer": "W3",
+  "physical_reviewer": "worker-19",
+  "canonical_source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "canonical_source_tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "published_C020_baseline_commit": "e450b762d2203d941517cefbb86d367cb37efddc",
+  "published_C020_baseline_raw_bytes_match": true,
+  "current_docs_head": "e9b9c6bc0a29cd76ea897411f1514805e955cb2a",
+  "checked_after_correction": true,
+  "counts": {
+    "records": 175,
+    "unique_record_paths": 175,
+    "original_owners": {
+      "W1": 25,
+      "W2": 25,
+      "W3": 25,
+      "W4": 25,
+      "W6": 25,
+      "W5": 25,
+      "W7": 25
+    },
+    "actual_reviewers": {
+      "W1": 35,
+      "W2": 35,
+      "W3": 35,
+      "W6": 35,
+      "W7": 35
+    },
+    "physical_replacement_executors": {
+      "worker-18": 35,
+      "worker-16": 35
+    },
+    "transfers": 50,
+    "effective_transfers": 50,
+    "historical_ledger_rows_unchanged": 7420,
+    "new_credits": 175,
+    "new_lines": 25426,
+    "changed_authorized_ledger_columns": 1227,
+    "ledger_rows": 7595,
+    "eligible_files": 4789,
+    "excluded_files": 2806,
+    "eligible_lines": 620723,
+    "credited_files": 3685,
+    "credited_lines": 474956,
+    "remaining_files": 1104
+  },
+  "raw_git_blob_sampling": {
+    "method": "SHA256 path-ranked, three original-owner files per active reviewer plus one W4 and one W5 transfer per reviewer",
+    "planned": [
+      {
+        "reviewer": "W1",
+        "original_owner": "W1",
+        "take": 3,
+        "eligible": 25
+      },
+      {
+        "reviewer": "W1",
+        "original_owner": "W4",
+        "take": 1,
+        "eligible": 5
+      },
+      {
+        "reviewer": "W1",
+        "original_owner": "W5",
+        "take": 1,
+        "eligible": 5
+      },
+      {
+        "reviewer": "W2",
+        "original_owner": "W2",
+        "take": 3,
+        "eligible": 25
+      },
+      {
+        "reviewer": "W2",
+        "original_owner": "W4",
+        "take": 1,
+        "eligible": 5
+      },
+      {
+        "reviewer": "W2",
+        "original_owner": "W5",
+        "take": 1,
+        "eligible": 5
+      },
+      {
+        "reviewer": "W3",
+        "original_owner": "W3",
+        "take": 3,
+        "eligible": 25
+      },
+      {
+        "reviewer": "W3",
+        "original_owner": "W4",
+        "take": 1,
+        "eligible": 5
+      },
+      {
+        "reviewer": "W3",
+        "original_owner": "W5",
+        "take": 1,
+        "eligible": 5
+      },
+      {
+        "reviewer": "W6",
+        "original_owner": "W6",
+        "take": 3,
+        "eligible": 25
+      },
+      {
+        "reviewer": "W6",
+        "original_owner": "W4",
+        "take": 1,
+        "eligible": 5
+      },
+      {
+        "reviewer": "W6",
+        "original_owner": "W5",
+        "take": 1,
+        "eligible": 5
+      },
+      {
+        "reviewer": "W7",
+        "original_owner": "W7",
+        "take": 3,
+        "eligible": 25
+      },
+      {
+        "reviewer": "W7",
+        "original_owner": "W4",
+        "take": 1,
+        "eligible": 5
+      },
+      {
+        "reviewer": "W7",
+        "original_owner": "W5",
+        "take": 1,
+        "eligible": 5
+      }
+    ],
+    "sample_count": 25,
+    "samples": [
+      {
+        "path": "apps/api/test/issue215-real-http-negative.test.ts",
+        "original_owner": "W1",
+        "logical_reviewer": "W1",
+        "execution_agent_id": "worker-18",
+        "sha256": "cc895a62da200b031c12f6f944ebd8d9f2d3da4599ee819c5b25bdfecdcbe05b",
+        "eof": 127,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 127
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/api/test/issue215-recovery-minio-target.ts",
+        "original_owner": "W1",
+        "logical_reviewer": "W1",
+        "execution_agent_id": "worker-18",
+        "sha256": "3555f8b0511a57654ca25b262d8a6f22653b0db1b8ea2014c4603ff3865e67f4",
+        "eof": 130,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 130
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/api/test/issue215-recovery-target.test.ts",
+        "original_owner": "W1",
+        "logical_reviewer": "W1",
+        "execution_agent_id": "worker-18",
+        "sha256": "5ba4766d7b55673b5b283dfdc1f8a8d93cfa00b32af9da9c8a51e599fcbeaf40",
+        "eof": 130,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 130
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/dashboard/src/features/administration/settings/shift-presence-zone-draft.ts",
+        "original_owner": "W4",
+        "logical_reviewer": "W1",
+        "execution_agent_id": "worker-18",
+        "sha256": "371e94e0586b12b4176bf764892bdc9d9679a81d3178ae99e8a57595a470315e",
+        "eof": 58,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 58
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/valet/src/features/check-in/check-in-customer-phone.test.ts",
+        "original_owner": "W5",
+        "logical_reviewer": "W1",
+        "execution_agent_id": "worker-18",
+        "sha256": "af2eedfe916314277e7073e79a17d27f23741097f14a58d2a8c2d44f51877486",
+        "eof": 90,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 90
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/api/test/issue300-pg/issue300-query-performance.mjs",
+        "original_owner": "W2",
+        "logical_reviewer": "W2",
+        "execution_agent_id": null,
+        "sha256": "4abef0403624710d93b663972233637b340e7cb588e3ff77cdfa02daf92a06de",
+        "eof": 271,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 271
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/api/test/start-retrieval-command.integration.test.ts",
+        "original_owner": "W2",
+        "logical_reviewer": "W2",
+        "execution_agent_id": null,
+        "sha256": "86be1da3bf9f3fa64238f4afd0c17aa1bbdd18813cbf2834532c32eef7727159",
+        "eof": 251,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 251
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/api/test/tracking-lifecycle-retrieval.integration.test.ts",
+        "original_owner": "W2",
+        "logical_reviewer": "W2",
+        "execution_agent_id": null,
+        "sha256": "c1d1cb5b5669968dc18fe53a98dbd0af93f031d61f0f576fd69e40613ea2c818",
+        "eof": 175,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 175
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/dashboard/src/features/administration/settings/shift-presence-map-first-layout.tsx",
+        "original_owner": "W4",
+        "logical_reviewer": "W2",
+        "execution_agent_id": null,
+        "sha256": "c7d43eed598a9e3a6abf0c1968ecd933d64509f4ab4e8a71ca18432aeefb53bd",
+        "eof": 122,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 122
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/valet/src/features/check-in/check-in-customer-phone.ts",
+        "original_owner": "W5",
+        "logical_reviewer": "W2",
+        "execution_agent_id": null,
+        "sha256": "f965052853cbee962de21efb5d871518637edca2039ceb0186ec6c10a88797e4",
+        "eof": 7,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 7
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/api/test/issue300-r2-build-attestation.integration.test.ts",
+        "original_owner": "W3",
+        "logical_reviewer": "W3",
+        "execution_agent_id": null,
+        "sha256": "bbd5b838a72fb13cfd7a5f0080cc1e73802e7980d0d030a106aec456c56f3efc",
+        "eof": 108,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 108
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/api/test/issue300-production-route-registration.test.ts",
+        "original_owner": "W3",
+        "logical_reviewer": "W3",
+        "execution_agent_id": null,
+        "sha256": "b05c1b9676fed5e7626ee5bf50384e761c2772aa5d373f1c5ea7c6ef3be2e5cd",
+        "eof": 121,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 121
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/api/test/issue300-search/search-selector-cursor.test.ts",
+        "original_owner": "W3",
+        "logical_reviewer": "W3",
+        "execution_agent_id": null,
+        "sha256": "7f548ad07d0146d2379df4eb937bd5a38d8f42fa1348e5ca4decc7eae6db3f2d",
+        "eof": 54,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 54
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/dashboard/src/features/administration/settings/use-presence-dialog-focus.ts",
+        "original_owner": "W4",
+        "logical_reviewer": "W3",
+        "execution_agent_id": null,
+        "sha256": "ab03a00c534900a47cf65ebcfbd38bab4265b1ccfc83f5025586f2f64ba93fc1",
+        "eof": 33,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 33
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/valet/src/features/check-in/check-in-returning-vehicle.ts",
+        "original_owner": "W5",
+        "logical_reviewer": "W3",
+        "execution_agent_id": null,
+        "sha256": "24ddaa8fa01590f93b92d1b6bf0eed08c2bab6a53dfb1ed96db4f3149f04e3dc",
+        "eof": 241,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 241
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/valet-native/test/native-completed-check-in-parking.test.ts",
+        "original_owner": "W6",
+        "logical_reviewer": "W6",
+        "execution_agent_id": "worker-16",
+        "sha256": "8667985c7df9635a35818bfa5ddccb9adcd9a292e4ca886f6978677fb9a57087",
+        "eof": 165,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 165
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/valet-native/test/native-handoff-panel.test.tsx",
+        "original_owner": "W6",
+        "logical_reviewer": "W6",
+        "execution_agent_id": "worker-16",
+        "sha256": "6a5239157cd0344b044e0d4adc5bf17a99c5f03088ee6ec00f5cbe477b5c118f",
+        "eof": 299,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 299
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/valet-native/test/native-condition-photo-upload-diagnostics.test.ts",
+        "original_owner": "W6",
+        "logical_reviewer": "W6",
+        "execution_agent_id": "worker-16",
+        "sha256": "4bf3c8a63b49658d71d15902c2f771505533ea88ba4c7bbae9019c6ccf40634f",
+        "eof": 174,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 174
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/dashboard/src/features/administration/settings/shift-presence-recovery.ts",
+        "original_owner": "W4",
+        "logical_reviewer": "W6",
+        "execution_agent_id": "worker-16",
+        "sha256": "52667a9f1258c364b49e6bc126d88929f36c0f45154ddd8f246706da3ddad469",
+        "eof": 43,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 43
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/valet/src/features/guest-access/customer-app-origin.ts",
+        "original_owner": "W5",
+        "logical_reviewer": "W6",
+        "execution_agent_id": "worker-16",
+        "sha256": "a9e713e323e0dd26d3328d87b98667391bc540a264f467a9d000c55c422f10b4",
+        "eof": 73,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 73
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "scripts/build/run-build.mjs",
+        "original_owner": "W7",
+        "logical_reviewer": "W7",
+        "execution_agent_id": null,
+        "sha256": "17f385704ef26f02fe96d13a9282999264713f3831b07ab34beccaacb0687ce4",
+        "eof": 30,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 30
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "scripts/issue215-local-s3/start.mjs",
+        "original_owner": "W7",
+        "logical_reviewer": "W7",
+        "execution_agent_id": null,
+        "sha256": "3ff45f535a850e5cba38d54bf82b4bc46456a0b89bfb4c4cd9a586bc06a7a887",
+        "eof": 86,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 86
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "scripts/issue300-r2-api-build-provenance.mjs",
+        "original_owner": "W7",
+        "logical_reviewer": "W7",
+        "execution_agent_id": null,
+        "sha256": "f24410db5e94c3fb44828834f6f2af785acd07b2be7bb262d5a5b1232040c947",
+        "eof": 294,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 294
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/dashboard/src/features/administration/settings/shift-presence-zone-dialog.tsx",
+        "original_owner": "W4",
+        "logical_reviewer": "W7",
+        "execution_agent_id": null,
+        "sha256": "606d62f6fa3ad0300483e2b3f5f43cc330e40cd13b0623da3c3399451c5e643f",
+        "eof": 93,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 93
+          }
+        ],
+        "match": true
+      },
+      {
+        "path": "apps/valet/src/features/check-in/index.ts",
+        "original_owner": "W5",
+        "logical_reviewer": "W7",
+        "execution_agent_id": null,
+        "sha256": "4287a2f76238393c425c3901d02dcdf440ad8b2fff387b2eae7ba16861e03a62",
+        "eof": 4,
+        "read_ranges": [
+          {
+            "start": 1,
+            "end": 4
+          }
+        ],
+        "match": true
+      }
+    ]
+  },
+  "pinned_test_refs_present": 175,
+  "complete_roster_record_ledger_transfer_and_historical_row_checks": "PASS",
+  "verdict": "PASS",
+  "errors": [],
+  "limitations": [
+    "Read-only static ledger audit; no runtime, browser, PostgreSQL, MinIO or native tests.",
+    "25 source blobs independently sampled; all 175 record hashes were correlated to pinned ledger metadata and source-tree existence, but 150 unsampled blobs were not independently rehashed.",
+    "Ledger PASS addresses provenance and accounting. Any substantive record wording correction found by independent source spot QA must still be handled in its owner scratch and promotion rerun before publication.",
+    "Physical reviewer count is three distinct successful executor conversations for five active logical roles; replacement W1=worker-18 and W6=worker-16 after handoff."
+  ]
+}
