@@ -1,0 +1,58 @@
+{
+  "batch": "C013",
+  "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+  "source_tree": "8731302512f8db4edb8bbb1cdc50b208a0dcb5b8",
+  "classification": "STATIC_AUDIT_ONLY",
+  "runtime_tests_executed": 0,
+  "new_confirmed_P0_P1": [],
+  "new_unique_C013_candidates": [],
+  "deduplication": [
+    {
+      "source_reviewer": "W1",
+      "scratch_evidence": "tmp/cos-audit-20261029-results/W1/C013-candidate-findings.json",
+      "existing_finding_id": "C011-W2-W1F-CANDIDATE-001",
+      "severity": "P2",
+      "confidence": "HIGH_FOR_RACE_STRUCTURE_MEDIUM_FOR_USER_IMPACT",
+      "disposition": "DEPENDENCY_ONLY_NO_DUPLICATE_C013_FINDING",
+      "related_current_source": "apps/api/src/modules/management/staff-shift-history.service.ts",
+      "previous_source_evidence": "apps/api/src/modules/management/management-visit-contact-authorization.ts:68-116 and management-visit-contact.service.ts:91-134",
+      "realistic_precondition": "An authorized Location Manager's in-flight location-scoped read overlaps revocation of an earlier accepted Location grant before the downstream read uses a cached authorized-location set under READ COMMITTED.",
+      "mitigations_and_counterevidence": "Every new request checks current active session, tenant, membership and Location grant; the alleged stale read remains Organization-scoped. Sequential grant-revocation integration tests do not prove this narrow concurrent interleaving closed.",
+      "limitation": "No controlled interleaving or runtime customer-data observation was performed in C013."
+    }
+  ],
+  "historical_high_priority_source_candidate": {
+    "id": "SEC-011",
+    "github_issue": 363,
+    "severity": "P1",
+    "confidence": "HIGH_CONFIDENCE_SOURCE",
+    "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+    "status": "REMAINS_STATIC_CANDIDATE_NEEDS_ISOLATED_RUNTIME_VALIDATION",
+    "source_locations": [
+      "apps/api/src/modules/auth/mfa/mfa-recovery.service.ts:61-141",
+      "apps/api/src/modules/auth/mfa/mfa-enrollment.service.ts:60-91,93-168"
+    ],
+    "precondition": "A separately valid existing staff bearer session belongs to the same user initiating MFA recovery; the initiating session has already passed active factor, recovery-code, locking and rate-limit checks.",
+    "candidate_path": "Pending replacement factor provisioning secret is user-scoped and may be read by the second same-user session without an observed recovery-initiator-session binding.",
+    "mitigations": "Current same-user session requirement, recovery-code verification, scoped and locked update, rate limit and audit controls remain relevant. No unauthenticated, cross-user or cross-tenant exploit was established.",
+    "runtime_validation": "NOT_EXECUTED — no live HTTP/PostgreSQL exploitation or production test."
+  },
+  "rejected_or_unconfirmed_hypothesis": [
+    {
+      "component": "Native push route bootstrap",
+      "source": "apps/valet-native/src/notifications/use-native-push-response.ts",
+      "disposition": "NO_CONFIRMED_DEFECT",
+      "reason": "The suspected first-mount undefined-to-ready runtime transition is not present in the mounted native-production-shell/bootstrap contract; the shell receives a fixed initialized runtime or an unavailable state.",
+      "reviewer": "W4"
+    }
+  ],
+  "worker_finding_evidence": [
+    { "actual_reviewer": "W1", "new_candidates": 0, "existing_dependency_ids": ["C011-W2-W1F-CANDIDATE-001"] },
+    { "actual_reviewer": "W3", "new_candidates": 0, "source_records": 17, "transcribed_by": "Prime due confirmed COS writer timeout" },
+    { "actual_reviewer": "W4", "new_candidates": 0 },
+    { "actual_reviewer": "W5", "new_candidates": 0 },
+    { "actual_reviewer": "W9", "new_candidates": 0, "source_records": 21 },
+    { "actual_reviewer": "Prime", "new_candidates": 0, "source_records": 7 }
+  ],
+  "qualification": "Findings are source-analysis candidates with explicitly stated preconditions and mitigations. C013 static coverage does not establish runtime test pass, exploitation, or production readiness."
+}

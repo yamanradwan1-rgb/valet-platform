@@ -146,7 +146,7 @@ for (const [file,expected] of expectedFiles) {
     if (record.batch!==batch || record.source_commit!==fullSha || record.status!=='fully_reviewed') flaws.push('batch/source/status');
     if (record.source_sha256!==meta.source_sha256) flaws.push('blob SHA256');
     if (norm(record.original_owner??record.original_worker??record.worker)!==a.original_owner ||
-        norm(record.actual_reviewer??record.reviewer)!==effectiveReviewer(a)) flaws.push('owner/reviewer');
+        norm(record.actual_reviewer??record.reviewer)!==norm(effectiveReviewer(a))) flaws.push('owner/reviewer');
     const ranges=(record.read_ranges??[]).map(x=>Array.isArray(x)?{start:x[0],end:x[1]}:x).sort((a,b)=>a.start-b.start);
     if (!ranges.length || ranges[0].start!==1 || ranges.at(-1).end!==meta.lines) flaws.push('full read ranges');
     for(let i=0;i<ranges.length;i++){

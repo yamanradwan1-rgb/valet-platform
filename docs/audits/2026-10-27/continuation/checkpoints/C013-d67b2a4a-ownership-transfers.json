@@ -15,8 +15,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W1",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W1"
     },
     {
       "batch": "C013",
@@ -25,8 +26,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W1",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W1"
     },
     {
       "batch": "C013",
@@ -35,8 +37,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W1",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W1"
     },
     {
       "batch": "C013",
@@ -45,8 +48,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W1",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W1"
     },
     {
       "batch": "C013",
@@ -55,8 +59,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W1",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W1"
     },
     {
       "batch": "C013",
@@ -65,8 +70,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W3",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W3"
     },
     {
       "batch": "C013",
@@ -75,8 +81,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W3",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W3"
     },
     {
       "batch": "C013",
@@ -85,8 +92,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W3",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W3"
     },
     {
       "batch": "C013",
@@ -95,8 +103,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W3",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W3"
     },
     {
       "batch": "C013",
@@ -105,8 +114,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W3",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W3"
     },
     {
       "batch": "C013",
@@ -115,8 +125,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W4",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W4"
     },
     {
       "batch": "C013",
@@ -125,8 +136,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W4",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W4"
     },
     {
       "batch": "C013",
@@ -135,8 +147,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W4",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W4"
     },
     {
       "batch": "C013",
@@ -145,8 +158,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W4",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W4"
     },
     {
       "batch": "C013",
@@ -155,8 +169,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W4",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W4"
     },
     {
       "batch": "C013",
@@ -165,8 +180,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W4",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W4"
     },
     {
       "batch": "C013",
@@ -175,8 +191,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W4",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W4"
     },
     {
       "batch": "C013",
@@ -185,8 +202,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W4",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W4"
     },
     {
       "batch": "C013",
@@ -195,8 +213,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W4",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W4"
     },
     {
       "batch": "C013",
@@ -205,8 +224,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W4",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W4"
     },
     {
       "batch": "C013",
@@ -215,8 +235,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W5",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W5"
     },
     {
       "batch": "C013",
@@ -225,8 +246,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W5",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W5"
     },
     {
       "batch": "C013",
@@ -235,8 +257,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W5",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W5"
     },
     {
       "batch": "C013",
@@ -245,8 +268,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W5",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W5"
     },
     {
       "batch": "C013",
@@ -255,8 +279,9 @@
       "original_owner": "W2",
       "actual_reviewer": "W5",
       "reason": "W2 COS chat failed C012 task receipt/acknowledgment despite queued messages and later remained active with no output; preserve original role but avoid another stalled assignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W2-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W2-review-records.json",
+      "assigned_reviewer": "W5"
     },
     {
       "batch": "C013",
@@ -265,8 +290,9 @@
       "original_owner": "W6",
       "actual_reviewer": "W1",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W1"
     },
     {
       "batch": "C013",
@@ -275,8 +301,9 @@
       "original_owner": "W6",
       "actual_reviewer": "W1",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W1"
     },
     {
       "batch": "C013",
@@ -285,8 +312,9 @@
       "original_owner": "W6",
       "actual_reviewer": "W1",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W1"
     },
     {
       "batch": "C013",
@@ -295,8 +323,9 @@
       "original_owner": "W6",
       "actual_reviewer": "W1",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W1"
     },
     {
       "batch": "C013",
@@ -305,58 +334,64 @@
       "original_owner": "W6",
       "actual_reviewer": "W1",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W1"
     },
     {
       "batch": "C013",
       "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
       "path": "apps/valet-native/src/parking/native-completed-check-in-parking.ts",
       "original_owner": "W6",
-      "actual_reviewer": "W3",
+      "actual_reviewer": "W9",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W3"
     },
     {
       "batch": "C013",
       "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
       "path": "apps/valet-native/src/parking/native-parking-cancellation-controls.tsx",
       "original_owner": "W6",
-      "actual_reviewer": "W3",
+      "actual_reviewer": "W9",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W3"
     },
     {
       "batch": "C013",
       "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
       "path": "apps/valet-native/src/parking/native-parking-cancellation-copy.ts",
       "original_owner": "W6",
-      "actual_reviewer": "W3",
+      "actual_reviewer": "W9",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W3"
     },
     {
       "batch": "C013",
       "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
       "path": "apps/valet-native/src/parking/native-parking-cancellation-runtime.ts",
       "original_owner": "W6",
-      "actual_reviewer": "W3",
+      "actual_reviewer": "W9",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W3"
     },
     {
       "batch": "C013",
       "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
       "path": "apps/valet-native/src/parking/native-parking-confirm-copy.ts",
       "original_owner": "W6",
-      "actual_reviewer": "W3",
+      "actual_reviewer": "W9",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W3"
     },
     {
       "batch": "C013",
@@ -365,8 +400,9 @@
       "original_owner": "W6",
       "actual_reviewer": "W4",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W4"
     },
     {
       "batch": "C013",
@@ -375,8 +411,9 @@
       "original_owner": "W6",
       "actual_reviewer": "W4",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W4"
     },
     {
       "batch": "C013",
@@ -385,8 +422,9 @@
       "original_owner": "W6",
       "actual_reviewer": "W4",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W4"
     },
     {
       "batch": "C013",
@@ -395,8 +433,9 @@
       "original_owner": "W6",
       "actual_reviewer": "W4",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W4"
     },
     {
       "batch": "C013",
@@ -405,8 +444,9 @@
       "original_owner": "W6",
       "actual_reviewer": "W4",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W4"
     },
     {
       "batch": "C013",
@@ -415,8 +455,9 @@
       "original_owner": "W6",
       "actual_reviewer": "W4",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W4"
     },
     {
       "batch": "C013",
@@ -425,8 +466,9 @@
       "original_owner": "W6",
       "actual_reviewer": "W4",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W4"
     },
     {
       "batch": "C013",
@@ -435,8 +477,9 @@
       "original_owner": "W6",
       "actual_reviewer": "W4",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W4"
     },
     {
       "batch": "C013",
@@ -445,8 +488,9 @@
       "original_owner": "W6",
       "actual_reviewer": "W4",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W4"
     },
     {
       "batch": "C013",
@@ -455,8 +499,9 @@
       "original_owner": "W6",
       "actual_reviewer": "W4",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W4"
     },
     {
       "batch": "C013",
@@ -465,8 +510,9 @@
       "original_owner": "W6",
       "actual_reviewer": "W5",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W5"
     },
     {
       "batch": "C013",
@@ -475,8 +521,9 @@
       "original_owner": "W6",
       "actual_reviewer": "W5",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W5"
     },
     {
       "batch": "C013",
@@ -485,8 +532,9 @@
       "original_owner": "W6",
       "actual_reviewer": "W5",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W5"
     },
     {
       "batch": "C013",
@@ -495,8 +543,9 @@
       "original_owner": "W6",
       "actual_reviewer": "W5",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W5"
     },
     {
       "batch": "C013",
@@ -505,8 +554,9 @@
       "original_owner": "W6",
       "actual_reviewer": "W5",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W6-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W6-review-records.json",
+      "assigned_reviewer": "W5"
     },
     {
       "batch": "C013",
@@ -515,8 +565,9 @@
       "original_owner": "W7",
       "actual_reviewer": "W1",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W1"
     },
     {
       "batch": "C013",
@@ -525,8 +576,9 @@
       "original_owner": "W7",
       "actual_reviewer": "W1",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W1"
     },
     {
       "batch": "C013",
@@ -535,8 +587,9 @@
       "original_owner": "W7",
       "actual_reviewer": "W1",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W1"
     },
     {
       "batch": "C013",
@@ -545,8 +598,9 @@
       "original_owner": "W7",
       "actual_reviewer": "W1",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W1"
     },
     {
       "batch": "C013",
@@ -555,8 +609,9 @@
       "original_owner": "W7",
       "actual_reviewer": "W1",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W1"
     },
     {
       "batch": "C013",
@@ -565,8 +620,9 @@
       "original_owner": "W7",
       "actual_reviewer": "W1",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W1"
     },
     {
       "batch": "C013",
@@ -575,8 +631,9 @@
       "original_owner": "W7",
       "actual_reviewer": "W1",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W1"
     },
     {
       "batch": "C013",
@@ -585,8 +642,9 @@
       "original_owner": "W7",
       "actual_reviewer": "W1",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W1"
     },
     {
       "batch": "C013",
@@ -595,8 +653,9 @@
       "original_owner": "W7",
       "actual_reviewer": "W1",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W1"
     },
     {
       "batch": "C013",
@@ -605,108 +664,119 @@
       "original_owner": "W7",
       "actual_reviewer": "W1",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W1"
     },
     {
       "batch": "C013",
       "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
       "path": "apps/api/test/cancel-check-in-child-race.integration.test.ts",
       "original_owner": "W7",
-      "actual_reviewer": "W3",
+      "actual_reviewer": "W9",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W3"
     },
     {
       "batch": "C013",
       "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
       "path": "apps/api/test/cancel-check-in-concurrency.integration.test.ts",
       "original_owner": "W7",
-      "actual_reviewer": "W3",
+      "actual_reviewer": "W9",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W3"
     },
     {
       "batch": "C013",
       "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
       "path": "apps/api/test/cancel-check-in-exact-credential.integration.test.ts",
       "original_owner": "W7",
-      "actual_reviewer": "W3",
+      "actual_reviewer": "W9",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W3"
     },
     {
       "batch": "C013",
       "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
       "path": "apps/api/test/cancel-check-in-http.integration.test.ts",
       "original_owner": "W7",
-      "actual_reviewer": "W3",
+      "actual_reviewer": "W9",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W3"
     },
     {
       "batch": "C013",
       "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
       "path": "apps/api/test/cancel-check-in.integration.test.ts",
       "original_owner": "W7",
-      "actual_reviewer": "W3",
+      "actual_reviewer": "W9",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W3"
     },
     {
       "batch": "C013",
       "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
       "path": "apps/api/test/cancelled-guest-compatibility.integration.test.ts",
       "original_owner": "W7",
-      "actual_reviewer": "W3",
+      "actual_reviewer": "W9",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W3"
     },
     {
       "batch": "C013",
       "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
       "path": "apps/api/test/cash-api.integration.test.ts",
       "original_owner": "W7",
-      "actual_reviewer": "W3",
+      "actual_reviewer": "W9",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W3"
     },
     {
       "batch": "C013",
       "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
       "path": "apps/api/test/cash-collection.integration.test.ts",
       "original_owner": "W7",
-      "actual_reviewer": "W3",
+      "actual_reviewer": "W9",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W3"
     },
     {
       "batch": "C013",
       "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
       "path": "apps/api/test/check-in-api.integration.test.ts",
       "original_owner": "W7",
-      "actual_reviewer": "W3",
+      "actual_reviewer": "W9",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W3"
     },
     {
       "batch": "C013",
       "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
       "path": "apps/api/test/check-in-condition-command.integration.test.ts",
       "original_owner": "W7",
-      "actual_reviewer": "W3",
+      "actual_reviewer": "W9",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W3"
     },
     {
       "batch": "C013",
@@ -715,8 +785,9 @@
       "original_owner": "W7",
       "actual_reviewer": "W5",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W5"
     },
     {
       "batch": "C013",
@@ -725,8 +796,9 @@
       "original_owner": "W7",
       "actual_reviewer": "W5",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W5"
     },
     {
       "batch": "C013",
@@ -735,8 +807,9 @@
       "original_owner": "W7",
       "actual_reviewer": "W5",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W5"
     },
     {
       "batch": "C013",
@@ -745,8 +818,9 @@
       "original_owner": "W7",
       "actual_reviewer": "W5",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W5"
     },
     {
       "batch": "C013",
@@ -755,8 +829,181 @@
       "original_owner": "W7",
       "actual_reviewer": "W5",
       "reason": "Original W6/W7 COS conversations failed before receiving tasks; explicit reassignment",
-      "status": "assigned_pending_review",
-      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W7-review-records.json"
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W7-review-records.json",
+      "assigned_reviewer": "W5"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-information-test-context.ts",
+      "original_owner": "W3",
+      "original_assigned_reviewer": "W3",
+      "actual_reviewer": "Prime",
+      "reason": "Original W3 substitute fully read 17/45, then COS scratch record-builder patch hung for 736s and aborted; W3 expressly handed off only 28 not-yet-started paths for bounded recovery",
+      "first_17_retained_with": "W3",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W8/C013-transferred-W3-review-records.json",
+      "assigned_reviewer": "W3"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-push-registration-concurrency.integration.test.ts",
+      "original_owner": "W3",
+      "original_assigned_reviewer": "W3",
+      "actual_reviewer": "Prime",
+      "reason": "Original W3 substitute fully read 17/45, then COS scratch record-builder patch hung for 736s and aborted; W3 expressly handed off only 28 not-yet-started paths for bounded recovery",
+      "first_17_retained_with": "W3",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W8/C013-transferred-W3-review-records.json",
+      "assigned_reviewer": "W3"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-push-role-separation.integration.test.ts",
+      "original_owner": "W3",
+      "original_assigned_reviewer": "W3",
+      "actual_reviewer": "Prime",
+      "reason": "Original W3 substitute fully read 17/45, then COS scratch record-builder patch hung for 736s and aborted; W3 expressly handed off only 28 not-yet-started paths for bounded recovery",
+      "first_17_retained_with": "W3",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W8/C013-transferred-W3-review-records.json",
+      "assigned_reviewer": "W3"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-push-worker-provisioning-policy.test.ts",
+      "original_owner": "W3",
+      "original_assigned_reviewer": "W3",
+      "actual_reviewer": "Prime",
+      "reason": "Original W3 substitute fully read 17/45, then COS scratch record-builder patch hung for 736s and aborted; W3 expressly handed off only 28 not-yet-started paths for bounded recovery",
+      "first_17_retained_with": "W3",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W8/C013-transferred-W3-review-records.json",
+      "assigned_reviewer": "W3"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-push-worker-replica-test-context.ts",
+      "original_owner": "W3",
+      "original_assigned_reviewer": "W3",
+      "actual_reviewer": "Prime",
+      "reason": "Original W3 substitute fully read 17/45, then COS scratch record-builder patch hung for 736s and aborted; W3 expressly handed off only 28 not-yet-started paths for bounded recovery",
+      "first_17_retained_with": "W3",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W8/C013-transferred-W3-review-records.json",
+      "assigned_reviewer": "W3"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-push-worker-replica.integration.test.ts",
+      "original_owner": "W3",
+      "original_assigned_reviewer": "W3",
+      "actual_reviewer": "Prime",
+      "reason": "Original W3 substitute fully read 17/45, then COS scratch record-builder patch hung for 736s and aborted; W3 expressly handed off only 28 not-yet-started paths for bounded recovery",
+      "first_17_retained_with": "W3",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W8/C013-transferred-W3-review-records.json",
+      "assigned_reviewer": "W3"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-rating-runtime-role.integration.test.ts",
+      "original_owner": "W3",
+      "original_assigned_reviewer": "W3",
+      "actual_reviewer": "Prime",
+      "reason": "Original W3 substitute fully read 17/45, then COS scratch record-builder patch hung for 736s and aborted; W3 expressly handed off only 28 not-yet-started paths for bounded recovery",
+      "first_17_retained_with": "W3",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W8/C013-transferred-W3-review-records.json",
+      "assigned_reviewer": "W3"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/incident-recovery-runtime-role.integration.test.ts",
+      "original_owner": "W3",
+      "original_assigned_reviewer": "W3",
+      "actual_reviewer": "W9",
+      "reason": "Original W3 substitute fully read 17/45, then COS scratch record-builder patch hung for 736s and aborted; W3 expressly handed off only 28 not-yet-started paths for bounded recovery",
+      "first_17_retained_with": "W3",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W8/C013-transferred-W3-review-records.json",
+      "assigned_reviewer": "W3"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/incident-runtime-read-privilege.integration.test.ts",
+      "original_owner": "W3",
+      "original_assigned_reviewer": "W3",
+      "actual_reviewer": "W9",
+      "reason": "Original W3 substitute fully read 17/45, then COS scratch record-builder patch hung for 736s and aborted; W3 expressly handed off only 28 not-yet-started paths for bounded recovery",
+      "first_17_retained_with": "W3",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W8/C013-transferred-W3-review-records.json",
+      "assigned_reviewer": "W3"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/index.test.ts",
+      "original_owner": "W3",
+      "original_assigned_reviewer": "W3",
+      "actual_reviewer": "W9",
+      "reason": "Original W3 substitute fully read 17/45, then COS scratch record-builder patch hung for 736s and aborted; W3 expressly handed off only 28 not-yet-started paths for bounded recovery",
+      "first_17_retained_with": "W3",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W8/C013-transferred-W3-review-records.json",
+      "assigned_reviewer": "W3"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/location-configuration-currency.integration.test.ts",
+      "original_owner": "W3",
+      "original_assigned_reviewer": "W3",
+      "actual_reviewer": "W9",
+      "reason": "Original W3 substitute fully read 17/45, then COS scratch record-builder patch hung for 736s and aborted; W3 expressly handed off only 28 not-yet-started paths for bounded recovery",
+      "first_17_retained_with": "W3",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W8/C013-transferred-W3-review-records.json",
+      "assigned_reviewer": "W3"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/location-configuration-runtime-role.integration.test.ts",
+      "original_owner": "W3",
+      "original_assigned_reviewer": "W3",
+      "actual_reviewer": "W9",
+      "reason": "Original W3 substitute fully read 17/45, then COS scratch record-builder patch hung for 736s and aborted; W3 expressly handed off only 28 not-yet-started paths for bounded recovery",
+      "first_17_retained_with": "W3",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W8/C013-transferred-W3-review-records.json",
+      "assigned_reviewer": "W3"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/location-lifecycle-runtime-role.integration.test.ts",
+      "original_owner": "W3",
+      "original_assigned_reviewer": "W3",
+      "actual_reviewer": "W9",
+      "reason": "Original W3 substitute fully read 17/45, then COS scratch record-builder patch hung for 736s and aborted; W3 expressly handed off only 28 not-yet-started paths for bounded recovery",
+      "first_17_retained_with": "W3",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W8/C013-transferred-W3-review-records.json",
+      "assigned_reviewer": "W3"
     }
-  ]
+  ],
+  "effective_transfer_count": 88,
+  "rescue_reassigned_paths": 28,
+  "w8_fallback_reassigned_paths": 14
 }
