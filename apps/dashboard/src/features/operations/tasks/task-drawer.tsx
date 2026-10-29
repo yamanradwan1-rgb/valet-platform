@@ -7,12 +7,14 @@ import {
   operationsTaskTypeLabel,
 } from "../operations-presentation";
 import { taskAssigneeName, taskCancellerName } from "./task-attribution";
+import { emergencyTakeoverCopy } from "./emergency-takeover-copy";
 import { taskTone } from "../operations-labels";
 import {
   Fact,
   FactList,
   OperationsDrawer,
   StatusBadge,
+  styles,
 } from "../operations-ui";
 
 export function TaskDrawer(props: {
@@ -21,6 +23,7 @@ export function TaskDrawer(props: {
   readonly locale: "en" | "ar";
   readonly location: ManagementLocation;
   readonly onClose: () => void;
+  readonly onEmergencyTakeover?: () => void;
 }) {
   const t = operationsCopy(props.locale);
   const time = (value: string) =>
@@ -87,6 +90,18 @@ export function TaskDrawer(props: {
           }
         />
       </FactList>
+      {props.onEmergencyTakeover ? (
+        <div className={styles.toolbar}>
+          <button
+            className={styles.secondary}
+            data-testid="emergency-takeover-open"
+            onClick={props.onEmergencyTakeover}
+            type="button"
+          >
+            {emergencyTakeoverCopy(props.locale).action}
+          </button>
+        </div>
+      ) : null}
     </OperationsDrawer>
   );
 }

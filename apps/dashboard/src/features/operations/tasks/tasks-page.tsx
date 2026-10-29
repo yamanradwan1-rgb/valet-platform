@@ -3,7 +3,8 @@
 import type { DashboardTaskStatus, TaskOverviewEntry } from "@valet/contracts";
 import { useCallback, useState } from "react";
 import { TaskTableBody } from "./task-table-body";
-import { TaskDrawer } from "./task-drawer";
+import { EmergencyTaskDrawer } from "./emergency-task-drawer";
+import { EmergencyTakeoverDialogController } from "./emergency-takeover-dialog-controller";
 
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { ScopedContextHelp } from "../../help/scoped-context-help";
@@ -48,6 +49,8 @@ function TasksContent() {
   const [status, setStatus] = useState<StatusFilter>("ALL");
   const [type, setType] = useState<TypeFilter>("ALL");
   const [selected, setSelected] = useState<TaskOverviewEntry | null>(null);
+  const [takeoverSelected, setTakeoverSelected] = useState<TaskOverviewEntry | null>(null);
+  const [reconcileAfterTakeover, setReconcileAfterTakeover] = useState(false);
   const location = selectedOperationsLocation(dashboard.selectedScope);
   const locationId = location?.locationId ?? "";
   const enabled =
@@ -71,10 +74,15 @@ function TasksContent() {
       (status === "ALL" || item.status === status) &&
       (type === "ALL" || item.taskType === type),
   );
+  const selectedForDrawer = selected && reconcileAfterTakeover && !read.loading
+    ? read.data?.items.find((task) => task.taskId === selected.taskId) ?? null
+    : selected;
   const resetPageLocalState = () => {
     setStatus("ALL");
     setType("ALL");
     setSelected(null);
+    setTakeoverSelected(null);
+    setReconcileAfterTakeover(false);
   };
   const nextPage = () => {
     const nextCursor = read.data?.nextCursor ?? null;
@@ -160,7 +168,10 @@ function TasksContent() {
                 locale={locale}
                 location={location}
                 onRetry={read.refresh}
-                onSelect={setSelected}
+                onSelect={(task) => {
+                  setSelected(task);
+                  setReconcileAfterTakeover(false);
+                }}
                 sourceEmpty={sourceItems.length === 0}
               />
             </tbody>
@@ -176,13 +187,41 @@ function TasksContent() {
           onPrevious={previousPage}
         />
       </div>
-      {selected ? (
-        <TaskDrawer
+      {selectedForDrawer ? (
+        <EmergencyTaskDrawer
+          api={dashboard.api}
+          companyAdmin={scope.authority === "COMPANY_ADMIN"}
           help={<ScopedContextHelp helpKey="tasks.drawer" />}
-          item={selected}
+          item={selectedForDrawer}
+          key={selectedForDrawer.taskId}
           locale={locale}
           location={location}
-          onClose={() => setSelected(null)}
+          onClose={() => {
+            setSelected(null);
+            setTakeoverSelected(null);
+          }}
+          onTakeover={() => setTakeoverSelected(selectedForDrawer)}
+          scopeKey={scopeKey}
+        />
+      ) : null}
+      {takeoverSelected ? (
+        <EmergencyTakeoverDialogController
+          api={dashboard.api}
+          key={takeoverSelected.taskId}
+          locale={locale}
+          onCanonicalRefresh={() => {
+            setReconcileAfterTakeover(true);
+            read.refresh();
+          }}
+          onClose={() => setTakeoverSelected(null)}
+          onDenied={() => {
+            setTakeoverSelected(null);
+            setSelected(null);
+            read.refresh();
+          }}
+          scopeKey={scopeKey}
+          taskId={takeoverSelected.taskId}
+          timezone={location.timezone}
         />
       ) : null}
     </OperationsPage>
