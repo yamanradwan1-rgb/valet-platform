@@ -32,23 +32,23 @@ test("lists real resources, creates persisted rows, refreshes and reopens labels
 }) => {
   const state = new Issue232PhysicalState(true);
   await enter(page, state);
-  await expect(page.getByText("K-01", { exact: true })).toBeVisible();
+  await expect(page.locator('[data-resource-code="K-01"]')).toBeVisible();
   await page.getByRole("button", { name: "Add Key Slot" }).click();
   const keyDialog = page.getByRole("dialog", { name: "Add Key Slot" });
-  await keyDialog.getByLabel("Code").fill(" K-02 ");
+  await keyDialog.getByLabel("Resource code").fill(" K-02 ");
   await keyDialog
-    .getByRole("button", { name: "Create", exact: true })
+    .getByRole("button", { name: "Add Key Slot", exact: true })
     .dblclick();
   expect(state.keyPostBodies).toHaveLength(1);
   const label = page.getByRole("dialog", { name: "Physical resource label" });
   await expect(label.getByText("K-02", { exact: true })).toBeVisible();
-  await label.getByLabel("Cancel").click();
+  await label.getByRole("button", { name: "Close", exact: true }).last().click();
   await page.reload();
   await selectCompanyLocationAfterReload(page);
-  await expect(page.getByText("K-02", { exact: true })).toBeVisible();
+  await expect(page.locator('[data-resource-code="K-02"]')).toBeVisible();
 
-  await page.getByRole("tab", { name: "Parking Spots" }).click();
-  await expect(page.getByText("P-01", { exact: true })).toBeVisible();
+  await page.getByRole("group", { name: "Resource family" }).getByRole("button", { name: /Parking Spots/u }).click();
+  await expect(page.locator('[data-resource-code="P-01"]')).toBeVisible();
   await page.getByRole("button", { name: "Add Parking Spot" }).click();
   const spotDialog = page.getByRole("dialog", { name: "Add Parking Spot" });
   await spotDialog.getByLabel("Code").fill("P-02");
@@ -72,16 +72,14 @@ test("empty states, duplicate validation and 401 reconciliation never auto-repla
   const api = fixture(state);
   await api.install(page);
   await enterPhysicalResources(page);
-  await expect(
-    page.getByText("No Key Slots configured for this Location."),
-  ).toBeVisible();
+  await expect(page.getByRole("region", { name: "Resource list" }).getByText("No resources in this view.")).toBeVisible();
   state.failNextKeyPost401 = true;
   const keyPath = `/v1/staff/dashboard/locations/${LOCATION_A.locationId}/physical-resources/key-slots`;
   const readsBefore = api.count(keyPath);
   await page.getByRole("button", { name: "Add Key Slot" }).click();
   const dialog = page.getByRole("dialog", { name: "Add Key Slot" });
-  await dialog.getByLabel("Code").fill("K-09");
-  await dialog.getByRole("button", { name: "Create", exact: true }).click();
+  await dialog.getByLabel("Resource code").fill("K-09");
+  await dialog.getByRole("button", { name: "Add Key Slot", exact: true }).click();
   expect(state.keyPostBodies).toHaveLength(1);
   await expect(page.getByRole("dialog", { name: "Add Key Slot" })).toHaveCount(
     0,
@@ -92,7 +90,7 @@ test("empty states, duplicate validation and 401 reconciliation never auto-repla
   const retryDialog = page.getByRole("dialog", { name: "Add Key Slot" });
   await retryDialog.getByLabel("Code").fill("K-09");
   await retryDialog
-    .getByRole("button", { name: "Create", exact: true })
+    .getByRole("button", { name: "Add Key Slot", exact: true })
     .click();
   expect(state.keyPostBodies).toHaveLength(2);
   expect((state.keyPostBodies[0] as { operationId: string }).operationId).toBe(
@@ -109,10 +107,10 @@ test("announces duplicate conflicts and restores keyboard focus", async ({
   await add.focus();
   await add.press("Enter");
   const dialog = page.getByRole("dialog", { name: "Add Key Slot" });
-  const code = dialog.getByLabel("Code");
+  const code = dialog.getByLabel("Resource code");
   await expect(code).toBeFocused();
   await code.fill("K-01");
-  await dialog.getByRole("button", { name: "Create", exact: true }).click();
+  await dialog.getByRole("button", { name: "Add Key Slot", exact: true }).click();
   await expect(dialog.getByRole("alert")).toBeVisible();
   await dialog.press("Escape");
   await expect(dialog).toHaveCount(0);
@@ -124,12 +122,12 @@ test("downloads a real high-resolution PNG and print mode excludes Dashboard chr
 }) => {
   const state = new Issue232PhysicalState(true);
   await enter(page, state);
-  await page.getByRole("button", { name: "View label" }).first().click();
+  await page.getByRole("button", { name: "View QR label" }).first().click();
   const dialog = page.getByRole("dialog", { name: "Physical resource label" });
   await expect(dialog.getByText("KEY SLOT", { exact: true })).toBeVisible();
   await expect(
-    dialog.getByText(LOCATION_A.name, { exact: true }),
-  ).toBeVisible();
+    dialog.locator(".issue304-modal-label-resource"),
+  ).toContainText(LOCATION_A.name);
   await page.evaluate(() => {
     const originalCreate = URL.createObjectURL.bind(URL);
     const originalRevoke = URL.revokeObjectURL.bind(URL);
@@ -231,7 +229,11 @@ test("downloads a real high-resolution PNG and print mode excludes Dashboard chr
     return JSON.stringify(result);
   });
   expect(stored).not.toContain("vaylet:v2:key-slot");
-  expect(stored).not.toContain("11111111-1111-4111-8111-111111111111");
+  // This fixture's key-slot ID equals ORG_A's ID, which is legitimately stored
+  // for workspace restoration. Check actual resource/QR data rather than the
+  // ambiguous UUID value shared with the authorized Organization.
+  expect(stored).not.toContain('"keySlotId"');
+  expect(stored).not.toContain("K-01");
 
   await page.emulateMedia({ media: "print" });
   const printLabel = page.getByTestId("physical-resource-print-label");

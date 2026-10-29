@@ -17,6 +17,7 @@ import { lifecyclePath, locationLifecycle } from "./support/r06-locations";
 const occupancyPath = `/v1/staff/dashboard/locations/${LOCATION_A.locationId}/overview/keys`;
 const physicalBase = (locationId: string) =>
   `/v1/staff/dashboard/locations/${locationId}/physical-resources`;
+const inspectorPath = (locationId: string) => `${physicalBase(locationId)}/overview`;
 const keyPath = (locationId: string) => `${physicalBase(locationId)}/key-slots`;
 const spotPath = (locationId: string) =>
   `${physicalBase(locationId)}/parking-spots`;
@@ -27,7 +28,7 @@ const labelPath = (locationId: string, resourceId: string) =>
 const companyOrganizationsPath = "/v1/staff/management/organizations";
 const companyLocationsPath = `${companyOrganizationsPath}/${ORG_A.organizationId}/locations`;
 
-test("Keys & Spots composes frozen views lazily and removes resources from Locations", async ({
+test("Keys & Spots uses the accepted Resource inspector without retired outer tabs", async ({
   page,
 }) => {
   const physical = new Issue232PhysicalState(true);
@@ -48,12 +49,15 @@ test("Keys & Spots composes frozen views lazily and removes resources from Locat
   const nav = page.getByRole("navigation", { name: "Management navigation" });
   await expect(nav.getByRole("link", { name: "Keys & Spots" })).toBeVisible();
   await expect(page).toHaveURL(/\/keys$/u);
-  await expect(page.getByText("K-12", { exact: true })).toBeVisible();
+  await openPhysicalResources(page);
+  await expect(page.locator('[data-resource-code="K-01"]')).toBeVisible();
   const occupancyReads = fixture.count(occupancyPath);
+  const inspectorReads = fixture.count(inspectorPath(LOCATION_A.locationId));
   const organizationReads = fixture.count(companyOrganizationsPath);
   const locationDiscoveryReads = fixture.count(companyLocationsPath);
-  expect(occupancyReads).toBeGreaterThan(0);
-  expect(occupancyReads).toBeLessThanOrEqual(2);
+  expect(occupancyReads).toBe(0);
+  expect(inspectorReads).toBeGreaterThan(0);
+  expect(inspectorReads).toBeLessThanOrEqual(2);
   expect(locationDiscoveryReads).toBeGreaterThan(0);
   expect(fixture.count(keyPath(LOCATION_A.locationId))).toBe(0);
   expect(fixture.count(spotPath(LOCATION_A.locationId))).toBe(0);
@@ -62,33 +66,29 @@ test("Keys & Spots composes frozen views lazily and removes resources from Locat
     0,
   );
 
-  const outerTabs = page.getByRole("tablist", { name: "Keys & Spots" });
-  const operational = outerTabs.getByRole("tab", { name: "Operational Keys" });
-  const configuration = outerTabs.getByRole("tab", {
-    name: "Physical Resources",
-  });
-  await operational.focus();
-  await operational.press("ArrowRight");
-  await expect(configuration).toBeFocused();
-  await expect(configuration).toHaveAttribute("aria-selected", "false");
-  await configuration.press("Enter");
-  await expect(configuration).toBeFocused();
-  await expect(
-    page.getByRole("heading", { name: "Physical Resources" }),
-  ).toBeVisible();
-  await expect(page.getByText("K-01", { exact: true })).toBeVisible();
+  await expect(page.getByRole("tablist", { name: "Keys & Spots" })).toHaveCount(0);
+  const family = page.getByRole("group", { name: "Resource family" });
+  const keys = family.getByRole("button", { name: /Key Slots/u });
+  const spots = family.getByRole("button", { name: /Parking Spots/u });
+  await expect(keys).toHaveAttribute("aria-pressed", "true");
+  await keys.focus();
+  await keys.press("Tab");
+  await expect(spots).toBeFocused();
+  await spots.press("Enter");
+  await expect(spots).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator('[data-resource-code="P-01"]')).toBeVisible();
   expect(fixture.count(occupancyPath)).toBe(occupancyReads);
   expect(fixture.count(companyOrganizationsPath)).toBe(organizationReads);
   expect(fixture.count(companyLocationsPath)).toBe(locationDiscoveryReads);
-  const keyReads = fixture.count(keyPath(LOCATION_A.locationId));
-  expect(keyReads).toBeGreaterThan(0);
-  expect(keyReads).toBeLessThanOrEqual(2);
+  expect(fixture.count(inspectorPath(LOCATION_A.locationId))).toBe(inspectorReads);
+  expect(fixture.count(keyPath(LOCATION_A.locationId))).toBe(0);
   expect(fixture.count(spotPath(LOCATION_A.locationId))).toBe(0);
   expect(fixture.count(zonePath(LOCATION_A.locationId))).toBe(0);
   expect(fixture.count(labelPath(LOCATION_A.locationId, ISSUE232_KEY_ID))).toBe(
     0,
   );
-  await page.getByRole("button", { name: "View label" }).first().click();
+  await keys.click();
+  await page.getByRole("button", { name: "View QR label" }).first().click();
   const label = page.getByRole("dialog", { name: "Physical resource label" });
   await expect(label).toBeVisible();
   const labelReads = fixture.count(
@@ -98,19 +98,10 @@ test("Keys & Spots composes frozen views lazily and removes resources from Locat
   expect(labelReads).toBeLessThanOrEqual(2);
   await label.press("Escape");
 
-  const innerTabs = page.getByRole("tablist", { name: "Physical Resources" });
-  const keySlotsTab = innerTabs.getByRole("tab", { name: "Key Slots" });
-  const parkingSpotsTab = innerTabs.getByRole("tab", { name: "Parking Spots" });
-  await keySlotsTab.focus();
-  await keySlotsTab.press("ArrowRight");
-  await expect(parkingSpotsTab).toBeFocused();
-  await expect(parkingSpotsTab).toHaveAttribute("aria-selected", "false");
-  await parkingSpotsTab.press("Enter");
-  await expect(page.getByText("P-01", { exact: true })).toBeVisible();
-  expect(fixture.count(keyPath(LOCATION_A.locationId))).toBe(keyReads);
-  const spotReads = fixture.count(spotPath(LOCATION_A.locationId));
-  expect(spotReads).toBeGreaterThan(0);
-  expect(spotReads).toBeLessThanOrEqual(2);
+  await spots.click();
+  await expect(page.locator('[data-resource-code="P-01"]')).toBeVisible();
+  expect(fixture.count(inspectorPath(LOCATION_A.locationId))).toBe(inspectorReads);
+  expect(fixture.count(spotPath(LOCATION_A.locationId))).toBe(0);
   expect(fixture.count(zonePath(LOCATION_A.locationId))).toBe(0);
   await page.getByRole("button", { name: "Add Parking Spot" }).click();
   const create = page.getByRole("dialog", { name: "Add Parking Spot" });
@@ -120,7 +111,7 @@ test("Keys & Spots composes frozen views lazily and removes resources from Locat
   expect(zoneReads).toBeLessThanOrEqual(2);
   await create.press("Escape");
   const settled = {
-    key: fixture.count(keyPath(LOCATION_A.locationId)),
+    key: fixture.count(inspectorPath(LOCATION_A.locationId)),
     label: fixture.count(labelPath(LOCATION_A.locationId, ISSUE232_KEY_ID)),
     occupancy: fixture.count(occupancyPath),
     organizations: fixture.count(companyOrganizationsPath),
@@ -129,7 +120,7 @@ test("Keys & Spots composes frozen views lazily and removes resources from Locat
   };
   await page.waitForTimeout(300);
   expect({
-    key: fixture.count(keyPath(LOCATION_A.locationId)),
+    key: fixture.count(inspectorPath(LOCATION_A.locationId)),
     label: fixture.count(labelPath(LOCATION_A.locationId, ISSUE232_KEY_ID)),
     occupancy: fixture.count(occupancyPath),
     organizations: fixture.count(companyOrganizationsPath),
@@ -141,7 +132,7 @@ test("Keys & Spots composes frozen views lazily and removes resources from Locat
   await page.getByRole("button", { name: "Language", exact: true }).click();
   await expect(
     page.getByRole("heading", {
-      name: "المفاتيح ومواقف السيارات",
+      name: "مستكشف الموارد",
       level: 1,
     }),
   ).toBeVisible();
@@ -150,9 +141,7 @@ test("Keys & Spots composes frozen views lazily and removes resources from Locat
   ).toBeVisible();
   await page.getByRole("button", { name: "اللغة", exact: true }).click();
 
-  const physicalReadsBeforeLocations =
-    fixture.count(keyPath(LOCATION_A.locationId)) +
-    fixture.count(spotPath(LOCATION_A.locationId));
+  const physicalReadsBeforeLocations = fixture.count(inspectorPath(LOCATION_A.locationId));
   await nav.getByRole("link", { name: "Locations" }).click();
   await page
     .getByTestId("location-master")
@@ -160,14 +149,13 @@ test("Keys & Spots composes frozen views lazily and removes resources from Locat
     .click();
   await expect(page.getByTestId("location-detail")).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Physical Resources" }),
+    page.getByRole("heading", { name: "مستكشف الموارد" }),
   ).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Add Key Slot" })).toHaveCount(
     0,
   );
   expect(
-    fixture.count(keyPath(LOCATION_A.locationId)) +
-      fixture.count(spotPath(LOCATION_A.locationId)),
+    fixture.count(inspectorPath(LOCATION_A.locationId)),
   ).toBe(physicalReadsBeforeLocations);
 });
 
@@ -187,19 +175,29 @@ test("inactive Company Admin reaches read-only configuration with zero occupancy
     updatedAt: "2026-09-29T03:00:00.000Z",
   };
   const inactiveOccupancy = `/v1/staff/dashboard/locations/${inactive.locationId}/overview/keys`;
+  const activePhysical = new Issue232PhysicalState(true);
   const fixture = new DashboardApiFixture({
     companyOrganizations: [ORG_A],
     companyLocations: { [ORG_A.organizationId]: [LOCATION_A, inactive] },
-    override: (path) => {
-      if (path === occupancyPath) return operationsReadReply(path);
-      if (path === keyPath(inactive.locationId))
-        return { body: { items: [inactiveKey], nextCursor: null } };
-      return undefined;
+    override: (path, request) => {
+      if (path === inspectorPath(inactive.locationId)) return { body: {
+        counts: {
+          keySlots: { configured: 1, active: 0, available: null, inUse: null, unknown: 1 },
+          parkingSpots: { configured: 0, active: 0, available: null, occupied: null, unknown: 0 },
+        },
+        keySlots: { items: [{
+          keySlotId: inactiveKey.keySlotId, code: inactiveKey.code,
+          label: null, status: "INACTIVE", usage: "UNKNOWN",
+          holdingSessionId: null, holdingVehicle: null,
+        }], nextCursor: null },
+        parkingSpots: { items: [], nextCursor: null },
+      } };
+      return activePhysical.reply(path, request) ?? operationsReadReply(path);
     },
   });
   await fixture.install(page);
   await enterKeysSpots(page);
-  await expect(page.getByText("K-12", { exact: true })).toBeVisible();
+  await expect(page.locator('[data-resource-code="K-01"]')).toBeVisible();
 
   await page
     .locator(".topbar")
@@ -220,9 +218,6 @@ test("inactive Company Admin reaches read-only configuration with zero occupancy
       .locator(".topbar")
       .getByRole("button", { name: "Change scope", exact: true }),
   ).toBeFocused();
-  await expect(
-    page.getByText("Select an active exact Location to view this information."),
-  ).toBeVisible();
   const inactiveNavigation = page
     .getByRole("navigation", { name: "Management navigation" })
     .first();
@@ -244,14 +239,13 @@ test("inactive Company Admin reaches read-only configuration with zero occupancy
   expect(fixture.count(keyPath(inactive.locationId))).toBe(0);
 
   await openPhysicalResources(page);
-  await expect(page.getByText("K-HIST", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Add Key Slot" })).toHaveCount(
-    0,
-  );
-  await expect(page.getByRole("button", { name: "View label" })).toBeDisabled();
+  await expect(page.locator('[data-resource-code="K-HIST"]')).toBeVisible();
+  await expect(page.getByRole("button", { name: "Add Key Slot" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "View QR label" })).toBeDisabled();
   expect(fixture.count(inactiveOccupancy)).toBe(0);
-  expect(fixture.count(keyPath(inactive.locationId))).toBeGreaterThan(0);
-  expect(fixture.count(keyPath(inactive.locationId))).toBeLessThanOrEqual(2);
+  expect(fixture.count(inspectorPath(inactive.locationId))).toBeGreaterThan(0);
+  expect(fixture.count(inspectorPath(inactive.locationId))).toBeLessThanOrEqual(2);
+  expect(fixture.count(keyPath(inactive.locationId))).toBe(0);
   expect(fixture.count(spotPath(inactive.locationId))).toBe(0);
 });
 
@@ -270,9 +264,9 @@ test("Location Manager keeps exact active grant and cannot choose inactive or Al
   });
   await fixture.install(page);
   await enterKeysSpots(page, "manager@example.com");
-  await expect(page.getByText("K-12", { exact: true })).toBeVisible();
+  await expect(page.locator('[data-resource-code="K-01"]')).toBeVisible();
   await openPhysicalResources(page);
-  await expect(page.getByText("K-01", { exact: true })).toBeVisible();
+  await expect(page.locator('[data-resource-code="K-01"]')).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Add Key Slot" }),
   ).toBeVisible();

@@ -27,7 +27,7 @@ async function openCompanyRoute(page: import("@playwright/test").Page, path: str
   await page.getByRole("button", { name: ORG_A.name }).click();
 }
 
-test("Company Admin navigation exposes the seven MD-02 destinations with full access", async ({ page }) => {
+test("Company Admin navigation exposes the six accepted MD-02 destinations with full access", async ({ page }) => {
   const fixture = new DashboardApiFixture({
     companyOrganizations: [ORG_A],
     companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
@@ -40,10 +40,11 @@ test("Company Admin navigation exposes the seven MD-02 destinations with full ac
   const navigation = page.getByRole("navigation", { name: "Management navigation" });
   for (const name of [
     "Employees & Shifts", "Locations", "Policies & Settings", "Roles & Permissions",
-    "Branding", "Integrations", "Billing & Subscription",
+    "Branding", "Billing & Subscription",
   ]) {
     await expect(navigation.getByRole("link", { name })).toBeVisible();
   }
+  await expect(navigation.getByRole("link", { name: "Integrations" })).toHaveCount(0);
 });
 
 test("Location Manager navigation contains only the accepted Location-level MD-02 destinations", async ({ page }) => {

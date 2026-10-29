@@ -79,6 +79,30 @@ export class Issue232PhysicalState {
 
   reply(path: string, request: Request) {
     const base = `/v1/staff/dashboard/locations/${LOCATION_A.locationId}/physical-resources`;
+    if (path === `${base}/overview`) {
+      const activeKeys = this.keySlots.filter((item) => item.status === "ACTIVE").length;
+      const activeSpots = this.parkingSpots.filter((item) => item.status === "ACTIVE").length;
+      return { body: {
+        counts: {
+          keySlots: { configured: this.keySlots.length, active: activeKeys, available: activeKeys, inUse: 0, unknown: 0 },
+          parkingSpots: { configured: this.parkingSpots.length, active: activeSpots, available: activeSpots, occupied: 0, unknown: 0 },
+        },
+        keySlots: {
+          items: this.keySlots.map((item) => ({
+            keySlotId: item.keySlotId, code: item.code, status: item.status, label: null,
+            usage: item.status === "ACTIVE" ? "AVAILABLE" : "UNKNOWN",
+            holdingSessionId: null, holdingVehicle: null,
+          })),
+          nextCursor: null,
+        },
+        parkingSpots: {
+          items: this.parkingSpots.map((item) => ({ ...item,
+            usage: item.status === "ACTIVE" ? "AVAILABLE" : "UNKNOWN", occupancy: null,
+          })),
+          nextCursor: null,
+        },
+      } };
+    }
     if (path === `${base}/key-slots`) {
       if (request.method() === "GET") return { body: { items: this.keySlots, nextCursor: null } };
       this.keyPostBodies.push(request.postDataJSON());

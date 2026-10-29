@@ -13,18 +13,13 @@ export async function enterKeysSpots(
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page.getByRole("button", { name: locationName, exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Keys & Spots", level: 1 }),
+    page.getByRole("heading", { name: "Resource inspector", level: 1 }),
   ).toBeVisible();
 }
 
 export async function openPhysicalResources(page: Page) {
-  await page
-    .getByRole("tablist", { name: "Keys & Spots" })
-    .getByRole("tab", { name: "Physical Resources" })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "Physical Resources" }),
-  ).toBeVisible();
+  await expect(page.locator("[data-issue304-inspector]")).toBeVisible();
+  await expect(page.getByRole("group", { name: "Resource family" })).toBeVisible();
 }
 
 export async function enterPhysicalResources(
@@ -40,11 +35,11 @@ export async function selectCompanyLocationAfterReload(
   page: Page,
   locationName = LOCATION_A.name,
 ) {
-  await expect(
-    page.getByRole("heading", { name: "Choose your authorized workspace" }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: ORG_A.name }).click();
-  await page.getByRole("button", { name: locationName, exact: true }).click();
+  const chooser = page.getByRole("heading", { name: "Choose your authorized workspace" });
+  if (await chooser.isVisible()) {
+    await page.getByRole("button", { name: ORG_A.name }).click();
+    await page.getByRole("button", { name: locationName, exact: true }).click();
+  }
   await openPhysicalResources(page);
 }
 
