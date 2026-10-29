@@ -93,6 +93,13 @@
       "next": "Independent C017 full caller/consumer/source review."
     }
   ],
+  "record_finding_aliases": [
+    {
+      "record_id": "C017-W6-CAND-P3-END-SHIFT-SSR-STALE",
+      "canonical_evidence_id": "RB003-W7-CAND-P2-ENDSHIFT-OLD-SSR-TEST",
+      "explanation": "The C017 W6 full-source review independently reidentified the historical RB003 owner-scoped End Shift SSR fixture mismatch. The evidence is consolidated under the RB003-origin identifier, triaged as P3 likely test fixture alignment rather than a newly distinct P2."
+    }
+  ],
   "historical_residual_not_new": "DEC-073/DEC-076 Staff Push generic post-eligibility alert race was independently W2 reviewed and is accepted, not newly confirmed P2.",
   "limitations": [
     "All severity candidates are source-only and must not be presented as confirmed runtime vulnerabilities.",

@@ -1,0 +1,101 @@
+{
+  "batch": "C018",
+  "qa_kind": "independent_prepublication_roster_validation",
+  "reviewer": "W7",
+  "verdict": "PASS",
+  "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "source_tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "published_c017_docs_commit": "9f21c1ded51526e6c791e2e31b6ea21e4e041132",
+  "published_c017_git_parent": "dfb14c4276d26f9f10a35a37d829bf86b769264c",
+  "published_c017_remote_tracking_ref": "refs/remotes/origin/audit/vaylet-full-audit-2026-10-27",
+  "roster": "docs/audits/2026-10-27/continuation/checkpoints/C018-0747a677-assignment-roster.json",
+  "transfers": "docs/audits/2026-10-27/continuation/checkpoints/C018-0747a677-ownership-transfers.json",
+  "published_c017_remaining": "docs/audits/2026-10-27/continuation/checkpoints/C017-0747a677-current-remaining.txt",
+  "published_c017_ledger": "docs/audits/2026-10-27/continuation/checkpoints/C017-0747a677-current-ledger.csv",
+  "checks": {
+    "source_head_and_tree_match": true,
+    "source_checkout_clean": true,
+    "docs_head_is_published_c017": true,
+    "c017_commit_present_in_remote_tracking_ref": true,
+    "c018_previous_published_audit_commit_matches_c017": true,
+    "immutable_roster_header_and_source_metadata_valid": true,
+    "published_c017_remaining": 1804,
+    "c017_ledger_rows": 7595,
+    "roster_count": 175,
+    "roster_unique_paths": 175,
+    "roster_paths_present_in_published_c017_remaining": 175,
+    "roster_paths_current_status_not_reviewed": 175,
+    "previously_reviewed_overlap": 0,
+    "original_owner_counts": {
+      "W1": 25,
+      "W2": 25,
+      "W3": 25,
+      "W4": 25,
+      "W5": 25,
+      "W6": 25,
+      "W7": 25
+    },
+    "assigned_reviewer_counts": {
+      "W1": 35,
+      "W2": 35,
+      "W3": 35,
+      "W4": 0,
+      "W5": 0,
+      "W6": 35,
+      "W7": 35
+    },
+    "valid_unique_transfers": 50,
+    "transfer_original_owner_counts": {
+      "W4": 25,
+      "W5": 25
+    },
+    "transfers_per_active_reviewer": {
+      "W1": {
+        "from_W4": 5,
+        "from_W5": 5
+      },
+      "W2": {
+        "from_W4": 5,
+        "from_W5": 5
+      },
+      "W3": {
+        "from_W4": 5,
+        "from_W5": 5
+      },
+      "W6": {
+        "from_W4": 5,
+        "from_W5": 5
+      },
+      "W7": {
+        "from_W4": 5,
+        "from_W5": 5
+      }
+    },
+    "transfer_assignment_owner_reviewer_and_result_path_mismatches": 0,
+    "role_domain_fallback_count": 23,
+    "role_domain_fallback_counts": {
+      "W1": 12,
+      "W3": 11
+    },
+    "flagged_fallback_paths_in_api_test_domain": 23,
+    "pinned_git_source_tree_total_blobs": 7595,
+    "roster_git_blobs_read_to_eof": 175,
+    "roster_git_blob_total_bytes": 808727,
+    "roster_git_blob_eof_line_count": 22815,
+    "roster_git_blobs_with_final_newline": 175,
+    "roster_blob_eof_line_counts_matching_c017_ledger": 175,
+    "roster_blob_sha256_computed_in_memory": 175,
+    "missing_source_git_blob_or_checkout_path": 0,
+    "invalid_git_blob_size_or_eof_line_count": 0
+  },
+  "defects": [],
+  "scope_limits": [
+    "No C018 semantic review, runtime tests, exploit attempts or new coverage credit performed.",
+    "Remote inclusion was checked against the locally fetched tracking ref; this bounded QA did not perform a new network fetch.",
+    "Computed Git blob SHA256 values were used for source-read validation and not persisted as per-file semantic evidence; each assigned reviewer must record canonical hashes in the later authorized semantic review."
+  ],
+  "product_docs_ci_issues_mutated": false,
+  "scratch_files_written": [
+    "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W7/C018-roster-independent-qa.json"
+  ]
+}

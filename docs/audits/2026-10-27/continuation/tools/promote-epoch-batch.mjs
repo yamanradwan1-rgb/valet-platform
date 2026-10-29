@@ -23,6 +23,11 @@ const previousLedgerPath=batch==='C017'
   ?join(root,'rebaselines',sha,'current-coverage-ledger.csv')
   :join(cp,`${previousBatch}-${sha.slice(0,8)}-current-ledger.csv`);
 const previous=read(previousSummaryPath),docsParent=execFileSync('git',['-C',root,'rev-parse','HEAD'],{encoding:'utf8'}).trim();
+const rosterFile=`checkpoints/${batch}-${sha.slice(0,8)}-assignment-roster.json`;
+const immutableRosterDocsCommit=execFileSync('git',['-C',root,'log','--diff-filter=A','-1',
+  '--format=%H','HEAD','--',rosterFile],{encoding:'utf8'}).trim();
+if(!/^[a-f0-9]{40}$/.test(immutableRosterDocsCommit))
+  throw new Error('Cannot locate remotely published immutable roster introducing commit');
 if(!existsSync(prefix+'prime-spot-checks.md')||!existsSync(prefix+'finding-evidence.json'))
   throw new Error('Independent semantic/finding source review not finished');
 if(roster.batch!==batch||roster.source_commit!==sha||roster.source_tree!==tree||
@@ -92,7 +97,7 @@ if(eligible.length!==previous.candidate_files||sum(eligible)!==previous.candidat
    pending.length!==previous.current_remaining-accepted.length||
    sum(reviewed)-previous.current_reviewed_lines!==newLines)throw new Error('Cumulative epoch coverage accounting mismatch');
 const summary={checkpoint:batch,source_commit:sha,source_tree:tree,parent_docs_commit:docsParent,
-  immutable_roster_docs_commit:roster.previous_published_audit_commit,
+  immutable_roster_docs_commit:immutableRosterDocsCommit,
   candidate_files:eligible.length,candidate_lines:sum(eligible),
   previous_current_fully_reviewed:previous.current_fully_reviewed,
   previous_current_reviewed_lines:previous.current_reviewed_lines,newly_reviewed:accepted.length,

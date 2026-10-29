@@ -3,7 +3,7 @@
   "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
   "source_tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
   "parent_docs_commit": "dfb14c4276d26f9f10a35a37d829bf86b769264c",
-  "immutable_roster_docs_commit": "ad2094edd7ab9ab5c2de137bcb9a67872f6beefa",
+  "immutable_roster_docs_commit": "dfb14c4276d26f9f10a35a37d829bf86b769264c",
   "candidate_files": 4789,
   "candidate_lines": 620723,
   "previous_current_fully_reviewed": 2810,

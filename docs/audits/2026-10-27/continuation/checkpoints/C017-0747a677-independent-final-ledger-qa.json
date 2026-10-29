@@ -1,0 +1,488 @@
+{
+  "task": "C017 bounded independent final ledger QA — logical W5",
+  "performed_on": "2026-10-29",
+  "verdict": "COVERAGE_PASS_WITH_PROVENANCE_FIX_REQUIRED",
+  "source_pin": {
+    "commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+    "tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+    "worktree": "tmp/cos-audit-20261029-rb003-source",
+    "status": "clean detached pinned"
+  },
+  "scope": {
+    "mode": "READ_ONLY_STATIC_QA",
+    "source_files_reedited": 0,
+    "runtime_tests_executed": 0,
+    "docs_changed": 0,
+    "product_changed": 0,
+    "own_scratch_only": true
+  },
+  "ledger": {
+    "tracked_files": 7595,
+    "eligible_candidate_files": 4789,
+    "candidate_lines": 620723,
+    "prior_rb003": {
+      "reviewed_files": 2810,
+      "reviewed_lines": 353103,
+      "remaining_files": 1979
+    },
+    "c017_increment": {
+      "reviewed_files": 175,
+      "reviewed_lines": 23345
+    },
+    "promoted": {
+      "reviewed_files": 2985,
+      "reviewed_lines": 376448,
+      "remaining_files": 1804,
+      "file_coverage_percent": 62.33034036333264,
+      "line_coverage_percent": 60.64669748019648
+    },
+    "checks": {
+      "candidate_path_unique": true,
+      "reviewed_path_unique": true,
+      "remaining_matches_ledger_exact": true,
+      "base_to_promoted_only_roster_paths_change": true,
+      "no_premature_recredit": true,
+      "reviewed_plus_remaining_equals_candidate": true,
+      "sum_lines_exact": true,
+      "result": "PASS"
+    }
+  },
+  "assignment": {
+    "roster_count": 175,
+    "record_count": 175,
+    "record_paths_unique": 175,
+    "matched_paths": 175,
+    "original_ownership_count": 125,
+    "formal_transfers": 50,
+    "current_reviewer_counts": {
+      "W1": 35,
+      "W2": 35,
+      "W3": 35,
+      "W6": 35,
+      "W7": 35
+    },
+    "effective_transfer_matches_manifest": 50,
+    "record_owner_matches_roster": 175,
+    "effective_owner_matches_roster": 50,
+    "full_records_contiguous_read_ranges": 175,
+    "full_records_substantive_notes_callers_invariants_limits": 175,
+    "records_with_nonempty_test_refs": 175,
+    "status": "PASS"
+  },
+  "reproducible_sample": {
+    "method": "Each actual reviewer W1,W2,W3,W6,W7; PowerShell Sort-Object path, select zero-based indices 0,5,10,15,20,24,25,29,30,34",
+    "rationale": "10 records from each of five active reviewers, covering first 25 original and 10 transferred segments; deterministic zero-based indices.",
+    "total": 50,
+    "canonical_git_blob_sha256_matches": 50,
+    "read_ranges_end_matches_blob_eof": 50,
+    "ledger_line_count_matches_blob_eof": 50,
+    "source_command": "git -C tmp/cos-audit-20261029-rb003-source cat-file blob HEAD:<record.path> (binary stdout captured with .NET Process StandardOutput.BaseStream; SHA256 over raw bytes; EOF computed as newline-byte count plus final unterminated line)",
+    "samples": [
+      {
+        "path": "apps/api/src/modules/staff-push/fcm-http-v1-adapter.ts",
+        "reviewer": "W1",
+        "original_owner": "W1",
+        "lines": 169,
+        "sha256": "6668a6384ec047bc4f4b8e57a67a6dc8c3f69f8518da9e6af54a0294a77a5afc"
+      },
+      {
+        "path": "apps/api/src/modules/tracking/geofence-types.ts",
+        "reviewer": "W1",
+        "original_owner": "W1",
+        "lines": 20,
+        "sha256": "2b25b6fd82a77967c01c224e1af22375cda563122f46e2a03b33f17979695c68"
+      },
+      {
+        "path": "apps/api/src/modules/tracking/live-map-cursor.ts",
+        "reviewer": "W1",
+        "original_owner": "W1",
+        "lines": 50,
+        "sha256": "badf484fe487348ea0055b1d7aaab28f8a2cf7dcbb28fa13b991e73519041d4e"
+      },
+      {
+        "path": "apps/api/src/modules/tracking/task-tracking-lifecycle.ts",
+        "reviewer": "W1",
+        "original_owner": "W1",
+        "lines": 106,
+        "sha256": "72a6837216e6f7c60014d79fd84ee41564e2bb2d0f7a5c6826a04b4849d109ef"
+      },
+      {
+        "path": "apps/api/src/modules/vehicle-photos/condition-photo-discovery-query.ts",
+        "reviewer": "W1",
+        "original_owner": "W1",
+        "lines": 51,
+        "sha256": "5226362ecc805b8bacdc86ee864068a02f2d46c5c0fcea070f0f1eceb4c51147"
+      },
+      {
+        "path": "apps/api/src/staff-push-worker.ts",
+        "reviewer": "W1",
+        "original_owner": "W1",
+        "lines": 92,
+        "sha256": "31eb6a6133b7b96633ddbbaf45f8415e78f729d076598c3e00cf7f4d5979df01"
+      },
+      {
+        "path": "apps/dashboard/src/app/app-providers.tsx",
+        "reviewer": "W1",
+        "original_owner": "W4",
+        "lines": 37,
+        "sha256": "bb38f4d1209988f97c5b8ee870218b681c37ee005b6a99e5dbd9849aa24bc497"
+      },
+      {
+        "path": "apps/dashboard/src/lib/auth/staff-auth-context.test.ts",
+        "reviewer": "W1",
+        "original_owner": "W4",
+        "lines": 28,
+        "sha256": "0ef306e2fb30106d060c6ed6a348f244345b16c21f5b2731db8dbdef48d12638"
+      },
+      {
+        "path": "apps/valet/src/components/employee-app.live-flow.test.tsx",
+        "reviewer": "W1",
+        "original_owner": "W5",
+        "lines": 283,
+        "sha256": "0895710105a7873843df56be9c5a64d5cd88ae41df6753d3a7f4bdff12655e68"
+      },
+      {
+        "path": "apps/valet/src/features/task-queue/task-queue-session-boundary.test.tsx",
+        "reviewer": "W1",
+        "original_owner": "W5",
+        "lines": 125,
+        "sha256": "aa9075c93f1d5480b2e2a64dc3e15dd3c4fdb6bd5139e67cf601c2dff27d4f1a"
+      },
+      {
+        "path": "apps/api/test/fixtures/staff-push-crash-child.ts",
+        "reviewer": "W2",
+        "original_owner": "W2",
+        "lines": 66,
+        "sha256": "020edfeefb9ae48c4ae5d81bcd46e7de8f657862a97c2c1951ad21ad5eacac73"
+      },
+      {
+        "path": "apps/api/test/staff-push-crash-recovery.integration.test.ts",
+        "reviewer": "W2",
+        "original_owner": "W2",
+        "lines": 244,
+        "sha256": "99ddbe7b815db392ee7312ea08271f0f4aab0fb9cb2f0d9c4069de4584c65015"
+      },
+      {
+        "path": "apps/api/test/staff-push-invalid-endpoint.integration.test.ts",
+        "reviewer": "W2",
+        "original_owner": "W2",
+        "lines": 157,
+        "sha256": "d481fc7b29e2a9462734ec638a96ea47787bb0c302ca56d0854cf2b1ea26b091"
+      },
+      {
+        "path": "apps/api/test/staff-push-policy-test-value.ts",
+        "reviewer": "W2",
+        "original_owner": "W2",
+        "lines": 51,
+        "sha256": "7ca6defe6bc4cb15d1c331f3571383586fc6f4e86e333c75f37d196c348b2b1c"
+      },
+      {
+        "path": "apps/api/test/staff-push-retry.test.ts",
+        "reviewer": "W2",
+        "original_owner": "W2",
+        "lines": 61,
+        "sha256": "beafba24cab081d118548cba005901ecda5b68d5f2e6df5a727225a391c9bdd9"
+      },
+      {
+        "path": "apps/api/test/staff-push-worker-ttl.integration.test.ts",
+        "reviewer": "W2",
+        "original_owner": "W2",
+        "lines": 165,
+        "sha256": "26f85e0c510582fad574055e611ad286a83811731894ff2a300311ab76fc4b01"
+      },
+      {
+        "path": "apps/dashboard/src/app/document-bootstrap-script.ts",
+        "reviewer": "W2",
+        "original_owner": "W4",
+        "lines": 12,
+        "sha256": "7afaf93d70d88faafbdd9cc0e7398fe2518850a3d78f9aa2eebb981c4c8cc975"
+      },
+      {
+        "path": "apps/dashboard/src/lib/auth/staff-auth-continuity.test.ts",
+        "reviewer": "W2",
+        "original_owner": "W4",
+        "lines": 95,
+        "sha256": "14baa72520f4c2003e5b44042bac9bd21e0e392120bb0be69575b567d883a7ce"
+      },
+      {
+        "path": "apps/valet/src/components/employee-app.live-retrieval-flow.test.tsx",
+        "reviewer": "W2",
+        "original_owner": "W5",
+        "lines": 197,
+        "sha256": "dcd7529f446208f0236e51aa2d0a1988353efcc69114cf04a40197af609a83ac"
+      },
+      {
+        "path": "apps/valet/src/lib/auth/staff-auth-context.tsx",
+        "reviewer": "W2",
+        "original_owner": "W5",
+        "lines": 206,
+        "sha256": "c9cf06cdedffb85f8bfbbe97e3907908216b95d591216f75b5bbb5e34c057a3a"
+      },
+      {
+        "path": "apps/api/test/management-settings-concurrency.integration.test.ts",
+        "reviewer": "W3",
+        "original_owner": "W3",
+        "lines": 279,
+        "sha256": "5e28d09c16588757065f8ca9e285f934fee1b7a72a794b521afc4514a8e9a5f1"
+      },
+      {
+        "path": "apps/api/test/shift-presence-authority-races.integration.test.ts",
+        "reviewer": "W3",
+        "original_owner": "W3",
+        "lines": 276,
+        "sha256": "d6867bf003ce055e564d11243165f918222f242bbbdddf5b82b4c676ef380c8c"
+      },
+      {
+        "path": "apps/api/test/shift-presence-expiry-races.integration.test.ts",
+        "reviewer": "W3",
+        "original_owner": "W3",
+        "lines": 149,
+        "sha256": "68292dfdf42eab7037b0e9071b5bf38ccab1af87be0e2a4f7184eee865fb6ddf"
+      },
+      {
+        "path": "apps/api/test/staff-activation-races.integration.test.ts",
+        "reviewer": "W3",
+        "original_owner": "W3",
+        "lines": 174,
+        "sha256": "689a7d2670eeb19ee5d34d6d1f2f645019981b6c329503e6b2c51a1d5a8eb0c6"
+      },
+      {
+        "path": "apps/api/test/staff-management-incident-recovery-races.integration.test.ts",
+        "reviewer": "W3",
+        "original_owner": "W3",
+        "lines": 253,
+        "sha256": "1241d8d1931aad63adfd339c0f874888571bdcd2c6be041b34ef3516a51e5b64"
+      },
+      {
+        "path": "apps/api/test/staff-mfa-authority-races.integration.test.ts",
+        "reviewer": "W3",
+        "original_owner": "W3",
+        "lines": 276,
+        "sha256": "40f4724e35b0e6c035976382745060faf443b53c8703e29d96d8f5b1c9536a64"
+      },
+      {
+        "path": "apps/dashboard/src/app/foundation-test-subscription-recovery/subscription-recovery-probe.tsx",
+        "reviewer": "W3",
+        "original_owner": "W4",
+        "lines": 21,
+        "sha256": "62d714a76ddff67e1214a9c886272585be168b41d70fcf8d0fac7a73805847b9"
+      },
+      {
+        "path": "apps/dashboard/src/lib/navigation/location-maps-navigation.test.ts",
+        "reviewer": "W3",
+        "original_owner": "W4",
+        "lines": 139,
+        "sha256": "7d2c80d00e218f973d034829dfaeda3cd7a5b5c75e8371d661785c9ad882d1e7"
+      },
+      {
+        "path": "apps/valet/src/components/employee-app.tsx",
+        "reviewer": "W3",
+        "original_owner": "W5",
+        "lines": 264,
+        "sha256": "900ca7c043f96b57912114289705cf2ca13ad4e6da98e804bf56d63ff2f961ac"
+      },
+      {
+        "path": "apps/valet/src/features/task-queue/use-task-queue.ts",
+        "reviewer": "W3",
+        "original_owner": "W5",
+        "lines": 152,
+        "sha256": "6c6a732098a04c8dcdee5e5dc0fdf54f685af19f06674b329616824c1f203bba"
+      },
+      {
+        "path": "apps/dashboard/src/app/layout.tsx",
+        "reviewer": "W6",
+        "original_owner": "W4",
+        "lines": 34,
+        "sha256": "3e445914112764ebc582968147b5cab24354b917ae7d4bd4736dc4e93c8f4f9a"
+      },
+      {
+        "path": "apps/valet/src/components/end-shift-recovery.test.tsx",
+        "reviewer": "W6",
+        "original_owner": "W5",
+        "lines": 122,
+        "sha256": "92496dec5574c52350bdf204788a6ffa287d5ecb68d53d16711a3ebf22f455bc"
+      },
+      {
+        "path": "apps/valet-native/src/telemetry/native-telemetry-owner.ts",
+        "reviewer": "W6",
+        "original_owner": "W6",
+        "lines": 253,
+        "sha256": "ce7d615737e05f1195bb8581503de211be85e6c921ca3cd1f0146b71c1b6465d"
+      },
+      {
+        "path": "apps/valet-native/src/tracking/native-task-tracking-copy.ts",
+        "reviewer": "W6",
+        "original_owner": "W6",
+        "lines": 59,
+        "sha256": "1bbcfc783c6445f45e892642f41b74505f3062a205c8e3ccff16944a0d9e2ef8"
+      },
+      {
+        "path": "apps/valet-native/src/vehicles/native-vehicle-check-in-actions.tsx",
+        "reviewer": "W6",
+        "original_owner": "W6",
+        "lines": 99,
+        "sha256": "31eed569f2eabbdc8f3d4c91c04bd9477919a84fd2713b43b0dd216eecb61155"
+      },
+      {
+        "path": "apps/valet-native/src/vehicles/native-vehicles-copy.ts",
+        "reviewer": "W6",
+        "original_owner": "W6",
+        "lines": 68,
+        "sha256": "81dd024f76ea2b86179cbe2a6f378dc4df28d845e48831d17f8aac73b4baa4c2"
+      },
+      {
+        "path": "apps/valet-native/src/vehicles/native-vehicles-route.tsx",
+        "reviewer": "W6",
+        "original_owner": "W6",
+        "lines": 121,
+        "sha256": "7b3e7904ee832d031f363af8f7644a58472435c5003e32c293df212876fee3b6"
+      },
+      {
+        "path": "packages/employee-client/src/employee-shift-end-session.ts",
+        "reviewer": "W6",
+        "original_owner": "W6",
+        "lines": 298,
+        "sha256": "315980e6ddd8d8aacc42bf2c527699a15e6819eed7cffb4a7d401f8f2d5874e5"
+      },
+      {
+        "path": "packages/employee-client/src/employee-shift-presence-session.ts",
+        "reviewer": "W6",
+        "original_owner": "W6",
+        "lines": 292,
+        "sha256": "2952cc024d3d0c4ed8dc1f9281f03f2f4f7d27064ad9efe3efaa676f0e63ed51"
+      },
+      {
+        "path": "packages/employee-client/src/employee-task-queue-owner.ts",
+        "reviewer": "W6",
+        "original_owner": "W6",
+        "lines": 259,
+        "sha256": "637c1e37b6615eb12166e485a9e86a93175c82f43d4212b8333da39606721241"
+      },
+      {
+        "path": "apps/dashboard/src/components/brand/vaylet-logo.tsx",
+        "reviewer": "W7",
+        "original_owner": "W4",
+        "lines": 34,
+        "sha256": "6d263bac006b21a289a27115f86600fe37f00617c0c982b30962efc6d968e6ad"
+      },
+      {
+        "path": "apps/valet/e2e/api-origin.spec.ts",
+        "reviewer": "W7",
+        "original_owner": "W7",
+        "lines": 33,
+        "sha256": "b3ac76f1eb7ec83f01152a4cfbd541a6d398632541af38cdb6f2bbfea5fc47aa"
+      },
+      {
+        "path": "apps/valet/src/components/screens/check-in/check-in-returning-steps.test.tsx",
+        "reviewer": "W7",
+        "original_owner": "W5",
+        "lines": 117,
+        "sha256": "022ed9324e0942c77d531b4dc8b194f7153b61dd9eac6f2ae8ad28eed7c9079b"
+      },
+      {
+        "path": "packages/contracts/src/start-retrieval.ts",
+        "reviewer": "W7",
+        "original_owner": "W7",
+        "lines": 31,
+        "sha256": "ef5759ad3911691ecb7d911bc7209fc643e18571c3c518a3d37382d89886ee31"
+      },
+      {
+        "path": "packages/employee-client/src/native-auth-login.test.ts",
+        "reviewer": "W7",
+        "original_owner": "W7",
+        "lines": 108,
+        "sha256": "38bde36054037a06d33ba3e983402226f44af1fd7cdc4ed34004e218df925939"
+      },
+      {
+        "path": "packages/employee-client/src/qr-capture-session.test.ts",
+        "reviewer": "W7",
+        "original_owner": "W7",
+        "lines": 99,
+        "sha256": "21c937d25cba0a7822c9ec0f2b8eb395718f56826213aeed8d967259f0973f66"
+      },
+      {
+        "path": "packages/employee-client/src/qr-capture-session.ts",
+        "reviewer": "W7",
+        "original_owner": "W7",
+        "lines": 119,
+        "sha256": "1e6f27b2ec864f6c09afabd109db1b4f2c757c3be1ccaac3aee19216d41b3342"
+      },
+      {
+        "path": "scripts/issue300-w13-session-matrix.mjs",
+        "reviewer": "W7",
+        "original_owner": "W7",
+        "lines": 18,
+        "sha256": "d834340403d4a7f2a78907ed3c49703c496857f16c82d5925766c5685d90ab87"
+      },
+      {
+        "path": "scripts/issue300-w13-session-matrix.test.mjs",
+        "reviewer": "W7",
+        "original_owner": "W7",
+        "lines": 29,
+        "sha256": "e482cc72c823a3217641279e8ccbf06863e8ad235b9f475de48264e2d94549b6"
+      },
+      {
+        "path": "scripts/test-harness/contracts-runtime-imports.test.mjs",
+        "reviewer": "W7",
+        "original_owner": "W7",
+        "lines": 26,
+        "sha256": "2f7ed1afad3068ffa512da1445a8f1bcd1e5486aa57ee1f65baa0eb8ed22a3e8"
+      }
+    ]
+  },
+  "finding_evidence": {
+    "status": "FINAL_SOURCE_ONLY_C017_STRICT_QA_PASS",
+    "runtime_tests": 0,
+    "new_confirmed_p0": 0,
+    "new_confirmed_p1": 0,
+    "new_confirmed_p2": 0,
+    "source_only_candidate_ids": [
+      "C017-W2-P3-REGISTRATION-AUTH-TEST-ORDER",
+      "C017-W3-P3-PG-LOCK-POLL-TEST-QUALITY",
+      "C017-W6-CAND-P2-RECOVERABLE-KEYBOARD",
+      "RB003-W7-CAND-P2-QUEUE-SAME-LOCATION-AUTHORITY",
+      "RB003-W7-CAND-P2-ENDSHIFT-OLD-SSR-TEST",
+      "RB003-W7-CAND-P3-ROLE-SHELL-KEY"
+    ],
+    "all_referenced_source_paths_resolved": true,
+    "independent_spot_read": [
+      "apps/valet/src/components/screens/check-in/check-in-recoverable-step.tsx:30-66 shows mouse-only div onClick without keyboard semantics; high source-confidence P2 accessibility candidate, no browser test.",
+      "apps/api/test/staff-push-registration-authority.integration.test.ts:11-62 establishes positive first, negative test asserts one row; source-only order-coupling candidate."
+    ],
+    "source_only_not_runtime_confirmed": true
+  },
+  "defects": [
+    {
+      "id": "C017-W5-QA-001",
+      "category": "AUDIT_PROVENANCE_METADATA",
+      "impact": "A replay by the field name immutable_roster_docs_commit cannot resolve the C017 roster at the recorded commit; strict ledger record content and current pin remain valid.",
+      "exact_file": "docs/audits/2026-10-27/continuation/checkpoints/C017-0747a677-coverage-summary.json",
+      "observed_value": "immutable_roster_docs_commit=ad2094edd7ab9ab5c2de137bcb9a67872f6beefa",
+      "actual_roster_introducing_commit": "dfb14c4276d26f9f10a35a37d829bf86b769264c",
+      "evidence": "git show ad2094edd7ab9ab5c2de137bcb9a67872f6beefa:docs/audits/2026-10-27/continuation/checkpoints/C017-0747a677-assignment-roster.json fails (path absent); git show dfb14c... same path succeeds; 175 local path/owner tuples exactly match dfb14c.",
+      "severity": "BLOCKING_DOCUMENTATION_PROVENANCE_FIX_BEFORE_PUBLICATION",
+      "next": "Correct the pointer to dfb14c or document/rename the intended meaning with a valid immutable roster pointer; Prime owns docs."
+    },
+    {
+      "id": "C017-W5-QA-002",
+      "category": "FINDING_ID_TRACEABILITY",
+      "impact": "One C017 record finding identifier lacks a direct source-only finding-evidence entry; a semantically equivalent hypothesis exists under an RB003 identifier. Historical RB003 role-shell candidate is carried in evidence without a matching C017 record ID, plausibly intentional.",
+      "record_path": "apps/valet/src/components/end-shift-recovery.test.tsx",
+      "record_id": "C017-W6-CAND-P3-END-SHIFT-SSR-STALE",
+      "evidence_id": "RB003-W7-CAND-P2-ENDSHIFT-OLD-SSR-TEST",
+      "evidence": "C017 review-records.json end-shift record and finding-evidence.json source_only_candidates; both describe the stale SSR mocked useEndShift owner fixture.",
+      "severity": "NON_BLOCKING_P3_DOCUMENTATION_CROSS_REFERENCE",
+      "next": "Add an explicit alias/cross-reference or an evidence entry for the C017-W6 ID; preserve original RB003 provenance."
+    }
+  ],
+  "limitations": [
+    "Canonical blob SHA256 and EOF were independently recomputed for a reproducible bounded 50/175 sample; the other 125 records had metadata and contiguous range checks but no independent raw-blob rehash in this task.",
+    "No runtime tests, browser accessibility interaction, server authorization or exploit validation was performed; P2/P3 candidates remain source-only.",
+    "The candidate denominator follows ledger authored_code_candidate=True, including 3 generated declaration rows tagged manual_exclusion; this matches the established 4,789-file baseline and is not a new C017 count change.",
+    "Findings evidence points to source candidate hypotheses and historically carried RB003 candidates, not newly confirmed runtime P0/P1/P2."
+  ],
+  "handoff": {
+    "sent_to_prime": true,
+    "requested_prime_action": "Resolve QA-001 provenance pointer before treating C017 audit publication metadata as replay-safe; optionally add QA-002 alias. Coverage ledger verification PASS."
+  }
+}
