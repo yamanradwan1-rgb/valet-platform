@@ -1,0 +1,76 @@
+{
+  "batch": "C018",
+  "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "source_tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "status": "FINAL_SOURCE_ONLY_C018_STRICT_QA_PASS",
+  "runtime_tests_executed": 0,
+  "strict_review_records": 175,
+  "strict_invalid_records": 0,
+  "strict_missing_records": 0,
+  "new_confirmed_p0": 0,
+  "new_confirmed_p1": 0,
+  "new_confirmed_p2": 0,
+  "source_only_candidates": [
+    {
+      "id": "C018-W2-P2-PARKING-ASYNC-TARGET-CANDIDATE",
+      "reported_severity": "P2_SOURCE_CANDIDATE",
+      "triaged_severity": "P2_HIGH_CONFIDENCE_SOURCE_CANDIDATE_NOT_RUNTIME_CONFIRMED",
+      "status": "PRIME_AND_W1_INDEPENDENT_SOURCE_REVIEWED_REACHABLE_LATE_CALLBACK_INTERLEAVING_NO_RUNTIME",
+      "evidence": [
+        "apps/valet/src/components/screens/parking-flow.tsx:25-63",
+        "apps/valet/src/features/parking/use-parking.ts:45-93",
+        "apps/valet/src/features/parking/parking-controller.ts:78-123,125-194",
+        "apps/valet/src/components/shell/employee-live-router.tsx:81-132",
+        "apps/valet/src/components/shell/employee-workspace-handlers.ts:75-95",
+        "apps/valet/src/components/employee-app.tsx:221-260",
+        "apps/valet/src/components/screens/check-in/check-in-late-steps.tsx:67-80,114-139",
+        "apps/valet/src/features/check-in/check-in-controller-lifecycle.ts:86-112",
+        "apps/valet/src/components/screens/task-queue-screen.tsx:126-155,215-220"
+      ],
+      "hypothesis": "An unresolved hydrateSession(A) can update the same controller after target B is selected; the controller has no per-request generation or cancellation fence. Concrete plausible producer order: start CheckIn Parking B, use its still-enabled BackHeader while mutation is in flight, return to TaskQueue and select/resume A so ParkingFlow mounts and starts hydration A; B's prior CheckIn promise resolves after that component unmounted and publishes app-owned startParkingSuccess B while ParkingFlow remains mounted; the old A hydration then resolves and overwrites current B with stale A. The stale session can be displayed and confirmParked uses the controller's currently stored session.",
+      "counterevidence": "Direct TaskQueue/CheckIn controls are mutually exclusive with the mounted ParkingFlow, but older asynchronous callbacks can outlive those producers and update shared targets. EmployeeActiveShell keys identity/Location/Shift and scoped workspace fences cross-identity changes, so this source path does NOT establish a cross-tenant leak. Server task/tenant authorization and optimistic versions separately gate confirmParked, but same-authorized-employee A may still be a valid server target. The concrete response ordering and wrong-vehicle visible/committed outcome have not been reproduced in a browser or PostgreSQL runtime test.",
+      "next": "Preserve as distinct HIGH_CONFIDENCE_SOURCE provisional P2 operational-integrity candidate; reproduce delayed CheckIn/TaskQueue callback -> same-mounted ParkingFlow A/B hydration ordering in separately authorized browser/controller tests, and use generation/cancellation fencing for async target results. Do not claim a runtime exploit or cross-tenant breach. No source/test changes within this audit."
+    },
+    {
+      "id": "C018-W2-P3-GUEST-SHEET-FOCUS-CANDIDATE",
+      "severity": "P3_ACCESSIBILITY_SOURCE_CANDIDATE",
+      "status": "PRIME_SOURCE_CONFIRMED_COMPONENT_GAP_NO_BROWSER_RUNTIME",
+      "evidence": [
+        "apps/valet/src/components/screens/guest-access/guest-access-sheets.tsx:35-64",
+        "apps/valet/src/components/screens/guest-access/guest-access-flow.tsx:234-258"
+      ],
+      "hypothesis": "ConfirmSheet moves initial focus onto an aria-modal dialog but contains no Escape-key dismissal, focus trap or prior-focus restoration logic. Keyboard users may tab outside the active confirmation or struggle to return to the triggering action.",
+      "counterevidence": "The sheet provides a semantic dialog, two actionable buttons and a labelled backdrop close control. No assistive-technology or keyboard browser session was run and no upstream focus-management mechanism was conclusively excluded by this bounded component trace.",
+      "next": "Validate nested modal keyboard/focus behavior separately before fixing UI under its independent freeze/approval process."
+    },
+    {
+      "id": "C018-PRIME-GUEST-ACCESS-ASYNC-TARGET-SWITCH",
+      "severity": "P3_THEORETICAL_SOURCE_HARDENING_NOT_CONFIRMED",
+      "status": "PRIME_AND_W7_SOURCE_REVIEWED_NO_REACHABLE_LIVE_TARGET_SWITCH_FOUND",
+      "evidence": [
+        "apps/valet/src/features/guest-access/use-guest-access.ts:56-63",
+        "apps/valet/src/features/guest-access/guest-access-controller.ts:81-180",
+        "apps/valet/src/components/shell/employee-live-router.tsx:81-94,145-156",
+        "apps/valet/src/components/shell/employee-workspace-handlers.ts:43-47,62-67"
+      ],
+      "hypothesis": "A stale async GuestAccess controller response could overwrite the newer session in a hypothetical same-mounted A-to-B sessionId switch.",
+      "counterevidence": "The only observed production entry is the CheckIn button; the live router switches exclusively to GuestAccess and hides that producer. Closing restores CheckIn and unmounts the GuestAccess component. No same-mounted A-to-B transition was shown by source tracing.",
+      "next": "Do not escalate to a P2 confidentiality finding without an accessible switch path and isolated interleaving evidence."
+    }
+  ],
+  "record_finding_aliases": [
+    {
+      "record_id": "C018-W6-CAND-P3-SPOT-LABEL-ASSOCIATION",
+      "canonical_evidence_id": "C016-W5-CAND-002",
+      "additional_affected_path": "apps/valet/src/components/screens/parking-spot-confirm-step.tsx:113-123",
+      "explanation": "The C018 W6 review identified a separate input with the same visible-label-not-programmatically-associated accessibility class already recorded as conditional P2 in C016. Prime fully read 143/143 lines and confirmed missing htmlFor/id/wrapping label. Preserve the new affected path but do not double-count a distinct P2."
+    }
+  ],
+  "historical_residual_not_new": "SEC-011/#363 same-user second-session pending MFA candidate remains high-confidence source-only P1, not runtime-confirmed; prior C011/C015-C017 candidate registers are preserved without duplication.",
+  "limitations": [
+    "Source-only semantic/architecture/security audit; no HTTP/PostgreSQL/browser/Native runtime tests or exploit reproductions were executed in C018.",
+    "175/175 strict records passed source SHA256/EOF/ownership/semantic metadata gates; this does not itself prove every production interaction or concurrency schedule safe.",
+    "The W2 Parking P2 source hypothesis has a plausible late-callback path despite exclusive direct screen routing; no runtime overlap, unsafe API commit, or security incident was demonstrated. Do not report it as a confirmed runtime P2.",
+    "The accessibility sheet and historical manual Spot label require separate UI-authorized keyboard/assistive-technology testing before remedy."
+  ]
+}
