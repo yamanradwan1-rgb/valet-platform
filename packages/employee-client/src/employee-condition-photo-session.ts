@@ -226,7 +226,8 @@ export class EmployeeConditionPhotoSession {
       this.discardSources([handle], []);
       this.gallery.markMissingSource(candidate.slotId);
       if (this.handle === handle) this.handle = null;
-      this.publish({ ...state, phase: "rejected", error: "FILE", hasCapture: false });
+      this.publish({ ...state, phase: allowSameByteResend ? "unknown" : "rejected",
+        error: "FILE", hasCapture: this.gallery.snapshot.capturedCount > 0 });
       return Promise.resolve();
     }
     let op: string;

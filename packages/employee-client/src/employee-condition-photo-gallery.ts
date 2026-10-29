@@ -78,8 +78,7 @@ export class EmployeeConditionPhotoGallery {
 
   uploadCandidate(allowSameByteResend = false) {
     const slot = this.slots.find((item) => item.handle !== null &&
-      (item.phase === "CAPTURED_LOCAL" ||
-        (allowSameByteResend && item.phase === "UPLOAD_PENDING")));
+      item.phase === (allowSameByteResend ? "UPLOAD_PENDING" : "CAPTURED_LOCAL"));
     return slot ? { slotId: slot.slotId, handle: slot.handle!,
       captureGeneration: slot.captureGeneration, operationId: slot.operationId } : null;
   }
@@ -128,10 +127,12 @@ export class EmployeeConditionPhotoGallery {
 
   markMissingSource(slotId: number) {
     const slot = this.slots.find((item) => item.slotId === slotId);
-    if (!slot || slot.phase !== "CAPTURED_LOCAL") return;
+    if (!slot || (slot.phase !== "CAPTURED_LOCAL" &&
+        slot.phase !== "UPLOAD_PENDING")) return;
+    const unresolved = slot.phase === "UPLOAD_PENDING";
     slot.handle = null;
     slot.hasCapture = false;
-    slot.phase = "UPLOAD_FAILED";
+    slot.phase = unresolved ? "RETRY_PENDING" : "UPLOAD_FAILED";
   }
 
   private verifiedCount() {

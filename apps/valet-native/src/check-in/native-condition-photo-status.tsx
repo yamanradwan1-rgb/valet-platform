@@ -52,7 +52,7 @@ export function NativeConditionPhotoStatus({
     phase === "unavailable" ? copy.unavailable :
     snapshot.required ? copy.required : copy.optional;
   return (
-    <View style={styles.policyNotice}>
+    <View testID="native-condition-photo-b1-card" style={styles.policyNotice}>
       <Text accessibilityLiveRegion="polite" style={[styles.policyNoticeText,
         { textAlign: "center" }]}>
         {snapshot.required === null ? copy.policyLoading :
