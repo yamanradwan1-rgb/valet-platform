@@ -19,14 +19,19 @@ if (git('rev-parse','HEAD')!==fullSha || git('rev-parse','HEAD^{tree}')!==tree |
 }
 const roster = JSON.parse(readFileSync(prefix+'assignment-roster.json','utf8'));
 const transfers = JSON.parse(readFileSync(prefix+'ownership-transfers.json','utf8'));
+const previousCheckpoint=batch==='C013'?'C012':'C011';
+const previous=JSON.parse(readFileSync(join(root,'checkpoints',previousCheckpoint+'-d67b2a4a-coverage-summary.json'),'utf8'));
+const initialTransferCount=batch==='C013'?75:50;
 if (roster.batch!==batch || !roster.immutable || roster.source_commit!==fullSha ||
     roster.source_tree!==tree || roster.assignments.length!==175 ||
-    transfers.batch!==batch || transfers.source_commit!==fullSha || transfers.transfers.length!==50) {
+    transfers.batch!==batch || transfers.source_commit!==fullSha ||
+    transfers.transfers.length!==initialTransferCount ||
+    previous.source_commit!==fullSha) {
   throw new Error('Pinned roster/transfer provenance mismatch');
 }
 const byPath = new Map(roster.assignments.map(a=>[a.path,a]));
 const byTransfer = new Map(transfers.transfers.map(t=>[t.path,t]));
-if (byPath.size!==175 || byTransfer.size!==50) throw new Error('Duplicate assignment/transfer');
+if (byPath.size!==175 || byTransfer.size!==initialTransferCount) throw new Error('Duplicate assignment/transfer');
 const fallbackFile=prefix+'w2-fallback-addendum.json';
 const fallback=existsSync(fallbackFile)?JSON.parse(readFileSync(fallbackFile,'utf8')):null;
 const fallbackMap=new Map((fallback?.transfers??[]).map(t=>[t.path,t]));
@@ -126,11 +131,15 @@ for (const [file,expected] of expectedFiles) {
 }
 const missing=roster.assignments.map(a=>a.path).filter(p=>!seen.has(p));
 const effectiveTransfers=roster.assignments.filter(a=>a.original_owner!==effectiveReviewer(a));
-if(effectiveTransfers.length!==(fallback?75:50)) throw new Error('Effective unique transfer count mismatch');
+if(effectiveTransfers.length!==(initialTransferCount+(fallback?25:0))) {
+  throw new Error('Effective unique transfer count mismatch');
+}
 const report={batch,source_commit:fullSha,source_tree:tree,expected:175,valid:accepted.length,
-  invalid:errors.length,missing:missing.length,initial_ownership_transfers:50,
+  invalid:errors.length,missing:missing.length,initial_ownership_transfers:initialTransferCount,
   fallback_transfer_paths:fallback?.transfers.length??0,effective_ownership_transfers:effectiveTransfers.length,
-  if_accepted_files:1956+accepted.length,if_accepted_lines:229863+accepted.reduce((n,x)=>n+x.lines,0),
+  current_base_files:previous.current_fully_reviewed,current_base_lines:previous.current_reviewed_lines,
+  if_accepted_files:previous.current_fully_reviewed+accepted.length,
+  if_accepted_lines:previous.current_reviewed_lines+accepted.reduce((n,x)=>n+x.lines,0),
   source_files:files,errors,missing_paths:missing,tests:'NOT_EXECUTED — STATIC_AUDIT_ONLY'};
 writeFileSync(join(results,'Prime',batch+'-qa-provisional.json'),JSON.stringify(report,null,2)+'\n');
 writeFileSync(join(results,'Prime',batch+'-qa-accepted.json'),JSON.stringify(accepted,null,2)+'\n');

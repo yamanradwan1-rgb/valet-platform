@@ -1,0 +1,1774 @@
+{
+  "batch": "C013",
+  "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+  "source_tree": "8731302512f8db4edb8bbb1cdc50b208a0dcb5b8",
+  "immutable": true,
+  "previous_published_audit_commit": "bd72d274f2bad6e09655ad7a4e062374810094d5",
+  "workers": {
+    "W1": 25,
+    "W2": 25,
+    "W3": 25,
+    "W4": 25,
+    "W5": 25,
+    "W6": 25,
+    "W7": 25
+  },
+  "actual_reviewers": {
+    "W1": 45,
+    "W3": 45,
+    "W4": 45,
+    "W5": 40
+  },
+  "assignments": [
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/management-location-errors.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/management-location-projection.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/staff-management-errors.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/staff-management-http.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/staff-management-mutation-repository.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/staff-management-projection.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/staff-management.controller.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/staff-onboarding-account-lock.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/staff-onboarding-errors.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/staff-onboarding-repository.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/staff-onboarding.controller.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/staff-pending-invitation-query.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/staff-shift-cash-read.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/staff-shift-employee-query.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/staff-shift-force-end-errors.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/staff-shift-force-end.controller.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/staff-shift-history-cursor.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/staff-shift-history-query.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/staff-shift-history.controller.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/staff-shift-history.service.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/management-settings.controller.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/management-branding-mutation-repository.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/management-branding-projection.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/management-capabilities.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/management/management-cursor.ts",
+      "original_owner": "W1",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-W1-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/notifications/contracts/outbound-envelope.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/notifications/contracts/outbound-events.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/notifications/contracts/outbound-intent.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/notifications/contracts/outbound-lease.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/notifications/contracts/outbound-policy.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/notifications/contracts/outbound-provider.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/notifications/issuance/initial-guest-crypto.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/notifications/issuance/initial-guest-eligibility.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/notifications/notifications.module.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/notifications/webhooks/meta-webhook-database.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/notifications/whatsapp-settings-controller.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/notifications/worker/outbound-postgres-repository.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/notifications/worker/outbound-postgres-types.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/notifications/worker/outbound-transport-payload.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/notifications/worker/outbound-transport-source.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/notifications/worker/outbound-worker-envelope-opener.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/notifications/worker/outbound-worker-principal.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/notifications/worker/outbound-worker-recipient-digest.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/retrieval/start-retrieval-mutations.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/retrieval/start-retrieval-types.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/retrieval/start-retrieval.controller.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/retrieval/start-retrieval.service.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/staff-push/retrieval-push-attention-writer.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/tracking/live-map-authorization.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/src/modules/tracking/live-map-read-authorization.ts",
+      "original_owner": "W2",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W2-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/condition-photo-privilege-policy.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/condition-photo-runtime-privileges.integration.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/database-connection-policy.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/dec103-nonempty-test-rollout.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-browser-session-context-switch-failures.integration.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-browser-session-context-switch.integration.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-browser-session-enrollment-cleanup.integration.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-browser-session-exchange-expiry.integration.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-browser-session-legacy-writer-compat.integration.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-browser-session-lock-expiry.integration.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-browser-session-runtime-role.integration.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-browser-session-test-fixture.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-information-test-context.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-push-registration-concurrency.integration.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-push-role-separation.integration.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-push-worker-provisioning-policy.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-push-worker-replica-test-context.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-push-worker-replica.integration.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/guest-rating-runtime-role.integration.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/incident-recovery-runtime-role.integration.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/incident-runtime-read-privilege.integration.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/index.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/location-configuration-currency.integration.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/location-configuration-runtime-role.integration.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/database/src/location-lifecycle-runtime-role.integration.test.ts",
+      "original_owner": "W3",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-W3-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/incidents/incident-drawer.tsx",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/incidents/incident-presentation.test.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/incidents/incident-presentation.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/incidents/incidents-page.tsx",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/keys/key-presentation.test.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/keys/key-presentation.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/keys/keys-operational-view.tsx",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/keys/keys-page.tsx",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/keys/keys-workspace-tabs.tsx",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/keys/option3-resource-inspector.tsx",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/keys/resource-inspector-contract.test.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/keys/resource-inspector-contract.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/keys/resource-inspector-copy.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/keys/resource-inspector-custody.tsx",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/keys/resource-inspector-detail.tsx",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/keys/resource-inspector-key-create.tsx",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/keys/resource-inspector-kpis.tsx",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/keys/resource-inspector-live.tsx",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/keys/resource-inspector-master.tsx",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/keys/resource-inspector-presentation.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/live-operations/issue-276-mounted.e2e.mjs",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/live-operations/issue-276-queue.e2e.mjs",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/live-operations/issue-276-stale.e2e.mjs",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/live-operations/issue-276-ui-matrix.e2e.mjs",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/live-operations/live-operations-presentation.test.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-W4-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/management-visit-contact-authorization.integration.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/management-visit-contact-privacy.integration.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/guest-t3-baseline-source.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/guest-t3-budget.integration.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/guest-t3-cost.integration.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/guest-t3-crash-worker.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/guest-t3-crash.integration.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/guest-t3-domain-rollback.integration.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/guest-t3-lease-regression.integration.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/guest-t3-maintenance.integration.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/guest-t3-policy.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/guest-t3-protocol-timeout.integration.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/guest-t3-recovery-pressure.integration.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/guest-t3-runtime-resilience.integration.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/guest-t3-source-exhaustion.integration.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/guest-t3-transaction-metrics.integration.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/guest-t3-two-instance.integration.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/guest-t4-ha-application.integration.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/guest-t4-health.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/guest-t4-mutation-retry.integration.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/guest-t4-observability.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/guest-web-push-sender.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/management-visit-contact-correction.integration.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/management-visit-contact-history.integration.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/management-visit-contact-search.integration.test.ts",
+      "original_owner": "W5",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-W5-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/use-native-push-lifecycle.ts",
+      "original_owner": "W6",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/use-native-push-response.ts",
+      "original_owner": "W6",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/parking/native-active-parking-copy.ts",
+      "original_owner": "W6",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/parking/native-active-parking-panel.tsx",
+      "original_owner": "W6",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/parking/native-active-parking-styles.ts",
+      "original_owner": "W6",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/parking/native-completed-check-in-parking.ts",
+      "original_owner": "W6",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/parking/native-parking-cancellation-controls.tsx",
+      "original_owner": "W6",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/parking/native-parking-cancellation-copy.ts",
+      "original_owner": "W6",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/parking/native-parking-cancellation-runtime.ts",
+      "original_owner": "W6",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/parking/native-parking-confirm-copy.ts",
+      "original_owner": "W6",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/parking/native-parking-confirm-panel.tsx",
+      "original_owner": "W6",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/parking/native-parking-confirm-styles.ts",
+      "original_owner": "W6",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/parking/native-parking-key-return-step.tsx",
+      "original_owner": "W6",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/parking/native-parking-protection.ts",
+      "original_owner": "W6",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/parking/native-parking-qr-input.tsx",
+      "original_owner": "W6",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/parking/native-parking-resource-step.tsx",
+      "original_owner": "W6",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/parking/native-parking-route.tsx",
+      "original_owner": "W6",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/parking/native-parking-spot-step.tsx",
+      "original_owner": "W6",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/parking/native-parking-start-copy.ts",
+      "original_owner": "W6",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/parking/native-parking-start-panel.tsx",
+      "original_owner": "W6",
+      "assigned_reviewer": "W4",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/parking/native-parking-start-styles.ts",
+      "original_owner": "W6",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/parking/native-parking-success.tsx",
+      "original_owner": "W6",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/retrieval-alert/native-retrieval-alert-gesture.ts",
+      "original_owner": "W6",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/retrieval/native-retrieval-copy.ts",
+      "original_owner": "W6",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/retrieval/native-retrieval-details.tsx",
+      "original_owner": "W6",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/audit-foundation-retry-concurrency.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/audit-foundation-writers.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/cancel-before-parking-authority-races.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/cancel-before-parking-consumers.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/cancel-before-parking-financial.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/cancel-before-parking-guards.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/cancel-before-parking-http.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/cancel-before-parking-races.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/cancel-before-parking.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/cancel-check-in-authority-race.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W1",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/cancel-check-in-child-race.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/cancel-check-in-concurrency.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/cancel-check-in-exact-credential.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/cancel-check-in-http.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/cancel-check-in.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/cancelled-guest-compatibility.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/cash-api.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/cash-collection.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/check-in-api.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/check-in-condition-command.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W3",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/check-in-directory-coverage.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/complete-check-in-command.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/complete-handoff-api.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/complete-handoff-atomicity.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C013",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/complete-handoff-authorization.integration.test.ts",
+      "original_owner": "W7",
+      "assigned_reviewer": "W5",
+      "status": "assigned",
+      "priority": "unreviewed_current_source",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C013-transferred-W7-review-records.json"
+    }
+  ]
+}
