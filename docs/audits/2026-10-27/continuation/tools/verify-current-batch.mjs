@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Independent quality gate for the 7-logical-role, 5-active-reviewer audit epoch.
+// Independent quality gate for pinned seven-role audit batches, including documented transfers.
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -19,10 +19,10 @@ if (git('rev-parse','HEAD')!==fullSha || git('rev-parse','HEAD^{tree}')!==tree |
 }
 const roster = JSON.parse(readFileSync(prefix+'assignment-roster.json','utf8'));
 const transfers = JSON.parse(readFileSync(prefix+'ownership-transfers.json','utf8'));
-const previousCheckpoint=({C012:'C011',C013:'C012',C014:'C013'})[batch];
+const previousCheckpoint=({C012:'C011',C013:'C012',C014:'C013',C015:'C014'})[batch];
 if(!previousCheckpoint) throw new Error('Unsupported batch '+batch);
 const previous=JSON.parse(readFileSync(join(root,'checkpoints',previousCheckpoint+'-d67b2a4a-coverage-summary.json'),'utf8'));
-const initialTransferCount=batch==='C012'?50:75;
+const initialTransferCount=batch==='C012'?50:batch==='C015'?0:75;
 if (roster.batch!==batch || !roster.immutable || roster.source_commit!==fullSha ||
     roster.source_tree!==tree || roster.assignments.length!==175 ||
     transfers.batch!==batch || transfers.source_commit!==fullSha ||
@@ -112,7 +112,7 @@ if(fallback) {
 for (const assignment of roster.assignments) {
   const transfer = byTransfer.get(assignment.path);
   const isTransferred = assignment.assigned_reviewer!==assignment.original_owner;
-  if (!['W1','W2','W3','W4','W5'].includes(assignment.assigned_reviewer) ||
+  if (!['W1','W2','W3','W4','W5','W6','W7'].includes(assignment.assigned_reviewer) ||
       !['W1','W2','W3','W4','W5','W6','W7'].includes(assignment.original_owner) ||
       assignment.source_commit!==fullSha || assignment.batch!==batch ||
       Boolean(transfer)!==isTransferred ||
