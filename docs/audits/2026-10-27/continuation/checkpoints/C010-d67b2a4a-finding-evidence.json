@@ -1,0 +1,292 @@
+{
+  "batch": "C010",
+  "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+  "validation": "STATIC_AUDIT_ONLY",
+  "executed_runtime_tests": 0,
+  "new_confirmed_p0_p1": 0,
+  "confidence_caveat": "These four new source candidates have differing confidence; none is a runtime-exploited or production-confirmed result. Existing SEC-011 has a separate independent static recheck with zero added coverage credit.",
+  "by_worker": [
+    {
+      "worker": "W3",
+      "source_scratch_name": "C010-W3-candidate-findings.json",
+      "findings": [
+        {
+          "id": "C010-W3-F001",
+          "title": "Issue #336 local-only PostgreSQL evidence helper accepts driver host override",
+          "status": "CONFIRMED_STATIC",
+          "severity": "P2",
+          "confidence": "HIGH",
+          "source": "apps/api/tools/issue336-evidence-summary-pg.ts",
+          "source_sha256": "5244ef508b62cce494c9f952bb066852d7b462af5ef8a483e7240ce12c1a5e95",
+          "exact_locations": [
+            "apps/api/tools/issue336-evidence-summary-pg.ts:7-14",
+            "apps/api/tools/issue336-evidence-summary-pg.ts:30-32"
+          ],
+          "preconditions": "An operator or automated harness provides ISSUE336_PG_ACK=ISOLATED_LOCAL_ONLY and a crafted/misconfigured ISSUE336_PG_URL containing an authority hostname 127.0.0.1, pathname /vaylet336, and a `?host=` query parameter that points elsewhere.",
+          "reasoning": "WHATWG URL.hostname ignores `host=` search parameter, so the helper's guard accepts the string. Its pg Pool receives the original connectionString and pg-connection-string@2.14.0 copies URL parameters into config (index.js:40-42) and sets the authority hostname only when config.host is absent (index.js:54-56). The query host overrides the checked authority host. This is static guard bypass; no remote connection was attempted.",
+          "minimal_nonexecuted_example": "postgresql://testuser:testpass@127.0.0.1/vaylet336?host=other-db.example",
+          "impact": "The claimed isolated-local check does not guarantee the tool connects only to local test PostgreSQL. A nonlocal connection could be attempted using supplied credentials. Real-world remote access and production damage were not demonstrated.",
+          "existing_mitigations": [
+            "Exact explicit ACK variable required",
+            "Data exercised in BEGIN with CREATE TEMP TABLE/ON COMMIT DROP and ROLLBACK in finally",
+            "No permanent target data modification shown by this tool path"
+          ],
+          "next_action": "Reject URL.search/hash, unexpected protocols/ports/userinfo constraints as appropriate and verify effective driver connection host is loopback before issuing SQL; add offline parser regression to an authorized follow-up remediation.",
+          "validation": "NOT_EXECUTED — STATIC_AUDIT_ONLY",
+          "dependency_proof": "Locked pnpm-lock.yaml resolves pg-connection-string 2.14.0; Prime independently inspected installed 2.14.0 index.js. node-postgres public README specifies query host parameter overrides URI host."
+        }
+      ]
+    },
+    {
+      "worker": "W4",
+      "source_scratch_name": "C010-W4-finding-candidates.json",
+      "findings": [
+        {
+          "id": "C010-W4-P3-E2E-DISCOVERY",
+          "severity": "P3",
+          "confidence": "HIGH_SOURCE_CONFIDENCE",
+          "type": "test_suite_discovery_debt",
+          "title": "Two opt-in matched UI acceptance specs reject normal Dashboard default E2E discovery at module import",
+          "trigger_and_preconditions": "An engineer runs pnpm --filter @valet/dashboard test:e2e with default environment lacking ISSUE306_VARIANT/ISSUE306_CASE_ONLY and ISSUE314_VARIANT. Playwright loads all *.spec.ts under ./e2e before running tests.",
+          "evidence": [
+            {
+              "path": "apps/dashboard/e2e/issue306-matched-baseline.spec.ts",
+              "lines": "12-21",
+              "observation": "Top-level require-before-collect checks throw unless a matched before/after variant, E2E_BASE_URL and one case are set. No conditional test.skip guards module evaluation."
+            },
+            {
+              "path": "apps/dashboard/e2e/issue314-independent-acceptance.spec.ts",
+              "lines": "9-14",
+              "observation": "Top-level checks throw without ISSUE314_VARIANT and an explicitly localhost E2E_BASE_URL."
+            },
+            {
+              "path": "apps/dashboard/playwright.config.ts",
+              "lines": "3-6",
+              "observation": "The default Playwright config collects ./e2e."
+            },
+            {
+              "path": "apps/dashboard/package.json",
+              "lines": "11-13",
+              "observation": "test:e2e invokes playwright test without excluding matched baseline specs; test:e2e:runtime uses a separate config."
+            },
+            {
+              "path": ".github/workflows/ci.yml",
+              "lines": "374-377",
+              "observation": "Current Dashboard CI gate executes test:e2e:runtime with an explicit local URL; the default suite is not shown as a CI blocker."
+            }
+          ],
+          "impact": "Ordinary opt-in-free test:e2e collection fails before usable regression assertions can run; normal CI uses the isolated runtime suite, so product runtime impact is not established.",
+          "existing_mitigations": [
+            "The matched baselines deliberately require isolated localhost and explicit before/after provenance when run directly.",
+            "The CI E2E step targets ./e2e-runtime, so these import guards do not establish current CI failure.",
+            "Tests were not executed in C010; discovery failure is inferred from top-level throw plus standard Playwright file collection."
+          ],
+          "dedupe_note": "Same general category as existing C004-DASH-001 and C006-DASH-001 default E2E suite debt, but these two files have an independent import-time failure trigger. Prime may group them in the existing test-suite debt cluster.",
+          "remediation_direction": "Keep isolated matched capture guards, but move them into explicit test.skip/fixture-level opt-in execution or a dedicated Playwright project/testDir excluded from the default test:e2e collection. Preserve UI Freeze.",
+          "source_modified": false
+        }
+      ],
+      "previous_dashboard_findings_rechecked": [
+        {
+          "id": "C003-DASH-AUTH-01",
+          "severity": "P2",
+          "status_at_C010": "still_source_present_outside_W4_assignment",
+          "evidence": "apps/dashboard/src/lib/auth/staff-auth-client.ts:80-89 still treats failed localStorage get as false, and :265-280 swallows failed marker persistence; staff-auth-context.tsx:81-94 still auto-refreshes when marker is false. Preconditions and impact from C003 remain source-supported; not runtime-revalidated."
+        },
+        {
+          "id": "C003-DASH-I18N-01",
+          "severity": "P3",
+          "status_at_C010": "still_source_present_outside_W4_assignment",
+          "evidence": "apps/dashboard/src/lib/i18n/locale.ts:19-39 still reads default en when localStorage throws despite setting document ar/rtl; locale-provider.tsx:45-56 still uses that storage snapshot with no in-memory fallback."
+        },
+        {
+          "id": "C004-DASH-001",
+          "severity": "P3",
+          "status_at_C010": "still_source_present_outside_W4_assignment",
+          "evidence": "apps/dashboard/e2e/administration-authority.spec.ts:41-45 still requires Integrations nav; apps/dashboard/src/app/integrations/page.tsx:3-5 still redirects to Policies service tab."
+        },
+        {
+          "id": "C006-DASH-001",
+          "severity": "P3",
+          "status_at_C010": "still_source_present_outside_W4_assignment",
+          "evidence": "apps/dashboard/e2e/support/keys-spots.ts:15-27 still expects obsolete Keys & Spots and Physical Resources tabs while apps/dashboard/src/features/operations/keys/keys-page.tsx:6-12 still renders direct ResourceInspectorLive."
+        }
+      ]
+    },
+    {
+      "worker": "W5",
+      "source_scratch_name": "C010-W5-candidate-findings.json",
+      "findings": [
+        {
+          "id": "C010-W5-A11Y-001",
+          "title": "Secondary and danger Guest buttons suppress keyboard focus outline",
+          "severity": "P2",
+          "confidence": "HIGH_STATIC_SOURCE",
+          "status": "CANDIDATE_STATIC",
+          "primary": "apps/customer/src/components/primitives/btn.tsx:39",
+          "evidence": [
+            "apps/customer/src/components/primitives/btn.tsx:39,64-71",
+            "apps/customer/src/app/globals.css:230-234",
+            "apps/customer/src/features/post-visit/guest-post-visit-screen.tsx:69",
+            "apps/customer/src/features/web-push/guest-web-push-permission-card.tsx:75,80"
+          ],
+          "preconditions": "Guest uses keyboard Tab to focus an enabled secondary/danger Btn (for example Back or Not now).",
+          "consequence": "Inline outline:none overrides native focus indicator; app CSS restores focus-visible only for primary/ghost; keyboard user lacks visible indication of focus on affected actions.",
+          "existing_mitigations": "Primary/ghost brand classes have explicit focus-visible outline, and the native button remains focusable; this does not restore secondary/danger outlines.",
+          "limits": "Source-supported accessibility defect; physical keyboard/visual browser run not executed. WCAG 2.4.7 focus visible and expected 2.4.11 focus appearance should be verified in supported browsers.",
+          "recommendation": "Restore a focus-visible outline for secondary/danger variants without changing geometry or semantics; add a browser keyboard-focus regression."
+        },
+        {
+          "id": "C010-W5-I18N-001",
+          "title": "Arabic prehydration visibility guard can remain after locale switches to English",
+          "severity": "P2",
+          "confidence": "HIGH_STATIC_PRECONDITION_NEEDS_RUNTIME",
+          "status": "NEEDS_RUNTIME_VALIDATION",
+          "primary": "apps/customer/src/i18n/locale-provider.tsx:92-100",
+          "evidence": [
+            "apps/customer/src/app/document-bootstrap-script.ts:5-10",
+            "apps/customer/src/i18n/locale-provider.tsx:86-102",
+            "apps/customer/src/i18n/locale.ts:32-45",
+            "apps/customer/src/app/globals.css:74-82"
+          ],
+          "preconditions": "BeforeInteractive bootstrap sees persisted ar and adds vaylet-persisted-ar. Before React provider resolves client locale, another same-origin tab changes storage preference to en or an equivalent allowed storage change leaves current snapshot en.",
+          "consequence": "Effect sets html lang=en and dir=ltr but leaves vaylet-persisted-ar because guard removal is conditional on locale===ar; CSS keeps body visibility:hidden until a later Arabic render removes it. Potential blank Customer page in narrow timing window.",
+          "existing_mitigations": "Arabic-persisted normal hydration removes guard; restricted-storage Arabic fallback is covered by mounted test. Neither covers bootstrap ar followed by current en on first provider effect.",
+          "limits": "No timing-race browser reproduction was executed; do not count as confirmed runtime defect. Investigate with deterministic hydration/barrier test and real browser cross-tab timing.",
+          "recommendation": "Make guard removal contingent on hydration readiness regardless of currently selected locale, while retaining protection against English SSR flash for persisted Arabic; verify before changing production behavior."
+        }
+      ],
+      "cross_component_dependency_impact": "Guest rating UI submits only rating=1..5; GuestPostVisitScreen independently reauthorizes COMPLETED visit; GuestRatingController authorizes anti-abuse and service/database transaction locks current credential/visit. Guest Web Push transport uses same-origin browser cookie and CSRF header; server GuestPushRegistrationController/Service reauthorize Browser Session and server DB function. Locale/theme preferences are independent presentation-only localStorage keys and do not grant guest, staff, organization or location permissions. Static source establishes no new cross-tenant/guest-credential bypass in these W5 files. Dependency paths contextual only, not counted as reviewed assignment coverage."
+    }
+  ],
+  "historical_p1_independent_recheck": {
+    "audit": "C010 W1 targeted historical SEC-011 / GitHub #363 reconciliation",
+    "kind": "DEPENDENCY_FINDING_RECHECK_NOT_FILE_COVERAGE",
+    "reviewer": "W1",
+    "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+    "source_tree": "8731302512f8db4edb8bbb1cdc50b208a0dcb5b8",
+    "prior_evidence_commit": "66968655b8bd90c6681daf53fb9d8da9b9ab9f79",
+    "finding_id": "SEC-011",
+    "linked_issue": 363,
+    "verdict": "CONFIRMED_STATIC_PATH_PERSISTS",
+    "triage_status": "confirmed",
+    "severity": "P1",
+    "confidence": "HIGH_SOURCE_CONFIDENCE_RUNTIME_UNVERIFIED",
+    "preconditions": [
+      "Target is an MFA-enabled user with an active ORG_ADMIN or LOCATION_MANAGER membership in an active organization.",
+      "A different live, valid password-authenticated StaffAuthSession for the same user already exists or is obtained.",
+      "Legitimate user begins self-recovery using a valid one-use recovery code; second session sends enrollment/begin during the replacement PENDING interval.",
+      "No prior recovery code, authenticator secret, SQL access or cross-user access is needed by the second session."
+    ],
+    "current_source_evidence": [
+      {
+        "path": "apps/api/src/modules/auth/mfa/mfa-recovery.service.ts",
+        "lines": "61-72, 77-115, 130-140",
+        "observation": "The recovery session is rechecked; recovery proof is verified and consumed. The ACTIVE factor is retired; a replacement TOTP secret is inserted as an ordinary PENDING factor using only factorId, userId and protectedSecret. No recovery-session/ceremony identifier is persisted."
+      },
+      {
+        "path": "apps/api/src/modules/auth/mfa/mfa-enrollment.service.ts",
+        "lines": "60-77",
+        "observation": "Enrollment/begin accepts a separate valid session for the same user; after user-level eligibility and lock, a current PENDING factor causes direct unprotectTotpSecret and response provisioning with secretBase32. There is no recovery ceremony or initiating-session comparison."
+      },
+      {
+        "path": "apps/api/src/modules/auth/mfa/mfa-enrollment.service.ts",
+        "lines": "93-121, 128-170",
+        "observation": "Enrollment/confirm accepts any same-user valid session with matching PENDING factorId and correct TOTP, activates factor, generates ten recovery codes, calls establishMfaAssurance with that caller's exact session.id, and returns the codes. Neither operation checks which session used the recovery code."
+      },
+      {
+        "path": "apps/api/src/modules/auth/mfa/mfa-factor-repository.ts",
+        "lines": "5-15, 17-32, 35-48, 51-66",
+        "observation": "Factor shape and SQL queries constrain userId/state/factorId only, with no session/ceremony ownership field or predicate."
+      },
+      {
+        "path": "apps/api/src/modules/auth/mfa/mfa-session-repository.ts",
+        "lines": "17-41, 44-71, 74-92",
+        "observation": "Revalidates the individual access token, user, session lifetime/revocation and management eligibility; locks per user. Establishes assurance on the calling session after TOTP; it never binds the replacement factor to the initiating recovery session."
+      },
+      {
+        "path": "apps/api/src/modules/auth/mfa/staff-mfa.controller.ts",
+        "lines": "79-124, 151-171",
+        "observation": "HTTP enrollment/begin and enrollment/confirm are separate staff bearer operations, while recovery/begin calls the recovery service; no extra controller-level ownership proof."
+      },
+      {
+        "path": "apps/api/src/modules/auth/staff-session-context.ts",
+        "lines": "42-75",
+        "observation": "Bearer resolver requires a valid unrevoked, unexpired StaffAuthSession for an ACTIVE user, but does not require existing MFA assurance for enrollment."
+      },
+      {
+        "path": "packages/contracts/src/staff-mfa.ts",
+        "lines": "11-39, 55-62",
+        "observation": "Generic begin accepts an empty object; confirm takes only factorId+TOTP; self-recovery begin consumes a recovery code. There is no recovery ceremony capability in these contracts."
+      },
+      {
+        "path": "packages/database/prisma/migrations/20260916003600_mgt_be_02_complete_mfa/migration.sql",
+        "lines": "9-19, 56-66",
+        "observation": "Factor table persists id, user_id, state, protected_secret and replay/recovery metadata, plus one-live-factor-per-user index. No recovery-session owner or ceremony ID. Git grep across migration history found no later MFA ceremony/session-binding migration."
+      }
+    ],
+    "source_comparison": {
+      "method": "git diff --stat between prior evidence baseline and pinned HEAD for five core MFA files",
+      "paths": [
+        "apps/api/src/modules/auth/mfa/mfa-enrollment.service.ts",
+        "apps/api/src/modules/auth/mfa/mfa-recovery.service.ts",
+        "apps/api/src/modules/auth/mfa/mfa-factor-repository.ts",
+        "apps/api/src/modules/auth/mfa/mfa-session-repository.ts",
+        "apps/api/src/modules/auth/mfa/staff-mfa.controller.ts"
+      ],
+      "result": "No diff; five previously implicated core service/repository/controller files are identical between 66968655 and d67b2a4a."
+    },
+    "historical_evidence": [
+      "docs/audits/2026-10-27/continuation/FINDINGS_REGISTER.md:18-39 (SEC-011 P1, high confidence, synthetic model and controls; runtime unverified)",
+      "docs/audits/2026-10-27/continuation/FINDING_VALIDATION.md:3-11 (5 synthetic checks passed in original checkpoint, not rerun in C010)",
+      "docs/audits/2026-10-27/continuation/CROSS_FEATURE_RISKS.md:3 (recovery->user-global PENDING->second-session disclosure->session assurance)",
+      "docs/decisions/DEC-078_COMPANY_ADMIN_MFA.md:17-39,54-58 (recovery disclosure must be the authorized ceremony)"
+    ],
+    "tests_inspected_static_only": [
+      "apps/api/test/staff-mfa-enrollment.integration.test.ts:61-85 tests repeated begin in the same session; :169-201 tests recovery one-use/concurrency but not second-session disclosure.",
+      "apps/api/test/staff-mfa-security.integration.test.ts:149-206 verifies recovery returns PENDING without immediate assurance; does not test second session calling enrollment/begin or confirm.",
+      "apps/api/test/staff-mfa-session-races.integration.test.ts:212-250 verifies old assurance invalidation in two sessions and shows both read ENROLLMENT_PENDING; it does not reject a second session's provisioning-secret read.",
+      "apps/api/test/staff-mfa-authority-races.integration.test.ts:174-210 tests recovery versus old-factor step-up, not takeover of PENDING factor.",
+      "apps/api/test/dashboard-issue319-ca-mfa-rr-regression.integration.test.ts:68-93,95-116 verifies revoked-factor management gate, not provisioning-secret ownership."
+    ],
+    "mitigations_and_limitations": {
+      "existing_controls": "ACTIVE factor blocks generic begin; same-user user/advisory and row locks serialize factor changes; valid bearer and management membership required; one-time recovery code is consumed atomically; secret encrypted at rest with userId/factorId AAD; MFA assurance tied to exact session and current ACTIVE factor; other users cannot read this factor.",
+      "why_not_remediated": "None of those controls associates PENDING recovery factor disclosure and confirmation with the session that proved recovery. The second session gets the actual TOTP seed through normal application code, so both encryption and exact-session assurance are subsequently satisfied.",
+      "proof_gaps": "No C010 runtime HTTP/PostgreSQL/model testing. Original model was synthetic, not production exploit proof. GitHub Issue #363 body was inaccessible from this environment; user states it remains open. This report is restricted to pinned d67b source, not mutable remote main."
+    },
+    "recommended_next_gate": "Keep SEC-011/#363 as active P1. Require owner-approved recovery ceremony/session binding or equivalent proof capability for both pending secret disclosure and confirmation; preserve explicitly authorized safe retry/resume semantics; add two-session real PostgreSQL/HTTP regression and control cases before resolving issue.",
+    "coverage_credit": 0,
+    "product_source_changed": false,
+    "tests": "NOT_EXECUTED — STATIC_AUDIT_ONLY"
+  },
+  "prior_issue_state_observed_2026_10_29": [
+    {
+      "issue": 363,
+      "id": "SEC-011",
+      "github_state": "OPEN",
+      "source_status": "CONFIRMED_STATIC_PATH_PERSISTS",
+      "notes": "Existing P1 MFA recovery ceremony binding independently traced by W1 and source spot-verified by Prime; runtime unverified."
+    },
+    {
+      "issue": 356,
+      "id": "CUST-001",
+      "github_state": "CLOSED",
+      "source_status": "RESOLVED_IN_CURRENT_MAIN_CANDIDATE",
+      "notes": "W5 compared old Guest copy flow with patched source; no runtime suite."
+    },
+    {
+      "issue": 360,
+      "id": "CUST-002",
+      "github_state": "CLOSED",
+      "source_status": "RESOLVED_IN_CURRENT_MAIN_CANDIDATE",
+      "notes": "W5 checked Guest button accessible name under loading."
+    },
+    {
+      "issue": 354,
+      "id": "DASH-01",
+      "github_state": "CLOSED",
+      "source_status": "SOURCE_FIX_PRESENT",
+      "notes": "Bounded focus/visibility KPI refresh source exists; no runtime tests in C010."
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "source_sha": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+  "source_tree": "8731302512f8db4edb8bbb1cdc50b208a0dcb5b8",
+  "exact_roster": 161,
+  "valid_records": 161,
+  "invalid_records": 0,
+  "missing_records": 0,
+  "unique_credited_paths": 161,
+  "no_product_edits": true,
+  "prime_static_spot_review_completed": true,
+  "prime_spot_review_paths": [
+    "apps/api/src/modules/valet-sessions/intake-session-command.ts",
+    "apps/api/src/modules/dashboard/dashboard-location-authorization.ts",
+    "apps/api/src/common/database/bounded-postgres-query.ts",
+    "apps/customer/src/components/primitives/btn.tsx"
+  ],
+  "prime_spot_review_result": "PASS — source-specific record claims and highlighted authority/transaction/deadline/focus paths match pinned source; no tests executed",
+  "runtime_tests": "NOT_EXECUTED — STATIC_AUDIT_ONLY"
+}

@@ -1,0 +1,26 @@
+{
+  "checkpoint": "C010",
+  "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+  "source_tree": "8731302512f8db4edb8bbb1cdc50b208a0dcb5b8",
+  "parent_docs_commit": "6624e4fe50e9e2b5734797f30d936626133a31ca",
+  "candidate_files": 4779,
+  "candidate_lines": 619108,
+  "previous_current_fully_reviewed": 1620,
+  "previous_current_reviewed_lines": 187430,
+  "newly_reviewed": 161,
+  "newly_reviewed_lines": 18913,
+  "current_fully_reviewed": 1781,
+  "current_reviewed_lines": 206343,
+  "current_remaining": 2998,
+  "file_percent": 37.2672107135384,
+  "line_percent": 33.329079902052634,
+  "original_worker_roles": 7,
+  "original_failed_worker_roles": [
+    "W6",
+    "W7"
+  ],
+  "ownership_transfers": 50,
+  "errors": 0,
+  "runtime_tests_executed": 0,
+  "static_only": true
+}

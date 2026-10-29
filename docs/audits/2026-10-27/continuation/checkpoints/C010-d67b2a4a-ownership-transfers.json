@@ -1,0 +1,518 @@
+{
+  "batch": "C010",
+  "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+  "original_failed_roles": [
+    "W6",
+    "W7"
+  ],
+  "counts": {
+    "W4": 17,
+    "W2": 13,
+    "W5": 4,
+    "W1": 7,
+    "W3": 5,
+    "Prime": 4
+  },
+  "transfers": [
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/check-in/native-check-in-condition-step.tsx",
+      "original_owner": "W6",
+      "actual_reviewer": "W4",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/check-in/native-check-in-continuation-step.tsx",
+      "original_owner": "W6",
+      "actual_reviewer": "W4",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/check-in/native-check-in-workflow.tsx",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/check-in/native-condition-photo-b1-slots.tsx",
+      "original_owner": "W6",
+      "actual_reviewer": "W4",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/check-in/native-condition-photo-b1-styles.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W4",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/check-in/native-condition-photo-camera.tsx",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/check-in/native-condition-photo-copy.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W4",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/check-in/native-condition-photo-owner.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/check-in/native-condition-photo-status.tsx",
+      "original_owner": "W6",
+      "actual_reviewer": "W4",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/check-in/native-condition-photo-thumbnail-size.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W4",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/check-in/native-condition-photo-thumbnails.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W4",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/i18n/native-dictionary-en-parking.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W5",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/i18n/native-dictionary-en-scan-hub.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W5",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/test/native-condition-photo-b1-slots.test.tsx",
+      "original_owner": "W6",
+      "actual_reviewer": "W5",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/test/native-condition-photo-thumbnails.test.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W5",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/employee-client/src/employee-condition-photo-authorization.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/employee-client/src/employee-condition-photo-b1.test.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/employee-client/src/employee-condition-photo-discovery.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/employee-client/src/employee-condition-photo-gallery.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/employee-client/src/employee-condition-photo-missing-resend.test.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/employee-client/src/employee-condition-photo-session.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/employee-client/src/employee-condition-photo-source-cleanup.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/employee-client/src/employee-condition-photo-state.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/employee-client/src/employee-condition-photo-transport.test.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/employee-client/src/employee-condition-photo-transport.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C010-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/anti-abuse-boundaries.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W1",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/api-operation-runner.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W1",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/api-request-id-boundary.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W1",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/api-security-bootstrap.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W1",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/api-security-http.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W1",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/app.controller.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W1",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/architecture-check.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W4",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/architecture-line-baseline.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W4",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/architecture-line-policy.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W4",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/architecture-mobile-boundaries.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W4",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/test/runtime-metric-window.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W3",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/tools/capacity/runtime-metric-window.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W3",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/tools/capacity/validate-runtime-metric-window.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W3",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/tools/issue336-evidence-summary-pg.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W3",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/api/vitest.config.mjs",
+      "original_owner": "W7",
+      "actual_reviewer": "W3",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/condition-photo-evidence-summary.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "Prime",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/Prime/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/condition-photo-evidence-summary.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "Prime",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/Prime/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/index.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "Prime",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/Prime/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/management-audit.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "Prime",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/Prime/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "scripts/test-harness/api-source-adjacent-ownership.mjs",
+      "original_owner": "W7",
+      "actual_reviewer": "W4",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "scripts/test-harness/api-source-adjacent-ownership.test.mjs",
+      "original_owner": "W7",
+      "actual_reviewer": "W4",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "scripts/test-harness/issue215-test-manifest.mjs",
+      "original_owner": "W7",
+      "actual_reviewer": "W4",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "scripts/test-harness/issue319-private-ownership.test.mjs",
+      "original_owner": "W7",
+      "actual_reviewer": "W1",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "scripts/test-harness/run-owned-tests.mjs",
+      "original_owner": "W7",
+      "actual_reviewer": "W4",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C010-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C010",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "scripts/test-harness/test-classification.mjs",
+      "original_owner": "W7",
+      "actual_reviewer": "W4",
+      "reason": "Original COS worker failed during browser-conversation startup before receiving task",
+      "status": "fully_reviewed_prime_qa_pass",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C010-transferred-W7-review-records.json"
+    }
+  ]
+}
