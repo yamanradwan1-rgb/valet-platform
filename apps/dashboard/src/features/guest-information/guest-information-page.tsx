@@ -254,7 +254,7 @@ function GuestInformationContent() {
                   <ContactSection active={view === "contact"}
                     locale={locale} locationName={locationName}
                     companyName={companyName} defaults={currentDefaults}
-                    contact={currentContact} preview={preview.data}
+                    contact={currentContact} preview={preview}
                     canEditCompany={isCompanyAdmin} announce={show}
                     keepUnsavedOnConflict={keepUnsavedOnConflict}
                     onCompanyDirty={setCompanyDirty} onLocationDirty={setLocationDirty}
