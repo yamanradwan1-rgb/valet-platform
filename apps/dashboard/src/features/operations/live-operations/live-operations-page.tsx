@@ -23,6 +23,7 @@ import {
 } from "./live-operations-presentation";
 import { LiveOperationsTable } from "./live-operations-table";
 import { RetrievalQueueTable } from "./retrieval-queue-table";
+import { useLiveReadAvailability } from "./use-live-read-availability";
 
 type LiveOperationsView = "SESSIONS" | "RETRIEVAL_QUEUE";
 
@@ -40,6 +41,10 @@ function LiveOperationsContent() {
   const [filter, setFilter] = useState<LiveOperationsFilter>("ALL");
   const [listRevision, setListRevision] = useState(0);
   const [view, setView] = useState<LiveOperationsView>("SESSIONS");
+  const { available, resumeRevision } = useLiveReadAvailability();
+  const refreshReads = useCallback(() => {
+    setListRevision((revision) => revision + 1);
+  }, []);
   const location = selectedOperationsLocation(dashboard.selectedScope);
   const locationId = location?.locationId ?? "";
   const enabled =
@@ -67,19 +72,19 @@ function LiveOperationsContent() {
     [dashboard.api, locationId, retrievalPage.cursor],
   );
   const sessions = useAuthoritativeRead(
-    `${scopeKey}:live:sessions:${filter}:${listRevision}:${page.cursor ?? "first"}`,
+    `${scopeKey}:live:sessions:${resumeRevision}:${filter}:${listRevision}:${page.cursor ?? "first"}`,
     loadSessions,
-    enabled && view === "SESSIONS",
+    enabled && available && view === "SESSIONS",
   );
   const counts = useAuthoritativeRead(
-    `${scopeKey}:live:counts`,
+    `${scopeKey}:live:counts:${resumeRevision}:${listRevision}`,
     loadCounts,
-    enabled,
+    enabled && available,
   );
   const retrieval = useAuthoritativeRead(
-    `${scopeKey}:live:retrieval:${listRevision}:${retrievalPage.cursor ?? "first"}`,
+    `${scopeKey}:live:retrieval:${resumeRevision}:${listRevision}:${retrievalPage.cursor ?? "first"}`,
     loadRetrieval,
-    enabled && view === "RETRIEVAL_QUEUE",
+    enabled && available && view === "RETRIEVAL_QUEUE",
   );
   const kpis = counts.data === null ? null : liveOperationsKpis(counts.data);
 
@@ -149,7 +154,7 @@ function LiveOperationsContent() {
             retrievalPage.reset();
             setListRevision((value) => value + 1);
           }}
-          onRetryCounts={counts.refresh}
+          onRetryCounts={refreshReads}
           view={view}
         />
         {view === "RETRIEVAL_QUEUE" ? (
@@ -170,7 +175,7 @@ function LiveOperationsContent() {
               retrievalPage.previous();
               setListRevision((value) => value + 1);
             }}
-            onRetry={retrieval.refresh}
+            onRetry={refreshReads}
           />
         ) : (
           <LiveOperationsTable
@@ -193,7 +198,7 @@ function LiveOperationsContent() {
               setListRevision((value) => value + 1);
               page.previous();
             }}
-            onRetry={sessions.refresh}
+            onRetry={refreshReads}
           />
         )}
       </OperationsPage>
