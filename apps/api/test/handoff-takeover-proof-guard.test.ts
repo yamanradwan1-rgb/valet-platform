@@ -79,11 +79,12 @@ describe("handoff takeover proof lifecycle", () => {
   it("rejects A checkout after latest owner change to B", async () => {
     const query = vi
       .fn()
-      .mockResolvedValueOnce({ rows: [{ occurred_at: t }] })
+      .mockResolvedValueOnce({ rows: [{ birth_xid: "100" }] })
       .mockResolvedValueOnce({
         rows: [
           {
             actor_membership_id: "A",
+            after_epoch: true,
             event_type: "CHECKED_OUT",
             key_slot_id: "slot",
             occurred_at: new Date(t.getTime() + 1000),
@@ -95,14 +96,15 @@ describe("handoff takeover proof lifecycle", () => {
     ).rejects.toThrow("custody-integrity-conflict");
   });
 
-  it("requires owner B checkout strictly AFTER latest takeover epoch", async () => {
+  it("requires owner B checkout from a newer transaction than takeover", async () => {
     const query = vi
       .fn()
-      .mockResolvedValueOnce({ rows: [{ occurred_at: t }] })
+      .mockResolvedValueOnce({ rows: [{ birth_xid: "100" }] })
       .mockResolvedValueOnce({
         rows: [
           {
             actor_membership_id: "B",
+            after_epoch: false,
             event_type: "CHECKED_OUT",
             key_slot_id: "slot",
             occurred_at: t,
@@ -117,11 +119,12 @@ describe("handoff takeover proof lifecycle", () => {
   it("does not revive A's original checkout after A→B→A ownership ABA", async () => {
     const query = vi
       .fn()
-      .mockResolvedValueOnce({ rows: [{ occurred_at: t }] })
+      .mockResolvedValueOnce({ rows: [{ birth_xid: "100" }] })
       .mockResolvedValueOnce({
         rows: [
           {
             actor_membership_id: "A",
+            after_epoch: false,
             event_type: "CHECKED_OUT",
             key_slot_id: "slot",
             occurred_at: new Date(t.getTime() - 50),
@@ -140,11 +143,12 @@ describe("handoff takeover proof lifecycle", () => {
   it("accepts a later matching B checkout and rejects returned custody", async () => {
     const accepted = vi
       .fn()
-      .mockResolvedValueOnce({ rows: [{ occurred_at: t }] })
+      .mockResolvedValueOnce({ rows: [{ birth_xid: "100" }] })
       .mockResolvedValueOnce({
         rows: [
           {
             actor_membership_id: "B",
+            after_epoch: true,
             event_type: "CHECKED_OUT",
             key_slot_id: "slot",
             occurred_at: new Date(t.getTime() + 10),
@@ -156,11 +160,12 @@ describe("handoff takeover proof lifecycle", () => {
     ).resolves.toBeUndefined();
     const returned = vi
       .fn()
-      .mockResolvedValueOnce({ rows: [{ occurred_at: t }] })
+      .mockResolvedValueOnce({ rows: [{ birth_xid: "100" }] })
       .mockResolvedValueOnce({
         rows: [
           {
             actor_membership_id: "B",
+            after_epoch: true,
             event_type: "RETURNED_TO_SLOT",
             key_slot_id: "slot",
             occurred_at: new Date(t.getTime() + 10),
@@ -170,6 +175,63 @@ describe("handoff takeover proof lifecycle", () => {
     await expect(
       assertPostTakeoverRetrievalCustodyEvidence(tx(returned), scope, conflict),
     ).rejects.toThrow("custody-integrity-conflict");
+  });
+
+  it("accepts B checkout in a later locked transaction within the same millisecond", async () => {
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce({ rows: [{ birth_xid: "100" }] })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            actor_membership_id: "B",
+            after_epoch: true,
+            event_type: "CHECKED_OUT",
+            key_slot_id: "slot",
+          },
+        ],
+      });
+    await expect(
+      assertPostTakeoverRetrievalCustodyEvidence(tx(query), scope, conflict),
+    ).resolves.toBeUndefined();
+    expect(query.mock.calls[1]![0]).toContain(
+      "(pagination_birth_xid > $4::xid8) AS after_epoch",
+    );
+    expect(query.mock.calls[1]![1][3]).toBe("100");
+  });
+
+  it("orders DEC-068 same-time slot assignment before return despite reversed UUIDs", async () => {
+    // UUID lexical order may put SLOT_ASSIGNED (ffff) after RETURNED (0000).
+    // The database ORDER BY must use the documented write order instead.
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce({ rows: [{ birth_xid: "100" }] })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            actor_membership_id: "B",
+            after_epoch: true,
+            event_type: "RETURNED_TO_SLOT",
+            key_slot_id: "slot",
+          },
+        ],
+      });
+    await expect(
+      assertPostTakeoverRetrievalCustodyEvidence(tx(query), scope, conflict),
+    ).rejects.toThrow("custody-integrity-conflict");
+    const orderSql = String(query.mock.calls[1]![0]);
+    expect(orderSql).toContain("ORDER BY pagination_birth_xid DESC NULLS LAST");
+    expect(orderSql).toMatch(
+      /WHEN 'RETURNED_TO_SLOT' THEN 3\s+WHEN 'SLOT_ASSIGNED' THEN 2/,
+    );
+  });
+
+  it("fails closed if the takeover event lacks an immutable birth marker", async () => {
+    const query = vi.fn().mockResolvedValue({ rows: [{ birth_xid: null }] });
+    await expect(
+      assertPostTakeoverRetrievalCustodyEvidence(tx(query), scope, conflict),
+    ).rejects.toThrow("custody-integrity-conflict");
+    expect(query).toHaveBeenCalledTimes(1);
   });
 });
 
