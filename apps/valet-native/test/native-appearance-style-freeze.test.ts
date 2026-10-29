@@ -5,6 +5,7 @@ import { captureNativeStyleSheets } from "./appearance-style-evidence";
 
 const root = path.resolve("src");
 const fixture = path.resolve("test/fixtures/issue-253-light-styles.json");
+const b1CardSheet = "check-in/native-condition-photo-b1-styles.ts:nativeConditionPhotoB1Styles";
 describe("pushed #226 appearance geometry/color baseline", () => {
   it("preserves every baseline style in Light and all geometry in Dark", () => {
     const sheets = captureNativeStyleSheets(root);
@@ -15,8 +16,14 @@ describe("pushed #226 appearance geometry/color baseline", () => {
       string,
       unknown
     >;
-    expect(Object.keys(sheets).sort()).toEqual(Object.keys(baseline).sort());
+    expect(Object.keys(sheets).filter((name) => name !== b1CardSheet).sort())
+      .toEqual(Object.keys(baseline).sort());
+    const b1 = sheets[b1CardSheet] as { light?: unknown; dark?: unknown } | undefined;
+    expect(b1?.light, "only approved #336 photo card adds a themed sheet").toBeDefined();
+    expect(geometry(b1?.dark), "#336 card theme retains Light/Dark geometry")
+      .toEqual(geometry(b1?.light));
     for (const [name, sheet] of Object.entries(sheets)) {
+      if (name === b1CardSheet) continue;
       const themed = sheet as { light?: unknown; dark?: unknown };
       const light = themed.light ?? sheet;
       const normalized = name === "shift/native-shift-diagnostics-card.tsx:styles"

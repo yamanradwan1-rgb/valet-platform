@@ -34,6 +34,8 @@ export interface ConditionStepProps {
   readonly photo: EmployeeConditionPhotoSession;
   readonly photoSnapshot: ConditionPhotoSnapshot;
   readonly files: NativeConditionPhotoFiles;
+  readonly onPrepareCapture?: ((handle: string) => Promise<string | null>) | undefined;
+  readonly onReleaseCapture?: ((handle: string) => void) | undefined;
 }
 
 const OPTIONS: ReadonlyArray<{
@@ -64,6 +66,8 @@ export function NativeCheckInConditionStep({
   photo,
   photoSnapshot,
   files,
+  onPrepareCapture,
+  onReleaseCapture,
 }: ConditionStepProps) {
   const s = useEmployeeStyles(sTheme);
 
@@ -133,6 +137,7 @@ export function NativeCheckInConditionStep({
         })}
       </View>
       <NativeConditionPhotoStatus files={files} locale={locale}
+        onPrepareCapture={onPrepareCapture} onReleaseCapture={onReleaseCapture}
         photo={photo} snapshot={photoSnapshot} />
       {failure ? (
         <CheckInError textAlign={textAlign}>{failure}</CheckInError>

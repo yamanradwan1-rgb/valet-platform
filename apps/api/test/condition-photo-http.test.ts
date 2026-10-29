@@ -44,9 +44,15 @@ const backend = {
     pendingOperation: pending,
     latestOperation: null,
   })),
+  evidenceSummary: vi.fn(async () => ({
+    valetSessionId: sessionId, verifiedTotal: 1,
+    latestVerified: [{ operationId, vehiclePhotoId: photoId,
+      verifiedAt: "2026-10-15T00:00:00.000Z", status: "VERIFIED" }],
+  })),
 };
 const admission = {
-  statusRead: vi.fn(async () => ({ allowed: true })),
+  statusRead: vi.fn(async (): Promise<{ allowed: boolean; retryAfter?: number }> =>
+    ({ allowed: true })),
   uploadStart: vi.fn(async () => ({ allowed: true })),
 };
 
@@ -125,6 +131,53 @@ describe("P2 actual Nest HTTP route and pre-parser guards", () => {
       qualifyingPhotoPresent: false,
       pendingOperation: pending,
     });
+  });
+
+  it("protects the metadata-only summary with the existing photo guard", async () => {
+    const endpoint = target("condition-photo-evidence-summary");
+    const result = await fetch(endpoint, { headers: { Authorization: "Bearer ok" } });
+    expect(result.status).toBe(200);
+    expect(result.headers.get("cache-control")).toContain("no-store");
+    const body = await result.json();
+    expect(body).toEqual({ valetSessionId: sessionId, verifiedTotal: 1,
+      latestVerified: [{ operationId, vehiclePhotoId: photoId,
+        verifiedAt: "2026-10-15T00:00:00.000Z", status: "VERIFIED" }] });
+    expect(JSON.stringify(body)).not.toMatch(/object_key|bucket|image|sha256|signed_url/i);
+    expect(backend.evidenceSummary).toHaveBeenCalledWith(credential, sessionId);
+    const before = backend.evidenceSummary.mock.calls.length;
+    const revoked = await fetch(endpoint, {
+      headers: { Authorization: "Bearer revoked" },
+    });
+    expect(revoked.status).toBe(401);
+    expect(revoked.headers.get("cache-control")).toContain("no-store");
+    const badQuery = await fetch(`${endpoint}?memberId=other`, {
+      headers: { Authorization: "Bearer ok" },
+    });
+    expect(badQuery.status).toBe(400);
+    expect(backend.evidenceSummary.mock.calls).toHaveLength(before);
+  });
+
+  it("rejects malformed or unauthenticated summary reads and respects rate limits", async () => {
+    const endpoint = target("condition-photo-evidence-summary");
+    const before = backend.evidenceSummary.mock.calls.length;
+    const absent = await fetch(endpoint);
+    expect(absent.status).toBe(401);
+    expect(absent.headers.get("cache-control")).toContain("no-store");
+    const malformed = await fetch(
+      `${url}/v1/staff/check-in/sessions/not-a-uuid/condition-photo-evidence-summary`,
+      { headers: { Authorization: "Bearer ok" } });
+    expect(malformed.status).toBe(400);
+    const badActor = await fetch(endpoint, {
+      headers: { Authorization: "Bearer revoked" },
+    });
+    expect(badActor.status).toBe(401);
+    admission.statusRead.mockResolvedValueOnce({ allowed: false, retryAfter: 5 });
+    const limited = await fetch(endpoint, {
+      headers: { Authorization: "Bearer ok" },
+    });
+    expect(limited.status).toBe(429);
+    expect(limited.headers.get("cache-control")).toContain("no-store");
+    expect(backend.evidenceSummary.mock.calls).toHaveLength(before);
   });
 
   it("reconcile returns 202 WAIT and rejects unauthorized operation bodies", async () => {

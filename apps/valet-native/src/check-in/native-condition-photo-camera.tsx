@@ -14,17 +14,22 @@ import { observePhotoStage, observePhotoStageAsync,
   type NativePhotoStageObserver } from "./native-photo-stage";
 
 export function NativeConditionPhotoCamera({
-  files, locale, onClose, photo,
+  files, locale, onClose, onPrepareCapture, onReleaseCapture, photo,
 }: {
   readonly files: NativeConditionPhotoFiles;
   readonly locale: EmployeeLocale;
   readonly onClose: () => void;
+  /** Builds a private display thumbnail before the upload JPEG can be discarded. */
+  readonly onPrepareCapture?: ((handle: string) => Promise<string | null>) | undefined;
+  /** Disposes a prepared thumbnail if its camera capture was not accepted. */
+  readonly onReleaseCapture?: ((handle: string) => void) | undefined;
   readonly photo: EmployeeConditionPhotoSession;
 }) {
   const s = useEmployeeStyles(stylesTheme);
   const copy = nativeConditionPhotoCopy(locale);
   const camera = useRef<CameraView>(null);
   const inFlight = useRef(false);
+  const confirming = useRef(false);
   const revision = useRef(0);
   const [permission, setPermission] = useState<"loading" | "granted" | "denied">("loading");
   const [canAskAgain, setCanAskAgain] = useState(true);
@@ -42,8 +47,11 @@ export function NativeConditionPhotoCamera({
   const release = useCallback(() => {
     const previous = ownedHandle.current;
     ownedHandle.current = null;
-    if (previous !== null) void files.discard(previous).catch(() => undefined);
-  }, [files]);
+    if (previous !== null) {
+      onReleaseCapture?.(previous);
+      void files.discard(previous).catch(() => undefined);
+    }
+  }, [files, onReleaseCapture]);
   const dismiss = useCallback(() => {
     revision.current += 1;
     release();
@@ -155,6 +163,7 @@ export function NativeConditionPhotoCamera({
     const previous = handle;
     revision.current += 1;
     ownedHandle.current = null;
+    onReleaseCapture?.(previous);
     setHandle(null);
     setPreviewUri(null);
     setReady(false);
@@ -170,13 +179,24 @@ export function NativeConditionPhotoCamera({
     });
   };
 
-  const confirm = () => {
-    if (handle === null || !active()) return;
-    photo.capture(handle);
-    ownedHandle.current = null;
-    setHandle(null);
-    setPreviewUri(null);
-    onClose();
+  const confirm = async () => {
+    if (handle === null || !active() || confirming.current) return;
+    confirming.current = true;
+    setBusy(true);
+    try {
+      const thumbnailUri = await onPrepareCapture?.(handle) ?? null;
+      if (!active() || ownedHandle.current !== handle) return;
+      if (!photo.capture(handle, thumbnailUri)) return;
+      ownedHandle.current = null;
+      setHandle(null);
+      setPreviewUri(null);
+      onClose();
+    } catch {
+      if (active()) setError(true);
+    } finally {
+      confirming.current = false;
+      setBusy(false);
+    }
   };
   return (
     <Modal animationType="slide" onRequestClose={dismiss} presentationStyle="fullScreen">
@@ -223,7 +243,8 @@ export function NativeConditionPhotoCamera({
             <>
               <Text accessibilityLiveRegion="polite" style={s.taskStatus}>{copy.captured}</Text>
               <EmployeeButton label={copy.retake} onPress={retake} variant="secondary" />
-              <EmployeeButton label={copy.confirm} onPress={confirm} />
+              <EmployeeButton label={copy.confirm} disabled={busy}
+                onPress={() => void confirm()} />
             </>
           )}
           {permission === "denied" && !canAskAgain ? (

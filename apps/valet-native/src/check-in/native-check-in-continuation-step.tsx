@@ -44,6 +44,8 @@ export interface ContinuationStepProps {
   readonly files: NativeConditionPhotoFiles;
   readonly photo: EmployeeConditionPhotoSession;
   readonly photoSnapshot: ConditionPhotoSnapshot;
+  readonly onPrepareCapture?: (handle: string) => Promise<string | null>;
+  readonly onReleaseCapture?: (handle: string) => void;
 }
 
 export function NativeCheckInContinuationStep(props: ContinuationStepProps) {

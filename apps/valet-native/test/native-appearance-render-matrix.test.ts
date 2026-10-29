@@ -126,6 +126,31 @@ function normalizeConditionPhotoLoading(
     );
   }
   const children = node.props.children;
+  // #336 permits a larger B1 card, while the parent Check-In tree stays frozen.
+  // Verify the one marked card, then compare its original notice shell exactly.
+  if (node.type === "View" && node.props.testID === "native-condition-photo-b1-card") {
+    expect(Array.isArray(children)).toBe(true);
+    const [status, card, actions] = children as RenderNode[];
+    if (!status || !card || !actions)
+      throw new Error("B1 photo card is missing a required presentation section.");
+    expect(status?.type).toBe("Text");
+    expect(status.props.children).toBe(locale === "ar" ?
+      "جارٍ التحقق من متطلبات الصور…" : "Checking photo requirements…");
+    expect(card?.type).toBe("View");
+    expect(JSON.stringify(card)).toContain(locale === "ar" ?
+      "صور حالة المركبة" : "Condition photos");
+    expect(actions?.type).toBe("View");
+    const frozenProps = { ...node.props };
+    delete frozenProps.testID;
+    return { ...node, props: { ...frozenProps, children: {
+      type: "Text", props: {
+        children: locale === "ar" ? "الصور اختيارية وفق سياسة الموقع" :
+          "Photos optional by location policy",
+        style: { ...(status.props.style as Record<string, unknown>),
+          writingDirection: locale === "ar" ? "rtl" : "ltr" },
+      },
+    } } };
+  }
   if (
     node.type === "View" &&
     Array.isArray(children) &&

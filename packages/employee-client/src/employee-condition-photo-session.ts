@@ -1,8 +1,11 @@
 import type { ConditionPhotoUploadStatus } from "@valet/contracts";
 import type { ConditionPhotoTransport } from "./employee-condition-photo-transport";
+import { EmployeeConditionPhotoGallery } from "./employee-condition-photo-gallery";
+import { conditionPhotoAuthorizationLost } from "./employee-condition-photo-authorization";
+import { discoverConditionPhotoGallery } from "./employee-condition-photo-discovery";
+import { discardConditionPhotoSources } from "./employee-condition-photo-source-cleanup";
 import {
   conditionPhotoScopeKey,
-  discoveredPhotoState,
   initialConditionPhotoSnapshot,
   type ConditionPhotoScope,
   type ConditionPhotoSnapshot,
@@ -14,10 +17,12 @@ export interface ConditionPhotoSessionOptions {
   readonly discard: (handle: string) => Promise<void>;
   /** Must synchronously validate actual Native file availability before dispatch. */
   readonly captureReady?: (handle: string) => boolean;
+  readonly discardThumbnail?: (uri: string) => Promise<void>;
 }
 
 /** Private in-memory operation coordination; every server result is scope fenced. */
 export class EmployeeConditionPhotoSession {
+  private readonly gallery = new EmployeeConditionPhotoGallery();
   private snapshot: ConditionPhotoSnapshot = initialConditionPhotoSnapshot();
   private readonly listeners = new Set<() => void>();
   private handle: string | null = null;
@@ -35,23 +40,23 @@ export class EmployeeConditionPhotoSession {
   readonly current = () => this.snapshot;
 
   private publish(snapshot: ConditionPhotoSnapshot) {
-    this.snapshot = snapshot;
+    this.snapshot = { ...snapshot, ...this.gallery.snapshot };
     for (const listener of this.listeners) listener();
   }
-
   private invalidate() {
     this.request += 1;
     this.controller?.abort();
     this.controller = null;
     this.flight = false;
   }
-
   private discardOld() {
     const old = this.handle;
     this.handle = null;
     if (old !== null) void this.options.discard(old).catch(() => undefined);
   }
-
+  private discardSources(handles: readonly string[], thumbnails: readonly string[]) {
+    discardConditionPhotoSources(this.options, handles, thumbnails);
+  }
   activate(scope: ConditionPhotoScope): Promise<void> {
     if (this.snapshot.scope !== null &&
       conditionPhotoScopeKey(this.snapshot.scope) === conditionPhotoScopeKey(scope)) {
@@ -59,25 +64,29 @@ export class EmployeeConditionPhotoSession {
     }
     this.invalidate();
     this.discardOld();
+    const retired = this.gallery.clear();
+    this.discardSources(retired.sources, retired.thumbnails);
     this.operationId = null;
     this.publish({ ...initialConditionPhotoSnapshot(),
       ownerRevision: ++this.ownerRevision, scope });
     return this.discover();
   }
-
   clear(): void {
     this.invalidate();
     this.discardOld();
+    const retired = this.gallery.clear();
+    this.discardSources(retired.sources, retired.thumbnails);
     this.operationId = null;
     this.publish({ ...initialConditionPhotoSnapshot(),
       ownerRevision: ++this.ownerRevision });
   }
-
   suspend(): void {
     const wasUploading = this.flight;
     if (this.snapshot.scope === null) return;
     this.invalidate();
     this.discardOld();
+    const retired = this.gallery.suspend(wasUploading ? this.operationId : null);
+    this.discardSources(retired.sources, retired.thumbnails);
     this.publish({
       ...this.snapshot,
       hasCapture: false,
@@ -88,31 +97,49 @@ export class EmployeeConditionPhotoSession {
       error: wasUploading ? "NETWORK" : this.snapshot.error,
     });
   }
-
-  capture(handle: string): boolean {
+  capture(handle: string, thumbnailUri: string | null = null): boolean {
     const state = this.snapshot;
     if (state.scope === null || this.flight ||
       state.status?.status === "PENDING" || state.phase === "unknown") {
-      void this.options.discard(handle).catch(() => undefined);
+      this.discardSources([handle], thumbnailUri ? [thumbnailUri] : []);
+      return false;
+    }
+    if (this.gallery.capture(handle, thumbnailUri) === null) {
+      this.discardSources([handle], thumbnailUri ? [thumbnailUri] : []);
       return false;
     }
     this.invalidate();
-    this.discardOld();
     this.handle = handle;
     this.operationId = null;
     this.publish({
       ...state, phase: "captured", error: null, status: null,
-      qualifying: false, captureRevision: state.captureRevision + 1,
+      qualifying: state.qualifying, captureRevision: state.captureRevision + 1,
       hasCapture: true,
     });
     return true;
   }
-
   captureFailed(): void {
     if (this.snapshot.scope === null) return;
     this.publish({ ...this.snapshot, error: "CAMERA" });
   }
-
+  /** Retake only a still-local, unverified slot; uncertain operations need exact reconciliation. */
+  retake(slotId: number): boolean {
+    if (this.flight || this.snapshot.phase === "unknown" ||
+        this.snapshot.phase === "pending") return false;
+    const removed = this.gallery.retake(slotId);
+    if (!removed) return false;
+    this.discardSources(removed.source ? [removed.source] : [],
+      removed.thumbnailUri ? [removed.thumbnailUri] : []);
+    if (this.handle === removed.source) this.handle = null;
+    this.operationId = null;
+    const next = this.gallery.snapshot;
+    this.publish({ ...this.snapshot, status: null,
+      hasCapture: next.slots.some((slot) => slot.phase === "CAPTURED_LOCAL"),
+      phase: next.slots.some((slot) => slot.phase === "CAPTURED_LOCAL") ?
+        "captured" : this.snapshot.qualifying ? "verified" : "available",
+      error: null });
+    return true;
+  }
   private async read(
     action: (signal: AbortSignal, current: () => boolean) => Promise<void>,
     failurePhase: ConditionPhotoSnapshot["phase"] = "unavailable",
@@ -128,31 +155,29 @@ export class EmployeeConditionPhotoSession {
       conditionPhotoScopeKey(this.snapshot.scope) === scopeKey;
     try {
       await action(abort.signal, current);
-    } catch {
-      if (current())
-        this.publish({ ...this.snapshot, phase: failurePhase, error: "NETWORK" });
+    } catch (error) {
+      if (current()) {
+        if (conditionPhotoAuthorizationLost(error)) this.clear();
+        else this.publish({ ...this.snapshot, phase: failurePhase, error: "NETWORK" });
+      }
     } finally {
       if (this.controller === abort) this.controller = null;
     }
   }
-
   discover(): Promise<void> {
     const scope = this.snapshot.scope;
     if (scope === null) return Promise.resolve();
     return this.read(async (signal, current) => {
-      const discovery = await this.options.transport.discover(scope.sessionId, signal);
-      if (!current()) return;
-      // A read that races T1 can report no row while an earlier POST still commits.
-      // Retain that operation identity and require explicit status inspection.
-      if (this.snapshot.phase === "unknown" && this.operationId !== null &&
-        discovery.pendingOperation === null && discovery.latestOperation === null &&
-        !discovery.qualifyingPhotoPresent) return;
-      this.operationId = discovery.pendingOperation?.operationId ?? null;
-      if (discovery.qualifyingPhotoPresent) this.discardOld();
-      this.publish(discoveredPhotoState(this.snapshot, discovery));
+      const result = await discoverConditionPhotoGallery(
+        this.options.transport, scope, this.snapshot, this.operationId,
+        this.gallery, signal, current,
+      );
+      if (!result || !current()) return;
+      this.operationId = result.operationId;
+      this.discardSources(result.verifiedSources, result.obsolete);
+      this.publish(result.snapshot);
     });
   }
-
   checkServer(): Promise<void> {
     const scope = this.snapshot.scope;
     if (scope === null) return Promise.resolve();
@@ -168,7 +193,6 @@ export class EmployeeConditionPhotoSession {
         return this.discover();
     });
   }
-
   async reconcile(): Promise<void> {
     const scope = this.snapshot.scope;
     const status = this.snapshot.status;
@@ -188,24 +212,36 @@ export class EmployeeConditionPhotoSession {
 
   upload(): Promise<void> {
     const scope = this.snapshot.scope;
-    const handle = this.handle;
+    const allowSameByteResend = this.snapshot.phase === "pending" &&
+      this.snapshot.status?.status === "PENDING" &&
+      this.snapshot.status.retryAction === "RESEND_SAME_BYTES";
+    const candidate = this.gallery.uploadCandidate(allowSameByteResend);
+    const handle = candidate?.handle ?? null;
     const state = this.snapshot;
-    if (this.flight || scope === null || handle === null ||
-      (state.phase !== "captured" &&
-        !(state.phase === "pending" && state.status?.status === "PENDING" &&
-          state.status.retryAction === "RESEND_SAME_BYTES"))) return Promise.resolve();
+    if (this.flight || scope === null || candidate === null || handle === null ||
+      (state.phase === "unknown" ||
+        (state.phase === "pending" && state.status?.status === "PENDING" &&
+          state.status.retryAction !== "RESEND_SAME_BYTES"))) return Promise.resolve();
     if (this.options.captureReady && !this.options.captureReady(handle)) {
-      this.discardOld();
-      this.publish({ ...state, phase: "rejected", error: "FILE", hasCapture: false });
+      this.discardSources([handle], []);
+      this.gallery.markMissingSource(candidate.slotId);
+      if (this.handle === handle) this.handle = null;
+      this.publish({ ...state, phase: allowSameByteResend ? "unknown" : "rejected",
+        error: "FILE", hasCapture: this.gallery.snapshot.capturedCount > 0 });
       return Promise.resolve();
     }
     let op: string;
     try {
-      op = this.operationId ?? this.options.createOperationId();
+      op = candidate.operationId ?? this.options.createOperationId();
     } catch {
       this.publish({ ...state, phase: "unavailable", error: "RESPONSE" });
       return Promise.resolve();
     }
+    if (!this.gallery.begin(candidate.slotId, op)) {
+      this.publish({ ...state, phase: "unavailable", error: "RESPONSE" });
+      return Promise.resolve();
+    }
+    this.handle = handle;
     this.operationId = op;
     const revision = state.captureRevision;
     const key = conditionPhotoScopeKey(scope);
@@ -222,9 +258,14 @@ export class EmployeeConditionPhotoSession {
           this.accept(value);
           refresh = value.status === "VERIFIED";
         }
-      } catch {
-        if (this.isCurrent(id, key, revision, abort))
-          this.publish({ ...this.snapshot, phase: "unknown", error: "NETWORK" });
+      } catch (error) {
+        if (this.isCurrent(id, key, revision, abort)) {
+          if (conditionPhotoAuthorizationLost(error)) this.clear();
+          else {
+            this.gallery.unknown(op);
+            this.publish({ ...this.snapshot, phase: "unknown", error: "NETWORK" });
+          }
+        }
       } finally {
         if (this.controller === abort) this.controller = null;
         if (this.request === id) this.flight = false;
@@ -232,22 +273,25 @@ export class EmployeeConditionPhotoSession {
       }
     })();
   }
-
   private isCurrent(id: number, key: string, revision: number, abort: AbortController) {
     return this.request === id && !abort.signal.aborted &&
       this.snapshot.captureRevision === revision && this.snapshot.scope !== null &&
       conditionPhotoScopeKey(this.snapshot.scope) === key;
   }
-
   private accept(status: ConditionPhotoUploadStatus) {
     const scope = this.snapshot.scope;
     if (scope === null || status.valetSessionId !== scope.sessionId ||
       status.operationId !== this.operationId) return;
-    if (status.status !== "PENDING") this.discardOld();
+    const source = this.gallery.accept(status);
+    if (status.status !== "PENDING") {
+      if (source) this.discardSources([source], []);
+      this.handle = null;
+    }
     this.publish({
       ...this.snapshot, status, error: null,
-      hasCapture: this.handle !== null,
-      phase: status.status === "VERIFIED" ? "verified" :
+      hasCapture: this.gallery.snapshot.slots.some((slot) => slot.hasCapture),
+      phase: status.status === "VERIFIED" ?
+        this.gallery.uploadCandidate() ? "captured" : "verified" :
         status.status === "PENDING" ? "pending" : "rejected",
       // Only current authoritative discovery can establish required eligibility.
       qualifying: this.snapshot.qualifying,

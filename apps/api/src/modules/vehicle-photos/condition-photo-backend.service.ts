@@ -1,5 +1,6 @@
 import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import type {
+  ConditionPhotoEvidenceSummary,
   ConditionPhotoStateDiscovery,
   ConditionPhotoUploadStatus,
 } from "@valet/contracts";
@@ -17,6 +18,7 @@ import {
   resolveAuthorizedConditionPhotoScope,
 } from "./condition-photo-authorization";
 import { readConditionPhotoDiscovery } from "./condition-photo-discovery-query";
+import { readConditionPhotoEvidenceSummary } from "./condition-photo-evidence-summary-query";
 import { executeConditionPhotoReconcile } from "./condition-photo-reconcile-executor";
 import { readConditionPhotoStatus } from "./condition-photo-status-query";
 import { resolveConditionPhotoStorageConfig } from "./condition-photo-storage-config";
@@ -168,6 +170,16 @@ export class ConditionPhotoBackendService {
           trusted.requestNonce,
         );
       return { ...discovery, qualifyingPhotoPresent };
+    });
+  }
+
+  async evidenceSummary(
+    credential: StaffSessionContext,
+    sessionId: string,
+  ): Promise<ConditionPhotoEvidenceSummary> {
+    return await inPostgresTransaction(this.pool, async (tx) => {
+      const scope = await authorizeConditionPhotoScope(tx, credential, sessionId);
+      return await readConditionPhotoEvidenceSummary(tx, scope);
     });
   }
 }

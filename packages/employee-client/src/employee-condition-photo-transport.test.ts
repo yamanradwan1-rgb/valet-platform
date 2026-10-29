@@ -57,4 +57,23 @@ describe("portable photo wire contract", () => {
     });
     expect(execute).toHaveBeenCalledTimes(1);
   });
+
+  it("reads a strict actor-authorized newest-four metadata window without image URLs", async () => {
+    const response = { valetSessionId: sessionId, verifiedTotal: 6,
+      latestVerified: [{ operationId, vehiclePhotoId: verified.vehiclePhotoId,
+        verifiedAt: verified.verifiedAt, status: "VERIFIED" }] };
+    const execute = vi.fn().mockResolvedValue({ status: 200, payload: response });
+    const transport = createEmployeeConditionPhotoTransport(
+      () => new EmployeeClient({ transport: { execute } }), () => ({}),
+    );
+    expect(await transport.summary?.(sessionId, new AbortController().signal))
+      .toEqual(response);
+    expect(execute).toHaveBeenCalledWith({ method: "GET",
+      path: `/v1/staff/check-in/sessions/${sessionId}/condition-photo-evidence-summary` });
+    execute.mockResolvedValue({ status: 200, payload: {
+      ...response, latestVerified: [{ ...response.latestVerified[0], objectKey: "private" }],
+    } });
+    await expect(transport.summary?.(sessionId, new AbortController().signal))
+      .rejects.toThrow();
+  });
 });

@@ -81,7 +81,7 @@ export function NativeCheckInWorkflow({
         },
       };
   const textAlign: NativeTextAlign = locale === "ar" ? "right" : "left";
-  const { photo, photoSnapshot, files } =
+  const { photo, photoSnapshot, files, onPrepareCapture, onReleaseCapture } =
     useNativeConditionPhotoOwner(auth, scope, resolvedSnapshot);
   const [capturePresentation, setCapturePresentation] = useState(() =>
     initialCheckInCapturePresentation(snapshot),
@@ -151,6 +151,8 @@ export function NativeCheckInWorkflow({
     files,
     photo,
     photoSnapshot,
+    onPrepareCapture,
+    onReleaseCapture,
     conditionCopy,
     continuationCopy,
     copy,
