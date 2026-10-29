@@ -1,0 +1,641 @@
+{
+    "batch":  "C023",
+    "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+    "initial_transfers":  50,
+    "unavailable_or_delayed_roles":  [
+                                         "W4",
+                                         "W5"
+                                     ],
+    "transfers":  [
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/administration/settings/use-presence-retained-intent.ts",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W1",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/administration/settings/use-shift-presence-mutation.ts",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W2",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/administration/settings/whatsapp-settings-api.test.tsx",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W3",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/administration/settings/whatsapp-settings-api.ts",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W6",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W6/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/administration/settings/whatsapp-settings-panel.tsx",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W7",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W7/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/administration/staff/staff-activation-api.ts",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W1",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/administration/staff/staff-activation-page.tsx",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W2",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/administration/staff/staff-api.ts",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W3",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/administration/staff/staff-create-dialog.tsx",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W6",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W6/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/administration/staff/staff-cursor-controls.tsx",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W7",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W7/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/administration/staff/staff-detail-drawer.tsx",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W1",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/administration/staff/staff-employees-body.tsx",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W2",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/lib/navigation/navigation-authority.ts",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W3",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/lib/navigation/md04-feature-authority-navigation.test.ts",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W6",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W6/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/lib/navigation/dashboard-navigation.ts",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W7",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W7/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/operations/tasks/use-emergency-takeover.ts",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W1",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/operations/tasks/use-emergency-action-eligibility.ts",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W2",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/operations/tasks/tasks-page.tsx",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W3",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/operations/tasks/task-drawer.tsx",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W6",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W6/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/operations/tasks/emergency-tasks-visibility.ts",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W7",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W7/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/operations/tasks/emergency-tasks-visibility.test.ts",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W1",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/operations/tasks/emergency-task-drawer.tsx",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W2",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/operations/tasks/emergency-takeover-view.ts",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W3",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/operations/tasks/emergency-takeover-view.test.ts",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W6",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W6/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/dashboard/src/features/operations/tasks/emergency-takeover-intent.ts",
+                          "original_owner":  "W4",
+                          "original_assigned_reviewer":  "W4",
+                          "actual_reviewer":  "W7",
+                          "reason":  "W4 reviewer chat previously failed startup; disjoint unread Dashboard ownership assigned to responsive current reviewer",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W7/C023-transferred-W4-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/parking/parking-api.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W1",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/parking/parking-controller-fallback.test.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W2",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/parking/parking-controller-hydration.test.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W3",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/parking/parking-controller-rerender.test.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W6",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W6/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/parking/parking-controller.test.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W7",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W7/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/parking/parking-controller.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W1",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/parking/parking-types.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W2",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/parking/use-parking.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W3",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/plate-camera/plate-camera-browser.test.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W6",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W6/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/plate-camera/plate-camera-browser.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W7",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W7/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/plate-camera/use-plate-camera.startup.test.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W1",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/plate-camera/use-plate-camera.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W2",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/recovery-boundaries.test.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W3",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/retrieval-alert/retrieval-alert-audio.test.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W6",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W6/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/retrieval-alert/retrieval-alert-audio.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W7",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W7/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/retrieval-alert/retrieval-alert-gesture.test.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W1",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/retrieval-alert/retrieval-alert-gesture.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W2",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/retrieval-alert/retrieval-alert-tracker.test.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W3",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/retrieval-alert/retrieval-alert-tracker.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W6",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W6/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/retrieval/index.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W7",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W7/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/retrieval/retrieval-api.test.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W1",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/retrieval/retrieval-api.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W2",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/retrieval/retrieval-controller-key-confirmation.test.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W3",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/retrieval/retrieval-controller-state.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W6",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W6/C023-transferred-W5-review-records.json"
+                      },
+                      {
+                          "batch":  "C023",
+                          "source_commit":  "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+                          "path":  "apps/valet/src/features/retrieval/retrieval-controller.test.ts",
+                          "original_owner":  "W5",
+                          "original_assigned_reviewer":  "W5",
+                          "actual_reviewer":  "W7",
+                          "reason":  "W5 delayed/unresponsive workflow previously required rescue; proactively distribute only new unread W5-owned files",
+                          "status":  "assigned_pending_full_source_review",
+                          "result_path":  "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W7/C023-transferred-W5-review-records.json"
+                      }
+                  ],
+    "mandatory_priority_reassignments":  [
+                                             {
+                                                 "replaced_path":  "apps/dashboard/src/features/administration/staff/staff-presentation.ts",
+                                                 "priority_path":  "apps/dashboard/src/features/operations/tasks/emergency-takeover-intent.ts",
+                                                 "original_owner":  "W4",
+                                                 "actual_reviewer":  "W7"
+                                             },
+                                             {
+                                                 "replaced_path":  "apps/dashboard/src/features/administration/staff/staff-presentation.test.ts",
+                                                 "priority_path":  "apps/dashboard/src/features/operations/tasks/emergency-takeover-view.test.ts",
+                                                 "original_owner":  "W4",
+                                                 "actual_reviewer":  "W6"
+                                             },
+                                             {
+                                                 "replaced_path":  "apps/dashboard/src/features/administration/staff/staff-pending-invite-panel.tsx",
+                                                 "priority_path":  "apps/dashboard/src/features/operations/tasks/emergency-takeover-view.ts",
+                                                 "original_owner":  "W4",
+                                                 "actual_reviewer":  "W3"
+                                             },
+                                             {
+                                                 "replaced_path":  "apps/dashboard/src/features/administration/staff/staff-onboarding-result.tsx",
+                                                 "priority_path":  "apps/dashboard/src/features/operations/tasks/emergency-task-drawer.tsx",
+                                                 "original_owner":  "W4",
+                                                 "actual_reviewer":  "W2"
+                                             },
+                                             {
+                                                 "replaced_path":  "apps/dashboard/src/features/administration/staff/staff-onboarding-copy.ts",
+                                                 "priority_path":  "apps/dashboard/src/features/operations/tasks/emergency-tasks-visibility.test.ts",
+                                                 "original_owner":  "W4",
+                                                 "actual_reviewer":  "W1"
+                                             },
+                                             {
+                                                 "replaced_path":  "apps/dashboard/src/features/administration/staff/staff-onboarding-api.ts",
+                                                 "priority_path":  "apps/dashboard/src/features/operations/tasks/emergency-tasks-visibility.ts",
+                                                 "original_owner":  "W4",
+                                                 "actual_reviewer":  "W7"
+                                             },
+                                             {
+                                                 "replaced_path":  "apps/dashboard/src/features/administration/staff/staff-labels.ts",
+                                                 "priority_path":  "apps/dashboard/src/features/operations/tasks/task-drawer.tsx",
+                                                 "original_owner":  "W4",
+                                                 "actual_reviewer":  "W6"
+                                             },
+                                             {
+                                                 "replaced_path":  "apps/dashboard/src/features/administration/staff/staff-force-end-recovery.ts",
+                                                 "priority_path":  "apps/dashboard/src/features/operations/tasks/tasks-page.tsx",
+                                                 "original_owner":  "W4",
+                                                 "actual_reviewer":  "W3"
+                                             },
+                                             {
+                                                 "replaced_path":  "apps/dashboard/src/features/administration/staff/staff-force-end-recovery.test.ts",
+                                                 "priority_path":  "apps/dashboard/src/features/operations/tasks/use-emergency-action-eligibility.ts",
+                                                 "original_owner":  "W4",
+                                                 "actual_reviewer":  "W2"
+                                             },
+                                             {
+                                                 "replaced_path":  "apps/dashboard/src/features/administration/staff/staff-force-end-intent.ts",
+                                                 "priority_path":  "apps/dashboard/src/features/operations/tasks/use-emergency-takeover.ts",
+                                                 "original_owner":  "W4",
+                                                 "actual_reviewer":  "W1"
+                                             },
+                                             {
+                                                 "replaced_path":  "apps/dashboard/src/features/administration/staff/staff-force-end-intent.test.ts",
+                                                 "priority_path":  "apps/dashboard/src/lib/navigation/dashboard-navigation.ts",
+                                                 "original_owner":  "W4",
+                                                 "actual_reviewer":  "W7"
+                                             },
+                                             {
+                                                 "replaced_path":  "apps/dashboard/src/features/administration/staff/staff-force-end-dialog.tsx",
+                                                 "priority_path":  "apps/dashboard/src/lib/navigation/md04-feature-authority-navigation.test.ts",
+                                                 "original_owner":  "W4",
+                                                 "actual_reviewer":  "W6"
+                                             },
+                                             {
+                                                 "replaced_path":  "apps/dashboard/src/features/administration/staff/staff-force-end-copy.ts",
+                                                 "priority_path":  "apps/dashboard/src/lib/navigation/navigation-authority.ts",
+                                                 "original_owner":  "W4",
+                                                 "actual_reviewer":  "W3"
+                                             }
+                                         ]
+}
