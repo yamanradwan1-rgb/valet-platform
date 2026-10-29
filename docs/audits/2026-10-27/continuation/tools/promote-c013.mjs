@@ -15,6 +15,10 @@ const roster=JSON.parse(readFileSync(prefix+'assignment-roster.json','utf8'));
 const transferManifest=JSON.parse(readFileSync(prefix+'ownership-transfers.json','utf8'));
 const rescue=JSON.parse(readFileSync(prefix+'w3-rescue-addendum.json','utf8'));
 const rescueMap=new Map(rescue.transfers.map(t=>[t.path,t]));
+const w8Fallback=JSON.parse(readFileSync(prefix+'w8-fallback-addendum.json','utf8'));
+const w8FallbackMap=new Map(w8Fallback.transfers.map(t=>[t.path,t]));
+const effectiveReviewer=path=>w8FallbackMap.get(path)?.actual_reviewer??
+  rescueMap.get(path)?.actual_reviewer;
 const previous=JSON.parse(readFileSync(join(cp,'C012-d67b2a4a-coverage-summary.json'),'utf8'));
 const docsParent=execFileSync('git',['-C',root,'rev-parse','HEAD'],{encoding:'utf8'}).trim();
 if(!existsSync(prefix+'prime-spot-checks.md')) throw new Error('Prime independent C013 spot checks missing');
@@ -24,6 +28,8 @@ if(qa.source_commit!==source||qa.expected!==175||qa.valid!==175||qa.invalid||qa.
   previous.current_fully_reviewed!==2131||previous.current_reviewed_lines!==249056||
   previous.current_remaining!==2648||rescue.source_commit!==source||
   rescue.transfers.length!==28||rescueMap.size!==28||
+  w8Fallback.source_commit!==source||w8Fallback.transfers.length!==14||
+  w8FallbackMap.size!==14||qa.w8_fallback_reassigned_paths!==14||
   qa.rescue_transfer_paths!==28||qa.effective_ownership_transfers!==88) {
   throw new Error('Strict C013 QA or baseline/rescue mismatch');
 }
@@ -92,10 +98,11 @@ if(eligible.length!==4779||countLines(eligible)!==619108||reviewed.length!==2306
 }
 const transfers=transferManifest.transfers.map(t=>({...t,
   assigned_reviewer:t.actual_reviewer,
-  actual_reviewer:rescueMap.get(t.path)?.actual_reviewer??t.actual_reviewer,
+  actual_reviewer:effectiveReviewer(t.path)??t.actual_reviewer,
   status:acceptedMap.has(t.path)?'fully_reviewed_prime_qa_pass':'pending'}));
 for(const t of rescue.transfers.filter(t=>t.original_owner==='W3')) {
   transfers.push({...t,assigned_reviewer:'W3',
+    actual_reviewer:effectiveReviewer(t.path)??t.actual_reviewer,
     status:acceptedMap.has(t.path)?'fully_reviewed_prime_qa_pass':'pending'});
 }
 if(transfers.length!==88||new Set(transfers.map(t=>t.path)).size!==88||
@@ -114,7 +121,7 @@ const summary={checkpoint:'C013',source_commit:source,source_tree:previous.sourc
   current_remaining:pending.length,file_percent:100*reviewed.length/eligible.length,
   line_percent:100*countLines(reviewed)/countLines(eligible),
   logical_workers:7,active_reviewers:6,ownership_transfers:88,
-  rescue_reassigned_paths:28,
+  rescue_reassigned_paths:28,w8_fallback_reassigned_paths:14,
   errors:0,runtime_tests_executed:0,static_only:true};
 writeFileSync(prefix+'review-records.json',JSON.stringify(records,null,2)+'\n');
 writeFileSync(prefix+'coverage-summary.json',JSON.stringify(summary,null,2)+'\n');
@@ -124,10 +131,12 @@ writeFileSync(prefix+'current-remaining.txt',pending.map(row=>row.path).join('\n
 writeFileSync(prefix+'qa-summary.json',JSON.stringify({source_commit:source,exact_roster:175,
   valid_records:qa.valid,invalid_records:qa.invalid,missing_records:qa.missing,
   unique_paths:175,ownership_transfers:88,rescue_reassigned_paths:28,
+  w8_fallback_reassigned_paths:14,
   prime_independent_spot_review_completed:true,
   prime_spot_review_evidence:'C013-d67b2a4a-prime-spot-checks.md',
   runtime_tests:'NOT_EXECUTED — STATIC_AUDIT_ONLY'},null,2)+'\n');
 writeFileSync(prefix+'ownership-transfers.json',JSON.stringify({
   ...transferManifest,effective_transfer_count:88,rescue_reassigned_paths:28,
+  w8_fallback_reassigned_paths:14,
   transfers},null,2)+'\n');
 console.log(JSON.stringify(summary,null,2));
