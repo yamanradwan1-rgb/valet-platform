@@ -64,7 +64,7 @@ describe("management audit projection", () => {
       reason: "private-reason",
       storage_object_key: "private-storage-key",
     };
-    expect(managementAuditKnownEventTypes).toHaveLength(103);
+    expect(managementAuditKnownEventTypes).toHaveLength(104);
     expect(managementAuditKnownEventTypes).toContain("MANAGEMENT_GUEST_INFORMATION_CHANGED");
     for (const eventType of managementAuditKnownEventTypes) {
       const eventMetadata = eventType === "MANAGEMENT_GUEST_INFORMATION_CHANGED"
@@ -102,8 +102,9 @@ describe("management audit projection", () => {
   });
 
   it("uses an operational-only supervisor allowlist", () => {
-    expect(managementAuditSupervisorEventTypes).toHaveLength(38);
+    expect(managementAuditSupervisorEventTypes).toHaveLength(39);
     expect(managementAuditSupervisorEventTypes).toContain("TASK_ASSIGNED");
+    expect(managementAuditSupervisorEventTypes).toContain("TASK_EMERGENCY_TAKEOVER");
     expect(managementAuditSupervisorEventTypes).toContain(
       "VALET_SESSION_COMPLETED",
     );
@@ -127,6 +128,29 @@ describe("management audit projection", () => {
     expect(() =>
       projectManagementAuditEvent(row("VALET_SESSION_PARKED"), supervisor),
     ).not.toThrow();
+  });
+
+  it("projects emergency takeover versions without exposing the private reason", () => {
+    const projected = projectManagementAuditEvent(
+      { ...row("TASK_EMERGENCY_TAKEOVER", {
+        fromStatus: "IN_PROGRESS",
+        toStatus: "IN_PROGRESS",
+        fromVersion: 7,
+        toVersion: 8,
+        reason: "private emergency explanation",
+        operationId: eventId,
+      }), entityType: "Task" },
+      supervisor,
+    );
+    expect(projected.details).toEqual({
+      kind: "TASK",
+      fromStatus: "IN_PROGRESS",
+      toStatus: "IN_PROGRESS",
+      fromVersion: 7,
+      toVersion: 8,
+    });
+    expect(JSON.stringify(projected)).not.toContain("private emergency explanation");
+    expect(JSON.stringify(projected)).not.toContain("operationId");
   });
 
   it("allowlists lifecycle metadata without exposing correction reason or create fingerprint", () => {

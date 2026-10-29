@@ -42,6 +42,8 @@ describe("detail boundary", () => {
         keySlotId: id, key: { source: "KEY_CUSTODY", eventId: id } },
       { ...common, source: "DISPATCH", kind: "REASSIGNED",
         taskId: id, key: { source: "DISPATCH", eventId: id } },
+      { ...common, source: "DISPATCH", kind: "EMERGENCY_TAKEOVER",
+        taskId: id, key: { source: "DISPATCH", eventId: id } },
     ];
     samples.forEach((item) => {
       expect(auditInvestigationEventDetailSchema.safeParse(item).success).toBe(true);

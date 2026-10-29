@@ -24,6 +24,7 @@ export const dispatchEventTypeSchema = z.enum([
   "ACCEPTED",
   "DECLINED",
   "REASSIGNED",
+  "EMERGENCY_TAKEOVER",
   "IN_PROGRESS",
   "COMPLETED",
   "CANCELLED",

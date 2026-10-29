@@ -18,6 +18,7 @@ const dispatchKinds = new Set([
   "QUEUED",
   "ASSIGNED",
   "REASSIGNED",
+  "EMERGENCY_TAKEOVER",
   "ACCEPTED",
   "DECLINED",
   "IN_PROGRESS",

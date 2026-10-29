@@ -15,6 +15,7 @@ export type Val005eDispatchEventType =
   | "ACCEPTED"
   | "DECLINED"
   | "REASSIGNED"
+  | "EMERGENCY_TAKEOVER"
   | "IN_PROGRESS"
   | "COMPLETED"
   | "CANCELLED";

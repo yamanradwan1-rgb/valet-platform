@@ -47,7 +47,7 @@ export const auditInvestigationEventDetailSchema = z.discriminatedUnion("source"
   }).strict(),
   z.object({
     ...eventDetailBase, source: z.literal("DISPATCH"),
-    kind: z.enum(["QUEUED", "ASSIGNED", "REASSIGNED", "ACCEPTED", "DECLINED",
+    kind: z.enum(["QUEUED", "ASSIGNED", "REASSIGNED", "EMERGENCY_TAKEOVER", "ACCEPTED", "DECLINED",
       "IN_PROGRESS", "COMPLETED", "CANCELLED"]),
     taskId: auditInvestigationUuidSchema,
   }).strict(),

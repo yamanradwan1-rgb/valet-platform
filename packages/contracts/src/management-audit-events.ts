@@ -25,6 +25,7 @@ export const managementAuditKnownEventTypes = [
   "TASK_ACCEPTED",
   "TASK_DECLINED",
   "TASK_REASSIGNED",
+  "TASK_EMERGENCY_TAKEOVER",
   "SHIFT_STARTED",
   "SHIFT_ENDED",
   "SHIFT_FORCE_ENDED",
