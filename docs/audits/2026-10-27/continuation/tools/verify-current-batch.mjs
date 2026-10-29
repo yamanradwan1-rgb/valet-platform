@@ -27,6 +27,28 @@ if (roster.batch!==batch || !roster.immutable || roster.source_commit!==fullSha 
 const byPath = new Map(roster.assignments.map(a=>[a.path,a]));
 const byTransfer = new Map(transfers.transfers.map(t=>[t.path,t]));
 if (byPath.size!==175 || byTransfer.size!==50) throw new Error('Duplicate assignment/transfer');
+const fallbackFile=prefix+'w2-fallback-addendum.json';
+const fallback=existsSync(fallbackFile)?JSON.parse(readFileSync(fallbackFile,'utf8')):null;
+const fallbackMap=new Map((fallback?.transfers??[]).map(t=>[t.path,t]));
+if(fallback && (fallback.batch!==batch||fallback.source_commit!==fullSha||
+  fallback.superseded_assigned_reviewer!=='W2'||fallback.transfers.length!==35||
+  fallbackMap.size!==35)) throw new Error('Fallback addendum provenance mismatch');
+const effectiveReviewer=a=>fallbackMap.get(a.path)?.actual_reviewer??a.assigned_reviewer;
+for(const [path,t] of fallbackMap) {
+  const a=byPath.get(path);
+  if(!a||a.assigned_reviewer!=='W2'||t.original_assigned_reviewer!=='W2'||
+    t.original_owner!==a.original_owner||!['W3','W4'].includes(t.actual_reviewer)) {
+    throw new Error('Invalid W2 fallback assignment: '+path);
+  }
+}
+if(fallback) {
+  for(const name of ['C012-W2-review-records.json','C012-transferred-W6-review-records.json']) {
+    const file=join(results,'W2',name);
+    if(existsSync(file)&&JSON.parse(readFileSync(file,'utf8')).length) {
+      throw new Error('Uncredited W2 output appeared after immutable supersession: '+file);
+    }
+  }
+}
 for (const assignment of roster.assignments) {
   const transfer = byTransfer.get(assignment.path);
   const isTransferred = assignment.assigned_reviewer!==assignment.original_owner;
@@ -47,10 +69,11 @@ const blobs = new Map(entries.map(raw=>{
 }));
 const expectedFiles=new Map();
 for (const a of roster.assignments) {
-  const filename=a.original_owner===a.assigned_reviewer
-    ? `${batch}-${a.assigned_reviewer}-review-records.json`
+  const reviewer=effectiveReviewer(a);
+  const filename=a.original_owner===reviewer
+    ? `${batch}-${reviewer}-review-records.json`
     : `${batch}-transferred-${a.original_owner}-review-records.json`;
-  const file=join(results,a.assigned_reviewer,filename);
+  const file=join(results,reviewer,filename);
   if (!expectedFiles.has(file)) expectedFiles.set(file,new Set());
   expectedFiles.get(file).add(a.path);
 }
@@ -82,7 +105,7 @@ for (const [file,expected] of expectedFiles) {
     if (record.batch!==batch || record.source_commit!==fullSha || record.status!=='fully_reviewed') flaws.push('batch/source/status');
     if (record.source_sha256!==meta.source_sha256) flaws.push('blob SHA256');
     if (norm(record.original_owner??record.original_worker??record.worker)!==a.original_owner ||
-        norm(record.actual_reviewer??record.reviewer)!==a.assigned_reviewer) flaws.push('owner/reviewer');
+        norm(record.actual_reviewer??record.reviewer)!==effectiveReviewer(a)) flaws.push('owner/reviewer');
     const ranges=(record.read_ranges??[]).map(x=>Array.isArray(x)?{start:x[0],end:x[1]}:x).sort((a,b)=>a.start-b.start);
     if (!ranges.length || ranges[0].start!==1 || ranges.at(-1).end!==meta.lines) flaws.push('full read ranges');
     for(let i=0;i<ranges.length;i++){
@@ -97,13 +120,16 @@ for (const [file,expected] of expectedFiles) {
        !(record.test_refs??record.test_references).length) flaws.push('test references');
     if(!Array.isArray(record.finding_ids??[])) flaws.push('finding IDs');
     if(flaws.length) errors.push(path+': '+[...new Set(flaws)].join(', '));
-    else accepted.push({path,original_owner:a.original_owner,actual_reviewer:a.assigned_reviewer,
+    else accepted.push({path,original_owner:a.original_owner,actual_reviewer:effectiveReviewer(a),
       source_sha256:meta.source_sha256,lines:meta.lines,record_file:file,finding_ids:record.finding_ids??[]});
   }
 }
 const missing=roster.assignments.map(a=>a.path).filter(p=>!seen.has(p));
+const effectiveTransfers=roster.assignments.filter(a=>a.original_owner!==effectiveReviewer(a));
+if(effectiveTransfers.length!==(fallback?75:50)) throw new Error('Effective unique transfer count mismatch');
 const report={batch,source_commit:fullSha,source_tree:tree,expected:175,valid:accepted.length,
-  invalid:errors.length,missing:missing.length,ownership_transfers:50,
+  invalid:errors.length,missing:missing.length,initial_ownership_transfers:50,
+  fallback_transfer_paths:fallback?.transfers.length??0,effective_ownership_transfers:effectiveTransfers.length,
   if_accepted_files:1956+accepted.length,if_accepted_lines:229863+accepted.reduce((n,x)=>n+x.lines,0),
   source_files:files,errors,missing_paths:missing,tests:'NOT_EXECUTED — STATIC_AUDIT_ONLY'};
 writeFileSync(join(results,'Prime',batch+'-qa-provisional.json'),JSON.stringify(report,null,2)+'\n');

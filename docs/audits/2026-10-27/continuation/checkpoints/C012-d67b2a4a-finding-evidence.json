@@ -1,0 +1,135 @@
+{
+  "batch": "C012",
+  "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+  "classification": "STATIC_AUDIT_ONLY",
+  "runtime_tests_executed": 0,
+  "candidates_without_duplicate_credit": [
+    {
+      "id": "C012-W4-CAND-001",
+      "path": "apps/valet-native/src/notifications/native-push-foreground-attention.ts",
+      "severity": "P3",
+      "confidence": "MEDIUM",
+      "status": "STATIC_CANDIDATE_NOT_VALIDATED",
+      "title": "Foreground push attention retains every undismissed intent for the identity lifetime",
+      "reviewer": "W4",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b"
+    },
+    {
+      "id": "C012-W5-CONTRACT-001",
+      "path": "packages/contracts/src/staff-vehicle-directory.ts",
+      "severity": "P3",
+      "confidence": "HIGH_STATIC",
+      "status": "CANDIDATE_STATIC_LOW_IMPACT",
+      "title": "Staff vehicle directory response contract does not enforce documented 100-row maximum",
+      "reviewer": "W5",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b"
+    }
+  ],
+  "possible_duplicate_path_groups": [],
+  "pre_existing_candidate_dependencies": [
+    {
+      "worker": "W1",
+      "finding_id": "C011-W2-W1F-CANDIDATE-001",
+      "disposition": "EXISTING_P2_DEPENDENCY_RETAINED_NO_DUPLICATE_C012_FINDING",
+      "severity": "P2",
+      "confidence": "MEDIUM_TO_HIGH_STATIC_SOURCE; CONCURRENT_POSTGRESQL_UNVERIFIED",
+      "source_evidence": [
+        "apps/api/src/modules/management/management-visit-contact-authorization.ts:63-116 — Location Manager grant projection SELECT yields locationIds without row/advisory fence for the whole subsequent query.",
+        "apps/api/src/modules/management/management-visit-contact.service.ts:93-100 — authorized search captures viewer, then uses it for customer/plate SQL before transaction commit.",
+        "apps/api/src/modules/management/management-visit-contact.service.ts:104-133 — authorized history similarly captures viewer and queries later.",
+        "apps/api/src/modules/management/management-visit-contact-history-query.ts:76-85 — Location filter is based on caller-supplied authorized viewer locationIds from prior statement.",
+        "apps/api/src/modules/management/management-visit-contact-search-query.ts:57-78,148-160 — visit search and plate result use prior viewer grant list to filter rows."
+      ],
+      "preconditions": "Eligible Location Manager with valid session holds a grant at authorization read; another authorized actor revokes that Location grant and commits before the pending visit-contact data SELECT executes under READ COMMITTED. The pending read can use the previously captured grant IDs.",
+      "counterevidence_and_mitigations": "All visit rows remain Organization-scoped and initial authorization checks persisted active membership plus commercial access. Sequential requests made after the grant revocation will deny/widen nothing. Company Admin path uses its own MFA/authority fence. Existing sequential integration tests do not exercise the in-flight interleaving.",
+      "validation_gap": "No C012 runtime tests or PostgreSQL lock/scheduler reproduction performed. Requires targeted read-before-revoke / revoke-before-query transaction interleaving to confirm actual exposure.",
+      "review_record": "C012-W1-review-records.json path apps/api/src/modules/management/management-visit-contact.service.ts",
+      "credit": "existing C011 candidate dependency only"
+    }
+  ],
+  "raw_independent_worker_evidence": [
+    {
+      "worker": "W1",
+      "scratch_name": "C012-candidate-findings.json",
+      "raw_data": {
+        "batch": "C012",
+        "reviewer": "W1",
+        "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+        "new_findings": [],
+        "pre_existing_candidate_dependencies": [
+          {
+            "finding_id": "C011-W2-W1F-CANDIDATE-001",
+            "disposition": "EXISTING_P2_DEPENDENCY_RETAINED_NO_DUPLICATE_C012_FINDING",
+            "severity": "P2",
+            "confidence": "MEDIUM_TO_HIGH_STATIC_SOURCE; CONCURRENT_POSTGRESQL_UNVERIFIED",
+            "source_evidence": [
+              "apps/api/src/modules/management/management-visit-contact-authorization.ts:63-116 — Location Manager grant projection SELECT yields locationIds without row/advisory fence for the whole subsequent query.",
+              "apps/api/src/modules/management/management-visit-contact.service.ts:93-100 — authorized search captures viewer, then uses it for customer/plate SQL before transaction commit.",
+              "apps/api/src/modules/management/management-visit-contact.service.ts:104-133 — authorized history similarly captures viewer and queries later.",
+              "apps/api/src/modules/management/management-visit-contact-history-query.ts:76-85 — Location filter is based on caller-supplied authorized viewer locationIds from prior statement.",
+              "apps/api/src/modules/management/management-visit-contact-search-query.ts:57-78,148-160 — visit search and plate result use prior viewer grant list to filter rows."
+            ],
+            "preconditions": "Eligible Location Manager with valid session holds a grant at authorization read; another authorized actor revokes that Location grant and commits before the pending visit-contact data SELECT executes under READ COMMITTED. The pending read can use the previously captured grant IDs.",
+            "counterevidence_and_mitigations": "All visit rows remain Organization-scoped and initial authorization checks persisted active membership plus commercial access. Sequential requests made after the grant revocation will deny/widen nothing. Company Admin path uses its own MFA/authority fence. Existing sequential integration tests do not exercise the in-flight interleaving.",
+            "validation_gap": "No C012 runtime tests or PostgreSQL lock/scheduler reproduction performed. Requires targeted read-before-revoke / revoke-before-query transaction interleaving to confirm actual exposure.",
+            "review_record": "C012-W1-review-records.json path apps/api/src/modules/management/management-visit-contact.service.ts",
+            "credit": "existing C011 candidate dependency only"
+          }
+        ],
+        "tests": "NOT_EXECUTED — STATIC_AUDIT_ONLY"
+      }
+    },
+    {
+      "worker": "W4",
+      "scratch_name": "C012-candidate-findings.json",
+      "raw_data": [
+        {
+          "id": "C012-W4-CAND-001",
+          "batch": "C012",
+          "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+          "path": "apps/valet-native/src/notifications/native-push-foreground-attention.ts",
+          "line_start": 5,
+          "line_end": 31,
+          "severity_candidate": "P3",
+          "confidence": "MEDIUM",
+          "status": "STATIC_CANDIDATE_NOT_VALIDATED",
+          "title": "Foreground push attention retains every undismissed intent for the identity lifetime",
+          "preconditions": "Native process stays authenticated and alive for a long period; many distinct valid generic retrieval push payloads are received in foreground; the user does not dismiss most attention items.",
+          "source_evidence": "intentIds is an unbounded Set at line 5. receive() adds every unique intentId at lines 18-22 and repeatedly clones the whole Set into the published snapshot. No time-to-live or maximum-item trim is implemented here, although accepted server push intents have short TTL. setForeground(false) does not clear it; clear only on identity purge or explicit dismiss.",
+          "possible_effect": "Long-lived stale attention markers and increasing memory/render-copy cost; no domain mutation, data disclosure or cross-tenant authorization demonstrated.",
+          "existing_mitigations": "Strict wire payload parser only admits one generic push kind. receive() requires foreground and identityIsCurrent. Duplicate IDs are rejected. NativePushLifecycleOwner.clearIdentity() calls clear(), and UI can call dismissAttention(). Server sends one bounded short-lived intent per genuine eligible task.",
+          "suggested_validation": "Read-only review of attention presentation/dismiss behavior under long-lived native sessions, then a synthetic high-count lifecycle test in a separate authorized fix task. A bounded or aged list would require a focused implementation.",
+          "tests": "NOT_EXECUTED — STATIC_AUDIT_ONLY"
+        }
+      ]
+    },
+    {
+      "worker": "W5",
+      "scratch_name": "C012-W5-candidate-findings.json",
+      "raw_data": [
+        {
+          "id": "C012-W5-CONTRACT-001",
+          "status": "CANDIDATE_STATIC_LOW_IMPACT",
+          "severity": "P3",
+          "confidence": "HIGH_STATIC",
+          "title": "Staff vehicle directory response contract does not enforce documented 100-row maximum",
+          "primary": "packages/contracts/src/staff-vehicle-directory.ts:123-129",
+          "owned_path": "packages/contracts/src/staff-vehicle-directory.ts",
+          "evidence": [
+            "packages/contracts/src/staff-vehicle-directory.ts:119-129",
+            "packages/contracts/src/staff-vehicle-directory.ts:135-142",
+            "apps/api/src/modules/staff/staff-vehicle-directory.queries.ts:58-72",
+            "packages/contracts/src/staff-vehicle-directory.test.ts:126-136"
+          ],
+          "preconditions": "An upstream response producer is changed, misconfigured or maliciously feeds a response containing more than 100 individually valid rows through the shared parser.",
+          "impact": "The new and legacy Zod response parsers accept arrays larger than the explicitly documented 100-row safety cap. This is a contract-validation/defense-in-depth gap; no bypass of current staff role authorization is shown.",
+          "existing_mitigations": "The current API applies DIRECTORY_PAGE_LIMIT=100 and derives truncated from a 101-row candidate fetch in apps/api/src/modules/staff/staff-vehicle-directory.queries.ts. Staff service verifies authenticated location/organization grants and role before returning directory rows. Therefore no present server-side overlimit response path is established.",
+          "requested_validation": "Add a strict max(100) bound to both response rows schemas, with a test confirming 101 otherwise-valid rows fail while normal 100-row and truncated responses remain accepted; ensure backward compatibility policy before editing.",
+          "coverage_note": "Only packages/contracts/src/staff-vehicle-directory.ts and its test receive W5 C012 roster credit here; API files are read-only dependency inspection.",
+          "tests": "NOT_EXECUTED — STATIC_AUDIT_ONLY"
+        }
+      ]
+    }
+  ],
+  "limitation": "No new C012 candidate has live runtime/PG/native validation. Historical SEC-011/#363 and C011 P2 findings remain separate; no unresolved candidate should be misrepresented as production exploitation."
+}

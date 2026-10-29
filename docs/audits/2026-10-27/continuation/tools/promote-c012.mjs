@@ -12,11 +12,13 @@ const qa=JSON.parse(readFileSync(join(results,'Prime','C012-qa-provisional.json'
 const accepted=JSON.parse(readFileSync(join(results,'Prime','C012-qa-accepted.json'),'utf8'));
 const roster=JSON.parse(readFileSync(prefix+'assignment-roster.json','utf8'));
 const transferManifest=JSON.parse(readFileSync(prefix+'ownership-transfers.json','utf8'));
+const fallback=JSON.parse(readFileSync(prefix+'w2-fallback-addendum.json','utf8'));
 const previous=JSON.parse(readFileSync(join(checkpoints,'C011-d67b2a4a-coverage-summary.json'),'utf8'));
 const spot=prefix+'prime-spot-checks.md';
 if(!existsSync(spot)) throw new Error('Prime independent source spot-check evidence missing');
 if(qa.source_commit!==source||qa.expected!==175||qa.valid!==175||qa.invalid||qa.missing||
-  accepted.length!==175||roster.assignments.length!==175||transferManifest.transfers.length!==50||
+  accepted.length!==175||roster.assignments.length!==175||
+  ![50,75].includes(transferManifest.transfers.length)||fallback.transfers.length!==35||
   previous.source_commit!==source||previous.current_fully_reviewed!==1956||
   previous.current_reviewed_lines!==229863||previous.current_remaining!==2823) {
   throw new Error('C012 strict QA/previous pinned baseline failed');
@@ -81,11 +83,14 @@ if(eligible.length!==4779||lines(eligible)!==619108||reviewed.length!==2131||
   lines(reviewed)-previous.current_reviewed_lines!==accepted.reduce((n,r)=>n+r.lines,0)) {
   throw new Error('Final current-source inventory/line accounting mismatch');
 }
-const transfers=transferManifest.transfers.map(t=>({
+const effectiveMap=new Map(transferManifest.transfers.map(t=>[t.path,t]));
+for(const change of fallback.transfers) effectiveMap.set(change.path,change);
+if(effectiveMap.size!==75) throw new Error('Effective transfer provenance mismatch');
+const transfers=[...effectiveMap.values()].map(t=>({
   ...t,status:acceptedMap.has(t.path)?'fully_reviewed_prime_qa_pass':'pending'}));
 if(transfers.some(t=>t.status!=='fully_reviewed_prime_qa_pass')) throw new Error('Transfer incomplete');
 const summary={checkpoint:'C012',source_commit:source,source_tree:previous.source_tree,
-  parent_docs_commit:'949efd590e287c3c5093d64b7adc86ac171b9907',
+  parent_docs_commit:'3f14a77ea7f52b109b3d34a17f978e6bf0b50d0e',
   immutable_roster_docs_commit:'949efd590e287c3c5093d64b7adc86ac171b9907',
   candidate_files:eligible.length,candidate_lines:lines(eligible),
   previous_current_fully_reviewed:previous.current_fully_reviewed,
@@ -94,7 +99,8 @@ const summary={checkpoint:'C012',source_commit:source,source_tree:previous.sourc
   current_fully_reviewed:reviewed.length,current_reviewed_lines:lines(reviewed),
   current_remaining:remaining.length,file_percent:100*reviewed.length/eligible.length,
   line_percent:100*lines(reviewed)/lines(eligible),
-  logical_workers:7,active_reviewers:5,ownership_transfers:50,
+  logical_workers:7,active_reviewers:4,ownership_transfers:75,
+  w2_unresponsive_fallback_paths:35,
   errors:0,runtime_tests_executed:0,static_only:true};
 writeFileSync(prefix+'review-records.json',JSON.stringify(records,null,2)+'\n');
 writeFileSync(prefix+'coverage-summary.json',JSON.stringify(summary,null,2)+'\n');
@@ -103,9 +109,12 @@ writeFileSync(prefix+'current-ledger.csv',
 writeFileSync(prefix+'current-remaining.txt',remaining.map(r=>r.path).join('\n')+'\n');
 writeFileSync(prefix+'qa-summary.json',JSON.stringify({source_commit:source,exact_roster:175,
   valid_records:175,invalid_records:0,missing_records:0,unique_paths:175,
-  ownership_transfers:50,prime_independent_spot_review_completed:true,
+  ownership_transfers:75,original_transfer_roster:50,later_w2_fallback_transfer_paths:35,
+  prime_independent_spot_review_completed:true,
   prime_spot_review_evidence:'C012-d67b2a4a-prime-spot-checks.md',
   runtime_tests:'NOT_EXECUTED — STATIC_AUDIT_ONLY'},null,2)+'\n');
 writeFileSync(prefix+'ownership-transfers.json',JSON.stringify({
-  ...transferManifest,effective_transfer_count:50,transfers},null,2)+'\n');
+  ...transferManifest,initial_transfer_count:50,
+  w2_fallback_addendum:'C012-d67b2a4a-w2-fallback-addendum.json',
+  effective_transfer_count:75,transfers},null,2)+'\n');
 console.log(JSON.stringify(summary,null,2));
