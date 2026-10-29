@@ -1,0 +1,72 @@
+{
+  "batch": "C020",
+  "qa_kind": "independent_prepublication_roster_validation",
+  "reviewer": "W7",
+  "verdict": "PASS",
+  "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "source_tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "published_c019_docs_commit": "cf01f72be214a8342320a10f469ffbf0d901e5c1",
+  "roster": "docs/audits/2026-10-27/continuation/checkpoints/C020-0747a677-assignment-roster.json",
+  "transfers": "docs/audits/2026-10-27/continuation/checkpoints/C020-0747a677-ownership-transfers.json",
+  "checks": {
+    "source_head_and_tree_match": true,
+    "source_checkout_clean": true,
+    "docs_head_is_published_c019": true,
+    "remote_tracking_ref_at_c019": true,
+    "remaining": 1454,
+    "ledger_rows": 7595,
+    "roster_count": 175,
+    "unique_paths": 175,
+    "uncredited_in_C019": 175,
+    "original_owner_counts": {
+      "W1": 25,
+      "W2": 25,
+      "W3": 25,
+      "W4": 25,
+      "W5": 25,
+      "W6": 25,
+      "W7": 25
+    },
+    "actual_reviewer_counts": {
+      "W1": 35,
+      "W2": 35,
+      "W3": 35,
+      "W6": 35,
+      "W7": 35
+    },
+    "unique_transfers": 50,
+    "transfer_owner_counts": {
+      "W4": 25,
+      "W5": 25
+    },
+    "transfer_actual_counts": {
+      "W1": 10,
+      "W2": 10,
+      "W3": 10,
+      "W6": 10,
+      "W7": 10
+    },
+    "role_domain_fallbacks": 50,
+    "fallback_by_owner": {
+      "W1": 25,
+      "W3": 25
+    },
+    "git_raw_blobs_checked": 175,
+    "git_blob_bytes": 952756,
+    "git_blob_lines": 27327,
+    "final_newline_count": 175,
+    "ledger_EOF_matches": 175,
+    "ledger_hash_matches_or_empty": 175,
+    "blob_proof_sha256": "53ac3896e925e00422826a57f6bb329a7cabc462e180e93a43f669d9272c50fe"
+  },
+  "defects": [],
+  "scope_limits": [
+    "Prepublication roster QA only; no C020 semantic reviews and zero runtime/product changes.",
+    "Remote head checked from fetched tracking ref; no fresh network fetch.",
+    "Per-file Git SHA256 computed in memory; future semantic reviewers must save their own hashes/line evidence."
+  ],
+  "product_docs_ci_issues_mutated": false,
+  "scratch_files_written": [
+    "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W7/C020-roster-independent-qa.json"
+  ]
+}
