@@ -1,0 +1,70 @@
+{
+  "batch": "C021",
+  "kind": "immutable_roster_execution_agent_handoff_addendum",
+  "status": "ACKNOWLEDGED_BY_BOTH_REPLACEMENT_EXECUTORS_AWAITING_REMOTE_PUBLICATION",
+  "read_only_audit": true,
+  "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "source_tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "latest_origin_main_observed_during_pinned_batch": "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+  "source_epoch_policy": "Do not change C021 pinned 0747 source mid-batch. After C021 closure and before C022, perform deterministic rebaseline onto latest origin/main, preserve historical valid evidence, and invalidate changed/dependency-impacted reviews. Do not describe 0747 coverage as revalidated on 9ac3.",
+  "published_roster_docs_commit": "460d13327486f1fb0d0bd4856c2c8f8cac79f924",
+  "immutable_roster_git_blob_oid": "ef835f57d6a7c1a1f6d5f641954ce965d61ad852",
+  "immutable_ownership_transfers_git_blob_oid": "dcfc68710b1b85f44d104ba8614aaf52fb9c3b8c",
+  "roster_and_transfers_unchanged": true,
+  "reason": "New COS W1 and W6 worker chats failed to start. Two replacement collaboration conversations then encountered Windows COS exec_command hangs of approximately 1557/1558 seconds; each explicitly reported zero full source files read and zero C021 scratch review records. They stopped without product or docs edits. All 70 affected files remain unreviewed and uncredited.",
+  "prior_attempts_without_semantic_credit": [
+    {
+      "logical_reviewer_role": "W1",
+      "failed_startup_agent_id": "worker-17",
+      "blocked_executor_id": "/root/c021_w1",
+      "fully_read_files": 0,
+      "saved_review_records": 0
+    },
+    {
+      "logical_reviewer_role": "W6",
+      "failed_startup_agent_id": "worker-20",
+      "blocked_executor_id": "/root/c021_w6",
+      "fully_read_files": 0,
+      "saved_review_records": 0
+    }
+  ],
+  "replacement_role_executors": [
+    {
+      "logical_assigned_reviewer": "W1",
+      "execution_agent_id": "worker-18",
+      "same_agent_completed_prior_logical_role": "W2",
+      "exact_selection": "C021 immutable roster assignments where assigned_reviewer == W1",
+      "expected_unique_files": 35,
+      "original_owner_counts": { "W1": 25, "W4": 5, "W5": 5 },
+      "scratch_result_role_directory": "W1",
+      "replacement_acknowledged": true,
+      "semantic_review_started_at_addendum": false
+    },
+    {
+      "logical_assigned_reviewer": "W6",
+      "execution_agent_id": "worker-16",
+      "same_agent_completed_prior_logical_role": "W7",
+      "exact_selection": "C021 immutable roster assignments where assigned_reviewer == W6",
+      "expected_unique_files": 35,
+      "original_owner_counts": { "W6": 25, "W4": 5, "W5": 5 },
+      "scratch_result_role_directory": "W6",
+      "replacement_acknowledged": true,
+      "semantic_review_started_at_addendum": false
+    }
+  ],
+  "provenance_rule": "actual_reviewer remains the immutable logical roster role W1 or W6 for verifier compatibility. Every replacement record must additionally declare execution_agent_id matching this addendum, so physical COS executor identity is not concealed; summary/final reports must disclose that only three distinct successful COS executor conversations covered the five logical reviewer roles in C021.",
+  "no_duplicate_review": true,
+  "original_owner_preserved": true,
+  "prior_50_w4_w5_transfers_unchanged": true,
+  "pre_handoff_provisional": {
+    "expected": 175,
+    "valid": 105,
+    "invalid": 0,
+    "missing": 70,
+    "official_c021_credit": 0
+  },
+  "independence_limit": "Replacement execution reduces distinct primary reviewer conversations from five to three for this batch. Prime and independent cross-reviewer full-source spot checks plus independent ledger verification remain mandatory before promotion; do not count an executor's self-review as independent confirmation.",
+  "runtime_tests_executed": 0,
+  "product_code_changed": false,
+  "roster_modification": false
+}
