@@ -1,4 +1,12 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 import { StaffPushDeliveryWorker } from "../src/modules/staff-push/staff-push-delivery-worker";
 import type { StaffPushProvider } from "../src/modules/staff-push/staff-push-provider";
@@ -11,12 +19,14 @@ const policy = { ...syntheticStaffPushPolicy, sendingEnabled: true };
 
 function transport(resultClass: "ACCEPTED" | "UNKNOWN" = "ACCEPTED") {
   const posted: string[] = [];
-  const send = vi.fn<StaffPushProvider["send"]>().mockImplementation(async (request) => {
-    const message = request.messageForTransport();
-    if (message === undefined) return { kind: "EXPIRED_BEFORE_TRANSPORT" };
-    posted.push(message.data.intentId);
-    return providerSendResult({ resultClass });
-  });
+  const send = vi
+    .fn<StaffPushProvider["send"]>()
+    .mockImplementation(async (request) => {
+      const message = request.messageForTransport();
+      if (message === undefined) return { kind: "EXPIRED_BEFORE_TRANSPORT" };
+      posted.push(message.data.intentId);
+      return providerSendResult({ resultClass });
+    });
   return { posted, send };
 }
 
@@ -85,9 +95,20 @@ async function alterDeliveryClock(deliveryId: string, update: string) {
 function gate() {
   let arrive!: () => void;
   let resume!: () => void;
-  const reached = new Promise<void>((resolve) => { arrive = resolve; });
-  const waiting = new Promise<void>((resolve) => { resume = resolve; });
-  return { reached, resume, pause: async () => { arrive(); await waiting; } };
+  const reached = new Promise<void>((resolve) => {
+    arrive = resolve;
+  });
+  const waiting = new Promise<void>((resolve) => {
+    resume = resolve;
+  });
+  return {
+    reached,
+    resume,
+    pause: async () => {
+      arrive();
+      await waiting;
+    },
+  };
 }
 
 beforeAll(() => context.setup(), 120_000);
@@ -171,49 +192,64 @@ describe("#357 actual PostgreSQL Staff Push lease race", () => {
   });
 
   it.each([
-    ["revoked staff session", `UPDATE staff_auth_sessions
+    [
+      "revoked staff session",
+      `UPDATE staff_auth_sessions
       SET revoked_at = clock_timestamp()
       WHERE id IN (SELECT registration.staff_auth_session_id
         FROM staff_push_registrations AS registration
         JOIN staff_push_deliveries AS delivery
-          ON delivery.registration_id = registration.id WHERE delivery.id = $1)`],
-    ["disabled notification policy", `UPDATE organizations
+          ON delivery.registration_id = registration.id WHERE delivery.id = $1)`,
+    ],
+    [
+      "disabled notification policy",
+      `UPDATE organizations
       SET employee_retrieval_requested_notification_enabled = FALSE
-      WHERE id IN (SELECT organization_id FROM staff_push_deliveries WHERE id = $1)`],
-    ["disabled device registration", `UPDATE staff_push_registrations
+      WHERE id IN (SELECT organization_id FROM staff_push_deliveries WHERE id = $1)`,
+    ],
+    [
+      "disabled device registration",
+      `UPDATE staff_push_registrations
       SET state = 'DISABLED', provider_token = NULL,
           terminal_at = clock_timestamp(), terminal_reason_class = 'TEST'
-      WHERE id IN (SELECT registration_id FROM staff_push_deliveries WHERE id = $1)`],
-    ["ended exact-location shift", `UPDATE shifts
+      WHERE id IN (SELECT registration_id FROM staff_push_deliveries WHERE id = $1)`,
+    ],
+    [
+      "ended exact-location shift",
+      `UPDATE shifts
       SET status = 'ENDED', ended_at = clock_timestamp()
       WHERE membership_id IN (SELECT recipient_membership_id
-        FROM staff_push_deliveries WHERE id = $1)`],
-  ])("stale worker cannot send after B suppresses %s", async (_reason, revokeSql) => {
-    const deliveryId = await prepared();
-    const barrier = gate();
-    const a = transport();
-    const b = transport();
-    const runA = worker(a, barrier.pause).runOnce();
-    await barrier.reached;
-    try {
-      await alterDeliveryClock(
-        deliveryId,
-        `UPDATE staff_push_deliveries
+        FROM staff_push_deliveries WHERE id = $1)`,
+    ],
+  ])(
+    "stale worker cannot send after B suppresses %s",
+    async (_reason, revokeSql) => {
+      const deliveryId = await prepared();
+      const barrier = gate();
+      const a = transport();
+      const b = transport();
+      const runA = worker(a, barrier.pause).runOnce();
+      await barrier.reached;
+      try {
+        await alterDeliveryClock(
+          deliveryId,
+          `UPDATE staff_push_deliveries
          SET lease_expires_at = clock_timestamp() - interval '1 second'
          WHERE id = $1`,
-      );
-      await context.adminPool.query(revokeSql, [deliveryId]);
-      expect(await worker(b).runOnce()).toBe(true);
-      expect(b.posted).toHaveLength(0);
+        );
+        await context.adminPool.query(revokeSql, [deliveryId]);
+        expect(await worker(b).runOnce()).toBe(true);
+        expect(b.posted).toHaveLength(0);
+        expect((await deliveryState(deliveryId)).state).toBe("SUPPRESSED");
+      } finally {
+        barrier.resume();
+      }
+      await expect(runA).resolves.toBe(true);
+      expect(a.posted).toHaveLength(0);
+      expect(a.send).not.toHaveBeenCalled();
       expect((await deliveryState(deliveryId)).state).toBe("SUPPRESSED");
-    } finally {
-      barrier.resume();
-    }
-    await expect(runA).resolves.toBe(true);
-    expect(a.posted).toHaveLength(0);
-    expect(a.send).not.toHaveBeenCalled();
-    expect((await deliveryState(deliveryId)).state).toBe("SUPPRESSED");
-  });
+    },
+  );
 
   it("keeps legitimate UNKNOWN-result retry despite possible at-least-once duplicate", async () => {
     const deliveryId = await prepared();

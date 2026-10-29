@@ -12,7 +12,9 @@ const fcmConfig = { projectId: "vaylet-test-fcm", timeoutMilliseconds: 10_000 };
 
 function deferred() {
   let resolve!: () => void;
-  const promise = new Promise<void>((done) => { resolve = done; });
+  const promise = new Promise<void>((done) => {
+    resolve = done;
+  });
   return { promise, resolve };
 }
 
@@ -96,11 +98,13 @@ describe("#357 FCM OAuth wait versus actual PostgreSQL lease", () => {
     const fetchB = acceptedFetch();
     const providerA = new FcmHttpV1Adapter(
       fcmConfig,
-      { accessToken: async () => {
-        oauthEntered.resolve();
-        await releaseOAuth.promise;
-        return "synthetic-token-a";
-      } },
+      {
+        accessToken: async () => {
+          oauthEntered.resolve();
+          await releaseOAuth.promise;
+          return "synthetic-token-a";
+        },
+      },
       fetchA,
     );
     const providerB = new FcmHttpV1Adapter(
