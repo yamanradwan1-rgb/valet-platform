@@ -11,6 +11,7 @@ import {
   issue215ApiPostgresFiles,
   issue215PostgresFiles,
 } from "./issue215-test-manifest.mjs";
+import { assertRegisteredApiSourceTests } from "./api-source-adjacent-ownership.mjs";
 
 const testFilePattern = /\.(?:test|spec)\.(?:[cm]?[jt]sx?)$/;
 const dbSignalPattern =
@@ -48,6 +49,9 @@ export function classifyPackageTests({ packageKind, rootDir }) {
   );
   const repositoryApiTests = fileURLToPath(
     new URL("../../apps/api/test/", import.meta.url),
+  );
+  const repositoryApiSource = fileURLToPath(
+    new URL("../../apps/api/src/", import.meta.url),
   );
   if (packageKind === "database" && resolve(rootDir) === resolve(repositoryDatabaseSource)) {
     const known = new Set(discovered.map((file) => normalize(relative(rootDir, file))));
@@ -103,6 +107,17 @@ export function classifyPackageTests({ packageKind, rootDir }) {
         : classifyDatabase(graph, dbBacked);
     addOwnership(ownership, relativeFile, project);
   }
+  if (packageKind === "api" && resolve(rootDir) === resolve(repositoryApiTests)) {
+    const adjacent = discoverTests(repositoryApiSource);
+    const registered = assertRegisteredApiSourceTests(adjacent, repositoryApiSource);
+    for (const [index, file] of adjacent.entries()) {
+      const graph = dependencyGraph(file, repositoryApiSource, true);
+      if (graph.some((entry) => dbSignalPattern.test(entry.source))) {
+        throw new Error(`Source-adjacent API test src/${registered[index]} requires PostgreSQL lane review.`);
+      }
+      addOwnership(ownership, `src/${registered[index]}`, "api-non-postgres");
+    }
+  }
   assertExactlyOne(discovered, rootDir, ownership);
   return groupOwnership(ownership);
 }
@@ -142,7 +157,7 @@ function classifyDatabase(graph, dbBacked) {
     : "database-postgres-direct";
 }
 
-function dependencyGraph(entry, rootDir) {
+function dependencyGraph(entry, rootDir, includeSourceImports = false) {
   const visited = new Set();
   const result = [];
   const visit = (file) => {
@@ -153,7 +168,7 @@ function dependencyGraph(entry, rootDir) {
     result.push({ basename: normalized.split(/[\\/]/).at(-1), source });
     for (const specifier of localImportSpecifiers(source)) {
       const candidate = resolveImport(dirname(normalized), specifier);
-      if (candidate === undefined || !isSupportFile(candidate, rootDir))
+      if (candidate === undefined || !isSupportFile(candidate, rootDir, includeSourceImports))
         continue;
       visit(candidate);
     }
@@ -204,9 +219,10 @@ function resolveImport(parent, specifier) {
   return candidates.find((candidate) => existsSync(candidate));
 }
 
-function isSupportFile(file, rootDir) {
+function isSupportFile(file, rootDir, includeSourceImports = false) {
   const rel = normalize(relative(rootDir, file));
   if (rel.startsWith("../")) return false;
+  if (includeSourceImports) return true;
   const name = file.split(/[\\/]/).at(-1) ?? "";
   return issue215MutationFixtures.has(name) ||
     /(?:test|fixture|context|harness|helper|assertion|case)/i.test(name);

@@ -23,7 +23,7 @@ function ownedFiles(projectName) {
   // test script executes these separately, so Vitest must not collect them
   // as zero-test suites (which otherwise fails CI without running the tests).
   return files.filter((file) => !file.endsWith(".test.mjs"))
-    .map((file) => `test/${file}`);
+    .map((file) => file.startsWith("src/") ? file : `test/${file}`);
 }
 
 function postgresProject(projectName, profileName) {

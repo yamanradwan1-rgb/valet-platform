@@ -196,7 +196,7 @@ test("current API and database tests each have exactly one owner", () => {
     rootDir: databaseRoot,
   });
 
-  assert.equal(Object.values(api).flat().length, discoverTests(apiRoot).length);
+  assert.equal(Object.values(api).flat().length, discoverTests(apiRoot).length + discoverTests(join(repoRoot, "apps", "api", "src")).length);
   assert.equal(
     Object.values(database).flat().length,
     discoverTests(databaseRoot).length,

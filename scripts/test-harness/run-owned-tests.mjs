@@ -17,6 +17,7 @@ const normalized = requested.map((file) => file.replaceAll("\\", "/"));
 const groups = new Map();
 
 for (const file of normalized) {
+  const sourceAdjacentApiTest = packageKind === "api" && file.startsWith("src/");
   const relativeFile = file.startsWith(`${sourcePrefix}/`)
     ? file.slice(sourcePrefix.length + 1)
     : file;
@@ -30,7 +31,7 @@ for (const file of normalized) {
   }
   const [project] = matches[0];
   const list = groups.get(project) ?? [];
-  list.push(`${sourcePrefix}/${relativeFile}`);
+  list.push(sourceAdjacentApiTest ? relativeFile : `${sourcePrefix}/${relativeFile}`);
   groups.set(project, list);
 }
 
