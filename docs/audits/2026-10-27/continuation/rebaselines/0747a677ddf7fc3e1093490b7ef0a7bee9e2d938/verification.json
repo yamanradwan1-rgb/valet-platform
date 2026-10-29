@@ -1,0 +1,12 @@
+{
+  "source_clean": true,
+  "source_tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "previous_ledger": "C016",
+  "canonical_blob_and_line_reconciliation": "PASS",
+  "independent_w3_source_qa": "PASS_2848_BLOBS",
+  "targeted_dependency_impact_review": "COMPLETE_TARGETED_VALIDATION",
+  "changed_source_stale": 6,
+  "unchanged_dependency_stale": 15,
+  "reused_unchanged_reviews": 2810,
+  "runtime_tests": "NOT_EXECUTED — STATIC_AUDIT_ONLY"
+}

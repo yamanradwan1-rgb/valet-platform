@@ -1,0 +1,16 @@
+{
+  "result": "PASS_FINAL_TARGETED_DEPENDENCY_REBASELINE",
+  "old_source": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+  "new_source": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "changed_paths": 18,
+  "stale_blobs_verified": 6,
+  "new_code_blobs_verified": 10,
+  "retained_equal_git_oids": 2810,
+  "retained_canonical_sha256_samples": 69,
+  "remaining_unique": 1979,
+  "semantic_dependency_stale": 15,
+  "dependency_lines_invalidated": 2482,
+  "runtime_tests_executed": 0,
+  "limitation": "Static source-object proof and targeted import-graph re-review; not a runtime verification or full production safety claim."
+}

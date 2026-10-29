@@ -1,0 +1,106 @@
+[
+  {
+    "status": "M",
+    "path": "apps/api/src/modules/staff-push/fcm-http-v1-adapter.ts",
+    "old_oid": "87ce0c04c71a8bbc3e9f78cd3b7f7183176685ba",
+    "new_oid": "c7e999b6bc441edc3fafdc0b17bd57876820bec2",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/api/src/modules/staff-push/staff-push-delivery-worker.ts",
+    "old_oid": "4abae2a3f233f1509e44b612f8f5883daad78731",
+    "new_oid": "2c823b28f352ee166e21b40174bc90a87187a715",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/api/src/modules/staff-push/staff-push-eligibility-repository.ts",
+    "old_oid": "48e91ebf1604149fd575b17cdecd39ccc1bfb343",
+    "new_oid": "6c2699f89bf1958d020c86af0f50fb30978409e8",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/api/src/modules/staff-push/staff-push-provider.ts",
+    "old_oid": "3ed9bf887d9d684392fef85b6ebe524cbef47630",
+    "new_oid": "428c9371c8251e7dec98e58c167bb50d9b976f5a",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/valet/src/components/employee-app.tsx",
+    "old_oid": "cf57e8b045c61b53a8e3d4ab050d44f6240c2e40",
+    "new_oid": "984725388d194ec0a476814d5563f27ac9cd11f9",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/valet/src/components/shell/employee-workspace.ts",
+    "old_oid": "246088d734c9e24c2fcea5747a6d6c2bdca9df2a",
+    "new_oid": "e1f6652158802d784e30536ebb0ec2bd52185d58",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/valet/src/features/shift/end-shift-controller.ts",
+    "old_oid": "f357abab181f949722de4f5c57fe3083feff7006",
+    "new_oid": "0d1bd15d6aa1031705bb90a296c8fccb1da9f274",
+    "previous_status": "not_reviewed"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/test/issue358-stale-scope-denial.integration.test.ts",
+    "new_oid": "7199348980c9d5bb440ae91b3b2782f54c16712b"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/test/staff-push-expired-lease-race.integration.test.ts",
+    "new_oid": "2c72e2c55429fbb78be2fbe2e7cad0582aaaaa11"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/test/staff-push-fcm-token-delay-race.integration.test.ts",
+    "new_oid": "a4563656562f1702aa20b21b21c93a0d32709497"
+  },
+  {
+    "status": "A",
+    "path": "apps/valet/e2e/issue358-employee-browser-fixture.html",
+    "new_oid": "99f9ebc671bf6e87c90569c5027c2a70abbdf8cd"
+  },
+  {
+    "status": "A",
+    "path": "apps/valet/e2e/issue358-employee-browser-fixture.ts",
+    "new_oid": "2bc113c46b2edeac8e6fa591644bd9bc19cd19a7"
+  },
+  {
+    "status": "A",
+    "path": "apps/valet/e2e/issue358-endshift-transition.spec.ts",
+    "new_oid": "625b7994f1ab8bcc1c781ef8f512b8da49df0d03"
+  },
+  {
+    "status": "A",
+    "path": "apps/valet/e2e/issue358-scope-browser-support.ts",
+    "new_oid": "2e07fc6506fe4bddb1e37fbea781d86a9673b74e"
+  },
+  {
+    "status": "A",
+    "path": "apps/valet/e2e/issue358-scope-transition.spec.ts",
+    "new_oid": "522ee0e44962529b58a8bd082cd84cc72ef561b4"
+  },
+  {
+    "status": "A",
+    "path": "apps/valet/src/components/shell/use-employee-scoped-workspace.ts",
+    "new_oid": "5ea18a44d10737a6f1e4b39cde1b48fe1f8bf6e4"
+  },
+  {
+    "status": "A",
+    "path": "apps/valet/src/components/shell/use-scoped-end-shift.ts",
+    "new_oid": "173cf3c4a4e00da2e37b33d6c8fc5d3e823bb82d"
+  },
+  {
+    "status": "A",
+    "path": "apps/valet/src/features/shift/end-shift-controller-scope.test.ts",
+    "new_oid": "ab5181708d00f3b7183e81aabb0a672393f9e59f"
+  }
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "path": "apps/api/test/issue358-stale-scope-denial.integration.test.ts",
+    "sha256": "829fe7505794798eb2045877b82dc55fbb009a3982327a2d5c9f0241318099f1",
+    "lines": 54,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/staff-push-expired-lease-race.integration.test.ts",
+    "sha256": "a8768020f1c566915794ffc239e55d9d273ac57bed5213ce570b0dd5db0db82d",
+    "lines": 291,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/staff-push-fcm-token-delay-race.integration.test.ts",
+    "sha256": "7b94e851a5a9e4cd6d5ac0b38662a2d5d0d0b769b837d58e04cde869b172ea03",
+    "lines": 139,
+    "category": "backend"
+  },
+  {
+    "path": "apps/valet/e2e/issue358-employee-browser-fixture.ts",
+    "sha256": "cd52aa9eff65935d0cdcc4bee09372133dc37b7c35ea11d5685cf7de356852d9",
+    "lines": 23,
+    "category": "employee"
+  },
+  {
+    "path": "apps/valet/e2e/issue358-endshift-transition.spec.ts",
+    "sha256": "e5218c53eedf19f10bae020e1eff1cb4b3b544178d7cb388ca2260b490350d48",
+    "lines": 116,
+    "category": "employee"
+  },
+  {
+    "path": "apps/valet/e2e/issue358-scope-browser-support.ts",
+    "sha256": "84176f233da866954b32f532d45f0109686f3422891191fdb61be29e6da8217e",
+    "lines": 267,
+    "category": "employee"
+  },
+  {
+    "path": "apps/valet/e2e/issue358-scope-transition.spec.ts",
+    "sha256": "9286f8234774ec032767df16a206d1a8c0a8e3f7229bb14304b44e8aa4c2569f",
+    "lines": 281,
+    "category": "employee"
+  },
+  {
+    "path": "apps/valet/src/components/shell/use-employee-scoped-workspace.ts",
+    "sha256": "df5cf4186c86596defb3a81fed6151d3cdfef8023441f5f46c44a6f1d549ce3f",
+    "lines": 137,
+    "category": "employee"
+  },
+  {
+    "path": "apps/valet/src/components/shell/use-scoped-end-shift.ts",
+    "sha256": "f0efefadefccfb6d93d61b7c6361e1bfc989762443c57107b45870de8d8cee1a",
+    "lines": 92,
+    "category": "employee"
+  },
+  {
+    "path": "apps/valet/src/features/shift/end-shift-controller-scope.test.ts",
+    "sha256": "ee03f7d9119a9349e8d929e96116038e7fb1de783d71ab603478a1c24718c12c",
+    "lines": 88,
+    "category": "employee"
+  }
+]

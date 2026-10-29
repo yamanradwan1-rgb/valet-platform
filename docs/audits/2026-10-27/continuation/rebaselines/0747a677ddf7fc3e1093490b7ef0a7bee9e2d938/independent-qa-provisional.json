@@ -1,0 +1,14 @@
+{
+  "result": "PASS_PROVISIONAL_DEPENDENCY_IMPACT_PENDING",
+  "old_source": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+  "new_source": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "changed_paths": 18,
+  "stale_blobs_verified": 6,
+  "new_code_blobs_verified": 10,
+  "retained_equal_git_oids": 2825,
+  "retained_canonical_sha256_samples": 69,
+  "remaining_unique": 1964,
+  "runtime_tests_executed": 0,
+  "limitation": "Independent targeted caller/dependency review must finish before this rebaseline is certified."
+}

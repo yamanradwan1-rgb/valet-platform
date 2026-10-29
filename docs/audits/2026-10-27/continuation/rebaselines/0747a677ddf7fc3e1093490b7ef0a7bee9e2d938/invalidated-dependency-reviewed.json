@@ -1,0 +1,167 @@
+[
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-lifetime.ts",
+    "reviewer": "W1",
+    "reason": "Previously reviewed intent-TTL helper now also gates security-critical lease duration against FCM transport start; old semantic caller scope incomplete.",
+    "trigger": "staff-push-delivery-worker.ts:85-106",
+    "previous_batch": "original",
+    "previous_reviewer": "original-audit",
+    "unchanged_source_sha256": "8483f46d94e4fadecb1173101e868f090f369a3188d232fd474c35998fa3a523",
+    "lines": 18,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/api/test/staff-push-worker-ttl.integration.test.ts",
+    "reviewer": "W1",
+    "reason": "EXPIRED_BEFORE_TRANSPORT now bifurcates lost lease versus expired intent; old synthetic TTL-only assertion is no longer complete cross-branch test evidence.",
+    "trigger": "staff-push-delivery-worker.ts:133-139",
+    "previous_batch": "original",
+    "previous_reviewer": "original-audit",
+    "unchanged_source_sha256": "26f85e0c510582fad574055e611ad286a83811731894ff2a300311ab76fc4b01",
+    "lines": 165,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/valet/src/components/employee-app.live-flow.test.tsx",
+    "reviewer": "W7",
+    "reason": "Mocked check-in/parking flow remains narrow but previous end-to-end claim needs reevaluation against new operational authority owner.",
+    "trigger": "employee-app.tsx:83-99;use-scoped-end-shift.ts:23-92",
+    "previous_batch": "C016",
+    "previous_reviewer": "W6",
+    "unchanged_source_sha256": "0895710105a7873843df56be9c5a64d5cd88ae41df6753d3a7f4bdff12655e68",
+    "lines": 283,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/valet/src/components/employee-app.live-retrieval-flow.test.tsx",
+    "reviewer": "W7",
+    "reason": "Mocked controller retrieval flow alone does not establish new app-level source-token fencing across authority replacement.",
+    "trigger": "employee-app.tsx:83-99;use-employee-scoped-workspace.ts:111-134",
+    "previous_batch": "C016",
+    "previous_reviewer": "W7",
+    "unchanged_source_sha256": "dcd7529f446208f0236e51aa2d0a1988353efcc69114cf04a40197af609a83ac",
+    "lines": 197,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/valet/src/components/end-shift-recovery.test.tsx",
+    "reviewer": "W7",
+    "reason": "SSR fixture expects uncertain recovery without the new per-shift command owner; existing test semantics/claim likely stale.",
+    "trigger": "use-scoped-end-shift.ts:32-35,65-69",
+    "previous_batch": "C016",
+    "previous_reviewer": "W2",
+    "unchanged_source_sha256": "92496dec5574c52350bdf204788a6ffa287d5ecb68d53d16711a3ebf22f455bc",
+    "lines": 122,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/valet/src/components/screens/task-queue-screen.tsx",
+    "reviewer": "W7",
+    "reason": "Changed shell remount/authority callback fencing interacts with unchanged cached queue rows and in-flight task action state.",
+    "trigger": "employee-app.tsx:229-260;task-queue-screen.tsx:88-99,126-201",
+    "previous_batch": "C014",
+    "previous_reviewer": "W5",
+    "unchanged_source_sha256": "4403758cffb72bee796cd645cf9c983ac32a0e563c382695628065f0cddacd29",
+    "lines": 288,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/valet/src/components/shell/employee-active-shell.tsx",
+    "reviewer": "W7",
+    "reason": "Parent shell key now includes membership/location/Shift/identity but excludes role even though operational authority includes role; child state persistence requires reevaluation.",
+    "trigger": "employee-app.tsx:229-232;employee-workspace.ts:79-94",
+    "previous_batch": "original",
+    "previous_reviewer": "original-audit",
+    "unchanged_source_sha256": "b9b1d6e4dfd8fac1582344c2dbcbfae6ae54219865af15c3bf6ab65ba7c61ceb",
+    "lines": 63,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/valet/src/components/shell/employee-live-router.tsx",
+    "reviewer": "W7",
+    "reason": "Router still uses unchanged callbacks, but caller authority/owner gating and remount boundary changed across membership/Shift replacement.",
+    "trigger": "employee-app.tsx:83-99,229-260",
+    "previous_batch": "original",
+    "previous_reviewer": "original-audit",
+    "unchanged_source_sha256": "89f5a205bcb49ab2d96523d32e8571ac7d1c9b266a03a8567cf9d46574a76ff6",
+    "lines": 225,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/valet/src/components/shell/employee-workspace-handlers.ts",
+    "reviewer": "W7",
+    "reason": "Handler patch/navigation consumers now receive source-token-fenced patcher, changing old assumptions of unconditional asynchronous target writes.",
+    "trigger": "employee-app.tsx:109-112;use-employee-scoped-workspace.ts:111-134",
+    "previous_batch": "original",
+    "previous_reviewer": "original-audit",
+    "unchanged_source_sha256": "323f728034752f586ff81df909b9490b5cf9e99fe158ed30ea5e298576b46d02",
+    "lines": 97,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/valet/src/components/shell/employee-workspace.test.ts",
+    "reviewer": "W7",
+    "reason": "Old identity-only test cases do not cover newly introduced resolved/pending/retired operational stamp and stale async source-token lifecycle.",
+    "trigger": "employee-workspace.ts:59-100,124-180",
+    "previous_batch": "original",
+    "previous_reviewer": "original-audit",
+    "unchanged_source_sha256": "6c9802c49dd3517044395bf665fdd63a309c4edcdd860fcfcb6e896c64612841",
+    "lines": 121,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/valet/src/features/staff-operational-context/use-staff-operational-context.ts",
+    "reviewer": "W7",
+    "reason": "NO_ACTIVE_SHIFT without an authoritative context response is now treated as pending rather than retirement; old scope resolution semantics affect target isolation.",
+    "trigger": "use-employee-scoped-workspace.ts:25-49",
+    "previous_batch": "original",
+    "previous_reviewer": "original-audit",
+    "unchanged_source_sha256": "22d4a0222498f1bfbaa5d418d32c85dc84e8b9dee596f59dedee6115dcf43411",
+    "lines": 130,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/valet/src/features/task-queue/task-queue-controller.ts",
+    "reviewer": "W7",
+    "reason": "Previously valid location/session queue cache reset assumptions need review for same-location membership/Shift/role changes.",
+    "trigger": "employee-app.tsx:83-99;task-queue-controller.ts:61-113,211-231",
+    "previous_batch": "C015",
+    "previous_reviewer": "W5",
+    "unchanged_source_sha256": "ab67a1b941c47b8729de59ba61fb44567b61c4f0f82e2c78f7e21f85842a4d0c",
+    "lines": 290,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/valet/src/features/task-queue/task-queue-session-boundary.test.tsx",
+    "reviewer": "W7",
+    "reason": "Existing A/B tests vary session-generation or location only; cannot establish new same-location authority-switch semantics.",
+    "trigger": "use-employee-scoped-workspace.ts:25-49;employee-app.tsx:83-88",
+    "previous_batch": "C015",
+    "previous_reviewer": "W5",
+    "unchanged_source_sha256": "aa9075c93f1d5480b2e2a64dc3e15dd3c4fdb6bd5139e67cf601c2dff27d4f1a",
+    "lines": 125,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/valet/src/features/task-queue/use-task-queue.ts",
+    "reviewer": "W7",
+    "reason": "New membership/Shift/role authority stamp can change without location/sessionGeneration, but queue hook still passes only location/session generation.",
+    "trigger": "employee-app.tsx:83-88;task-queue-controller.ts:61-113",
+    "previous_batch": "C015",
+    "previous_reviewer": "W5",
+    "unchanged_source_sha256": "6c6a732098a04c8dcdee5e5dc0fdf54f685af19f06674b329616824c1f203bba",
+    "lines": 152,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/valet/src/lib/auth/staff-auth-context.tsx",
+    "reviewer": "W7",
+    "reason": "Identity epoch versus session generation now forms a combined authority fence; re-review token refresh/identity replacement consumer behavior.",
+    "trigger": "use-employee-scoped-workspace.ts:61-109;employee-app.tsx:83-99",
+    "previous_batch": "original",
+    "previous_reviewer": "original-audit",
+    "unchanged_source_sha256": "c9cf06cdedffb85f8bfbbe97e3907908216b95d591216f75b5bbb5e34c057a3a",
+    "lines": 206,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  }
+]

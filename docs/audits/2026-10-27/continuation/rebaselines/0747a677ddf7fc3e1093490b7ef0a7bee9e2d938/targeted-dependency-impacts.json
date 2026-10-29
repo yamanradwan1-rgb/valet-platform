@@ -1,0 +1,138 @@
+{
+  "checkpoint": "RB-003",
+  "old_source": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+  "new_source": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "source_tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "status": "COMPLETE_TARGETED_VALIDATION",
+  "policy": "Invalidate only previously credited unchanged paths where the semantic or test-scope conclusion materially depends on a changed downstream producer/authority contract. Keep historical source evidence; do not present reassessment as runtime confirmation.",
+  "independent_reports": [
+    "W1-push-dependency-impact.md",
+    "W7-employee-dependency-impact.md",
+    "W3-independent-qa.json",
+    "W2-push-revocation-static-review.md",
+    "W3-final-independent-qa.json"
+  ],
+  "invalidations": [
+    {
+      "path": "apps/api/src/modules/staff-push/staff-push-lifetime.ts",
+      "reviewer": "W1",
+      "trigger": "staff-push-delivery-worker.ts:85-106",
+      "reason": "Previously reviewed intent-TTL helper now also gates security-critical lease duration against FCM transport start; old semantic caller scope incomplete."
+    },
+    {
+      "path": "apps/api/test/staff-push-worker-ttl.integration.test.ts",
+      "reviewer": "W1",
+      "trigger": "staff-push-delivery-worker.ts:133-139",
+      "reason": "EXPIRED_BEFORE_TRANSPORT now bifurcates lost lease versus expired intent; old synthetic TTL-only assertion is no longer complete cross-branch test evidence."
+    },
+    {
+      "path": "apps/valet/src/components/end-shift-recovery.test.tsx",
+      "reviewer": "W7",
+      "trigger": "use-scoped-end-shift.ts:32-35,65-69",
+      "reason": "SSR fixture expects uncertain recovery without the new per-shift command owner; existing test semantics/claim likely stale."
+    },
+    {
+      "path": "apps/valet/src/components/shell/employee-workspace.test.ts",
+      "reviewer": "W7",
+      "trigger": "employee-workspace.ts:59-100,124-180",
+      "reason": "Old identity-only test cases do not cover newly introduced resolved/pending/retired operational stamp and stale async source-token lifecycle."
+    },
+    {
+      "path": "apps/valet/src/components/shell/employee-workspace-handlers.ts",
+      "reviewer": "W7",
+      "trigger": "employee-app.tsx:109-112;use-employee-scoped-workspace.ts:111-134",
+      "reason": "Handler patch/navigation consumers now receive source-token-fenced patcher, changing old assumptions of unconditional asynchronous target writes."
+    },
+    {
+      "path": "apps/valet/src/components/shell/employee-live-router.tsx",
+      "reviewer": "W7",
+      "trigger": "employee-app.tsx:83-99,229-260",
+      "reason": "Router still uses unchanged callbacks, but caller authority/owner gating and remount boundary changed across membership/Shift replacement."
+    },
+    {
+      "path": "apps/valet/src/components/shell/employee-active-shell.tsx",
+      "reviewer": "W7",
+      "trigger": "employee-app.tsx:229-232;employee-workspace.ts:79-94",
+      "reason": "Parent shell key now includes membership/location/Shift/identity but excludes role even though operational authority includes role; child state persistence requires reevaluation."
+    },
+    {
+      "path": "apps/valet/src/features/staff-operational-context/use-staff-operational-context.ts",
+      "reviewer": "W7",
+      "trigger": "use-employee-scoped-workspace.ts:25-49",
+      "reason": "NO_ACTIVE_SHIFT without an authoritative context response is now treated as pending rather than retirement; old scope resolution semantics affect target isolation."
+    },
+    {
+      "path": "apps/valet/src/lib/auth/staff-auth-context.tsx",
+      "reviewer": "W7",
+      "trigger": "use-employee-scoped-workspace.ts:61-109;employee-app.tsx:83-99",
+      "reason": "Identity epoch versus session generation now forms a combined authority fence; re-review token refresh/identity replacement consumer behavior."
+    },
+    {
+      "path": "apps/valet/src/features/task-queue/use-task-queue.ts",
+      "reviewer": "W7",
+      "trigger": "employee-app.tsx:83-88;task-queue-controller.ts:61-113",
+      "reason": "New membership/Shift/role authority stamp can change without location/sessionGeneration, but queue hook still passes only location/session generation."
+    },
+    {
+      "path": "apps/valet/src/features/task-queue/task-queue-controller.ts",
+      "reviewer": "W7",
+      "trigger": "employee-app.tsx:83-99;task-queue-controller.ts:61-113,211-231",
+      "reason": "Previously valid location/session queue cache reset assumptions need review for same-location membership/Shift/role changes."
+    },
+    {
+      "path": "apps/valet/src/features/task-queue/task-queue-session-boundary.test.tsx",
+      "reviewer": "W7",
+      "trigger": "use-employee-scoped-workspace.ts:25-49;employee-app.tsx:83-88",
+      "reason": "Existing A/B tests vary session-generation or location only; cannot establish new same-location authority-switch semantics."
+    },
+    {
+      "path": "apps/valet/src/components/screens/task-queue-screen.tsx",
+      "reviewer": "W7",
+      "trigger": "employee-app.tsx:229-260;task-queue-screen.tsx:88-99,126-201",
+      "reason": "Changed shell remount/authority callback fencing interacts with unchanged cached queue rows and in-flight task action state."
+    },
+    {
+      "path": "apps/valet/src/components/employee-app.live-retrieval-flow.test.tsx",
+      "reviewer": "W7",
+      "trigger": "employee-app.tsx:83-99;use-employee-scoped-workspace.ts:111-134",
+      "reason": "Mocked controller retrieval flow alone does not establish new app-level source-token fencing across authority replacement."
+    },
+    {
+      "path": "apps/valet/src/components/employee-app.live-flow.test.tsx",
+      "reviewer": "W7",
+      "trigger": "employee-app.tsx:83-99;use-scoped-end-shift.ts:23-92",
+      "reason": "Mocked check-in/parking flow remains narrow but previous end-to-end claim needs reevaluation against new operational authority owner."
+    }
+  ],
+  "cleared_source_indicators": {
+    "W1": [
+      "staff-push-claim-repository.ts",
+      "staff-push-finalization-repository.ts",
+      "staff-push-operational-policy.ts",
+      "fcm-http-v1-config.ts",
+      "staff-push-delivery-types.ts",
+      "staff-push-payload.ts",
+      "fcm-result-mapper.ts",
+      "staff-push-retry.ts",
+      "staff-push-observability.ts",
+      "staff-push-maintenance.ts",
+      "staff-push-registration-repository.ts",
+      "packages/contracts/src/staff-push.ts"
+    ],
+    "W7": [
+      "apps/valet/src/components/employee-app.start-shift.test.tsx",
+      "apps/valet/src/components/employee-app.test.tsx",
+      "apps/valet/src/features/shift/end-shift-auth-loss.test.ts",
+      "apps/valet/src/components/shell/employee-task-queue-owner.test.ts",
+      "apps/valet/src/features/staff-operational-context/staff-operational-context-session-boundary.test.tsx",
+      "apps/valet/src/lib/auth/staff-auth-types.ts"
+    ]
+  },
+  "source_only_candidates_requiring_followup": [
+    "RB003-W7-CAND-P2-ENDSHIFT-OLD-SSR-TEST",
+    "RB003-W7-CAND-P2-QUEUE-SAME-LOCATION-AUTHORITY",
+    "RB003-W7-CAND-P3-ROLE-SHELL-KEY"
+  ],
+  "historical_residual_not_new": "W2 independently confirmed the reachable same-live-lease post-eligibility generic alert race as a pre-existing accepted DEC-073/DEC-076 boundary rather than a new RB003 P2 regression; optional P3 test/contract clarity. FCM runtime untested.",
+  "runtime_tests_executed": 0
+}

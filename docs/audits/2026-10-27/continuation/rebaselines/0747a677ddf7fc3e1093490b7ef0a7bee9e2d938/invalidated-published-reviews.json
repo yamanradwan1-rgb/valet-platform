@@ -1,0 +1,62 @@
+[
+  {
+    "path": "apps/api/src/modules/staff-push/fcm-http-v1-adapter.ts",
+    "previous_batch": "original",
+    "original_reviewer": "original-audit",
+    "old_sha256": "e331194780e533c0d33cea4f206b9a80366a4d98cb63dc31163afcb3c3878f69",
+    "new_sha256": "6668a6384ec047bc4f4b8e57a67a6dc8c3f69f8518da9e6af54a0294a77a5afc",
+    "old_lines": 152,
+    "new_lines": 169,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-delivery-worker.ts",
+    "previous_batch": "original",
+    "original_reviewer": "original-audit",
+    "old_sha256": "e540e882ad38aa636980a0e30a0184e0088a29631aa71810b130efccad1d1bfd",
+    "new_sha256": "462ffd793fb569ff6772251fe10d66f9c005d3bfe8c35ee961d2134d7f1b3add",
+    "old_lines": 158,
+    "new_lines": 197,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-eligibility-repository.ts",
+    "previous_batch": "original",
+    "original_reviewer": "original-audit",
+    "old_sha256": "f87b42ccfa3564b475c5b4df64b74da2337077f78ac0278affc0760784b00a76",
+    "new_sha256": "fd27a79c689b293bbacf725fbad4b5099b66daebd23ed03f99491342f570ed45",
+    "old_lines": 150,
+    "new_lines": 171,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/api/src/modules/staff-push/staff-push-provider.ts",
+    "previous_batch": "C016",
+    "original_reviewer": "W1",
+    "old_sha256": "ff004762372ebfe164d3e653fd45a4edda33f5fed36ad49da84278d2e7c44773",
+    "new_sha256": "0ce6ee9f464773dfdf6e5c7819ad0b2356c17cc58113f86b1ceb6c13443a0d09",
+    "old_lines": 44,
+    "new_lines": 45,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/valet/src/components/employee-app.tsx",
+    "previous_batch": "original",
+    "original_reviewer": "original-audit",
+    "old_sha256": "9f7ca8b2776c69d2ed95fcc265f68942ed6a15607a0d35e5c77f2fb4bb7d41ce",
+    "new_sha256": "900ca7c043f96b57912114289705cf2ca13ad4e6da98e804bf56d63ff2f961ac",
+    "old_lines": 294,
+    "new_lines": 264,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/valet/src/components/shell/employee-workspace.ts",
+    "previous_batch": "original",
+    "original_reviewer": "original-audit",
+    "old_sha256": "43e08d363f71fb4eeba163a3b661432fa162b9a1f7d828980aff1d50ff41bc69",
+    "new_sha256": "232c27e50caeb398eec0c9c3f635edc4e069c1cfee14a595bec4f3b5e15378b6",
+    "old_lines": 107,
+    "new_lines": 180,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  }
+]

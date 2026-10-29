@@ -1,0 +1,52 @@
+{
+  "checkpoint": "RB-003",
+  "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "source_tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "scope": "STATIC_SOURCE_ONLY",
+  "runtime_tests_executed": 0,
+  "new_confirmed_p0": 0,
+  "new_confirmed_p1": 0,
+  "new_confirmed_p2": 0,
+  "source_only_candidates": [
+    {
+      "id": "RB003-W7-CAND-P2-ENDSHIFT-OLD-SSR-TEST",
+      "component": "Employee Web",
+      "status": "OPEN_SOURCE_CANDIDATE_NEEDS_C017_REVIEW",
+      "severity": "P2_POSSIBLE_TEST_SCOPE_GAP_NOT_RUNTIME_VERIFIED",
+      "evidence": "apps/valet/src/components/end-shift-recovery.test.tsx vs apps/valet/src/features/shift/use-scoped-end-shift.ts:32-35,65-69",
+      "limitation": "Potential fixture mismatch under new per-shift owner; a stale test assumption does not itself prove a production vulnerability.",
+      "report": "W7-employee-dependency-impact.md"
+    },
+    {
+      "id": "RB003-W7-CAND-P2-QUEUE-SAME-LOCATION-AUTHORITY",
+      "component": "Employee Web",
+      "status": "OPEN_CONDITIONAL_SOURCE_CANDIDATE_NEEDS_C017_REVIEW",
+      "severity": "P2_IF_CONFIDENTIAL_DATA_EXPOSED_ELSE_P3",
+      "evidence": "apps/valet/src/features/task-queue/use-task-queue.ts and task-queue-controller.ts:61-113,211-231; employee-app.tsx:83-99",
+      "limitation": "Queue resets only on location/sessionGeneration; new membership/Shift/role may change while location remains. API server authorization still applies; no browser/runtime leak proven.",
+      "report": "W7-employee-dependency-impact.md"
+    },
+    {
+      "id": "RB003-W7-CAND-P3-ROLE-SHELL-KEY",
+      "component": "Employee Web",
+      "status": "OPEN_CONDITIONAL_SOURCE_CANDIDATE_NEEDS_C017_REVIEW",
+      "severity": "P3_CONDITIONAL",
+      "evidence": "apps/valet/src/components/shell/employee-active-shell.tsx; employee-app.tsx:229-232; employee-workspace.ts:79-94",
+      "limitation": "Shell key excludes role although role contributes to operational authority stamp; no proven unsafe downstream state.",
+      "report": "W7-employee-dependency-impact.md"
+    }
+  ],
+  "preexisting_accepted_residual": [
+    {
+      "id": "RB003-W1-CAND-P2-STAFF-PUSH-POST-ELIGIBILITY-REVOCATION",
+      "reachability": "HIGH_CONFIDENCE_SOURCE",
+      "classification": "NO_NEW_P2_SUPPRESSED_BY_ACCEPTED_DEC_073_AND_076",
+      "severity": "OPTIONAL_P3_LIVE_LEASE_INTERLEAVING_TEST_OR_POLICY_CLARITY",
+      "evidence": "apps/api/src/modules/staff-push/staff-push-eligibility-repository.ts:29-44,84-171; staff-push-delivery-worker.ts:79-130; fcm-http-v1-adapter.ts:95-144; accepted DEC-073:782-791 and DEC-076:84-90",
+      "mitigations": "Generic notification has no privileged domain data; native tap reauthenticates and refetches current server-authorized state.",
+      "limitation": "Real FCM/OS delivery untested; race existed before this source epoch.",
+      "independent_review": "W2-push-revocation-static-review.md"
+    }
+  ],
+  "historical_findings_preserved": "See C016 and prior immutable checkpoints; do not conflate old source-only candidates with RB003 newly confirmed findings."
+}

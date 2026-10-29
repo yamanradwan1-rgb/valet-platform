@@ -1,0 +1,32 @@
+{
+  "checkpoint": "RB-003",
+  "previous_source_sha": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+  "current_source_sha": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "current_tree_sha": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "published_c016_docs_commit": "f93a0bc72cc3046303292e744dad168629330dc6",
+  "current_tracked": 7595,
+  "previous_tracked": 7584,
+  "changed_paths": 18,
+  "added_paths": 11,
+  "modified_paths": 7,
+  "removed_paths": 0,
+  "stale_reviewed": 6,
+  "reusable_reviewed": 2810,
+  "new_source_candidates": 10,
+  "candidate_files": 4789,
+  "candidate_lines": 620723,
+  "current_fully_reviewed": 2810,
+  "current_reviewed_lines": 353103,
+  "current_remaining": 1979,
+  "file_percent": 58.67613280434328,
+  "line_percent": 56.88576063719244,
+  "dependency_impact_review": "COMPLETE_TARGETED_VALIDATION",
+  "runtime_tests_executed": 0,
+  "source_modified_stale_reviews": 6,
+  "dependency_stale_reviews": 15,
+  "invalidated_dependency_reviewed_lines": 2482,
+  "dependency_review_reports": [
+    "W1-push-dependency-impact.md",
+    "W7-employee-dependency-impact.md"
+  ]
+}
