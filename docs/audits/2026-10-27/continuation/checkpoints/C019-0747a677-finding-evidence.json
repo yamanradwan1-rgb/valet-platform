@@ -1,0 +1,83 @@
+{
+  "batch": "C019",
+  "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "source_tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "status": "FINAL_SOURCE_ONLY_STRICT_175_OF_175_AND_INDEPENDENT_LEDGER_QA_PASS_AWAITING_REMOTE_PUBLICATION",
+  "runtime_tests_executed": 0,
+  "strict_review_records": 175,
+  "strict_invalid_records": 0,
+  "strict_missing_records": 0,
+  "new_confirmed_p0": 0,
+  "new_confirmed_p1": 0,
+  "new_confirmed_p2": 0,
+  "source_only_candidates": [
+    {
+      "id": "C019-PRIME-W1-P2-LOCAL-MFA-LAN-EXPOSURE-CANDIDATE",
+      "triaged_severity": "CONDITIONAL_P2_HIGH_CONFIDENCE_SOURCE_NO_RUNTIME_PROOF",
+      "status": "PRIME_AND_W1_INDEPENDENT_SOURCE_REVIEWED_EXPLICIT_DEV_OPT_IN_ONLY",
+      "evidence": [
+        "apps/api/src/modules/auth/mfa/local-mfa-bypass.ts:21-51",
+        "apps/api/src/main.ts:25-28,59-69",
+        "apps/api/tools/local-dev/smoke.ts:59-70,118-127",
+        "apps/api/src/modules/auth/mfa/mfa-assurance-policy.ts:108-115,193-216",
+        "apps/api/test/local-mfa-bypass.test.ts:33-109",
+        "docker-compose.yml:8-9"
+      ],
+      "hypothesis": "An operator explicitly enabling VAYLET_LOCAL_DISABLE_MFA=true with NODE_ENV=development and a loopback PostgreSQL URL activates an MFA assurance bypass, but the policy verifies only the database host. Ordinary API bootstrap uses app.listen(port) with no loopback bind. If the development API socket is reachable from the LAN through firewall/proxy configuration, an already-authenticated and role/tenant-authorized staff actor could use second-factor-protected management routes without a second factor.",
+      "counterevidence": "Production and test NODE_ENV reject the flag at bootstrap, and absent/false flag disables bypass. This does not bypass staff bearer/session, active-user, role, tenant, location or independent command authority. An external network path, actual opt-in process, and any successful remote HTTP use were not demonstrated. The issue is conditional developer-machine exposure, not proven production exposure.",
+      "next": "In a separate implementation ticket with UI/product scope approval, enforce loopback-only listener when development MFA bypass is enabled, test bind behavior and confirm firewall/proxy isolation. If all permitted bypass processes are already provably inaccessible remotely, downgrade residual to P3 hardening. No changes within this static audit."
+    },
+    {
+      "id": "C019-W1-P3-LIVE-AVATAR-NOOP-CANDIDATE",
+      "triaged_severity": "P3_UI_INTERACTION_SOURCE_CANDIDATE",
+      "status": "PRIME_AND_W1_SOURCE_REVIEWED_NOT_BROWSER_CONFIRMED",
+      "evidence": [
+        "apps/valet/src/components/shell/app-header.tsx:6-20,61-71",
+        "apps/valet/src/components/shell/employee-active-shell.tsx:36-45"
+      ],
+      "hypothesis": "The live employee header renders a visually clickable avatar button whose onClick handler is optional and absent at the actual live shell call site, so clicking it has no apparent action.",
+      "counterevidence": "An avatar interaction may intentionally be reserved for a future account affordance; no mounted browser interaction was executed, and it is not an authorization bypass.",
+      "next": "Assess expected UX and existing live navigation contract under separate UI Freeze governance before proposing any product change."
+    },
+    {
+      "id": "C019-W7-P3-CONNECTIVITY-SSR-TRANSITION-TEST-GAP",
+      "triaged_severity": "P3_TEST_COVERAGE_NOT_PRODUCT_VULNERABILITY",
+      "status": "PRIME_AND_W7_SOURCE_REVIEWED_STATIC_ONLY",
+      "evidence": [
+        "apps/valet/src/components/shell/connectivity-banner.ssr.test.tsx:27-38",
+        "apps/valet/src/components/shell/connectivity-banner.tsx:13-20,36-52"
+      ],
+      "hypothesis": "A test named as proving exactly-once onReconnect per offline-to-online transition only renders server static markup and asserts zero callbacks; it does not simulate a browser transition. The runtime component implements a ref/effect edge detector, but browser behavior is not covered by this particular test.",
+      "counterevidence": "The test comment explicitly acknowledges its SSR-only boundary; other suites may cover browser behavior, and no actual reconnect duplication or missing callback was reproduced.",
+      "next": "Add a mounted browser offline/online transition regression through a separately authorized product test change. Do not count this as a verified runtime bug."
+    },
+    {
+      "id": "C019-W7-P3-PRESENCE-TARGET-ROLE-FENCE-QUESTION",
+      "triaged_severity": "P3_THEORETICAL_CLIENT_HARDENING_NOT_CONFIRMED",
+      "status": "PRIME_AND_W7_SOURCE_REVIEWED_NO_REACHABLE_AUTH_BYPASS",
+      "evidence": [
+        "packages/employee-client/src/employee-shift-presence-types.ts:32-43,133-145",
+        "packages/employee-client/src/employee-shift-presence-target.ts:19-29,31-49",
+        "packages/employee-client/src/employee-shift-start-context.ts:18-27,29-64",
+        "packages/employee-client/src/employee-shift-presence-parent-fence.ts:12-59"
+      ],
+      "hypothesis": "An optional staff role is absent from the durable PresenceTarget key, which instead binds identityGeneration and organization/member/location/action/shift/cash/time/currency. A same-generation role-only change might deserve an explicit client-generation or scope comparison test while an unknown-outcome operation is retained.",
+      "counterevidence": "START authority is resolved from a server operational context; backend mutations independently enforce current staff grant and Shift authority. No producer that allows an unauthorized stale-role mutation or actual observed role-only race was demonstrated. This resembles earlier Shift Presence restore/fence hardening questions and must not be double-counted as a confirmed P2.",
+      "next": "Assess generation semantics and already existing role-revocation tests; add dedicated role-only change test only outside this documentation-only audit."
+    }
+  ],
+  "record_finding_aliases": [
+    {
+      "record_id": "C019-W6-RETRIEVAL-KEY-LABEL-INSTANCE",
+      "canonical_evidence_id": "C016-W5-CAND-002",
+      "additional_affected_path": "apps/valet/src/components/screens/retrieval/retrieval-live-steps.tsx:85-97",
+      "explanation": "The adjacent label has no htmlFor/id or wrapping association to the code input. Prime read its full 228-line source and live RetrievalFlow consumer. Preserve this distinct affected path of the historical accessibility class without counting a new root-cause P2."
+    }
+  ],
+  "historical_residual_not_new": "SEC-011/#363 pending MFA session candidate remains source-only P1; C018 Parking stale async target conditional P2 and other historical audit candidates are preserved without double-counting.",
+  "limitations": [
+    "All five reviewers completed 35 exact semantic records; Prime strict static QA accepted 175/175 with zero invalid/missing, and W3 independently verified full ledger math plus 25 pinned Git SHA256/EOF samples PASS. This does not grant official remote credit until non-force GitHub publication/fetch is verified.",
+    "No actual HTTP, PostgreSQL, mobile, browser, network listener or production runtime test was executed.",
+    "Source-candidate severity must not be equated to exploitability in a deployed environment. Independent W6 spot QA re-read nine W1/W2/W3 source files and corrected two evidence-precision descriptions without changing code, hashes, or review counts."
+  ]
+}
