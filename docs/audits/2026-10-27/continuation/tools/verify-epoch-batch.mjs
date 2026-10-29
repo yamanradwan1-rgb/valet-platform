@@ -68,6 +68,7 @@ function metadata(path){
   metadataCache.set(path,out);return out;
 }
 const accepted=[],seen=new Set(),errors=[],files=[];
+const looksLikeTestReference=path=>/(?:^|\/)(?:test|tests|__tests__)(?:\/|$)|\.(?:test|spec)\.[cm]?[jt]sx?$/.test(path);
 for(const [file,expected] of expectedFiles){
   if(!existsSync(file))continue;
   let records;
@@ -92,7 +93,12 @@ for(const [file,expected] of expectedFiles){
     }
     for(const key of ['semantic_review_notes','callers_consumers','invariants_error_checks','limits'])
       if(typeof record[key]!=='string'||record[key].trim().length<25)flaws.push('thin '+key);
-    if(!Array.isArray(record.test_refs??record.test_references)||!(record.test_refs??record.test_references).length)flaws.push('test references');
+    const testRefs=record.test_refs??record.test_references;
+    if(!Array.isArray(testRefs)||!testRefs.length)flaws.push('test references');
+    else if(!looksLikeTestReference(path)&&!testRefs.some(ref=>typeof ref==='string'&&looksLikeTestReference(ref))&&
+      !/no (?:direct|focused|relevant)(?: focused| automated)? tests?/i.test(record.limits??'')){
+      flaws.push('missing actual test ref or explicit focused-test gap');
+    }
     if(!Array.isArray(record.finding_ids??[]))flaws.push('finding ids');
     if(flaws.length)errors.push(path+': '+[...new Set(flaws)].join(', '));
     else accepted.push({path,original_owner:a.original_owner,actual_reviewer:a.assigned_reviewer,

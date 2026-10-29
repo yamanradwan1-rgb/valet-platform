@@ -1,0 +1,193 @@
+{
+  "verdict": "PASS",
+  "checkpoint": "C017",
+  "reviewer": "W3",
+  "source": {
+    "commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+    "tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+    "clean": true
+  },
+  "publicationParent": {
+    "expected": "ad2094edd7ab9ab5c2de137bcb9a67872f6beefa",
+    "published": "dfb14c4276d26f9f10a35a37d829bf86b769264c",
+    "local": "dfb14c4276d26f9f10a35a37d829bf86b769264c",
+    "fetched": "dfb14c4276d26f9f10a35a37d829bf86b769264c",
+    "actualParent": "ad2094edd7ab9ab5c2de137bcb9a67872f6beefa"
+  },
+  "rb003": {
+    "tracked": 7595,
+    "eligible": 4789,
+    "credited": 2810,
+    "pending": 1979,
+    "eligibleLines": 620723,
+    "creditedLines": 353103
+  },
+  "assignments": {
+    "count": 175,
+    "uniquePaths": 175,
+    "originalOwnerCounts": {
+      "W1": 25,
+      "W2": 25,
+      "W3": 25,
+      "W4": 25,
+      "W5": 25,
+      "W6": 25,
+      "W7": 25
+    },
+    "actualReviewerCounts": {
+      "W1": 35,
+      "W2": 35,
+      "W3": 35,
+      "W4": 0,
+      "W5": 0,
+      "W6": 35,
+      "W7": 35
+    },
+    "transferCount": 50,
+    "transferOriginalOwnerCounts": {
+      "W4": 25,
+      "W5": 25
+    },
+    "transferActualReviewerCounts": {
+      "W1": 10,
+      "W2": 10,
+      "W3": 10,
+      "W6": 10,
+      "W7": 10
+    },
+    "priorityCounts": {
+      "MANDATORY_REBASELINE_DELTA": 31,
+      "unreviewed_current_source": 144
+    },
+    "mandatoryCount": 31,
+    "canonicalGitBlobHashAndEofChecks": 175,
+    "creditedOverlap": [],
+    "mandatoryPaths": [
+      {
+        "path": "apps/api/src/modules/staff-push/fcm-http-v1-adapter.ts",
+        "kind": "CHANGED_REVIEWED"
+      },
+      {
+        "path": "apps/api/src/modules/staff-push/staff-push-delivery-worker.ts",
+        "kind": "CHANGED_REVIEWED"
+      },
+      {
+        "path": "apps/api/src/modules/staff-push/staff-push-eligibility-repository.ts",
+        "kind": "CHANGED_REVIEWED"
+      },
+      {
+        "path": "apps/api/src/modules/staff-push/staff-push-provider.ts",
+        "kind": "CHANGED_REVIEWED"
+      },
+      {
+        "path": "apps/valet/src/components/employee-app.tsx",
+        "kind": "CHANGED_REVIEWED"
+      },
+      {
+        "path": "apps/valet/src/components/shell/employee-workspace.ts",
+        "kind": "CHANGED_REVIEWED"
+      },
+      {
+        "path": "apps/api/test/issue358-stale-scope-denial.integration.test.ts",
+        "kind": "ADDED_ELIGIBLE"
+      },
+      {
+        "path": "apps/api/test/staff-push-expired-lease-race.integration.test.ts",
+        "kind": "ADDED_ELIGIBLE"
+      },
+      {
+        "path": "apps/api/test/staff-push-fcm-token-delay-race.integration.test.ts",
+        "kind": "ADDED_ELIGIBLE"
+      },
+      {
+        "path": "apps/valet/e2e/issue358-employee-browser-fixture.ts",
+        "kind": "ADDED_ELIGIBLE"
+      },
+      {
+        "path": "apps/valet/e2e/issue358-endshift-transition.spec.ts",
+        "kind": "ADDED_ELIGIBLE"
+      },
+      {
+        "path": "apps/valet/e2e/issue358-scope-browser-support.ts",
+        "kind": "ADDED_ELIGIBLE"
+      },
+      {
+        "path": "apps/valet/e2e/issue358-scope-transition.spec.ts",
+        "kind": "ADDED_ELIGIBLE"
+      },
+      {
+        "path": "apps/valet/src/components/shell/use-employee-scoped-workspace.ts",
+        "kind": "ADDED_ELIGIBLE"
+      },
+      {
+        "path": "apps/valet/src/components/shell/use-scoped-end-shift.ts",
+        "kind": "ADDED_ELIGIBLE"
+      },
+      {
+        "path": "apps/valet/src/features/shift/end-shift-controller-scope.test.ts",
+        "kind": "ADDED_ELIGIBLE"
+      },
+      {
+        "path": "apps/api/src/modules/staff-push/staff-push-lifetime.ts",
+        "kind": "DEPENDENCY_STALE"
+      },
+      {
+        "path": "apps/api/test/staff-push-worker-ttl.integration.test.ts",
+        "kind": "DEPENDENCY_STALE"
+      },
+      {
+        "path": "apps/valet/src/components/employee-app.live-flow.test.tsx",
+        "kind": "DEPENDENCY_STALE"
+      },
+      {
+        "path": "apps/valet/src/components/employee-app.live-retrieval-flow.test.tsx",
+        "kind": "DEPENDENCY_STALE"
+      },
+      {
+        "path": "apps/valet/src/components/end-shift-recovery.test.tsx",
+        "kind": "DEPENDENCY_STALE"
+      },
+      {
+        "path": "apps/valet/src/components/screens/task-queue-screen.tsx",
+        "kind": "DEPENDENCY_STALE"
+      },
+      {
+        "path": "apps/valet/src/components/shell/employee-active-shell.tsx",
+        "kind": "DEPENDENCY_STALE"
+      },
+      {
+        "path": "apps/valet/src/components/shell/employee-live-router.tsx",
+        "kind": "DEPENDENCY_STALE"
+      },
+      {
+        "path": "apps/valet/src/components/shell/employee-workspace-handlers.ts",
+        "kind": "DEPENDENCY_STALE"
+      },
+      {
+        "path": "apps/valet/src/components/shell/employee-workspace.test.ts",
+        "kind": "DEPENDENCY_STALE"
+      },
+      {
+        "path": "apps/valet/src/features/staff-operational-context/use-staff-operational-context.ts",
+        "kind": "DEPENDENCY_STALE"
+      },
+      {
+        "path": "apps/valet/src/features/task-queue/task-queue-controller.ts",
+        "kind": "DEPENDENCY_STALE"
+      },
+      {
+        "path": "apps/valet/src/features/task-queue/task-queue-session-boundary.test.tsx",
+        "kind": "DEPENDENCY_STALE"
+      },
+      {
+        "path": "apps/valet/src/features/task-queue/use-task-queue.ts",
+        "kind": "DEPENDENCY_STALE"
+      },
+      {
+        "path": "apps/valet/src/lib/auth/staff-auth-context.tsx",
+        "kind": "DEPENDENCY_STALE"
+      }
+    ]
+  },
+  "errors": []
+}

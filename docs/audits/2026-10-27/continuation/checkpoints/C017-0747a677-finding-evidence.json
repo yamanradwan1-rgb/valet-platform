@@ -1,0 +1,102 @@
+{
+  "batch": "C017",
+  "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "source_tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "status": "FINAL_SOURCE_ONLY_C017_STRICT_QA_PASS",
+  "runtime_tests_executed": 0,
+  "strict_review_records": 175,
+  "strict_invalid_records": 0,
+  "strict_missing_records": 0,
+  "new_confirmed_p0": 0,
+  "new_confirmed_p1": 0,
+  "new_confirmed_p2": 0,
+  "source_only_candidates": [
+    {
+      "id": "C017-W2-P3-REGISTRATION-AUTH-TEST-ORDER",
+      "severity": "P3_TEST_RELIABILITY_SOURCE_CANDIDATE",
+      "status": "PRIME_SOURCE_REVIEWED_CONDITIONAL_NO_RUNTIME",
+      "evidence": [
+        "apps/api/test/staff-push-registration-authority.integration.test.ts:11-62"
+      ],
+      "hypothesis": "Negative request cases assert pre-existing registration row count exactly 1, assuming a prior positive test created it; isolated or reordered test selection may break fixture independence.",
+      "counterevidence": "Current normal sequential file execution may satisfy order; no test execution performed by this audit.",
+      "next": "Consider test independence improvement in separate product/test authorization; current audit reviewed source 167/167 and did not run the suite."
+    },
+    {
+      "id": "C017-W3-P3-PG-LOCK-POLL-TEST-QUALITY",
+      "severity": "P3_CONCURRENCY_TEST_DETERMINISM_SOURCE_CANDIDATE",
+      "status": "PRIME_SOURCE_REVIEWED_CONDITIONAL_NO_RUNTIME",
+      "evidence": [
+        "apps/api/test/management-settings-concurrency.integration.test.ts",
+        "apps/api/test/management-settings-race-test-helpers.ts",
+        "apps/api/test/staff-management-custody-race.integration.test.ts",
+        "apps/api/test/staff-management-deactivation-refresh-race.integration.test.ts",
+        "apps/api/test/staff-management-incident-recovery-races.integration.test.ts",
+        "apps/api/test/staff-management-lm-authority-races.integration.test.ts",
+        "apps/api/test/staff-management-shift-races.integration.test.ts",
+        "apps/api/test/staff-mfa-authority-races.integration.test.ts"
+      ],
+      "hypothesis": "Some advisory/lock-wait fixture polling loops use fixed 1000 sequential awaited PostgreSQL queries without elapsed-time deadline or explicit delay; under scheduling variance a check may exhaust before the intended wait state is observable.",
+      "counterevidence": "Each awaited PostgreSQL query naturally yields, so this is not a tight CPU-only spin. The tests may run reliably in usual CI conditions; static reading cannot prove runtime flakiness. Count this once across all linked files, not eight separate P3 findings.",
+      "next": "Independent focused test-determinism analysis in future test-work authorization; current static audit only."
+    },
+    {
+      "id": "C017-W6-CAND-P2-RECOVERABLE-KEYBOARD",
+      "severity": "P2_ACCESSIBILITY_SOURCE_CANDIDATE",
+      "status": "INDEPENDENT_PRIME_SOURCE_CONFIRMED_KEYBOARD_HANDLER_ABSENT_RUNTIME_NOT_TESTED",
+      "evidence": [
+        "apps/valet/src/components/screens/check-in/check-in-recoverable-step.tsx:30-47,49-66",
+        "apps/valet/src/components/screens/check-in-flow.tsx:102-111"
+      ],
+      "hypothesis": "Live multiple-recoverable Check-In list renders both draft and awaiting-parking selectable items as plain div elements with only onClick, no role, tabIndex or keyboard Enter/Space handler. Keyboard-only users cannot natively focus/activate these choices.",
+      "counterevidence": "A separate Back to Queue Btn exists; no visible alternate keyboard selection for the same drafts/continuations in this component. Browser/accessibility runtime test not performed.",
+      "next": "Consider a semantic button/control repair in a separately authorized product issue; static audit must not edit UI or create/change Issues."
+    },
+    {
+      "id": "RB003-W7-CAND-P2-QUEUE-SAME-LOCATION-AUTHORITY",
+      "severity": "P3_SOURCE_STALE_QUEUE_CANDIDATE_P2_UNSUPPORTED_WITHOUT_DENIED_ACCESS_EVIDENCE",
+      "status": "C017_PRIME_AND_W7_SOURCE_REVIEWED_P2_NOT_ESTABLISHED",
+      "evidence": [
+        "apps/valet/src/components/employee-app.tsx:83-99,229-235",
+        "apps/valet/src/features/task-queue/use-task-queue.ts:41-53,91-127",
+        "apps/valet/src/features/task-queue/task-queue-controller.ts:61-113,211-231,270-283",
+        "apps/valet/src/features/task-queue/task-queue-selectors.ts:12-20",
+        "apps/valet/src/components/screens/task-queue-screen.tsx:95-102,230-241,270-280"
+      ],
+      "hypothesis": "Parent task queue caches data by location/sessionGeneration; a same-location membership, Shift or role switch can remount the child UI without retiring old queue rows or in-flight requests.",
+      "counterevidence": "Production dispatch/task-queue-query.ts:22-46,48-107 authorizes a current active membership/Shift and returns a LOCATION-WIDE task list to all valid staff at that location, with no per-membership task-list partition. Same-location new membership/Shift likely retains legitimate visibility; action authorization is separate. Keyed EmployeeActiveShell resets its retrieval alert tracker. No browser/runtime disclosure proven.",
+      "next": "Independent C017 W2/W3/W7 semantic and actual test coverage; decide conditional confidentiality severity."
+    },
+    {
+      "id": "RB003-W7-CAND-P2-ENDSHIFT-OLD-SSR-TEST",
+      "severity": "P3_LIKELY_TEST_FIXTURE_ALIGNMENT",
+      "status": "C017_PRIME_AND_W6_SOURCE_REVIEWED_LIKELY_P3_TEST_FIXTURE",
+      "evidence": [
+        "apps/valet/src/components/end-shift-recovery.test.tsx:18-37,73-98",
+        "apps/valet/src/components/shell/use-scoped-end-shift.ts:32-35,65-84",
+        "apps/valet/src/features/shift/end-shift-controller-scope.test.ts:43-87"
+      ],
+      "hypothesis": "Old SSR test injects uncertain phase via mocked useEndShift without setting new scoped hook owner, so scopedPhase is idle and first test expectation appears stale.",
+      "counterevidence": "This does not prove end-user recovery broken; source-only test mismatch, runtime suite not run.",
+      "next": "W6 independent owner state trace; historical test update outside current audit scope."
+    },
+    {
+      "id": "RB003-W7-CAND-P3-ROLE-SHELL-KEY",
+      "severity": "P3_CONDITIONAL",
+      "status": "C017_PRIME_SOURCE_REVIEWED_CONDITIONAL_P3",
+      "evidence": [
+        "apps/valet/src/components/employee-app.tsx:229-235",
+        "apps/valet/src/components/shell/employee-active-shell.tsx:19-63"
+      ],
+      "hypothesis": "Parent shell key omits role while operational authority includes role; child state persistence on role-only switches may need explicit fence.",
+      "counterevidence": "No verified unsafe mutation/data exposure; API authorization persists.",
+      "next": "Independent C017 full caller/consumer/source review."
+    }
+  ],
+  "historical_residual_not_new": "DEC-073/DEC-076 Staff Push generic post-eligibility alert race was independently W2 reviewed and is accepted, not newly confirmed P2.",
+  "limitations": [
+    "All severity candidates are source-only and must not be presented as confirmed runtime vulnerabilities.",
+    "C017 completed 175/175 strict static source QA with zero invalid or missing records; this is not a runtime/security-exploit validation.",
+    "No P0/P1/P2 is confirmed by runtime in C017. The distinct P2 accessibility candidate is high-confidence source evidence, but still requires accessible interaction testing and separate product change authorization."
+  ]
+}
