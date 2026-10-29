@@ -120,6 +120,19 @@ function authorizeProtectedRoute(
     return denied();
   }
 
+  if (requirement === "EMERGENCY_TASKS") {
+    if (facts.kind === "SUPERVISOR") {
+      return scope.authority === "SUPERVISOR"
+        ? valid({ ...supervisorAuthority(), emergencyTasksAuthorized: true })
+        : denied();
+    }
+    if (facts.kind !== "MANAGEMENT") return denied();
+    if (!facts.commercial.dashboardAccess) return entitlement();
+    return facts.foundationEntryEligible
+      ? valid({ ...fullAuthority(facts), emergencyTasksAuthorized: true })
+      : denied();
+  }
+
   if (requirement === "MANAGEMENT_INTELLIGENCE") {
     if (facts.kind !== "MANAGEMENT") return denied();
     if (!facts.commercial.dashboardAccess) return entitlement();

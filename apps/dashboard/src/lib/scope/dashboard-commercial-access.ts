@@ -7,6 +7,7 @@ export type DashboardCommercialRequirement =
 
 export type DashboardRouteAccessRequirement =
   | "FOUNDATION_ENTRY"
+  | "EMERGENCY_TASKS"
   | "LOCATION_MAPS"
   | "MANAGEMENT_INTELLIGENCE"
   | "MANAGEMENT_AUDIT"
@@ -21,6 +22,7 @@ export interface DashboardCommercialAccess {
 
 export interface ProtectedRouteAuthority {
   readonly foundationEntryAuthorized: boolean;
+  readonly emergencyTasksAuthorized?: boolean;
   readonly locationMapsAuthorized: boolean;
   readonly managementIntelligenceAuthorized?: boolean;
   readonly managementAuditAuthorized?: boolean;
@@ -61,6 +63,9 @@ export function allowsDashboardRouteAccessRequirement(
 ): boolean {
   if (requirement === "FOUNDATION_ENTRY") {
     return access.foundationEntryAuthorized;
+  }
+  if (requirement === "EMERGENCY_TASKS") {
+    return access.emergencyTasksAuthorized === true;
   }
   if (requirement === "LOCATION_MAPS") {
     return access.locationMapsAuthorized;

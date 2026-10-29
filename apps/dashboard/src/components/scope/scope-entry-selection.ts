@@ -91,6 +91,7 @@ export async function resolveOrganizationSelection(
   }
   const commercialRequirement =
     accessRequirement === "FOUNDATION_ENTRY" ||
+    accessRequirement === "EMERGENCY_TASKS" ||
     accessRequirement === "LOCATION_MAPS" ||
     accessRequirement === "MANAGEMENT_INTELLIGENCE"
       ? "DASHBOARD"

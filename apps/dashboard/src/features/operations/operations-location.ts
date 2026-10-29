@@ -9,5 +9,8 @@ export function selectedOperationsLocation(
     return selected.context.selectedLocation;
   }
   if (selected?.authority === "LOCATION_MANAGER") return selected.location;
+  if (selected?.authority === "SUPERVISOR") {
+    return { ...selected.context.location, status: "ACTIVE" };
+  }
   return null;
 }

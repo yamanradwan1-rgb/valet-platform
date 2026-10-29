@@ -44,6 +44,7 @@ describe("LOCATION_MAPS scope entry", () => {
   it("discovers Supervisor scopes only for Foundation or Maps entry", () => {
     expect(shouldDiscoverSupervisorScopes("FOUNDATION_ENTRY")).toBe(true);
     expect(shouldDiscoverSupervisorScopes("LOCATION_MAPS")).toBe(true);
+    expect(shouldDiscoverSupervisorScopes("EMERGENCY_TASKS")).toBe(true);
     expect(shouldDiscoverSupervisorScopes("DASHBOARD")).toBe(false);
     expect(shouldDiscoverSupervisorScopes("BRANDING")).toBe(false);
     expect(shouldDiscoverSupervisorScopes("SUBSCRIPTION_READ")).toBe(false);

@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import { TaskTableBody } from "./task-table-body";
 import { EmergencyTaskDrawer } from "./emergency-task-drawer";
 import { EmergencyTakeoverDialogController } from "./emergency-takeover-dialog-controller";
+import { supervisorEmergencyTaskVisible } from "./emergency-tasks-visibility";
 
 import { useDashboardLocale } from "../../../lib/i18n/locale-provider";
 import { ScopedContextHelp } from "../../help/scoped-context-help";
@@ -53,11 +54,12 @@ function TasksContent() {
   const [reconcileAfterTakeover, setReconcileAfterTakeover] = useState(false);
   const location = selectedOperationsLocation(dashboard.selectedScope);
   const locationId = location?.locationId ?? "";
+  const supervisor = scope.authority === "SUPERVISOR";
   const enabled =
     exactLocation &&
     location !== null &&
     (scope.authority === "COMPANY_ADMIN" ||
-      scope.authority === "LOCATION_MANAGER");
+      scope.authority === "LOCATION_MANAGER" || supervisor);
   const load = useCallback(
     (signal: AbortSignal) =>
       readTasks(dashboard.api, locationId, page.cursor, signal),
@@ -68,15 +70,20 @@ function TasksContent() {
     load,
     enabled,
   );
-  const sourceItems = read.data?.items ?? [];
+  const sourceItems = supervisor
+    ? (read.data?.items ?? []).filter(supervisorEmergencyTaskVisible)
+    : read.data?.items ?? [];
   const items = sourceItems.filter(
     (item) =>
       (status === "ALL" || item.status === status) &&
       (type === "ALL" || item.taskType === type),
   );
   const selectedForDrawer = selected && reconcileAfterTakeover && !read.loading
-    ? read.data?.items.find((task) => task.taskId === selected.taskId) ?? null
-    : selected;
+    ? sourceItems.find((task) => task.taskId === selected.taskId) ?? null
+    : supervisor && selected && !read.loading &&
+      !sourceItems.some((task) => task.taskId === selected.taskId)
+      ? null
+      : selected;
   const resetPageLocalState = () => {
     setStatus("ALL");
     setType("ALL");
@@ -117,7 +124,7 @@ function TasksContent() {
             value={status}
           >
             <option value="ALL">{r04.allStatuses}</option>
-            {taskStatuses.map((value) => (
+            {(supervisor ? ["IN_PROGRESS"] as const : taskStatuses).map((value) => (
               <option key={value} value={value}>
                 {operationsTaskStatusLabel(value, locale)}
               </option>
@@ -190,7 +197,7 @@ function TasksContent() {
       {selectedForDrawer ? (
         <EmergencyTaskDrawer
           api={dashboard.api}
-          companyAdmin={scope.authority === "COMPANY_ADMIN"}
+          role={scope.authority}
           help={<ScopedContextHelp helpKey="tasks.drawer" />}
           item={selectedForDrawer}
           key={selectedForDrawer.taskId}

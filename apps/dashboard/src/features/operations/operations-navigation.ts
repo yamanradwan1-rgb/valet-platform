@@ -25,10 +25,11 @@ export const md03NavigationRegistrations = [
     placement: "MAIN", roles: managementRoles, scopeRequirement: "LOCATION",
   }),
   defineNavigationDestination({
-    accessRequirement: "DASHBOARD", availability: "IMPLEMENTED",
+    accessRequirement: "EMERGENCY_TASKS", availability: "IMPLEMENTED",
     href: "/tasks", icon: ClipboardList, id: "tasks",
     labels: { ar: "المهام", en: "Tasks" }, owner: "MD-03",
-    placement: "MAIN", roles: managementRoles, scopeRequirement: "LOCATION",
+    placement: "MAIN", roles: ["COMPANY_ADMIN", "LOCATION_MANAGER", "SUPERVISOR"],
+    scopeRequirement: "LOCATION",
   }),
   defineNavigationDestination({
     accessRequirement: "LOCATION_MAPS", availability: "IMPLEMENTED",

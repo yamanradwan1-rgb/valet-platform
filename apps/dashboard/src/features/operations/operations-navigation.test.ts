@@ -9,6 +9,7 @@ import { md03NavigationRegistrations } from "./operations-navigation";
 
 const fullAccess: NavigationAuthority = {
   ...noNavigationAuthority,
+  emergencyTasksEligible: true,
   foundationEntryEligible: true,
   locationMapsEligible: true,
   commercial: { dashboardAccess: true, basicBranding: false, subscriptionRead: true },
@@ -18,6 +19,10 @@ const mapsOnly: NavigationAuthority = {
   foundationEntryEligible: true,
   locationMapsEligible: true,
   commercial: { dashboardAccess: false, basicBranding: false, subscriptionRead: false },
+};
+const supervisorEmergency: NavigationAuthority = {
+  ...mapsOnly,
+  emergencyTasksEligible: true,
 };
 
 function ids(
@@ -38,7 +43,7 @@ describe("MD-03 navigation authority", () => {
     expect(md03NavigationRegistrations.map(({ href, accessRequirement }) => [href, accessRequirement])).toEqual([
       ["/live-operations", "DASHBOARD"],
       ["/vehicles", "DASHBOARD"],
-      ["/tasks", "DASHBOARD"],
+      ["/tasks", "EMERGENCY_TASKS"],
       ["/maps-zones", "LOCATION_MAPS"],
       ["/keys", "DASHBOARD"],
       ["/incidents", "DASHBOARD"],
@@ -68,10 +73,11 @@ describe("MD-03 navigation authority", () => {
     expect(ids("LOCATION_MANAGER", lmNoDashboard)).toEqual(["maps-zones"]);
   });
 
-  it("gives Supervisor only Maps and requires exact Location scope", () => {
+  it("gives Supervisor only Tasks and Maps with exact Location scope", () => {
+    expect(ids("SUPERVISOR", supervisorEmergency)).toEqual(["tasks", "maps-zones"]);
     expect(ids("SUPERVISOR", mapsOnly)).toEqual(["maps-zones"]);
     expect(ids("COMPANY_ADMIN", fullAccess, null)).toEqual([]);
     expect(ids("LOCATION_MANAGER", fullAccess, null)).toEqual([]);
-    expect(ids("SUPERVISOR", mapsOnly, null)).toEqual([]);
+    expect(ids("SUPERVISOR", supervisorEmergency, null)).toEqual([]);
   });
 });

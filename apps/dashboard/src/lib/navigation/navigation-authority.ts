@@ -15,6 +15,7 @@ export type NavigationFeatureEligibility =
 
 export interface NavigationAuthority {
   readonly commercial: DashboardCommercialAccess;
+  readonly emergencyTasksEligible?: boolean;
   readonly features: Readonly<
     Record<DashboardFeatureAuthorityFeature, NavigationFeatureEligibility>
   >;
@@ -25,6 +26,7 @@ export interface NavigationAuthority {
 
 export const noNavigationAuthority: NavigationAuthority = {
   commercial: noDashboardCommercialAccess,
+  emergencyTasksEligible: false,
   features: {
     MANAGEMENT_AUDIT: "NOT_APPLICABLE",
     VISIT_CONTACTS: "NOT_APPLICABLE",
@@ -49,6 +51,9 @@ export function allowsNavigationAccessRequirement(
 ): boolean {
   if (requirement === "FOUNDATION_ENTRY") {
     return authority.foundationEntryEligible;
+  }
+  if (requirement === "EMERGENCY_TASKS") {
+    return authority.emergencyTasksEligible === true;
   }
   if (requirement === "LOCATION_MAPS") {
     return authority.locationMapsEligible;

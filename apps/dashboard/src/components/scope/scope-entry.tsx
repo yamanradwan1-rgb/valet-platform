@@ -87,6 +87,7 @@ export function ScopeEntry(props: ScopeEntryProps) {
             controller.commercialUnavailableOrganizationId === controller.activeOrganization.organization.organizationId ? (
               <p className="muted" role="status">
                 {props.accessRequirement === "DASHBOARD" ||
+                props.accessRequirement === "EMERGENCY_TASKS" ||
                 props.accessRequirement === "FOUNDATION_ENTRY" ||
                 props.accessRequirement === "LOCATION_MAPS"
                   ? labels.dashboardAccessUnavailable

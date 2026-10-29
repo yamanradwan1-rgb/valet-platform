@@ -7,6 +7,7 @@ export function shouldDiscoverSupervisorScopes(
   accessRequirement: DashboardRouteAccessRequirement,
 ): boolean {
   return accessRequirement === "FOUNDATION_ENTRY" ||
+    accessRequirement === "EMERGENCY_TASKS" ||
     accessRequirement === "LOCATION_MAPS" ||
     accessRequirement === "MANAGEMENT_AUDIT";
 }

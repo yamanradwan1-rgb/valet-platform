@@ -142,6 +142,8 @@ function navigationAuthorityFromFacts(
         ? noDashboardCommercialAccess
         : facts.commercial,
     foundationEntryEligible: facts.foundationEntryEligible,
+    emergencyTasksEligible: facts.foundationEntryEligible &&
+      (facts.kind === "SUPERVISOR" || facts.commercial.dashboardAccess),
     locationMapsEligible: facts.locationMapsEligible,
     managementIntelligenceEligible: intelligenceEligible(facts, selectedScope),
   };

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
 import { TaskDrawer } from "./task-drawer";
+import { canOfferEmergencyTakeover } from "./emergency-tasks-visibility";
 import { useEmergencyActionEligibility } from "./use-emergency-action-eligibility";
 
 export function EmergencyTaskDrawer(props: {
@@ -14,7 +15,7 @@ export function EmergencyTaskDrawer(props: {
   readonly location: ManagementLocation;
   readonly help?: ReactNode;
   readonly scopeKey: string;
-  readonly companyAdmin: boolean;
+  readonly role: "COMPANY_ADMIN" | "LOCATION_MANAGER" | "SUPERVISOR";
   readonly onClose: () => void;
   readonly onTakeover: () => void;
 }) {
@@ -30,7 +31,7 @@ export function EmergencyTaskDrawer(props: {
     taskId: props.item.taskId,
     updatedAt: props.item.updatedAt,
     scopeKey: props.scopeKey,
-    enabled: props.companyAdmin && props.item.status === "IN_PROGRESS",
+    enabled: canOfferEmergencyTakeover(props.role, props.item),
   });
   return (
     <TaskDrawer

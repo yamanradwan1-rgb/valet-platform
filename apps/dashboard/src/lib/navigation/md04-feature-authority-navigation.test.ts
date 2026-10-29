@@ -135,6 +135,7 @@ describe("MD-04 navigation filtering", () => {
         ...noNavigationAuthority,
         commercial: commercial(true),
         foundationEntryEligible: true,
+        emergencyTasksEligible: true,
         locationMapsEligible: true,
         features: {
           ...noNavigationAuthority.features,
@@ -151,6 +152,7 @@ describe("MD-04 navigation filtering", () => {
         ...noNavigationAuthority,
         commercial: commercial(true),
         foundationEntryEligible: true,
+        emergencyTasksEligible: true,
         locationMapsEligible: true,
         features: {
           ...noNavigationAuthority.features,
@@ -171,13 +173,14 @@ describe("MD-04 navigation filtering", () => {
           subscriptionRead: false,
         },
         foundationEntryEligible: true,
+        emergencyTasksEligible: true,
         locationMapsEligible: true,
         features: {
           ...noNavigationAuthority.features,
           MANAGEMENT_AUDIT: "ELIGIBLE",
         },
       },
-      [...nonCaFoundation, "maps-zones", "test-audit"],
+      [...nonCaFoundation, "tasks", "maps-zones", "test-audit"],
     ],
     [
       "LM Visit Contacts grant set",

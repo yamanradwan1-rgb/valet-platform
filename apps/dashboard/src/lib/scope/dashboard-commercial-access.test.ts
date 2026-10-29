@@ -70,6 +70,21 @@ describe("dashboard commercial access", () => {
     expect(allowsDashboardRouteAccessRequirement("SUBSCRIPTION_READ", routeAccess)).toBe(false);
   });
 
+  it("requires dedicated Emergency Tasks authorization without granting commercial access", () => {
+    const supervisor = {
+      foundationEntryAuthorized: true,
+      locationMapsAuthorized: true,
+      emergencyTasksAuthorized: true,
+      commercial: noDashboardCommercialAccess,
+    };
+    expect(allowsDashboardRouteAccessRequirement("EMERGENCY_TASKS", supervisor)).toBe(true);
+    expect(allowsDashboardRouteAccessRequirement("DASHBOARD", supervisor)).toBe(false);
+    expect(allowsDashboardRouteAccessRequirement("BRANDING", supervisor)).toBe(false);
+    expect(allowsDashboardRouteAccessRequirement("EMERGENCY_TASKS", {
+      ...supervisor, emergencyTasksAuthorized: false,
+    })).toBe(false);
+  });
+
   it("allows MD-04 feature authority to remain feature-only for special scopes", () => {
     const routeAccess = {
       commercial: noDashboardCommercialAccess,

@@ -27,6 +27,7 @@ describe("production dashboard navigation order", () => {
           VISIT_CONTACTS: "ELIGIBLE",
         },
         foundationEntryEligible: true,
+        emergencyTasksEligible: true,
         locationMapsEligible: true,
         managementIntelligenceEligible: true,
       },
@@ -60,7 +61,7 @@ describe("production dashboard navigation order", () => {
   it.each([
     ["COMPANY_ADMIN", null, true, "/overview"],
     ["LOCATION_MANAGER", "location-1", true, "/overview"],
-    ["SUPERVISOR", "location-1", false, "/maps-zones"],
+    ["SUPERVISOR", "location-1", false, "/tasks"],
   ] as const)(
     "lands %s on the first eligible MAIN destination",
     (role, locationId, managementIntelligenceEligible, expectedHref) => {
@@ -78,6 +79,7 @@ describe("production dashboard navigation order", () => {
               }
             : noNavigationAuthority.commercial,
           foundationEntryEligible: true,
+          emergencyTasksEligible: role === "SUPERVISOR" || managementIntelligenceEligible,
           locationMapsEligible: true,
           managementIntelligenceEligible,
         },
