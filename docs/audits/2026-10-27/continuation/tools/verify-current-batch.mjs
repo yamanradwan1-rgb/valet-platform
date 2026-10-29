@@ -45,6 +45,9 @@ const w8FallbackMap=new Map((w8Fallback?.transfers??[]).map(t=>[t.path,t]));
 const w3ReliefFile=prefix+'w3-relief-addendum.json';
 const w3Relief=existsSync(w3ReliefFile)?JSON.parse(readFileSync(w3ReliefFile,'utf8')):null;
 const w3ReliefMap=new Map((w3Relief?.transfers??[]).map(t=>[t.path,t]));
+const w4StartupFile=prefix+'w4-startup-fallback-addendum.json';
+const w4Startup=existsSync(w4StartupFile)?JSON.parse(readFileSync(w4StartupFile,'utf8')):null;
+const w4StartupMap=new Map((w4Startup?.transfers??[]).map(t=>[t.path,t]));
 if(fallback && (fallback.batch!==batch||fallback.source_commit!==fullSha||
   fallback.superseded_assigned_reviewer!=='W2'||fallback.transfers.length!==35||
   fallbackMap.size!==35)) throw new Error('Fallback addendum provenance mismatch');
@@ -65,10 +68,34 @@ if(w3Relief && (batch!=='C014'||w3Relief.batch!==batch||w3Relief.source_commit!=
   w3Relief.new_actual_reviewer!=='W5'||w3Relief.w3_completed_prior_to_reassignment!==30||
   w3Relief.w3_untouched_reassigned!==15||w3Relief.transfers.length!==15||
   w3ReliefMap.size!==15)) throw new Error('W3 relief addendum provenance mismatch');
-const effectiveReviewer=a=>w3ReliefMap.get(a.path)?.actual_reviewer??
+if(w4Startup && (batch!=='C015'||w4Startup.batch!==batch||
+  w4Startup.source_commit!==fullSha||w4Startup.source_tree!==tree||
+  w4Startup.failed_actual_reviewer!=='W4'||
+  w4Startup.w4_complete_reviews_before_transfer!==0||
+  w4Startup.transfers.length!==25||w4StartupMap.size!==25)) {
+  throw new Error('C015 W4 startup fallback provenance mismatch');
+}
+const effectiveReviewer=a=>w4StartupMap.get(a.path)?.actual_reviewer??
+  w3ReliefMap.get(a.path)?.actual_reviewer??
   w8FallbackMap.get(a.path)?.actual_reviewer??
   rescueMap.get(a.path)?.actual_reviewer??
   fallbackMap.get(a.path)?.actual_reviewer??a.assigned_reviewer;
+if(w4Startup) {
+  const counts=new Map();
+  for(const [path,t] of w4StartupMap) {
+    const a=byPath.get(path);
+    if(!a||a.original_owner!=='W4'||a.assigned_reviewer!=='W4'||
+      t.original_owner!=='W4'||t.prior_actual_reviewer!=='W4'||
+      t.source_commit!==fullSha||t.batch!==batch||
+      !['W1','W2','W5','W6','W7'].includes(t.actual_reviewer)) {
+      throw new Error('Invalid C015 W4 startup fallback '+path);
+    }
+    counts.set(t.actual_reviewer,(counts.get(t.actual_reviewer)??0)+1);
+  }
+  if(counts.size!==5||[...counts.values()].some(n=>n!==5)) {
+    throw new Error('C015 W4 fallback balance mismatch');
+  }
+}
 for(const [path,t] of w3ReliefMap) {
   const a=byPath.get(path),original=byTransfer.get(path);
   if(!a||!original||a.assigned_reviewer!=='W3'||t.original_assigned_reviewer!=='W3'||
@@ -188,7 +215,8 @@ for (const [file,expected] of expectedFiles) {
 }
 const missing=roster.assignments.map(a=>a.path).filter(p=>!seen.has(p));
 const effectiveTransfers=roster.assignments.filter(a=>a.original_owner!==effectiveReviewer(a));
-if(effectiveTransfers.length!==(initialTransferCount+(fallback?25:0)+(rescue?13:0))) {
+if(effectiveTransfers.length!==(initialTransferCount+(fallback?25:0)+(rescue?13:0)+
+  (w4Startup?25:0))) {
   throw new Error('Effective unique transfer count mismatch');
 }
 const report={batch,source_commit:fullSha,source_tree:tree,expected:175,valid:accepted.length,
@@ -197,6 +225,7 @@ const report={batch,source_commit:fullSha,source_tree:tree,expected:175,valid:ac
   rescue_transfer_paths:rescue?.transfers.length??0,
   w8_fallback_reassigned_paths:w8Fallback?.transfers.length??0,
   w3_relief_reassigned_paths:w3Relief?.transfers.length??0,
+  w4_startup_reassigned_paths:w4Startup?.transfers.length??0,
   effective_ownership_transfers:effectiveTransfers.length,
   current_base_files:previous.current_fully_reviewed,current_base_lines:previous.current_reviewed_lines,
   if_accepted_files:previous.current_fully_reviewed+accepted.length,
