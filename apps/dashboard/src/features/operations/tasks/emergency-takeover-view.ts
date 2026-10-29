@@ -42,7 +42,7 @@ export function emergencyTakeoverView(
       : t.unassigned,
     candidates: context.eligibleAssignees.map((candidate) => ({
       membershipId: candidate.membershipId,
-      label: staffManagementDisplayName(candidate.identity),
+      label: candidateLabel(candidate.identity),
     })),
     hasMoreCandidates: context.hasMoreEligibleAssignees,
     custody,
@@ -69,4 +69,9 @@ export function emergencyTakeoverView(
 
 function resourceName(resource: { readonly code: string; readonly label: string | null }) {
   return resource.label?.trim() || resource.code;
+}
+
+function candidateLabel(identity: { readonly email: string; readonly firstName: string | null; readonly lastName: string | null }) {
+  const name = staffManagementDisplayName(identity);
+  return name === identity.email ? name : `${name} · ${identity.email}`;
 }
