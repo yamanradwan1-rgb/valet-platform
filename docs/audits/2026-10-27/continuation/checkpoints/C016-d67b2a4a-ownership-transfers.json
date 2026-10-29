@@ -1,0 +1,285 @@
+{
+  "batch": "C016",
+  "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+  "unavailable_roles": [
+    "W4"
+  ],
+  "count": 25,
+  "transfers": [
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/maps/use-map-setup-mutation.test.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W1",
+      "actual_reviewer": "W1",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/maps/use-map-setup-mutation.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W2",
+      "actual_reviewer": "W2",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/maps/use-map-setup-state.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W5",
+      "actual_reviewer": "W5",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/operational-staff.tsx",
+      "original_owner": "W4",
+      "assigned_reviewer": "W6",
+      "actual_reviewer": "W6",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W6/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/operations-api.test.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W7",
+      "actual_reviewer": "W7",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W7/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/operations-copy.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W1",
+      "actual_reviewer": "W1",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/operations-labels.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W2",
+      "actual_reviewer": "W2",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/operations-location.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W5",
+      "actual_reviewer": "W5",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/operations-navigation.test.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W6",
+      "actual_reviewer": "W6",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W6/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/operations-presentation.test.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W7",
+      "actual_reviewer": "W7",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W7/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/operations-presentation.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W1",
+      "actual_reviewer": "W1",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/operations-scope.test.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W2",
+      "actual_reviewer": "W2",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/operations-scope.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W5",
+      "actual_reviewer": "W5",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/operations-ui.tsx",
+      "original_owner": "W4",
+      "assigned_reviewer": "W6",
+      "actual_reviewer": "W6",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W6/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/reference-cursor-controls.tsx",
+      "original_owner": "W4",
+      "assigned_reviewer": "W7",
+      "actual_reviewer": "W7",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W7/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/session-photos/photo-client.test.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W1",
+      "actual_reviewer": "W1",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/session-photos/photo-client.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W2",
+      "actual_reviewer": "W2",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/session-photos/photo-download-scheduler.prime.test.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W5",
+      "actual_reviewer": "W5",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/session-photos/photo-download-scheduler.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W6",
+      "actual_reviewer": "W6",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W6/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/session-photos/protected-photo-get.test.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W7",
+      "actual_reviewer": "W7",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W7/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/session-photos/session-photos.tsx",
+      "original_owner": "W4",
+      "assigned_reviewer": "W1",
+      "actual_reviewer": "W1",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/tasks/task-attribution.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W2",
+      "actual_reviewer": "W2",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/tasks/task-drawer.tsx",
+      "original_owner": "W4",
+      "assigned_reviewer": "W5",
+      "actual_reviewer": "W5",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/features/operations/tasks/task-table-body.tsx",
+      "original_owner": "W4",
+      "assigned_reviewer": "W6",
+      "actual_reviewer": "W6",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W6/C016-transferred-W4-review-records.json"
+    },
+    {
+      "batch": "C016",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/dashboard/src/lib/auth/staff-auth-client.test.ts",
+      "original_owner": "W4",
+      "assigned_reviewer": "W7",
+      "actual_reviewer": "W7",
+      "reason": "W4 C015 reviewer failed at conversation startup before any source review; C016 W4 logical files pre-assigned to responsive specialist reviewers",
+      "status": "assigned_pending_review",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W7/C016-transferred-W4-review-records.json"
+    }
+  ]
+}
