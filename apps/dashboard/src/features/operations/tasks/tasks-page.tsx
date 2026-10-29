@@ -200,7 +200,7 @@ function TasksContent() {
           role={scope.authority}
           help={<ScopedContextHelp helpKey="tasks.drawer" />}
           item={selectedForDrawer}
-          key={selectedForDrawer.taskId}
+          key={`task-drawer:${selectedForDrawer.taskId}`}
           locale={locale}
           location={location}
           onClose={() => {
@@ -214,7 +214,7 @@ function TasksContent() {
       {takeoverSelected ? (
         <EmergencyTakeoverDialogController
           api={dashboard.api}
-          key={takeoverSelected.taskId}
+          key={`takeover-dialog:${takeoverSelected.taskId}`}
           locale={locale}
           onCanonicalRefresh={() => {
             setReconcileAfterTakeover(true);
