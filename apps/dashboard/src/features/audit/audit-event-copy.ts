@@ -87,6 +87,7 @@ const events = {
   TASK_ACCEPTED: ["Task accepted", "قبول المهمة"],
   TASK_DECLINED: ["Task declined", "رفض المهمة"],
   TASK_REASSIGNED: ["Task reassigned", "إعادة إسناد المهمة"],
+  TASK_EMERGENCY_TAKEOVER: ["Emergency task takeover", "نقل طارئ للمهمة"],
   SHIFT_STARTED: ["Shift started", "بدء الوردية"],
   SHIFT_ENDED: ["Shift ended", "انتهاء الوردية"],
   SHIFT_FORCE_ENDED: ["Shift force ended", "إنهاء الوردية إدارياً"],
