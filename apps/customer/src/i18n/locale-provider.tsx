@@ -83,19 +83,15 @@ export function LocaleProvider({
   const direction = useMemo(() => getDirectionForLocale(locale), [locale]);
   const isRtl = direction === 'rtl';
 
-  // Synchronize document attributes and unmask pre-hydration visibility guard only when locale matches
+  // Keep the Arabic bootstrap guard until the client snapshot is current.
   useEffect(() => {
     if (typeof document !== 'undefined') {
       document.documentElement.lang = locale;
       document.documentElement.dir = direction;
 
       const hasPersistedArGuard = document.documentElement.classList.contains('vaylet-persisted-ar');
-      if (hasPersistedArGuard) {
-        if (locale === 'ar') {
-          document.documentElement.classList.remove('vaylet-persisted-ar');
-          document.documentElement.classList.add('vaylet-hydrated');
-        }
-      } else {
+      if (!hasPersistedArGuard || getPersistedLocale() === locale) {
+        document.documentElement.classList.remove('vaylet-persisted-ar');
         document.documentElement.classList.add('vaylet-hydrated');
       }
     }

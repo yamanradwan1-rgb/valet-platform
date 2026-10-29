@@ -136,6 +136,19 @@ describe('mounted Guest preference providers with restricted localStorage', () =
     expectPreferences('en', 'light');
   });
 
+  it('releases a persisted-Arabic guard when the current locale became English before hydration', async () => {
+    values.set(LOCALE_STORAGE_KEY, 'ar');
+    html.classList.add('vaylet-persisted-ar');
+
+    // An external locale change wins before the provider hydrates.
+    values.set(LOCALE_STORAGE_KEY, 'en');
+    await mount();
+
+    expectPreferences('en', 'light');
+    expect(html.classList.contains('vaylet-persisted-ar')).toBe(false);
+    expect(html.classList.contains('vaylet-hydrated')).toBe(true);
+  });
+
   it('retains the last successful stored preference when reads fail after hydration', async () => {
     values.set(LOCALE_STORAGE_KEY, 'ar');
     values.set(THEME_STORAGE_KEY, 'dark');
