@@ -9,6 +9,10 @@ export interface TaskTrackingScope {
   readonly taskId: string;
 }
 
+export interface TaskTrackingStartScope extends TaskTrackingScope {
+  readonly assigneeMembershipId: string;
+}
+
 type IntegrityConflict = () => never;
 
 async function effectiveTrackingEnabled(
@@ -32,7 +36,7 @@ async function effectiveTrackingEnabled(
 
 export async function startTaskTrackingIfEnabled(
   transaction: PostgresTransaction,
-  scope: TaskTrackingScope,
+  scope: TaskTrackingStartScope,
   operationTime: Date,
   integrityConflict: IntegrityConflict,
 ): Promise<void> {
@@ -56,14 +60,15 @@ export async function startTaskTrackingIfEnabled(
     await transaction.query(
       `INSERT INTO task_tracking_sessions
          (id, organization_id, location_id, valet_session_id, task_id,
-          started_at)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
+          assignee_membership_id, started_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       [
         randomUUID(),
         scope.organizationId,
         scope.locationId,
         scope.sessionId,
         scope.taskId,
+        scope.assigneeMembershipId,
         operationTime,
       ],
     );

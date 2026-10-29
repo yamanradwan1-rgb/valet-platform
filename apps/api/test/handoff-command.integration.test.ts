@@ -239,6 +239,7 @@ describe("VAL-006F secure handoff commands", () => {
           transaction,
           await lockHandoffSession(transaction, fixture.sessionId),
           await loadDispatchOperationTime(transaction),
+          fixture.membershipId,
         ),
     );
     expect(eligible?.method).toBe("PICKUP_CODE");
@@ -254,6 +255,7 @@ describe("VAL-006F secure handoff commands", () => {
           transaction,
           await lockHandoffSession(transaction, fixture.sessionId),
           await loadDispatchOperationTime(transaction),
+          fixture.membershipId,
         ),
     );
     expect(rejected).toBeUndefined();

@@ -51,7 +51,7 @@ async function loadTrackers(
             session.id::text AS "valetSessionId",
             task.id::text AS "taskId", task.task_type::text AS "taskType",
             session.state::text AS "sessionState",
-            task.current_assignee_membership_id::text AS "assigneeMembershipId",
+            tracker.assignee_membership_id::text AS "assigneeMembershipId",
             vehicle.id::text AS "vehicleId", vehicle.plate_country AS "plateCountry",
             vehicle.plate_number_raw AS "plateNumber",
             vehicle.temporary_descriptor AS "temporaryDescriptor",
@@ -87,7 +87,8 @@ async function loadTrackers(
      WHERE tracker.organization_id = $1 AND tracker.location_id = $2
        AND tracker.ended_at IS NULL
        AND task.status = 'IN_PROGRESS'
-       AND task.current_assignee_membership_id IS NOT NULL
+       AND tracker.assignee_membership_id IS NOT NULL
+       AND tracker.assignee_membership_id = task.current_assignee_membership_id
        AND ((task.task_type = 'PARKING' AND session.state = 'PARKING')
          OR (task.task_type = 'RETRIEVAL' AND session.state = 'RETRIEVING'))
        AND ($3::timestamptz IS NULL

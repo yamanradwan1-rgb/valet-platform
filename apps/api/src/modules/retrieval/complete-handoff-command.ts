@@ -26,6 +26,7 @@ import {
 } from "./complete-handoff-mutations";
 import type { CompleteHandoffResult } from "./complete-handoff-types";
 import { lockReleaseEligibleHandoffVerification } from "./handoff-release-guard";
+import { assertPostTakeoverRetrievalCustodyEvidence } from "./handoff-takeover-proof-guard";
 
 export interface CompleteHandoffCommandRequest {
   readonly authenticatedUserId: string;
@@ -81,11 +82,26 @@ export function createCompleteHandoffExecutor(
         transaction,
         session,
         operationTime,
+        actorMembershipId,
       );
       if (verification === undefined) {
         throw new CompleteHandoffError("HANDOFF_VERIFICATION_FAILED");
       }
       const keySlotId = await lockReleaseCustody(transaction, session);
+      await assertPostTakeoverRetrievalCustodyEvidence(
+        transaction,
+        {
+          organizationId: session.organization_id,
+          locationId: session.location_id,
+          sessionId: session.id,
+          taskId: task.id,
+          keySlotId,
+          currentAssigneeMembershipId: actorMembershipId,
+        },
+        () => {
+          throw new CompleteHandoffError("KEY_CUSTODY_NOT_READY");
+        },
+      );
 
       await consumeReleaseVerification(
         transaction,

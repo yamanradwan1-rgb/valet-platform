@@ -15,6 +15,7 @@ export async function lockReleaseEligibleHandoffVerification(
   transaction: PostgresTransaction,
   session: LockedHandoffSession,
   operationTime: Date,
+  currentTaskOwnerMembershipId: string,
 ): Promise<ReleaseEligibleVerification | undefined> {
   if (
     session.state !== "HANDOFF_PENDING" ||
@@ -28,6 +29,13 @@ export async function lockReleaseEligibleHandoffVerification(
   }
   if (verification.method === "SUPERVISOR_OVERRIDE") {
     return { id: verification.id, method: verification.method };
+  }
+  // A fresh standard proof is always bound to the current assigned employee.
+  // Historical proof remains auditable but cannot authorize B's release.
+  if (
+    verification.verified_by_membership_id !== currentTaskOwnerMembershipId
+  ) {
+    return undefined;
   }
   const policy = await loadEffectiveHandoffPolicy(
     transaction,

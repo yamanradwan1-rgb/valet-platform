@@ -137,10 +137,15 @@ export async function authorizeHandoffAbort(
 export async function lockUnconsumedVerification(
   transaction: PostgresTransaction,
   session: HandoffScope,
-): Promise<LockedHandoffVerification | undefined> {
-  const result = await transaction.query<LockedHandoffVerification>(
+): Promise<(LockedHandoffVerification & {
+  readonly verified_by_membership_id: string | null;
+}) | undefined> {
+  const result = await transaction.query<LockedHandoffVerification & {
+    readonly verified_by_membership_id: string | null;
+  }>(
     `SELECT id::text, method::text, secret_hash, expires_at, attempt_count,
-            max_attempts, verified_at, consumed_at, created_at
+            max_attempts, verified_at, verified_by_membership_id::text,
+            consumed_at, created_at
      FROM handoff_verifications
      WHERE organization_id = $1 AND valet_session_id = $2
        AND consumed_at IS NULL

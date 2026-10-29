@@ -98,6 +98,7 @@ export function createStartRetrievalCommandExecutor(
       await startTaskTrackingIfEnabled(
         transaction,
         {
+          assigneeMembershipId: actorMembershipId,
           locationId: session.location_id,
           organizationId: session.organization_id,
           sessionId: session.id,

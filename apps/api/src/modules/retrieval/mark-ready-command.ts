@@ -21,6 +21,7 @@ import {
   resolveMarkReadyActor,
 } from "./mark-ready-locks";
 import { markReadySession } from "./mark-ready-mutations";
+import { assertPostTakeoverRetrievalCustodyEvidence } from "./handoff-takeover-proof-guard";
 import type { MarkReadyResult } from "./mark-ready-types";
 
 export interface MarkReadyCommandRequest {
@@ -64,6 +65,20 @@ export function createMarkReadyCommandExecutor(
       );
       assertAcceptedRetrievalRequest(retrievalRequest);
       const operationTime = await loadDispatchOperationTime(transaction);
+      await assertPostTakeoverRetrievalCustodyEvidence(
+        transaction,
+        {
+          organizationId: session.organization_id,
+          locationId: session.location_id,
+          sessionId: session.id,
+          taskId: task.id,
+          keySlotId: session.key_slot_id,
+          currentAssigneeMembershipId: actorMembershipId,
+        },
+        () => {
+          throw new MarkReadyError("KEY_CUSTODY_NOT_READY");
+        },
+      );
       const sessionVersion = await markReadySession(
         transaction,
         session,
