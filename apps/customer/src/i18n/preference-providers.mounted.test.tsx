@@ -4,9 +4,9 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { findElement, installTestDom, invokeReactClick, type TestElement } from '../app/guest-refresh-mounted.test-host';
 import { LocaleProvider, useTranslation } from './locale-provider';
-import { LOCALE_STORAGE_KEY } from './locale';
+import { LOCALE_CHANGE_EVENT, LOCALE_STORAGE_KEY } from './locale';
 import { ThemeProvider, useTheme } from '../theme/theme-provider';
-import { THEME_COLORS, THEME_STORAGE_KEY } from '../theme/theme';
+import { THEME_CHANGE_EVENT, THEME_COLORS, THEME_STORAGE_KEY } from '../theme/theme';
 
 function PreferenceControls() {
   const { locale, toggleLocale, t } = useTranslation();
@@ -126,6 +126,40 @@ describe('mounted Guest preference providers with restricted localStorage', () =
     await click('ar');
     await click('dark');
     expectPreferences('en', 'light');
+  });
+
+  it('retains the last successful stored preference when reads fail after hydration', async () => {
+    values.set(LOCALE_STORAGE_KEY, 'ar');
+    values.set(THEME_STORAGE_KEY, 'dark');
+    html.classList.add('vaylet-persisted-ar');
+    html.setAttribute('data-theme', 'dark');
+    let denyReads = false;
+    browserWindow.localStorage = {
+      getItem: (key: string) => {
+        if (denyReads) throw new Error('SecurityError: reads became blocked');
+        return values.get(key) ?? null;
+      },
+      setItem: (key: string, value: string) => { values.set(key, value); },
+    };
+
+    await mount();
+    expectPreferences('ar', 'dark');
+    expect(html.classList.contains('vaylet-persisted-ar')).toBe(false);
+
+    denyReads = true;
+    const dispatch = browserWindow.dispatchEvent as (event: Event) => boolean;
+    await act(async () => {
+      dispatch(new Event(LOCALE_CHANGE_EVENT));
+      dispatch(new Event(THEME_CHANGE_EVENT));
+    });
+    expectPreferences('ar', 'dark');
+
+    await click('ar');
+    await click('dark');
+    expectPreferences('en', 'light');
+    await click('en');
+    await click('light');
+    expectPreferences('ar', 'dark');
   });
 
   it('keeps active preference when reads work but writes throw', async () => {

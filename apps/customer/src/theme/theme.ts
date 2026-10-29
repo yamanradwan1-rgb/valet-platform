@@ -39,9 +39,8 @@ export function getPersistedTheme(): Theme {
 
   try {
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    if (isSupportedTheme(stored)) {
-      return stored;
-    }
+    memoryTheme = isSupportedTheme(stored) ? stored : DEFAULT_THEME;
+    return memoryTheme;
   } catch {
     if (memoryTheme) return memoryTheme;
     // Reuse the successful pre-hydration bootstrap value if reads fail later.
@@ -51,8 +50,6 @@ export function getPersistedTheme(): Theme {
     }
     return DEFAULT_THEME;
   }
-
-  return DEFAULT_THEME;
 }
 
 export function setPersistedTheme(theme: Theme): void {

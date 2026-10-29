@@ -41,9 +41,8 @@ export function getPersistedLocale(): Locale {
 
   try {
     const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
-    if (isSupportedLocale(stored)) {
-      return stored;
-    }
+    memoryLocale = isSupportedLocale(stored) ? stored : DEFAULT_LOCALE;
+    return memoryLocale;
   } catch {
     if (memoryLocale) return memoryLocale;
     // The bootstrap script may have read Arabic before storage became inaccessible.
@@ -53,8 +52,6 @@ export function getPersistedLocale(): Locale {
     }
     return DEFAULT_LOCALE;
   }
-
-  return DEFAULT_LOCALE;
 }
 
 export function setPersistedLocale(locale: Locale): void {
