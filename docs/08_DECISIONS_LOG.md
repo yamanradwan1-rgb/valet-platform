@@ -4,8 +4,9 @@ Important decisions must not live only in chat.
 
 ## DEC-107 — Emergency Task Takeover
 
-Status: Proposed engineering reconciliation; Issue #352 Owner policies and
-Phase B recovery directions explicitly approved on 2026-10-29
+Status: Proposed engineering reconciliation; Issue #352 Owner policies,
+Phase B recovery directions and narrow Supervisor Tasks navigation exception
+explicitly approved on 2026-10-29
 Issue: #352
 
 The exceptional command changes only canonical IN_PROGRESS Parking/Retrieval
@@ -19,9 +20,12 @@ Tracking history retains A attribution with a distinct B segment. A forward
 schema change adds immutable tracker provenance and a successful-operation
 receipt; all source changes require real PG, mounted UI and integrated review.
 
-The Supervisor Task Details discoverability route remains a pending strict
-UI Freeze compatibility gate; no permission to change other visible Dashboard
-elements has been assumed. Full proposed contract:
+The Owner approved one narrow UI Freeze exception: show the existing Tasks
+navigation entry to an eligible Supervisor with unchanged appearance and order.
+The Supervisor route and Tasks list are limited to the active authorized Location
+and its IN_PROGRESS Parking/Retrieval Tasks, without broader Dashboard management
+reads or commercial entitlements. Other existing Dashboard elements remain frozen.
+Full proposed contract:
 [DEC-107](decisions/DEC-107_EMERGENCY_TASK_TAKEOVER.md).
 
 ## DEC-105 — Automatic WhatsApp Guest transport envelope
