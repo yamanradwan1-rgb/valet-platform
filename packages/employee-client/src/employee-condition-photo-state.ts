@@ -2,6 +2,8 @@ import type {
   ConditionPhotoStateDiscovery,
   ConditionPhotoUploadStatus,
 } from "@valet/contracts";
+import { EmployeeConditionPhotoGallery, type ConditionPhotoSlot } from
+  "./employee-condition-photo-gallery";
 
 export interface ConditionPhotoScope {
   readonly authGeneration: number;
@@ -28,12 +30,17 @@ export interface ConditionPhotoSnapshot {
   readonly status: ConditionPhotoUploadStatus | null;
   readonly error: "CAMERA" | "FILE" | "NETWORK" | "RESPONSE" | null;
   readonly hasCapture: boolean;
+  readonly slots: readonly ConditionPhotoSlot[];
+  readonly capturedCount: number;
+  readonly uploadedCount: number;
+  readonly verifiedTotal: number;
 }
 
 export function initialConditionPhotoSnapshot(): ConditionPhotoSnapshot {
   return {
     scope: null, ownerRevision: 0, phase: "loading", required: null, qualifying: false,
     captureRevision: 0, status: null, error: null, hasCapture: false,
+    ...new EmployeeConditionPhotoGallery().snapshot,
   };
 }
 

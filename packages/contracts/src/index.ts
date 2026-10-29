@@ -8,6 +8,7 @@ export * from "./company-analytics.js";
 export * from "./customer-feedback-analytics.js";
 export * from "./company-report.js";
 export * from "./condition-photo-upload.js";
+export * from "./condition-photo-evidence-summary.js";
 export * from "./complete-handoff.js";
 export * from "./confirm-parked.js";
 export * from "./dispatch.js";

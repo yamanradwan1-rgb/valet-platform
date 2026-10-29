@@ -60,6 +60,7 @@ export * from "./employee-connectivity-owner";
 export * from "./employee-revalidation-coordinator";
 export * from "./employee-check-in-session";
 export * from "./employee-condition-photo-session";
+export * from "./employee-condition-photo-gallery";
 export * from "./employee-condition-photo-state";
 export * from "./employee-condition-photo-transport";
 export * from "./employee-check-in-continuation";

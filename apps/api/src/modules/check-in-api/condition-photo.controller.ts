@@ -187,6 +187,23 @@ export class ConditionPhotoController {
       },
     );
   }
+
+  @Get("sessions/:sessionId/condition-photo-evidence-summary")
+  async evidenceSummary(
+    @Req() request: ConditionPhotoApiRequest,
+    @Param("sessionId") sessionIdRaw: string,
+  ) {
+    return await this.runner.run(
+      "CHECK_IN_CONDITION_PHOTO_EVIDENCE_SUMMARY",
+      request,
+      async () => {
+        noBody(request);
+        return await this.backend.evidenceSummary(
+          credential(request), validSession(sessionIdRaw),
+        );
+      },
+    );
+  }
 }
 
 class ConditionPhotoNotFound extends Error {

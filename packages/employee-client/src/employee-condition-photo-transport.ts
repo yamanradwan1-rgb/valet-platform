@@ -1,12 +1,15 @@
 import {
+  conditionPhotoEvidenceSummarySchema,
   conditionPhotoStateDiscoverySchema,
   conditionPhotoUploadStatusSchema,
+  type ConditionPhotoEvidenceSummary,
   type ConditionPhotoStateDiscovery,
   type ConditionPhotoUploadStatus,
 } from "@valet/contracts";
 import type { EmployeeClient } from "./employee-client";
 
 export interface ConditionPhotoTransport {
+  summary?(sessionId: string, signal: AbortSignal): Promise<ConditionPhotoEvidenceSummary>;
   discover(sessionId: string, signal: AbortSignal): Promise<ConditionPhotoStateDiscovery>;
   status(sessionId: string, operationId: string, signal: AbortSignal): Promise<ConditionPhotoUploadStatus>;
   reconcile(sessionId: string, operationId: string, signal: AbortSignal): Promise<ConditionPhotoUploadStatus>;
@@ -31,6 +34,15 @@ export function createEmployeeConditionPhotoTransport(
     return result;
   };
   return {
+    async summary(sessionId, signal) {
+      const value = await client(signal).request<unknown>({
+        method: "GET", path: `${base(sessionId)}/condition-photo-evidence-summary`,
+      });
+      const result = conditionPhotoEvidenceSummarySchema.parse(value);
+      if (result.valetSessionId !== sessionId)
+        throw new Error("Condition photo evidence summary scope mismatch.");
+      return result;
+    },
     async discover(sessionId, signal) {
       const value = await client(signal).request<unknown>({
         method: "GET", path: `${base(sessionId)}/condition-photo-state`,
