@@ -22,6 +22,27 @@ interface EligibleRow {
   readonly token_hash: string;
 }
 
+interface LeaseBudgetRow {
+  readonly remaining_lease_milliseconds: number;
+}
+
+export async function currentStaffPushLeaseBudgetMilliseconds(
+  pool: PostgresPool,
+  claim: ClaimedStaffPushDelivery,
+): Promise<number | undefined> {
+  const result = await pool.query<LeaseBudgetRow>(
+    `WITH clock AS MATERIALIZED (SELECT clock_timestamp() AS now)
+     SELECT floor(EXTRACT(EPOCH FROM (delivery.lease_expires_at - clock.now))
+                  * 1000)::integer AS remaining_lease_milliseconds
+     FROM staff_push_deliveries AS delivery
+     CROSS JOIN clock
+     WHERE delivery.id = $1 AND delivery.state = 'LEASED'
+       AND delivery.lease_token = $2`,
+    [claim.deliveryId, claim.leaseToken],
+  );
+  return result.rows[0]?.remaining_lease_milliseconds;
+}
+
 export async function claimedDeliveryIsExpired(
   pool: PostgresPool,
   claim: ClaimedStaffPushDelivery,

@@ -90,6 +90,7 @@ export class FcmHttpV1Adapter implements StaffPushProvider {
       () => abort.abort(),
       this.config.timeoutMilliseconds,
     );
+    let transportPreflightFailed = false;
     try {
       let accessToken: string;
       try {
@@ -110,6 +111,19 @@ export class FcmHttpV1Adapter implements StaffPushProvider {
         return providerResult({
           resultClass: abort.signal.aborted ? "UNKNOWN" : "CONFIGURATION",
         });
+      }
+      if (request.mayStartTransport !== undefined) {
+        let mayStart: boolean;
+        try {
+          mayStart = await request.mayStartTransport();
+        } catch (error) {
+          transportPreflightFailed = true;
+          throw error;
+        }
+        if (!mayStart) return { kind: "EXPIRED_BEFORE_TRANSPORT" };
+      }
+      if (abort.signal.aborted) {
+        return providerResult({ resultClass: "UNKNOWN" });
       }
       const message = request.messageForTransport();
       if (message === undefined) return { kind: "EXPIRED_BEFORE_TRANSPORT" };
@@ -137,7 +151,10 @@ export class FcmHttpV1Adapter implements StaffPushProvider {
           retryAfter: response.headers.get("Retry-After"),
         }),
       );
-    } catch {
+    } catch (error) {
+      // A lost DB preflight must fail closed without consuming retry/fence
+      // state as though a provider request had actually been attempted.
+      if (transportPreflightFailed) throw error;
       return providerResult({ resultClass: "UNKNOWN" });
     } finally {
       clearTimeout(timeout);

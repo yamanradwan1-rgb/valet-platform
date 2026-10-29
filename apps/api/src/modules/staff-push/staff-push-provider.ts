@@ -39,6 +39,7 @@ export interface StaffPushProviderMessage {
 
 export interface StaffPushProvider {
   send(request: {
+    mayStartTransport?(): Promise<boolean>;
     messageForTransport(): StaffPushProviderMessage | undefined;
   }): Promise<StaffPushProviderSendResult>;
 }

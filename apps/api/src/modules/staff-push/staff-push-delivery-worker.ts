@@ -2,6 +2,7 @@ import type { PostgresPool } from "../../common/database/postgres";
 import { claimStaffPushDelivery } from "./staff-push-claim-repository";
 import {
   claimedDeliveryIsExpired,
+  currentStaffPushLeaseBudgetMilliseconds,
   resolveEligibleStaffPushDelivery,
 } from "./staff-push-eligibility-repository";
 import {
@@ -76,8 +77,45 @@ export class StaffPushDeliveryWorker {
       return true;
     }
     await this.beforeProviderCall();
+    // The eligibility snapshot predates the hook: a replacement worker may
+    // already own this row. Recheck the exact fence against the DB clock.
+    let leaseCheckedAt = 0;
+    let leaseBudget: number | undefined;
+    let leaseBudgetLost = false;
+    const leasePermitsTransport = (): boolean => {
+      const remainingLease =
+        leaseBudget === undefined
+          ? undefined
+          : remainingStaffPushLifetime(
+              leaseBudget,
+              leaseCheckedAt,
+              this.monotonicNow(),
+            );
+      const permits =
+        remainingLease !== undefined &&
+        remainingLease > this.policy.providerCallTimeoutSeconds * 1_000;
+      if (!permits) leaseBudgetLost = true;
+      return permits;
+    };
+    const refreshLeaseBudget = async (): Promise<boolean> => {
+      leaseCheckedAt = this.monotonicNow();
+      leaseBudget = await currentStaffPushLeaseBudgetMilliseconds(
+        this.pool,
+        claim,
+      );
+      return leasePermitsTransport();
+    };
+    // Leave an insufficient/expired lease for bounded reclaim, without
+    // falsely terminalizing an otherwise-live retrieval intent.
+    if (!(await refreshLeaseBudget())) return true;
     const send = await this.provider.send({
+      // The real FCM adapter awaits OAuth. Validate DB ownership again right
+      // before HTTP POST; the local check below covers elapsed time afterward.
+      mayStartTransport: refreshLeaseBudget,
       messageForTransport: () => {
+        // FCM obtains OAuth credentials asynchronously before its actual POST.
+        // Guard that second boundary against elapsed lease time as well.
+        if (!leasePermitsTransport()) return undefined;
         const remainingLifetimeMilliseconds = remainingStaffPushLifetime(
           eligible.remainingLifetimeMilliseconds,
           eligibilityStartedAt,
@@ -93,6 +131,7 @@ export class StaffPushDeliveryWorker {
       },
     });
     if (send.kind === "EXPIRED_BEFORE_TRANSPORT") {
+      if (leaseBudgetLost) return true;
       if (await finalizeStaffPushDelivery(this.pool, claim, "EXPIRED")) {
         await observeStaffPushSafely(this.observer, { event: "EXPIRED" });
       }
