@@ -67,20 +67,39 @@ export function Btn({
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
+      aria-busy={loading}
       style={{ ...baseStyle, ...variantStyles[variant] }}
     >
       {loading ? (
-        <span
-          className="spin"
-          style={{
-            width: 18,
-            height: 18,
-            border: "2px solid currentColor",
-            borderTopColor: "transparent",
-            borderRadius: "50%",
-            display: "block",
-          }}
-        />
+        <>
+          <span
+            className="spin"
+            aria-hidden="true"
+            style={{
+              width: 18,
+              height: 18,
+              border: "2px solid currentColor",
+              borderTopColor: "transparent",
+              borderRadius: "50%",
+              display: "block",
+            }}
+          />
+          <span
+            style={{
+              position: "absolute",
+              width: 1,
+              height: 1,
+              padding: 0,
+              margin: -1,
+              overflow: "hidden",
+              clip: "rect(0, 0, 0, 0)",
+              whiteSpace: "nowrap",
+              border: 0,
+            }}
+          >
+            {children}
+          </span>
+        </>
       ) : (
         children
       )}

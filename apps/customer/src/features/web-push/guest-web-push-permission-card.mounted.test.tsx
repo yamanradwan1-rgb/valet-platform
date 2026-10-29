@@ -105,7 +105,16 @@ describe("Guest Web Push permission card mounted lifecycle", () => {
       expect.any(AbortSignal),
     );
     expect(container.textContent).toContain("Not now");
-    expect(container.textContent).not.toContain("Enable notifications");
+    const loadingButton = findElement(container, "button", "Enable notifications");
+    expect(loadingButton.getAttribute("disabled")).not.toBeNull();
+    expect(loadingButton.getAttribute("aria-busy")).toBe("true");
+    expect(loadingButton.childNodes).toHaveLength(2);
+    const spinner = loadingButton.childNodes[0] as TestElement;
+    const hiddenLabel = loadingButton.childNodes[1] as TestElement;
+    expect(spinner.getAttribute("aria-hidden")).toBe("true");
+    expect(hiddenLabel.style.position).toBe("absolute");
+    expect(hiddenLabel.style.clip).toBe("rect(0, 0, 0, 0)");
+    expect(hiddenLabel.textContent).toBe("Enable notifications");
     await act(async () => pending.resolve("AVAILABLE"));
     expect(container.textContent).toContain("Enable notifications");
     client.enable.mockResolvedValueOnce("ENABLED");

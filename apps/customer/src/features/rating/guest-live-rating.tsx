@@ -83,7 +83,7 @@ export function GuestLiveRating({ client, visitId, canRate, onBack }: {
         </p>
       )}
       <Btn onClick={() => void submit()} disabled={locked || stars === null} loading={visible === 'saving'}>
-        {visible === 'saving' ? t('rating.submitting') : t('rating.submit')}
+        {t('rating.submit')}
       </Btn>
       <Btn variant="secondary" onClick={onBack}>{t('common.back')}</Btn>
     </div>
