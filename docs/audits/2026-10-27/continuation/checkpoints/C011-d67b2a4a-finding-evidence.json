@@ -1,0 +1,88 @@
+{
+  "batch": "C011",
+  "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+  "classification": "STATIC_AUDIT_ONLY",
+  "runtime_tests_executed": 0,
+  "candidates_without_duplicate_credit": [
+    {
+      "id": "C011-W2-CANDIDATE-001",
+      "severity": "P2",
+      "confidence": "MEDIUM",
+      "status": "STATIC_CANDIDATE_UNVALIDATED",
+      "title": "Incident recovery UI state may be published after a newer identity or lifecycle fence"
+    }
+  ],
+  "deduplication": [
+    {
+      "primary_id": "C011-W2-CANDIDATE-001",
+      "duplicate_aliases": [
+        "C011-W5-NATIVE-001"
+      ],
+      "reason": "Both workers independently traced the same NativeIncidentSession restore/retire post-await generation fence gap; W5 reviewed the recovery resolution dependency, W2 the session file. One P2 candidate, not two.",
+      "prior_C009_native_candidate": "C009-NATIVE-001 concerns false verification UI label in release view and is a distinct source path."
+    }
+  ],
+  "raw_independent_worker_evidence": [
+    {
+      "worker": "W2",
+      "scratch_name": "C011-W2-candidate-findings.json",
+      "findings": [
+        {
+          "id": "C011-W2-CANDIDATE-001",
+          "batch": "C011",
+          "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+          "status": "STATIC_CANDIDATE_UNVALIDATED",
+          "severity": "P2",
+          "confidence": "MEDIUM",
+          "primary_location": "apps/valet-native/src/incident/native-incident-session.ts:69-77",
+          "related_locations": [
+            "apps/valet-native/src/incident/native-incident-session.ts:169-181",
+            "apps/valet-native/src/incident/native-incident-session.ts:189-201",
+            "apps/valet-native/src/incident/native-incident-session.ts:105-109",
+            "apps/valet-native/src/incident/native-incident-session.ts:225-235",
+            "apps/valet-native/src/incident/native-incident-recovery-resolution.ts:114-129"
+          ],
+          "title": "Incident recovery UI state may be published after a newer identity or lifecycle fence",
+          "preconditions": "An in-flight observeRecoveryContext resolves the actor-bound restore and passes generation check at line 70; applyNativeIncidentRecoveryRestore then waits for recovery.clearResolved during a RETIRED or UNKNOWN resolution. While that awaited operation is unresolved, identity purge/fence or a newer context increments generation and publishes a new state. Once the old clearResolved finishes, observeRecoveryContext at lines 76-77 sets marker/publishes an old result without checking generation again. Likewise retire() verifies generation before its second awaited resolution step but not after; acknowledge() awaits clearResolved then publishes inactive without any generation guard, potentially overwriting a newer context.",
+          "impact": "Stale incident recovery status/marker can reappear or a newer recovery view can be hidden after identity or location change. The demonstrated RETIRED/UNKNOWN path carries status without incident description; no server-side tenant access or protected mutation bypass has been established. Possible more sensitive FOUND snapshot race is less certain because that branch has no storage await.",
+          "existing_mitigations": "Initial generation fence after restore (line 70), canonical server actor/session/location bound recovery result, serialized local storage operations, identity purge (auth/native-auth-runtime.ts:238-254), strict no-replay policy and independent server authorization; these reduce likelihood/impact but do not fence the final in-memory publication.",
+          "counterevidence": "Existing native-incident-marker-submit-fence.test.ts covers a pending marker write versus purge; native-contextual-lifecycle-fences.test.ts tests slow legacy GET/POST; native-incident-recovery-boundaries.test.ts verifies process-death recovery. None observed in static read schedules identity invalidation during awaited applyNativeIncidentRecoveryResolution clearResolved and checks post-generation publication. Race not run and no exploit confirmed.",
+          "suggested_validation": "Add deterministic deferred clearResolved test: start restore with RETIRED outcome, hold clearResolved, invoke fenceRecovery/purgeRecovery or newer context, then release and assert state stays fenced/new; similarly hold retire/acknowledge clearResolved. Require a generation recheck after all awaited steps before writing marker/publishing.",
+          "tests": "NOT_EXECUTED — STATIC_AUDIT_ONLY"
+        }
+      ]
+    },
+    {
+      "worker": "W5",
+      "scratch_name": "C011-W5-candidate-findings.json",
+      "findings": [
+        {
+          "id": "C011-W5-NATIVE-001",
+          "status": "CANDIDATE_STATIC_NEEDS_INTERLEAVING_VALIDATION",
+          "severity": "P2",
+          "confidence": "MEDIUM_STATIC",
+          "title": "Native Incident recovery may republish a pre-purge result after identity generation changes",
+          "primary": "apps/valet-native/src/incident/native-incident-session.ts:71-77",
+          "owned_path": "apps/valet-native/src/incident/native-incident-recovery-resolution.ts",
+          "evidence": [
+            "apps/valet-native/src/incident/native-incident-session.ts:62-78",
+            "apps/valet-native/src/incident/native-incident-session.ts:167-185",
+            "apps/valet-native/src/incident/native-incident-session.ts:225-235",
+            "apps/valet-native/src/incident/native-incident-recovery-resolution.ts:96-105",
+            "apps/valet-native/src/incident/native-incident-recovery-resolution.ts:114-129",
+            "packages/employee-client/src/incident-recovery-state.ts:154-173",
+            "apps/valet-native/src/auth/native-auth-runtime.ts:237-254",
+            "docs/decisions/DEC-077_EMPLOYEE_INCIDENT_PROCESS_DEATH_RECOVERY.md:589-606"
+          ],
+          "preconditions": "A recovery restore or explicit retire passes its generation check, waits for an asynchronous resolution/clearResolved, and identity purge or newer context increments generation and clears the session before the older continuation resumes.",
+          "impact": "The continuation assigns marker/snapshot and publishes without a second generation check. A stale retired/unknown recovery state could replace the inactive/new-identity snapshot; a narrowly timed FOUND completion could expose an old incident receipt in the local session state. The server still enforces actor-bound Incident access.",
+          "existing_mitigations": "Generation is checked immediately after transport.restore and before resolution work; IdentityState awaits purgeRecovery, portable storage operations are serialized, and server responses are checked against the actor-bound marker. These controls reduce the window but do not protect the post-await publish.",
+          "requested_validation": "A deterministic deferred clearResolved/read completion test with concurrent NativeIncidentSession.purgeRecovery or scope switch, asserting that no pre-purge result is published after identity generation changes.",
+          "coverage_note": "native-incident-session.ts and runtime callbacks inspected only as dependencies; they are not counted as W5 roster full-file coverage.",
+          "tests": "NOT_EXECUTED — STATIC_AUDIT_ONLY"
+        }
+      ]
+    }
+  ],
+  "limitation": "P2 Incident race remains medium-confidence source hypothesis until deterministic deferred-clear interleaving and physical native behavior are tested. No new P0/P1 confirmed by the presently available candidates; historical SEC-011/#363 remains separately reported in C010."
+}
