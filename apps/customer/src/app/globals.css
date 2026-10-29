@@ -232,6 +232,10 @@ html[dir="rtl"] .font-display {
   outline: 2px solid var(--brand-focus, var(--v-blue));
   outline-offset: 2px;
 }
+.guest-action-focus:focus-visible {
+  outline: 2px solid var(--brand-focus, var(--v-blue));
+  outline-offset: 2px;
+}
 .guest-brand-link:not(:disabled):hover,
 .guest-brand-link:not(:disabled):active {
   color: var(--v-blue-hover);
