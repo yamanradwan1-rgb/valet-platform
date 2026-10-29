@@ -152,15 +152,18 @@ success. Only the new action inside existing Task Details and its focused
 EN/AR accessible modal may be visually added. Existing elements, CSS,
 navigation, layouts, themes, responsiveness and interactions stay frozen.
 
-**Open compatibility gate (not Owner policy reapproval):** The existing
-Dashboard `/tasks` entry and Task Details are management-only and the
-Supervisor has no displayed Task Details route. A hidden/manual URL and
-task-specific GET can be made technically authorized, but independent review
-has not found a discoverable in-product Supervisor journey without adding
-a visible entry outside the two allowed UI additions. The final UI/readiness
-gate remains open until this contradiction is resolved with the Owner's
-strict UI Freeze contract. Do not expand sidebar, management entitlements or
-location-wide task reads silently.
+**Owner-approved narrow UI Freeze exception:** The existing Dashboard `/tasks`
+navigation entry may be shown to `VALET_SUPERVISOR` with its existing icon,
+order, labels, styling and geometry. No other existing navigation/UI element
+changes. The protected Tasks route must revalidate the selected Supervisor's
+exact Organization, active Location, active operational Shift and current
+Staff session. Only the existing Tasks list/read endpoint may additionally
+serve this role, restricted to `IN_PROGRESS` Parking/Retrieval Task rows in
+that exact authorized Location; the operation-specific context GET then
+independently verifies each Task's takeover preconditions. Supervisor access
+does not confer `LOCATION_DASHBOARD_READ`, other Dashboard management reads,
+reports, exports, or commercial entitlements. Company Admin and Location
+Manager Tasks access and presentation keep their existing contract.
 
 Real PostgreSQL tests must cover the 30 Issue #352 scenarios and commit/rollback
 races; mounted Dashboard E2E must demonstrate all required authorization,

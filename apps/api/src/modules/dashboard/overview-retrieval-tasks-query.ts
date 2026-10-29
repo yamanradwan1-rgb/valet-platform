@@ -15,6 +15,7 @@ import {
   operationalAssigneeJoins,
 } from "./operational-assignee-projection";
 import { createOverviewCursorCodec } from "./overview-cursor";
+import { authorizeSupervisorEmergencyTasksScope } from "./supervisor-emergency-tasks-scope";
 
 const queueCursorCodec = createOverviewCursorCodec("retrieval-queue");
 const taskCursorCodec = createOverviewCursorCodec("tasks");
@@ -164,9 +165,26 @@ export async function listDashboardTasks(
         : { staffSessionContext: input.staffSessionContext }),
       targetLocationId: input.locationId,
     });
-    assertAuthorized(scope);
+    const supervisorScope =
+      scope === null
+        ? await authorizeSupervisorEmergencyTasksScope(
+            transaction,
+            input.staffSessionContext,
+            input.authenticatedUserId,
+            input.locationId,
+          )
+        : null;
+    const authorizedScope = scope ?? supervisorScope;
+    assertAuthorized(authorizedScope);
     const predicates = ["task.organization_id = $1", "task.location_id = $2"];
-    const parameters: unknown[] = [scope.organizationId, input.locationId];
+    if (supervisorScope !== null) {
+      predicates.push("task.task_type IN ('PARKING', 'RETRIEVAL')");
+      predicates.push("task.status = 'IN_PROGRESS'");
+    }
+    const parameters: unknown[] = [
+      authorizedScope.organizationId,
+      input.locationId,
+    ];
     if (cursor !== null) {
       parameters.push(cursor.sortKey, cursor.tiebreakerId);
       predicates.push(
