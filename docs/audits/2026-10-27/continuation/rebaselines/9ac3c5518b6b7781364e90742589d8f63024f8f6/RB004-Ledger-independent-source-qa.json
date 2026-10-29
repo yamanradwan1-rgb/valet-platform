@@ -1,0 +1,62 @@
+{
+  "result": "PASS_TARGETED_DEPENDENCY_REVIEW",
+  "source_commit": "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+  "source_tree": "df279eba03754d18eaa98b3245b810cb808f82cf",
+  "execution_agent_id": "/root/rb004_ledger_local",
+  "scope": "Tracking/management audit dependency impact and published C021-to-RB004 Git accounting",
+  "read_method": "Independent local GitHub clone; source files read 1..EOF, old/new Git OIDs identical and C021 published fully_reviewed status verified",
+  "reviewed_paths": [
+    "apps/api/src/modules/tracking/live-map.service.ts",
+    "apps/api/src/modules/management/management-audit-query.ts",
+    "apps/api/src/modules/management/management-audit-projection.ts",
+    "apps/api/src/modules/management/management-audit-detail-projection.ts"
+  ],
+  "invalidations": [
+    {
+      "path": "apps/api/src/modules/tracking/live-map.service.ts",
+      "trigger": "apps/api/src/modules/tracking/live-map-query.ts:55-109,157-180",
+      "reason": "C015 original semantic record covered underlying live-map tenant/Location ownership query; modified query now attributes tracker segments to immutable owner and requires current Task owner equality.",
+      "read_range": "1..34"
+    },
+    {
+      "path": "apps/api/src/modules/management/management-audit-query.ts",
+      "trigger": "apps/api/src/modules/management/management-audit-event-catalog.ts:53,153",
+      "reason": "Query at 114,137-140 consumes expanded known event list and actor-display enrichment for takeover; historical event filtering/actor exposure review was incomplete.",
+      "read_range": "1..167"
+    },
+    {
+      "path": "apps/api/src/modules/management/management-audit-projection.ts",
+      "trigger": "apps/api/src/modules/management/management-audit-event-catalog.ts:53,153",
+      "reason": "Projection at 114-154 now classifies and exposes TASK_EMERGENCY_TAKEOVER in known/Supervisor-visible TASK event family, changing prior privacy and scope claims.",
+      "read_range": "1..155"
+    },
+    {
+      "path": "apps/api/src/modules/management/management-audit-detail-projection.ts",
+      "trigger": "apps/api/src/modules/management/management-audit-event-catalog.ts:53; apps/api/src/modules/dispatch/emergency-takeover-history.ts:43-65",
+      "reason": "Unchanged TASK event detail projection at 209-217 now processes takeover metadata; event field redaction and presentation need fresh source review.",
+      "read_range": "1..288"
+    }
+  ],
+  "runtime_tests_executed": 0,
+  "limitations": [
+    "35 deterministic raw Git SHA256/EOF samples, not exhaustive 7,650 blob rehash",
+    "No runtime validation; other unchanged paths outside selected source scope not reviewed"
+  ],
+  "git_accounting": {
+    "published_C021_rows": 7595,
+    "published_C021_eligible": 4789,
+    "published_C021_credited": 3685,
+    "current_tracked": 7650,
+    "added": 55,
+    "modified": 49,
+    "removed": 0,
+    "new_eligible": 54,
+    "changed_previously_credited": 40,
+    "unchanged_previously_credited_before_dependencies": 3645,
+    "raw_git_blob_sha256_eof_samples_verified": 35,
+    "samples_new": 10,
+    "samples_modified_credit": 10,
+    "samples_unchanged_credit": 15
+  },
+  "sampling_method": "For 54 eligible additions, 40 directly stale and 3645 unchanged credited, sorted each list lexicographically; samples at floor(i*(N-1)/(k-1)) for i=0..k-1 and k=10,10,15; git cat-file blob raw bytes"
+}

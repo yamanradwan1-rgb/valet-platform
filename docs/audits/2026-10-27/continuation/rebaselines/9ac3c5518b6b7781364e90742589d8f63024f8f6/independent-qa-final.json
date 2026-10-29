@@ -1,0 +1,54 @@
+{
+  "result": "PASS_FULL_RAW_GIT_LEDGER_ACCOUNTING",
+  "execution_agent_id": "/root/rb004_ledger_local",
+  "previous_source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "source_commit": "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+  "source_tree": "df279eba03754d18eaa98b3245b810cb808f82cf",
+  "published_c021_audit_commit": "a17033d3a6d09175c602a03c802287c0138c67fd",
+  "method": [
+    "Independent local GitHub clone and published C021 immutable CSV, not Prime-generated rebaseline output",
+    "Enumerated old/current trees via git ls-tree -rz; independently compared all path/blob-OID statuses",
+    "Read all current 7650 raw Git blobs with git cat-file --batch; SHA256 and exact EOF-aware line counts computed for each",
+    "Verified all 3645 unchanged previously credited SHA256 and lines against published C021 rows",
+    "Verified all 12 nominated dependency-stale paths were previously credited, byte-identical old/new, and match C021 SHA256/EOF",
+    "Recomputed complete eligible/reviewed/remaining and source-line totals independently"
+  ],
+  "checks": {
+    "old_tracked": 7595,
+    "old_eligible": 4789,
+    "old_credited": 3685,
+    "current_tracked": 7650,
+    "git_blobs_raw_sha256_eof_verified": 7650,
+    "git_blobs_raw_sha256_eof_failed": 0,
+    "added": 55,
+    "modified": 49,
+    "deleted": 0,
+    "new_eligible": 54,
+    "changed_credited_stale": 40,
+    "unchanged_credited_old": 3645,
+    "unchanged_credited_sha256_eof_verified": 3645,
+    "unchanged_credited_sha256_eof_failed": 0,
+    "dependency_stale": 12,
+    "dependency_stale_old_git_oid_equals_new": 12,
+    "dependency_stale_lines": 2245,
+    "eligible_current": 4843,
+    "eligible_lines": 628283,
+    "fully_reviewed_current": 3633,
+    "reviewed_lines": 464919,
+    "remaining_current": 1210
+  },
+  "evidence_links": [
+    "RB004-API-independent-source-qa.json",
+    "RB004-Dashboard-independent-source-qa.json",
+    "RB004-Ledger-independent-source-qa.json",
+    "targeted-dependency-impacts.json",
+    "current-coverage-ledger.csv"
+  ],
+  "limitations": [
+    "Accounting/identity is independently verified; this specific report does not independently prove semantics of every one of the 12 dependency invalidations",
+    "Separate API and Dashboard source-review reports substantiate the targeted semantic triggers",
+    "No HTTP, PostgreSQL, browser, Native or other production runtime tests executed"
+  ],
+  "runtime_tests_executed": 0,
+  "product_files_modified": 0
+}

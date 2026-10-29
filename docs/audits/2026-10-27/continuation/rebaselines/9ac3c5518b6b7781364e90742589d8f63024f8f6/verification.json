@@ -1,0 +1,8 @@
+{
+  "source_clean": true,
+  "source_tree": "df279eba03754d18eaa98b3245b810cb808f82cf",
+  "previous_ledger": "C021",
+  "complete_blob_identity_accounting": true,
+  "dependency_impact_review": "COMPLETE_TARGETED_VALIDATION",
+  "runtime_tests": "NOT_EXECUTED_STATIC_AUDIT_ONLY"
+}

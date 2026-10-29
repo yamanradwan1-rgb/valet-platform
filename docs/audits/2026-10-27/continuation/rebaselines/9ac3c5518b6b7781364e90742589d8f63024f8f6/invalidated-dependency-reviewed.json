@@ -1,0 +1,134 @@
+[
+  {
+    "path": "apps/api/test/dashboard-overview-api.integration.test.ts",
+    "reviewer": "W1",
+    "reason": "Existing on-shift Supervisor GET Tasks assertion expects 404 at test lines 138-161; new exact-active-Shift authorized Supervisor Tasks list is intentionally permitted, so historical test contract is stale.",
+    "trigger": "apps/api/src/modules/dashboard/overview-retrieval-tasks-query.ts:168-183; apps/api/src/modules/dashboard/supervisor-emergency-tasks-scope.ts:17-66",
+    "previous_batch": "C016",
+    "previous_reviewer": "W7",
+    "unchanged_source_sha256": "002e8e2f8c28825ed5680a22a4f78a7dfcb8eab1b696e55b47ef3cb53d9fcc17",
+    "lines": 171,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/overview.controller.ts",
+    "reviewer": "W1",
+    "reason": "Unchanged Tasks endpoint at 158-177 delegates to an authorization/query path now admitting exact eligible Supervisor for IN_PROGRESS Parking/Retrieval; old endpoint review did not cover this boundary.",
+    "trigger": "apps/api/src/modules/dashboard/overview-retrieval-tasks-query.ts:168-183",
+    "previous_batch": "C006",
+    "previous_reviewer": "database",
+    "unchanged_source_sha256": "aebb2b5b562d9df0c838c4d7aee7489cc605d28dbaa505eccb76153865b8e5f4",
+    "lines": 254,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/api/src/modules/management/management-audit-projection.ts",
+    "reviewer": "W1",
+    "reason": "Projection at 114-154 now classifies and exposes TASK_EMERGENCY_TAKEOVER in known/Supervisor-visible TASK event family, changing prior privacy and scope claims.",
+    "trigger": "apps/api/src/modules/management/management-audit-event-catalog.ts:53,153",
+    "previous_batch": "C011",
+    "previous_reviewer": "W2",
+    "unchanged_source_sha256": "f41f3b638501a0acd1fb550bb592a66e8f723810347e594fb8b6d48f1370052e",
+    "lines": 155,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/api/src/modules/management/management-audit-query.ts",
+    "reviewer": "W1",
+    "reason": "Query at 114,137-140 consumes expanded known event list and actor-display enrichment for takeover; historical event filtering/actor exposure review was incomplete.",
+    "trigger": "apps/api/src/modules/management/management-audit-event-catalog.ts:53,153",
+    "previous_batch": "C011",
+    "previous_reviewer": "W2",
+    "unchanged_source_sha256": "c9af0281f100b26e881b024b5f1df83d54abed318c7299d9f2024a8078d9bc39",
+    "lines": 167,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/api/src/modules/management/management-audit-detail-projection.ts",
+    "reviewer": "W1",
+    "reason": "Unchanged TASK event detail projection at 209-217 now processes takeover metadata; event field redaction and presentation need fresh source review.",
+    "trigger": "apps/api/src/modules/management/management-audit-event-catalog.ts:53; apps/api/src/modules/dispatch/emergency-takeover-history.ts:43-65",
+    "previous_batch": "C011",
+    "previous_reviewer": "W2",
+    "unchanged_source_sha256": "5e467e27ffc5f71f309688a59b2eeda046f9f41fafe5fbf2ac427938290518c7",
+    "lines": 288,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/api/src/app.module.ts",
+    "reviewer": "W1",
+    "reason": "Root module imports DispatchModule at 9,40; changed module now exposes emergency takeover Controller, altering mounted API/auth surface reviewed earlier.",
+    "trigger": "apps/api/src/modules/dispatch/dispatch.module.ts:8-20",
+    "previous_batch": "original",
+    "previous_reviewer": "original-audit",
+    "unchanged_source_sha256": "713d8bd19e2349a0962bdcce87ab1178f2740c57cd1f59f69d4e2a90a8a9c49b",
+    "lines": 48,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/api/src/modules/tracking/live-map.service.ts",
+    "reviewer": "W1",
+    "reason": "C015 original semantic record covered underlying live-map tenant/Location ownership query; modified query now attributes tracker segments to immutable owner and requires current Task owner equality.",
+    "trigger": "apps/api/src/modules/tracking/live-map-query.ts:55-109,157-180",
+    "previous_batch": "C015",
+    "previous_reviewer": "W1",
+    "unchanged_source_sha256": "395966a4876fa79c72f44c52119c67712515b5364c386c45b037740fdf9453d4",
+    "lines": 34,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/selected-management-shell.tsx",
+    "reviewer": "W4",
+    "reason": "Unchanged selected shell at 81-97,154-173,242-285 now routes/render-protects authorized Supervisor EMERGENCY_TASKS, requiring fresh exact Shift/route isolation review.",
+    "trigger": "apps/dashboard/src/components/foundation/revalidate-selected-scope.ts:106-117; apps/dashboard/src/components/foundation/resolve-navigation-authority.ts:145-146",
+    "previous_batch": "original",
+    "previous_reviewer": "original-audit",
+    "unchanged_source_sha256": "e2c233ffdf927269f3466275f9820e35dcc5642b0ba9c9cb8bf372bcc4efd1f3",
+    "lines": 288,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/use-selected-scope-revalidation.ts",
+    "reviewer": "W4",
+    "reason": "Unchanged generation/denial invalidation hook at 97-135,184-225 now consumes new Supervisor EMERGENCY_TASKS route revalidation; prior denial/revocation claims need reassessment.",
+    "trigger": "apps/dashboard/src/components/foundation/revalidate-selected-scope.ts:106-117",
+    "previous_batch": "C003",
+    "previous_reviewer": "worker-7",
+    "unchanged_source_sha256": "81c4c365b8b11d39b04307b61cda0e87019ebd860248f1ca9a3ca0cf4ecf1b4b",
+    "lines": 235,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/navigation-authority-special-scopes.test.ts",
+    "reviewer": "W4",
+    "reason": "Existing Supervisor special-scope assertions at 169-225 cover Foundation/Maps/Audit, not new Tasks eligibility and revoked Shift route; old test coverage claim incomplete.",
+    "trigger": "apps/dashboard/src/components/foundation/resolve-navigation-authority.ts:145-146; apps/dashboard/src/features/operations/operations-navigation.ts:25-33",
+    "previous_batch": "C011",
+    "previous_reviewer": "W4",
+    "unchanged_source_sha256": "6ff9817b1f7c60af3b3cfdc9c1ab40106d18a4356da557212508b570140b2fb3",
+    "lines": 298,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/dashboard-navigation.ts",
+    "reviewer": "W4",
+    "reason": "Unchanged navigation registration aggregator at 19-26 composes modified Tasks registration/eligibility; role-visible output differs from prior semantic review.",
+    "trigger": "apps/dashboard/src/features/operations/operations-navigation.ts:25-33; apps/dashboard/src/lib/navigation/navigation-authority.ts:55-57",
+    "previous_batch": "original",
+    "previous_reviewer": "original-audit",
+    "unchanged_source_sha256": "cf64d5ed038ec9a2df545b03a7a47a38ed13f73e8cf0f635834edbe5f4e2b5a0",
+    "lines": 26,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  },
+  {
+    "path": "apps/valet-native/src/tracking/native-task-tracking-runtime.ts",
+    "reviewer": "W6",
+    "reason": "Native tracking consumer at 141-175,195-214 now interoperates with takeover owner-snapshot segment transition A to B; old upload rejection and tracker segment assumptions require conservative re-review, not evidence of bypass.",
+    "trigger": "apps/api/src/modules/tracking/task-tracking-lifecycle.ts:36-73; apps/api/src/modules/tracking/live-map-query.ts:51,87-91",
+    "previous_batch": "original",
+    "previous_reviewer": "original-audit",
+    "unchanged_source_sha256": "89cdf2443bfbd8e838131abb8381625cba8d34e31d859eff5134ce6d708410e3",
+    "lines": 281,
+    "status": "DEPENDENCY_CHANGED_SEMANTIC_REVIEW_STALE"
+  }
+]

@@ -1,0 +1,326 @@
+[
+  {
+    "path": "apps/api/src/modules/dashboard/supervisor-emergency-tasks-scope.ts",
+    "sha256": "57df0f2f55084065ac2e1c27cd7d6c2cfd18eee98eaaa34516794b4ef74f323b",
+    "lines": 63,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/emergency-takeover-authorization.ts",
+    "sha256": "9f795d659d714f154c67b37298c7d8cf83af076d621159dfa50db1d4db13b543",
+    "lines": 102,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/emergency-takeover-command.ts",
+    "sha256": "21817f4008dcc35449d3ec28015686ade98f7f14f5e49de4e086e8c38f94c139",
+    "lines": 208,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/emergency-takeover-domain.ts",
+    "sha256": "06c5e256a115cfde2dfeea986d49f86449b25aa79874700e3a1e13359583f78c",
+    "lines": 51,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/emergency-takeover-history.ts",
+    "sha256": "30a3affaa95b73130569836d55e55aa687a3e7ac2f80c77c942dfd8e3207cd9a",
+    "lines": 76,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/emergency-takeover-idempotency.ts",
+    "sha256": "d25c7f93d4c258f03defd5799f88ec198935823bf1599358baa3ba795aeb561c",
+    "lines": 138,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/emergency-takeover-locks.ts",
+    "sha256": "fb9683daa1633f562d8bc4924ff6da609346a7bbb84dabb09527c320a54e4ff5",
+    "lines": 109,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/emergency-takeover-mutation.ts",
+    "sha256": "894c1cb4c2c6d3ae139ecab1c20774e86a883b5e34a25b4b3611daf78c624a32",
+    "lines": 64,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/emergency-takeover-types.ts",
+    "sha256": "e4dbeba3c555722592e1b2a5a76c4d223921d732bf8479d389d5dc0f027d3e2f",
+    "lines": 60,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/emergency-task-takeover.authority.ts",
+    "sha256": "28fc3d046e8c4f09a1e522f6b2710b3371917c79ac6e420c5adb621a3e652dfd",
+    "lines": 164,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/emergency-task-takeover.controller.ts",
+    "sha256": "f11d99a3e3da5ebfd5c8d77c6ea79d478512166040dd072d27671e9f64531dc3",
+    "lines": 97,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/emergency-task-takeover.detail-query.ts",
+    "sha256": "8ec16ca6f992e0d2ae91b2efe3261a233911f9a8fd7be4547031713d08cb2455",
+    "lines": 276,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/handoff-takeover-proof-guard.ts",
+    "sha256": "90682f058b1d70cb405e154acf2ba72a6fc7ec95b286a0a45bc65378e7c624c0",
+    "lines": 126,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/modules/tracking/tracking-takeover-attribution.ts",
+    "sha256": "65ea6405b66c6414a7f81c9c844e12d787beab90ab60528b065753ef376c47f3",
+    "lines": 111,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/emergency-takeover-domain.test.ts",
+    "sha256": "c776f496deb62025001d9c2164c24b4949458e0dee447b0e0fe38361af7a08cd",
+    "lines": 62,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/emergency-takeover-idempotency.test.ts",
+    "sha256": "bd12529f86d660579a45b15245ae40c2808baaa8ebb94131e90ead1908eaebc9",
+    "lines": 133,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/emergency-task-takeover-authority.test.ts",
+    "sha256": "4c1561a5eee56c2a31d1dad17617afb62e75af56686558a105b7d941d4879aaa",
+    "lines": 162,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/emergency-task-takeover-context.test.ts",
+    "sha256": "740a214aa4e128aaa9644ce99dd798e8c573388da3d4846a6f7c9f63e9ff564a",
+    "lines": 243,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/handoff-takeover-proof-guard.test.ts",
+    "sha256": "36f17c1c242ef8358bc15a67e109a7865edce72b50facc8b1d6cb0e283702d64",
+    "lines": 286,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/issue352-supervisor-tasks-races.integration.test.ts",
+    "sha256": "96744b7a0c2c739f9ce0ac411a8c66683b521f10eaf02bd23e50b159f07dee71",
+    "lines": 182,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/issue352-supervisor-tasks.integration.test.ts",
+    "sha256": "3789adf70f73001d098238ac5d8fa8f172176736f17ac44d394ae57810ff3626",
+    "lines": 255,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/issue352-takeover-authority.integration.test.ts",
+    "sha256": "89f115abeeb26df4787555514cd00a29184a0b0e4ec6d3b10137b147852e5ca4",
+    "lines": 151,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/issue352-takeover-command.integration.test.ts",
+    "sha256": "1bbadb9cc19c82d73b2848f67507df3eedfe4605a0b77dc46fe6c8b07c4efd48",
+    "lines": 183,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/issue352-takeover-custody-xid.integration.test.ts",
+    "sha256": "4d5846ef87286e42f6c0f75c7d6dc7db67d0d84887de8552ecd36d76b55e182a",
+    "lines": 172,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/issue352-takeover-persistence.integration.test.ts",
+    "sha256": "e7511c2752986e3cb03f9e2c96684bb113f229fbe3f21fc0e5a9e785c736ea3f",
+    "lines": 134,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/issue352-takeover-race-fixture.ts",
+    "sha256": "5b26cae7ef91010788df1a6c51c8db6c58b4fb93e10c123c1dbbb4db7e684528",
+    "lines": 77,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/issue352-takeover-races.integration.test.ts",
+    "sha256": "81ec90def264bf7ed6d45206e817b925d261cbb0e93027fcf457e620d2491a57",
+    "lines": 207,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/issue352-takeover-test-context.ts",
+    "sha256": "ad6b4d6a0758f0e6e048bba1f82b856e7bca6f560440fa3c57aa312e83cc5398",
+    "lines": 189,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/issue352-takeover-tracking.integration.test.ts",
+    "sha256": "3ebf1b77d1271424a94b18240323cc834424d42c7baf1e241f3d77c821541a2e",
+    "lines": 155,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/tracking-takeover-attribution.test.ts",
+    "sha256": "0d73911d0604912cd7009e61290f7c9e01db729971360dc55847876424c03e91",
+    "lines": 103,
+    "category": "backend"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue352-supervisor-nav-visual.spec.ts",
+    "sha256": "4caa6296fda4beff0b4d054fda240ef435e7d2174b7c3b99af54d5455c77f3c2",
+    "lines": 163,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue352-supervisor-takeover.spec.ts",
+    "sha256": "2716ad5b7b210f39c938deb470385567e46a90ebd052abeee8780a87eb91e7ea",
+    "lines": 252,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue352-supervisor-task-visual.spec.ts",
+    "sha256": "4d6182721b19fd23c0eb3f89decb38ca37a0b2f7c40c86dc9813624afd7b6f84",
+    "lines": 199,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue352-takeover-interaction.spec.ts",
+    "sha256": "7c5b5091b6fbd4d455d3ce899102e3416386c252e825bb99bf439ce41abb7ad8",
+    "lines": 242,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue352-takeover-visual-freeze.spec.ts",
+    "sha256": "2f0c772d41f21a607807d310d13a40ee74173e77e33884922fafe9cc6dcda733",
+    "lines": 257,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/support/issue352-takeover-fixtures.ts",
+    "sha256": "375686d11cc64f3ffb08ddbe7d6ab7880c6e8230377c574f63146b433f6b873b",
+    "lines": 115,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/emergency-tasks-access.test.ts",
+    "sha256": "8d9681047ac5f9d646a60a938cb371822450937a0705bfa9fa1e70c767940b5d",
+    "lines": 138,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-takeover-api.ts",
+    "sha256": "85a504705ddb0c4b70e014e5ea93a2993ace22f7cc69289635f760eff28e14d8",
+    "lines": 46,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-takeover-copy.ts",
+    "sha256": "35f378e7ac3c7aee0c486610a70aa7de5d0148ccb53c98011fd01fc8b448ee7d",
+    "lines": 114,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-takeover-dialog-controller.tsx",
+    "sha256": "4e94482a5b9a8b25b349429cba3b43cb4139324ea27cc3adb8a758d0b91fa918",
+    "lines": 50,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-takeover-dialog.tsx",
+    "sha256": "93ec60dce40d9ca54862af2b8b29e4c6ead1f170368408f2a90e798c813a6c15",
+    "lines": 220,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-takeover-intent.test.ts",
+    "sha256": "5f0aeba83a805f902f086c5449305e4b9320d758450c3101f48ae1163a968677",
+    "lines": 74,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-takeover-intent.ts",
+    "sha256": "da3d968582f80740491e8f328550ebc85a2b8dfe1e4c653db580341641b9de45",
+    "lines": 59,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-takeover-view.test.ts",
+    "sha256": "9558d372f3771956e13547a22ec7ed43a12f58167c92929b62d361c4742cf0b0",
+    "lines": 52,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-takeover-view.ts",
+    "sha256": "cb6ca71747379cc7066921274880494c1f96d0f70278265f80b677eed7066174",
+    "lines": 77,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-task-drawer.tsx",
+    "sha256": "9ae3ad589bb9e7e0a9f5f7d0afebf06ed9e4ff7d22136b7f2130992618b78c8e",
+    "lines": 46,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-tasks-visibility.test.ts",
+    "sha256": "ab6bed3f9f0adabe3eddc4f2137dfeefa92f410f7c9a906a9830a69833ee94e9",
+    "lines": 48,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-tasks-visibility.ts",
+    "sha256": "aac9b0f07acaf5532f64a92910dcb612f3c0765b20d1446add1cf99fe686f695",
+    "lines": 16,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/tasks/use-emergency-action-eligibility.ts",
+    "sha256": "cd9cdce66aa84009531b117d5903125ae24d74664aec433bfac299f7119e0ccf",
+    "lines": 43,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/tasks/use-emergency-takeover.ts",
+    "sha256": "b9c96406070b61d210232c4484f7f7373acb9701986711b9341c652c6b6eefdb",
+    "lines": 233,
+    "category": "dashboard"
+  },
+  {
+    "path": "packages/contracts/src/emergency-task-takeover.test.ts",
+    "sha256": "d7fb7f7b004de2ed7c1327197e15ec7f31b3f8aa835bbf29d39cc1249933bc22",
+    "lines": 143,
+    "category": "contracts"
+  },
+  {
+    "path": "packages/contracts/src/emergency-task-takeover.ts",
+    "sha256": "51acdfdf744d4b1312fbb3a634765688c353e10ad8d104b363bfc8361f2309c9",
+    "lines": 163,
+    "category": "contracts"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261029010400_issue352_emergency_dispatch_type/migration.sql",
+    "sha256": "e02e30acb3de6b21936f4274bcd485b953b7c005888f07dda2f4e1b20175e4a8",
+    "lines": 2,
+    "category": "database"
+  },
+  {
+    "path": "packages/database/prisma/migrations/20261029010500_issue352_emergency_takeover_persistence/migration.sql",
+    "sha256": "02eef8e2f3b0dfe1a94cd0ee5ec77515ec89e3adc75f1b7766315df6546f0e8b",
+    "lines": 151,
+    "category": "database"
+  }
+]

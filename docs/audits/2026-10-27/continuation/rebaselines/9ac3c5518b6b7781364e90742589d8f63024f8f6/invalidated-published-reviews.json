@@ -1,0 +1,402 @@
+[
+  {
+    "path": "apps/api/src/common/http/api-errors.ts",
+    "previous_batch": "C003",
+    "original_reviewer": "worker-7",
+    "old_sha256": "cd7fcfb86fdfd4e8471869cb662e88801b5b9abdcd93de8127267efdb0ba9888",
+    "new_sha256": "296058a2a02eb68f914ee1a1763f6074d6323f8f3853146307707b3e420fa2e3",
+    "old_lines": 279,
+    "new_lines": 280,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/overview-retrieval-tasks-query.ts",
+    "previous_batch": "C006",
+    "original_reviewer": "database",
+    "old_sha256": "38408993c8c7607abadc10113a1ee7f0b0b83a176066cb68dee30aa8715c8dc5",
+    "new_sha256": "a502f78bd7644dd90409a21f13bef29c865bde984206797ba996512d0a895c92",
+    "old_lines": 218,
+    "new_lines": 236,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/dispatch-errors.ts",
+    "previous_batch": "C007",
+    "original_reviewer": "dashboard",
+    "old_sha256": "779907596e5155fa6fce267a00351c18e9f95639926817136ba4a27dc1cb0b3f",
+    "new_sha256": "917ccdc3af5e6c182293176ebf90826d097ca011602a80fb725a37c72cc4771c",
+    "old_lines": 26,
+    "new_lines": 30,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/dispatch-event-writer.ts",
+    "previous_batch": "C007",
+    "original_reviewer": "dashboard",
+    "old_sha256": "c036d20535e8f5c9f2c99460c90d1ecaffc989cb40eda6913e40c42e217825f2",
+    "new_sha256": "75400f1222f10f792a8fe62b347404150bd66de971f41d97331f472b5088d11e",
+    "old_lines": 57,
+    "new_lines": 58,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/api/src/modules/dispatch/dispatch.module.ts",
+    "previous_batch": "C007",
+    "original_reviewer": "dashboard",
+    "old_sha256": "11e6e6276a1e342138d9c70c4308dd1f593c55c8019433db6b8f40dccf13a6ce",
+    "new_sha256": "33c9008ff48ae8b932dd421f45ba94e45e1ed30349d9d10d9e97832814148242",
+    "old_lines": 19,
+    "new_lines": 23,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline-safe-projection.ts",
+    "previous_batch": "C009",
+    "original_reviewer": "prime",
+    "old_sha256": "bd10f2f482f1f527920e8a9a3a13239e3a4e626af6b4f0f59c1af10be76f4669",
+    "new_sha256": "d38d482ee33fa318460dcbbd79d6bc9cf1f277405729f1d6f53d48bed605e5d5",
+    "old_lines": 228,
+    "new_lines": 229,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/api/src/modules/management/management-audit-event-catalog.ts",
+    "previous_batch": "C011",
+    "original_reviewer": "W2",
+    "old_sha256": "ba3a4a4fc28d0533ab64a2eadb82af971193c4e3b39d40915f0a21a0fa047a8b",
+    "new_sha256": "e97409d86af4a4de1a9122021df42e41303d32001a2ffbd6960a2ec9dc10d358",
+    "old_lines": 185,
+    "new_lines": 187,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/api/src/modules/parking/start-parking-command.ts",
+    "previous_batch": "original",
+    "original_reviewer": "original-audit",
+    "old_sha256": "fb75211448f3b47773396fbb7d6520634af8d600415e320bdee9fecb8e2f5bf0",
+    "new_sha256": "033196b621fb4e30040f10959e550b73afe1437f32f27d2d29acd1e929ea5340",
+    "old_lines": 149,
+    "new_lines": 150,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/complete-handoff-command.ts",
+    "previous_batch": "original",
+    "original_reviewer": "original-audit",
+    "old_sha256": "81304fedaed18d1326a55985705a45e53d6a7f5e1f8872b78444fd616e340725",
+    "new_sha256": "0237b03f2e588bbfeec443ff493fc4a61cc0f6740db86e4f84a854fd244a6ce0",
+    "old_lines": 159,
+    "new_lines": 175,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/handoff-locks.ts",
+    "previous_batch": "original",
+    "original_reviewer": "original-audit",
+    "old_sha256": "f2cc81bc35210952944a2fd471491953f0e49a9fa5a6c6844da0e4c4d599cfe3",
+    "new_sha256": "3f25f7f192f5c24ee62b0c1793ffaedeaa9cf6c18c7bcd94c6374489a0115205",
+    "old_lines": 180,
+    "new_lines": 185,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/handoff-release-guard.ts",
+    "previous_batch": "original",
+    "original_reviewer": "original-audit",
+    "old_sha256": "a2d9ea4ca481ec1888703f7b7d8da1d97c0a3bc72b3f6320812d3c41d73f7ec5",
+    "new_sha256": "e2996824a2b843a1ca57bffe206ca93c2babc6ede2f5c8536423aa7598b526b8",
+    "old_lines": 45,
+    "new_lines": 53,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/mark-ready-command.ts",
+    "previous_batch": "original",
+    "original_reviewer": "original-audit",
+    "old_sha256": "4ad9d473600e6680baa244b80d86dd10cbb9494c8af4024081747ec2b4693257",
+    "new_sha256": "974f6e23d49ba8c33b12d3b2225a1e4c77207b7f9daaf047da1f15ae1ad2330e",
+    "old_lines": 101,
+    "new_lines": 116,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/mark-ready-errors.ts",
+    "previous_batch": "C012",
+    "original_reviewer": "W4",
+    "old_sha256": "bc4c75a5bcc8829211bdba24203b7e65a64182fae67059279f31ed10d25468e9",
+    "new_sha256": "bad29f7287590f1e44068d3dab828df39cd0e9a2fff01a91049e1c216a36df58",
+    "old_lines": 24,
+    "new_lines": 26,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/api/src/modules/retrieval/start-retrieval-command.ts",
+    "previous_batch": "original",
+    "original_reviewer": "original-audit",
+    "old_sha256": "0f64d89181b39bd567161eb7744f8bae4bc0a019c73849555612d75ad9aad99b",
+    "new_sha256": "928d3640bfc0d9093a746a8c10de518d9327ca47d39523a08aa9e935d6920e92",
+    "old_lines": 160,
+    "new_lines": 161,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/api/src/modules/tracking/live-map-query.ts",
+    "previous_batch": "C017",
+    "original_reviewer": "W1",
+    "old_sha256": "dc7c2179a8c869000f9691e4de0787e8d2e802121dc4c011902106b36fb72454",
+    "new_sha256": "ebd9bdf4e774e98a5e6edbbe7f9986ef0fd596fe6930d308cc7971efb666ed80",
+    "old_lines": 199,
+    "new_lines": 200,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/api/src/modules/tracking/task-tracking-lifecycle.ts",
+    "previous_batch": "C017",
+    "original_reviewer": "W1",
+    "old_sha256": "72a6837216e6f7c60014d79fd84ee41564e2bb2d0f7a5c6826a04b4849d109ef",
+    "new_sha256": "ace9e5caa4a448d94dc61fbe9b2c4d60954f88124dfef942b787f40e9a6df4e5",
+    "old_lines": 106,
+    "new_lines": 111,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/api/test/handoff-command.integration.test.ts",
+    "previous_batch": "C020",
+    "original_reviewer": "W3",
+    "old_sha256": "70ae644eb73befba93cd3ebc0d4f83034f6dcec3ebd3bdc2c5937e3672f9a9e3",
+    "new_sha256": "e86ec086d800e0a09d55247b5cf4bc428a2cb5f45e2d1421b3b1d26ad6b5a859",
+    "old_lines": 261,
+    "new_lines": 263,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/dashboard/src/app/tasks/page.tsx",
+    "previous_batch": "original",
+    "original_reviewer": "original-audit",
+    "old_sha256": "29ab03b36a4524387eacc31fd80d1644ab1a39188eba17534aba4dca52753124",
+    "new_sha256": "1db9307797fad63c3aecf98e0fa27984ab332a64141c16cc205a04f427f50933",
+    "old_lines": 6,
+    "new_lines": 6,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/resolve-navigation-authority.ts",
+    "previous_batch": "C003",
+    "original_reviewer": "worker-4",
+    "old_sha256": "1672804ae57ad497c4c7afcae3674650857f3c8d83c68a8baabdd99c4643942e",
+    "new_sha256": "ef456e943a4903f5b6ea39cacf658f29edbca7d6160cfec22df0dceec1438e74",
+    "old_lines": 196,
+    "new_lines": 198,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/dashboard/src/components/foundation/revalidate-selected-scope.ts",
+    "previous_batch": "C003",
+    "original_reviewer": "worker-4",
+    "old_sha256": "4001be86e3b75d8b0d41b1cb890714bb3a57e2f44ab9ee81ed916e8278f643ea",
+    "new_sha256": "faf2bb7b1066f0f4187c33f9f1f9e29cb8dc628d0e0e60212c195ecfd5963491",
+    "old_lines": 193,
+    "new_lines": 206,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/location-maps-scope-entry.test.ts",
+    "previous_batch": "C011",
+    "original_reviewer": "W4",
+    "old_sha256": "d66ac930c83d9525f931178458f4002a10395bef708ba745d00b61de2e1ccb2f",
+    "new_sha256": "7d7fc5afddd4e854aadee1c2cce94f056a03201b9ca1aee5143314d228ab26a2",
+    "old_lines": 181,
+    "new_lines": 182,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/scope-entry-route-policy.ts",
+    "previous_batch": "C014",
+    "original_reviewer": "W4",
+    "old_sha256": "c11982a9317871804b70506fcdf518ef9612d09e13785ec5703d978c7a483f65",
+    "new_sha256": "8955a8ee92083f4cce009f1e2e236493faf48bc3ceb4811084c33e10789460f2",
+    "old_lines": 43,
+    "new_lines": 44,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/scope-entry-selection.ts",
+    "previous_batch": "C017",
+    "original_reviewer": "W2",
+    "old_sha256": "e8b98f587da843af962da66d49f991b59298480c22f34ba1cf505ff9142e2af5",
+    "new_sha256": "1e76a2b353456c4a1b9c17d5e42892e0b110c038c4eb9699db272a4098215724",
+    "old_lines": 110,
+    "new_lines": 111,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/dashboard/src/components/scope/scope-entry.tsx",
+    "previous_batch": "C017",
+    "original_reviewer": "W6",
+    "old_sha256": "3a1424e33c7d9a24fe15dd318342ee6b0f95c6e73a04b638991014aba52255c7",
+    "new_sha256": "828a8d9ad7d5e33f73067cee1a10df3536e6cf37e257b50e3391b1faa0bc3202",
+    "old_lines": 198,
+    "new_lines": 199,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/operations-location.ts",
+    "previous_batch": "C016",
+    "original_reviewer": "W2",
+    "old_sha256": "b4d53207cbcf2522dd383efb519848f76bdcbd7b3f34652a1baea498934c7cff",
+    "new_sha256": "22474606550f2a0539260f6f29c7203d719b5d2508869ae3a3066843f4b0945e",
+    "old_lines": 13,
+    "new_lines": 16,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/operations-navigation.test.ts",
+    "previous_batch": "C016",
+    "original_reviewer": "W6",
+    "old_sha256": "ac37cc0c32263e01197f2584e234ca15fb53c40a19de860220b632840c59b62b",
+    "new_sha256": "d3c9cea5c6d687dbd4b4e0e1da5bcfa03bf20359401a369e4014cfe7612ef656",
+    "old_lines": 77,
+    "new_lines": 83,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/operations-navigation.ts",
+    "previous_batch": "original",
+    "original_reviewer": "original-audit",
+    "old_sha256": "e0af3474eccc7e7955400076238d6fc004f0a3e3356bd97e5e61b8e6697c9f37",
+    "new_sha256": "94a89c7eb61a44944b33f64ab846ec3197566ac43d8178240b95b837f839102c",
+    "old_lines": 52,
+    "new_lines": 53,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/tasks/task-drawer.tsx",
+    "previous_batch": "C016",
+    "original_reviewer": "W7",
+    "old_sha256": "84a620e83f5267a50f26137c0bbd269965013ccbf83128f9181a943bdc7a11b0",
+    "new_sha256": "4651142ae756270a103c97090d02b0099e43d32af7667cb6bb33f7f536c188ad",
+    "old_lines": 92,
+    "new_lines": 107,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/tasks/tasks-page.tsx",
+    "previous_batch": "original",
+    "original_reviewer": "original-audit",
+    "old_sha256": "7e4af6bcba52178bd868a261359174d6db2ada2fb0f77febde386e1389115e84",
+    "new_sha256": "89be71b1877b170f7b32477c7e1e9b733e69d5df12597db62d1d9ee20589f780",
+    "old_lines": 190,
+    "new_lines": 236,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/md04-feature-authority-navigation.test.ts",
+    "previous_batch": "C017",
+    "original_reviewer": "W6",
+    "old_sha256": "1efb2fcb6f20129efc9e0a8332cb33d6aac61f7cf808af273013318ea26b675a",
+    "new_sha256": "1cb8a50e0ca1b03bac9605cb221591e59b10b88044d8c9d1d6fee54e408b0a66",
+    "old_lines": 255,
+    "new_lines": 258,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "apps/dashboard/src/lib/navigation/navigation-authority.ts",
+    "previous_batch": "C017",
+    "original_reviewer": "W7",
+    "old_sha256": "f15771df10699cfb03f443fd2514d53098e866e652f94bb6a6e47978fad441ad",
+    "new_sha256": "50ed0da14b997c508434880d9180415419784fbcaa85e5a44be3e9535a3387b4",
+    "old_lines": 69,
+    "new_lines": 74,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "packages/contracts/src/audit-investigation-detail.test.ts",
+    "previous_batch": "C005",
+    "original_reviewer": "dashboard",
+    "old_sha256": "4cae2d6398a2da694edaf8cfb039fc42992783338df50d0f30c7568ee9e1eddd",
+    "new_sha256": "afcb03a001512f12f1da4c12e0c5f118e7de260b0705b2d211fd8f81773a47e0",
+    "old_lines": 70,
+    "new_lines": 72,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "packages/contracts/src/audit-investigation-detail.ts",
+    "previous_batch": "C005",
+    "original_reviewer": "dashboard",
+    "old_sha256": "0bd81894e2cf1406942c3f346b0acfb256d0679979bf9d46dff2fb942bdb7d63",
+    "new_sha256": "2bb775f01efeff87d2c33ef6507710b5e343a70f004dfc7bef7ef7786e98b1db",
+    "old_lines": 76,
+    "new_lines": 76,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "packages/contracts/src/index.ts",
+    "previous_batch": "C010",
+    "original_reviewer": "Prime",
+    "old_sha256": "6c6a60a16828db199cd6e94c50bcbc54875434ac2cf3704c43293aa3172eb0de",
+    "new_sha256": "95f7c484a471680cb81935cd1d76345be1aa6452f86a271b4961686e9d959681",
+    "old_lines": 97,
+    "new_lines": 98,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "packages/contracts/src/location-report.ts",
+    "previous_batch": "C008",
+    "original_reviewer": "c008_contracts_review",
+    "old_sha256": "45b17c6186a0e99564f8152b2cc6b13388a54cebe7be134f74d8be71f2ac307a",
+    "new_sha256": "1bc5f4e27a09680d111f8d998b4a6e903ff046aeed6fc4c76ba79f9f703f63d0",
+    "old_lines": 114,
+    "new_lines": 115,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "packages/contracts/src/management-audit-events.ts",
+    "previous_batch": "original",
+    "original_reviewer": "original-audit",
+    "old_sha256": "ccb04eee2a9411d71654736e54763751ca990231db101b901c96b609d0313f11",
+    "new_sha256": "6584464d6c9a4444fbb3e0f0e2ecb77cc4d58472376be0498e8b29f05d902a10",
+    "old_lines": 110,
+    "new_lines": 111,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "packages/contracts/src/management-audit.test.ts",
+    "previous_batch": "C010",
+    "original_reviewer": "Prime",
+    "old_sha256": "8cb5f0bd44b2755d34b974bd9ac8c03c2f697c51efe9d535fe34dbb1db4a2c97",
+    "new_sha256": "2c9f241b4a22bb06d2b7e06583614124c0b1790859fdff4688262f94d37f7fc0",
+    "old_lines": 175,
+    "new_lines": 176,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "packages/database/prisma/schema.prisma",
+    "previous_batch": "C003",
+    "original_reviewer": "worker-1",
+    "old_sha256": "31b368cfb2c3a2b7e9b47c7bdf4f33f614d1dfde3f730d52869350582d3439fc",
+    "new_sha256": "6de710c4b3afdedfe7e4f197a18cf20e1bbad3c3b13f60ae596896786629f634",
+    "old_lines": 2694,
+    "new_lines": 2751,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "packages/database/scripts/provision-append-only-tables.mjs",
+    "previous_batch": "original",
+    "original_reviewer": "original-audit",
+    "old_sha256": "0dee924c7249814b6934c41e34adfaff3f6ca741ac4f3fedc906d86ec3867aa6",
+    "new_sha256": "7e54de03e9489e10bfa39d4e228d3e2ad8051c8ff8960d2788903589886cd7ee",
+    "old_lines": 97,
+    "new_lines": 112,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  },
+  {
+    "path": "packages/database/scripts/verify-runtime-table-privileges.mjs",
+    "previous_batch": "C009",
+    "original_reviewer": "prime",
+    "old_sha256": "76c0cb759d8a81f80856092032cf53be731624886b5da63d9cf529654c11195a",
+    "new_sha256": "e31931f72e6e3f761fe9d3490266aa2d48e243fbb2c14d68ce8ae7daf1f6b72f",
+    "old_lines": 288,
+    "new_lines": 296,
+    "reason": "GIT_BLOB_CHANGED_MANDATORY_FULL_SEMANTIC_REVIEW"
+  }
+]

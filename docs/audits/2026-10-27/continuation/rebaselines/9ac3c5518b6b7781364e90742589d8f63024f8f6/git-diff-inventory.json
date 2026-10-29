@@ -1,0 +1,620 @@
+[
+  {
+    "status": "M",
+    "path": "apps/api/src/common/http/api-errors.ts",
+    "old_oid": "0814ca1b9ae62458bf94f7816e38e990dd0fab5a",
+    "new_oid": "0d61a9dfe4ccd13544ff822eab567b5a4ac519ea",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/api/src/modules/dashboard/overview-retrieval-tasks-query.ts",
+    "old_oid": "65ba84441b0c016994ed502720e1eaab2349c091",
+    "new_oid": "c57648d5193be63afaa3cce962e69fff515befb2",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/api/src/modules/dispatch/dispatch-errors.ts",
+    "old_oid": "5c610d9875264f5826f96783bbd67ccffd3b342f",
+    "new_oid": "0212ab50e888321bcbe40093080449511cf64a4e",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/api/src/modules/dispatch/dispatch-event-writer.ts",
+    "old_oid": "f554d37270c01c70ae8006d56635c9bded244b36",
+    "new_oid": "5062ce0153fa2d9be27ab714da19437b83c15e28",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/api/src/modules/dispatch/dispatch.module.ts",
+    "old_oid": "011a69a16396cf466f0f8ae62024a6fd585e0e0a",
+    "new_oid": "4dee76d096d1be907f5b58aab5e12713fc5f2e28",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/api/src/modules/management/audit-investigation/timeline/timeline-safe-projection.ts",
+    "old_oid": "5e73ea9013f2b6a851326cb3d9546988d3e0b7c6",
+    "new_oid": "eb53de6895b901ac9254a3540b2288d443d7b6ed",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/api/src/modules/management/management-audit-event-catalog.ts",
+    "old_oid": "5765c684f76fc2b070f7d67a7eb36a1943448222",
+    "new_oid": "8c6920112b032aab26985d0a19020e6e1eee36b9",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/api/src/modules/parking/start-parking-command.ts",
+    "old_oid": "30e1a5dfafaf07ecdd561a8fa9b5d91ae9134f01",
+    "new_oid": "0f19705247d791e84c3051e80ab99ac9741b4699",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/api/src/modules/retrieval/complete-handoff-command.ts",
+    "old_oid": "4ab9040ea31c7caf1e0ce641fe43d5fe0274d86b",
+    "new_oid": "9664ef7b2ae653d1e9cc8d6730ace0f9ed682217",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/api/src/modules/retrieval/handoff-locks.ts",
+    "old_oid": "dedf8cc8cc99f2f5bbe6c3ea6489dd7d9fa4b9a8",
+    "new_oid": "e9f2d9944e115a9908a8188daf10b831b4787d59",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/api/src/modules/retrieval/handoff-release-guard.ts",
+    "old_oid": "3b6c39c5f981b114028219a3b3d83db218c72186",
+    "new_oid": "e9c0986401c34b43a980b135bc6d51f20d6d93a3",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/api/src/modules/retrieval/mark-ready-command.ts",
+    "old_oid": "a3dc17346836f017c67dc0fa10bffe6b78cefda5",
+    "new_oid": "f8c74b0b75a05c03a529201cef7dde2b42f03f75",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/api/src/modules/retrieval/mark-ready-errors.ts",
+    "old_oid": "031857f7575a00811c42ed031d399655f2928635",
+    "new_oid": "7a7f2b78e1af4e29ab4e4d6f0de3c36b6adeb1b0",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/api/src/modules/retrieval/start-retrieval-command.ts",
+    "old_oid": "6cb9c2b4875ad72f0625584fbb98ad967ca76ada",
+    "new_oid": "5ceacc69d3d23b9f19c8fdb057fdccfb8843e315",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/api/src/modules/tracking/live-map-query.ts",
+    "old_oid": "7ffad492ad588c4882fcb6b3e53fe55dbdc21971",
+    "new_oid": "139bab1ab9de4a20a73ae72f0d7b2be8984aa700",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/api/src/modules/tracking/task-tracking-lifecycle.ts",
+    "old_oid": "21d7c3db18fba6315211132bb99f83015cbcbf73",
+    "new_oid": "25d912ee092ba3bdfb97d4437ea263f727e2245e",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/api/test/handoff-command.integration.test.ts",
+    "old_oid": "0047cf061d5b0dd2c19e15716808acef3e123557",
+    "new_oid": "42ab21c225229a6b0f043e1d92380ee63e68517e",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/api/test/management-audit-projection.test.ts",
+    "old_oid": "3a8fcca9b0a5b39840a4adbe087e33c9a3b88398",
+    "new_oid": "cf68810a93ceba43f252155c422ec32c99cdf24f",
+    "previous_status": "not_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/dashboard/src/app/tasks/page.tsx",
+    "old_oid": "6d0948609e17b8bb63fb8c53dbdd594ddb72eb8c",
+    "new_oid": "934ea4ec8f8e16a3a9254ec4c648781faa9f04ba",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/dashboard/src/components/foundation/resolve-navigation-authority.ts",
+    "old_oid": "846b14c3894edf430281dca78cbd548958a3a2fe",
+    "new_oid": "888673ffde7f387ad50a5c602bfffbf965e53128",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/dashboard/src/components/foundation/revalidate-selected-scope.ts",
+    "old_oid": "a631bac9238bd5c3b598a5dd4c2107cb4d34a866",
+    "new_oid": "d49bf60aa0ac6872f3e21d548e9f71ff98535d29",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/dashboard/src/components/scope/location-maps-scope-entry.test.ts",
+    "old_oid": "992eed79720dd6b0fbc94878c35bfa4642b15a6f",
+    "new_oid": "cb0eb2f15976e9a443634437028f49efd50fc810",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/dashboard/src/components/scope/scope-entry-route-policy.ts",
+    "old_oid": "8733fa011f261c25cda726be5d6ba0808c2f2f4f",
+    "new_oid": "8f0ae281f03384d006fa21bda9728963caab2bce",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/dashboard/src/components/scope/scope-entry-selection.ts",
+    "old_oid": "4a6dd4b5f534fdfa73dfaddab891aefabf238079",
+    "new_oid": "c36b3d48199cb5f36b5c42e02fd175ef15a265b2",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/dashboard/src/components/scope/scope-entry.tsx",
+    "old_oid": "00e292f67da412b22f6a2b1ac43a8b4cdeb4e6e7",
+    "new_oid": "f89a14cd44dae444ac13b2a428e9924adad431f8",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/dashboard/src/features/audit/audit-event-copy.ts",
+    "old_oid": "d14d2f8d33878f62993394a87104e2b8f8ed1b8e",
+    "new_oid": "d742fb0fde931d2a1fb696bf010256674972a06a",
+    "previous_status": "not_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/dashboard/src/features/operations/operations-location.ts",
+    "old_oid": "1ec05aaf19bfb6b20d62b907c0c7fe55fd66a284",
+    "new_oid": "9616f2ee31ca91ba9b639c5e064dbefc19a60770",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/dashboard/src/features/operations/operations-navigation.test.ts",
+    "old_oid": "815eea2f9f8c8f270cf35dd3aef9e0c9aaea335b",
+    "new_oid": "c1b53de88527cf3ddb4dff8278c1f8a9f404cb9c",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/dashboard/src/features/operations/operations-navigation.ts",
+    "old_oid": "e591ca8bc2db51b5ffd0da3a8e0201514978e03a",
+    "new_oid": "f9dcd29b66d16d853f5fff7e903f05992737968b",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/dashboard/src/features/operations/tasks/task-drawer.tsx",
+    "old_oid": "88c5bb3f48a7c60294b7c098f5d95d73095ad0f7",
+    "new_oid": "212cee1df113864f7164faac568a809acfaf5259",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/dashboard/src/features/operations/tasks/tasks-page.tsx",
+    "old_oid": "58f9eadf93bae0b55b9ded2eed23d97419d4450c",
+    "new_oid": "fad118bbdba87d03abd6a0775029afb66bbd2331",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/dashboard/src/lib/navigation/dashboard-navigation.test.ts",
+    "old_oid": "8b5a12d9608fc1090ea7611a94ef1febe8211083",
+    "new_oid": "fad2f54ca2cc58578791228a17353dcb8f1c0b93",
+    "previous_status": "not_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/dashboard/src/lib/navigation/md04-feature-authority-navigation.test.ts",
+    "old_oid": "a2fbf8498a8a68f527210af5a25c745086965ef3",
+    "new_oid": "3fa704d8d20fc10242bcc0fd2d70c66a508e5477",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/dashboard/src/lib/navigation/navigation-authority.ts",
+    "old_oid": "4127e24dee5584d38a3ee0f42797ba6ca91bcf60",
+    "new_oid": "2267e44d79dcda5b9e6d3f70ac9fa78e48f91c37",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/dashboard/src/lib/scope/dashboard-commercial-access.test.ts",
+    "old_oid": "91c543cf50521fecee3401709bd5f7f280f56018",
+    "new_oid": "6eb4c7d87253c32b6567f6f4018d0af1797794bc",
+    "previous_status": "not_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "apps/dashboard/src/lib/scope/dashboard-commercial-access.ts",
+    "old_oid": "776209235f6d7732c8db8bc1f53a1e0d3aebc37b",
+    "new_oid": "c57d8e1c4e05903df421a524649365e61519d088",
+    "previous_status": "not_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "docs/03_DATABASE_SCHEMA.md",
+    "old_oid": "5c73b5f2789d4b41fe33e619a65f8b21a6a13498",
+    "new_oid": "fc0855ae41e308ecc09c8dc041929a6c77824af1",
+    "previous_status": "not_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "docs/08_DECISIONS_LOG.md",
+    "old_oid": "0491a101bb4a9c5dec3cbe70d5ab8dbc4998fc9b",
+    "new_oid": "7fbfbdbb35c7e1f213b2c555c0315533c110ffb0",
+    "previous_status": "not_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "docs/decisions/DEC-046_PHASE5_MAPS_TRACKING_PERSISTENCE.md",
+    "old_oid": "61660f3241866b900c7f29f5650242758c2eea95",
+    "new_oid": "726e703df28eee7f03f93c0fe611669a61ffbd54",
+    "previous_status": "not_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "docs/decisions/DEC-048_PHASE5_TRACKING_LIFECYCLE_COMPOSITION.md",
+    "old_oid": "861ba332a29c8015eacadacfba4183f5c9d2cf3c",
+    "new_oid": "74cb068ee44727912bd0ba38e84982a80a477d7e",
+    "previous_status": "not_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "packages/contracts/src/audit-investigation-detail.test.ts",
+    "old_oid": "ec6f25a0deae3897f7992543f5b3f53428674684",
+    "new_oid": "dfb85a71aec2b9a06ca967cc2b99059f21f7fe05",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "packages/contracts/src/audit-investigation-detail.ts",
+    "old_oid": "176ff9b19897c2c49d7829362ad2c4615005f0bb",
+    "new_oid": "e9d6576b278fcca946a13643a20fabf46104df74",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "packages/contracts/src/index.ts",
+    "old_oid": "48f9e53420c69801b6be9a0299889aad6598ac11",
+    "new_oid": "418eeac711cba1f662c98f619d310b5100993992",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "packages/contracts/src/location-report.ts",
+    "old_oid": "7687ee887212bd0c6aa4a15ff4f97fa8704c252c",
+    "new_oid": "ed578116e300dd47c156dcd2c069a8af29791fb5",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "packages/contracts/src/management-audit-events.ts",
+    "old_oid": "191ae68cea1c73d1e63de3ac94bef1f1281ccb6c",
+    "new_oid": "abc8bc079ee0b999bd526a310a1a5342a2bff8b2",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "packages/contracts/src/management-audit.test.ts",
+    "old_oid": "637074cc98a93a4f83aa2ed87e505a586c1420d1",
+    "new_oid": "7aa2731ee1e52f1ec4afd92efcdef624ea913ef8",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "packages/database/prisma/schema.prisma",
+    "old_oid": "181a262772b098953ff1bf6336aaef2a520b7ab0",
+    "new_oid": "e8d3c20c008ac408df8656312b86854485bb483b",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "packages/database/scripts/provision-append-only-tables.mjs",
+    "old_oid": "db94705c1c72001d99750528ea6ca64682dbc93c",
+    "new_oid": "18d16154e7e77be33b8561ba487fb50c9026425b",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "M",
+    "path": "packages/database/scripts/verify-runtime-table-privileges.mjs",
+    "old_oid": "7756ae72a75a8ca82b9249eedec5d79dbb192277",
+    "new_oid": "5f7cbb98c8e46bb49366f03b7cac54c5a177c56b",
+    "previous_status": "fully_reviewed"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/src/modules/dashboard/supervisor-emergency-tasks-scope.ts",
+    "new_oid": "7f858f29dbe1f269b1f4f85c808b16af00cab9a8"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/src/modules/dispatch/emergency-takeover-authorization.ts",
+    "new_oid": "b9f6d7a806cd00533386cb018792815354361699"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/src/modules/dispatch/emergency-takeover-command.ts",
+    "new_oid": "65347707617b02a81e99502fca94030c328ab947"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/src/modules/dispatch/emergency-takeover-domain.ts",
+    "new_oid": "d23df50f618bd21589cca65ad05050b4af4b883f"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/src/modules/dispatch/emergency-takeover-history.ts",
+    "new_oid": "607821b4650bfecd0fa5d9cb195336216be5ff31"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/src/modules/dispatch/emergency-takeover-idempotency.ts",
+    "new_oid": "ec3c21420c1d16848a69a9db83bc58e73782b37e"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/src/modules/dispatch/emergency-takeover-locks.ts",
+    "new_oid": "0bdbf7c7baa174196e6422d6a469239975ffc8eb"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/src/modules/dispatch/emergency-takeover-mutation.ts",
+    "new_oid": "0b2115e9607c39bd93557e8345a77ba88700b91e"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/src/modules/dispatch/emergency-takeover-types.ts",
+    "new_oid": "fa5e66e587d65fe015f6280a4b8685083235cda5"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/src/modules/dispatch/emergency-task-takeover.authority.ts",
+    "new_oid": "f0b438e4c4e1e92950ed2b3b6ce8aa479b0d3585"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/src/modules/dispatch/emergency-task-takeover.controller.ts",
+    "new_oid": "b068583eaa7035b9d33282d3bfe596db8a6a3d43"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/src/modules/dispatch/emergency-task-takeover.detail-query.ts",
+    "new_oid": "259f6a0b3139e52fb8617789fc68d40be0f67a9c"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/src/modules/retrieval/handoff-takeover-proof-guard.ts",
+    "new_oid": "73e1dab87c3e2ea787e116228e73bd150b3c840d"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/src/modules/tracking/tracking-takeover-attribution.ts",
+    "new_oid": "af714d7162b91e5c11aaafe2c15f824ff21cbeea"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/test/emergency-takeover-domain.test.ts",
+    "new_oid": "1fd5042cbffaf84a546563a43d8c407a628a1725"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/test/emergency-takeover-idempotency.test.ts",
+    "new_oid": "27f70aba88c5c27870169d8743e5b858a2ac5712"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/test/emergency-task-takeover-authority.test.ts",
+    "new_oid": "34ada2024ea82c2f4ea3fd802ce4c49dbda7c9ae"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/test/emergency-task-takeover-context.test.ts",
+    "new_oid": "07ee2b8b801f6e0bce4b1f7b0f209e2270d856cd"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/test/handoff-takeover-proof-guard.test.ts",
+    "new_oid": "84860e86f83479e7d463ca90a85a9d9e2fc9ede6"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/test/issue352-supervisor-tasks-races.integration.test.ts",
+    "new_oid": "bb817daf9b27252adf9e4cab36bcf81a61582c9e"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/test/issue352-supervisor-tasks.integration.test.ts",
+    "new_oid": "ec6bf075ba79f129c0f75674319f8c350f6914bc"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/test/issue352-takeover-authority.integration.test.ts",
+    "new_oid": "d6fed1d27e24b656a0540ac46a4cf749fda5a07c"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/test/issue352-takeover-command.integration.test.ts",
+    "new_oid": "2327b06b2f03fedec5f67190e1e2d5148c2f2afb"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/test/issue352-takeover-custody-xid.integration.test.ts",
+    "new_oid": "15c99dbd2d51c59e516023ca5be95ebb1ccd8c64"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/test/issue352-takeover-persistence.integration.test.ts",
+    "new_oid": "5f1b970ad8527ded74fadeef93bae3365a44ce65"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/test/issue352-takeover-race-fixture.ts",
+    "new_oid": "63c407ff9f934a1c208b97ddb2617fc95e81a2ce"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/test/issue352-takeover-races.integration.test.ts",
+    "new_oid": "f2d94de26f4fb81e0b47706375eb35b4e3dc24be"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/test/issue352-takeover-test-context.ts",
+    "new_oid": "b8109494ceb51d51c2f50245cd8c9912a706b531"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/test/issue352-takeover-tracking.integration.test.ts",
+    "new_oid": "409f1f7ec32a7538156553ee7c7c559d5abb3c3d"
+  },
+  {
+    "status": "A",
+    "path": "apps/api/test/tracking-takeover-attribution.test.ts",
+    "new_oid": "9d8c7fae52f7efbeeb24b8788208a5eb34312b73"
+  },
+  {
+    "status": "A",
+    "path": "apps/dashboard/e2e/issue352-supervisor-nav-visual.spec.ts",
+    "new_oid": "b1d9f07f2c4bdb08cdf6cf3347fb2f8602c379d3"
+  },
+  {
+    "status": "A",
+    "path": "apps/dashboard/e2e/issue352-supervisor-takeover.spec.ts",
+    "new_oid": "e6a0a1e2371de1103d62c8c55fefeb928b4322ab"
+  },
+  {
+    "status": "A",
+    "path": "apps/dashboard/e2e/issue352-supervisor-task-visual.spec.ts",
+    "new_oid": "7124dbf75bcf9610b18a545c20cf81fae135e42a"
+  },
+  {
+    "status": "A",
+    "path": "apps/dashboard/e2e/issue352-takeover-interaction.spec.ts",
+    "new_oid": "cfb79f89d9a67775d73d5724119fe2f233476fb4"
+  },
+  {
+    "status": "A",
+    "path": "apps/dashboard/e2e/issue352-takeover-visual-freeze.spec.ts",
+    "new_oid": "942ebb2cbfc17d5762692b5eb40ee25295842605"
+  },
+  {
+    "status": "A",
+    "path": "apps/dashboard/e2e/support/issue352-takeover-fixtures.ts",
+    "new_oid": "b99dbabf69ec09be76e5f085ee91161e2905893b"
+  },
+  {
+    "status": "A",
+    "path": "apps/dashboard/src/components/foundation/emergency-tasks-access.test.ts",
+    "new_oid": "10e2586fd6425c6d51b6a1cd43315a11da3dacfa"
+  },
+  {
+    "status": "A",
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-takeover-api.ts",
+    "new_oid": "7a056b1fc982ddfb7178085e5c58a153b6b78c33"
+  },
+  {
+    "status": "A",
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-takeover-copy.ts",
+    "new_oid": "7f57d68feeb9c4e8251e6b23e0af9292ebfc627d"
+  },
+  {
+    "status": "A",
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-takeover-dialog-controller.tsx",
+    "new_oid": "34c5483428ffb566a15fc356b9ec50f108ec9879"
+  },
+  {
+    "status": "A",
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-takeover-dialog.tsx",
+    "new_oid": "86ae9f9eb3fdcc530f4d29b3ffb770bec081c8ca"
+  },
+  {
+    "status": "A",
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-takeover-intent.test.ts",
+    "new_oid": "2c483c883537a008f4d5294bc32dbc6cbc15dc64"
+  },
+  {
+    "status": "A",
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-takeover-intent.ts",
+    "new_oid": "bb82a51021b4b933e3758f4458ba4163f90b58a5"
+  },
+  {
+    "status": "A",
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-takeover-view.test.ts",
+    "new_oid": "d24b14c6438a289209ea4f780b42828e2f60ad48"
+  },
+  {
+    "status": "A",
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-takeover-view.ts",
+    "new_oid": "6d3cb690965c145f38c07dd90293cf0f54e61b24"
+  },
+  {
+    "status": "A",
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-task-drawer.tsx",
+    "new_oid": "ce13cf3476e02776e66ba1bf2b0ff0718f72895d"
+  },
+  {
+    "status": "A",
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-tasks-visibility.test.ts",
+    "new_oid": "c0682419e3aee075878d4c41d4a5b25cc18466c8"
+  },
+  {
+    "status": "A",
+    "path": "apps/dashboard/src/features/operations/tasks/emergency-tasks-visibility.ts",
+    "new_oid": "0ef2935cb335f58222c994e8e6e7b3a1b316773e"
+  },
+  {
+    "status": "A",
+    "path": "apps/dashboard/src/features/operations/tasks/use-emergency-action-eligibility.ts",
+    "new_oid": "08b833edbbfde4fd275be1460c5836ca2425c935"
+  },
+  {
+    "status": "A",
+    "path": "apps/dashboard/src/features/operations/tasks/use-emergency-takeover.ts",
+    "new_oid": "f8765aa2c675b7d5424cabca02cf1fb0c46c5f19"
+  },
+  {
+    "status": "A",
+    "path": "docs/decisions/DEC-107_EMERGENCY_TASK_TAKEOVER.md",
+    "new_oid": "2677147a39f94f8a578da416599b6d757f1050eb"
+  },
+  {
+    "status": "A",
+    "path": "packages/contracts/src/emergency-task-takeover.test.ts",
+    "new_oid": "a7d0c8fe392cb6d5e8a9a5ffba9a414a53b36373"
+  },
+  {
+    "status": "A",
+    "path": "packages/contracts/src/emergency-task-takeover.ts",
+    "new_oid": "e124e785c612b328ad26be2d67baf72b9873860f"
+  },
+  {
+    "status": "A",
+    "path": "packages/database/prisma/migrations/20261029010400_issue352_emergency_dispatch_type/migration.sql",
+    "new_oid": "0e726718ec38ac4b8b2bf48a6240fcfe42aa1f44"
+  },
+  {
+    "status": "A",
+    "path": "packages/database/prisma/migrations/20261029010500_issue352_emergency_takeover_persistence/migration.sql",
+    "new_oid": "f4d0de82d0b2e5cd4f4103f3fd15a124d0ad0132"
+  }
+]

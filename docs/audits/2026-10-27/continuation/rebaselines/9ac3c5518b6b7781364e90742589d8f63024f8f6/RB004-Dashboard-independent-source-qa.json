@@ -1,0 +1,60 @@
+{
+  "result": "PASS_TARGETED_DEPENDENCY_REVIEW",
+  "source_commit": "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+  "source_tree": "df279eba03754d18eaa98b3245b810cb808f82cf",
+  "execution_agent_id": "/root/rb004_dashboard_local",
+  "scope": "Dashboard Supervisor Tasks navigation/revalidation and Native takeover tracking integration",
+  "read_method": "Independent local GitHub clone; source files read 1..EOF, old/new Git OIDs identical and C021 published fully_reviewed status verified",
+  "reviewed_paths": [
+    "apps/dashboard/src/components/foundation/selected-management-shell.tsx",
+    "apps/dashboard/src/components/foundation/use-selected-scope-revalidation.ts",
+    "apps/dashboard/src/components/foundation/navigation-authority-special-scopes.test.ts",
+    "apps/dashboard/src/lib/navigation/dashboard-navigation.ts",
+    "apps/valet-native/src/tracking/native-task-tracking-runtime.ts"
+  ],
+  "invalidations": [
+    {
+      "path": "apps/dashboard/src/components/foundation/selected-management-shell.tsx",
+      "trigger": "apps/dashboard/src/components/foundation/revalidate-selected-scope.ts:106-117; apps/dashboard/src/components/foundation/resolve-navigation-authority.ts:145-146",
+      "reason": "Unchanged selected shell at 81-97,154-173,242-285 now routes/render-protects authorized Supervisor EMERGENCY_TASKS, requiring fresh exact Shift/route isolation review.",
+      "read_range": "1..288"
+    },
+    {
+      "path": "apps/dashboard/src/components/foundation/use-selected-scope-revalidation.ts",
+      "trigger": "apps/dashboard/src/components/foundation/revalidate-selected-scope.ts:106-117",
+      "reason": "Unchanged generation/denial invalidation hook at 97-135,184-225 now consumes new Supervisor EMERGENCY_TASKS route revalidation; prior denial/revocation claims need reassessment.",
+      "read_range": "1..235"
+    },
+    {
+      "path": "apps/dashboard/src/components/foundation/navigation-authority-special-scopes.test.ts",
+      "trigger": "apps/dashboard/src/components/foundation/resolve-navigation-authority.ts:145-146; apps/dashboard/src/features/operations/operations-navigation.ts:25-33",
+      "reason": "Existing Supervisor special-scope assertions at 169-225 cover Foundation/Maps/Audit, not new Tasks eligibility and revoked Shift route; old test coverage claim incomplete.",
+      "read_range": "1..298"
+    },
+    {
+      "path": "apps/dashboard/src/lib/navigation/dashboard-navigation.ts",
+      "trigger": "apps/dashboard/src/features/operations/operations-navigation.ts:25-33; apps/dashboard/src/lib/navigation/navigation-authority.ts:55-57",
+      "reason": "Unchanged navigation registration aggregator at 19-26 composes modified Tasks registration/eligibility; role-visible output differs from prior semantic review.",
+      "read_range": "1..26"
+    },
+    {
+      "path": "apps/valet-native/src/tracking/native-task-tracking-runtime.ts",
+      "trigger": "apps/api/src/modules/tracking/task-tracking-lifecycle.ts:36-73; apps/api/src/modules/tracking/live-map-query.ts:51,87-91",
+      "reason": "Native tracking consumer at 141-175,195-214 now interoperates with takeover owner-snapshot segment transition A to B; old upload rejection and tracker segment assumptions require conservative re-review, not evidence of bypass.",
+      "read_range": "1..281"
+    }
+  ],
+  "runtime_tests_executed": 0,
+  "limitations": [
+    "Targeted source audit only; Native dependency effect is moderate-confidence/precautionary; no runtime execution",
+    "No evidence of security bypass"
+  ],
+  "cleared_paths": [
+    "apps/dashboard/src/components/foundation/use-navigation-authority.ts",
+    "apps/dashboard/src/components/scope/location-switch-authority.ts",
+    "apps/dashboard/src/components/foundation/supervisor-foundation-access.test.ts",
+    "apps/dashboard/src/components/foundation/resolve-navigation-authority.test.ts",
+    "apps/dashboard/src/components/foundation/navigation-authority-demand.test.ts",
+    "apps/dashboard/src/lib/navigation/navigation-registry.ts"
+  ]
+}
