@@ -13,7 +13,7 @@ const authResponse = () => Response.json(authPayload);
 const previousStorage = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
 const previousWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
 
-type StorageAccess = "writable" | "read-denied" | "write-denied" | "missing";
+type StorageAccess = "writable" | "read-denied" | "write-denied" | "remove-denied" | "missing";
 
 function installStorage(access: StorageAccess, values = new Map<string, string>()) {
   Object.defineProperty(globalThis, "window", { configurable: true, value: {} });
@@ -31,7 +31,7 @@ function installStorage(access: StorageAccess, values = new Map<string, string>(
       values.set(key, value);
     },
     removeItem(key: string) {
-      if (access === "write-denied") throw new DOMException("Access denied", "SecurityError");
+      if (access === "write-denied" || access === "remove-denied") throw new DOMException("Access denied", "SecurityError");
       values.delete(key);
     },
   };
@@ -51,7 +51,7 @@ afterEach(() => {
 });
 
 describe("Dashboard fail-closed bootstrap", () => {
-  it.each<StorageAccess>(["read-denied", "write-denied", "missing"])(
+  it.each<StorageAccess>(["read-denied", "write-denied", "remove-denied", "missing"])(
     "rejects silent refresh without browser storage: %s",
     async (access) => {
       installStorage(access);

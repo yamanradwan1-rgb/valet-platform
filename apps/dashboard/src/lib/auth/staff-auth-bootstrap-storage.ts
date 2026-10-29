@@ -13,22 +13,25 @@ export function canRestoreStaffCookieSession(markerKey: string): boolean {
 
   let storage: Storage | undefined;
   let probeKey: string | undefined;
+  let reliable = false;
   try {
     storage = globalThis.localStorage;
     if (storage === undefined || storage.getItem(markerKey) === "1") return false;
 
     probeKey = `vaylet_staff_storage_probe_${Math.random().toString(36).slice(2)}`;
     storage.setItem(probeKey, "1");
-    return storage.getItem(probeKey) === "1";
+    reliable = storage.getItem(probeKey) === "1";
   } catch {
     return false;
   } finally {
     if (storage !== undefined && probeKey !== undefined) {
       try {
         storage.removeItem(probeKey);
+        if (storage.getItem(probeKey) !== null) reliable = false;
       } catch {
-        // Unable to clean up confirms unreliable browser storage.
+        reliable = false;
       }
     }
   }
+  return reliable;
 }
