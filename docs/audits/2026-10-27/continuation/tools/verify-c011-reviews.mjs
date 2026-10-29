@@ -16,16 +16,10 @@ const roster = JSON.parse(readFileSync(join(root, 'checkpoints', 'C011-d67b2a4a-
 const handoffs = JSON.parse(readFileSync(join(root, 'checkpoints', 'C011-d67b2a4a-ownership-transfers.json'), 'utf8'));
 const fallback = JSON.parse(readFileSync(join(root, 'checkpoints', 'C011-d67b2a4a-w1-fallback-addendum.json'), 'utf8'));
 if (roster.source_commit !== fullSha || roster.source_tree !== tree || roster.assignments.length !== 175 ||
-    handoffs.source_commit !== fullSha || handoffs.transfers.length !== 50 || !roster.immutable ||
+    handoffs.source_commit !== fullSha || ![50,75].includes(handoffs.transfers.length) || !roster.immutable ||
     fallback.source_commit !== fullSha || fallback.transfers.length !== 35) throw new Error('Roster provenance mismatch');
 const byPath = new Map(roster.assignments.map(item => [item.path, item]));
 if (byPath.size !== 175) throw new Error('Duplicate roster path');
-const transferMap = new Map(handoffs.transfers.map(item => [item.path, item]));
-if (transferMap.size !== 50) throw new Error('Duplicate transfer path');
-for (const [path, handoff] of transferMap) {
-  const a = byPath.get(path);
-  if (!a || a.original_owner !== handoff.original_owner || a.assigned_reviewer !== handoff.actual_reviewer) throw new Error('Invalid original owner transfer: ' + path);
-}
 const fallbackMap = new Map(fallback.transfers.map(item => [item.path, item]));
 if (fallbackMap.size !== 35) throw new Error('Duplicate fallback transfer');
 for (const [path, item] of fallbackMap) {
@@ -36,6 +30,20 @@ for (const [path, item] of fallbackMap) {
   }
 }
 const effectiveReviewer = assignment => fallbackMap.get(assignment.path)?.actual_reviewer ?? assignment.assigned_reviewer;
+const transferMap = new Map(handoffs.transfers.map(item => [item.path, item]));
+if (transferMap.size !== handoffs.transfers.length) throw new Error('Duplicate transfer path');
+for (const [path, handoff] of transferMap) {
+  const a = byPath.get(path);
+  const reviewer = handoffs.transfers.length === 75 ? effectiveReviewer(a ?? {}) : a?.assigned_reviewer;
+  if (!a || a.original_owner !== handoff.original_owner || reviewer !== handoff.actual_reviewer ||
+      reviewer === a.original_owner) throw new Error('Invalid original owner transfer: ' + path);
+}
+if (handoffs.transfers.length === 75) {
+  for (const item of roster.assignments) {
+    const needsTransfer = effectiveReviewer(item) !== item.original_owner;
+    if (transferMap.has(item.path) !== needsTransfer) throw new Error('Effective transfer accounting mismatch: ' + item.path);
+  }
+}
 
 const expectedFiles = new Map();
 for (const item of roster.assignments) {

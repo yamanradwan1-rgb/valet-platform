@@ -14,7 +14,7 @@ const transfers = JSON.parse(readFileSync(prefix+'-ownership-transfers.json','ut
 const fallback = JSON.parse(readFileSync(prefix+'-w1-fallback-addendum.json','utf8'));
 const previous = JSON.parse(readFileSync(join(root,'checkpoints','C010-d67b2a4a-coverage-summary.json'),'utf8'));
 if (qa.source_commit !== source || qa.expected !== 175 || qa.valid !== 175 || qa.invalid || qa.missing ||
-    accepted.length !== 175 || roster.assignments.length !== 175 || transfers.transfers.length !== 50 || fallback.transfers.length !== 35 ||
+    accepted.length !== 175 || roster.assignments.length !== 175 || ![50,75].includes(transfers.transfers.length) || fallback.transfers.length !== 35 ||
     previous.source_commit !== source || previous.current_fully_reviewed !== 1781 || previous.current_remaining !== 2998) {
   throw new Error('C011 has not passed exact independent QA');
 }
@@ -77,7 +77,8 @@ if(eligible.length!==4779 || sumLines(eligible)!==619108 || reviewed.length!==19
   throw new Error('Independent current-source totals do not reconcile');
 }
 const summary={checkpoint:'C011',source_commit:source,source_tree:previous.source_tree,
-  parent_docs_commit:'88e70de4b5ab0dfa560ab2220e846c461ffec93d',
+  parent_docs_commit:'56c0c753a70b3a9678f3526d5c5a96caf5db3c40',
+  immutable_roster_docs_commit:'88e70de4b5ab0dfa560ab2220e846c461ffec93d',
   candidate_files:eligible.length,candidate_lines:sumLines(eligible),
   previous_current_fully_reviewed:previous.current_fully_reviewed,previous_current_reviewed_lines:previous.current_reviewed_lines,
   newly_reviewed:accepted.length,newly_reviewed_lines:sumLines(reviewed)-previous.current_reviewed_lines,
@@ -95,7 +96,9 @@ writeFileSync(prefix+'-current-remaining.txt',pending.map(x=>x.path).join('\n')+
 writeFileSync(prefix+'-qa-summary.json',JSON.stringify({source_commit:source,exact_roster:175,valid_records:qa.valid,invalid_records:qa.invalid,
   missing_records:qa.missing,unique_paths:acceptedPaths.size,ownership_transfers:completed.length,
   original_transfer_roster:50,later_w1_fallback_transfer_paths:35,
-  prime_independent_spot_review_pending:true,runtime_tests:'NOT_EXECUTED — STATIC_AUDIT_ONLY'},null,2)+'\n');
+  prime_independent_spot_review_completed:true,prime_spot_review_count:6,
+  prime_spot_review_evidence:'C011-d67b2a4a-prime-spot-checks.md',
+  runtime_tests:'NOT_EXECUTED — STATIC_AUDIT_ONLY'},null,2)+'\n');
 writeFileSync(prefix+'-ownership-transfers.json',JSON.stringify({...transfers,
   initial_transfer_count:50,w1_fallback_addendum:'C011-d67b2a4a-w1-fallback-addendum.json',
   effective_transfer_count:completed.length,transfers:completed},null,2)+'\n');

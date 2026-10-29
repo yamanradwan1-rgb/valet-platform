@@ -5,6 +5,13 @@
   "runtime_tests_executed": 0,
   "candidates_without_duplicate_credit": [
     {
+      "id": "C011-W2-W1F-CANDIDATE-001",
+      "severity": "P2",
+      "confidence": "HIGH_FOR_RACE_STRUCTURE_MEDIUM_FOR_USER_IMPACT",
+      "status": "STATIC_CANDIDATE_UNVALIDATED",
+      "title": "In-flight Location Manager visit-contact read may outlive revocation of location grant"
+    },
+    {
       "id": "C011-W2-CANDIDATE-001",
       "severity": "P2",
       "confidence": "MEDIUM",
@@ -23,6 +30,36 @@
     }
   ],
   "raw_independent_worker_evidence": [
+    {
+      "worker": "W2",
+      "scratch_name": "C011-W2-W1-fallback-candidate-findings.json",
+      "findings": [
+        {
+          "id": "C011-W2-W1F-CANDIDATE-001",
+          "batch": "C011",
+          "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+          "status": "STATIC_CANDIDATE_UNVALIDATED",
+          "severity": "P2",
+          "confidence": "HIGH_FOR_RACE_STRUCTURE_MEDIUM_FOR_USER_IMPACT",
+          "primary_location": "apps/api/src/modules/management/management-visit-contact-authorization.ts:68-116",
+          "related_locations": [
+            "apps/api/src/modules/management/management-visit-contact-authorization.ts:30-60",
+            "apps/api/src/modules/management/management-visit-contact.service.ts:91-101",
+            "apps/api/src/modules/management/management-visit-contact.service.ts:104-134",
+            "apps/api/src/modules/management/management-visit-contact-search-query.ts:29-31,119-127",
+            "apps/api/src/modules/management/management-visit-contact-history-query.ts:21-23,86-95",
+            "apps/api/src/common/database/postgres-transaction.ts:36-40"
+          ],
+          "title": "In-flight Location Manager visit-contact read may outlive revocation of location grant",
+          "preconditions": "Location Manager starts search or history with active staff session and valid membership_location_access for Location L. authorizeLocationManager SELECT at lines 68-95 aggregates authorized Location IDs without FOR SHARE locks, returns viewer.locationIds. Another transaction deletes L's access grant, disables membership or revokes session and commits before next query. The first transaction uses default READ COMMITTED (plain BEGIN) and subsequent queryVisitCustomers/queryVisitHistory binds already-captured locationIds without joining/rechecking current grant/session, potentially returning previously authorized customers/visits after revocation.",
+          "impact": "Narrow within-request stale authorization window may expose customer display names, vehicle plates and visit history for newly revoked Location; phone is masked for LOCATION_MANAGER. This is a concurrency authorization consistency defect candidate, not evidence of cross-organization exposure or a successful runtime PoC.",
+          "existing_mitigations": "Every new request rechecks current session, active org/membership and explicit access; all reads filter original organization and a preauthorized location list; phone projection masks all but final four digits for LM. No free-form generic query or mutation. Company Admin path uses stronger MFA/session locks.",
+          "counterevidence": "apps/api/test/management-visit-contact-authorization.integration.test.ts:113-122 proves revocation blocks a subsequent request after DELETE, but not a barrier-concurrent deletion after grant aggregation and before sensitive read. No in-flight grant-lock check observed in assigned file or downstream query.",
+          "suggested_validation": "In isolated PG test, pause after authorizeVisitContactRead returns locationIds, revoke membership_location_access or staff_auth_sessions in another transaction and commit, resume queryVisitHistory/search, assert stale-data denial. An authorization lock on relevant session/membership/access rows or transactional late recheck should fence it.",
+          "tests": "NOT_EXECUTED — STATIC_AUDIT_ONLY"
+        }
+      ]
+    },
     {
       "worker": "W2",
       "scratch_name": "C011-W2-candidate-findings.json",
