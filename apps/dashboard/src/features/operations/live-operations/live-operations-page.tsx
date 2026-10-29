@@ -41,7 +41,7 @@ function LiveOperationsContent() {
   const [filter, setFilter] = useState<LiveOperationsFilter>("ALL");
   const [listRevision, setListRevision] = useState(0);
   const [view, setView] = useState<LiveOperationsView>("SESSIONS");
-  const { available, resumeRevision } = useLiveReadAvailability();
+  const { available, initialized, resumeRevision } = useLiveReadAvailability();
   const refreshReads = useCallback(() => {
     setListRevision((revision) => revision + 1);
   }, []);
@@ -87,6 +87,11 @@ function LiveOperationsContent() {
     enabled && available && view === "RETRIEVAL_QUEUE",
   );
   const kpis = counts.data === null ? null : liveOperationsKpis(counts.data);
+  const unavailableError = initialized && !available
+    ? new Error(locale === "ar"
+      ? "بيانات العمليات المباشرة غير متاحة أثناء انقطاع الاتصال أو إخفاء الصفحة."
+      : "Live operations data is unavailable while offline or in the background.")
+    : null;
 
   if (!enabled || location === null) {
     return (
@@ -139,7 +144,7 @@ function LiveOperationsContent() {
         </div>
         <LiveFilters
           help={<ScopedContextHelp helpKey={view === "RETRIEVAL_QUEUE" ? "live.retrieval" : "live.sessions"} />}
-          countsError={counts.error}
+          countsError={unavailableError ?? counts.error}
           filter={filter}
           locale={locale}
           onChange={(next) => {
@@ -162,9 +167,9 @@ function LiveOperationsContent() {
             key={`queue:${listRevision}:${retrievalPage.cursor}`}
             canNext={Boolean(retrieval.data?.nextCursor)}
             canPrevious={retrievalPage.canPrevious}
-            error={retrieval.error}
+            error={unavailableError ?? retrieval.error}
             items={retrieval.data?.items ?? []}
-            loading={retrieval.loading}
+            loading={!initialized || retrieval.loading}
             locale={locale}
             location={location}
             onNext={() => {
@@ -185,9 +190,9 @@ function LiveOperationsContent() {
             key={`sessions:${listRevision}:${filter}:${page.cursor}`}
             canNext={Boolean(sessions.data?.nextCursor)}
             canPrevious={page.canPrevious}
-            error={sessions.error}
+            error={unavailableError ?? sessions.error}
             items={sessions.data?.items ?? []}
-            loading={sessions.loading}
+            loading={!initialized || sessions.loading}
             locale={locale}
             location={location}
             onNext={() => {

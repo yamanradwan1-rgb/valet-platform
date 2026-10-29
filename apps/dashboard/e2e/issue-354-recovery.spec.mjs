@@ -82,6 +82,8 @@ test("count failure retries rows and counts, with no reads hidden or offline", a
     Object.defineProperty(navigator, "onLine", { configurable: true, value: false });
     window.dispatchEvent(new Event("offline"));
   });
+  await expect(page.locator('[class*="liveInlineError"][role="alert"]')).toBeVisible();
+  await expect(page.getByText("No current data is available.")).toHaveCount(0);
   parking = 1;
   await page.getByRole("button", { name: "All", exact: true }).click();
   await page.waitForTimeout(150);
