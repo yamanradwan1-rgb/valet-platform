@@ -1,0 +1,88 @@
+{
+  "batch": "C020",
+  "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "source_tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "status": "LOCAL_STRICT_175_VALID_ZERO_INVALID_MISSING_INDEPENDENT_SOURCE_AND_LEDGER_QA_PASS_AWAITING_REMOTE_PUBLICATION",
+  "runtime_tests_executed": 0,
+  "strict_review_records": 175,
+  "strict_invalid_records": 0,
+  "strict_missing_records": 0,
+  "new_confirmed_p0": 0,
+  "new_confirmed_p1": 0,
+  "new_confirmed_p2": 0,
+  "source_only_candidates": [
+    {
+      "id": "C020-PRIME-W2-P3-TRACKED-EXPLAIN-EVIDENCE-WRITER",
+      "triaged_severity": "P3_HIGH_CONFIDENCE_SOURCE_TEST_EVIDENCE_SIDE_EFFECT_NO_RUNTIME_PROOF",
+      "original_reporter": "W2",
+      "independently_checked_by": "Prime",
+      "status": "SOURCE_SUPPORTED_NOT_A_PRODUCT_SECURITY_VULNERABILITY",
+      "evidence": [
+        "apps/api/test/staff-shift-history-plan.integration.test.ts:11-108",
+        "apps/api/test/staff-shift-history-plan.integration.test.ts:94-107",
+        "apps/api/src/modules/management/staff-shift-history-query.ts",
+        "docs/validation/issue240e-query-plans.json"
+      ],
+      "hypothesis": "A successful package-root PostgreSQL query-plan benchmark writes non-deterministic EXPLAIN ANALYZE timing/plan data directly into a Git-tracked validation JSON path. The code hardcodes migrationsThrough 96 while the current committed artifact says 53; the run can dirty the product source worktree or create non-reproducible tracked evidence.",
+      "counterevidence": "The benchmark only runs when explicitly selected. No such test was executed in this audit, and no runtime/product/security consequence was shown. Prime confirmed target is tracked using git ls-files and compared static JSON contents.",
+      "next": "Separately decide whether generated measurements should be ignored/untracked or explicitly generated under a controlled evidence update workflow; never mutate it as part of this audit."
+    },
+    {
+      "id": "C020-PRIME-W2-W3-P3-START-SHIFT-STALE-LOCATION-CHOICE",
+      "triaged_severity": "P3_CONDITIONAL_SOURCE_ONLY_UI_CORRECTNESS_NO_RUNTIME_PROOF",
+      "original_reporters": ["W2", "W3"],
+      "independently_checked_by": "Prime",
+      "status": "ONE_DEDUPLICATED_ROOT_CAUSE_NOT_BACKEND_AUTHORIZATION_BYPASS",
+      "evidence": [
+        "apps/valet/src/components/shell/employee-start-shift-panel.tsx:45-50,102-109,134-143",
+        "apps/valet/src/components/shell/employee-operational-gate.tsx:82-101",
+        "apps/valet/src/components/shell/employee-operational-screen.tsx:90-103",
+        "apps/valet/src/components/employee-app.tsx:101-107,199-215",
+        "apps/valet/src/components/shell/employee-start-shift-panel.test.tsx:33-57,59-178"
+      ],
+      "hypothesis": "If a no-active-shift gate stays mounted while its authoritative eligibleLocations refresh removes previously selected A, chosenLocationId remains A; rendered options may list only B, but the Start button can still submit A because effectiveChosen checks non-null and not membership in current locations.",
+      "counterevidence": "The backend Start Shift command rechecks actor and location authority; no cross-tenant or permission bypass was shown. A refresh that unmounts the gate may reset state. SSR tests only exercise first render, and no mounted rerender/HTTP proof was run.",
+      "next": "In a separate approved implementation, mounted rerender test with A removed and B retained; reset or gate stale selection by membership in current authoritative locations, while preserving uncertain-command retry semantics."
+    },
+    {
+      "id": "C020-W6-CAND-001",
+      "triaged_severity": "P3_CONDITIONAL_SOURCE_ONLY_NATIVE_PROVENANCE_LABEL_NO_RUNTIME_PROOF",
+      "original_reporter": "W6",
+      "independently_checked_by": "Prime",
+      "status": "SOURCE_SUPPORTED_UI_PROVENANCE_DISPLAY_NOT_OCR_SECURITY_BYPASS",
+      "evidence": [
+        "apps/valet-native/src/check-in/native-check-in-state-steps.tsx:95-104",
+        "apps/valet-native/src/check-in/native-check-in-identity-context.tsx:41-45,65-73",
+        "apps/valet-native/src/check-in/native-check-in-presentation.ts:11-20",
+        "apps/valet-native/src/check-in/native-check-in-capture-step.tsx:51,147",
+        "apps/valet-native/src/check-in/native-check-in-confirm-step.tsx:45",
+        "packages/employee-client/src/employee-check-in-session.ts:100",
+        "apps/valet-native/test/native-check-in-busy-recovery-parity.test.tsx:163-184"
+      ],
+      "hypothesis": "During recognizing, NativeBusyStep passes presentation=camera regardless of manual capture selection; identity context then displays Detected and High confidence for a manually entered confirmed plate. The existing parity test verifies plate visibility/busy action but not provenance wording.",
+      "counterevidence": "No mounted Native runtime reproduction, OCR invocation proof or backend authority/state change was executed. This is misleading visual provenance only and may be masked in configurations not taking the manual-to-recognizing path.",
+      "next": "Separately test actual manual confirm-to-recognizing UI and preserve real presentation throughout the busy step if confirmed; do not change frozen UI in this audit."
+    }
+  ],
+  "record_finding_aliases": [
+    {
+      "canonical_evidence_id": "C020-PRIME-W2-W3-P3-START-SHIFT-STALE-LOCATION-CHOICE",
+      "second_reviewer": "W3",
+      "explanation": "W2 and W3 independently identified one identical stale chosenLocationId root cause. W3 kept sourced corroboration with empty finding_ids to prevent double counting."
+    }
+  ],
+  "rejected_or_mitigated_hypotheses": [
+    {
+      "path": "apps/dashboard/src/features/administration/settings/setting-row.tsx",
+      "candidate": "Stale draft across ordinary server reload",
+      "counterevidence": "All three actual panels key their outer component by authoritative data.updatedAt (settings-page.tsx:190-196,233-239,267-274), naturally remounting row drafts on version change; W3 retracted new finding ID. Same-updatedAt changed-value reachability not demonstrated."
+    }
+  ],
+  "historical_residual_not_new": "SEC-011 / Issue #363 MFA same-user session factor disclosure remains a source-only P1 candidate; prior C015-C019 P2/P3 candidates and historical accessibility issues are preserved in their original checkpoints, not re-counted here.",
+  "limitations": [
+    "Five reviewers W1/W2/W3/W6/W7 completed 35 exact C020 full-line semantic records each, original logical W1-W7 ownership preserved via 50 W4/W5 transfers; strict verifier accepted 175/175, zero invalid/missing locally.",
+    "Prime independently read eight complete pinned source spot-check files and traced consumers; W6 separately re-read 12 cross-reviewer full-source samples (11 PASS plus one known P3 alias, zero fix required); W3 independent post-promotion full 7,595-row ledger QA and 25 canonical SHA256/EOF samples PASS with zero defects. Both reports are byte-identical to scratch.",
+    "No runtime HTTP/PostgreSQL/Browser/Native tests; no live exploit or severity confirmation. No source, UI, product test, migration, CI, GitHub Issue, PR, merge, or production changes.",
+    "Official GitHub credit remains C019 until deterministic C020 ledger promotion, independent final verification, and non-force docs-only push/fetch."
+  ]
+}

@@ -1,0 +1,278 @@
+{
+  "batch": "C020",
+  "independent_reviewer": "W6",
+  "kind": "post_strict_risk_weighted_source_semantic_spot_qa",
+  "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "source_tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "sampling": "Three assigned records each from W1 W2 W3 W7; includes original W1/W2/W3/W7 and transferred W4/W5 paths, MFA, retrieval, presence, parking, handoff, GPS, QR and task async.",
+  "sample_count": 12,
+  "results": [
+    {
+      "assigned_reviewer": "W1",
+      "original_owner": "W1",
+      "path": "apps/api/test/staff-mfa-security.integration.test.ts",
+      "source_sha256": "09aa056f4bcc6344a05cc7a6c8fedd76f2271132b317872446eb89a7036aaf8f",
+      "full_independent_read_range": {
+        "start": 1,
+        "end": 300
+      },
+      "source_hash_and_EOF_match": true,
+      "roster_owner_match": true,
+      "all_test_refs_resolve": true,
+      "focused_test_refs": [
+        "apps/api/test/staff-mfa-security.integration.test.ts"
+      ],
+      "record_limits_honest": true,
+      "C019_prior_status": "not_reviewed",
+      "previously_credited": false,
+      "semantic_verdict": "PASS",
+      "source_claim_comparison": "Lines 100-147 persist five counted bad TOTP even after an ignored success and sixth 429; 149-206 recovery re-enrollment remains PENDING/unassured; 208-299 protected factor/recovery material and account-only audit assertions. Claims source-supported; fixture is PostgreSQL/HTTP test source, not executed."
+    },
+    {
+      "assigned_reviewer": "W1",
+      "original_owner": "W1",
+      "path": "apps/api/test/staff-valet-session-requested-retrieval-authorization.integration.test.ts",
+      "source_sha256": "51d5355d303f9312893cb2eab52cdba9fbe46f7d9f37963bd944d829d89f59c8",
+      "full_independent_read_range": {
+        "start": 1,
+        "end": 133
+      },
+      "source_hash_and_EOF_match": true,
+      "roster_owner_match": true,
+      "all_test_refs_resolve": true,
+      "focused_test_refs": [
+        "apps/api/test/staff-valet-session-requested-retrieval-authorization.integration.test.ts"
+      ],
+      "record_limits_honest": true,
+      "C019_prior_status": "not_reviewed",
+      "previously_credited": false,
+      "semantic_verdict": "PASS",
+      "source_claim_comparison": "Lines 23-76 original PARKING owner reads REQUESTED with queued retrieval while unrelated same-shift peer 404; 78-132 accepted retrieval owner reads and unrelated peer 404; exact harness and status assertions. Saved note faithfully distinguishes task-specific authorization from broad shift access."
+    },
+    {
+      "assigned_reviewer": "W1",
+      "original_owner": "W5",
+      "path": "apps/valet/src/components/shell/employee-operational-gate.tsx",
+      "source_sha256": "f6fa4683bf965ea1f91563fe70cc4d875a2a1efb3f3280b6751f0ab8c9624a55",
+      "full_independent_read_range": {
+        "start": 1,
+        "end": 195
+      },
+      "source_hash_and_EOF_match": true,
+      "roster_owner_match": true,
+      "all_test_refs_resolve": true,
+      "focused_test_refs": [
+        "apps/valet/src/components/shell/employee-gates.test.tsx",
+        "apps/valet/src/components/shell/employee-start-shift-panel.test.tsx"
+      ],
+      "record_limits_honest": true,
+      "C019_prior_status": "not_reviewed",
+      "previously_credited": false,
+      "semantic_verdict": "PASS",
+      "source_claim_comparison": "Lines 12-29 discriminated states; 82-122 NO_ACTIVE_SHIFT passes server-derived locations to StartShiftGatePanel; 124-158 ambiguous state has retry/signout only; 160-192 context error Arabic uses generic message. Backend authority caveat correctly explicit."
+    },
+    {
+      "assigned_reviewer": "W2",
+      "original_owner": "W2",
+      "path": "apps/api/test/shift-presence-strict-rollout.integration.test.ts",
+      "source_sha256": "5bac14adce8fa1f18d491659bf7b836c40b6a07a4e53c358eb840b1086d9fa94",
+      "full_independent_read_range": {
+        "start": 1,
+        "end": 271
+      },
+      "source_hash_and_EOF_match": true,
+      "roster_owner_match": true,
+      "all_test_refs_resolve": true,
+      "focused_test_refs": [
+        "apps/api/test/shift-presence-strict-rollout.integration.test.ts"
+      ],
+      "record_limits_honest": true,
+      "C019_prior_status": "not_reviewed",
+      "previously_credited": false,
+      "semantic_verdict": "PASS",
+      "source_claim_comparison": "Lines 26-76 strict override CAS, 78-138 strict inheritance needs zone, 140-202 company fanout rejects incomplete location, 204-223 creation blocked, 225-270 activation readiness. Saved notes correctly limit race/Runtime evidence."
+    },
+    {
+      "assigned_reviewer": "W2",
+      "original_owner": "W2",
+      "path": "apps/api/test/start-parking-atomicity.integration.test.ts",
+      "source_sha256": "31ad7c2ab47e9d87d96c426a3b4be336e2ac5ba1d418eed64188ad4361e414e2",
+      "full_independent_read_range": {
+        "start": 1,
+        "end": 216
+      },
+      "source_hash_and_EOF_match": true,
+      "roster_owner_match": true,
+      "all_test_refs_resolve": true,
+      "focused_test_refs": [
+        "apps/api/test/start-parking-atomicity.integration.test.ts"
+      ],
+      "record_limits_honest": true,
+      "C019_prior_status": "not_reviewed",
+      "previously_credited": false,
+      "semantic_verdict": "PASS",
+      "source_claim_comparison": "Lines 16-84 trigger/duplicate event rollback; 86-109 stale and concurrent exact success; 111-215 races with reassignment/accept/key correction/end shift. All source assertions support claim of permitted outcomes; saved limits acknowledge sampled interleaving not proof of all schedules."
+    },
+    {
+      "assigned_reviewer": "W2",
+      "original_owner": "W4",
+      "path": "apps/dashboard/src/features/administration/settings/shift-presence-exceptions.tsx",
+      "source_sha256": "e76f83d51233270b52d563ec686f82c40397697e8bed19766e1a6115ffcdb237",
+      "full_independent_read_range": {
+        "start": 1,
+        "end": 197
+      },
+      "source_hash_and_EOF_match": true,
+      "roster_owner_match": true,
+      "all_test_refs_resolve": true,
+      "focused_test_refs": [
+        "apps/dashboard/src/features/administration/settings/shift-presence-api.test.ts"
+      ],
+      "record_limits_honest": true,
+      "C019_prior_status": "not_reviewed",
+      "previously_credited": false,
+      "semantic_verdict": "PASS",
+      "source_claim_comparison": "Lines 18-54 pending/history keyed view, 56-77 scope+epoch+cursor authoritative read and expiry hook, 92-192 scoped table, `canReview`/expiry/blocked action presentation. No client-side authorization claimed; no direct focused component test disclosed."
+    },
+    {
+      "assigned_reviewer": "W3",
+      "original_owner": "W3",
+      "path": "apps/api/test/handoff-atomicity.integration.test.ts",
+      "source_sha256": "5f1950c3244ef6ad38760b9a04fa86e56b9ce02a44b8a4cfd85557a8d6899d60",
+      "full_independent_read_range": {
+        "start": 1,
+        "end": 98
+      },
+      "source_hash_and_EOF_match": true,
+      "roster_owner_match": true,
+      "all_test_refs_resolve": true,
+      "focused_test_refs": [
+        "apps/api/test/handoff-atomicity.integration.test.ts"
+      ],
+      "record_limits_honest": true,
+      "C019_prior_status": "not_reviewed",
+      "previously_credited": false,
+      "semantic_verdict": "PASS",
+      "source_claim_comparison": "Lines 12-38 test-only rejecting AuditEvent trigger with finally cleanup; 43-58 initiation rollback; 60-81 failed proof attempt count rollback; 83-97 successful proof remains unverified when audit insert denied. Exact record matches; no runtime."
+    },
+    {
+      "assigned_reviewer": "W3",
+      "original_owner": "W3",
+      "path": "apps/api/test/gps-ingestion-idempotency.integration.test.ts",
+      "source_sha256": "7c9ed223b09933ca75043525c2d6c4f410fb79f4f523712ea8e0de4ec7015180",
+      "full_independent_read_range": {
+        "start": 1,
+        "end": 115
+      },
+      "source_hash_and_EOF_match": true,
+      "roster_owner_match": true,
+      "all_test_refs_resolve": true,
+      "focused_test_refs": [
+        "apps/api/test/gps-ingestion-idempotency.integration.test.ts"
+      ],
+      "record_limits_honest": true,
+      "C019_prior_status": "not_reviewed",
+      "previously_credited": false,
+      "semantic_verdict": "PASS",
+      "source_claim_comparison": "Lines 11-47 duplicate/canonical payload and accuracy exclusion; 49-72 DECIMAL(9,6)/TIMESTAMPTZ(3); 74-102 batch and concurrent convergence; 104-114 no audit/geofence effects. Claims source-supported; canonical/locking not executed."
+    },
+    {
+      "assigned_reviewer": "W3",
+      "original_owner": "W5",
+      "path": "apps/valet/src/components/shell/employee-start-shift-panel.tsx",
+      "source_sha256": "329def5070bd8e2aeeaa50c466a4f70f8ce8dcbac61c4fd125a56fc120bc5f35",
+      "full_independent_read_range": {
+        "start": 1,
+        "end": 150
+      },
+      "source_hash_and_EOF_match": true,
+      "roster_owner_match": true,
+      "all_test_refs_resolve": true,
+      "focused_test_refs": [
+        "apps/valet/src/components/shell/employee-start-shift-panel.test.tsx"
+      ],
+      "record_limits_honest": true,
+      "C019_prior_status": "not_reviewed",
+      "previously_credited": false,
+      "semantic_verdict": "PASS_WITH_PRIOR_CANDIDATE_ALIAS",
+      "source_claim_comparison": "Lines 45-52 `chosenLocationId` persists when locations prop changes, 134-145 submit uses effectiveChosen without checking new eligible list. W3 record accurately reports stale-choice UI P3 candidate already noted by W2; backend reauthorization caveat and no duplicate ID. Uncertain 54-86 separate same-command retry, offline disables."
+    },
+    {
+      "assigned_reviewer": "W7",
+      "original_owner": "W7",
+      "path": "packages/employee-client/src/qr-resource-payload.ts",
+      "source_sha256": "430e8010656b0ee15e4878b9f3949d7541f2a918877c4ee6b88a41bc663f161e",
+      "full_independent_read_range": {
+        "start": 1,
+        "end": 108
+      },
+      "source_hash_and_EOF_match": true,
+      "roster_owner_match": true,
+      "all_test_refs_resolve": true,
+      "focused_test_refs": [
+        "packages/employee-client/src/qr-input.test.ts",
+        "apps/valet/src/features/scanner/qr-resource-payload.test.ts"
+      ],
+      "record_limits_honest": true,
+      "C019_prior_status": "not_reviewed",
+      "previously_credited": false,
+      "semantic_verdict": "PASS",
+      "source_claim_comparison": "Lines 1-47 typed resource grammar/prefixes/caps/UUID; 52-79 V1/V2 exact parsing; 81-108 trims input, rejects wrong kind and unrecognized, known prefix helper. No cryptographic QR authenticity claimed, server scope validation remains required."
+    },
+    {
+      "assigned_reviewer": "W7",
+      "original_owner": "W7",
+      "path": "packages/employee-client/src/employee-task-action-owner.ts",
+      "source_sha256": "9e633dd506125f779d5131b464a0cf0020c82c617d0421c1e9584cdb1d92550a",
+      "full_independent_read_range": {
+        "start": 1,
+        "end": 159
+      },
+      "source_hash_and_EOF_match": true,
+      "roster_owner_match": true,
+      "all_test_refs_resolve": true,
+      "focused_test_refs": [
+        "packages/employee-client/src/employee-workflow-background-fences.test.ts",
+        "packages/employee-client/src/employee-workflow-read-background-fences.test.ts"
+      ],
+      "record_limits_honest": true,
+      "C019_prior_status": "not_reviewed",
+      "previously_credited": false,
+      "semantic_verdict": "PASS",
+      "source_claim_comparison": "Lines 34-49 single active attempt, 51-69 background and clear fencing, 70-91 queue canonical reconciliation, 93-143 stale/unresolved handling, 145-158 sequence/generation/scope/foreground checks. Saved notes and limitations match owner behavior."
+    },
+    {
+      "assigned_reviewer": "W7",
+      "original_owner": "W4",
+      "path": "apps/dashboard/src/features/administration/settings/shift-presence-guided-apply.ts",
+      "source_sha256": "02ae37483e5fab63fe2045b27b61f97ee5ee53e95a4045ae05029d74092a16fd",
+      "full_independent_read_range": {
+        "start": 1,
+        "end": 180
+      },
+      "source_hash_and_EOF_match": true,
+      "roster_owner_match": true,
+      "all_test_refs_resolve": true,
+      "focused_test_refs": [
+        "apps/dashboard/src/features/administration/settings/shift-presence-guided-apply.test.ts"
+      ],
+      "record_limits_honest": true,
+      "C019_prior_status": "not_reviewed",
+      "previously_credited": false,
+      "semantic_verdict": "PASS",
+      "source_claim_comparison": "Lines 34-56 draft intent/invalid checks, 59-82 server signature and strict readiness, 93-179 sequential fresh-read/CAS per field, no blind replay, preserves confirmed receipts and halts on blocked/unknown/denied. No four-field atomicity claim; test and server limits truthful."
+    }
+  ],
+  "totals": {
+    "pass": 11,
+    "pass_with_preexisting_p3_alias": 1,
+    "fix_required": 0,
+    "hash_range_ref_errors": 0,
+    "prior_credit_duplicates": 0,
+    "p0_new": 0,
+    "p1_new": 0,
+    "p2_new": 0
+  },
+  "runtime_tests": "NOT_EXECUTED",
+  "scope": "Read-only source and saved review-record QA; no product/docs/other-worker edits."
+}

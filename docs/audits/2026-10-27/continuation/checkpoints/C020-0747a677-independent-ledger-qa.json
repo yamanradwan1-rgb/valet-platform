@@ -1,0 +1,242 @@
+{
+  "batch": "C020",
+  "reviewer": "W3-independent-ledger-qa",
+  "verdict": "PASS",
+  "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "source_tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "roster_docs_commit": "156eb492c3e84ee7e29e7807cf6c72c54baaceac",
+  "strict_qa": {
+    "valid": 175,
+    "invalid": 0,
+    "missing": 0
+  },
+  "record_count": 175,
+  "original_owner_counts": {
+    "W3": 25,
+    "W2": 25,
+    "W1": 25,
+    "W4": 25,
+    "W6": 25,
+    "W5": 25,
+    "W7": 25
+  },
+  "actual_reviewer_counts": {
+    "W3": 35,
+    "W2": 35,
+    "W1": 35,
+    "W6": 35,
+    "W7": 35
+  },
+  "transfers_validated": 50,
+  "old_remaining_count": 1454,
+  "new_credits": 175,
+  "unchanged_prior_ledger_rows": 7420,
+  "full_ledger": {
+    "rows": 7595,
+    "eligible": 4789,
+    "excluded": 2806,
+    "reviewed": 3510,
+    "remaining": 1279,
+    "eligible_lines": 620723,
+    "reviewed_lines": 449530
+  },
+  "published_previous": {
+    "files": 3335,
+    "lines": 422203
+  },
+  "added": {
+    "files": 175,
+    "lines": 27327
+  },
+  "projected": {
+    "files": 3510,
+    "total_files": 4789,
+    "lines": 449530,
+    "total_lines": 620723,
+    "remaining_files": 1279
+  },
+  "raw_git_blob_sha256_eof_samples": [
+    {
+      "actual_reviewer": "W1",
+      "path": "apps/api/test/staff-auth-native-fixture.ts",
+      "lines": 270,
+      "sha256": "912da7c62cc48ffc1ec7ef8da1de92c4cae7c720266ad06006489a42e1f15e44",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W1",
+      "path": "apps/api/test/staff-mfa-assurance.integration.test.ts",
+      "lines": 138,
+      "sha256": "c9d193f7050e06f367b6d05581fa12eeeefa3700743caa6df7714ef77e9fe7fd",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W1",
+      "path": "apps/api/test/staff-shift-force-end-authority.integration.test.ts",
+      "lines": 199,
+      "sha256": "2869a28fec8df8b81c54b24c28a0230f76ccbdeaef93906d6d0c703ea0a49b5d",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W1",
+      "path": "apps/dashboard/src/features/administration/settings/operating-hours-editor.tsx",
+      "lines": 161,
+      "sha256": "2002ab116271750867213ce6388d307be9ab0a0beba7a70d53e8b480875a4111",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W1",
+      "path": "apps/valet/src/components/ui/employee-primitives.tsx",
+      "lines": 297,
+      "sha256": "90874f3f2e71a0fd102c141c045e5b17a1eb4d772d252831c4a8afd46e96ba32",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W2",
+      "path": "apps/api/test/shift-presence-retention.test.ts",
+      "lines": 34,
+      "sha256": "c40ae3c4890cada73b2e3bd0e7581bf7223c16ee1cedb876867f0a34c5c05d46",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W2",
+      "path": "apps/api/test/shift-test-context-names.test.ts",
+      "lines": 23,
+      "sha256": "73a471fbfae1d962105a83b56d90e8caa4c237bc1fe9523eef0e6235b1b935dd",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W2",
+      "path": "apps/api/test/staff-shift-history-plan.integration.test.ts",
+      "lines": 108,
+      "sha256": "7ef26c6950e7fbc148ed70fe1a2c28bfeac9b9e0d31c0e45f936b0a984efd0b5",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W2",
+      "path": "apps/dashboard/src/features/administration/settings/setting-definitions.ts",
+      "lines": 41,
+      "sha256": "ab6f732c0c6a98808c9fde596f164af8175e91cc53fb4f83145f190d8fd4f30d",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W2",
+      "path": "apps/valet/src/features/check-in/check-in-api-test-client.ts",
+      "lines": 17,
+      "sha256": "bf7d381a6e2617bf985c59d7b354ce1c4a0457fea97f830fa574fbd01317408f",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W3",
+      "path": "apps/api/test/fcm-http-v1-adapter.test.ts",
+      "lines": 176,
+      "sha256": "d07564e55ebb0293d9a426a5730a7c992ae90379eddb06a6c28eacf8a3b97b79",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W3",
+      "path": "apps/api/test/geofence-test-context.ts",
+      "lines": 182,
+      "sha256": "555caaca492eb97d71f7ab0570e62624adc9178ccf1d39684d6d33c96826e21f",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W3",
+      "path": "apps/api/test/handoff-secret.test.ts",
+      "lines": 66,
+      "sha256": "f091900755ca87f423572f274a40eb8acb84c27841dbf9fd2de094b7bea4e105",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W3",
+      "path": "apps/dashboard/src/features/administration/settings/setting-row.tsx",
+      "lines": 136,
+      "sha256": "c229b249cc0d2ce2032397a25795a636f317d50fffe9f6e3bec31f650b69a44a",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W3",
+      "path": "apps/valet/src/features/check-in/check-in-api.test.ts",
+      "lines": 267,
+      "sha256": "824e3fc82d9b0b3ed0af0bf208945b4df3cc92201a8d4c91e138bc5b7ce9413c",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W6",
+      "path": "apps/dashboard/src/features/administration/settings/company-settings-panel.tsx",
+      "lines": 108,
+      "sha256": "216496fa3f8903d1b8dbcfc2665287160b4519543ca44c1f7dbd1f7923eb6029",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W6",
+      "path": "apps/valet-native/test/native-battery-warning.test.tsx",
+      "lines": 60,
+      "sha256": "614b8a3077b00b8e3535edc13b30b8de155d24df511e84cc3051a74992d78775",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W6",
+      "path": "apps/valet-native/test/native-check-in-locale-state-fixtures.ts",
+      "lines": 268,
+      "sha256": "3e59da7852bf65b92d6a54356a9ac516d81cca9abddbef080a19d53ea59b2ed9",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W6",
+      "path": "apps/valet-native/test/native-check-in-returning-customer-parity.test.tsx",
+      "lines": 276,
+      "sha256": "35b436d77d8f53f7963752bab1f40676cfb6507b0ba0a506456e6dba3232cbfb",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W6",
+      "path": "apps/valet/src/features/check-in/check-in-api.ts",
+      "lines": 294,
+      "sha256": "5627f669813d2ab045d3b8873385326b49bbdc78f469af8372a2df94307ba73b",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W7",
+      "path": "apps/dashboard/src/features/administration/settings/mobile-setting-context-help.tsx",
+      "lines": 33,
+      "sha256": "63d9f71bbc957d6280e9092cfdd2306035099c42a337d9514095bd3aea344555",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W7",
+      "path": "apps/valet/src/components/shell/scan-hub-tiles.ts",
+      "lines": 130,
+      "sha256": "644d700fccf7cd428e716b62c8552a9748f22d8acb2f78db519613fd75b5c42e",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W7",
+      "path": "packages/employee-client/src/employee-telemetry-classification.ts",
+      "lines": 209,
+      "sha256": "5695d4c74329e09aee04bf89255672cb0450b23851536fdaa68e76a089237d99",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W7",
+      "path": "packages/employee-client/src/employee-workflow-read-background-fences.test.ts",
+      "lines": 135,
+      "sha256": "12a428618edca904c0889acb387e60f0debcce44d28757670804d5d3d12f8861",
+      "pass": true
+    },
+    {
+      "actual_reviewer": "W7",
+      "path": "packages/employee-client/src/qr-resource-payload.ts",
+      "lines": 108,
+      "sha256": "430e8010656b0ee15e4878b9f3949d7541f2a918877c4ee6b88a41bc663f161e",
+      "pass": true
+    }
+  ],
+  "sampled_count": 25,
+  "errors": [],
+  "limitations": [
+    "Static source/document accounting only; no runtime tests, HTTP, browser, or PostgreSQL checks executed.",
+    "25 deterministic five-per-reviewer samples are direct raw Git blob SHA256/EOF checks, not independent semantic re-reading of all 175.",
+    "No product, CI, issue, or source mutation; W3 scratch report only."
+  ]
+}
