@@ -1,0 +1,493 @@
+{
+  "batch": "C022",
+  "kind": "independent_full_promoted_ledger_qa",
+  "logical_reviewer": "W7",
+  "physical_reviewer": "/root/c022_w7",
+  "canonical_source_commit": "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+  "canonical_source_tree": "df279eba03754d18eaa98b3245b810cb808f82cf",
+  "previous_checkpoint": "RB-004",
+  "published_RB004_docs_commit": "1cf667ee6ebb5d6b459687a88c270350dd0cc4d8",
+  "current_docs_head_before_C022_final_publication": "7c16981b6ac3d577dcae9b4c3b0c86683d43b035",
+  "verification_scope": "Read-only independent full 175-record, 7650-row CSV, exact RB004 remaining and 50 transfers reconciliation; 25 deterministic SHA/EOF source samples verified against both checked-out clean source bytes and direct git cat-file blob.",
+  "full_record_checks": {
+    "expected": 175,
+    "actual": 175,
+    "unique_paths": 175,
+    "roster_exact_set_match": true,
+    "source_SHA_and_tree_match": true,
+    "read_range_metadata_present": true,
+    "none_previously_credited": true,
+    "all_paths_from_exact_RB004_remaining": true,
+    "correct_original_owner_and_actual_reviewer": true,
+    "execution_agent_id_present_and_distinct_from_logical_role": true,
+    "original_owner_counts": {
+      "W1": 25,
+      "W2": 25,
+      "W3": 25,
+      "W4": 25,
+      "W5": 25,
+      "W6": 25,
+      "W7": 25
+    },
+    "actual_reviewer_counts": {
+      "W1": 35,
+      "W2": 35,
+      "W3": 35,
+      "W6": 35,
+      "W7": 35
+    },
+    "physical_executors": {
+      "/root/c022_w1": 35,
+      "/root/c022_w2": 35,
+      "/root/c022_w3": 35,
+      "/root/c022_w6": 35,
+      "/root/c022_w7": 35
+    }
+  },
+  "ownership_transfers": {
+    "immutable": 50,
+    "effective": 50,
+    "each_accepted_with_original_and_actual_owner": true
+  },
+  "ledger_checks": {
+    "baseline_RB004_rows": 7650,
+    "promoted_C022_rows": 7650,
+    "eligible": 4843,
+    "excluded": 2807,
+    "rows_unchanged_all_columns": 7475,
+    "rows_changed_only_authorized_current_credit_columns": 175,
+    "noncredited_row_changes": 0,
+    "unauthorized_column_changes": 0,
+    "previous_credited_files": 3633,
+    "new_credited_files": 175,
+    "current_credited_files": 3808,
+    "candidate_lines": 628283,
+    "previous_credited_lines": 464919,
+    "new_credited_lines": 28378,
+    "current_credited_lines": 493297,
+    "previous_remaining": 1210,
+    "current_remaining": 1035,
+    "remaining_exact_previous_minus_new": true,
+    "cumulative_file_and_line_equations": true,
+    "unique_paths_and_current_statuses": true,
+    "QA_summary_175_valid_0_invalid_0_missing": true
+  },
+  "raw_git_blob_sampling": {
+    "selection": "For each of W1/W2/W3/W6/W7: lowest SHA256(path) three original-owned, one transferred W4, one transferred W5, deterministic 5x5.",
+    "planned": 25,
+    "sampled": 25,
+    "canonical_git_cat_file_sha256_checks": 25,
+    "checked_out_byte_hash_checks": 25,
+    "EOF_and_read_range_checks": 25,
+    "all_match": true,
+    "samples": [
+      {
+        "path": "apps/api/src/app.module.ts",
+        "original_owner": "W1",
+        "actual_reviewer": "W1",
+        "execution_agent_id": "/root/c022_w1",
+        "canonical_raw_git_sha256": "713d8bd19e2349a0962bdcce87ab1178f2740c57cd1f59f69d4e2a90a8a9c49b",
+        "source_eof": 48,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 48
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/api/src/modules/management/management-audit-event-catalog.ts",
+        "original_owner": "W1",
+        "actual_reviewer": "W1",
+        "execution_agent_id": "/root/c022_w1",
+        "canonical_raw_git_sha256": "e97409d86af4a4de1a9122021df42e41303d32001a2ffbd6960a2ec9dc10d358",
+        "source_eof": 187,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 187
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/api/src/modules/dispatch/emergency-takeover-history.ts",
+        "original_owner": "W1",
+        "actual_reviewer": "W1",
+        "execution_agent_id": "/root/c022_w1",
+        "canonical_raw_git_sha256": "30a3affaa95b73130569836d55e55aa687a3e7ac2f80c77c942dfd8e3207cd9a",
+        "source_eof": 76,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 76
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/dashboard/src/components/scope/scope-entry-selection.ts",
+        "original_owner": "W4",
+        "actual_reviewer": "W1",
+        "execution_agent_id": "/root/c022_w1",
+        "canonical_raw_git_sha256": "1e76a2b353456c4a1b9c17d5e42892e0b110c038c4eb9699db272a4098215724",
+        "source_eof": 111,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 111
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/valet/src/features/guest-access/guest-access-error-presentation.ts",
+        "original_owner": "W5",
+        "actual_reviewer": "W1",
+        "execution_agent_id": "/root/c022_w1",
+        "canonical_raw_git_sha256": "8a83569d0a21642913bd85b8a76d07a3cdae771ecde76ef4ae1a5a59293d2223",
+        "source_eof": 31,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 31
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/api/test/emergency-task-takeover-authority.test.ts",
+        "original_owner": "W2",
+        "actual_reviewer": "W2",
+        "execution_agent_id": "/root/c022_w2",
+        "canonical_raw_git_sha256": "4c1561a5eee56c2a31d1dad17617afb62e75af56686558a105b7d941d4879aaa",
+        "source_eof": 162,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 162
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/api/test/handoff-command.integration.test.ts",
+        "original_owner": "W2",
+        "actual_reviewer": "W2",
+        "execution_agent_id": "/root/c022_w2",
+        "canonical_raw_git_sha256": "e86ec086d800e0a09d55247b5cf4bc428a2cb5f45e2d1421b3b1d26ad6b5a859",
+        "source_eof": 263,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 263
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/api/test/issue352-supervisor-tasks.integration.test.ts",
+        "original_owner": "W2",
+        "actual_reviewer": "W2",
+        "execution_agent_id": "/root/c022_w2",
+        "canonical_raw_git_sha256": "3789adf70f73001d098238ac5d8fa8f172176736f17ac44d394ae57810ff3626",
+        "source_eof": 255,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 255
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/dashboard/src/features/operations/tasks/emergency-takeover-copy.ts",
+        "original_owner": "W4",
+        "actual_reviewer": "W2",
+        "execution_agent_id": "/root/c022_w2",
+        "canonical_raw_git_sha256": "35f378e7ac3c7aee0c486610a70aa7de5d0148ccb53c98011fd01fc8b448ee7d",
+        "source_eof": 114,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 114
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/valet/src/features/guest-access/guest-access-types.ts",
+        "original_owner": "W5",
+        "actual_reviewer": "W2",
+        "execution_agent_id": "/root/c022_w2",
+        "canonical_raw_git_sha256": "583902cdf1108bc508af8f925534af701303fd5fef3b7a001de6eba33835c350",
+        "source_eof": 49,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 49
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/api/test/live-map-snapshot.integration.test.ts",
+        "original_owner": "W3",
+        "actual_reviewer": "W3",
+        "execution_agent_id": "/root/c022_w3",
+        "canonical_raw_git_sha256": "30a35213080399a0933c11d48ef8b5256df34d6654b6fa23a19696eac6faa3d7",
+        "source_eof": 86,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 86
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/api/test/management-audit-http-scope-side-effects.integration.test.ts",
+        "original_owner": "W3",
+        "actual_reviewer": "W3",
+        "execution_agent_id": "/root/c022_w3",
+        "canonical_raw_git_sha256": "db3729270cc185f0d7ab23e200658aa06bd7af59a2e53a47096a53f736a002f3",
+        "source_eof": 155,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 155
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/api/test/local-dev/demo-employee-credential.test.ts",
+        "original_owner": "W3",
+        "actual_reviewer": "W3",
+        "execution_agent_id": "/root/c022_w3",
+        "canonical_raw_git_sha256": "ae3aa5c4cab0804fa4128b3ce762f52b4e7c9f6972f2e19ec76f81cee0306153",
+        "source_eof": 132,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 132
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/dashboard/e2e/issue352-supervisor-task-visual.spec.ts",
+        "original_owner": "W4",
+        "actual_reviewer": "W3",
+        "execution_agent_id": "/root/c022_w3",
+        "canonical_raw_git_sha256": "4d6182721b19fd23c0eb3f89decb38ca37a0b2f7c40c86dc9813624afd7b6f84",
+        "source_eof": 199,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 199
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/valet/src/features/guest-access/index.ts",
+        "original_owner": "W5",
+        "actual_reviewer": "W3",
+        "execution_agent_id": "/root/c022_w3",
+        "canonical_raw_git_sha256": "ce14b1ab0bbbda11a5aa07940c4a91d4626a344401b1875897f4df1d86ae91bd",
+        "source_eof": 24,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 24
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/valet-native/test/native-operational-auth-race.test.ts",
+        "original_owner": "W6",
+        "actual_reviewer": "W6",
+        "execution_agent_id": "/root/c022_w6",
+        "canonical_raw_git_sha256": "261ec2c521d4c0adfa89feef9a062d60665f97a674d10386e9c8e08b1cfce1a9",
+        "source_eof": 176,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 176
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/valet-native/test/native-handoff-recovery-mounted.test.tsx",
+        "original_owner": "W6",
+        "actual_reviewer": "W6",
+        "execution_agent_id": "/root/c022_w6",
+        "canonical_raw_git_sha256": "bf036ddccefd80afd079be1aa91b02f9535697f53f31882cde78aa3b4aafc49d",
+        "source_eof": 84,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 84
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/valet-native/test/native-incident-success-lifecycle.test.ts",
+        "original_owner": "W6",
+        "actual_reviewer": "W6",
+        "execution_agent_id": "/root/c022_w6",
+        "canonical_raw_git_sha256": "52c16d40dfc50f625d62f4dceb97f2dbdc43244838bf26b3df2e807d0dc83e4a",
+        "source_eof": 77,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 77
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/dashboard/e2e/issue352-takeover-interaction.spec.ts",
+        "original_owner": "W4",
+        "actual_reviewer": "W6",
+        "execution_agent_id": "/root/c022_w6",
+        "canonical_raw_git_sha256": "7c5b5091b6fbd4d455d3ce899102e3416386c252e825bb99bf439ce41abb7ad8",
+        "source_eof": 242,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 242
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/valet/src/features/parking/index.ts",
+        "original_owner": "W5",
+        "actual_reviewer": "W6",
+        "execution_agent_id": "/root/c022_w6",
+        "canonical_raw_git_sha256": "7fee99109403bac00ac50a8a066c2c38401d107509e089682093e97d3cafa791",
+        "source_eof": 5,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 5
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "scripts/issue300-r2-owner-build-issuer.mjs",
+        "original_owner": "W7",
+        "actual_reviewer": "W7",
+        "execution_agent_id": "/root/c022_w7",
+        "canonical_raw_git_sha256": "0231a0af5776f2ac879de4018bdb4b352893e2b7e903d54ed914b7a7052c30a9",
+        "source_eof": 283,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 283
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "scripts/issue300-r2-owner-build-paths.test.mjs",
+        "original_owner": "W7",
+        "actual_reviewer": "W7",
+        "execution_agent_id": "/root/c022_w7",
+        "canonical_raw_git_sha256": "5b2a34161b6c22187a4fb342644ee181553d9c39abfe0517e1ec557668433322",
+        "source_eof": 77,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 77
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "scripts/issue300-r2-owner-build-issuer.test.mjs",
+        "original_owner": "W7",
+        "actual_reviewer": "W7",
+        "execution_agent_id": "/root/c022_w7",
+        "canonical_raw_git_sha256": "55028a8759e138004642821b4ea442c4b6bf04c146fae19147fe0359871fad30",
+        "source_eof": 236,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 236
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/dashboard/src/components/foundation/resolve-navigation-authority.ts",
+        "original_owner": "W4",
+        "actual_reviewer": "W7",
+        "execution_agent_id": "/root/c022_w7",
+        "canonical_raw_git_sha256": "ef456e943a4903f5b6ea39cacf658f29edbca7d6160cfec22df0dceec1438e74",
+        "source_eof": 198,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 198
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      },
+      {
+        "path": "apps/valet/src/features/guest-access/guest-access-controller.ts",
+        "original_owner": "W5",
+        "actual_reviewer": "W7",
+        "execution_agent_id": "/root/c022_w7",
+        "canonical_raw_git_sha256": "b915589c73722b3e3252f05548f34e7e1c3fcc0262d47187b8fec9ff2c31680a",
+        "source_eof": 214,
+        "saved_read_ranges": [
+          {
+            "start": 1,
+            "end": 214
+          }
+        ],
+        "git_cat_file_verified": true,
+        "match": true
+      }
+    ]
+  },
+  "evidence_limitations": [
+    "Source/ledger/static only. No runtime, browser, real PostgreSQL, Docker or CI tests executed by this reviewer.",
+    "The 25 canonical blob samples are a deterministic independent cross-check, not a rehash of all 7,650 repository blobs; RB004 did its separate source inventory proof.",
+    "Semantic adequacy across all 175 entries was checked for provenance, metadata and bounded independent spot review reports, not independently re-read in this ledger QA."
+  ],
+  "errors": [],
+  "verdict": "PASS"
+}

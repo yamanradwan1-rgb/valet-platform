@@ -1,0 +1,11 @@
+{
+  "source_commit": "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+  "exact_roster": 175,
+  "valid_records": 175,
+  "invalid_records": 0,
+  "missing_records": 0,
+  "unique_paths": 175,
+  "ownership_transfers": 50,
+  "prime_independent_spot_review_completed": true,
+  "runtime_tests": "NOT_EXECUTED — STATIC_AUDIT_ONLY"
+}

@@ -1,0 +1,243 @@
+{
+  "batch": "C022",
+  "source_commit": "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+  "source_tree": "df279eba03754d18eaa98b3245b810cb808f82cf",
+  "independent_reviewer": "/root/c022_w2",
+  "selection_method": "Snapshot of available physical-agent records: by physical W1/W3/W6/W7 path ascending, first / floor(n/2) / last. At selection W1=25 W3=15 W6=35 W7=35.",
+  "sample_counts": {
+    "W1": 3,
+    "W3": 3,
+    "W6": 3,
+    "W7": 3
+  },
+  "runtime_tests_executed": 0,
+  "source_lines_rechecked": 1832,
+  "summary": "12/12 canonical blob sha256/EOF/reviewer identity and semantic source comparisons pass; W3 supervisor race record wording mentions 401 though test asserts AUTHORIZATION_DENIED code; purely documentation imprecision.",
+  "findings": [
+    {
+      "severity": "NOTE",
+      "kind": "REVIEW_METADATA_WORDING",
+      "path": "apps/api/test/issue352-supervisor-tasks-races.integration.test.ts",
+      "lines": "60-63,125-128",
+      "description": "W3 record calls committed revocation outcome '401/authorization denial', while the source asserts code AUTHORIZATION_DENIED without asserting 401. Does not invalidate auth boundary or test; wording should be precise."
+    }
+  ],
+  "samples": [
+    {
+      "path": "apps/api/src/app.module.ts",
+      "source_sha256": "713d8bd19e2349a0962bdcce87ab1178f2740c57cd1f59f69d4e2a90a8a9c49b",
+      "source_eof": 48,
+      "record_hash_match": true,
+      "recorded_execution_agent_id": "/root/c022_w1",
+      "original_owner": "W1",
+      "actual_reviewer": "W1",
+      "independent_source_read_ranges": [
+        {
+          "start": 1,
+          "end": 48
+        }
+      ],
+      "semantic_comparison": "Full AppModule Nest composition observed; root controller only, modules registered; stated module/route injection limitation warranted.",
+      "outcome": "PASS",
+      "issues": []
+    },
+    {
+      "path": "apps/api/src/modules/dispatch/emergency-takeover-idempotency.ts",
+      "source_sha256": "d25c7f93d4c258f03defd5799f88ec198935823bf1599358baa3ba795aeb561c",
+      "source_eof": 138,
+      "record_hash_match": true,
+      "recorded_execution_agent_id": "/root/c022_w1",
+      "original_owner": "W1",
+      "actual_reviewer": "W1",
+      "independent_source_read_ranges": [
+        {
+          "start": 1,
+          "end": 138
+        }
+      ],
+      "semantic_comparison": "Intent JSON SHA256 covers actor/version/reason/scope; operation advisory xact lock, receipt read/replay and INSERT present as described.",
+      "outcome": "PASS",
+      "issues": []
+    },
+    {
+      "path": "apps/api/src/modules/parking/start-parking-command.ts",
+      "source_sha256": "033196b621fb4e30040f10959e550b73afe1437f32f27d2d29acd1e929ea5340",
+      "source_eof": 150,
+      "record_hash_match": true,
+      "recorded_execution_agent_id": "/root/c022_w1",
+      "original_owner": "W1",
+      "actual_reviewer": "W1",
+      "independent_source_read_ranges": [
+        {
+          "start": 1,
+          "end": 150
+        }
+      ],
+      "semantic_comparison": "Protected Session/Task locks and actor authorization precede Task+Session writers; optional key checkout + audit Dispatch transaction coherent.",
+      "outcome": "PASS",
+      "issues": []
+    },
+    {
+      "path": "apps/api/test/issue352-supervisor-tasks-races.integration.test.ts",
+      "source_sha256": "96744b7a0c2c739f9ce0ac411a8c66683b521f10eaf02bd23e50b159f07dee71",
+      "source_eof": 182,
+      "record_hash_match": true,
+      "recorded_execution_agent_id": "/root/c022_w3",
+      "original_owner": "W3",
+      "actual_reviewer": "W3",
+      "independent_source_read_ranges": [
+        {
+          "start": 1,
+          "end": 182
+        }
+      ],
+      "semantic_comparison": "Three real PG writer/read waits plus multiorg and cursor tests confirmed; record slightly overstates 401 status (asserts AUTHORIZATION_DENIED code only).",
+      "outcome": "PASS",
+      "issues": []
+    },
+    {
+      "path": "apps/api/test/live-map-position.integration.test.ts",
+      "source_sha256": "bf3834cd212672d9b7300706f62f1ec38d1cc61ce7b92772ca847920374defa3",
+      "source_eof": 178,
+      "record_hash_match": true,
+      "recorded_execution_agent_id": "/root/c022_w3",
+      "original_owner": "W3",
+      "actual_reviewer": "W3",
+      "independent_source_read_ranges": [
+        {
+          "start": 1,
+          "end": 178
+        }
+      ],
+      "semantic_comparison": "Actual live-map fixtures cover latest tied timestamp/ID, stale/no position, Task-owned assignee and incoherent state omission.",
+      "outcome": "PASS",
+      "issues": []
+    },
+    {
+      "path": "packages/database/scripts/verify-runtime-table-privileges.mjs",
+      "source_sha256": "e31931f72e6e3f761fe9d3490266aa2d48e243fbb2c14d68ce8ae7daf1f6b72f",
+      "source_eof": 296,
+      "record_hash_match": true,
+      "recorded_execution_agent_id": "/root/c022_w3",
+      "original_owner": "W3",
+      "actual_reviewer": "W3",
+      "independent_source_read_ranges": [
+        {
+          "start": 1,
+          "end": 296
+        }
+      ],
+      "semantic_comparison": "Privilege matrix includes Issue352 receipt and tracker owner grants and function hardening checks; no direct focused test declared.",
+      "outcome": "PASS",
+      "issues": []
+    },
+    {
+      "path": "apps/dashboard/e2e/issue352-takeover-interaction.spec.ts",
+      "source_sha256": "7c5b5091b6fbd4d455d3ce899102e3416386c252e825bb99bf439ce41abb7ad8",
+      "source_eof": 242,
+      "record_hash_match": true,
+      "recorded_execution_agent_id": "/root/c022_w6",
+      "original_owner": "W4",
+      "actual_reviewer": "W6",
+      "independent_source_read_ranges": [
+        {
+          "start": 1,
+          "end": 242
+        }
+      ],
+      "semantic_comparison": "Mocked Playwright tasks, Arabic 320, Unicode reason and late drawer response test; no real DB authority proof.",
+      "outcome": "PASS",
+      "issues": []
+    },
+    {
+      "path": "apps/valet-native/test/native-incident-recovery-store.test.ts",
+      "source_sha256": "704b9e437187a445bc266f66f8d3e763ac8fe6109957047437e93b738bef2f99",
+      "source_eof": 83,
+      "record_hash_match": true,
+      "recorded_execution_agent_id": "/root/c022_w6",
+      "original_owner": "W6",
+      "actual_reviewer": "W6",
+      "independent_source_read_ranges": [
+        {
+          "start": 1,
+          "end": 83
+        }
+      ],
+      "semantic_comparison": "Expo SecureStore mock verifies marker min-content and native device-only storage setting; platform encryption remains unverified.",
+      "outcome": "PASS",
+      "issues": []
+    },
+    {
+      "path": "apps/valet/src/features/parking/index.ts",
+      "source_sha256": "7fee99109403bac00ac50a8a066c2c38401d107509e089682093e97d3cafa791",
+      "source_eof": 5,
+      "record_hash_match": true,
+      "recorded_execution_agent_id": "/root/c022_w6",
+      "original_owner": "W5",
+      "actual_reviewer": "W6",
+      "independent_source_read_ranges": [
+        {
+          "start": 1,
+          "end": 5
+        }
+      ],
+      "semantic_comparison": "Five-line barrel exports exact parking API/controller/task-runner/types/hook; actual parking-flow imports facade.",
+      "outcome": "PASS",
+      "issues": []
+    },
+    {
+      "path": "apps/dashboard/e2e/issue352-takeover-visual-freeze.spec.ts",
+      "source_sha256": "2f0c772d41f21a607807d310d13a40ee74173e77e33884922fafe9cc6dcda733",
+      "source_eof": 257,
+      "record_hash_match": true,
+      "recorded_execution_agent_id": "/root/c022_w7",
+      "original_owner": "W4",
+      "actual_reviewer": "W7",
+      "independent_source_read_ranges": [
+        {
+          "start": 1,
+          "end": 257
+        }
+      ],
+      "semantic_comparison": "Opt-in source-pinned screenshot/geometry evidence at 3 viewports x EN/AR light/dark and nested focus; no baseline compare in file.",
+      "outcome": "PASS",
+      "issues": []
+    },
+    {
+      "path": "packages/contracts/src/management-audit.test.ts",
+      "source_sha256": "2c9f241b4a22bb06d2b7e06583614124c0b1790859fdff4688262f94d37f7fc0",
+      "source_eof": 176,
+      "record_hash_match": true,
+      "recorded_execution_agent_id": "/root/c022_w7",
+      "original_owner": "W7",
+      "actual_reviewer": "W7",
+      "independent_source_read_ranges": [
+        {
+          "start": 1,
+          "end": 176
+        }
+      ],
+      "semantic_comparison": "Contract suite checks 104 known events and strict filters/minimal UNKNOWN no private metadata, not all event writers.",
+      "outcome": "PASS",
+      "issues": []
+    },
+    {
+      "path": "scripts/issue300-r2-owner-build-paths.test.mjs",
+      "source_sha256": "5b2a34161b6c22187a4fb342644ee181553d9c39abfe0517e1ec557668433322",
+      "source_eof": 77,
+      "record_hash_match": true,
+      "recorded_execution_agent_id": "/root/c022_w7",
+      "original_owner": "W7",
+      "actual_reviewer": "W7",
+      "independent_source_read_ranges": [
+        {
+          "start": 1,
+          "end": 77
+        }
+      ],
+      "semantic_comparison": "Node test checks owner signer/key, reparse/symlink/hardlink/outside evidence and disposer; OS-dependent skip limits.",
+      "outcome": "PASS",
+      "issues": []
+    }
+  ]
+}

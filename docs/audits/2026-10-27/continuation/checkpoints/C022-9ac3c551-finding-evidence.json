@@ -1,0 +1,102 @@
+{
+  "batch": "C022",
+  "source_commit": "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+  "source_tree": "df279eba03754d18eaa98b3245b810cb808f82cf",
+  "classification": "STRICT_STATIC_SOURCE_AUDIT_PASS_INDEPENDENT_SOURCE_AND_FINAL_LEDGER_QA_PASS_PENDING_REMOTE_PUBLICATION",
+  "strict_qa": {
+    "expected": 175,
+    "valid": 175,
+    "invalid": 0,
+    "missing": 0
+  },
+  "runtime_tests_executed": 0,
+  "new_runtime_confirmed_p0": 0,
+  "new_runtime_confirmed_p1": 0,
+  "new_runtime_confirmed_p2": 0,
+  "new_source_only_candidates": [
+    {
+      "id": "C022-W3-P2-LIVE-MAP-NULL-TRACKER-FIXTURE",
+      "severity": "P2",
+      "confidence": "HIGH_CONFIDENCE_SOURCE_ONLY_TEST_FIXTURE_DRIFT",
+      "reporter": "W3",
+      "independent_source_check": "Prime",
+      "type": "TEST_FIXTURE_AND_EXPECTATION_CONTRACT_MISMATCH",
+      "evidence": [
+        "apps/api/test/live-map-test-context.ts:190-235",
+        "apps/api/src/modules/tracking/live-map-query.ts:65-100",
+        "apps/api/test/live-map-pagination.integration.test.ts:11-43",
+        "apps/api/test/live-map-api.integration.test.ts:163-176",
+        "packages/database/prisma/migrations/20261029010500_issue352_emergency_takeover_persistence/migration.sql:28-38",
+        "apps/api/src/modules/tracking/task-tracking-lifecycle.ts:61-64"
+      ],
+      "source_hypothesis": "Test helper addParkingWork inserts task_tracking_sessions without the new nullable assignee_membership_id; the live-map query requires this field non-null and equal to current Task assignee. Two added synthetic trackers therefore appear excluded by the current query, conflicting with pagination and continuation assertions expecting those rows.",
+      "counterevidence_and_limits": "Production task-tracking start code supplies owner attribution and current-owner restriction is intentional for takeover safety. Migration intentionally leaves historical segments unbackfilled; no evidence here of production authorization bypass, exposure, or a confirmed failing test. No PostgreSQL test was executed by this audit.",
+      "recommended_separate_followup": "Under a separate test-change authorization, repair synthetic tracker fixture attribution and rerun the focused real PostgreSQL live-map pagination/HTTP tests."
+    },
+    {
+      "id": "C022-W6-CAND-001",
+      "severity": "P3",
+      "confidence": "HIGH_SOURCE_CONFIDENCE_ONE_SNAPSHOT_DELAY_LOW_USER_IMPACT_CONFIDENCE",
+      "reporter": "W6",
+      "independent_source_check": "Prime",
+      "type": "TRANSIENT_NATIVE_GPS_TRACKER_ADMISSION_DELAY_CANDIDATE",
+      "evidence": [
+        "apps/valet-native/src/tracking/native-task-tracking-runtime.ts:171-210",
+        "apps/valet-native/test/native-task-tracking-runtime.test.ts:192-206,246-284",
+        "packages/employee-client/src/employee-task-queue-owner.ts:235-245",
+        "packages/employee-client/src/employee-operational-session.ts:35-42"
+      ],
+      "source_hypothesis": "After clearing a matured offline/completion fence, a freshly eligible candidate with a different tracking binding key is not started on that same successful queue snapshot; a same-key candidate starts normally.",
+      "counterevidence_and_limits": "The foreground queue owner automatically refreshes every five seconds by default; a subsequent successful snapshot notifies operations subscribers and reconciles the cleared fence. Permanent GPS loss is NOT supported; under normal healthy foreground polling this is one-snapshot latency plus fetch delay. No Native/runtime test was executed.",
+      "recommended_separate_followup": "Determine whether one-snapshot conservative re-admission is intentional; add a changed-binding-key focused regression under separately authorized test scope."
+    }
+  ],
+  "deduplicated_historical_findings": [
+    {
+      "id": "RB004-API-SOURCE-TEST-DRIFT-001",
+      "also_reported_in": "C022 W2 semantic record for apps/api/test/dashboard-overview-api.integration.test.ts",
+      "severity": "P2",
+      "status": "SAME_SOURCE_ONLY_CANDIDATE_NOT_NEW",
+      "evidence": [
+        "apps/api/test/dashboard-overview-api.integration.test.ts:155-161",
+        "apps/api/src/modules/dashboard/overview-retrieval-tasks-query.ts:148-184",
+        "apps/api/test/issue352-supervisor-tasks.integration.test.ts:15-46"
+      ],
+      "limits": "Old shifted Supervisor 404 expectation conflicts with approved narrow Tasks read path, conditional on actual task/grant/shift fixture. No runtime reproduction in this audit."
+    }
+  ],
+  "rejected_or_corrected": [
+    {
+      "id": "W7_GUEST_ACCESS_STALE_RESPONSE",
+      "status": "NOT_PROMOTED_TO_P2",
+      "evidence": [
+        "apps/valet/src/features/guest-access/guest-access-controller.ts:81-203",
+        "apps/valet/src/features/guest-access/use-guest-access.ts:56-63",
+        "apps/valet/src/components/shell/employee-live-router.tsx:145-155",
+        "apps/valet/src/components/screens/check-in/check-in-late-steps.tsx:64"
+      ],
+      "rationale": "The only discovered open-GuestAccess caller comes from CheckIn, which is unmounted while GuestAccessFlow is active. No demonstrated reachable user route switches the mounted controller to another session without unmount/remount. An abstract late response alone does not prove user-visible stale credentials; not recorded in finding_ids."
+    },
+    {
+      "id": "W3_SUPERVISOR_RACE_RECORD_HTTP_STATUS_WORDING",
+      "status": "RESOLVED_SOURCE_FIDELITY_NOTE",
+      "independent_reporter": "W2",
+      "rationale": "W2 12-file independent sample noticed an unsupported implication of HTTP 401; W3 corrected its own scratch record to the actual asserted AUTHORIZATION_DENIED error.code. Prime independently re-read current corrected record."
+    }
+  ],
+  "independent_evidence": {
+    "prime_spot_checks": "checkpoints/C022-9ac3c551-prime-spot-checks.md",
+    "prime_five_full_files_lines": 900,
+    "w2_cross_worker_source_sample": "checkpoints/C022-9ac3c551-independent-source-spot-qa.json",
+    "w2_twelve_full_files_lines": 1832,
+    "independent_final_ledger": "checkpoints/C022-9ac3c551-independent-ledger-qa.json",
+    "independent_final_ledger_verdict": "PASS_ZERO_ERRORS_ALL_7650_ROWS_25_RAW_GIT_SAMPLES"
+  },
+  "review_provenance": "Five distinct physical local workers /root/c022_w1, /root/c022_w2, /root/c022_w3, /root/c022_w6 and /root/c022_w7 each reviewed 35 exact immutable assignments; W4 and W5 original ownership preserved via 50 formal transfers. Prime reread five files; W2 independently reread twelve OTHER-worker files. Full raw Git SHA256/EOF validity was gated by the strict verifier.",
+  "limitations": [
+    "All 175 records are static source-review evidence; no HTTP, browser, Native, PostgreSQL, CI, or production Runtime test was executed in C022.",
+    "Strict metadata/EOF/hash checks do not automatically prove every semantic inference true.",
+    "P2 and P3 entries are source-only findings/candidates. Product and test corrections require separate user authorization; none are made in this audit.",
+    "Final official coverage is withheld until deterministic promotion, independent ledger/source QA, nonforce GitHub publication and fetched remote verification."
+  ]
+}
