@@ -1,0 +1,410 @@
+[
+  {
+    "path": "apps/api/src/common/database/postgres-lifecycle-diagnostics.ts",
+    "sha256": "7671cc13c21e4b654401c85394d25ed11fbcf6f10c8bb3958228fe816f06e493",
+    "lines": 210,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/common/database/postgres-query-measurement.ts",
+    "sha256": "0129ff39f85e4356fa792e9a5513395c218b4ca9efed606eeb8b1d1ba4d49893",
+    "lines": 30,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/common/observability/database-operation-context.ts",
+    "sha256": "1e152a6dbbad1b8f6ded70c582582ccee0059d8a58ded3dcb433824006fab22e",
+    "lines": 48,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/intake-serialization-retry.ts",
+    "sha256": "8c1de852d59a7d0754a0d924dc744ce9690504a33f3d3da26d4f50d53dd35265",
+    "lines": 30,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-decode-error.ts",
+    "sha256": "76cd8cf433436d99716a0932aec738bf52a051eaf37e7ed88efd334ffca4e96d",
+    "lines": 10,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-decode-queue.ts",
+    "sha256": "d3e505913772cb25e018b6dc8048d06167606417265ffd44fe03e2461a74c14d",
+    "lines": 116,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-evidence-summary-query.ts",
+    "sha256": "c9f1292575411a76d237b65b5abbf080ddc4310734390061cf75cdb272d83ce0",
+    "lines": 65,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-metrics-pulse.ts",
+    "sha256": "5653bf86306145f50c6ecb01fb9c1d95e6c95d1e48c76c7765ebf49d16096c02",
+    "lines": 29,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-processing-metrics.ts",
+    "sha256": "9166c41d8bddd0b9c9d2f3dca62be00f523b2f1d5637eab87a6826c49f78dc3a",
+    "lines": 101,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-worker-runner.ts",
+    "sha256": "307f2e174dccd332af4af322e7cef0b52f83f72624c2bf753ed6a73ca3c327a5",
+    "lines": 103,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/auth-reset-admission.integration.test.ts",
+    "sha256": "05d8e6d0700a8f0b4b8d715f1aee941d954fa5db69918959ee8104395bfc17c4",
+    "lines": 134,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/condition-photo-concurrent-http.integration.test.ts",
+    "sha256": "57aa79b29cd3759576dd04dfe8cc137c61b714dd96382f4839d483e62fb2c266",
+    "lines": 160,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/condition-photo-decode-queue.test.ts",
+    "sha256": "13062e870d097a2bed430b4bcce24b40ff26b1d0224a88ea90ee1842df1a3d6a",
+    "lines": 123,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/condition-photo-disconnect-http.test.ts",
+    "sha256": "dc92ddd2af9bd685198ff8e7545d1adabd298877f874b31ae08c8033ee8b7493",
+    "lines": 132,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/condition-photo-evidence-summary-query.test.ts",
+    "sha256": "bea3b1e3c76200a45f78a179bd4d9d8809b97370d10c1c945b94393846d4fb9f",
+    "lines": 86,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/condition-photo-execution-cancellation.test.ts",
+    "sha256": "dc5748ab3fe1c52fb602f34326b17f80e4b923210fa336c19df88412d59879d2",
+    "lines": 169,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/condition-photo-jpeg-concurrency.test.ts",
+    "sha256": "e7bd7946fa876451e5d76ed86e4f810313c626b22bd384c1c6578089c564656c",
+    "lines": 45,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/condition-photo-jpeg-fixture.ts",
+    "sha256": "fefdbc6cb8683a075eceb794cf4cda5cc238070efa31e4990b93b5528417e267",
+    "lines": 11,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/condition-photo-processing-metrics.test.ts",
+    "sha256": "df2a4537afa088a1b81ac201f25a5b709638d7f4caa3c74067f631f818a76adc",
+    "lines": 35,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/condition-photo-worker-recovery.test.ts",
+    "sha256": "e1e5682bd785da2db587dc6dd54bcbb1def83fc31ded52ff314acbf7722a4ff1",
+    "lines": 119,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/dashboard-authorization-fence-concurrency.integration.test.ts",
+    "sha256": "560fbce69c65666fc2d7f846004643aae5e1edcb20fce14a82720652cfb22395",
+    "lines": 95,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/dashboard-authorization-roundtrips.integration.test.ts",
+    "sha256": "395ff3d8a7c2424ea1306e3b66f2d2f5ae7e463df8e016d22345a0dd36fa67aa",
+    "lines": 149,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/database-operation-context.test.ts",
+    "sha256": "5c46effef54461087e39faa8ccb114eb4979e42d0530748ffc60c5c84ce10901",
+    "lines": 75,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/health-pool-attribution.test.ts",
+    "sha256": "d1ba275433cd5e75fcba2a3c3f632f5f27110de792612ac5a510a1fd50b1fad5",
+    "lines": 153,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/intake-concurrency-actors.ts",
+    "sha256": "9e285d3fa1629f3e78282ecc1b22c2a6cd43bb9858eb93c78da41a66c8a43a8f",
+    "lines": 29,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/intake-independent-concurrency.integration.test.ts",
+    "sha256": "69161f60d4aea06def953e92f4643c4a26e4568e8739a1e2e9d1cb7be57829e1",
+    "lines": 101,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/intake-operation-concurrency.integration.test.ts",
+    "sha256": "ba2e31288cfc82c8b1e33cda904e209c5e45aafd512ab0121918bb65a8283f59",
+    "lines": 57,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/intake-serialization-recovery.integration.test.ts",
+    "sha256": "959fa32214c796745ecb6a9d5df98e3d2da7329e399115338644a39f599ba5c8",
+    "lines": 148,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/intake-serialization-retry.test.ts",
+    "sha256": "6fa52b285f865fd3fe083f35086e2fa5845fc5e0086ce0c4fc30ab7cca01e623",
+    "lines": 68,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/intake-serialization-test-pool.ts",
+    "sha256": "af01ca5994bfbc29cb6cd727231481307ea296a90f574342fb307c954772bf78",
+    "lines": 63,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/pool-occupancy.integration.test.ts",
+    "sha256": "462333de4d2b4dd9984f2b82b52bc4abf2cde59abd066b0d4ecae7cf20e46e17",
+    "lines": 97,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/pool-route-cost.integration.test.ts",
+    "sha256": "a0a298c17646de16aecbdd1ae25852662902653d7212fe2045df4c441bf90c70",
+    "lines": 112,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/pool-startup-burst.integration.test.ts",
+    "sha256": "6366265d12cc7ea5908ac66cbf7f5e4e235e636534e01124a45c06d8c07c3969",
+    "lines": 57,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/postgres-control-stall.integration.test.ts",
+    "sha256": "33883baa7c533f86fdcb9e4e3f2f7d57eb888fb472940d38e818817e4da43c0b",
+    "lines": 139,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/postgres-release-context.test.ts",
+    "sha256": "5d284154b002fde6fbe32e8e084c70604eaeb1e3b2148ce349c783091ee56bf5",
+    "lines": 130,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/postgres-release-isolation.integration.test.ts",
+    "sha256": "f727a4ab2098abde7343b012b9f941af61e525ba890c94efed2d0ef5cfd07bb8",
+    "lines": 169,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/postgres-reset-diagnostics.integration.test.ts",
+    "sha256": "e2dcdd6af92d892683c24d2da53c1694c5100a460660d5704aa864b049d57111",
+    "lines": 225,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/postgres-startup-release-context.integration.test.ts",
+    "sha256": "fe0ed49dda7bdc4783e587189e8b017802e5c3a7f2a21e07d3b38a5d2e2cbada",
+    "lines": 145,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/runtime-metric-window.test.ts",
+    "sha256": "dada8a42ebdcf01ab9f47445e6fbd2c0fdfd3c4c6eb8aa8a3ee763d1dd9b1a35",
+    "lines": 166,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/test/staff-context-lease.integration.test.ts",
+    "sha256": "25bf33dedae345efabf74a7f132ce8019eb418a1b3993cb23a7909510a74e604",
+    "lines": 89,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/tools/capacity/runtime-metric-window.ts",
+    "sha256": "8781f21db2e5d3e7d57d10177ab47564ea9a67f46cd0543a6439d71a866af101",
+    "lines": 166,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/tools/capacity/validate-runtime-metric-window.ts",
+    "sha256": "7be493d09e0ecf99b1d094fdc401fa2450622538bb77a2ee7280411288a359f6",
+    "lines": 30,
+    "category": "backend"
+  },
+  {
+    "path": "apps/api/tools/issue336-evidence-summary-pg.ts",
+    "sha256": "5244ef508b62cce494c9f952bb066852d7b462af5ef8a483e7240ce12c1a5e95",
+    "lines": 112,
+    "category": "backend"
+  },
+  {
+    "path": "apps/customer/src/components/primitives/btn.accessibility.test.tsx",
+    "sha256": "94e491d23801edadc80633363cf15d8565ae2d3fe16737687ea17a5685dd5cab",
+    "lines": 170,
+    "category": "customer"
+  },
+  {
+    "path": "apps/customer/src/i18n/preference-providers.mounted.test.tsx",
+    "sha256": "e84a3c53639285d6946322182dd2f182debf3de7f29da3a384184b25d442bbaf",
+    "lines": 220,
+    "category": "customer"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue-354-focus.spec.mjs",
+    "sha256": "289c3840d0f2a43b41ecd53cac76a1c77514f6a1e8c738541b6db42afbc72f45",
+    "lines": 107,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue-354-live-counts.spec.mjs",
+    "sha256": "698b8cd906f41a37ef6f3bc6de51343082f46e7602094639772335ef8c408862",
+    "lines": 124,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue-354-recovery.spec.mjs",
+    "sha256": "bab092b89f7572a94853851b58fe431765ca7890e0bc27cd0cf2d781fe13c160",
+    "lines": 130,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue-354-scope.spec.mjs",
+    "sha256": "de79c08a5d59424dc9ebccf4ce88c1300c649193190616967e1cc9efac552f85",
+    "lines": 145,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/e2e/issue359-guest-preview-failure.spec.ts",
+    "sha256": "075383967fdf38f0cb1600895ef2cba2b735960c20e989f0b3439c2a2a3033f1",
+    "lines": 225,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/live-operations/use-live-read-availability.ts",
+    "sha256": "ef80f75ba8dd4e619609802f4d441cc124570f39c666bd51fb5f9dda2512f717",
+    "lines": 51,
+    "category": "dashboard"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-condition-photo-b1-slots.tsx",
+    "sha256": "cbede96ab3f8b6b4e49e2ca9373fe909daf657c3b62a9c9eb03bee21291004e1",
+    "lines": 135,
+    "category": "native"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-condition-photo-b1-styles.ts",
+    "sha256": "5ce889dc7aeab6fd46c5af9b04569e986f0c2432dee49d9dfa664abd642b4d1e",
+    "lines": 64,
+    "category": "native"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-condition-photo-thumbnail-size.ts",
+    "sha256": "de62e87e5a64e55126e2cdff7197edf6c1396bd57f6d544488edc9d48514c8b0",
+    "lines": 15,
+    "category": "native"
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-condition-photo-thumbnails.ts",
+    "sha256": "30d84859d16548dd99ec1c2661ca1dcf3049c4e9cf832145bbbcaacbef28802e",
+    "lines": 159,
+    "category": "native"
+  },
+  {
+    "path": "apps/valet-native/test/native-condition-photo-b1-slots.test.tsx",
+    "sha256": "d2ff6fa6d07fc827c39409376bf84e09005bcfe073aaa9e0ba5bfb4d88a302e4",
+    "lines": 148,
+    "category": "native"
+  },
+  {
+    "path": "apps/valet-native/test/native-condition-photo-thumbnails.test.ts",
+    "sha256": "1e844d24ef931d2e790a51df3925e7edea308dbf92b066ad02e3678464df2b34",
+    "lines": 150,
+    "category": "native"
+  },
+  {
+    "path": "packages/contracts/src/condition-photo-evidence-summary.test.ts",
+    "sha256": "b7e508602c788edfae95c753382c386267ad6e7b8ad8594876c762bd33f5c412",
+    "lines": 51,
+    "category": "contracts"
+  },
+  {
+    "path": "packages/contracts/src/condition-photo-evidence-summary.ts",
+    "sha256": "7b9b709d5ec0d29418c5bc08db62c5b3a8625e4da610c10118fd94894a16170c",
+    "lines": 42,
+    "category": "contracts"
+  },
+  {
+    "path": "packages/employee-client/src/employee-condition-photo-authorization.ts",
+    "sha256": "1d619276923f610860afe1659cd1e39b2d25f715831c0e2a7e312faf84db06da",
+    "lines": 7,
+    "category": "employee"
+  },
+  {
+    "path": "packages/employee-client/src/employee-condition-photo-b1.test.ts",
+    "sha256": "3220ae31b6f1bff8436e183f55e42a0c64bdb29c8e7e2fc0d4e1d0a8f7cae03d",
+    "lines": 289,
+    "category": "employee"
+  },
+  {
+    "path": "packages/employee-client/src/employee-condition-photo-discovery.ts",
+    "sha256": "fbf1abafff0054f8872cc0effad3f6288a251196495dadf7658ecf860a29c921",
+    "lines": 41,
+    "category": "employee"
+  },
+  {
+    "path": "packages/employee-client/src/employee-condition-photo-gallery.ts",
+    "sha256": "ac018ee1fc4b3c0bd46ecdeb430aec8cb58385cde855647205e14974fe106ec5",
+    "lines": 212,
+    "category": "employee"
+  },
+  {
+    "path": "packages/employee-client/src/employee-condition-photo-missing-resend.test.ts",
+    "sha256": "3a41a62d8e43aff7e1c3f10c3c0db5816faa243fe8d264da0d24b709b468e3aa",
+    "lines": 73,
+    "category": "employee"
+  },
+  {
+    "path": "packages/employee-client/src/employee-condition-photo-source-cleanup.ts",
+    "sha256": "1b3c1f446d5ed541d1e2b5d25ddf4a6a4632d2d11d9d6c16e667683102c307ea",
+    "lines": 15,
+    "category": "employee"
+  },
+  {
+    "path": "scripts/test-harness/api-source-adjacent-ownership.mjs",
+    "sha256": "b19e7f73dce641262be78e2f310ba005e610eba7ff602462ccf999918806e41a",
+    "lines": 29,
+    "category": "infrastructure"
+  },
+  {
+    "path": "scripts/test-harness/api-source-adjacent-ownership.test.mjs",
+    "sha256": "0a7580037e3bf5759441ab85e147534eae0a5ba120e76ee32af6e98f5d18c57d",
+    "lines": 41,
+    "category": "infrastructure"
+  },
+  {
+    "path": "scripts/test-harness/issue319-private-ownership.test.mjs",
+    "sha256": "2f2bc7a5142bf6e353798727c777335cc554151daabd83a58760841175c058bd",
+    "lines": 20,
+    "category": "infrastructure"
+  }
+]

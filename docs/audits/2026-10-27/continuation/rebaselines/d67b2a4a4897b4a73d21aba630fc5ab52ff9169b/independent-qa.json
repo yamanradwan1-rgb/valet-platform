@@ -1,0 +1,17 @@
+{
+  "result": "PASS",
+  "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+  "source_tree": "8731302512f8db4edb8bbb1cdc50b208a0dcb5b8",
+  "all_new_blob_sha256_and_line_counts_verified": 68,
+  "all_stale_blob_sha256_verified": 52,
+  "unchanged_review_sha256_samples_verified": 21,
+  "unique_C010_assignments": 161,
+  "mandatory_delta_assignments_verified": 120,
+  "unique_remaining": 3159,
+  "source_clean": true,
+  "runtime_tests": "NOT_EXECUTED — STATIC_AUDIT_ONLY",
+  "limitations": [
+    "Cross-component dependency impact remains to be reviewed",
+    "Semantic reviews of new/stale paths are pending worker results"
+  ]
+}

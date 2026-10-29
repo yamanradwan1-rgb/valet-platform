@@ -1,0 +1,12 @@
+{
+  "source_clean": true,
+  "source_tree": "8731302512f8db4edb8bbb1cdc50b208a0dcb5b8",
+  "unique_current_paths": true,
+  "matched_prior_C009_totals": true,
+  "duplicate_coverage": false,
+  "runtime_tests_executed": 0,
+  "limitations": [
+    "Dependency-impact review remains pending",
+    "New and changed source not yet semantically reviewed"
+  ]
+}

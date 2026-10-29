@@ -1,0 +1,470 @@
+[
+  {
+    "path": "apps/api/src/common/database/bounded-postgres-pool.ts",
+    "previous_review_batch": "D001",
+    "previous_reviewer": "prime",
+    "previous_hash": "7cec5c3499b58f4302fdba963eeefb4af43526362b59de8b432ba55ef3ffac3e",
+    "new_hash": "7ee036ce168d6e42053a07e5ccad46ad83147bab9aebe7e8158a223fe492e705",
+    "old_lines": 221,
+    "new_lines": 286
+  },
+  {
+    "path": "apps/api/src/common/database/bounded-postgres-query.ts",
+    "previous_review_batch": "D001",
+    "previous_reviewer": "prime",
+    "previous_hash": "e41dd525d792f1ea3bbc1c320aebac946e5c29d7bf55ae6ef050d8960b42c469",
+    "new_hash": "20944765d5f1b6025d2be1a99274a72a9a5846308ccaaa47cc1078793bfa1af0",
+    "old_lines": 75,
+    "new_lines": 96
+  },
+  {
+    "path": "apps/api/src/common/database/database-failure-reason.ts",
+    "previous_review_batch": "D001",
+    "previous_reviewer": "prime",
+    "previous_hash": "a8fe78758b7f5d5ef927b029099d8c05bf002431f2be99fa3c0884618d17b4bf",
+    "new_hash": "991823eeee1822cbb6fc4297f3e113c7398103a58e643c68316f596f78ae2280",
+    "old_lines": 31,
+    "new_lines": 34
+  },
+  {
+    "path": "apps/api/src/common/database/postgres-lease.ts",
+    "previous_review_batch": "D001",
+    "previous_reviewer": "prime",
+    "previous_hash": "cd563bb03cbadac7a64faf320aa57d571fed6eb9e950d06a069c3285d94e96e0",
+    "new_hash": "96cee4f1bbc8932a591d33c074b3a84b65b94fbbb11cb4e717b4a607f50cdbd0",
+    "old_lines": 104,
+    "new_lines": 127
+  },
+  {
+    "path": "apps/api/src/common/database/runtime-database-deadline.ts",
+    "previous_review_batch": "D001",
+    "previous_reviewer": "prime",
+    "previous_hash": "6fc90c5efa4d53460965d3c94aab9fc305af56a33b37d464390ba45f350b7ab6",
+    "new_hash": "87a63a59dd216605e29f3f7701e768297d39c55904c4b5b7c503ce8011d60137",
+    "old_lines": 119,
+    "new_lines": 126
+  },
+  {
+    "path": "apps/api/src/common/database/runtime-database-readiness.ts",
+    "previous_review_batch": "C005",
+    "previous_reviewer": "database",
+    "previous_hash": "f13ad6ff7e40aeb5de065b8773eee3f079c9fe9c43b588e459588bb73b93964c",
+    "new_hash": "10dd017f27806e14214d67371feba37be8ad9d62aae412e69bfc719e1f617f43",
+    "old_lines": 71,
+    "new_lines": 74
+  },
+  {
+    "path": "apps/api/src/common/observability/http-metrics.middleware.ts",
+    "previous_review_batch": "D001",
+    "previous_reviewer": "prime",
+    "previous_hash": "6b86aefb8a95c468196c74015f92adb9d9be4b84eace883af1d9a306fdac6427",
+    "new_hash": "5a61f9b8a63c6e02f799721911ea5eddb0eb075ea9e4771af4f47a22abca4520",
+    "old_lines": 63,
+    "new_lines": 64
+  },
+  {
+    "path": "apps/api/src/common/observability/performance-request-diagnostics.ts",
+    "previous_review_batch": "D001",
+    "previous_reviewer": "prime",
+    "previous_hash": "482672658e653042d2fc9bf6a41373d0c214befdb86d71f099b571e5430863bd",
+    "new_hash": "fb8bf2dfc44a9a307ab753574eb968b9d51dfb1c0a79564f0f538285ae40af10",
+    "old_lines": 95,
+    "new_lines": 105
+  },
+  {
+    "path": "apps/api/src/common/observability/runtime-metrics-pulse.ts",
+    "previous_review_batch": "D001",
+    "previous_reviewer": "prime",
+    "previous_hash": "69aa62328bb586e306e516e8d07ae44562dfa449d7c5d4bfbbeff267bd7c9c1e",
+    "new_hash": "be48441c0d0c75ee2ce269a2fbe9bd7d234ad78c0afe796fb93cb304320c29a3",
+    "old_lines": 106,
+    "new_lines": 181
+  },
+  {
+    "path": "apps/api/src/health/application-drain-middleware.ts",
+    "previous_review_batch": "C005",
+    "previous_reviewer": "database",
+    "previous_hash": "5da1b0b8ba947ef9b866f67d27548ec2ef90807995c2726e73319cd111aaae79",
+    "new_hash": "1142b033b02d95c439fd18f72205a8964696144c0741159e2b5cc19894da37c6",
+    "old_lines": 35,
+    "new_lines": 37
+  },
+  {
+    "path": "apps/api/src/health/health-readiness.service.ts",
+    "previous_review_batch": "C005",
+    "previous_reviewer": "database",
+    "previous_hash": "d87a81686a61e637274cc64a1da6b3ae2457062e09473899ffdbbee566265806",
+    "new_hash": "8c0bb7fda6a0d7beeb8d0fdbc7f0c9b250b336b0abb85f985be573eb65d2b028",
+    "old_lines": 88,
+    "new_lines": 105
+  },
+  {
+    "path": "apps/api/src/health/health.controller.ts",
+    "previous_review_batch": "C005",
+    "previous_reviewer": "database",
+    "previous_hash": "3beaf5e7b0307301d7a56da997bd45b8c00f6165118eba45ab95d41767814043",
+    "new_hash": "b092abdef03c75611fc512cf1ca31531647221bac699845c7b6ddb9e27e70b39",
+    "old_lines": 46,
+    "new_lines": 48
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/check-in.module.ts",
+    "previous_review_batch": "C005",
+    "previous_reviewer": "database",
+    "previous_hash": "2f004414badc91f7f84abf2399f3d656d83c2b44ebe25f927c6fa2883d471d01",
+    "new_hash": "7eed342438aa657d77c61a109a893177e01d1d0044f151a9c7ae352ffd282afa",
+    "old_lines": 68,
+    "new_lines": 75
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/condition-photo-ingress.ts",
+    "previous_review_batch": "C005",
+    "previous_reviewer": "database",
+    "previous_hash": "3cdbebda1bb03d7d15b56f030f0036048847f66c1f6369a07eae41c24fe1d15e",
+    "new_hash": "dc56918c53b78f0448282ec67fe4517874e08ed751ee2f2c1ac30a8eb8f72f30",
+    "old_lines": 20,
+    "new_lines": 25
+  },
+  {
+    "path": "apps/api/src/modules/check-in-api/condition-photo.controller.ts",
+    "previous_review_batch": "C005",
+    "previous_reviewer": "database",
+    "previous_hash": "85cb0177279f0c9e99b2841acd12cc6e0f10bc401a63bd25768813b9ab6c092c",
+    "new_hash": "7460f1a851d8c7f778d1b170fb65d6d67393b085d2b737cda3994dbe05471294",
+    "old_lines": 141,
+    "new_lines": 214
+  },
+  {
+    "path": "apps/api/src/modules/dashboard/dashboard-location-authorization.ts",
+    "previous_review_batch": "C005",
+    "previous_reviewer": "database",
+    "previous_hash": "681a4789fbde59bf0d0dde2a4a20b32144a09bcd36e1d64ef4b1588dc900dedb",
+    "new_hash": "cbc0aca36709143464c861d53ea2eba78d7a287b9bcc7d72a915e8c1315d118c",
+    "old_lines": 54,
+    "new_lines": 75
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-operational-context-details.ts",
+    "previous_review_batch": "D001",
+    "previous_reviewer": "prime",
+    "previous_hash": "27a81a5c740b26fc13d7121f1a4953f2da340a43441dad2b77c564256e2e4cfb",
+    "new_hash": "21b9bf2c251674cbbf2acd79bdddf6208176cd51733d7df501255194fb7b2821",
+    "old_lines": 99,
+    "new_lines": 99
+  },
+  {
+    "path": "apps/api/src/modules/staff/staff-operational-context-query.ts",
+    "previous_review_batch": "D001",
+    "previous_reviewer": "prime",
+    "previous_hash": "b1aee63733b0cc10a1f5fcc444335a827b0c36eb1478f11326e7d65b7011be2f",
+    "new_hash": "14cb509b4dee95ccdf2dd302a5ad05f21bc6fee9c84bc20d4ebec7cd951c94e2",
+    "old_lines": 123,
+    "new_lines": 145
+  },
+  {
+    "path": "apps/api/src/modules/valet-sessions/intake-session-command.ts",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "c5924bdaa1b71d17fd0838b9856c02527c1b515ffd7074739ebdf79636fb810f",
+    "new_hash": "46acb09994821c6c8dbc5a9de33535152df87a1435f137c0f7aab5449c067012",
+    "old_lines": 184,
+    "new_lines": 174
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-backend.service.ts",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "00a4e07980e1f12e618076abcc6d4b9a75204ab2304f34be4cf6d9732b1d453b",
+    "new_hash": "05d6a8b6b185e8dc6a7a555571f0e27f3e087817d27d472d50c700a6e61d0d41",
+    "old_lines": 122,
+    "new_lines": 185
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/condition-photo-upload-executor.ts",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "8fd220ee78ba56e121410d175902ff4e3cf127878b28afa26c0cd5de1d928620",
+    "new_hash": "b16fbb09fbda7d83e06824e48167df51c4cf1fd7c132f9756c47b0a489ef3c99",
+    "old_lines": 130,
+    "new_lines": 180
+  },
+  {
+    "path": "apps/api/src/modules/vehicle-photos/s3-private-photo-store.ts",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "e80c22b589a210248d0971c6d53fd69e17ce46e8bbe7028c980164baeffdc41b",
+    "new_hash": "c056731993179ad796dad6bb687516a9be71296fdea31ae86cda4aa76f2c9b76",
+    "old_lines": 141,
+    "new_lines": 205
+  },
+  {
+    "path": "apps/api/test/staff-operational-context-batching.integration.test.ts",
+    "previous_review_batch": "D001",
+    "previous_reviewer": "prime",
+    "previous_hash": "442a9966cd9db74608a7b7823b69b108f4c4dc5b58d5857e486ad60493d92232",
+    "new_hash": "8ecd4bfad3141fcaadc629c5e5e2e42e4be2d45adefbfe653e4e01ea00923800",
+    "old_lines": 57,
+    "new_lines": 63
+  },
+  {
+    "path": "apps/api/vitest.config.mjs",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "7be7568865d97f7bf0abb7d4239e19252391f4b6714dc741f2b468706f6c2b5f",
+    "new_hash": "e29b7bb3e38c74c036a647dc2e187197c22edc77d69334e1b55842dad5b310bc",
+    "old_lines": 65,
+    "new_lines": 77
+  },
+  {
+    "path": "apps/customer/src/components/primitives/btn.tsx",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "78c12d06796c0643802ccc605fdbc4346d95e9fe3288071080c3c70489280547",
+    "new_hash": "21561bcd1e8dbd7939b6347dde82784dfba207581fe8a855c1c118112e591243",
+    "old_lines": 89,
+    "new_lines": 108
+  },
+  {
+    "path": "apps/customer/src/features/rating/guest-live-rating.tsx",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "ad7187850805dcc50bd694bccba8b173b240cd9ac453951bad0b2769126f37a4",
+    "new_hash": "338f096f8bd669239e028c28bf6548233021a6cefd3354a0568f43a313ca93e0",
+    "old_lines": 91,
+    "new_lines": 91
+  },
+  {
+    "path": "apps/customer/src/features/web-push/guest-web-push-permission-card.mounted.test.tsx",
+    "previous_review_batch": "C007",
+    "previous_reviewer": "customer",
+    "previous_hash": "cb67871cf5e7ccff5d0bb22f04a01b360474703db2df8a4edc7efb809f49d87b",
+    "new_hash": "3887c22cdc8403b4da39c634b1e154a85fc77997ef77c42cbad2ab73381fe1a2",
+    "old_lines": 204,
+    "new_lines": 213
+  },
+  {
+    "path": "apps/customer/src/i18n/locale-provider.tsx",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "1611e77b164f46c193b8f26315aa78b0af25d69cbca233d4dd3a688be4319bba",
+    "new_hash": "b50bef2d148b4d840072738af23412a010642b812ec25d689db76cf4e506b81c",
+    "old_lines": 136,
+    "new_lines": 143
+  },
+  {
+    "path": "apps/customer/src/i18n/locale.ts",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "dde505824c14a8671814150978cf8c9ef026eea40160cefa5b1c6206802242c6",
+    "new_hash": "298a9b27ea548987a73c9df5c3e084baabb61935f357e836a7c8b04ad9b1c72f",
+    "old_lines": 63,
+    "new_lines": 94
+  },
+  {
+    "path": "apps/customer/src/theme/theme-provider.tsx",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "31ff32334f4a40629a58234a281562ac73c7d8e45889c5d1bb97e955e9317e37",
+    "new_hash": "834ebc20bb740a73ba6c30b95c251fad430cf655c46097f227b616f9b0bdf331",
+    "old_lines": 107,
+    "new_lines": 114
+  },
+  {
+    "path": "apps/customer/src/theme/theme.ts",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "e54f846f242d6bc41e32ff46bc580831fe98104aec312816e1c2375181c0c92d",
+    "new_hash": "e382e5db15d7e6c872da06d4169b1bd65882e2ccaaa6c84d6093896a18f9cc4f",
+    "old_lines": 81,
+    "new_lines": 110
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/contact-section.tsx",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "7a16bab50d3abb5afc9c0a4e62b510f4c1ac0d66caea1c9a943714defe9fc22c",
+    "new_hash": "416fa923a8650a7e9d2a045dbf4f6f9ac8e49919d6e271244c4dd37b6ba96cae",
+    "old_lines": 65,
+    "new_lines": 90
+  },
+  {
+    "path": "apps/dashboard/src/features/guest-information/guest-information-page.tsx",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "69051d472e8af51a45ec361fcd85bec3494609b0bac56288945cab4e587cb89b",
+    "new_hash": "6af1b7bd2f58d43f3db190a5ce78112557906c3155f2212f309466637b294331",
+    "old_lines": 281,
+    "new_lines": 281
+  },
+  {
+    "path": "apps/dashboard/src/features/operations/live-operations/live-operations-page.tsx",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "092a3c3773b3fec4af2b07601d88921674c7065a904128765d42e1ceaee03059",
+    "new_hash": "4269d8e928bbfb0f8d15ed1bdd834c76a11e6b80a22b09cef2c28e5e95d4a4ed",
+    "old_lines": 202,
+    "new_lines": 212
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-condition-step.tsx",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "ed0ab3afe4d49c6f3063bf346a07469a0820b408cfb42517ecda8b5d0ac80358",
+    "new_hash": "3def53a995a99526b6f0d84cef3dc03157b9d5aaaa4e8344b5e56577792d2f19",
+    "old_lines": 176,
+    "new_lines": 181
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-continuation-step.tsx",
+    "previous_review_batch": "C004",
+    "previous_reviewer": "prime",
+    "previous_hash": "2dcc99ffef6e3dddac5f2a5432900b0fb48604cea1052d90b9aae430f13abe24",
+    "new_hash": "33bdc98e5f23020b87cb16d29cb625706d548dd6204c447c057ea588b6506461",
+    "old_lines": 193,
+    "new_lines": 195
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-check-in-workflow.tsx",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "a76a84d7d378222da9c059641e86ad8d3d0e7fce545217237d5a0a1a75fe4b7d",
+    "new_hash": "0148056c554fd3aff0e130b18bb7f73d3a46620fc63022ddea43724b95952059",
+    "old_lines": 242,
+    "new_lines": 244
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-condition-photo-camera.tsx",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "f9dc6598e13cfb7842752f163997822c04ee519a93eb31afb9ef95a6f4fa98a3",
+    "new_hash": "9e2e7880cac9fe57a43793ad0616c88dfc3d5368760b61ca7e34652042f4745b",
+    "old_lines": 237,
+    "new_lines": 258
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-condition-photo-copy.ts",
+    "previous_review_batch": "C007",
+    "previous_reviewer": "customer",
+    "previous_hash": "cfaed08fb0435204921efa4c4b1991581d598e3b855f582d234ec0fb5273b456",
+    "new_hash": "99fa46d7dccb5e9e0bf6191c9bac3d8367e45b2a5a4adb3b3a04c04bd1e91aa0",
+    "old_lines": 51,
+    "new_lines": 83
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-condition-photo-owner.ts",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "642e061b1e6f25dab2c39774cda5f7ef315d0da6709ba49889f9d62029beb13f",
+    "new_hash": "418582015ed81378d295ac290f55fa0c459ee0e9dc1e708728994c933db43d19",
+    "old_lines": 112,
+    "new_lines": 154
+  },
+  {
+    "path": "apps/valet-native/src/check-in/native-condition-photo-status.tsx",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "02f322c35322b9b019a8732ff5ce674b4603157b0c8bf863b6a09afa5729cbfa",
+    "new_hash": "2da466c5f5d9500ba6c54c4ab2cc471ba0bf48041f0ed2715fc5b7992b3970bc",
+    "old_lines": 74,
+    "new_lines": 108
+  },
+  {
+    "path": "packages/contracts/src/index.ts",
+    "previous_review_batch": "C007",
+    "previous_reviewer": "customer",
+    "previous_hash": "5f6c12aa0c38e4d8a3a5e1c798c6c8f9ab85a899c77c9295996ee1f93828a03d",
+    "new_hash": "6c6a60a16828db199cd6e94c50bcbc54875434ac2cf3704c43293aa3172eb0de",
+    "old_lines": 96,
+    "new_lines": 97
+  },
+  {
+    "path": "packages/contracts/src/management-audit.test.ts",
+    "previous_review_batch": "C008",
+    "previous_reviewer": "c008_contracts_review",
+    "previous_hash": "86d22238aff583c88bd5269fd5c0420ea62cf914f8bde6bed95ad2bc5bd4cbb0",
+    "new_hash": "8cb5f0bd44b2755d34b974bd9ac8c03c2f697c51efe9d535fe34dbb1db4a2c97",
+    "old_lines": 175,
+    "new_lines": 175
+  },
+  {
+    "path": "packages/database/src/issue304-migration-source-appendix.test.ts",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "db5bbcbe3bbeea29abba7e43ac6b38b756c79c322960ea315e1968a5af26ca29",
+    "new_hash": "6bdd4c8d11a35f183f6ab5910763ba23ecf7c6889b116aa159d85952ceb03906",
+    "old_lines": 33,
+    "new_lines": 34
+  },
+  {
+    "path": "packages/database/src/issue304-migration-source-appendix.ts",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "3a31bfc1bac3cf8b5250d57ca54b4fb87ab631e18e62aa73a5620ea1c7070b7e",
+    "new_hash": "67ffd57d6f02f1836744fca13f729f41a50aae78a47540b33e797de70444d85e",
+    "old_lines": 25,
+    "new_lines": 26
+  },
+  {
+    "path": "packages/employee-client/src/employee-condition-photo-session.ts",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "90e1b6efa18908e4f6d7fd06c1e9fcb851a82eb9ade752b99a5dff85d0376f88",
+    "new_hash": "94b3fe5aa659e66fd066a1e50f20eb3f52544596ac59f46f2dce1000732f7daa",
+    "old_lines": 256,
+    "new_lines": 300
+  },
+  {
+    "path": "packages/employee-client/src/employee-condition-photo-state.ts",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "8a6da261ab1336e53b1680ea8edc66fced24d1ad6686794c049d947c29937fe5",
+    "new_hash": "68b6ab554e24c8eff8243300df3c94e77230fd7d687959b238b6f74ecb8c579e",
+    "old_lines": 64,
+    "new_lines": 71
+  },
+  {
+    "path": "packages/employee-client/src/employee-condition-photo-transport.test.ts",
+    "previous_review_batch": "C007",
+    "previous_reviewer": "dashboard",
+    "previous_hash": "a5229bda6335338ca4be7798d5bdfde3c85113666e1fc50d42ee94eef201fd90",
+    "new_hash": "d5d1c5d27d5b2cb5e9be2c7b83ff002757ab7244999319b970b4f15087190735",
+    "old_lines": 60,
+    "new_lines": 79
+  },
+  {
+    "path": "packages/employee-client/src/employee-condition-photo-transport.ts",
+    "previous_review_batch": "original",
+    "previous_reviewer": "original-audit",
+    "previous_hash": "0948a457e6991126af34a8f01affa57ff28d798c89c908eab4566f561f1d1d19",
+    "new_hash": "6f885027c353a0c301f5da6ffb7ca5aa68c076bab3e0d3e329daef18837e3dec",
+    "old_lines": 75,
+    "new_lines": 87
+  },
+  {
+    "path": "scripts/test-harness/issue215-test-manifest.mjs",
+    "previous_review_batch": "C001",
+    "previous_reviewer": "coordinator",
+    "previous_hash": "f2cb6aff29acf0e5a5fa808cdf47d1a0a9b294a31ff98fb5d84604d169be63ab",
+    "new_hash": "6487195694c71bc432e5f48214ce2aff472233d8d152314af80246cb2260910b",
+    "old_lines": 44,
+    "new_lines": 48
+  },
+  {
+    "path": "scripts/test-harness/run-owned-tests.mjs",
+    "previous_review_batch": "C001",
+    "previous_reviewer": "coordinator",
+    "previous_hash": "442969b26b426de803e1022c9f97f810301ca8e23e574921cabd8084c7914574",
+    "new_hash": "d84d3acc1f2b73975cce705674f7c7831906b56d0510288c4f1dfa154b6a22d2",
+    "old_lines": 70,
+    "new_lines": 71
+  },
+  {
+    "path": "scripts/test-harness/test-classification.mjs",
+    "previous_review_batch": "C001",
+    "previous_reviewer": "coordinator",
+    "previous_hash": "3355d6170812f5b64d130fe369441e60abf7243c54a555a838c392666b41ca78",
+    "new_hash": "8150677f45eb32a48d475119059257f007cffe56ebd23e5a65db5817e9d1ad8c",
+    "old_lines": 250,
+    "new_lines": 271
+  }
+]
