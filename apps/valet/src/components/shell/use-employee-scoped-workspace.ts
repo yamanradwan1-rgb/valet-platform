@@ -61,23 +61,32 @@ export function useEmployeeScopedWorkspace(options: ScopedWorkspaceOptions): {
   const identityStamp = makeWorkspaceStamp(options.identity);
   const authority = authoritativeWorkspaceScope(options);
   const operationalStamp = makeOperationalScopeStamp(authority);
-  // Transient response loss does not change operational authority. Reuse the
-  // most recently committed stamp so an A command completing during refresh
-  // can still update its A workflow if the authoritative scope returns as A.
-  const retainedStamp =
-    workspace.identityStamp === identityStamp
-      ? workspace.operationalStamp
-      : undefined;
-  const authorityKey =
+  // An in-flight command may be the FIRST event that would create targets.
+  // Remember verified authority independently from stored targets, so an
+  // A -> PENDING -> A token refresh does not invalidate that A callback.
+  const [lastAuthority, setLastAuthority] = useState({
+    identityStamp,
+    authorityKey: "pending",
+  });
+  const observedKey =
     operationalStamp === undefined
-      ? retainedStamp === undefined
-        ? "pending"
-        : retainedStamp === null
-          ? "retired"
-          : retainedStamp
+      ? undefined
       : operationalStamp === null
         ? "retired"
         : operationalStamp;
+  const authorityKey =
+    observedKey ??
+    (lastAuthority.identityStamp === identityStamp
+      ? lastAuthority.authorityKey
+      : "pending");
+  if (
+    lastAuthority.identityStamp !== identityStamp ||
+    (observedKey !== undefined && observedKey !== lastAuthority.authorityKey)
+  ) {
+    // React's guarded same-component state adjustment commits authority
+    // before children can receive callbacks for the new resolved scope.
+    setLastAuthority({ identityStamp, authorityKey });
+  }
 
   // Each committed authority transition receives a distinct callback token.
   // Even if A later regains the exact same scope, an old A promise completion
