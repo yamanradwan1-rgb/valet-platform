@@ -170,6 +170,26 @@ describe("Emergency takeover authorized detail projection", () => {
     expect(result.canInitiate).toBe(false);
   });
 
+  it.each([
+    { taskType: "PARKING", sessionState: "PARKING" },
+    { taskType: "RETRIEVAL", sessionState: "HANDOFF_PENDING" },
+  ] as const)(
+    "hides $taskType takeover when the Task has no canonical assignee",
+    async ({ taskType, sessionState }) => {
+      vi.mocked(authorizeEmergencyTakeoverRead).mockResolvedValue({
+        ...taskAuthority, taskType, sessionState, assigneeMembershipId: null,
+      });
+      const { pool, calls } = fixture(1);
+      const result = await readEmergencyTakeoverContext(pool, {
+        taskId: ids.task, staffSessionContext,
+      });
+      expect(result.task.assigneeMembershipId).toBeNull();
+      expect(result.canInitiate).toBe(false);
+      expect(calls.some(({ sql }) => sql.includes("FROM retrieval_requests")))
+        .toBe(false);
+    },
+  );
+
   it("uses accepted custody event sequence on equal timestamps despite inverse random UUID order", async () => {
     const { pool, calls } = fixture(1, true, true);
     const result = await readEmergencyTakeoverContext(pool, {

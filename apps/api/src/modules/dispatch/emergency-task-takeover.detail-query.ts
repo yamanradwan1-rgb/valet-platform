@@ -43,6 +43,8 @@ async function canInitiateEmergencyTakeover(
 ): Promise<boolean> {
   // UI visibility is advisory. W2 independently re-proves these facts with
   // protected locks at the write boundary, including custody/proof guards.
+  // W1's domain contract rejects a Task with no canonical current owner.
+  if (authority.assigneeMembershipId === null) return false;
   if (authority.taskType === "PARKING") {
     return authority.sessionState === "PARKING";
   }
