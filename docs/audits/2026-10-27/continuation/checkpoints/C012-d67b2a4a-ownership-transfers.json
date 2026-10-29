@@ -1,0 +1,511 @@
+{
+  "batch": "C012",
+  "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+  "failed_roles": [
+    "W6",
+    "W7"
+  ],
+  "count": 50,
+  "transfers": [
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/incident/native-incident-styles.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/incident/native-incident-types.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/telemetry/native-incident-failure-stage.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/android-expo-notification-adapter.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/expo-native-push-response-platform.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/native-battery-copy.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/native-battery-platform.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/native-battery-status.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/native-battery-warning.tsx",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/native-push-copy.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W2",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W2/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/native-push-desired-state.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W4",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/native-push-foreground-attention.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W4",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/native-push-installation.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W4",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/native-push-payload.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W4",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/native-push-registration-diagnostics.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W4",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/native-push-registration-failure.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W4",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/native-push-response-bootstrap.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W4",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/native-push-response-capture.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W4",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/native-push-response-parser.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W4",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/native-push-response-types.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W4",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W4/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/native-push-route-coordinator.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W5",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/native-push-timing-diagnostics.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W5",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/native-push-types.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W5",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/use-native-battery-status.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W5",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "apps/valet-native/src/notifications/use-native-push-attention.ts",
+      "original_owner": "W6",
+      "actual_reviewer": "W5",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C012-transferred-W6-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-valet-session.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W1",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-valet-session.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W1",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/route-history.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W1",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-activation.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W1",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-activation.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W1",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-check-in-continuations.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W1",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-check-in-continuations.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W1",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-check-in-drafts.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W1",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-check-in-drafts.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W1",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-context.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W1",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W1/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-context.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W3",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-management.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W3",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-management.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W3",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-mfa.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W3",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-mfa.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W3",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-onboarding.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W3",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-onboarding.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W3",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-push.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W3",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-push.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W3",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-vehicle-directory-actions.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W3",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W3/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-vehicle-directory.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W5",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/staff-vehicle-directory.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W5",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/start-parking.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W5",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/start-parking.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W5",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C012-transferred-W7-review-records.json"
+    },
+    {
+      "batch": "C012",
+      "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+      "path": "packages/contracts/src/start-retrieval.test.ts",
+      "original_owner": "W7",
+      "actual_reviewer": "W5",
+      "status": "assigned_pending_review",
+      "reason": "W6/W7 existing COS conversations failed before receiving tasks; preserved logical ownership",
+      "result_path": "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W5/C012-transferred-W7-review-records.json"
+    }
+  ]
+}
