@@ -1,3 +1,25 @@
+export const MAX_EMERGENCY_REASON_CODEPOINTS = 500;
+
+/** Keep input bounded by Unicode codepoints, never splitting an astral character. */
+export function limitEmergencyTakeoverReason(value: string) {
+  let end = 0;
+  let codepoints = 0;
+  for (const character of value) {
+    if (codepoints === MAX_EMERGENCY_REASON_CODEPOINTS) {
+      return { value: value.slice(0, end), exceeded: true, codepoints };
+    }
+    end += character.length;
+    codepoints += 1;
+  }
+  return { value, exceeded: false, codepoints };
+}
+
+export function validEmergencyTakeoverReason(value: string) {
+  const reason = value.trim();
+  return Boolean(reason) && !/\p{Cc}/u.test(reason) &&
+    !limitEmergencyTakeoverReason(reason).exceeded;
+}
+
 /** One logical emergency request keeps the same identity across explicit retries. */
 export class EmergencyTakeoverIntent {
   private current: {
@@ -12,7 +34,7 @@ export class EmergencyTakeoverIntent {
     readonly reason: string;
   }) {
     const reason = input.reason.trim();
-    if (!reason || !input.targetAssigneeMembershipId) return null;
+    if (!validEmergencyTakeoverReason(reason) || !input.targetAssigneeMembershipId) return null;
     const material = JSON.stringify([
       input.taskId,
       input.expectedVersion,

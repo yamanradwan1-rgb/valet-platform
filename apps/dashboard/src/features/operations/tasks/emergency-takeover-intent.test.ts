@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { EmergencyTakeoverIntent } from "./emergency-takeover-intent";
+import {
+  EmergencyTakeoverIntent,
+  limitEmergencyTakeoverReason,
+  validEmergencyTakeoverReason,
+} from "./emergency-takeover-intent";
 
 const base = {
   taskId: "11111111-1111-4111-8111-111111111111",
@@ -37,5 +41,30 @@ describe("Emergency Task Takeover intent identity", () => {
     intent.reset();
     expect(intent.prepare(base)!.operationId).not.toBe(first.operationId);
     expect(intent.prepare({ ...base, reason: "  " })).toBeNull();
+  });
+
+  it("accepts 300 astral emoji as 300 codepoints even though UTF-16 length is 600", () => {
+    const reason = "😀".repeat(300);
+    expect(reason.length).toBe(600);
+    expect(limitEmergencyTakeoverReason(reason)).toEqual({
+      value: reason, exceeded: false, codepoints: 300,
+    });
+    expect(validEmergencyTakeoverReason(reason)).toBe(true);
+    expect(new EmergencyTakeoverIntent().prepare({ ...base, reason })?.reason).toBe(reason);
+  });
+
+  it("limits pasted text to 500 complete codepoints and rejects unbounded direct intents", () => {
+    const reason = "😀".repeat(501);
+    const bounded = limitEmergencyTakeoverReason(reason);
+    expect(bounded).toEqual({ value: "😀".repeat(500), exceeded: true, codepoints: 500 });
+    expect(validEmergencyTakeoverReason(reason)).toBe(false);
+    expect(new EmergencyTakeoverIntent().prepare({ ...base, reason })).toBeNull();
+    expect(new EmergencyTakeoverIntent().prepare({ ...base, reason: bounded.value })?.reason).toBe(bounded.value);
+    expect(limitEmergencyTakeoverReason("a".repeat(499) + "😀" + "b").value).toBe("a".repeat(499) + "😀");
+  });
+
+  it("rejects control characters after trimming", () => {
+    expect(validEmergencyTakeoverReason("Reason\nAnother line")).toBe(false);
+    expect(new EmergencyTakeoverIntent().prepare({ ...base, reason: "Reason\nAnother line" })).toBeNull();
   });
 });

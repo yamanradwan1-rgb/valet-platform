@@ -1,9 +1,14 @@
 "use client";
 
-import { useId, type FormEvent } from "react";
+import { useId, useState, type FormEvent } from "react";
 import { FocusDialog } from "../../../components/presentation/focus-dialog";
 import { styles } from "../operations-ui";
 import { emergencyTakeoverCopy } from "./emergency-takeover-copy";
+import {
+  limitEmergencyTakeoverReason,
+  MAX_EMERGENCY_REASON_CODEPOINTS,
+  validEmergencyTakeoverReason,
+} from "./emergency-takeover-intent";
 
 export interface EmergencyTakeoverView {
   readonly taskId: string;
@@ -48,12 +53,27 @@ export function EmergencyTakeoverDialog(props: {
 }) {
   const t = emergencyTakeoverCopy(props.locale);
   const id = useId();
+  const [reasonExceeded, setReasonExceeded] = useState(false);
+  const reasonCount = limitEmergencyTakeoverReason(props.reason).codepoints;
+  const reasonInvalid = props.reason.length > 0 && !validEmergencyTakeoverReason(props.reason);
+  const reasonError = reasonExceeded || reasonInvalid;
   const working = props.phase === "submitting" || props.phase === "reconciling";
   const locked = working || props.phase === "unknown" || props.phase === "success";
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (props.canSubmit && !locked) props.onSubmit();
+    if (props.canSubmit && !locked && !reasonError) props.onSubmit();
   };
+  const changeReason = (value: string) => {
+    const bounded = limitEmergencyTakeoverReason(value);
+    setReasonExceeded(bounded.exceeded);
+    props.onReasonChange(bounded.value);
+  };
+  const limitMessage = props.locale === "ar"
+    ? "الحد الأقصى 500 حرف Unicode. تم تجاهل الأحرف الزائدة."
+    : "Maximum 500 Unicode characters. Extra characters were not entered.";
+  const invalidMessage = props.locale === "ar"
+    ? "السبب مطلوب، ولا يُسمح بأسطر جديدة أو رموز التحكم."
+    : "A reason is required; line breaks and control characters are not allowed.";
   return (
     <FocusDialog label={t.title} onClose={props.onClose}>
       <form onSubmit={submit} aria-busy={working} data-testid="emergency-takeover-dialog">
@@ -138,19 +158,21 @@ export function EmergencyTakeoverDialog(props: {
                 {t.reason}
               </label>
               <textarea
-                aria-describedby={id + "-reason-help"}
-                aria-invalid={props.reason.length > 0 && !props.reason.trim()}
+                aria-describedby={id + "-reason-help " + id + "-reason-feedback"}
+                aria-invalid={reasonError}
                 className={styles.textarea}
                 data-testid="emergency-takeover-reason"
                 dir="auto"
                 disabled={locked}
                 id={id + "-reason"}
-                onChange={(event) => props.onReasonChange(event.target.value)}
-                maxLength={500}
+                onChange={(event) => changeReason(event.target.value)}
                 required
                 value={props.reason}
               />
               <p className={styles.muted} id={id + "-reason-help"}>{t.reasonHelp}</p>
+              <p className={styles.muted} id={id + "-reason-feedback"} role={reasonError ? "alert" : "status"}>
+                {reasonExceeded ? limitMessage : reasonInvalid ? invalidMessage : `${reasonCount}/${MAX_EMERGENCY_REASON_CODEPOINTS}`}
+              </p>
             </div>
             <section aria-label={t.history}>
               <h3>{t.history}</h3>
@@ -184,7 +206,7 @@ export function EmergencyTakeoverDialog(props: {
             </button>
           ) : null}
           {props.phase !== "success" ? (
-            <button className={styles.primary} data-testid="emergency-takeover-confirm" disabled={!props.canSubmit || locked} type="submit">
+            <button className={styles.primary} data-testid="emergency-takeover-confirm" disabled={!props.canSubmit || locked || reasonError} type="submit">
               {working ? t.submitting : t.confirm}
             </button>
           ) : null}
