@@ -19,9 +19,10 @@ if (git('rev-parse','HEAD')!==fullSha || git('rev-parse','HEAD^{tree}')!==tree |
 }
 const roster = JSON.parse(readFileSync(prefix+'assignment-roster.json','utf8'));
 const transfers = JSON.parse(readFileSync(prefix+'ownership-transfers.json','utf8'));
-const previousCheckpoint=batch==='C013'?'C012':'C011';
+const previousCheckpoint=({C012:'C011',C013:'C012',C014:'C013'})[batch];
+if(!previousCheckpoint) throw new Error('Unsupported batch '+batch);
 const previous=JSON.parse(readFileSync(join(root,'checkpoints',previousCheckpoint+'-d67b2a4a-coverage-summary.json'),'utf8'));
-const initialTransferCount=batch==='C013'?75:50;
+const initialTransferCount=batch==='C012'?50:75;
 if (roster.batch!==batch || !roster.immutable || roster.source_commit!==fullSha ||
     roster.source_tree!==tree || roster.assignments.length!==175 ||
     transfers.batch!==batch || transfers.source_commit!==fullSha ||
