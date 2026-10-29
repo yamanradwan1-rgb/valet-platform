@@ -17,11 +17,12 @@ const prefix=join(cp,`${batch}-${sha.slice(0,8)}-`);
 const readFile=name=>JSON.parse(readFileSync(name,'utf8'));
 const roster=readFile(prefix+'assignment-roster.json'),transfers=readFile(prefix+'ownership-transfers.json');
 const priorBatch='C'+String(Number(batch.slice(1))-1).padStart(3,'0');
-const previousPath=batch==='C017'
+const epochFirst=batch==='C017'||batch==='C022';
+const previousPath=epochFirst
   ?join(root,'rebaselines',sha,'summary.json')
   :join(cp,`${priorBatch}-${sha.slice(0,8)}-coverage-summary.json`);
 const previous=readFile(previousPath);
-const remainingPath=batch==='C017'
+const remainingPath=epochFirst
   ?join(root,'rebaselines',sha,'current-remaining-files.txt')
   :join(cp,`${priorBatch}-${sha.slice(0,8)}-current-remaining.txt`);
 const remaining=new Set(readFileSync(remainingPath,'utf8').trim().split(/\r?\n/));

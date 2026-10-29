@@ -1,0 +1,54 @@
+{
+  "batch": "C022",
+  "result": "PASS_INDEPENDENT_ROSTER_SOURCE_AND_OWNERSHIP_QA",
+  "independent_execution_agent_id": "/root/c022_roster_qa",
+  "source_commit": "9ac3c5518b6b7781364e90742589d8f63024f8f6",
+  "source_tree": "df279eba03754d18eaa98b3245b810cb808f82cf",
+  "published_rb004_docs_parent": "1cf667ee6ebb5d6b459687a88c270350dd0cc4d8",
+  "provenance": "Independent local GitHub clone and separately generated detached audit-docs scratch worktree; reran exact published C022 roster generator, no COS remote dependency",
+  "byte_identical_generated_artifacts": {
+    "C022-9ac3c551-assignment-roster.json": "2b37a4ffa366ebc51c20fc516ac34723346bff3595323798d256a65bf060b55c",
+    "C022-9ac3c551-ownership-transfers.json": "e4d3b4530b826a89462616a5390a74c2fb9cb99f1ad89dafdacd3cc2da55b307"
+  },
+  "checks": {
+    "rb004_eligible_remaining": 1210,
+    "assigned_unique": 175,
+    "assigned_from_exact_current_remaining": 175,
+    "prior_credited_overlap": 0,
+    "git_blob_raw_sha256_eof_verified": 175,
+    "git_blob_raw_sha256_eof_failed": 0,
+    "selected_source_lines": 28378,
+    "original_owners": {
+      "W1": 25,
+      "W2": 25,
+      "W3": 25,
+      "W4": 25,
+      "W5": 25,
+      "W6": 25,
+      "W7": 25
+    },
+    "actual_reviewers": {
+      "W1": 35,
+      "W2": 35,
+      "W3": 35,
+      "W4": 0,
+      "W5": 0,
+      "W6": 35,
+      "W7": 35
+    },
+    "formal_w4_w5_transfers": 50,
+    "role_domain_fallbacks": 17,
+    "mandatory_rb004_deltas": 106,
+    "mandatory_selected": 82,
+    "mandatory_explicitly_deferred": 24,
+    "hypothetical_remaining_only_after_full_strict_review": 1035
+  },
+  "defects": [],
+  "limits": [
+    "Assignment QA only, not C022 semantic review credit",
+    "Zero C022 full-source semantic records accepted at prepublication gate",
+    "Runtime tests not executed",
+    "No product/test/schema/CI/issue/PR/merge/deployment changes"
+  ],
+  "runtime_tests_executed": 0
+}

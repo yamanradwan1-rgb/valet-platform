@@ -16,10 +16,11 @@ const roster=read(prefix+'assignment-roster.json'),transfers=read(prefix+'owners
 const qa=read(join(scratch,'Prime',batch+'-qa-provisional.json'));
 const accepted=read(join(scratch,'Prime',batch+'-qa-accepted.json'));
 const previousBatch='C'+String(Number(batch.slice(1))-1).padStart(3,'0');
-const previousSummaryPath=batch==='C017'
+const epochFirst=batch==='C017'||batch==='C022';
+const previousSummaryPath=epochFirst
   ?join(root,'rebaselines',sha,'summary.json')
   :join(cp,`${previousBatch}-${sha.slice(0,8)}-coverage-summary.json`);
-const previousLedgerPath=batch==='C017'
+const previousLedgerPath=epochFirst
   ?join(root,'rebaselines',sha,'current-coverage-ledger.csv')
   :join(cp,`${previousBatch}-${sha.slice(0,8)}-current-ledger.csv`);
 const previous=read(previousSummaryPath),docsParent=execFileSync('git',['-C',root,'rev-parse','HEAD'],{encoding:'utf8'}).trim();
