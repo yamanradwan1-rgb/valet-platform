@@ -1,4 +1,5 @@
 import { abortReason, awaitWithAbort } from "./staff-auth-abort";
+import { canRestoreStaffCookieSession, hasPersistedLogoutMarker } from "./staff-auth-bootstrap-storage";
 import { readStaffAuthContinuity } from "./staff-auth-continuity";
 import {
   staffAuthAccessResponseSchema,
@@ -78,14 +79,11 @@ export class StaffAuthClient {
   }
 
   hasUnconfirmedLogout(): boolean {
-    if (this.logoutUnconfirmed) return true;
-    try {
-      return (
-        globalThis.localStorage?.getItem(STAFF_LOGOUT_UNCONFIRMED_KEY) === "1"
-      );
-    } catch {
-      return false;
-    }
+    return this.logoutUnconfirmed || hasPersistedLogoutMarker(STAFF_LOGOUT_UNCONFIRMED_KEY);
+  }
+
+  canRestoreSessionFromCookie(): boolean {
+    return !this.hasUnconfirmedLogout() && canRestoreStaffCookieSession(STAFF_LOGOUT_UNCONFIRMED_KEY);
   }
 
   isTokenFresh(bufferSeconds = 30): boolean {
@@ -125,6 +123,11 @@ export class StaffAuthClient {
 
   refresh(signal?: AbortSignal): Promise<StaffAuthAccessResponse> {
     if (signal?.aborted) return Promise.reject(abortReason(signal));
+    if (this.session === null && !this.canRestoreSessionFromCookie()) {
+      return Promise.reject(
+        new StaffAuthRefreshError("definitive", dashboardAuthBoundaryError()),
+      );
+    }
     if (this.refreshPromise === null) {
       const identityFence = this.identityGeneration;
       const active = this.performRefresh(identityFence);
@@ -179,6 +182,9 @@ export class StaffAuthClient {
           "definitive",
           dashboardAuthBoundaryError(),
         );
+      }
+      if (this.session === null && !this.canRestoreSessionFromCookie()) {
+        throw new StaffAuthRefreshError("definitive", dashboardAuthBoundaryError());
       }
       this.applySession(
         parsed.data,

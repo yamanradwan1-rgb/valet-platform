@@ -82,6 +82,10 @@ export function StaffAuthProvider({ children, client: providedClient }: StaffAut
       void Promise.resolve().then(() => {
         if (active) setSnapshot(snapshotFromClient(client, "logout-unconfirmed"));
       });
+    } else if (client.getSession() === null && !client.canRestoreSessionFromCookie()) {
+      void Promise.resolve().then(() => {
+        if (active) setSnapshot(snapshotFromClient(client, "unauthenticated"));
+      });
     } else if (client.getSession() === null) {
       void client.refresh().then(
         () => {
