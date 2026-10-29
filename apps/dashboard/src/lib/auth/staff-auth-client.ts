@@ -1,6 +1,7 @@
 import { abortReason, awaitWithAbort } from "./staff-auth-abort";
 import { canRestoreStaffCookieSession, hasPersistedLogoutMarker } from "./staff-auth-bootstrap-storage";
 import { readStaffAuthContinuity } from "./staff-auth-continuity";
+import { fetchStaffAuthJson } from "./staff-auth-fetch-json";
 import {
   staffAuthAccessResponseSchema,
   staffLoginRequestSchema,
@@ -19,7 +20,7 @@ import {
 export type StaffAuthSession = StaffAuthAccessResponse;
 export type StaffRefreshFailureKind = "definitive" | "transient";
 
-const STAFF_LOGOUT_UNCONFIRMED_KEY = "vaylet_staff_logout_unconfirmed";
+export const STAFF_LOGOUT_UNCONFIRMED_KEY = "vaylet_staff_logout_unconfirmed";
 
 export class StaffAuthRefreshError extends Error {
   constructor(
@@ -63,6 +64,11 @@ export class StaffAuthClient {
   }
 
   getAccessToken(): string | null {
+    // A tab can miss the storage event while suspended. Never hand its old
+    // bearer token to an API call once another tab began an uncertain logout.
+    if (!this.logoutUnconfirmed && hasPersistedLogoutMarker(STAFF_LOGOUT_UNCONFIRMED_KEY)) {
+      this.observeExternalLogout();
+    }
     return this.session?.accessToken ?? null;
   }
 
@@ -84,6 +90,13 @@ export class StaffAuthClient {
 
   canRestoreSessionFromCookie(): boolean {
     return !this.hasUnconfirmedLogout() && canRestoreStaffCookieSession(STAFF_LOGOUT_UNCONFIRMED_KEY);
+  }
+
+  /** Same-origin logout marker signaled by a different browser tab. */
+  observeExternalLogout(): void {
+    if (this.logoutUnconfirmed && this.session === null) return;
+    this.logoutUnconfirmed = true;
+    this.clearIdentityBoundary();
   }
 
   isTokenFresh(bufferSeconds = 30): boolean {
@@ -123,6 +136,12 @@ export class StaffAuthClient {
 
   refresh(signal?: AbortSignal): Promise<StaffAuthAccessResponse> {
     if (signal?.aborted) return Promise.reject(abortReason(signal));
+    if (this.hasUnconfirmedLogout()) {
+      this.observeExternalLogout();
+      return Promise.reject(
+        new StaffAuthRefreshError("definitive", dashboardAuthBoundaryError()),
+      );
+    }
     if (this.session === null && !this.canRestoreSessionFromCookie()) {
       return Promise.reject(
         new StaffAuthRefreshError("definitive", dashboardAuthBoundaryError()),
@@ -183,6 +202,7 @@ export class StaffAuthClient {
           dashboardAuthBoundaryError(),
         );
       }
+      if (this.hasUnconfirmedLogout()) this.observeExternalLogout();
       if (this.session === null && !this.canRestoreSessionFromCookie()) {
         throw new StaffAuthRefreshError("definitive", dashboardAuthBoundaryError());
       }
@@ -206,44 +226,8 @@ export class StaffAuthClient {
     path: string,
     body: unknown,
     signal?: AbortSignal,
-  ): Promise<{
-    readonly ok: boolean;
-    readonly status: number;
-    readonly payload: unknown;
-    readonly headers: Headers;
-  }> {
-    let response: Response;
-    try {
-      response = await this.fetcher(`${this.baseUrl}${path}`, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-        cache: "no-store",
-        credentials: "include",
-        ...(signal === undefined ? {} : { signal }),
-      });
-    } catch (error: unknown) {
-      if (signal?.aborted) throw abortReason(signal);
-      throw dashboardNetworkError(error);
-    }
-    const text = await response.text();
-    let payload: unknown = {};
-    if (text.length > 0) {
-      try {
-        payload = JSON.parse(text);
-      } catch {
-        payload = text;
-      }
-    }
-    return {
-      ok: response.ok,
-      status: response.status,
-      payload,
-      headers: response.headers,
-    };
+  ) {
+    return fetchStaffAuthJson(this.fetcher, this.baseUrl, path, body, signal);
   }
 
   private applySession(

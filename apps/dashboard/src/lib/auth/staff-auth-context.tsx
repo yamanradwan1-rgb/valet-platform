@@ -12,6 +12,7 @@ import {
 } from "react";
 
 import {
+  STAFF_LOGOUT_UNCONFIRMED_KEY,
   StaffAuthClient,
   type StaffAuthSession,
 } from "./staff-auth-client";
@@ -56,6 +57,10 @@ function snapshotFromClient(
   };
 }
 
+function statusAfterRefreshError(client: StaffAuthClient, error: unknown): StaffAuthStatus {
+  return client.hasUnconfirmedLogout() ? "logout-unconfirmed" : refreshFailureStatus(error);
+}
+
 export function StaffAuthProvider({ children, client: providedClient }: StaffAuthProviderProps) {
   const [client] = useState(() => providedClient ?? new StaffAuthClient());
   const [snapshot, setSnapshot] = useState<StaffAuthSnapshot>(() =>
@@ -64,6 +69,12 @@ export function StaffAuthProvider({ children, client: providedClient }: StaffAut
 
   useEffect(() => {
     let active = true;
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === STAFF_LOGOUT_UNCONFIRMED_KEY && event.newValue === "1") {
+        client.observeExternalLogout();
+      }
+    };
+    window.addEventListener("storage", onStorage);
     const unsubscribe = client.subscribe((session, sessionGeneration, identityGeneration) => {
       if (!active) return;
       setSnapshot({
@@ -92,13 +103,14 @@ export function StaffAuthProvider({ children, client: providedClient }: StaffAut
           if (active) setSnapshot(snapshotFromClient(client, "authenticated"));
         },
         (error: unknown) => {
-          if (active) setSnapshot(snapshotFromClient(client, refreshFailureStatus(error)));
+          if (active) setSnapshot(snapshotFromClient(client, statusAfterRefreshError(client, error)));
         },
       );
     }
 
     return () => {
       active = false;
+      window.removeEventListener("storage", onStorage);
       unsubscribe();
     };
   }, [client]);
@@ -132,7 +144,7 @@ export function StaffAuthProvider({ children, client: providedClient }: StaffAut
         setSnapshot(snapshotFromClient(client, "authenticated"));
         return result;
       } catch (error: unknown) {
-        setSnapshot(snapshotFromClient(client, refreshFailureStatus(error)));
+        setSnapshot(snapshotFromClient(client, statusAfterRefreshError(client, error)));
         throw error;
       }
     },

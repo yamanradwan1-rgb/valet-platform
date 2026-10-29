@@ -130,6 +130,48 @@ describe("Dashboard fail-closed bootstrap", () => {
     await expect(secondTab.refresh()).resolves.toEqual(authPayload);
   });
 
+  it("invalidates an already authenticated tab before another API bearer request", async () => {
+    installStorage("writable");
+    const fetcher = vi.fn<typeof fetch>(async (path) => {
+      if (String(path).endsWith("/logout")) throw new TypeError("offline");
+      return authResponse();
+    });
+    const firstTab = new StaffAuthClient({ fetch: fetcher });
+    const secondTab = new StaffAuthClient({ fetch: fetcher });
+    await firstTab.login(credentials);
+    await secondTab.login(credentials);
+    const identityBefore = secondTab.getIdentityGeneration();
+    await expect(firstTab.logout()).rejects.toMatchObject({ kind: "network" });
+
+    expect(secondTab.getAccessToken()).toBeNull();
+    expect(secondTab.hasUnconfirmedLogout()).toBe(true);
+    expect(secondTab.getIdentityGeneration()).toBeGreaterThan(identityBefore);
+    const requestsBefore = fetcher.mock.calls.length;
+    await expect(secondTab.refresh()).rejects.toBeInstanceOf(StaffAuthRefreshError);
+    expect(fetcher).toHaveBeenCalledTimes(requestsBefore);
+
+    await secondTab.login(credentials);
+    expect(secondTab.getAccessToken()).toBe(authPayload.accessToken);
+  });
+
+  it("fences an already running refresh after a cross-tab logout marker", async () => {
+    const values = installStorage("writable");
+    let resolveRefresh!: (response: Response) => void;
+    const pending = new Promise<Response>((done) => { resolveRefresh = done; });
+    const fetcher = vi.fn<typeof fetch>(async (path) =>
+      String(path).endsWith("/refresh") ? pending : authResponse(),
+    );
+    const tab = new StaffAuthClient({ fetch: fetcher });
+    await tab.login(credentials);
+    const refresh = tab.refresh();
+    values.set(logoutMarker, "1");
+    tab.observeExternalLogout();
+    resolveRefresh(authResponse());
+    await expect(refresh).rejects.toBeInstanceOf(StaffAuthRefreshError);
+    expect(tab.getSession()).toBeNull();
+    expect(tab.hasUnconfirmedLogout()).toBe(true);
+  });
+
   it("successful server logout clears the marker and preserves refresh capability", async () => {
     const values = installStorage("writable");
     const fetcher = vi.fn<typeof fetch>(async (path) =>
