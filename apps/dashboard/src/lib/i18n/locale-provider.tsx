@@ -16,6 +16,7 @@ import {
   DASHBOARD_LOCALE_EVENT,
   directionForLocale,
   readDashboardLocale,
+  reconcileDashboardLocaleStorage,
   type DashboardLocale,
 } from "./locale";
 
@@ -30,10 +31,14 @@ const LocaleContext = createContext<LocaleContextValue | null>(null);
 
 function subscribe(callback: () => void): () => void {
   if (typeof window === "undefined") return () => undefined;
-  window.addEventListener("storage", callback);
+  const onStorage = (event: StorageEvent) => {
+    reconcileDashboardLocaleStorage(event);
+    callback();
+  };
+  window.addEventListener("storage", onStorage);
   window.addEventListener(DASHBOARD_LOCALE_EVENT, callback);
   return () => {
-    window.removeEventListener("storage", callback);
+    window.removeEventListener("storage", onStorage);
     window.removeEventListener(DASHBOARD_LOCALE_EVENT, callback);
   };
 }
