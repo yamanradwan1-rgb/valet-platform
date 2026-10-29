@@ -1,6 +1,7 @@
 "use client";
 
 import type { ManagementLocation, TaskOverviewEntry } from "@valet/contracts";
+import { useCallback, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
 import { TaskDrawer } from "./task-drawer";
@@ -17,6 +18,13 @@ export function EmergencyTaskDrawer(props: {
   readonly onClose: () => void;
   readonly onTakeover: () => void;
 }) {
+  const onCloseRef = useRef(props.onClose);
+  useEffect(() => {
+    onCloseRef.current = props.onClose;
+  }, [props.onClose]);
+  // OperationsDrawer focuses its Close button whenever onClose changes.
+  // Keep that handler stable while the sibling takeover dialog is mounted.
+  const closeDrawer = useCallback(() => onCloseRef.current(), []);
   const eligible = useEmergencyActionEligibility({
     api: props.api,
     taskId: props.item.taskId,
@@ -30,7 +38,7 @@ export function EmergencyTaskDrawer(props: {
       item={props.item}
       locale={props.locale}
       location={props.location}
-      onClose={props.onClose}
+      onClose={closeDrawer}
       {...(eligible ? { onEmergencyTakeover: props.onTakeover } : {})}
     />
   );
