@@ -66,5 +66,9 @@ describe("Emergency Task Takeover intent identity", () => {
   it("rejects control characters after trimming", () => {
     expect(validEmergencyTakeoverReason("Reason\nAnother line")).toBe(false);
     expect(new EmergencyTakeoverIntent().prepare({ ...base, reason: "Reason\nAnother line" })).toBeNull();
+    expect(validEmergencyTakeoverReason("Emergency\u202Ereversed")).toBe(false);
+    expect(validEmergencyTakeoverReason("Emergency\u2066isolated\u2069")).toBe(false);
+    expect(new EmergencyTakeoverIntent().prepare({ ...base, reason: "Emergency\u202Ereversed" })).toBeNull();
+    expect(validEmergencyTakeoverReason("تسليم المفتاح 👨‍🔧")).toBe(true);
   });
 });

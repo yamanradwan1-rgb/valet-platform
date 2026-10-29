@@ -27,7 +27,8 @@ export const emergencyTakeoverRequestSchema = z
     targetAssigneeMembershipId: uuid,
     reason: z
       .string()
-      .refine((value) => !/\p{Cc}/u.test(value), "Control characters are not allowed.")
+      // Reject invisible bidi direction overrides/isolate controls in persisted audit reasons.
+      .refine((value) => !/[\p{Cc}\u061C\u200E\u200F\u202A-\u202E\u2066-\u206F]/u.test(value), "Control characters are not allowed.")
       .transform((value) => value.trim())
       .pipe(
         z

@@ -16,7 +16,7 @@ export function limitEmergencyTakeoverReason(value: string) {
 
 export function validEmergencyTakeoverReason(value: string) {
   const reason = value.trim();
-  return Boolean(reason) && !/\p{Cc}/u.test(reason) &&
+  return Boolean(reason) && !/[\p{Cc}\u061C\u200E\u200F\u202A-\u202E\u2066-\u206F]/u.test(reason) &&
     !limitEmergencyTakeoverReason(reason).exceeded;
 }
 

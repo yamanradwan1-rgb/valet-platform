@@ -93,7 +93,7 @@ export function createEmergencyTakeoverCommandExecutor(pool: PostgresPool) {
       if (
         reason.length === 0 ||
         [...reason].length > 500 ||
-        /\p{Cc}/u.test(reason)
+        /[\p{Cc}\u061C\u200E\u200F\u202A-\u202E\u2066-\u206F]/u.test(reason)
       ) {
         throw new DispatchOperationError("EMERGENCY_TAKEOVER_REASON_INVALID");
       }
