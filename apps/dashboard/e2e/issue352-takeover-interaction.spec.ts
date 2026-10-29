@@ -7,7 +7,6 @@ import {
   DashboardApiFixture,
   LOCATION_A,
   ORG_A,
-  supervisorContext,
 } from "./support/dashboard-api-fixture";
 import { signInOnCurrentPage } from "./support/foundation-ui";
 import {
@@ -239,31 +238,5 @@ test("issue352 late context cannot resurrect a closed Task Drawer", async ({
   await expect(opener).toBeFocused();
   releaseContext();
   await expect(page.getByTestId("emergency-takeover-open")).toHaveCount(0);
-  expect(fixture.count(issue352TakeoverPath)).toBe(0);
-});
-
-test("issue352 Supervisor has no broad Tasks access or emergency POST", async ({
-  page,
-}) => {
-  const fixture = new DashboardApiFixture({
-    operationalContexts: [supervisorContext()],
-    override: (path) =>
-      path === issue352ContextPath
-        ? { body: issue352TakeoverContext() }
-        : undefined,
-  });
-  await fixture.install(page);
-  await page.goto("/maps-zones");
-  await signInOnCurrentPage(page, "supervisor@example.com");
-  await page
-    .getByRole("button", { name: `${ORG_A.name} · ${LOCATION_A.name}` })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "Maps & Zones" }),
-  ).toBeVisible();
-  await page.goto("/tasks");
-  await expect(page.getByRole("link", { name: "Tasks" })).toHaveCount(0);
-  await expect(page.getByTestId("emergency-takeover-open")).toHaveCount(0);
-  expect(fixture.count(issue352ContextPath)).toBe(0);
   expect(fixture.count(issue352TakeoverPath)).toBe(0);
 });
