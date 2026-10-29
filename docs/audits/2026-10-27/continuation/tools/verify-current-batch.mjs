@@ -116,8 +116,10 @@ for (const assignment of roster.assignments) {
       !['W1','W2','W3','W4','W5','W6','W7'].includes(assignment.original_owner) ||
       assignment.source_commit!==fullSha || assignment.batch!==batch ||
       Boolean(transfer)!==isTransferred ||
-      (transfer && (transfer.actual_reviewer!==assignment.assigned_reviewer ||
-        transfer.original_owner!==assignment.original_owner))) {
+      (transfer && ((transfer.assigned_reviewer??transfer.actual_reviewer)!==assignment.assigned_reviewer ||
+        transfer.original_owner!==assignment.original_owner ||
+        (transfer.assigned_reviewer!==undefined &&
+          transfer.actual_reviewer!==effectiveReviewer(assignment))))) {
     throw new Error('Invalid ownership: '+assignment.path);
   }
 }

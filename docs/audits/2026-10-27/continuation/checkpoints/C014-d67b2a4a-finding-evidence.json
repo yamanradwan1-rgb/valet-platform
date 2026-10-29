@@ -1,0 +1,43 @@
+{
+  "batch": "C014",
+  "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+  "source_tree": "8731302512f8db4edb8bbb1cdc50b208a0dcb5b8",
+  "classification": "STATIC_AUDIT_ONLY",
+  "runtime_tests_executed": 0,
+  "new_confirmed_P0_P1": [],
+  "new_unique_C014_P2_P3_candidates": [],
+  "deduplication": {
+    "new_unique_findings": 0,
+    "historical_finding_ids_not_reopened_or_duplicated": [
+      "SEC-011",
+      "C011-W2-W1F-CANDIDATE-001"
+    ]
+  },
+  "historical_high_priority_source_candidate": {
+    "id": "SEC-011",
+    "github_issue": 363,
+    "severity": "P1",
+    "confidence": "HIGH_CONFIDENCE_SOURCE",
+    "status": "REMAINS_STATIC_CANDIDATE_NEEDS_ISOLATED_RUNTIME_VALIDATION",
+    "source_locations": [
+      "apps/api/src/modules/auth/mfa/mfa-recovery.service.ts:61-141",
+      "apps/api/src/modules/auth/mfa/mfa-enrollment.service.ts:60-91,93-168"
+    ],
+    "precondition": "A second valid same-user session attempts to read pending MFA replacement provisioning state after the initiating session has passed recovery-factor controls.",
+    "mitigations_and_limits": "Initiating session checks recovery code, active session, locks, rate limits and audit. No cross-user, cross-tenant or anonymous exploit was established; no HTTP/PostgreSQL runtime test executed.",
+    "runtime_validation": "NOT_EXECUTED"
+  },
+  "worker_finding_evidence": [
+    {"actual_reviewer": "W1", "source_records": 45, "new_candidates": 0},
+    {"actual_reviewer": "W3", "source_records": 30, "new_candidates": 0},
+    {"actual_reviewer": "W4", "source_records": 45, "new_candidates": 0},
+    {"actual_reviewer": "W5", "source_records": 55, "new_candidates": 0}
+  ],
+  "independent_validation": {
+    "strict_full_record_qa": "175/175, zero invalid, missing or duplicate",
+    "w9_complete_source_spot_checks": 22,
+    "prime_targeted_relief_full_source_samples": 6,
+    "evidence": "C014-d67b2a4a-prime-spot-checks.md"
+  },
+  "qualification": "Static findings are source-backed hypotheses with stated preconditions and mitigations; 100% file review is not runtime behavior or production certification."
+}
