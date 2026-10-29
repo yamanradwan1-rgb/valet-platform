@@ -35,10 +35,27 @@ if (byPath.size!==175 || byTransfer.size!==initialTransferCount) throw new Error
 const fallbackFile=prefix+'w2-fallback-addendum.json';
 const fallback=existsSync(fallbackFile)?JSON.parse(readFileSync(fallbackFile,'utf8')):null;
 const fallbackMap=new Map((fallback?.transfers??[]).map(t=>[t.path,t]));
+const rescueFile=prefix+'w3-rescue-addendum.json';
+const rescue=existsSync(rescueFile)?JSON.parse(readFileSync(rescueFile,'utf8')):null;
+const rescueMap=new Map((rescue?.transfers??[]).map(t=>[t.path,t]));
 if(fallback && (fallback.batch!==batch||fallback.source_commit!==fullSha||
   fallback.superseded_assigned_reviewer!=='W2'||fallback.transfers.length!==35||
   fallbackMap.size!==35)) throw new Error('Fallback addendum provenance mismatch');
-const effectiveReviewer=a=>fallbackMap.get(a.path)?.actual_reviewer??a.assigned_reviewer;
+if(rescue && (batch!=='C013'||rescue.batch!==batch||rescue.source_commit!==fullSha||
+  rescue.superseded_assigned_reviewer!=='W3'||rescue.transfers.length!==28||
+  rescueMap.size!==28||rescue.w3_completed_full_source_reads_pending_persistence!==17)) {
+  throw new Error('W3 rescue addendum provenance mismatch');
+}
+const effectiveReviewer=a=>rescueMap.get(a.path)?.actual_reviewer??
+  fallbackMap.get(a.path)?.actual_reviewer??a.assigned_reviewer;
+for(const [path,t] of rescueMap) {
+  const a=byPath.get(path);
+  if(!a||a.assigned_reviewer!=='W3'||t.original_assigned_reviewer!=='W3'||
+    t.original_owner!==a.original_owner||
+    !['W8','W9'].includes(t.actual_reviewer)||fallbackMap.has(path)) {
+    throw new Error('Invalid W3 rescue ownership: '+path);
+  }
+}
 for(const [path,t] of fallbackMap) {
   const a=byPath.get(path);
   if(!a||a.assigned_reviewer!=='W2'||t.original_assigned_reviewer!=='W2'||
@@ -131,12 +148,14 @@ for (const [file,expected] of expectedFiles) {
 }
 const missing=roster.assignments.map(a=>a.path).filter(p=>!seen.has(p));
 const effectiveTransfers=roster.assignments.filter(a=>a.original_owner!==effectiveReviewer(a));
-if(effectiveTransfers.length!==(initialTransferCount+(fallback?25:0))) {
+if(effectiveTransfers.length!==(initialTransferCount+(fallback?25:0)+(rescue?13:0))) {
   throw new Error('Effective unique transfer count mismatch');
 }
 const report={batch,source_commit:fullSha,source_tree:tree,expected:175,valid:accepted.length,
   invalid:errors.length,missing:missing.length,initial_ownership_transfers:initialTransferCount,
-  fallback_transfer_paths:fallback?.transfers.length??0,effective_ownership_transfers:effectiveTransfers.length,
+  fallback_transfer_paths:fallback?.transfers.length??0,
+  rescue_transfer_paths:rescue?.transfers.length??0,
+  effective_ownership_transfers:effectiveTransfers.length,
   current_base_files:previous.current_fully_reviewed,current_base_lines:previous.current_reviewed_lines,
   if_accepted_files:previous.current_fully_reviewed+accepted.length,
   if_accepted_lines:previous.current_reviewed_lines+accepted.reduce((n,x)=>n+x.lines,0),

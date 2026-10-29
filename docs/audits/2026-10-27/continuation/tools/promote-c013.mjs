@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // C013 cumulative source promotion. Run ONLY after strict Prime QA and source sampling.
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { join, resolve } from 'node:path';
 
 const [rootArg,resultsArg]=process.argv.slice(2);
@@ -12,13 +13,20 @@ const qa=JSON.parse(readFileSync(join(scratch,'Prime','C013-qa-provisional.json'
 const accepted=JSON.parse(readFileSync(join(scratch,'Prime','C013-qa-accepted.json'),'utf8'));
 const roster=JSON.parse(readFileSync(prefix+'assignment-roster.json','utf8'));
 const transferManifest=JSON.parse(readFileSync(prefix+'ownership-transfers.json','utf8'));
+const rescue=JSON.parse(readFileSync(prefix+'w3-rescue-addendum.json','utf8'));
+const rescueMap=new Map(rescue.transfers.map(t=>[t.path,t]));
 const previous=JSON.parse(readFileSync(join(cp,'C012-d67b2a4a-coverage-summary.json'),'utf8'));
+const docsParent=execFileSync('git',['-C',root,'rev-parse','HEAD'],{encoding:'utf8'}).trim();
 if(!existsSync(prefix+'prime-spot-checks.md')) throw new Error('Prime independent C013 spot checks missing');
 if(qa.source_commit!==source||qa.expected!==175||qa.valid!==175||qa.invalid||qa.missing||
   accepted.length!==175||roster.assignments.length!==175||
   transferManifest.transfers.length!==75||previous.source_commit!==source||
   previous.current_fully_reviewed!==2131||previous.current_reviewed_lines!==249056||
-  previous.current_remaining!==2648) throw new Error('Strict C013 QA or baseline mismatch');
+  previous.current_remaining!==2648||rescue.source_commit!==source||
+  rescue.transfers.length!==28||rescueMap.size!==28||
+  qa.rescue_transfer_paths!==28||qa.effective_ownership_transfers!==88) {
+  throw new Error('Strict C013 QA or baseline/rescue mismatch');
+}
 
 function parseCsv(content){
   const lines=[];let record=[],field='',quoted=false;
@@ -83,10 +91,20 @@ if(eligible.length!==4779||countLines(eligible)!==619108||reviewed.length!==2306
   throw new Error('C013 file/line coverage reconciliation failed');
 }
 const transfers=transferManifest.transfers.map(t=>({...t,
+  assigned_reviewer:t.actual_reviewer,
+  actual_reviewer:rescueMap.get(t.path)?.actual_reviewer??t.actual_reviewer,
   status:acceptedMap.has(t.path)?'fully_reviewed_prime_qa_pass':'pending'}));
-if(transfers.some(t=>t.status!=='fully_reviewed_prime_qa_pass')) throw new Error('Unreviewed transfer');
+for(const t of rescue.transfers.filter(t=>t.original_owner==='W3')) {
+  transfers.push({...t,assigned_reviewer:'W3',
+    status:acceptedMap.has(t.path)?'fully_reviewed_prime_qa_pass':'pending'});
+}
+if(transfers.length!==88||new Set(transfers.map(t=>t.path)).size!==88||
+  transfers.some(t=>t.status!=='fully_reviewed_prime_qa_pass'||
+    acceptedMap.get(t.path)?.actual_reviewer!==t.actual_reviewer)) {
+  throw new Error('Unreviewed or mismatched transfer');
+}
 const summary={checkpoint:'C013',source_commit:source,source_tree:previous.source_tree,
-  parent_docs_commit:'3bb421047a50f2e6fe2f303d0be6739961b2f793',
+  parent_docs_commit:docsParent,
   immutable_roster_docs_commit:'3bb421047a50f2e6fe2f303d0be6739961b2f793',
   candidate_files:eligible.length,candidate_lines:countLines(eligible),
   previous_current_fully_reviewed:previous.current_fully_reviewed,
@@ -95,7 +113,8 @@ const summary={checkpoint:'C013',source_commit:source,source_tree:previous.sourc
   current_fully_reviewed:reviewed.length,current_reviewed_lines:countLines(reviewed),
   current_remaining:pending.length,file_percent:100*reviewed.length/eligible.length,
   line_percent:100*countLines(reviewed)/countLines(eligible),
-  logical_workers:7,active_reviewers:4,ownership_transfers:75,
+  logical_workers:7,active_reviewers:6,ownership_transfers:88,
+  rescue_reassigned_paths:28,
   errors:0,runtime_tests_executed:0,static_only:true};
 writeFileSync(prefix+'review-records.json',JSON.stringify(records,null,2)+'\n');
 writeFileSync(prefix+'coverage-summary.json',JSON.stringify(summary,null,2)+'\n');
@@ -104,10 +123,11 @@ writeFileSync(prefix+'current-ledger.csv',
 writeFileSync(prefix+'current-remaining.txt',pending.map(row=>row.path).join('\n')+'\n');
 writeFileSync(prefix+'qa-summary.json',JSON.stringify({source_commit:source,exact_roster:175,
   valid_records:qa.valid,invalid_records:qa.invalid,missing_records:qa.missing,
-  unique_paths:175,ownership_transfers:75,
+  unique_paths:175,ownership_transfers:88,rescue_reassigned_paths:28,
   prime_independent_spot_review_completed:true,
   prime_spot_review_evidence:'C013-d67b2a4a-prime-spot-checks.md',
   runtime_tests:'NOT_EXECUTED — STATIC_AUDIT_ONLY'},null,2)+'\n');
 writeFileSync(prefix+'ownership-transfers.json',JSON.stringify({
-  ...transferManifest,effective_transfer_count:75,transfers},null,2)+'\n');
+  ...transferManifest,effective_transfer_count:88,rescue_reassigned_paths:28,
+  transfers},null,2)+'\n');
 console.log(JSON.stringify(summary,null,2));
