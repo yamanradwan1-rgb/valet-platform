@@ -149,3 +149,23 @@ without weakening canonical Task ownership or parking authority. Active
 tracking is coherent at the database boundary, raw route retry identity is
 durable, raw data has an explicit finite-default retention policy, and future
 cleanup remains separated behind a narrow least-privilege contract.
+
+## Issue #352 forward attribution clarification (2026-10-29)
+
+The original section 3 accurately describes the 2026-08-14 persistence
+baseline: it had no historical segment-owner field. The Owner's later approved
+Issue #352 emergency recovery requires an immutable assignee snapshot on
+*new* TaskTrackingSession segments so A's pre-takeover GPS cannot be relabeled
+as B's when canonical Task ownership changes. The proposed DEC-107 implements
+this as nullable `assignee_membership_id` for truthful legacy compatibility,
+an exact same-Organization membership FK and write-once ownership. Normal
+movement start records the current Task owner. Emergency takeover closes A's
+segment and starts a new B segment only if movement and effective policy allow.
+Legacy unknown ownership is never inferred solely from a mutable current
+Task assignee; active unknown provenance fails closed for takeover.
+
+The snapshot remains historical provenance only. Canonical Task assignment,
+GPS retention, no Guest exact coordinates, one-way segment closure, exact Task
+scope and absence of shift-long tracking stay governed by DEC-045/046/048.
+No historical migration is rewritten; the forward contract and its UI
+compatibility gate are tracked in DEC-107.

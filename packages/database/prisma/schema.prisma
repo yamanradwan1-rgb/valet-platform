@@ -134,6 +134,7 @@ enum DispatchEventType {
   ACCEPTED
   DECLINED
   REASSIGNED
+  EMERGENCY_TAKEOVER
   IN_PROGRESS
   COMPLETED
   CANCELLED
@@ -626,6 +627,7 @@ model Location {
   keySlots                 KeySlot[]
   keyCustodyEvents         KeyCustodyEvent[]
   tasks                    Task[]
+  emergencyTaskTakeovers   EmergencyTaskTakeoverOperation[]
   valetSessions            ValetSession[]
   auditEvents              AuditEvent[]
   payments                 Payment[]
@@ -910,6 +912,10 @@ model OrganizationMembership {
   completedConditionChecks    ValetSession[]             @relation("ValetSessionCheckInConditionCompletedBy")
   keyCustodyEvents            KeyCustodyEvent[]
   currentTasks                Task[]                     @relation("TaskCurrentAssignee")
+  attributedTrackingSegments TaskTrackingSession[]       @relation("TrackingSegmentOwner")
+  emergencyTakeoversInitiated EmergencyTaskTakeoverOperation[] @relation("TakeoverInitiator")
+  emergencyTakeoversFrom      EmergencyTaskTakeoverOperation[] @relation("TakeoverPreviousOwner")
+  emergencyTakeoversTo        EmergencyTaskTakeoverOperation[] @relation("TakeoverNewOwner")
   actedDispatchEvents         DispatchEvent[]            @relation("DispatchEventActor")
   previousDispatchEvents      DispatchEvent[]            @relation("DispatchEventPreviousAssignee")
   newDispatchEvents           DispatchEvent[]            @relation("DispatchEventNewAssignee")
@@ -1287,6 +1293,7 @@ model Task {
   valetSession     ValetSession            @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_org_location_session_id_fkey")
   currentAssignee  OrganizationMembership? @relation("TaskCurrentAssignee", fields: [organizationId, currentAssigneeMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "tasks_org_current_assignee_membership_id_fkey")
   dispatchEvents   DispatchEvent[]
+  emergencyTakeovers EmergencyTaskTakeoverOperation[]
   trackingSessions TaskTrackingSession[]
   rawGpsSamples    RawGpsSample[]
   geofenceEvents   GeofenceEvent[]
@@ -1318,10 +1325,53 @@ model DispatchEvent {
   actorMembership  OrganizationMembership? @relation("DispatchEventActor", fields: [organizationId, actorMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "dispatch_events_org_actor_membership_id_fkey")
   previousAssignee OrganizationMembership? @relation("DispatchEventPreviousAssignee", fields: [organizationId, previousAssigneeMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "dispatch_events_org_previous_assignee_membership_id_fkey")
   newAssignee      OrganizationMembership? @relation("DispatchEventNewAssignee", fields: [organizationId, newAssigneeMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "dispatch_events_org_new_assignee_membership_id_fkey")
+  emergencyTakeoverReceipt EmergencyTaskTakeoverOperation? @relation("TakeoverDispatchEvent")
 
+  @@unique([organizationId, id], map: "dispatch_events_organization_id_id_unique")
   @@index([taskId, occurredAt, id], map: "dispatch_events_task_id_occurred_at_id_idx")
   @@index([valetSessionId, occurredAt, id], map: "dispatch_events_valet_session_id_occurred_at_id_idx")
   @@map("dispatch_events")
+}
+
+// Issue #352: immutable committed operation identity; physical custody is
+// deliberately absent because changing Task ownership cannot prove key handoff.
+model EmergencyTaskTakeoverOperation {
+  organizationId              String   @map("organization_id") @db.Uuid
+  operationId                 String   @map("operation_id") @db.Uuid
+  locationId                  String   @map("location_id") @db.Uuid
+  valetSessionId              String   @map("valet_session_id") @db.Uuid
+  taskId                      String   @map("task_id") @db.Uuid
+  actorMembershipId           String   @map("actor_membership_id") @db.Uuid
+  previousAssigneeMembershipId String  @map("previous_assignee_membership_id") @db.Uuid
+  newAssigneeMembershipId     String   @map("new_assignee_membership_id") @db.Uuid
+  expectedTaskVersion         Int      @map("expected_task_version")
+  resultTaskVersion           Int      @map("result_task_version")
+  expectedSessionVersion      Int      @map("expected_session_version")
+  resultSessionVersion        Int      @map("result_session_version")
+  requestFingerprint          String   @map("request_fingerprint") @db.Char(64)
+  occurredAt                  DateTime @map("occurred_at") @db.Timestamptz(3)
+  dispatchEventId             String   @map("dispatch_event_id") @db.Uuid
+  auditEventId                String   @map("audit_event_id") @db.Uuid
+  endedOldTrackingSessionId   String?  @map("ended_old_tracking_session_id") @db.Uuid
+  newTrackingSessionId        String?  @map("new_tracking_session_id") @db.Uuid
+
+  location     Location @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "emergency_takeover_location_fk")
+  task         Task @relation(fields: [organizationId, locationId, valetSessionId, taskId], references: [organizationId, locationId, valetSessionId, id], onDelete: Restrict, onUpdate: Restrict, map: "emergency_takeover_task_fk")
+  actor        OrganizationMembership @relation("TakeoverInitiator", fields: [organizationId, actorMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "emergency_takeover_actor_fk")
+  previous     OrganizationMembership @relation("TakeoverPreviousOwner", fields: [organizationId, previousAssigneeMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "emergency_takeover_previous_fk")
+  replacement  OrganizationMembership @relation("TakeoverNewOwner", fields: [organizationId, newAssigneeMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "emergency_takeover_new_fk")
+  dispatchEvent DispatchEvent @relation("TakeoverDispatchEvent", fields: [organizationId, dispatchEventId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "emergency_takeover_dispatch_fk")
+  auditEvent AuditEvent @relation("TakeoverAuditEvent", fields: [organizationId, auditEventId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "emergency_takeover_audit_fk")
+  endedOldTracker TaskTrackingSession? @relation("TakeoverOldTracker", fields: [organizationId, locationId, valetSessionId, taskId, endedOldTrackingSessionId], references: [organizationId, locationId, valetSessionId, taskId, id], onDelete: Restrict, onUpdate: Restrict, map: "emergency_takeover_old_tracker_fk")
+  newTracker TaskTrackingSession? @relation("TakeoverNewTracker", fields: [organizationId, locationId, valetSessionId, taskId, newTrackingSessionId], references: [organizationId, locationId, valetSessionId, taskId, id], onDelete: Restrict, onUpdate: Restrict, map: "emergency_takeover_new_tracker_fk")
+
+  @@id([organizationId, operationId], map: "emergency_task_takeover_operations_pkey")
+  @@unique([dispatchEventId], map: "emergency_takeover_dispatch_once")
+  @@unique([auditEventId], map: "emergency_takeover_audit_once")
+  @@unique([organizationId, dispatchEventId], map: "emergency_takeover_org_dispatch_event_unique")
+  @@unique([organizationId, auditEventId], map: "emergency_takeover_org_audit_event_unique")
+  @@index([taskId, occurredAt(sort: Desc), operationId], map: "emergency_takeover_task_occurred_idx")
+  @@map("emergency_task_takeover_operations")
 }
 
 model LocationMapPoint {
@@ -1391,6 +1441,7 @@ model TaskTrackingSession {
   locationId     String    @map("location_id") @db.Uuid
   valetSessionId String    @map("valet_session_id") @db.Uuid
   taskId         String    @map("task_id") @db.Uuid
+  assigneeMembershipId String? @map("assignee_membership_id") @db.Uuid
   startedAt      DateTime  @default(now()) @map("started_at") @db.Timestamptz(3)
   endedAt        DateTime? @map("ended_at") @db.Timestamptz(3)
 
@@ -1398,11 +1449,15 @@ model TaskTrackingSession {
   location       Location        @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "task_tracking_sessions_org_location_id_fkey")
   valetSession   ValetSession    @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, onUpdate: Restrict, map: "task_tracking_sessions_org_location_session_id_fkey")
   task           Task            @relation(fields: [organizationId, locationId, valetSessionId, taskId], references: [organizationId, locationId, valetSessionId, id], onDelete: Restrict, onUpdate: Restrict, map: "task_tracking_sessions_task_scope_id_fkey")
+  assignee       OrganizationMembership? @relation("TrackingSegmentOwner", fields: [organizationId, assigneeMembershipId], references: [organizationId, id], onDelete: Restrict, onUpdate: Restrict, map: "task_tracking_sessions_org_assignee_membership_fkey")
+  emergencyTakeoversEnded EmergencyTaskTakeoverOperation[] @relation("TakeoverOldTracker")
+  emergencyTakeoversStarted EmergencyTaskTakeoverOperation[] @relation("TakeoverNewTracker")
   rawGpsSamples  RawGpsSample[]
   geofenceEvents GeofenceEvent[]
 
   @@unique([organizationId, locationId, valetSessionId, taskId, id], map: "task_tracking_sessions_scope_id_key")
   @@index([valetSessionId, startedAt, id], map: "task_tracking_sessions_session_started_at_id_idx")
+  @@index([assigneeMembershipId, startedAt, id], map: "task_tracking_sessions_assignee_started_idx")
   @@map("task_tracking_sessions")
 }
 
@@ -2354,7 +2409,9 @@ model AuditEvent {
   location        Location?               @relation(fields: [organizationId, locationId], references: [organizationId, id], onDelete: Restrict, map: "audit_events_org_location_id_fkey")
   valetSession    ValetSession?           @relation(fields: [organizationId, locationId, valetSessionId], references: [organizationId, locationId, id], onDelete: Restrict, map: "audit_events_org_location_valet_session_id_fkey")
   actorMembership OrganizationMembership? @relation(fields: [organizationId, actorMembershipId], references: [organizationId, id], onDelete: Restrict, map: "audit_events_org_actor_membership_id_fkey")
+  emergencyTakeoverReceipt EmergencyTaskTakeoverOperation? @relation("TakeoverAuditEvent")
 
+  @@unique([organizationId, id], map: "audit_events_organization_id_id_unique")
   @@index([valetSessionId, occurredAt], map: "audit_events_valet_session_id_occurred_at_idx")
   @@index([organizationId, occurredAt(sort: Desc), id(sort: Desc)], map: "audit_events_organization_id_occurred_at_id_idx")
   @@map("audit_events")

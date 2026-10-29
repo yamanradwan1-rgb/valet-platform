@@ -2,6 +2,28 @@
 
 Important decisions must not live only in chat.
 
+## DEC-107 — Emergency Task Takeover
+
+Status: Proposed engineering reconciliation; Issue #352 Owner policies and
+Phase B recovery directions explicitly approved on 2026-10-29
+Issue: #352
+
+The exceptional command changes only canonical IN_PROGRESS Parking/Retrieval
+Task ownership, requiring exact Supervisor operational authority or ORG_ADMIN
+active organization/location, MFA and current session. Replacement B requires
+exact Shift eligibility. No second approval; reason, distinct append-only
+Dispatch/Audit and durable request identity are mandatory. No key custody is
+fabricated; B's physical work fails closed without new accepted evidence.
+HANDOFF_PENDING stays pending and old proof cannot authorize B's release.
+Tracking history retains A attribution with a distinct B segment. A forward
+schema change adds immutable tracker provenance and a successful-operation
+receipt; all source changes require real PG, mounted UI and integrated review.
+
+The Supervisor Task Details discoverability route remains a pending strict
+UI Freeze compatibility gate; no permission to change other visible Dashboard
+elements has been assumed. Full proposed contract:
+[DEC-107](decisions/DEC-107_EMERGENCY_TASK_TAKEOVER.md).
+
 ## DEC-105 — Automatic WhatsApp Guest transport envelope
 
 Status: Accepted for Stage C code and mocked verification only; real sending gated

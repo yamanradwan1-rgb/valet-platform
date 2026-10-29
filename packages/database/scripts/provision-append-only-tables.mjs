@@ -93,5 +93,20 @@ export async function provisionAppendOnlyTablePrivileges(
     "GRANT SELECT, INSERT ON TABLE condition_notes, vehicle_photos, intake_operations, key_custody_events, dispatch_events, raw_gps_samples, geofence_events TO %I",
     [runtimeRole],
   );
+  // Issue #352: a committed emergency takeover receipt can be inserted/read,
+  // never edited, deleted, truncated, referenced or used to create triggers.
+  await client.query(
+    "REVOKE ALL ON TABLE emergency_task_takeover_operations FROM PUBLIC",
+  );
+  await executeFormatted(
+    client,
+    "REVOKE ALL ON TABLE emergency_task_takeover_operations FROM %I",
+    [runtimeRole],
+  );
+  await executeFormatted(
+    client,
+    "GRANT SELECT, INSERT ON TABLE emergency_task_takeover_operations TO %I",
+    [runtimeRole],
+  );
   await provisionAuditFoundationPrivileges(client, executeFormatted, runtimeRole);
 }

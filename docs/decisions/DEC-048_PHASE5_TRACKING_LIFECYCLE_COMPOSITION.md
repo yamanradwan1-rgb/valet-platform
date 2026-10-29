@@ -121,3 +121,17 @@ VAL-007C does not implement:
 ## Consequences
 
 Tracking cannot drift independently from the authoritative Parking/Retrieval custody commands. Policy-OFF operation stays available, policy-ON movement start is atomic with tracker creation, and movement completion cannot commit while an active tracker that should stop remains open. This gives VAL-007D a reliable active-tracker boundary for later GPS ingestion without introducing a second movement lifecycle.
+
+## Issue #352 exceptional tracking split (2026-10-29)
+
+The Owner's later approved Emergency Task Takeover direction introduces one
+internal tracking segment split **during** an IN_PROGRESS Parking/Retrieval
+Task, without a movement-state transition. Inside the authorized takeover
+transaction, after Session→Task locks, it ends the outgoing owner's segment
+and creates a distinct new-owner segment iff effective tracking is enabled
+and the physical session is still PARKING/RETRIEVING. It never creates a
+segment at READY/HANDOFF_PENDING, changes the two normal entry/exit events
+above, or exposes a client start/stop action. Both versions advance as a
+concurrency fence; the same post-lock database clock instant is used for
+segment boundaries and takeover history. Immutable owner provenance is
+specified in the proposed DEC-107 and DEC-046 focused clarification.

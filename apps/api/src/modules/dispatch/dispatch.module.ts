@@ -6,14 +6,18 @@ import { RequestIdMiddleware } from "../../common/http/api-request";
 import { AuthModule } from "../auth/auth.module";
 import { DispatchController } from "./dispatch.controller";
 import { DispatchService } from "./dispatch.service";
+import { EmergencyTaskTakeoverController } from "./emergency-task-takeover.controller";
 
 @Module({
-  controllers: [DispatchController],
+  controllers: [DispatchController, EmergencyTaskTakeoverController],
   imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule],
   providers: [DispatchService],
 })
 export class DispatchModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(RequestIdMiddleware).forRoutes(DispatchController);
+    consumer.apply(RequestIdMiddleware).forRoutes(
+      DispatchController,
+      EmergencyTaskTakeoverController,
+    );
   }
 }

@@ -3231,3 +3231,41 @@ operational/financial records are untouched; the Check-In intake guard is unchan
 The existing lifecycle audit trigger protects the new event from direct runtime
 insertion. Runtime provisioning grants only function EXECUTE, with PUBLIC denied;
 no table privileges, columns, indexes or constraints are added.
+
+### Issue #352 — Emergency Task Takeover persistence (proposed DEC-107)
+
+Forward migrations `20261029010400_issue352_emergency_dispatch_type`
+and `20261029010500_issue352_emergency_takeover_persistence` extend
+`dispatch_event_type` by the distinct `EMERGENCY_TAKEOVER` value and keep
+the ordinary Reassign event/constraint branches unchanged. An emergency event
+requires actor, distinct non-null previous/new employee memberships and a
+bounded nonblank reason. The paired narrow AuditEvent uses the textual
+`TASK_EMERGENCY_TAKEOVER` type and remains append-only.
+
+New `emergency_task_takeover_operations` represents a **committed success
+receipt**, never an in-flight or failed command. Its immutable composite key
+is (`organization_id`, `operation_id` UUID). It contains the exact
+Location/ValetSession/Task, initiator, old/new membership, submitted Task
+version, locked Session version, both resulting +1 versions, canonical
+intent SHA-256 fingerprint, server operation time, one-to-one scoped
+Dispatch/Audit references and optional ended/created tracker identifiers.
+Composite foreign keys restrict all linked principals, events and segments
+to the same Organization, and exact Task/Session/Location where applicable.
+Positive version checks, distinct ownership check, hex fingerprint check,
+uniqueness and immutable-update/delete trigger enforce the result shape.
+The protected command inserts the receipt and corresponding audit, dispatch,
+proof, GPS and dual-CAS effects inside the same transaction; identical
+authorized retries read the receipt without new events.
+
+`task_tracking_sessions.assignee_membership_id` is a nullable
+same-Organization FK and write-once historical owner snapshot. Old rows
+remain NULL unless separately provable; migrations never populate unknown
+historical ownership from current Task owner. New tracking movements persist
+the actual canonical owner on segment creation; takeover cannot assign an
+unattributable old active segment to a replacement. This does not grant the
+recorded historical employee any later Task or release authority.
+
+Reason/privacy, current staff session/MFA, expected version, active Shift,
+scope and custody checks are enforced by the protected API/command and
+accepted source policies; FKs alone cannot prove physical key transfer.
+This implementation is not a migration deployment authorization.

@@ -12,6 +12,7 @@ export * from "./condition-photo-evidence-summary.js";
 export * from "./complete-handoff.js";
 export * from "./confirm-parked.js";
 export * from "./dispatch.js";
+export * from "./emergency-task-takeover.js";
 export * from "./dashboard-feature-authority.js";
 export * from "./gps-ingestion.js";
 export * from "./guest-rating.js";

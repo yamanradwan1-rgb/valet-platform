@@ -4,11 +4,15 @@ export type DispatchOperationErrorCode =
   | "TASK_ASSIGNEE_NOT_ELIGIBLE"
   | "TASK_REASSIGN_REASON_REQUIRED"
   | "TASK_ASSIGNMENT_CONFLICT"
+  | "IDEMPOTENCY_CONFLICT"
+  | "EMERGENCY_TAKEOVER_REASON_INVALID"
   | "VERSION_CONFLICT";
 
 const messages: Record<DispatchOperationErrorCode, string> = {
   TASK_ASSIGNEE_NOT_ELIGIBLE: "The requested assignee is not eligible.",
   TASK_ASSIGNMENT_CONFLICT: "The requested assignment is not permitted.",
+  IDEMPOTENCY_CONFLICT: "This operation ID belongs to a different request.",
+  EMERGENCY_TAKEOVER_REASON_INVALID: "An emergency takeover reason is required and must be valid.",
   TASK_INVALID_STATE: "The Task cannot perform the requested transition.",
   TASK_NOT_FOUND_OR_FORBIDDEN: "The requested resource is not available.",
   TASK_REASSIGN_REASON_REQUIRED: "A reassignment reason is required.",
