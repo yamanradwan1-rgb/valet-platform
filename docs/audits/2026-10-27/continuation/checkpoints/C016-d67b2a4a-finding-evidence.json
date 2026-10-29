@@ -1,0 +1,142 @@
+{
+  "batch": "C016",
+  "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+  "source_tree": "8731302512f8db4edb8bbb1cdc50b208a0dcb5b8",
+  "classification": "STATIC_SEMANTIC_AUDIT_ONLY",
+  "status": "FINAL_SOURCE_TRIAGE_STRICT_C016_175_OF_175_PASS",
+  "runtime_tests_executed": 0,
+  "new_confirmed_P0_P1": [],
+  "source_candidates": [
+    {
+      "id": "C016-W7-CAND-P2-VEHICLE-PLATE-SEARCH",
+      "severity": "P2",
+      "confidence": "HIGH_CONFIDENCE_SOURCE",
+      "status": "SOURCE_SUPPORTED_NOT_BROWSER_TESTED",
+      "primary": "apps/dashboard/src/features/operations/operations-presentation.ts:69-80,122-130",
+      "test": "apps/dashboard/src/features/operations/operations-presentation.test.ts:25-33,37-65",
+      "consumer": "apps/dashboard/src/features/operations/vehicles/vehicles-page.tsx:69-77,111-120",
+      "precondition": "The loaded vehicle has nonempty make/model and a searchable plate or descriptor.",
+      "source_inference": "VehicleLabel prefers make/model over plate/descriptor, while VehiclesPage filters only this derived label even though search input promises plate or descriptor.",
+      "limits": "Loaded-page-only search is explicit; no server authority or tenant leak, and no browser reproduction was executed.",
+      "disposition": "P2_UI_SEARCH_CORRECTNESS_CANDIDATE"
+    },
+    {
+      "id": "C016-W1-P3-PHOTO-SIZE-TEST",
+      "severity": "P3",
+      "confidence": "HIGH_CONFIDENCE_SOURCE",
+      "status": "TEST_COVERAGE_GAP",
+      "primary": "apps/dashboard/src/features/operations/session-photos/photo-client.test.ts:47-60",
+      "consumer": "apps/dashboard/src/features/operations/session-photos/photo-client.ts:18,78-85",
+      "source_inference": "Test title claims oversized JPEG rejection, but its only two mocked invalid arrays are a short non-JPEG and a truncated JPEG; the actual 8MiB limit is implemented but not tested by that assertion.",
+      "limits": "No source evidence oversized files are accepted in production, and no test was executed.",
+      "disposition": "P3_REGRESSION_TEST_GAP"
+    },
+    {
+      "id": "C016-W2-CAND-P3-QUEUE-ORDER-TEST",
+      "severity": "P3",
+      "confidence": "HIGH_CONFIDENCE_SOURCE",
+      "status": "TEST_COVERAGE_GAP",
+      "primary": "apps/api/test/staff-task-queue-ordering-and-lifecycle.integration.test.ts:20-79",
+      "consumer": "apps/api/src/modules/dispatch/task-queue-query.ts:101-105",
+      "source_inference": "The test pairs ascending distinct created_at values with already-sorted UUIDs and so never tests the ID tie-break under equal timestamps; production SQL explicitly orders by created_at,id.",
+      "limits": "No production queue sorting failure demonstrated and no database suite was run.",
+      "disposition": "P3_REGRESSION_TEST_GAP"
+    },
+    {
+      "id": "C016-W3-TEST-RACE-01",
+      "severity": "P3",
+      "confidence": "HIGH_SOURCE_LOW_RUNTIME_FREQUENCY",
+      "status": "TEST_DETERMINISM_DEBT",
+      "primary": "apps/api/test/key-eligibility-concurrency.integration.test.ts:132-155,157-188",
+      "source_inference": "Two lock-race tests use fixed 100ms sleeps to assume a contender reached the intended wait point, rather than observing a precise PostgreSQL barrier.",
+      "limits": "Tests also check single winner, authority and no unauthorized custody/audit side effects; flakiness and production race behavior were not observed.",
+      "disposition": "P3_TEST_RACE_BARRIER_WEAKNESS"
+    },
+    {
+      "id": "C016-W3-TEST-POLL-02",
+      "severity": "P3",
+      "confidence": "HIGH_SOURCE_LOW_IMPACT",
+      "status": "TEST_RESOURCE_USAGE_DEBT",
+      "primary": "apps/api/test/management-location-race-test-helpers.ts:83-97",
+      "source_inference": "A 10-second pg_stat_activity wait loop has no delay/backoff between successive queries.",
+      "limits": "This is test-only polling. No controlled DB load, test timeout failure or production resource exhaustion was measured.",
+      "disposition": "P3_TEST_POLLING_EFFICIENCY"
+    },
+    {
+      "id": "W6-C016-P3-01",
+      "severity": "P3",
+      "confidence": "HIGH_SOURCE_LOW_PRODUCTION_REACHABILITY",
+      "status": "DORMANT_COMPONENT_CONDITIONAL",
+      "primary": "apps/valet-native/src/tasks/native-manual-refresh-button.tsx:21-25",
+      "source_inference": "An onRefresh rejection propagates through a Promise.finally chain without a catch.",
+      "limits": "No pinned production Native import was identified for NativeManualRefreshButton, only tests; no actual current-user invocation or runtime rejection demonstrated.",
+      "disposition": "NON_ACTIONABLE_CURRENT_PRODUCTION_UNLESS_REINTRODUCED"
+    },
+    {
+      "id": "W6-C016-P3-02",
+      "severity": "P3",
+      "confidence": "HIGH_SOURCE_TRIGGER_CONTRACT_MITIGATED",
+      "status": "DEFENSE_IN_DEPTH_CONDITIONAL",
+      "primary": "apps/valet-native/src/tasks/native-task-presentation.ts:106-115,132-147",
+      "counterevidence": "packages/contracts/src/dispatch.ts:36-53",
+      "source_inference": "Malformed timestamp would produce NaN and could throw in Intl.RelativeTimeFormat.",
+      "limits": "Canonical StaffTaskQueueItem contract rejects malformed createdAt/retrievalRequestedAt, and no production path bypassing that contract was established.",
+      "disposition": "NON_ACTIONABLE_WITH_VALIDATED_INPUTS"
+    },
+    {
+      "id": "C016-W5-CAND-001",
+      "severity": "P2",
+      "confidence": "HIGH_CONFIDENCE_SOURCE_DEVICE_IMPACT_UNVERIFIED",
+      "status": "SOURCE_SUPPORTED_LATE_SUPPLEMENTAL_EVIDENCE_NONCREDITED",
+      "primary": "apps/valet/src/app/layout.tsx:19-24",
+      "source_inference": "Employee Web root viewport declares maximumScale=1 and userScalable=false, preventing ordinary browser-controlled page pinch zoom on mobile implementations that honor those directives.",
+      "limits": "Prime independently read full 38-line module. Browser/device zoom and screen-reader accessibility impact were not exercised. Late W5 records remain uncredited after the immutable fallback; official W1 record will separately cover the path.",
+      "disposition": "P2_ACCESSIBILITY_ZOOM_SOURCE_CANDIDATE"
+    },
+    {
+      "id": "C016-W5-CAND-002",
+      "severity": "P2",
+      "confidence": "HIGH_CONFIDENCE_DOM_STRUCTURE_ASSISTIVE_TECH_IMPACT_UNVERIFIED",
+      "status": "SOURCE_SUPPORTED_LATE_SUPPLEMENTAL_AND_W2_FALLBACK",
+      "primary": "apps/valet/src/components/screens/check-in/check-in-manual-plate-fields.tsx:27-46",
+      "related": "apps/valet/src/components/screens/check-in/check-in-intake-steps.tsx:62-77",
+      "duplicate_worker_candidate": "C016-W2-CAND-P3-MANUAL-PLATE-ACCESSIBLE-NAME",
+      "source_inference": "Visible label elements lack htmlFor/id relationships to the live plate input, region select, and customer phone input; these form controls lack equivalent explicit accessible-name attributes.",
+      "limits": "Prime read full 64- and 188-line source modules. Dynamic accessibility tree, assistive technology outcome and browser validation were not executed; W2 assessed the plate case conservatively as P3, so final P2 severity is conditional.",
+      "disposition": "P2_ACCESSIBILITY_FORM_LABEL_CANDIDATE"
+    },
+    {
+      "id": "W6-C016-FB-P3-CONDITION-BACK-RACE",
+      "severity": "P3",
+      "confidence": "MEDIUM_HIGH_SOURCE_NO_RUNTIME_PROOF",
+      "status": "SOURCE_SUPPORTED_UI_STATE_RACE_CANDIDATE",
+      "primary": "apps/valet/src/components/screens/check-in/check-in-intake-steps.tsx:132-155,180-184",
+      "callers": "apps/valet/src/components/screens/check-in-flow.tsx:259-282",
+      "lifecycle": "apps/valet/src/features/check-in/check-in-controller.ts:109-119;check-in-controller-lifecycle.ts:19-52",
+      "source_inference": "Vehicle condition submit sets isSubmitting, but condition Back/option controls are not disabled, allowing step/condition change while the pending completion mutation may later force parking-task step.",
+      "limits": "No browser interleaving tested; lifecycle mutation has isSubmitting guard for duplicate submissions and backend authority unaffected.",
+      "disposition": "P3_EMPLOYEE_UI_ASYNC_INTERLEAVING_CANDIDATE"
+    }
+  ],
+  "deduplication": {
+    "raw_unique_source_candidates_so_far": 10,
+    "source_supported_P2": 3,
+    "source_supported_P3": 7,
+    "P3_currently_mitigated_or_dormant": 2,
+    "historical_findings_not_duplicated": ["SEC-011", "W6-C015-P2-01", "C011-W2-W1F-CANDIDATE-001"]
+  },
+  "historical_high_priority_source_candidate": {
+    "id": "SEC-011",
+    "github_issue": 363,
+    "severity": "P1",
+    "confidence": "HIGH_CONFIDENCE_SOURCE",
+    "status": "UNCHANGED_NOT_RUNTIME_CONFIRMED"
+  },
+  "independent_validation": {
+    "prime_source_samples": "C016-d67b2a4a-prime-spot-checks.md",
+    "strict_full_record_qa": "PASS_175_OF_175_VALID_ZERO_INVALID_ZERO_MISSING",
+    "late_w5_records": "25_SAVED_AFTER_FORMAL_FALLBACK_NOT_CREDITED_SEE_C016_LATE_W5_SUPPLEMENTAL_EVIDENCE",
+    "runtime_validation": "NOT_EXECUTED"
+  },
+  "qualification": "All 175 formal C016 paths passed strict pinned-source record QA. Findings are source-only candidates, not runtime-confirmed production defects. Two P3 hypotheses are dormant or actively contract-mitigated; the overlapping label candidates from W5 supplemental and W2 official records count once. No product/runtime checks, UI fixes, or issue changes were authorized or performed."
+}

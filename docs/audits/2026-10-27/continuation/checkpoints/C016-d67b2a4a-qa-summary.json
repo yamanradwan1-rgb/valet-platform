@@ -1,0 +1,13 @@
+{
+  "source_commit": "d67b2a4a4897b4a73d21aba630fc5ab52ff9169b",
+  "exact_roster": 175,
+  "valid_records": 175,
+  "invalid_records": 0,
+  "missing_records": 0,
+  "unique_paths": 175,
+  "ownership_transfers": 50,
+  "w5_unresponsive_reassigned_paths": 30,
+  "prime_independent_spot_review_completed": true,
+  "prime_spot_review_evidence": "C016-d67b2a4a-prime-spot-checks.md",
+  "runtime_tests": "NOT_EXECUTED — STATIC_AUDIT_ONLY"
+}

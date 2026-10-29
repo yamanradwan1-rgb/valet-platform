@@ -111,6 +111,7 @@ if(w4Startup) {
     throw new Error('C015 W4 fallback balance mismatch');
   }
 }
+const lateUncreditedW5=[];
 if(w5Unresponsive){
   const counts=new Map(),owners=new Map();
   for(const [path,t] of w5UnresponsiveMap){
@@ -130,8 +131,21 @@ if(w5Unresponsive){
   }
   for(const name of ['C016-W5-review-records.json','C016-transferred-W4-review-records.json']){
     const file=join(results,'W5',name);
-    if(existsSync(file)&&JSON.parse(readFileSync(file,'utf8')).length){
-      throw new Error('Uncredited W5 C016 output appeared after supersession: '+file);
+    if(existsSync(file)){
+      const bytes=readFileSync(file),records=JSON.parse(bytes.toString('utf8'));
+      if(!Array.isArray(records)) throw new Error('Malformed late uncredited W5 record list: '+file);
+      const actualPaths=new Set();
+      for(const record of records){
+        const transfer=w5UnresponsiveMap.get(record.path);
+        if(!transfer||record.actual_reviewer!=='W5'||record.original_owner!==transfer.original_owner||
+           record.batch!=='C016'||record.source_commit!==fullSha||actualPaths.has(record.path)){
+          throw new Error('Unexpected/duplicate late uncredited W5 record: '+record.path);
+        }
+        actualPaths.add(record.path);
+      }
+      lateUncreditedW5.push({file,records:records.length,
+        content_sha256:createHash('sha256').update(bytes).digest('hex'),
+        credit:'EXCLUDED_SUPERSEDED_AFTER_PUBLISHED_FALLBACK'});
     }
   }
 }
@@ -267,6 +281,7 @@ const report={batch,source_commit:fullSha,source_tree:tree,expected:175,valid:ac
   w3_relief_reassigned_paths:w3Relief?.transfers.length??0,
   w4_startup_reassigned_paths:w4Startup?.transfers.length??0,
   w5_unresponsive_reassigned_paths:w5Unresponsive?.transfers.length??0,
+  late_uncredited_w5_records:lateUncreditedW5,
   effective_ownership_transfers:effectiveTransfers.length,
   current_base_files:previous.current_fully_reviewed,current_base_lines:previous.current_reviewed_lines,
   if_accepted_files:previous.current_fully_reviewed+accepted.length,
