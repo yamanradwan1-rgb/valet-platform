@@ -1,0 +1,76 @@
+{
+  "batch": "C019",
+  "qa_kind": "independent_prepublication_roster_validation",
+  "reviewer": "W7",
+  "verdict": "PASS",
+  "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "source_tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "published_c018_docs_commit": "03fc249e7e80281430c04415914698217431a314",
+  "roster": "docs/audits/2026-10-27/continuation/checkpoints/C019-0747a677-assignment-roster.json",
+  "transfers": "docs/audits/2026-10-27/continuation/checkpoints/C019-0747a677-ownership-transfers.json",
+  "published_c018_remaining": "docs/audits/2026-10-27/continuation/checkpoints/C018-0747a677-current-remaining.txt",
+  "published_c018_ledger": "docs/audits/2026-10-27/continuation/checkpoints/C018-0747a677-current-ledger.csv",
+  "checks": {
+    "source_head_and_tree_match": true,
+    "source_checkout_clean": true,
+    "docs_head_is_published_c018": true,
+    "remote_tracking_ref_at_c018": true,
+    "roster_parent_matches_c018": true,
+    "remaining_count": 1629,
+    "c018_ledger_rows": 7595,
+    "roster_count": 175,
+    "roster_unique": 175,
+    "roster_paths_in_c018_remaining": 175,
+    "previous_review_overlap": 0,
+    "logical_owner_counts": {
+      "W1": 25,
+      "W2": 25,
+      "W3": 25,
+      "W4": 25,
+      "W5": 25,
+      "W6": 25,
+      "W7": 25
+    },
+    "actual_reviewer_counts": {
+      "W1": 35,
+      "W2": 35,
+      "W3": 35,
+      "W6": 35,
+      "W7": 35
+    },
+    "valid_unique_transfers": 50,
+    "transfer_owner_counts": {
+      "W4": 25,
+      "W5": 25
+    },
+    "transfer_per_active_reviewer": {
+      "W1": 10,
+      "W2": 10,
+      "W3": 10,
+      "W6": 10,
+      "W7": 10
+    },
+    "role_domain_fallback_count": 50,
+    "role_domain_fallback_owner_counts": {
+      "W1": 25,
+      "W3": 25
+    },
+    "git_blobs_full_raw_sha256_and_eof": 175,
+    "git_blob_bytes": 813316,
+    "git_eof_lines": 22940,
+    "git_blobs_with_final_newline": 175,
+    "ledger_eof_line_matches": 175,
+    "ledger_current_hash_matches_or_not_stored": 175,
+    "git_blob_proof_sha256": "4fee38a8feb7c757604dc04b8cc4e2ff9e1e12e17ebe03759f48d4429f04934f"
+  },
+  "defects": [],
+  "scope_limits": [
+    "Roster QA only; no C019 semantic source review or Runtime execution, no coverage credit.",
+    "Remote checkpoint verified through already-fetched origin tracking ref, no new network fetch.",
+    "Canonical SHA256 values computed from Git raw blobs in memory; per-file semantic reviewers must save their own evidence."
+  ],
+  "product_docs_ci_issues_mutated": false,
+  "scratch_files_written": [
+    "D:/kndoom/vaylet test onely/tmp/cos-audit-20261029-results/W7/C019-roster-independent-qa.json"
+  ]
+}
