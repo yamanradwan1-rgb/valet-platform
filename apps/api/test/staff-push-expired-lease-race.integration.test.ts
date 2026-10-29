@@ -160,7 +160,14 @@ describe("#357 actual PostgreSQL Staff Push lease race", () => {
     await expect(runA).resolves.toBe(true);
     expect(a.posted).toHaveLength(0);
     expect(a.send).not.toHaveBeenCalled();
-    expect((await deliveryState(deliveryId)).state).not.toBe("PROVIDER_ACCEPTED");
+    expect((await deliveryState(deliveryId)).state).toBe("LEASED");
+    const b = transport();
+    expect(await worker(b).runOnce()).toBe(true);
+    expect(b.posted).toHaveLength(1);
+    expect(await deliveryState(deliveryId)).toMatchObject({
+      attempt_count: 2,
+      state: "PROVIDER_ACCEPTED",
+    });
   });
 
   it.each([
