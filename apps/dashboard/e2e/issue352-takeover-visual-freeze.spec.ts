@@ -205,6 +205,7 @@ test("issue352 mounted Task Details preserves baseline in EN/AR, light/dark, 320
         await expect(search).toBeFocused();
         await page.keyboard.press("Escape");
         await expect(modal).toHaveCount(0);
+        await expect(action).toBeFocused();
         modalReturnFocus = await page.evaluate(() => ({
           tag: document.activeElement?.tagName,
           label: document.activeElement?.getAttribute("aria-label"),
