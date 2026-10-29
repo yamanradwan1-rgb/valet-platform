@@ -1,0 +1,76 @@
+{
+  "batch": "C021",
+  "kind": "independent_prepublication_roster_qa",
+  "verdict": "PASS",
+  "read_only": true,
+  "semantic_reviews_started": false,
+  "runtime_tests_executed": 0,
+  "source_commit": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+  "source_tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+  "published_parent_docs_commit": "e450b762d2203d941517cefbb86d367cb37efddc",
+  "git_facts": {
+    "docs_head": "e450b762d2203d941517cefbb86d367cb37efddc",
+    "docs_remote_audit": "e450b762d2203d941517cefbb86d367cb37efddc",
+    "source_head": "0747a677ddf7fc3e1093490b7ef0a7bee9e2d938",
+    "source_tree": "9fbe93fe55b5ef7c42888a874cc7217a594ccace",
+    "source_status": ""
+  },
+  "c020_baseline": {
+    "remaining": 1279,
+    "reviewed": 3510,
+    "candidate_files": 4789,
+    "candidate_lines": 620723,
+    "ledger_data_rows": 7595,
+    "ledger_csv_lines": 7596,
+    "ledger_statuses": {
+      "not_reviewed": 4085,
+      "fully_reviewed": 3510
+    },
+    "historic_c020_batch_records": 175
+  },
+  "roster_proof": {
+    "assigned": 175,
+    "unique_paths": 175,
+    "owner_counts": {
+      "W1": 25,
+      "W2": 25,
+      "W3": 25,
+      "W4": 25,
+      "W5": 25,
+      "W6": 25,
+      "W7": 25
+    },
+    "actual_reviewer_counts": {
+      "W1": 35,
+      "W2": 35,
+      "W3": 35,
+      "W6": 35,
+      "W7": 35
+    },
+    "transfer_count": 50,
+    "transfer_matrix": {
+      "W1:W4": 5,
+      "W2:W4": 5,
+      "W3:W4": 5,
+      "W6:W4": 5,
+      "W7:W4": 5,
+      "W1:W5": 5,
+      "W2:W5": 5,
+      "W3:W5": 5,
+      "W6:W5": 5,
+      "W7:W5": 5
+    },
+    "role_domain_fallbacks": {
+      "W1": 25,
+      "W3": 25
+    },
+    "source_blobs_verified": 175,
+    "source_bytes_total": 996896,
+    "source_lines_total": 25426,
+    "hash_algorithm": "SHA-256 raw pinned Git blob",
+    "line_formula": "UTF-8 text newline count with final LF excluded; 1..EOF",
+    "all_roster_paths_in_c020_remaining": true,
+    "no_c020_credit_overlap": true
+  },
+  "errors": []
+}
