@@ -16,6 +16,8 @@ import {
   getPersistedTheme,
   shouldSkipInitialThemeSync,
   THEME_CHANGE_EVENT,
+  THEME_STORAGE_KEY,
+  syncThemeFromStorage,
   type Theme,
 } from './theme';
 
@@ -32,10 +34,15 @@ function subscribeToTheme(callback: () => void): () => void {
   if (typeof window === 'undefined') {
     return () => {};
   }
-  window.addEventListener('storage', callback);
+  const onStorage = (event: StorageEvent) => {
+    if (event.key !== null && event.key !== THEME_STORAGE_KEY) return;
+    syncThemeFromStorage(event.newValue);
+    callback();
+  };
+  window.addEventListener('storage', onStorage);
   window.addEventListener(THEME_CHANGE_EVENT, callback);
   return () => {
-    window.removeEventListener('storage', callback);
+    window.removeEventListener('storage', onStorage);
     window.removeEventListener(THEME_CHANGE_EVENT, callback);
   };
 }

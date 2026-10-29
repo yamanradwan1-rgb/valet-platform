@@ -16,6 +16,8 @@ import {
   getDirectionForLocale,
   getPersistedLocale,
   LOCALE_CHANGE_EVENT,
+  LOCALE_STORAGE_KEY,
+  syncLocaleFromStorage,
   type Direction,
   type Locale,
 } from './locale';
@@ -43,10 +45,15 @@ function subscribeToLocale(callback: () => void): () => void {
   if (typeof window === 'undefined') {
     return () => {};
   }
-  window.addEventListener('storage', callback);
+  const onStorage = (event: StorageEvent) => {
+    if (event.key !== null && event.key !== LOCALE_STORAGE_KEY) return;
+    syncLocaleFromStorage(event.newValue);
+    callback();
+  };
+  window.addEventListener('storage', onStorage);
   window.addEventListener(LOCALE_CHANGE_EVENT, callback);
   return () => {
-    window.removeEventListener('storage', callback);
+    window.removeEventListener('storage', onStorage);
     window.removeEventListener(LOCALE_CHANGE_EVENT, callback);
   };
 }

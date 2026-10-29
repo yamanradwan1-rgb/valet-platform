@@ -6,6 +6,18 @@ export const SUPPORTED_THEMES: readonly Theme[] = ['light', 'dark'];
 export const THEME_STORAGE_KEY = 'vaylet_guest_theme';
 export const THEME_CHANGE_EVENT = 'vaylet_theme_change';
 
+let memoryWindow: Window | undefined;
+let memoryTheme: Theme | undefined;
+let memoryOverridesStorage = false;
+
+function ensureCurrentWindow(): void {
+  if (memoryWindow !== window) {
+    memoryWindow = window;
+    memoryTheme = undefined;
+    memoryOverridesStorage = false;
+  }
+}
+
 export const THEME_COLORS: Readonly<Record<Theme, string>> = {
   light: '#FAFAF8',
   dark: '#07111F',
@@ -20,30 +32,49 @@ export function getPersistedTheme(): Theme {
     return DEFAULT_THEME;
   }
 
+  ensureCurrentWindow();
+  if (memoryOverridesStorage) {
+    return memoryTheme ?? DEFAULT_THEME;
+  }
+
   try {
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
     if (isSupportedTheme(stored)) {
       return stored;
     }
   } catch {
-    // Storage access may fail in restricted/private contexts
+    if (memoryTheme) return memoryTheme;
+    // Reuse the successful pre-hydration bootstrap value if reads fail later.
+    if (typeof document !== 'undefined' &&
+        document.documentElement.getAttribute?.('data-theme') === 'dark') {
+      return 'dark';
+    }
+    return DEFAULT_THEME;
   }
 
   return DEFAULT_THEME;
 }
 
 export function setPersistedTheme(theme: Theme): void {
-  if (typeof window === 'undefined') {
+  if (typeof window === 'undefined' || !isSupportedTheme(theme)) {
     return;
   }
 
+  ensureCurrentWindow();
+  memoryTheme = theme;
   try {
-    if (isSupportedTheme(theme)) {
-      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
-    }
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+    memoryOverridesStorage = false;
   } catch {
-    // Storage access may fail in restricted/private contexts
+    memoryOverridesStorage = true;
   }
+}
+
+export function syncThemeFromStorage(value: string | null): void {
+  if (typeof window === 'undefined') return;
+  ensureCurrentWindow();
+  memoryTheme = isSupportedTheme(value) ? value : DEFAULT_THEME;
+  memoryOverridesStorage = false;
 }
 
 export function applyThemeToDom(theme: Theme): void {
