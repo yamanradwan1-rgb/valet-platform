@@ -48,6 +48,9 @@ const w3ReliefMap=new Map((w3Relief?.transfers??[]).map(t=>[t.path,t]));
 const w4StartupFile=prefix+'w4-startup-fallback-addendum.json';
 const w4Startup=existsSync(w4StartupFile)?JSON.parse(readFileSync(w4StartupFile,'utf8')):null;
 const w4StartupMap=new Map((w4Startup?.transfers??[]).map(t=>[t.path,t]));
+const w5UnresponsiveFile=prefix+'w5-unresponsive-fallback-addendum.json';
+const w5Unresponsive=existsSync(w5UnresponsiveFile)?JSON.parse(readFileSync(w5UnresponsiveFile,'utf8')):null;
+const w5UnresponsiveMap=new Map((w5Unresponsive?.transfers??[]).map(t=>[t.path,t]));
 if(fallback && (fallback.batch!==batch||fallback.source_commit!==fullSha||
   fallback.superseded_assigned_reviewer!=='W2'||fallback.transfers.length!==35||
   fallbackMap.size!==35)) throw new Error('Fallback addendum provenance mismatch');
@@ -75,7 +78,19 @@ if(w4Startup && (batch!=='C015'||w4Startup.batch!==batch||
   w4Startup.transfers.length!==25||w4StartupMap.size!==25)) {
   throw new Error('C015 W4 startup fallback provenance mismatch');
 }
-const effectiveReviewer=a=>w4StartupMap.get(a.path)?.actual_reviewer??
+if(w5Unresponsive && (batch!=='C016'||w5Unresponsive.batch!==batch||
+  w5Unresponsive.source_commit!==fullSha||w5Unresponsive.source_tree!==tree||
+  w5Unresponsive.superseded_actual_reviewer!=='W5'||
+  w5Unresponsive.w5_saved_accepted_records_before_transfer!==0||
+  w5Unresponsive.w5_acknowledgments_after_bounded_prime_requests!==0||
+  w5Unresponsive.original_W5_uncredited!==25||
+  w5Unresponsive.original_W4_initially_assigned_W5_uncredited!==5||
+  w5Unresponsive.transfers.length!==30||w5UnresponsiveMap.size!==30||
+  w5Unresponsive.expected_unique_effective_original_owner_transfers!==50)) {
+  throw new Error('C016 W5 unresponsive fallback provenance mismatch');
+}
+const effectiveReviewer=a=>w5UnresponsiveMap.get(a.path)?.actual_reviewer??
+  w4StartupMap.get(a.path)?.actual_reviewer??
   w3ReliefMap.get(a.path)?.actual_reviewer??
   w8FallbackMap.get(a.path)?.actual_reviewer??
   rescueMap.get(a.path)?.actual_reviewer??
@@ -94,6 +109,30 @@ if(w4Startup) {
   }
   if(counts.size!==5||[...counts.values()].some(n=>n!==5)) {
     throw new Error('C015 W4 fallback balance mismatch');
+  }
+}
+if(w5Unresponsive){
+  const counts=new Map(),owners=new Map();
+  for(const [path,t] of w5UnresponsiveMap){
+    const a=byPath.get(path);
+    if(!a||a.assigned_reviewer!=='W5'||t.original_assigned_reviewer!=='W5'||
+      t.prior_actual_reviewer!=='W5'||a.original_owner!==t.original_owner||
+      t.source_commit!==fullSha||t.batch!==batch||
+      !['W1','W2','W3','W6','W7'].includes(t.actual_reviewer)) {
+      throw new Error('Invalid C016 W5 unresponsive transfer '+path);
+    }
+    counts.set(t.actual_reviewer,(counts.get(t.actual_reviewer)??0)+1);
+    owners.set(t.original_owner,(owners.get(t.original_owner)??0)+1);
+  }
+  if(counts.size!==5||[...counts.values()].some(n=>n!==6)||
+     owners.get('W5')!==25||owners.get('W4')!==5){
+    throw new Error('C016 W5 fallback balance/owner mismatch');
+  }
+  for(const name of ['C016-W5-review-records.json','C016-transferred-W4-review-records.json']){
+    const file=join(results,'W5',name);
+    if(existsSync(file)&&JSON.parse(readFileSync(file,'utf8')).length){
+      throw new Error('Uncredited W5 C016 output appeared after supersession: '+file);
+    }
   }
 }
 for(const [path,t] of w3ReliefMap) {
@@ -146,7 +185,8 @@ for (const assignment of roster.assignments) {
       (transfer && ((transfer.assigned_reviewer??transfer.actual_reviewer)!==assignment.assigned_reviewer ||
         transfer.original_owner!==assignment.original_owner ||
         (transfer.assigned_reviewer!==undefined &&
-          transfer.actual_reviewer!==effectiveReviewer(assignment))))) {
+          transfer.actual_reviewer!==effectiveReviewer(assignment) &&
+          !w5UnresponsiveMap.has(assignment.path))))) {
     throw new Error('Invalid ownership: '+assignment.path);
   }
 }
@@ -216,7 +256,7 @@ for (const [file,expected] of expectedFiles) {
 const missing=roster.assignments.map(a=>a.path).filter(p=>!seen.has(p));
 const effectiveTransfers=roster.assignments.filter(a=>a.original_owner!==effectiveReviewer(a));
 if(effectiveTransfers.length!==(initialTransferCount+(fallback?25:0)+(rescue?13:0)+
-  (w4Startup?25:0))) {
+  (w4Startup?25:0)+(w5Unresponsive?25:0))) {
   throw new Error('Effective unique transfer count mismatch');
 }
 const report={batch,source_commit:fullSha,source_tree:tree,expected:175,valid:accepted.length,
@@ -226,6 +266,7 @@ const report={batch,source_commit:fullSha,source_tree:tree,expected:175,valid:ac
   w8_fallback_reassigned_paths:w8Fallback?.transfers.length??0,
   w3_relief_reassigned_paths:w3Relief?.transfers.length??0,
   w4_startup_reassigned_paths:w4Startup?.transfers.length??0,
+  w5_unresponsive_reassigned_paths:w5Unresponsive?.transfers.length??0,
   effective_ownership_transfers:effectiveTransfers.length,
   current_base_files:previous.current_fully_reviewed,current_base_lines:previous.current_reviewed_lines,
   if_accepted_files:previous.current_fully_reviewed+accepted.length,
