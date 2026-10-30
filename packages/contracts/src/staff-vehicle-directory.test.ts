@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { staffVehicleDirectoryActionsResponseSchema } from "./staff-vehicle-directory-actions.js";
 import {
   staffVehicleDirectoryLegacyResponseSchema,
   staffVehicleDirectoryQuerySchema,
@@ -133,6 +134,54 @@ describe("staffVehicleDirectory contracts", () => {
     const parsed = staffVehicleDirectoryResponseSchema.parse(payload);
     expect(parsed.truncated).toBe(false);
     expect(parsed.rows).toHaveLength(1);
+  });
+
+  it("enforces the 100-row limit across current, legacy, and actions responses", () => {
+    const locationId = "11111111-1111-4111-8111-111111111111";
+    const currentRows = Array.from({ length: 101 }, (_, index) => ({
+      ...baseRow(),
+      sessionId: `22222222-2222-4222-8222-${String(index + 1).padStart(12, "0")}`,
+    }));
+    const legacyRows = currentRows.map((current) => {
+      const row: Record<string, unknown> = { ...current };
+      delete row.keySlotVisibility;
+      return row;
+    });
+    const actionRows = currentRows.map((row) => ({
+      ...row,
+      canContinueCheckIn: false,
+      canCancelCheckIn: false,
+    }));
+
+    for (const { name, schema, rows } of [
+      {
+        name: "visibility-v1",
+        schema: staffVehicleDirectoryResponseSchema,
+        rows: currentRows,
+      },
+      {
+        name: "legacy",
+        schema: staffVehicleDirectoryLegacyResponseSchema,
+        rows: legacyRows,
+      },
+      {
+        name: "actions-v2",
+        schema: staffVehicleDirectoryActionsResponseSchema,
+        rows: actionRows,
+      },
+    ]) {
+      for (const truncated of [false, true]) {
+        expect(
+          schema.safeParse({ locationId, rows: rows.slice(0, 100), truncated })
+            .success,
+          `${name} must accept 100 valid rows (truncated=${truncated})`,
+        ).toBe(true);
+        expect(
+          schema.safeParse({ locationId, rows, truncated }).success,
+          `${name} must reject 101 valid rows (truncated=${truncated})`,
+        ).toBe(false);
+      }
+    }
   });
 
   it("requires truncated and rejects unknown response fields", () => {

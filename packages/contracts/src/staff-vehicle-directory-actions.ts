@@ -27,7 +27,7 @@ export const staffVehicleDirectoryActionsRowSchema =
     });
 export const staffVehicleDirectoryActionsResponseSchema =
   staffVehicleDirectoryResponseSchema.extend({
-    rows: z.array(staffVehicleDirectoryActionsRowSchema),
+    rows: z.array(staffVehicleDirectoryActionsRowSchema).max(100),
   });
 export type StaffVehicleDirectoryActionsRow = z.infer<
   typeof staffVehicleDirectoryActionsRowSchema

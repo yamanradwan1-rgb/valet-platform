@@ -123,7 +123,7 @@ export type StaffVehicleDirectoryQuery = z.infer<
 export const staffVehicleDirectoryResponseSchema = z
   .object({
     locationId: uuidSchema,
-    rows: z.array(staffVehicleDirectoryRowSchema),
+    rows: z.array(staffVehicleDirectoryRowSchema).max(100),
     truncated: z.boolean(),
   })
   .strict();
@@ -136,7 +136,7 @@ export type StaffVehicleDirectoryResponse = z.infer<
 export const staffVehicleDirectoryLegacyResponseSchema = z
   .object({
     locationId: uuidSchema,
-    rows: z.array(staffVehicleDirectoryLegacyRowSchema),
+    rows: z.array(staffVehicleDirectoryLegacyRowSchema).max(100),
     truncated: z.boolean(),
   })
   .strict();
