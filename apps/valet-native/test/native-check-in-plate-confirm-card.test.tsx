@@ -61,9 +61,9 @@ function text(nodes: Element[], value: string) {
 
 describe("UI-PARITY-08 plate confirmation vehicle details", () => {
   it.each([
-    ["en", "camera", "Detected", "High confidence · Jordan"],
+    ["en", "camera", "Detected", "License Plate · Jordan"],
     ["en", "manual", "Manual Entry", "Entered plate · Jordan"],
-    ["ar", "camera", "تم الاكتشاف", "ثقة عالية · الأردن"],
+    ["ar", "camera", "تم الاكتشاف", "لوحة المركبة · الأردن"],
     ["ar", "manual", "إدخال يدوي", "لوحة مدخلة · الأردن"],
   ] as const)(
     "keeps the hero and localized %s %s context",

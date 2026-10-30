@@ -7,7 +7,10 @@ import type {
 } from "@valet/employee-client";
 
 import type { NativeCheckInCopy } from "./native-check-in-copy";
-import { checkInTextStyle } from "./native-check-in-presentation";
+import {
+  checkInTextStyle,
+  type NativeCapturePresentation,
+} from "./native-check-in-presentation";
 import {
   CheckInButton,
   CheckInErrorNotice,
@@ -29,6 +32,7 @@ interface StateStepProps {
   readonly onStartParking?: (() => void) | undefined;
   readonly parkingStartError?: boolean | undefined;
   readonly parkingStarting?: boolean | undefined;
+  readonly presentation: NativeCapturePresentation;
   readonly session: EmployeeCheckInSession;
   readonly snapshot: EmployeeCheckInSnapshot;
   readonly textAlign: NativeTextAlign;
@@ -92,13 +96,18 @@ export function NativeRecoverablesStep({
   );
 }
 
-export function NativeBusyStep({ copy, snapshot, textAlign }: StateStepProps) {
+export function NativeBusyStep({
+  copy,
+  presentation,
+  snapshot,
+  textAlign,
+}: StateStepProps) {
   if (snapshot.phase === "recognizing") {
     return (
       <>
         <NativeCheckInIdentityContext
           copy={copy}
-          presentation="camera"
+          presentation={presentation}
           snapshot={snapshot}
           textAlign={textAlign}
         />
