@@ -26,6 +26,9 @@ function getErrCode(err: unknown): string | null {
 }
 
 export class ParkingController {
+  private operationVersion = 0;
+  private active = true;
+
   private state: ParkingState = {
     activeSession: null,
     error: null,
@@ -48,7 +51,25 @@ export class ParkingController {
     return this.state;
   }
 
+  activate(): void {
+    this.active = true;
+  }
+
+  deactivate(): void {
+    this.active = false;
+    this.cancelPending();
+  }
+
+  cancelPending(): void {
+    this.operationVersion += 1;
+  }
+
+  private isCurrent(version: number): boolean {
+    return this.active && version === this.operationVersion;
+  }
+
   private update(patch: Partial<ParkingState>): void {
+    if (!this.active) return;
     this.state = { ...this.state, ...patch };
     this.onStateChange(this.state);
   }
@@ -58,17 +79,50 @@ export class ParkingController {
   }
 
   setActiveSession(session: ActiveParkingSession): void {
+    if (!this.active) return;
     const current = this.state.activeSession;
     if (
       current?.sessionId === session.sessionId &&
       current.taskId === session.taskId
     ) {
+      if (this.state.isHydrating) {
+        this.cancelPending();
+      }
+      const sessionVersion = Math.max(current.sessionVersion, session.sessionVersion);
+      const taskVersion = Math.max(current.taskVersion, session.taskVersion);
+      if (
+        this.state.isHydrating ||
+        sessionVersion !== current.sessionVersion ||
+        taskVersion !== current.taskVersion
+      ) {
+        this.update({
+          activeSession: { ...current, sessionVersion, taskVersion },
+          error: null,
+          errorCode: null,
+          isHydrating: false,
+        });
+      }
       return;
     }
 
+    this.cancelPending();
     this.update({
       activeSession: session,
       error: null,
+      errorCode: null,
+      isHydrating: false,
+      isSubmitting: false,
+      step: "in-progress",
+    });
+  }
+
+  clearSession(): void {
+    if (!this.active) return;
+    this.cancelPending();
+    this.update({
+      activeSession: null,
+      error: null,
+      errorCode: null,
       isHydrating: false,
       isSubmitting: false,
       step: "in-progress",
@@ -80,9 +134,21 @@ export class ParkingController {
     taskId: string,
     taskVersion: number,
   ): Promise<void> {
-    this.update({ error: null, isHydrating: true });
+    if (!this.active) return;
+    const version = ++this.operationVersion;
+    const selected = this.state.activeSession;
+    const sameTarget = selected?.sessionId === sessionId && selected.taskId === taskId;
+    this.update({
+      activeSession: sameTarget ? selected : null,
+      error: null,
+      errorCode: null,
+      isHydrating: true,
+      isSubmitting: false,
+      step: sameTarget ? this.state.step : "in-progress",
+    });
     try {
       const detail = await fetchSessionDetail(this.apiClient, sessionId);
+      if (!this.isCurrent(version)) return;
       if (detail.state !== "PARKING" || !detail.parking.parkingStartedAt) {
         throw new Error("Session is not in active parking state.");
       }
@@ -114,6 +180,7 @@ export class ParkingController {
         step: "in-progress",
       });
     } catch (err: unknown) {
+      if (!this.isCurrent(version)) return;
       this.update({
         error: getErrMsg(err, "Failed to load parking session detail."),
         errorCode: getErrCode(err),
@@ -130,14 +197,16 @@ export class ParkingController {
       readonly parkingSpotId?: string;
     } = {},
   ): Promise<void> {
-    if (this.state.isSubmitting) return;
+    if (!this.active) return;
+    if (this.state.isSubmitting || this.state.isHydrating) return;
     const session = this.state.activeSession;
     if (!session) {
       this.update({ error: "No active parking session found." });
       return;
     }
 
-    this.update({ error: null, isSubmitting: true });
+    const version = ++this.operationVersion;
+    this.update({ error: null, errorCode: null, isHydrating: false, isSubmitting: true });
     try {
       const confirmRes = await confirmParkedSession(
         this.apiClient,
@@ -149,6 +218,7 @@ export class ParkingController {
         {},
         resourceIdentity,
       );
+      if (!this.isCurrent(version)) return;
 
       let authoritativeZone = session.parkingZoneCode;
       let authoritativeSpot = confirmRes.parkingSpotCode;
@@ -167,21 +237,27 @@ export class ParkingController {
       } catch {
         // Keep the submitted slot code; never fabricate zone/slot detail.
       }
+      if (!this.isCurrent(version)) return;
 
+      const latest = this.state.activeSession;
+      if (latest?.sessionId !== session.sessionId || latest.taskId !== session.taskId) {
+        return;
+      }
       this.update({
         activeSession: {
-          ...session,
+          ...latest,
           keySlotCode: authoritativeKeySlot,
           parkedAt: confirmRes.parkedAt,
           parkingSpotCode: authoritativeSpot,
           parkingZoneCode: authoritativeZone,
-          sessionVersion: confirmRes.sessionVersion,
-          taskVersion: confirmRes.taskVersion,
+          sessionVersion: Math.max(latest.sessionVersion, confirmRes.sessionVersion),
+          taskVersion: Math.max(latest.taskVersion, confirmRes.taskVersion),
         },
         isSubmitting: false,
         step: "success",
       });
     } catch (err: unknown) {
+      if (!this.isCurrent(version)) return;
       this.update({
         error: getErrMsg(err, "Failed to confirm parking."),
         // DEC-068 §25: KEY_CUSTODY_NOT_READY covers occupied/lost-race slot

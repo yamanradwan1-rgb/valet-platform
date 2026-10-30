@@ -81,6 +81,11 @@ export function useParking(options: UseParkingOptions): UseParkingResult {
   );
 
   useEffect(() => {
+    controller.activate();
+    return () => controller.deactivate();
+  }, [controller]);
+
+  useEffect(() => {
     controller.setApiClient(apiClient);
   }, [controller, apiClient]);
 
@@ -89,6 +94,8 @@ export function useParking(options: UseParkingOptions): UseParkingResult {
       controller.setActiveSession(initialSession);
     } else if (sessionId && taskId && taskVersion !== null && taskVersion !== undefined) {
       void controller.hydrateSession(sessionId, taskId, taskVersion);
+    } else {
+      controller.clearSession();
     }
   }, [controller, initialSession, sessionId, taskId, taskVersion]);
 
