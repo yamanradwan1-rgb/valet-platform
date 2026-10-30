@@ -239,6 +239,7 @@ test("downloads a real high-resolution PNG and print mode excludes Dashboard chr
   await page.emulateMedia({ media: "print" });
   const printLabel = page.getByTestId("physical-resource-print-label");
   await expect(printLabel).toBeVisible();
+  await expect(printLabel.locator(".issue304-modal-label-resource")).toHaveCSS("display", "grid");
   await page.screenshot({ path: test.info().outputPath("issue385-print-candidate.png"), fullPage: true });
   await test.info().attach("issue385-print-after", {
     body: await page.screenshot({ fullPage: true }), contentType: "image/png",
