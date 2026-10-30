@@ -24,13 +24,16 @@ export function MapSetupDialog(props: {
   const t = operationsCopy(locale);
   const dialogRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
 
   useEffect(() => {
     returnFocusRef.current = document.activeElement as HTMLElement | null;
     const node = dialogRef.current;
     node?.querySelector<HTMLElement>(focusableSelector)?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") { event.preventDefault(); onClose(); return; }
+      if (event.key === "Escape") { event.preventDefault(); onCloseRef.current(); return; }
       if (event.key !== "Tab" || !node) return;
       const items = Array.from(node.querySelectorAll<HTMLElement>(focusableSelector));
       if (items.length === 0) return;
@@ -40,7 +43,7 @@ export function MapSetupDialog(props: {
     };
     document.addEventListener("keydown", onKeyDown);
     return () => { document.removeEventListener("keydown", onKeyDown); returnFocusRef.current?.focus(); };
-  }, [onClose]);
+  }, []);
 
   return <div className={styles.mapDialogBackdrop} onMouseDown={props.onClose} role="presentation">
     <div className={styles.mapDialogFrame}>
