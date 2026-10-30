@@ -31,6 +31,7 @@ import listStyles from "../reference-list.module.css";
 import { useCursorPage } from "../use-cursor-page";
 import { useOperationsContext } from "../use-operations-context";
 import { useOperationsRead } from "../use-operations-read";
+import { matchesLoadedVehicleQuery } from "./vehicle-search";
 
 type StateFilter = DashboardSessionState | "ALL";
 
@@ -67,14 +68,11 @@ function VehiclesContent() {
   );
   const items = read.data?.items ?? [];
   const states = [...new Set(items.map((item) => item.state))];
-  const normalizedQuery = query.trim().toLocaleLowerCase();
-  const rows = items.filter((item) => {
-    const identity = operationsVehicleLabel(item)?.toLocaleLowerCase() ?? "";
-    return (
+  const rows = items.filter(
+    (item) =>
       (state === "ALL" || item.state === state) &&
-      (normalizedQuery === "" || identity.includes(normalizedQuery))
-    );
-  });
+      matchesLoadedVehicleQuery(item, query),
+  );
   const resetPageLocalState = () => {
     setQuery("");
     setState("ALL");
