@@ -16,7 +16,9 @@ export function CheckInRecoverableStep({
   readonly continuations: StaffCheckInContinuationSummary[];
   readonly drafts: StaffCheckInDraftSummary[];
   readonly onBack: () => void;
-  readonly onResumeContinuation: (cont: StaffCheckInContinuationSummary) => void;
+  readonly onResumeContinuation: (
+    cont: StaffCheckInContinuationSummary,
+  ) => void;
   readonly onResumeDraft: (draft: StaffCheckInDraftSummary) => void;
 }): JSX.Element {
   const { t } = useEmployeeI18n();
@@ -28,42 +30,44 @@ export function CheckInRecoverableStep({
           {t.multipleCheckIns}
         </p>
         {drafts.map((draft) => (
-          <div
+          <button
             key={draft.sessionId}
+            type="button"
             onClick={() => onResumeDraft(draft)}
-            className="bg-white rounded-2xl border border-vborder p-4 cursor-pointer hover:border-vblue transition-colors shadow-sm"
+            className="block w-full text-start bg-white rounded-2xl border border-vborder p-4 cursor-pointer hover:border-vblue transition-colors shadow-sm"
           >
             <span className="text-[10px] font-bold uppercase text-vblue bg-ice px-2 py-0.5 rounded">
               {t.draft}
             </span>
-            <p className="font-heading font-bold text-navy text-base mt-2">
+            <span className="block font-heading font-bold text-navy text-base mt-2">
               {draft.vehicle.make ?? t.vehicle} {draft.vehicle.model ?? ""}
-            </p>
-            <p className="text-neutral text-xs">
+            </span>
+            <span className="block text-neutral text-xs">
               {draft.vehicle.plateNumberRaw ??
                 draft.vehicle.temporaryDescriptor ??
                 t.noPlateTitle}
-            </p>
-          </div>
+            </span>
+          </button>
         ))}
         {continuations.map((cont) => (
-          <div
+          <button
             key={cont.sessionId}
+            type="button"
             onClick={() => onResumeContinuation(cont)}
-            className="bg-white rounded-2xl border border-vborder p-4 cursor-pointer hover:border-vblue transition-colors shadow-sm"
+            className="block w-full text-start bg-white rounded-2xl border border-vborder p-4 cursor-pointer hover:border-vblue transition-colors shadow-sm"
           >
             <span className="text-[10px] font-bold uppercase text-vsuccess bg-green-50 px-2 py-0.5 rounded">
               {t.awaitingParking}
             </span>
-            <p className="font-heading font-bold text-navy text-base mt-2">
+            <span className="block font-heading font-bold text-navy text-base mt-2">
               {cont.vehicle.make ?? t.vehicle} {cont.vehicle.model ?? ""}
-            </p>
-            <p className="text-neutral text-xs">
+            </span>
+            <span className="block text-neutral text-xs">
               {cont.vehicle.plateNumberRaw ??
                 cont.vehicle.temporaryDescriptor ??
                 t.noPlateTitle}
-            </p>
-          </div>
+            </span>
+          </button>
         ))}
         <Btn label={t.backToQueue} variant="secondary" onClick={onBack} />
       </div>
