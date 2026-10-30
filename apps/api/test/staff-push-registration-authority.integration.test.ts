@@ -16,11 +16,12 @@ describe("Staff push registration transport and authority", () => {
       );
     const expectRejectedWithoutWrites = async (seededId?: string) => {
       const before = (await snapshot()).rows;
-      expect(
-        before.some((row) => row.installation_id === body.installationId),
-      ).toBe(false);
+      const targetRows = before.filter(
+        (row) => row.installation_id === body.installationId,
+      );
+      expect(targetRows).toHaveLength(seededId === undefined ? 0 : 1);
       if (seededId !== undefined) {
-        expect(before.some((row) => row.id === seededId)).toBe(true);
+        expect(targetRows[0]).toMatchObject({ id: seededId, state: "ACTIVE" });
       }
 
       const missing = await fixture.request("/v1/staff/push/registrations", {
@@ -42,7 +43,7 @@ describe("Staff push registration transport and authority", () => {
     await expectRejectedWithoutWrites();
 
     const auth = await fixture.login();
-    const seeded = await fixture.put(auth, fixture.requestBody());
+    const seeded = await fixture.put(auth, body);
     expect(seeded.status).toBe(200);
     const seededId = fixture.registrationId(seeded);
 
