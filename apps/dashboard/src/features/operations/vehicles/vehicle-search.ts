@@ -1,5 +1,8 @@
 import type { SessionOverviewEntry } from "@valet/contracts";
 
+// Match the plate separators removed by the vehicle identity write path.
+const plateSeparators = /[\s\p{Pd}._/\\]+/gu;
+
 // This is a search projection, independent of the visible vehicle label.
 export function matchesLoadedVehicleQuery(
   item: SessionOverviewEntry,
@@ -12,11 +15,17 @@ export function matchesLoadedVehicleQuery(
     .map((value) => value?.trim())
     .filter(Boolean)
     .join(" ");
-  return [
-    makeModel,
-    item.vehicle.plateNumberNormalized,
-    item.vehicle.temporaryDescriptor,
-  ].some((value) =>
-    (value?.trim().toLocaleLowerCase() ?? "").includes(normalizedQuery),
+  const plateQuery = query
+    .normalize("NFKC")
+    .toUpperCase()
+    .replace(plateSeparators, "");
+  const matchesPlate =
+    plateQuery !== "" &&
+    (item.vehicle.plateNumberNormalized?.includes(plateQuery) ?? false);
+  return (
+    matchesPlate ||
+    [makeModel, item.vehicle.temporaryDescriptor].some((value) =>
+      (value?.trim().toLocaleLowerCase() ?? "").includes(normalizedQuery),
+    )
   );
 }

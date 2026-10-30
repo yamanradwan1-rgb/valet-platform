@@ -20,7 +20,7 @@ const session: SessionOverviewEntry = {
     model: "Camry",
     color: "Gold",
     plateCountry: "JO",
-    plateNumberNormalized: "12-34567",
+    plateNumberNormalized: "1234567",
     temporaryDescriptor: "Blue SUV near gate",
   },
 };
@@ -59,7 +59,7 @@ describe("Vehicles loaded-page search", () => {
         ...session.vehicle,
         make: "  TOYOTA ",
         model: " Camry  ",
-        plateNumberNormalized: " 12-34567 ",
+        plateNumberNormalized: "1234567",
         temporaryDescriptor: "  Blue SUV  ",
       },
     };
@@ -97,7 +97,7 @@ describe("Vehicles loaded-page search", () => {
         vehicleId: "77777777-7777-4777-8777-777777777704",
         make: "Nissan",
         model: "Sunny",
-        plateNumberNormalized: "44-99881",
+        plateNumberNormalized: "4499881",
         temporaryDescriptor: null,
       },
     };
@@ -111,5 +111,31 @@ describe("Vehicles loaded-page search", () => {
           item.state === "READY" && matchesLoadedVehicleQuery(item, "12-34567"),
       ),
     ).toEqual([]);
+  });
+
+  it("searches canonical plates with the same obvious separators removed on input", () => {
+    for (const query of [
+      "1234567",
+      "12-34567",
+      "12 34567",
+      "12–34567",
+      "12.34567",
+      "12/34567",
+      "12_34567",
+      "12\\34567",
+    ]) {
+      expect(matchesLoadedVehicleQuery(session, query), query).toBe(true);
+    }
+    expect(matchesLoadedVehicleQuery(session, "---")).toBe(false);
+    expect(matchesLoadedVehicleQuery(session, "12-99999")).toBe(false);
+  });
+
+  it("preserves English case folding and NFKC normalization for plate queries", () => {
+    const letterPlate: SessionOverviewEntry = {
+      ...session,
+      vehicle: { ...session.vehicle, plateNumberNormalized: "AB001" },
+    };
+    expect(matchesLoadedVehicleQuery(letterPlate, " ａｂ－００１ ")).toBe(true);
+    expect(matchesLoadedVehicleQuery(letterPlate, "ab-002")).toBe(false);
   });
 });
