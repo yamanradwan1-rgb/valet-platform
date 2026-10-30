@@ -41,7 +41,7 @@ describe("MGT-BE-07 Location lifecycle serialization", () => {
         employeeUserId: current.employee.id,
         locationId: current.locationId,
       });
-      await waitForLocationRaceBlocked(fixture, 1);
+      await waitForLocationRaceBlocked(fixture, 1, barrier);
       const stop = fixture.managementPost(
         `${current.base}/stop-intake`,
         current.admin.auth.accessToken,
@@ -49,7 +49,7 @@ describe("MGT-BE-07 Location lifecycle serialization", () => {
           expectedUpdatedAt: current.updatedAt,
         },
       );
-      await waitForLocationRaceBlocked(fixture, 2);
+      await waitForLocationRaceBlocked(fixture, 2, barrier);
       await releaseLocationRaceBarrier(barrier);
       expect((await accepted).state).toBe("CHECKING_IN");
       expect((await stop).status).toBe(201);
@@ -85,12 +85,12 @@ describe("MGT-BE-07 Location lifecycle serialization", () => {
           expectedUpdatedAt: current.updatedAt,
         },
       );
-      await waitForLocationRaceBlocked(fixture, 1);
+      await waitForLocationRaceBlocked(fixture, 1, barrier);
       const rejected = createLocationRaceIntake(runtimePool, {
         employeeUserId: current.employee.id,
         locationId: current.locationId,
       });
-      await waitForLocationRaceBlocked(fixture, 2);
+      await waitForLocationRaceBlocked(fixture, 2, barrier);
       await releaseLocationRaceBarrier(barrier);
       expect((await stop).status).toBe(201);
       await expect(rejected).rejects.toMatchObject({
@@ -122,7 +122,7 @@ describe("MGT-BE-07 Location lifecycle serialization", () => {
         authenticatedUserId: current.employee.id,
         targetLocationId: current.locationId,
       });
-      await waitForLocationRaceBlocked(fixture, 1);
+      await waitForLocationRaceBlocked(fixture, 1, barrier);
       const deactivate = fixture.managementPost(
         `${current.base}/deactivate`,
         current.admin.auth.accessToken,
@@ -130,7 +130,7 @@ describe("MGT-BE-07 Location lifecycle serialization", () => {
           expectedUpdatedAt: current.updatedAt,
         },
       );
-      await waitForLocationRaceBlocked(fixture, 2);
+      await waitForLocationRaceBlocked(fixture, 2, barrier);
       await releaseLocationRaceBarrier(barrier);
       expect((await shift).status).toBe("ACTIVE");
       const blocked = await deactivate;
@@ -160,7 +160,7 @@ describe("MGT-BE-07 Location lifecycle serialization", () => {
           expectedUpdatedAt: current.updatedAt,
         },
       );
-      await waitForLocationRaceBlocked(fixture, 1);
+      await waitForLocationRaceBlocked(fixture, 1, barrier);
       const shiftOutcome = createStartShiftCommandExecutor(runtimePool)({
         authenticatedUserId: current.employee.id,
         targetLocationId: current.locationId,
@@ -168,7 +168,7 @@ describe("MGT-BE-07 Location lifecycle serialization", () => {
         (value) => ({ status: "fulfilled" as const, value }),
         (error: unknown) => ({ error, status: "rejected" as const }),
       );
-      await waitForLocationRaceBlocked(fixture, 2);
+      await waitForLocationRaceBlocked(fixture, 2, barrier);
       await releaseLocationRaceBarrier(barrier);
       expect((await deactivate).status).toBe(201);
       await expect(shiftOutcome).resolves.toMatchObject({
@@ -220,7 +220,7 @@ describe("MGT-BE-07 Location lifecycle serialization", () => {
         authenticatedUserId: current.employee.id,
         sessionId,
       });
-      await waitForLocationRaceBlocked(fixture, 1);
+      await waitForLocationRaceBlocked(fixture, 1, barrier);
       const deactivate = fixture.managementPost(
         `${current.base}/deactivate`,
         current.admin.auth.accessToken,
@@ -228,7 +228,7 @@ describe("MGT-BE-07 Location lifecycle serialization", () => {
           expectedUpdatedAt: current.updatedAt,
         },
       );
-      await waitForLocationRaceBlocked(fixture, 2);
+      await waitForLocationRaceBlocked(fixture, 2, barrier);
       await releaseLocationRaceBarrier(barrier);
       expect((await task).status).toBe("QUEUED");
       const blocked = await deactivate;

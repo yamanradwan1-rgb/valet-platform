@@ -193,7 +193,7 @@ it("rechecks management revocation committed while Resume waits at the lifecycle
       [s.locationId],
     );
     const resume = s.post("resume-intake");
-    await waitForLocationRaceBlocked(fixture, 1);
+    await waitForLocationRaceBlocked(fixture, 1, barrier);
     await barrier.query(
       "UPDATE organization_memberships SET status='INACTIVE' WHERE id=$1",
       [s.admin.membership.membershipId],

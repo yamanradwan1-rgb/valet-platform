@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { performance } from "node:perf_hooks";
+import { setTimeout as pause } from "node:timers/promises";
 
 import type { Pool, PoolClient } from "pg";
 
@@ -43,7 +45,8 @@ async function organizationUpdatedAt(
     [organizationId],
   );
   const updatedAt = result.rows[0]?.updated_at;
-  if (updatedAt === undefined) throw new Error("Organization revision is missing.");
+  if (updatedAt === undefined)
+    throw new Error("Organization revision is missing.");
   return updatedAt;
 }
 
@@ -51,13 +54,20 @@ async function waitForDatabaseCondition(
   check: () => Promise<boolean>,
   description: string,
 ): Promise<void> {
-  for (let attempt = 0; attempt < 1000; attempt += 1) {
-    if (await check()) return;
+  const deadline = performance.now() + 10_000;
+  while (performance.now() < deadline) {
+    if ((await check()) && performance.now() <= deadline) return;
+    await pause(Math.min(20, Math.max(1, deadline - performance.now())));
   }
-  throw new Error(`Expected PostgreSQL state: ${description}.`);
+  throw new Error(
+    "Timed out waiting for PostgreSQL state: " + description + ".",
+  );
 }
 
-export function waitForLockWait(pool: Pool, queryFragment: string): Promise<void> {
+export function waitForLockWait(
+  pool: Pool,
+  queryFragment: string,
+): Promise<void> {
   return waitForDatabaseCondition(async () => {
     const result = await pool.query<{ waiting: boolean }>(
       `SELECT EXISTS (
@@ -79,9 +89,10 @@ export function waitForAdvisoryLock(
   mode: AdvisoryMode,
   granted: boolean,
 ): Promise<void> {
-  return waitForDatabaseCondition(async () => {
-    const result = await pool.query<{ matched: boolean }>(
-      `SELECT EXISTS (
+  return waitForDatabaseCondition(
+    async () => {
+      const result = await pool.query<{ matched: boolean }>(
+        `SELECT EXISTS (
          SELECT 1
          FROM pg_stat_activity AS activity
          INNER JOIN pg_locks AS held ON held.pid = activity.pid
@@ -92,10 +103,12 @@ export function waitForAdvisoryLock(
            AND held.mode = $2
            AND held.granted = $3
        ) AS matched`,
-      [`%${queryFragment}%`, mode, granted],
-    );
-    return result.rows[0]?.matched === true;
-  }, `${granted ? "granted" : "waiting"} ${mode} for ${queryFragment}`);
+        [`%${queryFragment}%`, mode, granted],
+      );
+      return result.rows[0]?.matched === true;
+    },
+    `${granted ? "granted" : "waiting"} ${mode} for ${queryFragment}`,
+  );
 }
 
 function pendingMutation(
@@ -145,7 +158,11 @@ export async function beginCompanySettingMutation(input: {
     input.adminPool,
     input.organizationId,
   );
-  return beginPreparedCompanySettingMutation(input, actorMembershipId, expectedUpdatedAt);
+  return beginPreparedCompanySettingMutation(
+    input,
+    actorMembershipId,
+    expectedUpdatedAt,
+  );
 }
 
 async function beginPreparedCompanySettingMutation(
@@ -159,19 +176,25 @@ async function beginPreparedCompanySettingMutation(
   expectedUpdatedAt: Date,
 ): Promise<PendingCompanySettingMutation> {
   const client = await input.runtimePool.connect();
-  await client.query("BEGIN");
-  const mutation = client.query(
-    `SELECT * FROM management_settings_set_company_scalar(
-       $1::uuid,$2::uuid,$3::text,$4::text,$5::timestamptz)`,
-    [
-      actorMembershipId,
-      input.organizationId,
-      input.setting,
-      input.value,
-      expectedUpdatedAt,
-    ],
-  );
-  return pendingMutation(client, mutation);
+  try {
+    await client.query("BEGIN");
+    const mutation = client.query(
+      `SELECT * FROM management_settings_set_company_scalar(
+         $1::uuid,$2::uuid,$3::text,$4::text,$5::timestamptz)`,
+      [
+        actorMembershipId,
+        input.organizationId,
+        input.setting,
+        input.value,
+        expectedUpdatedAt,
+      ],
+    );
+    return pendingMutation(client, mutation);
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    client.release();
+    throw error;
+  }
 }
 
 export async function beginBlockedCompanySettingMutation(input: {
@@ -190,23 +213,31 @@ export async function beginBlockedCompanySettingMutation(input: {
     input.organizationId,
   );
   const blocker = await input.adminPool.connect();
-  await blocker.query("BEGIN");
-  await blocker.query(
-    `SELECT id FROM organizations WHERE id = $1 FOR UPDATE`,
-    [input.organizationId],
-  );
-  const writer = await beginPreparedCompanySettingMutation(
-    input,
-    actorMembershipId,
-    expectedUpdatedAt,
-  );
-  await waitForAdvisoryLock(
-    input.adminPool,
-    COMPANY_SETTING_MUTATION_QUERY,
-    "ExclusiveLock",
-    true,
-  );
-  await waitForLockWait(input.adminPool, COMPANY_SETTING_MUTATION_QUERY);
+  let writer: PendingCompanySettingMutation | undefined;
+  try {
+    await blocker.query("BEGIN");
+    await blocker.query(
+      "SELECT id FROM organizations WHERE id = $1 FOR UPDATE",
+      [input.organizationId],
+    );
+    writer = await beginPreparedCompanySettingMutation(
+      input,
+      actorMembershipId,
+      expectedUpdatedAt,
+    );
+    await waitForAdvisoryLock(
+      input.adminPool,
+      COMPANY_SETTING_MUTATION_QUERY,
+      "ExclusiveLock",
+      true,
+    );
+    await waitForLockWait(input.adminPool, COMPANY_SETTING_MUTATION_QUERY);
+  } catch (error) {
+    await blocker.query("ROLLBACK").catch(() => undefined);
+    blocker.release();
+    await writer?.rollback().catch(() => undefined);
+    throw error;
+  }
   let blockerClosed = false;
   const releaseBlocker = async (resolution: "COMMIT" | "ROLLBACK") => {
     if (blockerClosed) return;
@@ -220,11 +251,11 @@ export async function beginBlockedCompanySettingMutation(input: {
   return {
     async commit() {
       await releaseBlocker("COMMIT");
-      await writer.commit();
+      await writer!.commit();
     },
     async rollback() {
       await releaseBlocker("ROLLBACK");
-      await writer.rollback();
+      await writer!.rollback();
     },
   };
 }

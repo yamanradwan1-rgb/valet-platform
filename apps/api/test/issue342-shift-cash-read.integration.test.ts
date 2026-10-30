@@ -62,7 +62,10 @@ async function scenario(role: "ORG_ADMIN" | "LOCATION_MANAGER" = "ORG_ADMIN") {
     return id;
   }
   const get = (id: string, token = auth.accessToken) =>
-    fixture.managementGet(`${path}/${id}?includeCashReconciliation=true`, token);
+    fixture.managementGet(
+      `${path}/${id}?includeCashReconciliation=true`,
+      token,
+    );
   return { user, member, auth, location, reporter, employee, path, shift, get };
 }
 
@@ -163,7 +166,7 @@ it("does not disclose cash after actor revocation wins the protected read race",
       [s.user.id],
     );
     const read = s.get(id);
-    await waitForLocationRaceBlocked(fixture, 1);
+    await waitForLocationRaceBlocked(fixture, 1, barrier);
     await barrier.query(
       "UPDATE organization_memberships SET status='INACTIVE' WHERE id=$1",
       [s.member.membershipId],

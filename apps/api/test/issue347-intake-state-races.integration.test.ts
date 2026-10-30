@@ -38,12 +38,12 @@ it("Resume linearizes before a queued intake, which rechecks persisted state and
       s.admin.auth.accessToken,
       { expectedUpdatedAt: s.updatedAt },
     );
-    await waitForLocationRaceBlocked(fixture, 1);
+    await waitForLocationRaceBlocked(fixture, 1, barrier);
     const intake = createLocationRaceIntake(runtime, {
       employeeUserId: s.employee.id,
       locationId: s.locationId,
     });
-    await waitForLocationRaceBlocked(fixture, 2);
+    await waitForLocationRaceBlocked(fixture, 2, barrier);
     await barrier.query("COMMIT");
     expect((await resume).status).toBe(201);
     expect((await intake).state).toBe("CHECKING_IN");
@@ -78,13 +78,13 @@ it.each([false, true])(
         () => null,
         (error: unknown) => error,
       );
-      await waitForLocationRaceBlocked(fixture, 1);
+      await waitForLocationRaceBlocked(fixture, 1, barrier);
       const resume = fixture.managementPost(
         `${s.base}/resume-intake`,
         s.admin.auth.accessToken,
         { expectedUpdatedAt: s.updatedAt },
       );
-      await waitForLocationRaceBlocked(fixture, 2);
+      await waitForLocationRaceBlocked(fixture, 2, barrier);
       if (revoke)
         await barrier.query(
           "UPDATE organization_memberships SET status='INACTIVE' WHERE id=$1",

@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { performance } from "node:perf_hooks";
+import { setTimeout as pause } from "node:timers/promises";
 
 import { Client } from "pg";
 import { expect } from "vitest";
@@ -76,24 +78,57 @@ export async function createStoppedLocationRaceScenario(
 export async function locationRaceBarrierClient(connectionString: string) {
   const client = new Client({ connectionString });
   await client.connect();
-  await client.query("BEGIN");
-  return client;
+  try {
+    await client.query("BEGIN");
+    return client;
+  } catch (error) {
+    await client.end();
+    throw error;
+  }
 }
 
 export async function waitForLocationRaceBlocked(
   fixture: ManagementAuditTestFixture,
   expected: number,
+  barrier?: Client,
 ) {
-  const deadline = Date.now() + 10_000;
-  while (Date.now() < deadline) {
+  const blockerPid =
+    barrier === undefined
+      ? null
+      : (await barrier.query<{ pid: number }>("SELECT pg_backend_pid() AS pid"))
+          .rows[0]!.pid;
+  const deadline = performance.now() + 10_000;
+  while (performance.now() < deadline) {
     const result = await fixture.query<{ count: string }>(
-      `SELECT count(*)::text AS count FROM pg_stat_activity
-       WHERE datname=current_database() AND pid<>pg_backend_pid()
-         AND wait_event_type='Lock'`,
+      blockerPid === null
+        ? `SELECT count(*)::text AS count FROM pg_stat_activity
+           WHERE datname=current_database() AND pid<>pg_backend_pid()
+             AND wait_event_type='Lock'`
+        : `WITH RECURSIVE blocked(pid) AS (
+             SELECT $1::integer
+             UNION
+             SELECT activity.pid FROM pg_stat_activity AS activity
+             JOIN blocked AS parent
+               ON parent.pid = ANY(pg_blocking_pids(activity.pid))
+             WHERE activity.datname=current_database()
+               AND activity.wait_event_type='Lock'
+           )
+           SELECT (count(*) - 1)::text AS count FROM blocked`,
+      blockerPid === null ? [] : [blockerPid],
     );
-    if (Number(result.rows[0]?.count ?? 0) >= expected) return;
+    if (
+      Number(result.rows[0]?.count ?? 0) >= expected &&
+      performance.now() <= deadline
+    )
+      return;
+    await pause(Math.min(20, Math.max(1, deadline - performance.now())));
   }
-  throw new Error(`Timed out waiting for ${expected} blocked transactions.`);
+  throw new Error(
+    "Timed out waiting for " +
+      expected +
+      " blocked transactions" +
+      (blockerPid === null ? "." : " behind PID " + blockerPid + "."),
+  );
 }
 
 export async function releaseLocationRaceBarrier(client: Client) {
