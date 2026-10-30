@@ -8,6 +8,26 @@ beforeAll(() => fixture.start(), 120_000);
 afterAll(() => fixture.stop(), 60_000);
 
 describe("Staff push registration transport and authority", () => {
+  it("rejects missing and malformed bearer credentials without writes", async () => {
+    const body = fixture.requestBody();
+    const before = (await fixture.registrations()).rows;
+
+    const missing = await fixture.request("/v1/staff/push/registrations", {
+      body,
+      method: "PUT",
+    });
+    expect(missing.status).toBe(401);
+    expect((await fixture.registrations()).rows).toEqual(before);
+
+    const malformed = await fixture.request("/v1/staff/push/registrations", {
+      authorization: "Bearer malformed",
+      body,
+      method: "PUT",
+    });
+    expect(malformed.status).toBe(401);
+    expect((await fixture.registrations()).rows).toEqual(before);
+  });
+
   it("creates one safe ACTIVE registration for the exact bearer session", async () => {
     const auth = await fixture.login();
     const body = fixture.requestBody();
@@ -43,22 +63,6 @@ describe("Staff push registration transport and authority", () => {
     expect(rows.rows[0]!.token_hash).toMatch(
       /^staff-push-token-sha256:v1:[0-9a-f]{64}$/,
     );
-  });
-
-  it("rejects missing and malformed bearer credentials without writes", async () => {
-    const body = fixture.requestBody();
-    const missing = await fixture.request("/v1/staff/push/registrations", {
-      body,
-      method: "PUT",
-    });
-    const malformed = await fixture.request("/v1/staff/push/registrations", {
-      authorization: "Bearer malformed",
-      body,
-      method: "PUT",
-    });
-    expect(missing.status).toBe(401);
-    expect(malformed.status).toBe(401);
-    expect((await fixture.registrations()).rows).toHaveLength(1);
   });
 
   it.each([
