@@ -1,18 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import type { TaskQueueResponse } from "@valet/contracts";
+import type { StaffTaskQueueItem, TaskQueueResponse } from "@valet/contracts";
 
 import { useTaskQueue, type UseTaskQueueResult } from "./use-task-queue";
+import { TaskQueueController } from "./task-queue-controller";
+import { selectEffectiveTaskQueueItems } from "./task-queue-selectors";
 import { StaffAuthClient } from "../../lib/auth/staff-auth-client";
 import { StaffAuthProvider } from "../../lib/auth/staff-auth-context";
 import { EmployeeApiError } from "../../lib/api/employee-api-errors";
-import type {
-  EmployeeApiClient,
-  EmployeeRequestOptions,
-} from "../../lib/api/employee-api-client";
+import type { EmployeeApiClient } from "../../lib/api/employee-api-client";
 
-describe("Task Queue Scoping & Hard-Stop Invariants", () => {
+describe("Task Queue SSR Gating & Controller Scope Denial", () => {
   const createAuthClient = (authenticated = true) => {
     const client = new StaffAuthClient();
     if (authenticated) {
@@ -51,7 +50,7 @@ describe("Task Queue Scoping & Hard-Stop Invariants", () => {
     expect((capturedResult as unknown as UseTaskQueueResult).tasks).toEqual([]);
   });
 
-  it("synchronously clears tasks when locationId is null", () => {
+  it("renders an empty initial queue on SSR when locationId is null", () => {
     const authClient = createAuthClient(true);
     let capturedResult: UseTaskQueueResult | null = null;
 
@@ -72,47 +71,90 @@ describe("Task Queue Scoping & Hard-Stop Invariants", () => {
     expect((capturedResult as unknown as UseTaskQueueResult).tasks).toEqual([]);
   });
 
-  it("tracks hard stop accurately per locationId without leaking", () => {
-    const authClient = createAuthClient(true);
+  it("hides previously loaded scoped tasks and hard-stops after a 403", async () => {
     const onAuthLoss = vi.fn();
-
+    const protectedTask: StaffTaskQueueItem = {
+      taskId: "11111111-1111-4111-8111-111111111111",
+      sessionId: "22222222-2222-4222-8222-222222222222",
+      taskType: "PARKING",
+      status: "QUEUED",
+      currentAssigneeMembershipId: null,
+      valetSessionState: "AWAITING_PARKING",
+      valetSessionVersion: 2,
+      version: 1,
+      createdAt: "2026-08-21T18:00:00.000Z",
+      parkingZone: "Zone A",
+      parkingSpot: null,
+      retrievalRequestedAt: null,
+      vehicle: {
+        make: "Toyota",
+        model: "Camry",
+        color: "White",
+        plateNumberRaw: "12-34567",
+        temporaryDescriptor: null,
+      },
+    };
     const mockApiClient = {
       request: vi
         .fn()
-        .mockImplementation(
-          (_path: string, options?: EmployeeRequestOptions) => {
-            const loc = options?.params?.["locationId"];
-            if (loc === "loc-forbidden") {
-              return Promise.reject(
-                new EmployeeApiError({
-                  status: 403,
-                  code: "FORBIDDEN",
-                  message: "Forbidden location",
-                }),
-              );
-            }
-            return Promise.resolve({ tasks: [] } as TaskQueueResponse);
-          },
+        .mockResolvedValueOnce({
+          tasks: [protectedTask],
+        } satisfies TaskQueueResponse)
+        .mockRejectedValueOnce(
+          new EmployeeApiError({
+            status: 403,
+            code: "FORBIDDEN",
+            message: "Forbidden location",
+          }),
         ),
     } as unknown as EmployeeApiClient;
+    const controller = new TaskQueueController({
+      apiClient: mockApiClient,
+      pollingIntervalMs: 30000,
+      onAuthorizationLoss: onAuthLoss,
+    });
+    try {
+      controller.setScope("authenticated", 1, "loc-forbidden");
+      await vi.waitFor(() =>
+        expect(controller.getState().tasks).toHaveLength(1),
+      );
+      await Promise.resolve();
+      expect(
+        selectEffectiveTaskQueueItems(
+          "authenticated",
+          1,
+          "loc-forbidden",
+          controller.getState(),
+        ),
+      ).toEqual([protectedTask]);
 
-    let capturedResult: UseTaskQueueResult | null = null;
+      await controller.executePoll(false, 1, "loc-forbidden");
+      expect(controller.getState().tasks).toEqual([]);
+      expect(controller.getState().isHardStopped).toBe(true);
+      expect(
+        selectEffectiveTaskQueueItems(
+          "authenticated",
+          1,
+          "loc-forbidden",
+          controller.getState(),
+        ),
+      ).toEqual([]);
+      expect(onAuthLoss).toHaveBeenCalledTimes(1);
 
-    function Harness({ loc }: { loc: string | null }) {
-      capturedResult = useTaskQueue({
-        locationId: loc,
-        client: mockApiClient,
-        onAuthorizationLoss: onAuthLoss,
-      });
-      return <div>{capturedResult.tasks.length}</div>;
+      controller.handleVisibilityChange(true);
+      controller.handleOnline();
+      await controller.executePoll(false, 1, "loc-forbidden");
+      expect(mockApiClient.request).toHaveBeenCalledTimes(2);
+      expect(mockApiClient.request).toHaveBeenNthCalledWith(
+        2,
+        "/v1/staff/tasks/queue",
+        expect.objectContaining({
+          params: { locationId: "loc-forbidden" },
+          requireAuth: true,
+        }),
+      );
+    } finally {
+      controller.destroy();
     }
-
-    renderToStaticMarkup(
-      <StaffAuthProvider client={authClient}>
-        <Harness loc="loc-forbidden" />
-      </StaffAuthProvider>,
-    );
-
-    expect(capturedResult as UseTaskQueueResult | null).not.toBeNull();
   });
 });
