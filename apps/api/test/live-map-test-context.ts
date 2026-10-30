@@ -173,7 +173,11 @@ export class LiveMapTestContext extends RouteHistoryTestContext {
     return areaId;
   }
 
-  async addParkingWork(fixture: TrackingFixture, startedAt: Date) {
+  async addParkingWork(
+    fixture: TrackingFixture,
+    startedAt: Date,
+    trackerAssigneeMembershipId: string | null = fixture.membershipId,
+  ) {
     const vehicleId = randomUUID();
     const sessionId = randomUUID();
     const taskId = randomUUID();
@@ -216,14 +220,16 @@ export class LiveMapTestContext extends RouteHistoryTestContext {
     );
     await this.adminPool.query(
       `INSERT INTO task_tracking_sessions
-         (id, organization_id, location_id, valet_session_id, task_id, started_at)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
+         (id, organization_id, location_id, valet_session_id, task_id,
+          assignee_membership_id, started_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       [
         trackingSessionId,
         fixture.organizationId,
         fixture.locationId,
         sessionId,
         taskId,
+        trackerAssigneeMembershipId,
         startedAt,
       ],
     );
