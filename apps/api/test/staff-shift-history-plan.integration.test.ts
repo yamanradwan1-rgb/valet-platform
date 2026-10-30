@@ -1,14 +1,23 @@
 import { afterAll, beforeAll, expect, it } from "vitest";
-import { writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import { staffShiftHistoryQuerySchema } from "@valet/contracts";
 import { ManagementControlPlaneTestFixture } from "./management-control-plane-test-fixture";
 import { staffShiftHistorySql } from "../src/modules/management/staff-shift-history-query";
+const historicalPlanPath = resolve(
+  __dirname,
+  "../../../docs/validation/issue240e-query-plans.json",
+);
+const generatedPlanPath = resolve(
+  __dirname,
+  "../../../tmp/issue397-shift-history-query-plans.json",
+);
 const fixture = new ManagementControlPlaneTestFixture();
 beforeAll(() => fixture.start(), 120_000);
 afterAll(() => fixture.stop(), 60_000);
 
 it("measures final history SQL at 40,000 ended rows across two tenants", async () => {
+  const historicalPlanBytes = readFileSync(historicalPlanPath);
   const own = await fixture.createOrganization(),
     foreign = await fixture.createOrganization();
   const a = await fixture.addLocation(own),
@@ -91,18 +100,28 @@ it("measures final history SQL at 40,000 ended rows across two tenants", async (
     measurements.push({ scenario, executionMs: plan["Execution Time"], nodes });
     expect(plan.Plan["Actual Rows"]).toBe(51);
   }
+  const migrationRows = await fixture.query<{ applied: number }>(
+    `SELECT count(*)::int AS applied FROM public._prisma_migrations
+     WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`,
+  );
+  const migrationsThrough = migrationRows.rows[0]!.applied;
+  expect(migrationsThrough).toBeGreaterThan(0);
+  expect(generatedPlanPath).not.toBe(historicalPlanPath);
+  expect(readFileSync(historicalPlanPath)).toEqual(historicalPlanBytes);
+  mkdirSync(dirname(generatedPlanPath), { recursive: true });
   writeFileSync(
-    join(process.cwd(), "../../docs/validation/issue240e-query-plans.json"),
+    generatedPlanPath,
     JSON.stringify(
       {
         endedRows: 40000,
         tenantRows: 20000,
         membersPerTenant: 200,
-        migrationsThrough: 96,
+        migrationsThrough,
         measurements,
       },
       null,
       2,
     ),
   );
+  expect(readFileSync(historicalPlanPath)).toEqual(historicalPlanBytes);
 }, 120_000);
