@@ -17,17 +17,31 @@ afterAll(async () => {
 }, 60_000);
 
 describe("VUI-003A2 staff task queue ordering, lifecycle & mutations", () => {
-  it("enforces deterministic queue ordering by created_at ascending then id", async () => {
+  it("orders equal created_at tasks by id regardless of insertion order", async () => {
     const actor = await harness.fixtureWithToken("VALET_SUPERVISOR");
 
-    const t1 = new Date("2026-08-20T08:00:00.000Z");
-    const t2 = new Date("2026-08-20T08:30:00.000Z");
-    const t3 = new Date("2026-08-20T09:00:00.000Z");
+    const earlier = new Date("2026-08-20T08:00:00.000Z");
+    const tied = new Date("2026-08-20T08:30:00.000Z");
+    const sortedIds = [
+      randomUUID(),
+      randomUUID(),
+      randomUUID(),
+      randomUUID(),
+    ].sort();
+    const inserted = [
+      { id: sortedIds[3]!, createdAt: tied },
+      { id: sortedIds[2]!, createdAt: tied },
+      { id: sortedIds[1]!, createdAt: earlier },
+      { id: sortedIds[0]!, createdAt: tied },
+    ];
+    const expectedIds = [
+      sortedIds[1],
+      sortedIds[0],
+      sortedIds[2],
+      sortedIds[3],
+    ];
 
-    const ids = [randomUUID(), randomUUID(), randomUUID()].sort();
-    const timestamps = [t1, t2, t3];
-
-    for (let i = 0; i < 3; i++) {
+    for (const [i, task] of inserted.entries()) {
       const vId = randomUUID();
       const sId = randomUUID();
       await harness.context.adminPool.query(
@@ -56,26 +70,28 @@ describe("VUI-003A2 staff task queue ordering, lifecycle & mutations", () => {
            (id, organization_id, location_id, valet_session_id, task_type, status, version, created_at, updated_at)
          VALUES ($1, $2, $3, $4, 'PARKING', 'QUEUED', 1, $5, $5)`,
         [
-          ids[i],
+          task.id,
           actor.fixture.organizationId,
           actor.fixture.locationId,
           sId,
-          timestamps[i],
+          task.createdAt,
         ],
       );
     }
 
-    const res = await harness.request(
-      "GET",
-      `/v1/staff/tasks/queue?locationId=${actor.fixture.locationId}`,
-      { token: actor.token },
-    );
-    expect(res.status).toBe(200);
-    const tasks = res.body.tasks as Array<{ taskId: string }>;
-    const matchedTaskIds = tasks
-      .map((t) => t.taskId)
-      .filter((id) => (ids as string[]).includes(id));
-    expect(matchedTaskIds).toEqual(ids);
+    for (let read = 0; read < 2; read++) {
+      const res = await harness.request(
+        "GET",
+        `/v1/staff/tasks/queue?locationId=${actor.fixture.locationId}`,
+        { token: actor.token },
+      );
+      expect(res.status).toBe(200);
+      const tasks = res.body.tasks as Array<{ taskId: string }>;
+      const matchedTaskIds = tasks
+        .map((task) => task.taskId)
+        .filter((id) => inserted.some((task) => task.id === id));
+      expect(matchedTaskIds).toEqual(expectedIds);
+    }
   });
 
   it("excludes COMPLETED and CANCELLED terminal tasks from queue projection", async () => {
