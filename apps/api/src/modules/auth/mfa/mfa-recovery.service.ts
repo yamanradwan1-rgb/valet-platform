@@ -111,6 +111,7 @@ export class MfaRecoveryService {
             factorId: pendingFactorId,
             userId: session.user_id,
           }),
+          sessionId: session.id,
           userId: session.user_id,
         });
         await appendAccountSecurityAuditEvent(transaction, {

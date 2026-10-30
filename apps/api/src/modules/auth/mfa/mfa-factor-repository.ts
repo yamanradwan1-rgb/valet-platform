@@ -7,6 +7,7 @@ export interface MfaFactorRow {
   readonly created_at: Date;
   readonly id: string;
   readonly last_accepted_step: string | number | bigint | null;
+  readonly pending_enrollment_session_id: string | null;
   readonly protected_secret: string;
   readonly recovery_set_generation: number;
   readonly retired_at: Date | null;
@@ -19,7 +20,7 @@ export async function lockCurrentFactor(
   userId: string,
 ): Promise<MfaFactorRow | undefined> {
   const result = await transaction.query<MfaFactorRow>(
-    `SELECT id, user_id, state, protected_secret, last_accepted_step,
+    `SELECT id, user_id, state, protected_secret, pending_enrollment_session_id, last_accepted_step,
             recovery_set_generation, created_at, activated_at, retired_at
      FROM user_mfa_totp_factors
      WHERE user_id = $1 AND state IN ('PENDING', 'ACTIVE')
@@ -38,7 +39,7 @@ export async function lockFactorById(
   factorId: string,
 ): Promise<MfaFactorRow | undefined> {
   const result = await transaction.query<MfaFactorRow>(
-    `SELECT id, user_id, state, protected_secret, last_accepted_step,
+    `SELECT id, user_id, state, protected_secret, pending_enrollment_session_id, last_accepted_step,
             recovery_set_generation, created_at, activated_at, retired_at
      FROM user_mfa_totp_factors
      WHERE user_id = $1 AND id = $2
@@ -53,16 +54,17 @@ export async function insertPendingFactor(
   input: {
     readonly id: string;
     readonly protectedSecret: string;
+    readonly sessionId: string;
     readonly userId: string;
   },
 ): Promise<MfaFactorRow> {
   const result = await transaction.query<MfaFactorRow>(
     `INSERT INTO user_mfa_totp_factors
-       (id, user_id, state, protected_secret)
-     VALUES ($1, $2, 'PENDING', $3)
-     RETURNING id, user_id, state, protected_secret, last_accepted_step,
+       (id, user_id, state, protected_secret, pending_enrollment_session_id)
+     VALUES ($1, $2, 'PENDING', $3, $4)
+     RETURNING id, user_id, state, protected_secret, pending_enrollment_session_id, last_accepted_step,
                recovery_set_generation, created_at, activated_at, retired_at`,
-    [input.id, input.userId, input.protectedSecret],
+    [input.id, input.userId, input.protectedSecret, input.sessionId],
   );
   const row = result.rows[0];
   if (row === undefined) throw new Error("MFA pending factor was not created.");

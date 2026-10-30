@@ -813,7 +813,9 @@ model StaffAuthSession {
   mfaFactor          UserMfaTotpFactor?       @relation(fields: [userId, mfaFactorId], references: [userId, id], onDelete: Restrict, onUpdate: Restrict, map: "staff_auth_sessions_user_mfa_factor_id_fkey")
   refreshCredentials StaffRefreshCredential[]
   pushRegistrations  StaffPushRegistration[]
+  pendingMfaFactors  UserMfaTotpFactor[]      @relation("PendingMfaSessionOwner")
 
+  @@unique([userId, id], map: "staff_auth_sessions_user_id_id_key")
   @@index([userId, revokedAt, absoluteExpiresAt], map: "staff_auth_sessions_user_id_status_idx")
   @@map("staff_auth_sessions")
 }
@@ -823,6 +825,7 @@ model UserMfaTotpFactor {
   userId                String             @map("user_id") @db.Uuid
   state                 MfaTotpFactorState @default(PENDING)
   protectedSecret       String             @map("protected_secret")
+  pendingEnrollmentSessionId String?        @map("pending_enrollment_session_id") @db.Uuid
   lastAcceptedStep      BigInt?            @map("last_accepted_step")
   recoverySetGeneration Int                @default(0) @map("recovery_set_generation")
   createdAt             DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -831,6 +834,7 @@ model UserMfaTotpFactor {
 
   user          User               @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "user_mfa_totp_factors_user_id_fkey")
   sessions      StaffAuthSession[]
+  pendingEnrollmentSession StaffAuthSession? @relation("PendingMfaSessionOwner", fields: [userId, pendingEnrollmentSessionId], references: [userId, id], onDelete: Restrict, onUpdate: Restrict, map: "user_mfa_totp_factors_pending_session_owner_fkey")
   recoveryCodes MfaRecoveryCode[]
 
   @@unique([userId, id], map: "user_mfa_totp_factors_user_id_id_key")

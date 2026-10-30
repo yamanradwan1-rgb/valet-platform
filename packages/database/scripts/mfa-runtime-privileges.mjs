@@ -23,6 +23,7 @@ export const mfaFactorInsertColumns = [
   "user_id",
   "state",
   "protected_secret",
+  "pending_enrollment_session_id",
 ];
 export const mfaFactorUpdateColumns = [
   "state",

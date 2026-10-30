@@ -67,6 +67,9 @@ export class MfaEnrollmentService {
       if (current?.state === "ACTIVE")
         throw new MfaEnrollmentNotAvailableError();
       if (current?.state === "PENDING") {
+        if (current.pending_enrollment_session_id !== session.id) {
+          throw new MfaEnrollmentNotAvailableError();
+        }
         return this.provisioning(
           current.id,
           unprotectTotpSecret(current.protected_secret, {
@@ -84,6 +87,7 @@ export class MfaEnrollmentService {
       await insertPendingFactor(transaction, {
         id: factorId,
         protectedSecret,
+        sessionId: session.id,
         userId: session.user_id,
       });
       return this.provisioning(factorId, secret);
@@ -106,7 +110,10 @@ export class MfaEnrollmentService {
           session.user_id,
           input.factorId,
         );
-        if (factor?.state !== "PENDING") {
+        if (
+          factor?.state !== "PENDING" ||
+          factor.pending_enrollment_session_id !== session.id
+        ) {
           throw new MfaEnrollmentNotAvailableError();
         }
         const secret = unprotectTotpSecret(factor.protected_secret, {
@@ -129,8 +136,15 @@ export class MfaEnrollmentService {
           `UPDATE user_mfa_totp_factors
            SET state = 'ACTIVE', activated_at = $2::timestamptz,
                last_accepted_step = $3, recovery_set_generation = $4
-           WHERE id = $1 AND state = 'PENDING'`,
-          [factor.id, session.now, acceptedStep, recoverySetGeneration],
+           WHERE id = $1 AND state = 'PENDING'
+             AND pending_enrollment_session_id = $5`,
+          [
+            factor.id,
+            session.now,
+            acceptedStep,
+            recoverySetGeneration,
+            session.id,
+          ],
         );
         if (activated.rowCount !== 1)
           throw new MfaEnrollmentNotAvailableError();

@@ -636,6 +636,8 @@ Constraints/rules:
 - access expiry is at most 15 minutes and never exceeds the fixed absolute expiry
 - absolute expiry is exactly 30 days from database-authoritative session creation and never slides
 - revocation retains the session and its refresh lineage
+- `(user_id, id)` is unique so pending MFA ceremony ownership can reference
+  the initiating StaffAuthSession of the same User
 - MFA assurance fields are all-null or all-present; `mfa_factor_id` is a
   restrictive same-User reference to `user_mfa_totp_factors`
 - assurance is valid only while that exact factor remains the User's current
@@ -651,6 +653,7 @@ id
 user_id
 state
 protected_secret
+pending_enrollment_session_id nullable
 last_accepted_step nullable
 recovery_set_generation
 created_at
@@ -668,6 +671,16 @@ Rules:
 
 - restrictive User foreign key and at most one live (`PENDING` or `ACTIVE`)
   factor per User
+- new pending factors bind `pending_enrollment_session_id` to the exact
+  initiating StaffAuthSession, enforced by a same-User composite foreign key;
+  the binding is immutable across activation and retirement. Access-token
+  rotation preserves that session identity, whereas another session of the same
+  User cannot resume, confirm, or receive the pending provisioning seed
+- the forward migration retains historic pending rows with a null binding to
+  avoid guessing who initiated them. They fail closed for enrollment and can
+  only be retired through the existing verified VAYLET operator MFA recovery
+  path. A `NOT VALID` check requires ownership on every new pending row without
+  rejecting those historic rows during rollout
 - TOTP is SHA-1, six digits, 30-second period, accepted only within ±1 period;
   each generated secret is 20 random bytes encoded as 32 uppercase Base32
   characters; provisioning identifies the issuer as `VAYLET`
