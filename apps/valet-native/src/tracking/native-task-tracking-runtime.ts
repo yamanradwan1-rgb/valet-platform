@@ -10,17 +10,13 @@ import {
 import { nativeIdentityState } from "../auth/identity-state-boundary";
 import { createNativeEmployeeClient } from "../tasks/native-operational-http";
 import { NativeTaskGpsPublisher } from "./native-task-gps-publisher";
+import { NativeTaskTrackingFences } from "./native-task-tracking-fences";
 import type { NativeTaskLocationPort } from "./native-task-location-adapter";
 import {
   nativeTaskTrackingBinding,
   type NativeTaskTrackingBinding,
   type NativeTaskTrackingStatus,
 } from "./native-task-tracking-types";
-
-interface PauseFence {
-  readonly key: string;
-  readonly snapshotCount: number;
-}
 
 export interface NativeTaskTrackingRuntimeOptions {
   readonly auth: Pick<NativeAuthSession, "current" | "subscribe">;
@@ -35,15 +31,18 @@ export interface NativeTaskTrackingRuntimeOptions {
 }
 
 export class NativeTaskTrackingRuntime {
-  private completionFence: PauseFence | undefined;
   private disposed = false;
+  private readonly fences: NativeTaskTrackingFences;
   private foreground = false;
-  private networkFence: PauseFence | undefined;
   private online = true;
   private readonly publisher: NativeTaskGpsPublisher;
   private readonly unsubscribers: Array<() => void> = [];
 
   constructor(private readonly options: NativeTaskTrackingRuntimeOptions) {
+    let lastAuthGeneration = options.auth.current().authGeneration;
+    this.fences = new NativeTaskTrackingFences(
+      () => options.operations.current().successfulQueueSnapshotCount,
+    );
     this.publisher = new NativeTaskGpsPublisher({
       createId: options.createId,
       isAuthorized: (binding) => this.authorityMatches(binding),
@@ -52,12 +51,23 @@ export class NativeTaskTrackingRuntime {
       onDefinitiveFailure: () => {
         void this.options.operations.refreshQueue();
       },
-      onUnknown: (binding) => this.pauseFence(binding),
+      onUnknown: (binding) => this.fences.pauseNetwork(binding.key),
       transport: options.transport,
     });
     this.unsubscribers.push(
       options.operations.subscribe(() => this.reconcile()),
-      options.auth.subscribe(() => this.reconcile()),
+      options.auth.subscribe(() => {
+        const auth = options.auth.current();
+        if (
+          auth.authGeneration !== lastAuthGeneration ||
+          auth.phase === "unauthenticated" ||
+          auth.phase === "fatal"
+        ) {
+          this.fences.clear();
+        }
+        lastAuthGeneration = auth.authGeneration;
+        this.reconcile();
+      }),
       nativeIdentityState.register(() => this.retire()),
     );
   }
@@ -82,10 +92,17 @@ export class NativeTaskTrackingRuntime {
         confirmPhase = snapshot.phase;
         if (snapshot.phase === "submitting" && previous !== "submitting") {
           this.suspendForCompletion();
-        } else if (previous === "submitting" && snapshot.phase !== "submitting") {
+        }
+        if (snapshot.phase === "parked" && previous !== "parked") {
+          this.finishMovement();
+          if (previous === "submitting")
+            void this.options.operations.refreshQueue(true);
+        } else if (
+          previous === "submitting" &&
+          snapshot.phase !== "submitting"
+        ) {
           void this.options.operations.refreshQueue();
         }
-        if (snapshot.phase === "parked") this.retire();
       }),
       retrieval.subscribe((snapshot) => {
         const previous = retrievalPhase;
@@ -95,6 +112,15 @@ export class NativeTaskTrackingRuntime {
           previous !== "submitting-ready"
         ) {
           this.suspendForCompletion();
+        }
+        if (snapshot.phase === "ready" && previous !== "ready") {
+          this.finishMovement();
+          if (
+            previous === "submitting-ready" ||
+            previous === "submitting-start"
+          ) {
+            void this.options.operations.refreshQueue(true);
+          }
         } else if (
           previous === "submitting-ready" &&
           snapshot.phase !== "submitting-ready"
@@ -106,7 +132,6 @@ export class NativeTaskTrackingRuntime {
         ) {
           void this.options.operations.refreshQueue();
         }
-        if (snapshot.phase === "ready") this.retire();
       }),
     );
   }
@@ -114,7 +139,7 @@ export class NativeTaskTrackingRuntime {
   setForeground(foreground: boolean): void {
     if (this.disposed || this.foreground === foreground) return;
     this.foreground = foreground;
-    if (!foreground) this.retire();
+    if (!foreground) this.retire(true);
     else this.reconcile();
   }
 
@@ -127,7 +152,7 @@ export class NativeTaskTrackingRuntime {
 
   retry(): void {
     if (this.disposed || !this.foreground || !this.online) return;
-    if (this.networkFence !== undefined || this.completionFence !== undefined) {
+    if (this.fences.hasPending()) {
       void this.options.operations.refreshQueue();
       return;
     }
@@ -178,8 +203,8 @@ export class NativeTaskTrackingRuntime {
     }
     const projection = snapshot.taskTracking;
     const candidate = nativeTaskTrackingBinding(snapshot);
-    if (!this.resolveFence("network", candidate)) return;
-    if (!this.resolveFence("completion", candidate)) return;
+    if (!this.fences.release("network", candidate?.key)) return;
+    if (!this.fences.release("completion", candidate?.key)) return;
     if (projection?.status === "AMBIGUOUS") {
       this.publisher.retire({ kind: "ambiguous" });
       return;
@@ -191,25 +216,6 @@ export class NativeTaskTrackingRuntime {
     this.publisher.start(candidate, requestPermission);
   }
 
-  private resolveFence(
-    kind: "network" | "completion",
-    candidate: NativeTaskTrackingBinding | null,
-  ): boolean {
-    const fence = kind === "network" ? this.networkFence : this.completionFence;
-    if (fence === undefined) return true;
-    const snapshot = this.options.operations.current();
-    if (snapshot.successfulQueueSnapshotCount <= fence.snapshotCount) return false;
-    if (kind === "network") this.networkFence = undefined;
-    else this.completionFence = undefined;
-    if (candidate !== null && candidate.key === fence.key) return true;
-    this.publisher.retire(
-      snapshot.taskTracking?.status === "AMBIGUOUS"
-        ? { kind: "ambiguous" }
-        : { kind: "idle" },
-    );
-    return false;
-  }
-
   private authorityMatches(binding: NativeTaskTrackingBinding): boolean {
     const auth = this.options.auth.current();
     return (
@@ -218,45 +224,29 @@ export class NativeTaskTrackingRuntime {
       this.online &&
       auth.phase === "authenticated" &&
       auth.authGeneration === binding.identityGeneration &&
-      nativeTaskTrackingBinding(this.options.operations.current())?.key === binding.key
+      nativeTaskTrackingBinding(this.options.operations.current())?.key ===
+        binding.key
     );
   }
 
-  private pauseFence(binding: NativeTaskTrackingBinding): void {
-    if (this.networkFence !== undefined) return;
-    this.networkFence = {
-      key: binding.key,
-      snapshotCount:
-        this.options.operations.current().successfulQueueSnapshotCount,
-    };
-  }
-
   private pauseForNetwork(status: NativeTaskTrackingStatus): void {
-    const key = this.publisher.currentBindingKey();
-    if (key !== undefined && this.networkFence === undefined) {
-      this.networkFence = {
-        key,
-        snapshotCount:
-          this.options.operations.current().successfulQueueSnapshotCount,
-      };
-    }
+    this.fences.pauseNetwork(this.publisher.currentBindingKey());
     this.publisher.pause(status);
   }
 
   private suspendForCompletion(): void {
-    const key = this.publisher.currentBindingKey();
-    if (key === undefined) return;
-    this.completionFence = {
-      key,
-      snapshotCount:
-        this.options.operations.current().successfulQueueSnapshotCount,
-    };
+    if (!this.fences.suspendCompletion(this.publisher.currentBindingKey()))
+      return;
     this.publisher.retire({ kind: "checking" });
   }
 
-  private retire(): void {
-    this.networkFence = undefined;
-    this.completionFence = undefined;
+  private finishMovement(): void {
+    this.fences.finishMovement(this.publisher.currentBindingKey());
+    this.publisher.retire({ kind: "idle" });
+  }
+
+  private retire(preserveForBackground = false): void {
+    this.fences.clear(preserveForBackground);
     this.publisher.retire({ kind: "idle" });
   }
 }
