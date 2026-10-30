@@ -151,9 +151,10 @@ export class IncidentRecoveryState {
     return result;
   }
 
-  clearResolved(): Promise<void> {
+  clearResolved(expected?: IncidentRecoveryMarker): Promise<void> {
+    const marker = expected === undefined ? undefined : { ...expected };
     return this.serializeStorage(() =>
-      deleteAndConfirmIncidentRecoveryMarker(this.store),
+      deleteAndConfirmIncidentRecoveryMarker(this.store, marker),
     );
   }
 

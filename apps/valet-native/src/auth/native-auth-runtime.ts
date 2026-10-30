@@ -35,12 +35,15 @@ import {
 } from "../tasks/native-operational-http";
 import { createNativeShiftRuntime } from "../shift/native-shift-runtime";
 import { NativeIncidentSession } from "../incident/native-incident-session";
+import { createNativeIncidentContextObserver } from "../incident/native-incident-context-observer";
 import { ExpoIncidentRecoveryStore } from "../incident/native-incident-recovery-store";
 import { createNativeIncidentRecoveryState } from "../incident/native-incident-recovery-runtime";
-import { resolveNativeIncidentRecoveryContext } from "../incident/native-incident-recovery-context";
 import { NativeGuestAccessSession } from "../guest-access/native-guest-access-session";
 import { ExpoNativeConnectivityAdapter } from "../shell/expo-native-connectivity-adapter";
-import { createNativeTaskTrackingRuntime, type NativeTaskTrackingRuntime } from "../tracking/native-task-tracking-runtime";
+import {
+  createNativeTaskTrackingRuntime,
+  type NativeTaskTrackingRuntime,
+} from "../tracking/native-task-tracking-runtime";
 export interface NativeEmployeeRuntime {
   readonly apiOrigin: string;
   readonly auth: NativeAuthSession;
@@ -91,9 +94,8 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
   );
   const incident = new NativeIncidentSession(
     () => createNativeEmployeeClient(apiOrigin, auth),
-    createNativeIncidentRecoveryState(
-      incidentStore,
-      () => createNativeEmployeeClient(apiOrigin, auth),
+    createNativeIncidentRecoveryState(incidentStore, () =>
+      createNativeEmployeeClient(apiOrigin, auth),
     ),
     () => operations.refresh(),
   );
@@ -101,24 +103,16 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     end?: EmployeeShiftEndSession;
     start?: EmployeeShiftStartSession;
   } = {};
+  const incidentContext = createNativeIncidentContextObserver(
+    incident,
+    auth,
+    incidentStore,
+    installationStore,
+  );
   const operations = new EmployeeOperationalSession({
     initialForeground: false,
     onOperationalContext: (identityGeneration, response) => {
-      void resolveNativeIncidentRecoveryContext(
-        response,
-        incidentStore,
-        installationStore,
-      )
-        .then(async (context) => {
-          if (auth.current().authGeneration !== identityGeneration) return;
-          if (context === "invalidated") {
-            await incident.purgeRecovery();
-            incident.fenceRecovery("recovery-invalidated");
-          } else if (context !== null)
-            await incident.observeRecoveryContext(context);
-          else await incident.purgeRecovery();
-        })
-        .catch(() => incident.fenceRecovery("recovery-unavailable"));
+      void incidentContext.observe(identityGeneration, response);
       shiftObserver.start?.observeOperationalContext(
         identityGeneration,
         response,
@@ -133,7 +127,11 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     },
     transport: createNativeOperationalTransport(apiOrigin, auth),
   });
-  const taskTracking = createNativeTaskTrackingRuntime(apiOrigin, auth, operations);
+  const taskTracking = createNativeTaskTrackingRuntime(
+    apiOrigin,
+    auth,
+    operations,
+  );
   const { shiftStart, shiftEnd, presence } = createNativeShiftRuntime(
     apiOrigin,
     auth,
@@ -236,6 +234,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
   );
   connectivity.start();
   const unregisterIdentityPurge = nativeIdentityState.register(async () => {
+    incidentContext.invalidate();
     operations.clear();
     confirmParking.clear();
     handoff.clear();
@@ -253,6 +252,7 @@ export function createNativeEmployeeRuntime(): NativeEmployeeRuntime {
     vehicleDirectory.clear();
   });
   const dispose = () => {
+    incidentContext.invalidate();
     unregisterIdentityPurge();
     taskTracking.dispose();
     connectivity.dispose();

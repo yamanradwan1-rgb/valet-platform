@@ -119,7 +119,7 @@ export async function applyNativeIncidentRecoveryResolution(
 ) {
   const definitive =
     resolution.outcome === "RETIRED" || resolution.outcome === "UNKNOWN";
-  if (definitive) await recovery.clearResolved();
+  if (definitive) await recovery.clearResolved(marker);
   const result = {
     marker: definitive ? null : marker,
     snapshot: toRecoverySnapshot(resolution, deadlineReached),

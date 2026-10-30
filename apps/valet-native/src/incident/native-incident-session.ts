@@ -12,7 +12,7 @@ import {
   createNativeLegacyIncidentId,
   submitLegacyIncident,
 } from "./native-incident-legacy-submit";
-import { loadNativeIncidentDetail } from "./native-incident-load";
+import { loadNativeIncidentSnapshot } from "./native-incident-load";
 import {
   recordNativeIncidentPreflight,
   submitNativeIncidentReport,
@@ -53,6 +53,11 @@ export class NativeIncidentSession {
     return this.snapshot;
   }
 
+  recoveryContextFence(): () => boolean {
+    const generation = this.generation;
+    return () => generation === this.generation;
+  }
+
   subscribe(listener: (snapshot: NativeIncidentSnapshot) => void): () => void {
     this.subscribers.add(listener);
     listener(this.snapshot);
@@ -66,6 +71,7 @@ export class NativeIncidentSession {
     if (this.recovery === undefined) return;
     const generation = ++this.generation;
     this.publish({ ...inactive, phase: "recovery-checking" });
+    if (generation !== this.generation) return;
     const restored = await this.recovery.restore(context);
     if (generation !== this.generation) return;
     const applied = await applyNativeIncidentRecoveryRestore(
@@ -73,6 +79,7 @@ export class NativeIncidentSession {
       restored,
       this.marker,
     );
+    if (generation !== this.generation) return;
     this.marker = applied.marker;
     this.publish(applied.snapshot);
   }
@@ -141,17 +148,21 @@ export class NativeIncidentSession {
     try {
       const validated = validateNativeIncidentInput(input);
       this.publish({ ...current, error: null, phase: "reserving" });
+      if (generation !== this.generation) return false;
       const marker = await this.recovery.prepare(
         this.context,
         current.detail.sessionId,
       );
-      this.marker = marker;
       if (generation !== this.generation) return false;
+      this.marker = marker;
       await this.recovery.reserve(marker);
       if (generation !== this.generation) return false;
       this.publish({ ...current, error: null, phase: "submitting" });
       const report = await submitNativeIncidentReport(
-        this.client(), current.detail.sessionId, marker.incidentId, validated,
+        this.client(),
+        current.detail.sessionId,
+        marker.incidentId,
+        validated,
       );
       if (generation !== this.generation) return false;
       this.publish({ ...current, error: null, phase: "success", report });
@@ -168,18 +179,19 @@ export class NativeIncidentSession {
     if (this.marker === null || this.recovery === undefined) return;
     const generation = ++this.generation;
     this.publish({ ...this.snapshot, phase: "recovery-checking" });
+    if (generation !== this.generation) return;
     try {
       const result = await this.recovery.retire(this.marker);
-      if (generation === this.generation) {
-        const applied = await applyNativeIncidentRecoveryResolution(
-          this.recovery,
-          this.marker,
-          result,
-          !!this.snapshot.deadlineReached,
-        );
-        this.marker = applied.marker;
-        this.publish(applied.snapshot);
-      }
+      if (generation !== this.generation) return;
+      const applied = await applyNativeIncidentRecoveryResolution(
+        this.recovery,
+        this.marker,
+        result,
+        !!this.snapshot.deadlineReached,
+      );
+      if (generation !== this.generation) return;
+      this.marker = applied.marker;
+      this.publish(applied.snapshot);
     } catch {
       if (generation === this.generation)
         this.publish({ ...this.snapshot, phase: "recovery-unavailable" });
@@ -187,23 +199,21 @@ export class NativeIncidentSession {
   }
 
   async acknowledge(): Promise<boolean> {
-    if (this.marker === null || this.recovery === undefined) {
-      this.publish(inactive);
-      return true;
-    }
+    const generation = ++this.generation;
     try {
-      await this.recovery.clearResolved();
+      if (this.marker !== null) await this.recovery?.clearResolved(this.marker);
+      if (generation !== this.generation) return false;
       this.marker = null;
       this.publish(inactive);
       return true;
     } catch {
-      this.publish({ ...this.snapshot, phase: "recovery-unavailable" });
+      if (generation === this.generation)
+        this.publish({ ...this.snapshot, phase: "recovery-unavailable" });
       return false;
     }
   }
 
   suspendForBackground(): void {
-    if (this.snapshot.target === null) return;
     const busy =
       this.snapshot.phase === "submitting" ||
       this.snapshot.phase === "reserving";
@@ -223,14 +233,16 @@ export class NativeIncidentSession {
   }
 
   async purgeRecovery(): Promise<void> {
-    this.generation += 1;
+    const generation = ++this.generation;
     this.context = null;
     try {
       await this.recovery?.purge();
+      if (generation !== this.generation) return;
       this.marker = null;
       this.publish(inactive);
     } catch (error) {
-      this.publish({ ...inactive, phase: "recovery-unavailable" });
+      if (generation === this.generation)
+        this.publish({ ...inactive, phase: "recovery-unavailable" });
       throw error;
     }
   }
@@ -273,20 +285,10 @@ export class NativeIncidentSession {
     generation: number,
     target: NativeContextualTarget,
   ): Promise<void> {
-    try {
-      const detail = await loadNativeIncidentDetail(
-        this.client(),
-        target.sessionId,
-      );
-      if (generation !== this.generation || this.snapshot.target !== target)
-        return;
-      if (["COMPLETED", "CANCELLED"].includes(detail.state))
-        throw new Error("terminal");
-      this.publish({ ...inactive, detail, phase: "form", target });
-    } catch {
-      if (generation === this.generation && this.snapshot.target === target)
-        this.publish({ ...inactive, phase: "context-error", target });
-    }
+    const snapshot = await loadNativeIncidentSnapshot(this.client, target);
+    if (generation !== this.generation || this.snapshot.target !== target)
+      return;
+    this.publish(snapshot);
   }
 
   private publish(snapshot: NativeIncidentSnapshot): void {

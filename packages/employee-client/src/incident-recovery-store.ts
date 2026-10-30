@@ -29,7 +29,9 @@ export async function writeAndConfirmIncidentRecoveryMarker(
     store.write(marker),
   );
   const readback = await observeIncidentPreflightAsync(
-    observer, "storage-readback", () => store.read(),
+    observer,
+    "storage-readback",
+    () => store.read(),
   );
   observeIncidentPreflight(observer, "marker-verify", () => {
     const confirmed = parseIncidentRecoveryMarker(readback);
@@ -48,7 +50,22 @@ export async function writeAndConfirmIncidentRecoveryMarker(
 
 export async function deleteAndConfirmIncidentRecoveryMarker(
   store: IncidentRecoveryStore,
+  expected?: IncidentRecoveryMarker,
 ): Promise<void> {
+  if (expected !== undefined) {
+    const raw = await store.read();
+    const current = parseIncidentRecoveryMarker(raw);
+    if (
+      raw !== null &&
+      (current === undefined ||
+        !Object.entries(expected).every(
+          ([key, value]) =>
+            current[key as keyof IncidentRecoveryMarker] === value,
+        ))
+    ) {
+      throw new Error("Incident recovery marker changed before cleanup.");
+    }
+  }
   await store.delete();
   if ((await store.read()) !== null) {
     throw new Error("Incident recovery marker deletion was not confirmed.");
