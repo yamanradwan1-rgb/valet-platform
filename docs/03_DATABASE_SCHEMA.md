@@ -636,8 +636,6 @@ Constraints/rules:
 - access expiry is at most 15 minutes and never exceeds the fixed absolute expiry
 - absolute expiry is exactly 30 days from database-authoritative session creation and never slides
 - revocation retains the session and its refresh lineage
-- `(user_id, id)` is unique so pending MFA ceremony ownership can reference
-  the initiating StaffAuthSession of the same User
 - MFA assurance fields are all-null or all-present; `mfa_factor_id` is a
   restrictive same-User reference to `user_mfa_totp_factors`
 - assurance is valid only while that exact factor remains the User's current
@@ -672,10 +670,13 @@ Rules:
 - restrictive User foreign key and at most one live (`PENDING` or `ACTIVE`)
   factor per User
 - new pending factors bind `pending_enrollment_session_id` to the exact
-  initiating StaffAuthSession, enforced by a same-User composite foreign key;
-  the binding is immutable across activation and retirement. Access-token
-  rotation preserves that session identity, whereas another session of the same
-  User cannot resume, confirm, or receive the pending provisioning seed
+  initiating StaffAuthSession. A database insertion guard locks and verifies that
+  the initiating session belongs to the same User. The binding is immutable
+  across activation and retirement, including when disposable local-dev staff
+  sessions are later removed while factor records are preserved. This historical
+  owner ID does not authorize new sessions: only the still-live initiating
+  session may resume, confirm, or receive a pending provisioning seed. Access
+  token rotation may preserve that exact session identity
 - the forward migration retains historic pending rows with a null binding to
   avoid guessing who initiated them. They fail closed for enrollment and can
   only be retired through the existing verified VAYLET operator MFA recovery

@@ -5,6 +5,7 @@ import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { expectedMigrationDirectories } from "./migration-manifest.js";
+import { insertMfaRuntimeFixtureSession } from "./mfa-fixture-support.js";
 
 interface PgError extends Error {
   code?: string;
@@ -21,6 +22,7 @@ let client: Client;
 const userId = randomUUID();
 const otherUserId = randomUUID();
 const sessionId = randomUUID();
+const otherSessionId = randomUUID();
 const protectedSecret = `mte1.${"A".repeat(16)}.${"B".repeat(43)}.${"C".repeat(22)}`;
 
 function scopedUrl(): string {
@@ -44,11 +46,15 @@ async function expectConstraint(
   }
 }
 
-async function insertFactor(user: string, id = randomUUID()): Promise<string> {
+async function insertFactor(
+  user: string,
+  id = randomUUID(),
+  owner = user === otherUserId ? otherSessionId : sessionId,
+): Promise<string> {
   await client.query(
-    `INSERT INTO user_mfa_totp_factors(id,user_id,protected_secret)
-     VALUES ($1,$2,$3)`,
-    [id, user, protectedSecret],
+    `INSERT INTO user_mfa_totp_factors(id,user_id,protected_secret,pending_enrollment_session_id)
+     VALUES ($1,$2,$3,$4)`,
+    [id, user, protectedSecret, owner],
   );
   return id;
 }
@@ -78,6 +84,15 @@ beforeAll(async () => {
       ),
     );
   }
+  await client.query(
+    await readFile(
+      new URL(
+        "20261030010600_issue363_session_bound_pending_mfa/migration.sql",
+        migrationRoot,
+      ),
+      "utf8",
+    ),
+  );
   for (const id of [userId, otherUserId]) {
     await client.query(
       `INSERT INTO users(id,email,password_hash,updated_at)
@@ -85,14 +100,12 @@ beforeAll(async () => {
       [id, `${id}@mfa-constraints.test`],
     );
   }
-  await client.query(
-    `INSERT INTO staff_auth_sessions
-       (id,user_id,current_access_token_hash,access_expires_at,
-        absolute_expires_at,created_at,last_rotated_at)
-     VALUES ($1,$2,$3,transaction_timestamp()+interval '15 minutes',
-             transaction_timestamp()+interval '30 days',
-             transaction_timestamp(),transaction_timestamp())`,
-    [sessionId, userId, `staff-access-sha256:v1:${"d".repeat(64)}`],
+  await insertMfaRuntimeFixtureSession(client, userId, sessionId, "d");
+  await insertMfaRuntimeFixtureSession(
+    client,
+    otherUserId,
+    otherSessionId,
+    "e",
   );
 }, 120_000);
 
@@ -105,6 +118,23 @@ afterAll(async () => {
 }, 60_000);
 
 describe("MGT-BE-02 MFA database invariants", () => {
+  it("rejects ownerless or cross-User pending factor creation", async () => {
+    await expectConstraint(
+      client.query(
+        `INSERT INTO user_mfa_totp_factors(id,user_id,protected_secret)
+         VALUES ($1,$2,$3)`,
+        [randomUUID(), userId, protectedSecret],
+      ),
+      "23514",
+      "user_mfa_totp_factors_pending_session_required_check",
+    );
+    await expectConstraint(
+      insertFactor(userId, randomUUID(), otherSessionId),
+      "23503",
+      "user_mfa_totp_factors_pending_session_owner_check",
+    );
+  });
+
   it("permits only one live factor per User and restrictive User ownership", async () => {
     const factorId = await insertFactor(userId);
     await expectConstraint(
@@ -126,9 +156,9 @@ describe("MGT-BE-02 MFA database invariants", () => {
   it("enforces protected-secret shape and factor state timestamps", async () => {
     await expectConstraint(
       client.query(
-        `INSERT INTO user_mfa_totp_factors(id,user_id,protected_secret)
-         VALUES ($1,$2,'raw-secret')`,
-        [randomUUID(), otherUserId],
+        `INSERT INTO user_mfa_totp_factors(id,user_id,protected_secret,pending_enrollment_session_id)
+         VALUES ($1,$2,'raw-secret',$3)`,
+        [randomUUID(), otherUserId, otherSessionId],
       ),
       "23514",
       "user_mfa_totp_factors_protected_secret_check",
@@ -151,7 +181,9 @@ describe("MGT-BE-02 MFA database invariants", () => {
        VALUES ($1,$2,'x',transaction_timestamp())`,
       [user, `${user}@mfa-replay.test`],
     );
-    const factorId = await insertFactor(user);
+    const replaySessionId = randomUUID();
+    await insertMfaRuntimeFixtureSession(client, user, replaySessionId, "f");
+    const factorId = await insertFactor(user, randomUUID(), replaySessionId);
     await activateFactor(factorId, 200);
     await expectConstraint(
       client.query(

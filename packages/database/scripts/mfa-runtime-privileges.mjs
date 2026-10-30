@@ -206,7 +206,11 @@ export async function provisionMfaPrivileges(
     "GRANT UPDATE (consumed_at) ON TABLE mfa_recovery_codes TO %I",
     [runtimeRole],
   );
-  for (const fn of ["mfa_totp_factor_guard()", "mfa_recovery_code_guard()"]) {
+  for (const fn of [
+    "mfa_totp_factor_guard()",
+    "mfa_recovery_code_guard()",
+    "mfa_pending_session_owner_guard()",
+  ]) {
     await client.query(`REVOKE ALL ON FUNCTION ${fn} FROM PUBLIC`);
     await executeFormatted(client, "REVOKE ALL ON FUNCTION %s FROM %I", [
       fn,

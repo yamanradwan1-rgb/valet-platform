@@ -4,6 +4,10 @@ import { fileURLToPath } from "node:url";
 
 import { Client, Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import {
+  expectMfaGuardFunctionsDenied,
+  insertMfaRuntimeFixtureSession,
+} from "./mfa-fixture-support.js";
 
 const adminUrl =
   process.env.TEST_DATABASE_URL ??
@@ -174,19 +178,11 @@ describe("MGT-BE-02 MFA runtime role", () => {
   it("supports the runtime MFA lifecycle without mutable secret material", async () => {
     const sessionId = randomUUID();
     const factorId = randomUUID();
+    await insertMfaRuntimeFixtureSession(runtime, userId, sessionId, "a");
     await runtime.query(
-      `INSERT INTO staff_auth_sessions
-         (id,user_id,current_access_token_hash,access_expires_at,
-          absolute_expires_at,created_at,last_rotated_at)
-       VALUES ($1,$2,$3,transaction_timestamp()+interval '15 minutes',
-               transaction_timestamp()+interval '30 days',
-               transaction_timestamp(),transaction_timestamp())`,
-      [sessionId, userId, `staff-access-sha256:v1:${"a".repeat(64)}`],
-    );
-    await runtime.query(
-      `INSERT INTO user_mfa_totp_factors(id,user_id,state,protected_secret)
-       VALUES ($1,$2,'PENDING',$3)`,
-      [factorId, userId, protectedSecret],
+      `INSERT INTO user_mfa_totp_factors(id,user_id,state,protected_secret,pending_enrollment_session_id)
+       VALUES ($1,$2,'PENDING',$3,$4)`,
+      [factorId, userId, protectedSecret, sessionId],
     );
     await expectDenied(
       runtime.query(
@@ -259,10 +255,17 @@ describe("MGT-BE-02 MFA runtime role", () => {
 
   it("enforces exact User-factor binding and keeps controlled recovery private", async () => {
     const factorId = randomUUID();
+    const ownerSessionId = randomUUID();
+    await insertMfaRuntimeFixtureSession(
+      runtime,
+      otherUserId,
+      ownerSessionId,
+      "f",
+    );
     await runtime.query(
-      `INSERT INTO user_mfa_totp_factors(id,user_id,state,protected_secret)
-       VALUES ($1,$2,'PENDING',$3)`,
-      [factorId, otherUserId, protectedSecret],
+      `INSERT INTO user_mfa_totp_factors(id,user_id,state,protected_secret,pending_enrollment_session_id)
+       VALUES ($1,$2,'PENDING',$3,$4)`,
+      [factorId, otherUserId, protectedSecret, ownerSessionId],
     );
     const session = await admin.query<{ created_at: Date; id: string }>(
       `SELECT id::text,created_at FROM staff_auth_sessions WHERE user_id=$1 LIMIT 1`,
@@ -289,12 +292,6 @@ describe("MGT-BE-02 MFA runtime role", () => {
         [randomUUID()],
       ),
     );
-    for (const fn of ["mfa_totp_factor_guard()", "mfa_recovery_code_guard()"]) {
-      const result = await admin.query<{ allowed: boolean }>(
-        `SELECT has_function_privilege($1,$2,'EXECUTE') AS allowed`,
-        [runtimeRole, `public.${fn}`],
-      );
-      expect(result.rows[0]?.allowed).toBe(false);
-    }
+    await expectMfaGuardFunctionsDenied(admin, runtimeRole);
   });
 });

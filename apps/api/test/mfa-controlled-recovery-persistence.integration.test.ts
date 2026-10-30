@@ -79,7 +79,10 @@ describe("controlled MFA recovery persistence", () => {
 
     await expect(
       executeControlledMfaRecovery(recovery, environment()),
-    ).resolves.toEqual({ operationId: recovery.operationId, userId: fixture.userId });
+    ).resolves.toEqual({
+      operationId: recovery.operationId,
+      userId: fixture.userId,
+    });
 
     const first = await snapshot(factorId, recovery.operationId);
     expect(first.factor?.state).toBe("RETIRED");
@@ -95,8 +98,13 @@ describe("controlled MFA recovery persistence", () => {
 
     await expect(
       executeControlledMfaRecovery(recovery, environment()),
-    ).resolves.toEqual({ operationId: recovery.operationId, userId: fixture.userId });
-    expect((await snapshot(factorId, recovery.operationId)).audit).toHaveLength(1);
+    ).resolves.toEqual({
+      operationId: recovery.operationId,
+      userId: fixture.userId,
+    });
+    expect((await snapshot(factorId, recovery.operationId)).audit).toHaveLength(
+      1,
+    );
 
     await expect(
       executeControlledMfaRecovery(
@@ -104,6 +112,51 @@ describe("controlled MFA recovery persistence", () => {
         environment(),
       ),
     ).rejects.toThrow("Recovery operation identity conflict");
+  }, 30_000);
+
+  it("retires an orphaned pending factor after session-only local reset with audited operator recovery", async () => {
+    const fixture = await context.createFixture({ role: "ORG_ADMIN" });
+    const sessionId = randomUUID();
+    const factorId = randomUUID();
+    await context.adminPool.query(
+      `INSERT INTO staff_auth_sessions
+         (id,user_id,current_access_token_hash,access_expires_at,
+          absolute_expires_at,created_at,last_rotated_at)
+       VALUES ($1,$2,$3,transaction_timestamp()+interval '15 minutes',
+               transaction_timestamp()+interval '30 days',
+               transaction_timestamp(),transaction_timestamp())`,
+      [sessionId, fixture.userId, `staff-access-sha256:v1:${"d".repeat(64)}`],
+    );
+    await context.adminPool.query(
+      `INSERT INTO user_mfa_totp_factors
+         (id,user_id,state,protected_secret,pending_enrollment_session_id)
+       VALUES ($1,$2,'PENDING',$3,$4)`,
+      [
+        factorId,
+        fixture.userId,
+        `mte1.${"A".repeat(16)}.${"B".repeat(32)}.${"C".repeat(22)}`,
+        sessionId,
+      ],
+    );
+    const deleted = await context.adminPool.query(
+      "DELETE FROM staff_auth_sessions WHERE id=$1",
+      [sessionId],
+    );
+    expect(deleted.rowCount).toBe(1);
+
+    const recovery = input(fixture);
+    await expect(
+      executeControlledMfaRecovery(recovery, environment()),
+    ).resolves.toMatchObject({ operationId: recovery.operationId });
+    const stored = await snapshot(factorId, recovery.operationId);
+    expect(stored.factor?.state).toBe("RETIRED");
+    expect(stored.audit).toMatchObject([{ actor_type: "CONTROLLED_OPERATOR" }]);
+    const owner = await context.adminPool.query<{ owner: string }>(
+      `SELECT pending_enrollment_session_id::text AS owner
+       FROM user_mfa_totp_factors WHERE id=$1`,
+      [factorId],
+    );
+    expect(owner.rows[0]?.owner).toBe(sessionId);
   }, 30_000);
 
   it("rolls back factor retirement when controlled audit validation fails", async () => {
@@ -134,6 +187,8 @@ describe("controlled MFA recovery persistence", () => {
       { operationId: recovery.operationId, userId: fixture.userId },
       { operationId: recovery.operationId, userId: fixture.userId },
     ]);
-    expect((await snapshot(factorId, recovery.operationId)).audit).toHaveLength(1);
+    expect((await snapshot(factorId, recovery.operationId)).audit).toHaveLength(
+      1,
+    );
   }, 30_000);
 });
