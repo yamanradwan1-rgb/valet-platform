@@ -131,6 +131,17 @@ it("restart reads only an opaque installation-bound descriptor", async () => {
   storage.generation = "different-installation-0002";
   expect(await new ExpoShiftPresenceStore("START").read()).toBeUndefined();
 });
+it("a rejected SecureStore read does not poison later serialized reads", async () => {
+  const store = new ExpoShiftPresenceStore("START");
+  await store.write(descriptor);
+  vi.mocked(SecureStore.getItemAsync).mockRejectedValueOnce(
+    new Error("temporary secure-storage failure"),
+  );
+  await expect(store.read()).rejects.toThrow(
+    "temporary secure-storage failure",
+  );
+  await expect(store.read()).resolves.toEqual(descriptor);
+});
 it.each(["measurement", "challengeId", "accessToken", "mocked"])(
   "rejects descriptor contamination by %s",
   (field) => {

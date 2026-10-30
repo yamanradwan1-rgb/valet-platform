@@ -6,17 +6,21 @@ import type {
   StaffOperationalContextResponse,
 } from "@valet/employee-client";
 
-const ports = vi.hoisted(() => ({
-  descriptors: new Map<string, PresenceDescriptor>(),
-  recovery: undefined as PresenceRecovery | undefined,
-  recover: vi.fn(),
-  submit: vi.fn(),
-  challenge: vi.fn(),
-  acquire: vi.fn(),
-  readChallenge: vi.fn(),
-  requestException: vi.fn(),
-  readException: vi.fn(),
-}));
+const ports = vi.hoisted(() => {
+  const descriptors = new Map<string, PresenceDescriptor>();
+  return {
+    descriptors,
+    readDescriptor: vi.fn(async (action: string) => descriptors.get(action)),
+    recovery: undefined as PresenceRecovery | undefined,
+    recover: vi.fn(),
+    submit: vi.fn(),
+    challenge: vi.fn(),
+    acquire: vi.fn(),
+    readChallenge: vi.fn(),
+    requestException: vi.fn(),
+    readException: vi.fn(),
+  };
+});
 vi.mock("../src/tasks/native-operational-http", () => ({
   createNativeEmployeeClient: vi.fn(),
 }));
@@ -30,7 +34,7 @@ vi.mock("../src/shift/native-shift-presence-store", () => ({
   ExpoShiftPresenceStore: class {
     constructor(private action: string) {}
     async read() {
-      return ports.descriptors.get(this.action);
+      return ports.readDescriptor(this.action);
     }
     async write(value: PresenceDescriptor) {
       ports.descriptors.set(this.action, value);

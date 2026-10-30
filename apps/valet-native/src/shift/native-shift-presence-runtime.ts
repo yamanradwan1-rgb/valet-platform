@@ -71,19 +71,34 @@ export function createNativeShiftPresenceRuntime(
   });
   let restored = -1;
   let restoreGeneration = 0;
+  let pendingRestore:
+    | {
+        identityGeneration: number;
+        generation: number;
+        promise: Promise<void>;
+      }
+    | undefined;
 
-  async function restore(
+  async function restoreOnce(
     identityGeneration: number,
     response: StaffOperationalContextResponse,
+    generation: number,
   ): Promise<void> {
-    if (restored === identityGeneration) return;
-    restored = identityGeneration;
-    const generation = ++restoreGeneration;
     for (const [store, coordinator] of [
       [startStore, start],
       [endStore, end],
     ] as const) {
-      const descriptor = await store.read();
+      const descriptor = await store.read().catch((error: unknown) => {
+        const current = auth.current();
+        if (
+          generation === restoreGeneration &&
+          restored === identityGeneration &&
+          current.phase === "authenticated" &&
+          current.authGeneration === identityGeneration
+        )
+          restored = -1;
+        throw error;
+      });
       if (
         generation !== restoreGeneration ||
         auth.current().authGeneration !== identityGeneration ||
@@ -157,6 +172,25 @@ export function createNativeShiftPresenceRuntime(
       }
     }
   }
+  function restore(
+    identityGeneration: number,
+    response: StaffOperationalContextResponse,
+  ): Promise<void> {
+    if (
+      pendingRestore?.generation === restoreGeneration &&
+      pendingRestore.identityGeneration === identityGeneration
+    )
+      return pendingRestore.promise;
+    if (restored === identityGeneration) return Promise.resolve();
+    restored = identityGeneration;
+    const generation = ++restoreGeneration;
+    const operation = restoreOnce(identityGeneration, response, generation);
+    const promise = operation.finally(() => {
+      if (pendingRestore?.promise === promise) pendingRestore = undefined;
+    });
+    pendingRestore = { identityGeneration, generation, promise };
+    return promise;
+  }
   return {
     start,
     end,
@@ -165,6 +199,7 @@ export function createNativeShiftPresenceRuntime(
     async purge() {
       restoreGeneration += 1;
       restored = -1;
+      pendingRestore = undefined;
       start.clear();
       end.clear();
       await Promise.all([startStore.delete(), endStore.delete()]);
