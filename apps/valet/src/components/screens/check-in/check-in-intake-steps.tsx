@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import { useId, type JSX } from "react";
 
 import { CheckSmIcon } from "../../icons/employee-icons";
 import { BackHeader, Btn, VehicleIdentity } from "../../ui/employee-primitives";
@@ -32,6 +32,7 @@ export function CheckInCustomerPhoneStep({
   readonly plate?: string | null | undefined;
 }): JSX.Element {
   const { t } = useEmployeeI18n();
+  const phoneInputId = useId();
   const displayModel = make && model ? `${make} ${model}` : (make || model || t.vehicle);
   const intakeStopped = errorCode === "LOCATION_INTAKE_STOPPED";
   const feedback = error && (
@@ -59,7 +60,10 @@ export function CheckInCustomerPhoneStep({
           />
         </div>
         <div>
-          <label className="text-navy font-semibold text-sm block mb-2">
+          <label
+            htmlFor={phoneInputId}
+            className="text-navy font-semibold text-sm block mb-2"
+          >
             {t.mobileNumber}
           </label>
           <div className="flex gap-2">
@@ -68,6 +72,7 @@ export function CheckInCustomerPhoneStep({
               <span className="text-navy font-semibold text-sm">+962</span>
             </div>
             <input
+              id={phoneInputId}
               type="tel"
               placeholder="79 000 0000"
               value={phone}
