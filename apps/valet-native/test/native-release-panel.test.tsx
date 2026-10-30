@@ -139,13 +139,11 @@ describe("MOB-014B Native final release", () => {
   );
 
   it.each([
-    ["DYNAMIC_QR", "Guest QR"],
-    ["PICKUP_CODE", "Pickup code"],
+    ["DYNAMIC_QR", "Identity verified · Guest QR"],
+    ["PICKUP_CODE", "Identity verified · Pickup code"],
     ["SUPERVISOR_OVERRIDE", "Supervisor override"],
   ] as const)("uses authoritative %s verification method", (method, label) => {
-    expect(content(render("ready", "en", null, method))).toContain(
-      `Identity verified · ${label}`,
-    );
+    expect(content(render("ready", "en", null, method))).toContain(label);
   });
 
   it("disables the sole Release action while releasing", () => {

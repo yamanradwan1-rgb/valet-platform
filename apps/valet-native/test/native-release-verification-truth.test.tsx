@@ -99,15 +99,41 @@ describe("#373 Native Release verification truth", () => {
   it.each([
     ["en", "DYNAMIC_QR", "Identity verified · Guest QR"],
     ["en", "PICKUP_CODE", "Identity verified · Pickup code"],
-    ["en", "SUPERVISOR_OVERRIDE", "Identity verified · Supervisor override"],
+    ["en", "SUPERVISOR_OVERRIDE", "Supervisor override"],
     ["ar", "DYNAMIC_QR", "تم التحقق من الهوية · رمز QR للضيف"],
     ["ar", "PICKUP_CODE", "تم التحقق من الهوية · رمز الاستلام"],
-    ["ar", "SUPERVISOR_OVERRIDE", "تم التحقق من الهوية · تجاوز المشرف"],
+    ["ar", "SUPERVISOR_OVERRIDE", "تجاوز المشرف"],
   ] as const)("uses exact verified %s %s method", (locale, method, label) => {
     expect(content(render("ready", locale, null, verified(method)))).toContain(
       label,
     );
   });
+
+  it.each([
+    ["en", "Supervisor override", "Identity verified", "Release Vehicle"],
+    ["ar", "تجاوز المشرف", "تم التحقق من الهوية", "تسليم المركبة"],
+  ] as const)(
+    "does not claim guest identity verification for %s supervisor override",
+    (locale, overrideLabel, identityClaim, releaseLabel) => {
+      const nodes = render(
+        "ready",
+        locale,
+        null,
+        verified("SUPERVISOR_OVERRIDE"),
+      );
+      const text = content(nodes);
+      expect(text).toContain(overrideLabel);
+      expect(text).not.toContain(identityClaim);
+      expect(
+        nodes.find((node) => node.props.accessibilityLabel === releaseLabel),
+      ).toBeDefined();
+      const releasingText = content(
+        render("releasing", locale, null, verified("SUPERVISOR_OVERRIDE")),
+      );
+      expect(releasingText).toContain(overrideLabel);
+      expect(releasingText).not.toContain(identityClaim);
+    },
+  );
 
   it.each([
     ["en", "Identity verified · Guest QR"],

@@ -48,16 +48,18 @@ export function NativeReleasePanel({
     verification?.status === "VERIFIED" &&
     verification.verifiedAt !== null;
   const method = canShowVerification ? verification.method : null;
-  const methodLabel =
-    method === "SUPERVISOR_OVERRIDE"
-      ? copy.supervisorOverride
-      : method === "DYNAMIC_QR"
-        ? copy.dynamicQr
-        : method === "PICKUP_CODE"
-          ? copy.pickupCode
-          : null;
+  const isSupervisorOverride = method === "SUPERVISOR_OVERRIDE";
+  const methodLabel = isSupervisorOverride
+    ? copy.supervisorOverride
+    : method === "DYNAMIC_QR"
+      ? copy.dynamicQr
+      : method === "PICKUP_CODE"
+        ? copy.pickupCode
+        : null;
   const verifiedEyebrow = methodLabel
-    ? `${copy.identityVerified} · ${methodLabel}`
+    ? isSupervisorOverride
+      ? methodLabel
+      : `${copy.identityVerified} · ${methodLabel}`
     : null;
   const releaseBlocked =
     snapshot.phase === "blocked" ||
@@ -82,7 +84,9 @@ export function NativeReleasePanel({
             : releaseBlocked
               ? copy.releaseBlocked
               : verifiedEyebrow
-                ? copy.identityVerified
+                ? isSupervisorOverride
+                  ? copy.supervisorOverride
+                  : copy.identityVerified
                 : copy.taskTitle
         }
       />
