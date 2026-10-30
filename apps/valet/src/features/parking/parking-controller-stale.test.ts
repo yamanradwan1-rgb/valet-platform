@@ -22,7 +22,11 @@ function deferred<T>() {
   return { promise, resolve, reject };
 }
 
-function active(id: string, task: string, version: number): ActiveParkingSession {
+function active(
+  id: string,
+  task: string,
+  version: number,
+): ActiveParkingSession {
   return {
     keySlotCode: null,
     locationId: LOCATION,
@@ -117,7 +121,8 @@ describe("ParkingController stale async results", () => {
   it("keeps the latest of two hydration attempts for the same target", async () => {
     const first = deferred<StaffValetSessionDetailResponse>();
     const second = deferred<StaffValetSessionDetailResponse>();
-    const request = vi.fn()
+    const request = vi
+      .fn()
       .mockReturnValueOnce(first.promise)
       .mockReturnValueOnce(second.promise);
     const controller = controllerFor(request);
@@ -159,7 +164,8 @@ describe("ParkingController stale async results", () => {
 
   it("preserves an in-flight confirmation on an equivalent rerender", async () => {
     const pending = deferred<unknown>();
-    const request = vi.fn()
+    const request = vi
+      .fn()
       .mockReturnValueOnce(pending.promise)
       .mockResolvedValueOnce(detail(SESSION_A, 11));
     const controller = controllerFor(request);
@@ -185,7 +191,8 @@ describe("ParkingController stale async results", () => {
 
   it("never regresses CAS versions when newer same-target props arrive during confirm", async () => {
     const pending = deferred<unknown>();
-    const request = vi.fn()
+    const request = vi
+      .fn()
       .mockReturnValueOnce(pending.promise)
       .mockResolvedValueOnce(detail(SESSION_A, 11));
     const controller = controllerFor(request);

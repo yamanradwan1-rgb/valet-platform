@@ -16,7 +16,10 @@ export interface ParkingHarness {
   hydrateMode: "success" | "failure";
   releaseStart: (() => void) | null;
   releaseHydrate: (() => void) | null;
-  readonly confirmations: Array<{ sessionId: string; body: Record<string, unknown> }>;
+  readonly confirmations: Array<{
+    sessionId: string;
+    body: Record<string, unknown>;
+  }>;
   readonly requests: string[];
 }
 
@@ -94,21 +97,26 @@ export async function mountParkingHarness(
     requests: [],
   };
   page.on("request", (request) => {
-    if (request.url().includes("/v1/staff/")) harness.requests.push(request.url());
+    if (request.url().includes("/v1/staff/"))
+      harness.requests.push(request.url());
   });
   const watch = (route: Route) => {
     harness.requests.push(route.request().url());
   };
   await page.route("**/v1/staff/auth/refresh", (route) =>
-    route.fulfill({ status: 401 }));
-  await page.route("**/v1/staff/auth/login", (route) => respond(route, {
-    accessToken: "vsa1.0123456789012345678901234567890123456789012",
-    tokenType: "Bearer",
-    accessExpiresAt: "2028-01-01T00:00:00.000Z",
-    sessionExpiresAt: "2028-02-01T00:00:00.000Z",
-  }));
+    route.fulfill({ status: 401 }),
+  );
+  await page.route("**/v1/staff/auth/login", (route) =>
+    respond(route, {
+      accessToken: "vsa1.0123456789012345678901234567890123456789012",
+      tokenType: "Bearer",
+      accessExpiresAt: "2028-01-01T00:00:00.000Z",
+      sessionExpiresAt: "2028-02-01T00:00:00.000Z",
+    }),
+  );
   await page.route("**/v1/staff/auth/logout", (route) =>
-    route.fulfill({ status: 204 }));
+    route.fulfill({ status: 204 }),
+  );
   await page.route("**/v1/staff/operational-context", (route) => {
     const changed = harness.scope === "changed";
     const currentLocation = {
@@ -118,19 +126,23 @@ export async function mountParkingHarness(
       currency: "JOD",
       timezone: "Asia/Amman",
     };
-    return respond(route, { contexts: [{
-      membershipId: changed ? SESSION_B : MEMBERSHIP,
-      organization: { organizationId: ORG, name: "Fixture Organization" },
-      role: "VALET_EMPLOYEE",
-      eligibleLocations: [currentLocation],
-      currentLocation,
-      activeShift: {
-        shiftId: changed ? TASK_B : SHIFT,
-        locationId: currentLocation.locationId,
-        status: "ACTIVE",
-        startedAt: DATE,
-      },
-    }] });
+    return respond(route, {
+      contexts: [
+        {
+          membershipId: changed ? SESSION_B : MEMBERSHIP,
+          organization: { organizationId: ORG, name: "Fixture Organization" },
+          role: "VALET_EMPLOYEE",
+          eligibleLocations: [currentLocation],
+          currentLocation,
+          activeShift: {
+            shiftId: changed ? TASK_B : SHIFT,
+            locationId: currentLocation.locationId,
+            status: "ACTIVE",
+            startedAt: DATE,
+          },
+        },
+      ],
+    });
   });
   await page.route("**/v1/staff/tasks/queue?**", (route) => {
     watch(route);
@@ -139,54 +151,75 @@ export async function mountParkingHarness(
     });
   });
   await page.route("**/v1/staff/check-in/drafts?**", (route) =>
-    respond(route, { drafts: [] }));
+    respond(route, { drafts: [] }),
+  );
   await page.route("**/v1/staff/check-in/continuations?**", (route) =>
-    respond(route, { continuations: [] }));
+    respond(route, { continuations: [] }),
+  );
   await page.route("**/v1/staff/check-in/vehicle-recognition", (route) =>
-    respond(route, { vehicle: null }));
-  await page.route("**/v1/staff/check-in/intakes", (route) => respond(route, {
-    createdAt: DATE,
-    color: null,
-    customerId: TASK_B,
-    make: null,
-    model: null,
-    state: "CHECKING_IN",
-    valetSessionId: SESSION_B,
-    vehicleId: VEHICLE,
-    vehicleUpdatedAt: DATE,
-    version: 1,
-  }));
-  await page.route(`**/v1/staff/check-in/sessions/${SESSION_B}/condition-notes`,
-    (route) => respond(route, {
-      conditionNoteId: TASK_B,
-      content: "No visible issue",
+    respond(route, { vehicle: null }),
+  );
+  await page.route("**/v1/staff/check-in/intakes", (route) =>
+    respond(route, {
       createdAt: DATE,
-      supersedesConditionNoteId: null,
+      color: null,
+      customerId: TASK_B,
+      make: null,
+      model: null,
+      state: "CHECKING_IN",
       valetSessionId: SESSION_B,
-    }));
-  await page.route(`**/v1/staff/check-in/sessions/${SESSION_B}/condition-completion`,
-    (route) => respond(route, { completedAt: DATE, valetSessionId: SESSION_B }));
-  await page.route(`**/v1/staff/check-in/sessions/${SESSION_B}/complete`,
-    (route) => respond(route, {
-      checkingInCompletedAt: DATE,
-      state: "AWAITING_PARKING",
-      valetSessionId: SESSION_B,
-      version: 2,
-    }));
-  await page.route(`**/v1/staff/valet-sessions/${SESSION_B}/parking-task/queue`,
-    (route) => respond(route, taskB("QUEUED", 1, null)));
-  await page.route(`**/v1/staff/tasks/${TASK_B}/assign`,
-    (route) => respond(route, taskB("ASSIGNED", 2, MEMBERSHIP)));
-  await page.route(`**/v1/staff/tasks/${TASK_B}/accept`,
-    (route) => respond(route, taskB("ACCEPTED", 3, MEMBERSHIP)));
-  await page.route(`**/v1/staff/valet-sessions/${SESSION_B}/start-parking`,
+      vehicleId: VEHICLE,
+      vehicleUpdatedAt: DATE,
+      version: 1,
+    }),
+  );
+  await page.route(
+    `**/v1/staff/check-in/sessions/${SESSION_B}/condition-notes`,
+    (route) =>
+      respond(route, {
+        conditionNoteId: TASK_B,
+        content: "No visible issue",
+        createdAt: DATE,
+        supersedesConditionNoteId: null,
+        valetSessionId: SESSION_B,
+      }),
+  );
+  await page.route(
+    `**/v1/staff/check-in/sessions/${SESSION_B}/condition-completion`,
+    (route) => respond(route, { completedAt: DATE, valetSessionId: SESSION_B }),
+  );
+  await page.route(
+    `**/v1/staff/check-in/sessions/${SESSION_B}/complete`,
+    (route) =>
+      respond(route, {
+        checkingInCompletedAt: DATE,
+        state: "AWAITING_PARKING",
+        valetSessionId: SESSION_B,
+        version: 2,
+      }),
+  );
+  await page.route(
+    `**/v1/staff/valet-sessions/${SESSION_B}/parking-task/queue`,
+    (route) => respond(route, taskB("QUEUED", 1, null)),
+  );
+  await page.route(`**/v1/staff/tasks/${TASK_B}/assign`, (route) =>
+    respond(route, taskB("ASSIGNED", 2, MEMBERSHIP)),
+  );
+  await page.route(`**/v1/staff/tasks/${TASK_B}/accept`, (route) =>
+    respond(route, taskB("ACCEPTED", 3, MEMBERSHIP)),
+  );
+  await page.route(
+    `**/v1/staff/valet-sessions/${SESSION_B}/start-parking`,
     async (route) => {
       watch(route);
-      await new Promise<void>((resolve) => { harness.releaseStart = resolve; });
+      await new Promise<void>((resolve) => {
+        harness.releaseStart = resolve;
+      });
       await respond(route, startB);
-    });
-  await page.route(`**/v1/staff/valet-sessions/${SESSION_B}`,
-    (route) => respond(route, {
+    },
+  );
+  await page.route(`**/v1/staff/valet-sessions/${SESSION_B}`, (route) =>
+    respond(route, {
       checkIn: { conditionCompletedAt: DATE },
       handoff: { pendingAt: null, verification: null },
       guestAccess: { expiresAt: null, revokedAt: null, status: "NOT_ISSUED" },
@@ -202,52 +235,57 @@ export async function mountParkingHarness(
       state: "AWAITING_PARKING",
       vehicle: car("B-PLATE-390"),
       version: 2,
-    }));
-  await page.route(`**/v1/staff/valet-sessions/${SESSION_A}`,
-    async (route) => {
-      watch(route);
-      await new Promise<void>((resolve) => { harness.releaseHydrate = resolve; });
-      if (harness.hydrateMode === "failure") {
-        await respond(route, { code: "UNAVAILABLE", message: "Late A failure" }, 503);
-      } else {
-        await respond(route, {
-          checkIn: { conditionCompletedAt: DATE },
-          handoff: { pendingAt: null, verification: null },
-          guestAccess: { expiresAt: null, revokedAt: null, status: "NOT_ISSUED" },
-          keySlot: null,
-          locationId: LOCATION,
-          parking: {
-            parkedAt: null,
-            parkingSpotCode: null,
-            parkingStartedAt: DATE,
-            parkingZoneCode: "North",
-          },
-          sessionId: SESSION_A,
-          state: "PARKING",
-          vehicle: car("A-PLATE-390"),
-          version: 6,
-        });
-      }
+    }),
+  );
+  await page.route(`**/v1/staff/valet-sessions/${SESSION_A}`, async (route) => {
+    watch(route);
+    await new Promise<void>((resolve) => {
+      harness.releaseHydrate = resolve;
     });
-  await page.route("**/v1/staff/valet-sessions/*/confirm-parked",
-    (route) => {
-      const parts = route.request().url().split("/");
-      const sessionId = parts.at(-2) ?? "missing";
-      const body = route.request().postDataJSON() as Record<string, unknown>;
-      harness.confirmations.push({ sessionId, body });
-      return respond(route, {
-        parkedAt: DATE,
-        parkingSpotCode: "SPOT-390",
-        parkingSpotId: TASK_A,
-        parkingZoneId: ORG,
-        sessionId,
-        sessionVersion: 7,
-        state: "PARKED",
-        taskId: sessionId === SESSION_A ? TASK_A : TASK_B,
-        taskStatus: "COMPLETED",
-        taskVersion: 10,
+    if (harness.hydrateMode === "failure") {
+      await respond(
+        route,
+        { code: "UNAVAILABLE", message: "Late A failure" },
+        503,
+      );
+    } else {
+      await respond(route, {
+        checkIn: { conditionCompletedAt: DATE },
+        handoff: { pendingAt: null, verification: null },
+        guestAccess: { expiresAt: null, revokedAt: null, status: "NOT_ISSUED" },
+        keySlot: null,
+        locationId: LOCATION,
+        parking: {
+          parkedAt: null,
+          parkingSpotCode: null,
+          parkingStartedAt: DATE,
+          parkingZoneCode: "North",
+        },
+        sessionId: SESSION_A,
+        state: "PARKING",
+        vehicle: car("A-PLATE-390"),
+        version: 6,
       });
+    }
+  });
+  await page.route("**/v1/staff/valet-sessions/*/confirm-parked", (route) => {
+    const parts = route.request().url().split("/");
+    const sessionId = parts.at(-2) ?? "missing";
+    const body = route.request().postDataJSON() as Record<string, unknown>;
+    harness.confirmations.push({ sessionId, body });
+    return respond(route, {
+      parkedAt: DATE,
+      parkingSpotCode: "SPOT-390",
+      parkingSpotId: TASK_A,
+      parkingZoneId: ORG,
+      sessionId,
+      sessionVersion: 7,
+      state: "PARKED",
+      taskId: sessionId === SESSION_A ? TASK_A : TASK_B,
+      taskStatus: "COMPLETED",
+      taskVersion: 10,
     });
+  });
   await page.goto(fixtureUrl);
   await page.locator('input[type="email"]').fill("worker390@example.com");
   await page.locator('input[type="password"]').fill("Password123!");
