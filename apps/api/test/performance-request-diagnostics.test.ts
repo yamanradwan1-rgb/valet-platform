@@ -5,6 +5,10 @@ import { describe, expect, it } from "vitest";
 import { ApiOperationRunner } from "../src/common/http/api-operation-runner";
 import { RuntimeDatabaseUnavailableError } from "../src/common/database/runtime-database-deadline";
 import { createHttpMetricsMiddleware } from "../src/common/observability/http-metrics.middleware";
+import {
+  buildHttpMetric,
+  formatHttpMetric,
+} from "../src/common/observability/http-operation-metrics";
 import { performanceRoute } from "../src/common/observability/performance-request-diagnostics";
 import { databaseFailureReason } from "../src/common/database/database-failure-reason";
 
@@ -28,6 +32,97 @@ describe("performance request diagnostics", () => {
         "/v1/staff/dashboard/locations/secret/overview/secret",
       ),
     ).toBeUndefined();
+  });
+
+  it("preserves the four-field metric prefix and separates correlation diagnostics", () => {
+    const base = formatHttpMetric(
+      buildHttpMetric("STAFF_OPERATION", 200, 12.1),
+    );
+    expect(base).toBe(
+      "HTTP_METRIC operation=STAFF_OPERATION outcome=SUCCESS status=200 durationMs=12",
+    );
+    expect(base).not.toContain("requestId=");
+
+    const lines: string[] = [];
+    const response = Object.assign(new EventEmitter(), {
+      statusCode: 200,
+      writableFinished: true,
+    });
+    createHttpMetricsMiddleware((line) => lines.push(line))(
+      {
+        method: "GET",
+        url: "/v1/staff/dashboard/locations/secret-location/overview/tasks?token=secret-token",
+        headers: {
+          authorization: "Bearer secret-token",
+          cookie: "session=secret-token",
+          "x-request-id": "trace-372",
+        },
+      } as unknown as IncomingMessage,
+      response as unknown as ServerResponse,
+      () => {},
+    );
+    response.emit("finish");
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toMatch(
+      /^HTTP_METRIC operation=STAFF_OPERATION outcome=SUCCESS status=200 durationMs=\d+ route=\/v1\/staff\/dashboard\/locations\/:locationId\/overview\/tasks requestId=trace-372 errorCode=NONE reason=NONE$/,
+    );
+    expect(lines[0]).not.toContain("secret-location");
+    expect(lines[0]).not.toContain("secret-token");
+    expect(lines[0]).not.toContain("authorization");
+    expect(lines[0]).not.toContain("cookie");
+  });
+
+  it("keeps unrelated Guest HTTP records in the original four-field form", () => {
+    const lines: string[] = [];
+    const response = Object.assign(new EventEmitter(), {
+      statusCode: 429,
+      writableFinished: true,
+    });
+    createHttpMetricsMiddleware((line) => lines.push(line))(
+      {
+        method: "GET",
+        url: "/v1/guest/sessions/secret-id?token=secret-token",
+        headers: { "x-request-id": "trace-guest-372" },
+      } as unknown as IncomingMessage,
+      response as unknown as ServerResponse,
+      () => {},
+    );
+    response.emit("finish");
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toMatch(
+      /^HTTP_METRIC operation=GUEST_READ outcome=RATE_LIMITED status=429 durationMs=\d+$/,
+    );
+    expect(lines[0]).not.toContain("trace-guest-372");
+    expect(lines[0]).not.toContain("secret-token");
+  });
+
+  it("keeps authentication credentials out of an extended failure log", () => {
+    const lines: string[] = [];
+    const response = Object.assign(new EventEmitter(), {
+      statusCode: 401,
+      writableFinished: true,
+    });
+    createHttpMetricsMiddleware((line) => lines.push(line))(
+      {
+        method: "POST",
+        url: "/v1/staff/auth/login?refresh=credential-canary",
+        headers: {
+          authorization: "Bearer credential-canary",
+          cookie: "refresh=credential-canary",
+          "x-request-id": "safe-auth-372",
+        },
+      } as unknown as IncomingMessage,
+      response as unknown as ServerResponse,
+      () => {},
+    );
+    response.emit("finish");
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toMatch(
+      /^HTTP_METRIC operation=STAFF_AUTH outcome=AUTH_FAILURE status=401 durationMs=\d+ route=\/v1\/staff\/auth\/login requestId=safe-auth-372 errorCode=NONE reason=AUTHENTICATION$/,
+    );
+    expect(lines[0]).not.toContain("credential-canary");
+    expect(lines[0]).not.toContain("authorization");
+    expect(lines[0]).not.toContain("cookie");
   });
 
   it("correlates the actual 503 and bounded database reason without secrets", async () => {
@@ -86,9 +181,14 @@ describe("performance request diagnostics", () => {
     response.emit("close");
     response.emit("finish");
     expect(lines).toHaveLength(1);
-    expect(lines[0]).toContain("status=499");
-    expect(lines[0]).toContain("reason=CLIENT_DISCONNECT");
-    const bad = new EventEmitter();
+    expect(lines[0]).toMatch(
+      /^HTTP_METRIC operation=STAFF_OPERATION outcome=CLIENT_FAILURE status=499 durationMs=\d+ route=\/v1\/staff\/check-in\/intakes requestId=[0-9a-f-]{36} errorCode=NONE reason=CLIENT_DISCONNECT$/,
+    );
+    const bad = Object.assign(new EventEmitter(), {
+      statusCode: 503,
+      writableFinished: true,
+    });
+    let continued = false;
     createHttpMetricsMiddleware(() => {
       throw new Error("logger down");
     })(
@@ -98,9 +198,14 @@ describe("performance request diagnostics", () => {
         headers: {},
       } as IncomingMessage,
       bad as ServerResponse,
-      () => {},
+      () => {
+        continued = true;
+      },
     );
+    expect(continued).toBe(true);
+    expect(() => bad.emit("finish")).not.toThrow();
     expect(() => bad.emit("close")).not.toThrow();
+    expect(bad.statusCode).toBe(503);
   });
 
   it("classifies only recognized database facts, never raw messages", () => {

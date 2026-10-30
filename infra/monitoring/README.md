@@ -19,6 +19,25 @@ requests that never reach the API, WAF drops, end-to-end
 availability, host restart, DB provider failover and hard-kill recovery require
 independent ingress/infrastructure instrumentation.
 
+`HTTP_METRIC` starts with the four fixed fields `operation`, `outcome`,
+`status`, and `durationMs`. For selected allowlisted Staff/health route templates,
+the same log line additionally carries a diagnostic suffix: `route`,
+`requestId`, `errorCode`, and `reason`. Other routes retain the four-field form.
+The `requestId` is exclusively for log correlation, **never** a metric-series
+label, histogram dimension, or aggregation key. Its bounded text format does
+not bound the number of distinct request IDs. Approved low-cardinality
+aggregation dimensions may use the fixed operation/outcome/status classes and
+the explicitly bounded route/errorCode/reason classifications; `durationMs`
+is a numeric observation, not a label.
+
+An external parser requiring the log line to end immediately after
+`durationMs` may reject the extended records. Confirm the actual selected
+provider's parser, field allowlist, ingestion and series labels with sanitized
+ordinary and extended samples before declaring compatibility. No repository
+parser/exporter, deployed provider, ingestion outcome or alert delivery is
+established by this documentation. A production ingestion/schema change needs
+its separately verified contract and Owner approval.
+
 To configure a provider, create fixed-field parsing rules. Never use raw paths,
 query strings, headers, IPs, session IDs, tenant IDs, tokens, vehicle data or
 free-text error messages as metric labels. Convert duration samples into
