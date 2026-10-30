@@ -235,9 +235,14 @@ test("downloads a real high-resolution PNG and print mode excludes Dashboard chr
   expect(stored).not.toContain('"keySlotId"');
   expect(stored).not.toContain("K-01");
 
+  await page.screenshot({ path: "../../tmp/run1-evidence/issue385-screen-candidate.png", fullPage: true });
   await page.emulateMedia({ media: "print" });
   const printLabel = page.getByTestId("physical-resource-print-label");
   await expect(printLabel).toBeVisible();
+  await page.screenshot({ path: "../../tmp/run1-evidence/issue385-print-candidate.png", fullPage: true });
+  await test.info().attach("issue385-print-after", {
+    body: await page.screenshot({ fullPage: true }), contentType: "image/png",
+  });
   await expect(
     page.getByRole("navigation", { name: "Management navigation" }),
   ).toBeHidden();

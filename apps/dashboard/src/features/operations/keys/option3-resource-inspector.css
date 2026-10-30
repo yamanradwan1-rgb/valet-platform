@@ -255,6 +255,7 @@
 @media (prefers-reduced-motion: reduce) { .inspector *, .c-modal * { scroll-behavior: auto !important; transition: none !important; } }
 @media print {
   .shell, .c-head, .c-command-row, .c-workspace, .c-modal-heading, .c-modal-actions, .c-modal-disclaimer { display: none !important; }
+  .shell:has([data-testid="physical-resource-print-label"]) { display: block !important; }
   body, html, .c-modal-backdrop { background: white !important; }
   .c-modal-backdrop { position: static; display: block !important; padding: 0; }
   .c-modal { width: 100%; border: 0; box-shadow: none; overflow: visible; }
