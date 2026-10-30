@@ -73,6 +73,15 @@ describe("Dashboard fail-closed bootstrap", () => {
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
 
+  it("explicit login can replace an old marker when deletion alone is denied", async () => {
+    const values = installStorage("remove-denied", new Map([[logoutMarker, "1"]]));
+    const client = new StaffAuthClient({ fetch: vi.fn<typeof fetch>(async () => authResponse()) });
+    await client.login(credentials);
+    expect(values.get(logoutMarker)).toBe("0");
+    expect(client.getAccessToken()).toBe(authPayload.accessToken);
+    await expect(client.refresh()).resolves.toEqual(authPayload);
+  });
+
   it.each(["storage-denied", "cross-tab-logout-marker"])(
     "does not apply a late bootstrap refresh after %s",
     async (change) => {

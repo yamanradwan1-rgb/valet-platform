@@ -266,7 +266,12 @@ export class StaffAuthClient {
     try {
       globalThis.localStorage?.removeItem(STAFF_LOGOUT_UNCONFIRMED_KEY);
     } catch {
-      // A stale marker can only keep a later bootstrap fail-closed.
+      try {
+        // Some storage policies deny deletion but permit replacing the value.
+        globalThis.localStorage?.setItem(STAFF_LOGOUT_UNCONFIRMED_KEY, "0");
+      } catch {
+        // Leave an unreadable or uncleared persisted marker fail-closed.
+      }
     }
   }
 
