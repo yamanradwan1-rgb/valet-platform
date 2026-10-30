@@ -36,14 +36,16 @@ export function PointEditorDialog(props: {
 
   const submit = async () => {
     setError(null);
+    const parsedLatitude = parseCoordinate(latitude);
+    const parsedLongitude = parseCoordinate(longitude);
     const full = {
       active,
       code,
       kind,
       label,
-      latitude: Number(latitude),
+      latitude: parsedLatitude,
       levelLabel: levelLabel.trim() === "" ? null : levelLabel,
-      longitude: Number(longitude),
+      longitude: parsedLongitude,
     };
     if (!original) {
       const parsed = createLocationMapPointRequestSchema.safeParse(full);
@@ -57,9 +59,9 @@ export function PointEditorDialog(props: {
       ...(code === original.code ? {} : { code }),
       ...(kind === original.kind ? {} : { kind }),
       ...(label === original.label ? {} : { label }),
-      ...(Number(latitude) === original.latitude ? {} : { latitude: Number(latitude) }),
+      ...(parsedLatitude === original.latitude ? {} : { latitude: parsedLatitude }),
       ...((levelLabel.trim() === "" ? null : levelLabel) === original.levelLabel ? {} : { levelLabel: levelLabel.trim() === "" ? null : levelLabel }),
-      ...(Number(longitude) === original.longitude ? {} : { longitude: Number(longitude) }),
+      ...(parsedLongitude === original.longitude ? {} : { longitude: parsedLongitude }),
     };
     const parsed = updateLocationMapPointRequestSchema.safeParse(update);
     if (!parsed.success) { setError(t.invalidForm); return; }
@@ -85,6 +87,10 @@ export function PointEditorDialog(props: {
       {error ? <div className={styles.error} role="alert">{error}</div> : null}
     </MapSetupDialog>
   );
+}
+
+function parseCoordinate(value: string): number {
+  return value.trim() === "" ? Number.NaN : Number(value);
 }
 
 function Field({ children, label }: { readonly children: React.ReactNode; readonly label: string }) {
