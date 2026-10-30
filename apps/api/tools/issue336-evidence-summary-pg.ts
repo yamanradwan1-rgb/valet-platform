@@ -2,16 +2,10 @@ import assert from "node:assert/strict";
 import { Pool } from "pg";
 import { readConditionPhotoEvidenceSummary } from
   "../src/modules/vehicle-photos/condition-photo-evidence-summary-query";
+import { issue336EvidencePoolConfig } from "./issue336-evidence-target";
 
 /** Explicitly run only against a dedicated, ephemeral local Issue #336 database. */
-const url = process.env.ISSUE336_PG_URL;
-if (process.env.ISSUE336_PG_ACK !== "ISOLATED_LOCAL_ONLY" || !url) {
-  throw new Error("Issue #336 PostgreSQL check requires explicit isolated local URL.");
-}
-const target = new URL(url);
-if (target.hostname !== "127.0.0.1" || target.pathname !== "/vaylet336") {
-  throw new Error("Refusing a PostgreSQL target outside the isolated local test database.");
-}
+const poolConfig = issue336EvidencePoolConfig();
 
 const fixed = (digit: number, prefix: string) =>
   `${prefix}-1111-4111-8111-${String(digit).padStart(12, "0")}`;
@@ -28,7 +22,7 @@ const scope = {
   valetSessionId: sessionA, actorMembershipId: actorA,
 };
 async function main() {
-const pool = new Pool({ connectionString: url, max: 1 });
+const pool = new Pool(poolConfig);
 const db = await pool.connect();
 
 async function add(index: number, actor = actorA, session = sessionA,
@@ -106,7 +100,7 @@ try {
 }
 }
 
-void main().catch((error: unknown) => {
-  console.error(error);
+void main().catch(() => {
+  console.error("Issue #336 PostgreSQL evidence check failed.");
   process.exitCode = 1;
 });
