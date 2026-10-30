@@ -17,6 +17,11 @@ const locationOptionClass = (selected: boolean): string =>
     selected ? "border-vblue bg-vblue/20" : "border-white/10 bg-white/[0.04]"
   }`;
 
+interface LocationChoice {
+  readonly eligibilityKey: string;
+  readonly locationId: string | null;
+}
+
 export interface StartShiftGatePanelProps {
   /** Authoritative startable Locations (server-derived eligibleLocations). */
   readonly locations: readonly StaffOperationalLocation[];
@@ -42,12 +47,35 @@ export function StartShiftGatePanel({
 }: StartShiftGatePanelProps): JSX.Element {
   const { t } = useEmployeeI18n();
   const isOnline = useOnlineStatus();
-  const [chosenLocationId, setChosenLocationId] = useState<string | null>(
-    null,
-  );
+  const eligibilityKey = locations
+    .map((location) => location.locationId)
+    .sort()
+    .join("|");
+  const [choice, setChoice] = useState<LocationChoice>({
+    eligibilityKey,
+    locationId: null,
+  });
+  // A new authoritative set retires any invalid selection before interaction.
+  // The guarded render update prevents an old A choice from resurfacing later.
+  if (choice.eligibilityKey !== eligibilityKey) {
+    setChoice({
+      eligibilityKey,
+      locationId:
+        choice.locationId !== null &&
+        locations.some((location) => location.locationId === choice.locationId)
+          ? choice.locationId
+          : null,
+    });
+  }
+  const choiceIsCurrent =
+    choice.locationId !== null &&
+    locations.some((location) => location.locationId === choice.locationId);
   // A single authoritative Location is preselected; multiple require choice.
-  const effectiveChosen =
-    chosenLocationId ?? (locations.length === 1 ? locations[0]!.locationId : null);
+  const effectiveChosen = choiceIsCurrent
+    ? choice.locationId
+    : locations.length === 1
+      ? locations[0]!.locationId
+      : null;
   const submitting = phase?.kind === "submitting";
   const uncertain = phase?.kind === "uncertain";
 
@@ -105,7 +133,9 @@ export function StartShiftGatePanel({
           <button
             key={location.locationId}
             type="button"
-            onClick={() => setChosenLocationId(location.locationId)}
+            onClick={() =>
+              setChoice({ eligibilityKey, locationId: location.locationId })
+            }
             className={locationOptionClass(selected)}
           >
             <span className="block text-white font-semibold text-sm">

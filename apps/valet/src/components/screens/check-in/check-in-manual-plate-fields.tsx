@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import { useId, type JSX } from "react";
 
 import { Btn } from "../../ui/employee-primitives";
 import { useEmployeeI18n } from "../../shell/employee-i18n";
@@ -21,13 +21,19 @@ export function CheckInManualPlateFields({
   plateNumber,
 }: CheckInManualPlateFieldsProps): JSX.Element {
   const { t } = useEmployeeI18n();
+  const plateNumberId = useId();
+  const plateCountryId = useId();
   return (
     <div className="space-y-5">
       <div>
-        <label className="text-navy font-semibold text-sm block mb-2">
+        <label
+          htmlFor={plateNumberId}
+          className="text-navy font-semibold text-sm block mb-2"
+        >
           {t.licensePlate}
         </label>
         <input
+          id={plateNumberId}
           value={plateNumber}
           dir="ltr"
           onChange={(event) => onChangePlateNumber(event.target.value)}
@@ -36,10 +42,14 @@ export function CheckInManualPlateFields({
         />
       </div>
       <div>
-        <label className="text-navy font-semibold text-sm block mb-2">
+        <label
+          htmlFor={plateCountryId}
+          className="text-navy font-semibold text-sm block mb-2"
+        >
           {t.countryRegion}
         </label>
         <select
+          id={plateCountryId}
           value={plateCountry}
           onChange={(event) => onChangePlateCountry(event.target.value)}
           className="w-full h-12 border border-vborder rounded-xl px-4 text-navy text-sm focus:outline-none bg-white cursor-pointer"

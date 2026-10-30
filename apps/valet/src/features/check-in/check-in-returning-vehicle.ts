@@ -11,6 +11,7 @@ import {
   runVehicleRecognition,
 } from "./check-in-returning-mutations";
 import type {
+  CheckInActiveSession,
   CheckInVehicleData,
   CheckInVehicleDetailsDraft,
   CheckInState,
@@ -125,6 +126,51 @@ export function setKnownVehicleCorrection(
   });
 }
 
+async function refreshAfterCorrectionConflict(
+  context: ReturningCheckInActionContext,
+  session: CheckInActiveSession,
+): Promise<void> {
+  try {
+    const current = await rehydrateCreatedSession(context.client, session);
+    const recognized = context.getState().recognizedVehicle;
+    context.update({
+      activeSession: current,
+      correctionConflict: true,
+      error: null,
+      isSubmitting: false,
+      pendingCorrection: null,
+      pendingCorrectionExpectedAt: current.vehicleUpdatedAt,
+      pendingVehicle: current.vehicle,
+      recognizedVehicle: recognized
+        ? {
+            ...recognized,
+            ...current.vehicle,
+            vehicleUpdatedAt:
+              current.vehicleUpdatedAt ?? recognized.vehicleUpdatedAt,
+          }
+        : null,
+      step: "returning-vehicle",
+    });
+  } catch (error: unknown) {
+    const state = context.getState();
+    context.update({
+      correctionConflict: false,
+      error: errorMessage(error, "Failed to refresh vehicle details."),
+      isSubmitting: false,
+      // A rejected CAS token cannot authorize another correction until GET
+      // succeeds. Keep the draft only to route Continue through GET.
+      pendingCorrectionExpectedAt: null,
+      pendingVehicle: state.pendingVehicle
+        ? { ...state.pendingVehicle, color: null, make: null, model: null }
+        : null,
+      recognizedVehicle: state.recognizedVehicle
+        ? { ...state.recognizedVehicle, color: null, make: null, model: null }
+        : null,
+      step: "returning-vehicle",
+    });
+  }
+}
+
 async function correctPendingDetails(
   context: ReturningCheckInActionContext,
 ): Promise<void> {
@@ -153,29 +199,7 @@ async function correctPendingDetails(
     });
   } catch (error: unknown) {
     if (isVehicleDetailsConflict(error)) {
-      const current = await rehydrateCreatedSession(
-        context.client,
-        activeSession,
-      );
-      const recognized = context.getState().recognizedVehicle;
-      context.update({
-        activeSession: current,
-        correctionConflict: true,
-        error: null,
-        isSubmitting: false,
-        pendingCorrection: null,
-        pendingCorrectionExpectedAt: current.vehicleUpdatedAt,
-        pendingVehicle: current.vehicle,
-        recognizedVehicle: recognized
-          ? {
-              ...recognized,
-              ...current.vehicle,
-              vehicleUpdatedAt:
-                current.vehicleUpdatedAt ?? recognized.vehicleUpdatedAt,
-            }
-          : null,
-        step: "returning-vehicle",
-      });
+      await refreshAfterCorrectionConflict(context, activeSession);
       return;
     }
     context.update({
@@ -189,7 +213,18 @@ async function correctPendingDetails(
 export async function continueResolvedCheckIn(
   context: ReturningCheckInActionContext,
 ): Promise<void> {
-  if (context.getState().pendingCorrection) {
+  const state = context.getState();
+  if (state.isSubmitting) return;
+  if (
+    state.pendingCorrection &&
+    state.pendingCorrectionExpectedAt === null &&
+    state.activeSession
+  ) {
+    context.update({ error: null, isSubmitting: true });
+    await refreshAfterCorrectionConflict(context, state.activeSession);
+    return;
+  }
+  if (state.pendingCorrection) {
     await correctPendingDetails(context);
     return;
   }
@@ -232,7 +267,8 @@ export async function createPreIntakeSession(
     context.update({
       error: errorMessage(error, "Failed to create vehicle intake."),
       errorCode:
-        error instanceof EmployeeApiError && error.code === "LOCATION_INTAKE_STOPPED"
+        error instanceof EmployeeApiError &&
+        error.code === "LOCATION_INTAKE_STOPPED"
           ? error.code
           : null,
       isSubmitting: false,

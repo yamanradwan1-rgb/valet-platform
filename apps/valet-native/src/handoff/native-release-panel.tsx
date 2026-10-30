@@ -39,14 +39,32 @@ export function NativeReleasePanel({
   const copy = getNativeReleaseCopy(locale);
   const textAlign = locale === "ar" ? "right" : "left";
   const direction = locale === "ar" ? "rtl" : "ltr";
-  const method = snapshot.session?.handoff.verification?.method;
-  const methodLabel =
-    method === "SUPERVISOR_OVERRIDE"
-      ? copy.supervisorOverride
-      : method === "DYNAMIC_QR"
-        ? copy.dynamicQr
-        : copy.pickupCode;
-  const verifiedEyebrow = `${copy.identityVerified} · ${methodLabel}`;
+  const verification = snapshot.session?.handoff.verification;
+  const canShowVerification =
+    (snapshot.phase === "ready" || snapshot.phase === "releasing") &&
+    snapshot.block === null &&
+    snapshot.session?.state === "HANDOFF_PENDING" &&
+    snapshot.session.handoff.pendingAt !== null &&
+    verification?.status === "VERIFIED" &&
+    verification.verifiedAt !== null;
+  const method = canShowVerification ? verification.method : null;
+  const isSupervisorOverride = method === "SUPERVISOR_OVERRIDE";
+  const methodLabel = isSupervisorOverride
+    ? copy.supervisorOverride
+    : method === "DYNAMIC_QR"
+      ? copy.dynamicQr
+      : method === "PICKUP_CODE"
+        ? copy.pickupCode
+        : null;
+  const verifiedEyebrow = methodLabel
+    ? isSupervisorOverride
+      ? methodLabel
+      : `${copy.identityVerified} · ${methodLabel}`
+    : null;
+  const releaseBlocked =
+    snapshot.phase === "blocked" ||
+    ((snapshot.phase === "ready" || snapshot.phase === "releasing") &&
+      !verifiedEyebrow);
   const reportIssue =
     onReportIssue && snapshot.session
       ? () => onReportIssue(snapshot.session!.sessionId)
@@ -63,7 +81,13 @@ export function NativeReleasePanel({
         title={
           snapshot.phase === "released"
             ? copy.completedTitle
-            : copy.identityVerified
+            : releaseBlocked
+              ? copy.releaseBlocked
+              : verifiedEyebrow
+                ? isSupervisorOverride
+                  ? copy.supervisorOverride
+                  : copy.identityVerified
+                : copy.taskTitle
         }
       />
       <ScrollView contentContainerStyle={[s.body, { direction }]}>
@@ -75,7 +99,9 @@ export function NativeReleasePanel({
             eyebrow={
               snapshot.phase === "released"
                 ? copy.completedTitle
-                : verifiedEyebrow
+                : releaseBlocked
+                  ? copy.releaseBlocked
+                  : (verifiedEyebrow ?? copy.taskTitle)
             }
             snapshot={snapshot}
             supporting={
@@ -84,7 +110,8 @@ export function NativeReleasePanel({
             textAlign={textAlign}
           />
         ) : null}
-        {snapshot.phase === "ready" || snapshot.phase === "releasing" ? (
+        {(snapshot.phase === "ready" || snapshot.phase === "releasing") &&
+        verifiedEyebrow ? (
           <>
             {snapshot.failure ? (
               <EmployeeError textAlign={textAlign}>
@@ -140,10 +167,7 @@ export function NativeReleasePanel({
         snapshot.phase === "conflict" ||
         snapshot.phase === "unavailable" ? (
           <>
-            <EmployeeErrorNotice
-              textAlign={textAlign}
-              title={copy.releaseBlocked}
-            >
+            <EmployeeErrorNotice textAlign={textAlign} title={copy.taskTitle}>
               {snapshot.phase === "ambiguous"
                 ? copy.unknownBody
                 : snapshot.phase === "conflict"

@@ -34,7 +34,12 @@ export interface ParkingFlowProps {
   readonly taskVersion?: number | null | undefined;
 }
 
-export function ParkingFlow({
+export function ParkingFlow(props: ParkingFlowProps): JSX.Element | null {
+  const targetIdentity = `${props.initialSession?.sessionId ?? props.sessionId ?? ""}:${props.initialSession?.taskId ?? props.taskId ?? ""}`;
+  return <ParkingFlowContent key={targetIdentity} {...props} />;
+}
+
+function ParkingFlowContent({
   nav,
   initialSession = null,
   mode = "live",

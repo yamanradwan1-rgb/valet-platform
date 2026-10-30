@@ -67,9 +67,7 @@ export function NativeCheckInIdentityContext({
             country={snapshot.vehicle.plateCountry}
             copy={copy}
             prefix={
-              presentation === "camera"
-                ? copy.highConfidence
-                : copy.enteredPlate
+              presentation === "camera" ? copy.plate : copy.enteredPlate
             }
             textAlign={textAlign}
           />
