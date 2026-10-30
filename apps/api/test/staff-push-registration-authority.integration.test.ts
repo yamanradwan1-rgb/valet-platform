@@ -11,12 +11,17 @@ describe("Staff push registration transport and authority", () => {
   it("rejects missing and malformed bearer credentials without writes", async () => {
     const body = fixture.requestBody();
     const snapshot = () =>
-      fixture.query(
+      fixture.query<{ readonly id: string; readonly installation_id: string }>(
         "SELECT *, xmin::text AS row_version FROM staff_push_registrations ORDER BY created_at, id",
       );
-    const expectRejectedWithoutWrites = async (existingCount: number) => {
+    const expectRejectedWithoutWrites = async (seededId?: string) => {
       const before = (await snapshot()).rows;
-      expect(before).toHaveLength(existingCount);
+      expect(
+        before.some((row) => row.installation_id === body.installationId),
+      ).toBe(false);
+      if (seededId !== undefined) {
+        expect(before.some((row) => row.id === seededId)).toBe(true);
+      }
 
       const missing = await fixture.request("/v1/staff/push/registrations", {
         body,
@@ -34,7 +39,7 @@ describe("Staff push registration transport and authority", () => {
       expect((await snapshot()).rows).toEqual(before);
     };
 
-    await expectRejectedWithoutWrites(0);
+    await expectRejectedWithoutWrites();
 
     const auth = await fixture.login();
     const seeded = await fixture.put(auth, fixture.requestBody());
@@ -42,7 +47,7 @@ describe("Staff push registration transport and authority", () => {
     const seededId = fixture.registrationId(seeded);
 
     try {
-      await expectRejectedWithoutWrites(1);
+      await expectRejectedWithoutWrites(seededId);
     } finally {
       const removed = await fixture.query(
         "DELETE FROM staff_push_registrations WHERE id = $1 AND staff_auth_session_id = $2",
