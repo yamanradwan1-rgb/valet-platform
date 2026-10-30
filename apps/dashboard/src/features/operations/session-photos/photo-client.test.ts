@@ -44,7 +44,7 @@ describe("#309 protected photo adapter", () => {
     expect(requestBinary).toHaveBeenCalledTimes(1);
   });
 
-  it("rejects disguised, truncated, oversized or malformed JPEGs without returning a Blob", async () => {
+  it("rejects disguised, truncated or incorrectly typed JPEGs without returning a Blob", async () => {
     const requestBinary = vi.fn().mockResolvedValue({
       bytes: new Uint8Array([0x89, 0x50, 0x4e, 0x47]),
       contentType: "image/jpeg",
@@ -58,6 +58,39 @@ describe("#309 protected photo adapter", () => {
       filename: "",
     });
     await expect(client.read(locationId, sessionId, photoId, new AbortController().signal)).rejects.toThrow("JPEG");
+    requestBinary.mockResolvedValueOnce({
+      bytes: new Uint8Array([0xff, 0xd8, 0x10, 0xff, 0xd9]),
+      contentType: "image/png",
+      filename: "",
+    });
+    await expect(client.read(locationId, sessionId, photoId, new AbortController().signal)).rejects.toThrow("JPEG");
+  });
+
+  it("accepts exactly 8 MiB and rejects an oversized marker-valid JPEG", async () => {
+    const maxBytes = 8 * 1024 * 1024;
+    const bytes = new Uint8Array(maxBytes + 1);
+    bytes.set([0xff, 0xd8], 0);
+    bytes.set([0xff, 0xd9], maxBytes - 2);
+    let responseBytes: Uint8Array = bytes.subarray(0, maxBytes);
+    const requestBinary = vi.fn(async () => ({
+      bytes: responseBytes,
+      contentType: "image/jpeg",
+      filename: "",
+    }));
+    const client = makeSessionPhotoTransport({ requestBinary } as unknown as DashboardApiClient);
+    const signal = new AbortController().signal;
+
+    const boundary = await client.read(locationId, sessionId, photoId, signal);
+    expect(boundary.type).toBe("image/jpeg");
+    expect(boundary.size).toBe(maxBytes);
+
+    bytes.set([0xff, 0xd9], maxBytes - 1);
+    responseBytes = bytes;
+    expect(responseBytes.byteLength).toBe(maxBytes + 1);
+    expect(responseBytes.subarray(0, 2)).toEqual(new Uint8Array([0xff, 0xd8]));
+    expect(responseBytes.subarray(-2)).toEqual(new Uint8Array([0xff, 0xd9]));
+    await expect(client.read(locationId, sessionId, photoId, signal)).rejects.toThrow("JPEG");
+    expect(requestBinary).toHaveBeenCalledTimes(2);
   });
 
   it("never distinguishes protected 401/403/404 or credential changes in UI state", () => {
