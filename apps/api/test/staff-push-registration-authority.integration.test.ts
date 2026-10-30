@@ -9,23 +9,41 @@ afterAll(() => fixture.stop(), 60_000);
 
 describe("Staff push registration transport and authority", () => {
   it("rejects missing and malformed bearer credentials without writes", async () => {
+    const auth = await fixture.login();
+    const seeded = await fixture.put(auth, fixture.requestBody());
+    expect(seeded.status).toBe(200);
+    const seededId = fixture.registrationId(seeded);
     const body = fixture.requestBody();
-    const before = (await fixture.registrations()).rows;
 
-    const missing = await fixture.request("/v1/staff/push/registrations", {
-      body,
-      method: "PUT",
-    });
-    expect(missing.status).toBe(401);
-    expect((await fixture.registrations()).rows).toEqual(before);
+    try {
+      const snapshot = () =>
+        fixture.query(
+          "SELECT * FROM staff_push_registrations ORDER BY created_at, id",
+        );
+      const before = (await snapshot()).rows;
+      expect(before).toHaveLength(1);
 
-    const malformed = await fixture.request("/v1/staff/push/registrations", {
-      authorization: "Bearer malformed",
-      body,
-      method: "PUT",
-    });
-    expect(malformed.status).toBe(401);
-    expect((await fixture.registrations()).rows).toEqual(before);
+      const missing = await fixture.request("/v1/staff/push/registrations", {
+        body,
+        method: "PUT",
+      });
+      expect(missing.status).toBe(401);
+      expect((await snapshot()).rows).toEqual(before);
+
+      const malformed = await fixture.request("/v1/staff/push/registrations", {
+        authorization: "Bearer malformed",
+        body,
+        method: "PUT",
+      });
+      expect(malformed.status).toBe(401);
+      expect((await snapshot()).rows).toEqual(before);
+    } finally {
+      const removed = await fixture.query(
+        "DELETE FROM staff_push_registrations WHERE id = $1 AND staff_auth_session_id = $2",
+        [seededId, auth.sessionId],
+      );
+      expect(removed.rowCount).toBe(1);
+    }
   });
 
   it("creates one safe ACTIVE registration for the exact bearer session", async () => {
