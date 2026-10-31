@@ -23,14 +23,13 @@ export function FieldEditor({
   inherited: boolean;
   onClose: (saved?: boolean) => void;
 }) {
-  const { locale, route, save, setDirty, identity, adapter } =
-    useStudio();
-  const defaults = field.section === "presence"
-    ? adapter.presence.values.defaults
-    : adapter.settings.defaults;
-  const moneyCurrency = route.scope === "location"
-    ? adapter.location?.currency
-    : null;
+  const { locale, route, save, setDirty, identity, adapter } = useStudio();
+  const defaults =
+    field.section === "presence"
+      ? adapter.presence.values.defaults
+      : adapter.settings.defaults;
+  const moneyCurrency =
+    route.scope === "location" ? adapter.location?.currency : null;
   const ar = locale === "ar";
   const copy = ui[locale];
   const [draft, setDraft] = useState(String(effective ?? ""));
@@ -39,9 +38,20 @@ export function FieldEditor({
   const [strict, setStrict] = useState(false);
   const [strictClear, setStrictClear] = useState(false);
   const [saving, setSaving] = useState(false);
-  const busy = saving || (field.section === "presence"
-    ? adapter.presence.busy
-    : adapter.settings.busy);
+  const values =
+    field.section === "presence" ? adapter.presence.values : adapter.settings;
+  const currentFieldState = JSON.stringify([
+    values.defaults[field.key],
+    values.overrides[field.key],
+    values.effective[field.key],
+    values.overridePresent[field.key],
+  ]);
+  const initialFieldState = useRef(currentFieldState);
+  const busy =
+    saving ||
+    (field.section === "presence"
+      ? adapter.presence.busy
+      : adapter.settings.busy);
   const input = useRef<HTMLSelectElement & HTMLInputElement>(null);
   const isLocation = route.scope === "location";
   const locationOnly = field.key === "slaTargetSeconds";
@@ -56,6 +66,14 @@ export function FieldEditor({
   }, [changed, setDirty]);
   async function finish(clear = false, strictConfirmed = false) {
     if (busy) return;
+    if (initialFieldState.current !== currentFieldState) {
+      setError(
+        ar
+          ? "تغيّرت القيمة على الخادم أثناء التحرير. أغلق المحرّر وحدّث الصفحة ثم أعد المحاولة."
+          : "This setting changed while you were editing. Close the editor, refresh, and retry.",
+      );
+      return;
+    }
     const value = parseField(field, draft);
     if (!clear && source !== "inherit" && value === undefined) {
       setError(copy.invalid);
@@ -72,13 +90,19 @@ export function FieldEditor({
       if (!result.ok) {
         setError(
           result.message ??
-            (ar ? "تعذّر حفظ الإعداد. راجع الصلاحية والبيانات ثم حاول مجددًا." : "Setting not saved. Check the values and permissions, then retry."),
+            (ar
+              ? "تعذّر حفظ الإعداد. راجع الصلاحية والبيانات ثم حاول مجددًا."
+              : "Setting not saved. Check the values and permissions, then retry."),
         );
         return;
       }
       onClose(true);
     } catch {
-      setError(ar ? "تعذّر حفظ الإعداد. حاول مجددًا." : "Setting not saved. Please retry.");
+      setError(
+        ar
+          ? "تعذّر حفظ الإعداد. حاول مجددًا."
+          : "Setting not saved. Please retry.",
+      );
     } finally {
       setSaving(false);
     }
