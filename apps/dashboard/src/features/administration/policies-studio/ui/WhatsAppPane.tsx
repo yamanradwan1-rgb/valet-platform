@@ -67,8 +67,8 @@ export function WhatsAppPane() {
         </strong>
         <p>
           {ar
-            ? "حفظ السياسة لا يربط ميتا ولا يرسل رسائل. موافقة المستلم والربط والقوالب والتحقق من الرابط شروط مستقلة. لا يوجد قالب أو رقم معتمد في هذه البيانات التجريبية."
-            : "Saving a policy does not connect Meta or send messages. Recipient opt-in, onboarding, templates and link verification are separate gates. This fixture has no approved template or verified sender."}
+            ? "حفظ السياسة لا يربط ميتا ولا يرسل رسائل. موافقة المستلم والربط والقوالب والتحقق من الرابط شروط مستقلة. تظهر القوالب والأرقام المعتمدة المتاحة في القوائم أدناه."
+            : "Saving a policy does not connect Meta or send messages. Recipient opt-in, onboarding, templates and link verification are separate gates. Available approved templates and verified senders appear below."}
         </p>
       </div>
       {editing ? (
@@ -249,8 +249,8 @@ export function WhatsAppPane() {
             </p>
             <p>
               {ar
-                ? "تُحفظ الحقول كسياسة واحدة. التفعيل يتطلب قالبًا وربطًا صالحين؛ الحفظ لا يشغّل الإرسال ولا يثبت موافقة المستلم. جميع الإجراءات هنا محلية وتجريبية."
-                : "Fields save as one policy. Enabling requires a valid template and binding; saving does not activate sending or prove recipient consent. Every action here is local and synthetic."}
+                ? "تُحفظ الحقول كسياسة واحدة. التفعيل يتطلب قالبًا وربطًا صالحين؛ الحفظ لا يشغّل الإرسال ولا يثبت موافقة المستلم."
+                : "Fields save as one policy. Enabling requires a valid template and binding; saving does not activate sending or prove recipient consent."}
             </p>
             <Button variant="secondary" onClick={() => setHelp(false)}>
               {ar ? "إغلاق" : "Close"}

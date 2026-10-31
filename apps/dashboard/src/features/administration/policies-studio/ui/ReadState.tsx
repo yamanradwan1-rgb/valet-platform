@@ -51,8 +51,8 @@ export function ReadState({ children }: { children?: ReactNode }) {
         <div className="ps-skeleton" />
         <Button variant="secondary" onClick={() => void adapter.reload()}>
           {locale === "ar"
-            ? "إكمال التحميل التجريبي"
-            : "Complete simulated load"}
+            ? "إعادة التحميل"
+            : "Reload"}
         </Button>
       </div>
     );

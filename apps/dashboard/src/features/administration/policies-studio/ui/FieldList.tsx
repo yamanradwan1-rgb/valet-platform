@@ -121,8 +121,8 @@ export function FieldList({ fields }: { fields: Field[] }) {
               <p className="ps-row-saved">
                 <CheckCircle2 size={14} aria-hidden="true" />
                 {locale === "ar"
-                  ? "تم الحفظ في المعاينة."
-                  : "Saved in this preview."}
+                  ? "تم حفظ الإعداد."
+                  : "Setting saved."}
               </p>
             )}
           </article>

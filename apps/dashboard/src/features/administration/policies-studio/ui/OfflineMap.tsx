@@ -32,8 +32,8 @@ export function OfflineMap({
       <div className="ps-map-caption">
         <span>
           {ar
-            ? "خريطة إحداثيات تجريبية · دون اتصال"
-            : "Synthetic coordinate map · offline"}
+            ? "مخطط مناطق توضيحي · غير مقياسي"
+            : "Illustrative zone plan · not to scale"}
         </span>
         <bdi>
           {center.lat.toFixed(4)}, {center.lng.toFixed(4)}
@@ -44,8 +44,8 @@ export function OfflineMap({
         role="img"
         aria-label={
           ar
-            ? "مخطط موقع تجريبي لمناطق الحضور"
-            : "Synthetic site plan of attendance zones"
+            ? "رسم توضيحي لمناطق الحضور"
+            : "Illustrative attendance zone diagram"
         }
         onClick={(event) => {
           if (!editable) return;
@@ -101,10 +101,10 @@ export function OfflineMap({
           className="ps-map-building"
         />
         <text x="365" y="73" className="ps-map-label">
-          {ar ? "مبنى تجريبي" : "Demo building"}
+          {ar ? "مبنى" : "Building"}
         </text>
         <text x="104" y="94" className="ps-map-label">
-          {ar ? "ساحة تجريبية" : "Demo court"}
+          {ar ? "ساحة" : "Court"}
         </text>
         {zones
           .filter((zone) => zone.id !== selected?.id)
@@ -180,8 +180,8 @@ export function OfflineMap({
       ) : null}
       <p>
         {ar
-          ? "الرسم تخطيطي والمباني تجريبية. الإحداثيات قد تُدخل يدويًا أو تؤخذ من المتصفح؛ الدائرة ليست قياس مسافة جغرافيًا."
-          : "Offline schematic with synthetic buildings. Coordinates may be entered or supplied by the browser; the circle is not a geographic distance measurement."}
+          ? "المباني توضيحية وليست خريطة جغرافية. أدخل الإحداثيات أو احصل عليها من المتصفح وتحقق منها قبل الحفظ؛ الدائرة لا تقيس المسافة الفعلية."
+          : "Building outlines are illustrative, not a geographic map. Enter or retrieve coordinates and verify them before saving; circles do not measure real distance."}
       </p>
     </div>
   );

@@ -10,8 +10,8 @@ export function PresenceReadiness() {
     <details className="ps-editor-context">
       <summary>
         {ar
-          ? "جاهزية إعداد الحضور · محاكاة محلية"
-          : "Presence setup readiness · local simulation"}
+          ? "جاهزية إعداد الحضور"
+          : "Presence setup readiness"}
       </summary>
       <div className="ps-related">
         <p>
@@ -21,11 +21,11 @@ export function PresenceReadiness() {
               : "Not applicable — Start and End modes are Off."
             : state.state === "READY"
               ? ar
-                ? "توجد منطقة حضور نشطة صالحة في بيانات النموذج."
-                : "A usable active attendance zone exists in the fixture."
+                ? "جاهز — تستوفي إعدادات الحضور المحفوظة شروط الجاهزية."
+                : "Ready — saved attendance setup meets readiness checks."
               : ar
-                ? "غير جاهز — احفظ منطقة حضور نشطة قبل اختيار وضع إلزامي."
-                : "Not ready — save an active attendance zone before choosing a strict mode."}
+                ? "غير جاهز — راجع السياسات والمناطق النشطة وأسباب عدم الجاهزية."
+                : "Not ready — review policies, active zones and readiness blockers."}
         </p>
         <ContextHelp
           helpKey="presence.readiness"
@@ -35,8 +35,8 @@ export function PresenceReadiness() {
       </div>
       <p className="ps-inline-note">
         {ar
-          ? "هذه قراءة للبيانات المحلية فقط؛ الخادم هو صاحب القرار في الإنتاج."
-          : "This reads local fixture data only; production readiness remains server-authoritative."}
+          ? "تستند الجاهزية إلى السياسات والمناطق المحفوظة. يُعاد التحقق عند إجراءات المناوبة."
+          : "Readiness reflects saved policies and zones. Shift actions check again."}
       </p>
     </details>
   );

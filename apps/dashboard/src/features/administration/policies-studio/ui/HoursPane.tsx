@@ -97,7 +97,7 @@ export function HoursPane() {
           <CalendarDays size={17} aria-hidden="true" />
           <span>
               {isLocation
-              ? (adapter.hours.timezone ?? "Asia/Amman")
+              ? (adapter.hours.timezone ?? (ar ? "المنطقة الزمنية للموقع" : "Location timezone"))
               : ar
                 ? "الأوقات المحلية لكل موقع"
                 : "Local times at each location"}

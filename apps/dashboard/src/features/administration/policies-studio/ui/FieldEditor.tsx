@@ -223,8 +223,8 @@ export function FieldEditor({
         </div>
         <small className="ps-inline-note">
           {ar
-            ? "تظل القيمة الفعلية المحفوظة كما هي إلى أن تحفظ التغيير. الحفظ محلي فقط."
-            : "The saved effective value stays in use until you save. Saves are local only."}
+            ? "تبقى القيمة المحفوظة سارية حتى نجاح الحفظ."
+            : "The saved value remains effective until Save succeeds."}
         </small>
       </form>
       {strict && (
@@ -240,8 +240,8 @@ export function FieldEditor({
             </h2>
             <p>
               {ar
-                ? "في الإنتاج يتطلب الوضع الإلزامي مناطق وجاهزية محفوظة. هذه محاكاة تصميم فقط ولا تثبت الجاهزية."
-                : "In production, strict modes require saved zones and current readiness. This design simulation does not prove readiness."}
+                ? "يتطلب الوضع الإلزامي مناطق حضور صالحة. يتحقق الخادم من الجاهزية قبل الحفظ."
+                : "Strict modes require valid attendance zones. The server checks readiness before saving."}
             </p>
             <div className="ps-actions">
               <Button variant="secondary" onClick={() => setStrict(false)}>
@@ -253,7 +253,7 @@ export function FieldEditor({
                   void finish(strictClear, true);
                 }}
               >
-                {ar ? "حفظ المحاكاة" : "Save simulation"}
+                {copy.save}
               </Button>
             </div>
           </div>
