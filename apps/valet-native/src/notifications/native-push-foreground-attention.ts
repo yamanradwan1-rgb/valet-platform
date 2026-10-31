@@ -1,5 +1,7 @@
 import { parseNativePushWirePayload } from "./native-push-payload";
 
+const maxForegroundIntentIds = 64;
+
 export class NativePushForegroundAttentionOwner {
   private active = false;
   private readonly intentIds = new Set<string>();
@@ -18,6 +20,10 @@ export class NativePushForegroundAttentionOwner {
     const payload = parseNativePushWirePayload(data);
     if (payload === null || this.intentIds.has(payload.intentId))
       return undefined;
+    if (this.intentIds.size >= maxForegroundIntentIds) {
+      const oldest = this.intentIds.values().next().value;
+      if (oldest !== undefined) this.intentIds.delete(oldest);
+    }
     this.intentIds.add(payload.intentId);
     return [...this.intentIds];
   }
