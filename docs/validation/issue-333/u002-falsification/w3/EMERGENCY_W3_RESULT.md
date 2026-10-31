@@ -1,0 +1,35 @@
+# Issue #333 / U-002 W3 emergency — real PostgreSQL 17 falsification
+
+**Result: RED for reader-first protected HTTP delivery after canonical emergency global User disable.** The post-commit fresh request, queued new admission, disconnected reader and exact-operation retry had narrower PASS outcomes. This result **does not approve** an implementation or weaken DEC-081; U-002 remains NO-GO for an unproved delivery fence. No runtime/API/UI/schema/migration/configuration was changed.
+
+## Reproducible identity and execution
+
+- Worktree/branch: `tmp/issue-333-u002-falsif-w3-emergency`, `audit/issue-333-u002-falsif-w3-emergency`; initial HEAD `a4f5f2c6589b6be01b7db99cac4e6829986007f1`.
+- Dependency install: `pnpm install --offline --frozen-lockfile` **exit 0**, 1043 packages from local store, 0 downloads. `pnpm --filter @valet/contracts build` and `pnpm --filter @valet/api build` both **exit 0**. Existing `pnpm` install ignored `argon2` and `@scarf/scarf` build scripts; the authenticated fixture nonetheless ran to completion.
+- Exact harness: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validation/issue333/run-owned-postgres.ps1 -Suite issue333 -TestFile test/dashboard-issue333-u002-emergency.integration.test.ts`.
+- Private run ID: `7b5f093c900d4f46b4d3bc0c92bebec4`. Independent `identity.txt`: `current_database=postgres`, `current_user=issue315_owner`, port `61114`, PostgreSQL `server_version_num=170011`. Data directory exclusively under this worktree: `tmp/issue-315-pg-qa/issue319-7b5f093c900d4f46b4d3bc0c92bebec4/.issue315-private-cluster`.
+- Test-created child DB: `valet_mob007_auth_27932_8c9edb7d`. Existing fixture verifies child runtime role is neither superuser, CREATEDB nor CREATEROLE. The independent compiled Nest HTTP process OS PIDs were **29376** (held reader) and **19172** (fresh reader); canonical operator CLI OS PIDs were **5644** (first disable), **24964** (exact replay), **30044** (disconnect disable) and **23628** (queued disable). PostgreSQL holder/independent witness backend PID **28184**.
+- Local raw evidence: `tmp/issue-333-w6-evidence/7b5f093c900d4f46b4d3bc0c92bebec4/{identity.txt,tests.txt}`. Only synthetic data and sanitized timestamps/identities are copied here. No authentication token, password, connection string or real customer data is recorded.
+
+## Ordered evidence
+
+All UTC instants below are emitted by the test process or real API child processes; `finish` and `close` are actual Node `ServerResponse` events. CLI exit is **strictly after** the canonical SQL `COMMIT` statement returns; its exact transaction commit instant was not instrumented. Independent post-CLI SQL confirms the committed state before reader release.
+
+| Schedule | Observed causal order / witness | Classification |
+| --- | --- | --- |
+| Reader-first, paused after actual SQL | API A gate `22:48:31.142`; CLI PID 5644 started `22:48:31.394`; CLI exited successfully `22:48:33.655`; independent DB witness User `DISABLED`, session revoked, one `STAFF_USER_SECURITY_DISABLED` audit before API release `22:48:33.806`; API A `finish` `22:48:33.815`, HTTP **200**, synthetic private Location name present in response body | **RED**, concrete current-access disclosure after emergency disable COMMIT |
+| Emergency-first / fresh process | API B GET only after prior CLI exit and committed DB witness; HTTP `finish` `22:48:33.832`, status **401**, no private Location name | **PASS**, fresh admission only |
+| Delayed reader | Reader A was held for at least 250 ms after SQL and before HTTP serialization; supported CLI still committed while A waited, followed by private delivery | **RED** for this process-local delay; socket backpressure/bytes-already-buffered schedule **UNVERIFIED** |
+| Disconnect | Different active reader's client `AbortError`; real API A `close` `22:48:36.197` with `writableFinished=false`; supported disable CLI exited `22:48:37.234`, persisted disabled session; after releasing test gate, no subsequent `finish` for that trace | **PASS** for this abort-before-delivery schedule; not a packet-loss or hard-kill proof |
+| Suppressed success acknowledgment | First successful CLI stdout was intentionally drained without parsing; same operationId/operator/User replay via CLI PID 24964 exited `22:48:34.756`; independent SQL still counted one account security audit, User `DISABLED` and session revoked | **PASS** for consumer-lost output and canonical idempotent retry; true PostgreSQL COMMIT-ACK loss **UNVERIFIED** |
+| Queued admission behind emergency writer | Test-owned PG PID 28184 holds the exact `staff-user-security` advisory key (`classid=3101930353`, `objid=3890546380`, `objsubid=1`); CLI writer PG waiter PID 14436 blocked by `[28184]`; fresh HTTP reader PG waiter PID 25348 blocked by `[28184,14436]`. After test lock release, canonical CLI PID 23628 exited `22:48:39.336`; B returned **401**, no private data and DB showed User disabled/session revoked | **PASS** for that exact key, blocker graph and post-commit denial |
+
+The synthetic private sentinel was a test-created Location name, never an external person's data. The reader-first test deliberately asserts that this sentinel cannot be delivered after disable and therefore failed at `dashboard-issue333-u002-emergency.integration.test.ts:229` with the observed response body. The entire test file ran through the other scenarios before that final assertion: Vitest **1 failed / 1 total**, command exit **1**. The RED is an observed contract violation, not an infrastructure or assertion setup error.
+
+## Safety, cleanup and limits
+
+- Runner printed `server stopped`, `exit=1 removed=True`. Task-created PostgreSQL 17 cluster and child DB/runtime role were released by existing safe test/runner cleanup; the ignored sanitized logs remain. No production/shared QA, historical W3 artifact or Owner worktree was used or deleted.
+- The unsupported mutation path was never used. All User disables went through `tools/security-disable-staff.ts` → `executeControlledSecurityDisable` → `persistControlledSecurityDisable` transaction. The one test-only SQL advisory holder changes no User, grant, role, audit or schema value.
+- This is an authenticated, full compiled Nest integration over two independent API OS processes, not an in-memory mocked endpoint. The injected pause exists only in a spawned test helper **after** production service SQL resolves; it is not production runtime modification.
+- The run does **not** prove emergency blocking for all protected routes, continuous socket backpressure, packet drops, process hard kill, true COMMIT acknowledgment loss, role/membership disable or arbitrary transport delays. The original U-001 LocationAccess revocation RED remains a separate contract and is not replaced by this emergency result.
+- DEC-081 `:19-28` and DEC-108 `:60-75` make emergency User disable a stricter current-access contract than ordinary grant revoke. This W3 result falsifies treating successful fresh denial or transaction-scoped User locks as sufficient for an already-read, not-yet-delivered protected response.
