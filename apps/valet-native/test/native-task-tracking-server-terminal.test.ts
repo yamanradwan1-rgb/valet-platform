@@ -102,7 +102,7 @@ function fixture(type: "PARKING" | "RETRIEVAL") {
     transport: { upload: vi.fn() },
   });
   const completion = {
-    current: () => ({ phase: "retrieving" }),
+    current: () => ({ phase: type === "PARKING" ? "spot" : "retrieving" }),
     subscribe: (listener: (snapshot: unknown) => void) => {
       completionListeners.add(listener);
       return () => void completionListeners.delete(listener);
