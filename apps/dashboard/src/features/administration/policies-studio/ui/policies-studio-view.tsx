@@ -145,14 +145,24 @@ export function PoliciesStudioView({
   }, [dirty, adapter.locale]);
 
   useEffect(() => {
-    if (!route.setting) return;
-    const target = document.querySelector<HTMLElement>(
-      `[data-setting="${route.setting}"]`,
-    );
-    if (!target) return;
-    target.scrollIntoView({ block: "center" });
-    const button = target.querySelector<HTMLButtonElement>(".ps-edit-button");
-    button?.focus({ preventScroll: true });
+    const frame = requestAnimationFrame(() => {
+      const target = route.setting
+        ? document.querySelector<HTMLElement>(
+            `[data-setting="${route.setting}"]`,
+          )
+        : null;
+      if (!target) {
+        document
+          .getElementById("studio-heading")
+          ?.focus({ preventScroll: true });
+        return;
+      }
+      target.scrollIntoView({ block: "center" });
+      const button = target.querySelector<HTMLButtonElement>(".ps-edit-button");
+      if (button) button.focus({ preventScroll: true });
+      else target.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
   }, [route.setting, identity]);
 
   function navigate(patch: Partial<StudioRoute>) {
