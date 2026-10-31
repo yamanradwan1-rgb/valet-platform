@@ -108,7 +108,9 @@ manifest and architecture command evidence.
 Focused tests cover real PostgreSQL authority, two-principal object isolation,
 role/Location/Shift boundaries, active Task/tracker rejection, separate immutable
 segments, cursor bounds, inactive status/session revocation and concurrent
-revocation. HTTP tests use real bearer/session resolvers and the runtime role.
+revocation. The new HTTP test uses real bearer/session resolvers and the runtime role.
+The retained legacy sample transport test stubs principal resolution against a
+real PostgreSQL query.
 Browser tests run the actual Dashboard with isolated API fixtures: explicit-open
 loading, bounded pagination, failed-page discard/retry, denial, cancellation,
 focus restoration, responsive layouts and bilingual/theme keyboard behavior.

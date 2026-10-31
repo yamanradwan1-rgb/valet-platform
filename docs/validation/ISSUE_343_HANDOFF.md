@@ -90,9 +90,10 @@ session revocation; active Task with an old ended segment; active tracker even
 with an inconsistent completed Task; independent immutable recordings and
 Task-bound pagination. Concurrent tests prove grant deletion waits for a read,
 a waiting reader observes writer COMMIT versus ROLLBACK, and Location disabling
-uses the compatible lifecycle-before-row lock order. Real HTTP tests use actual
+uses the compatible lifecycle-before-row lock order. The new HTTP test uses actual
 stored bearer hashes, current-session resolution, the runtime database role,
-request IDs, bounded validation and concealed errors.
+request IDs, bounded validation and concealed errors. The retained legacy sample
+transport test stubs its principal resolver while still querying real PostgreSQL.
 
 Privacy boundaries: no new GPS ingestion, collection policy, retention duration,
 cleanup job, guest response, export, public link, logging, metric or audit
@@ -288,9 +289,9 @@ Architecture baseline: unchanged. Full file manifest follows.
 | added | `apps/dashboard/src/features/operations/tasks/route-history/route-viewer.tsx` | 129 |
 | added | `apps/dashboard/src/features/operations/tasks/route-history/sample-inspector.tsx` | 115 |
 | modified | `apps/dashboard/src/features/operations/tasks/task-drawer.tsx` | 109 |
-| added | `docs/validation/ISSUE_343_HANDOFF.md` | 319 |
+| added | `docs/validation/ISSUE_343_HANDOFF.md` | 320 |
 | added | `docs/validation/ISSUE_343_IMPLEMENTATION_PLAN.md` | 153 |
-| added | `docs/validation/ISSUE_343_SOURCE_REVIEW.md` | 143 |
+| added | `docs/validation/ISSUE_343_SOURCE_REVIEW.md` | 145 |
 | modified | `packages/contracts/src/index.ts` | 99 |
 | added | `packages/contracts/src/task-route-recordings.test.ts` | 47 |
 | added | `packages/contracts/src/task-route-recordings.ts` | 33 |
