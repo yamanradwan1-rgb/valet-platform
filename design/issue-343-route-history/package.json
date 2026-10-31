@@ -1,0 +1,6 @@
+{
+  "name": "vaylet-route-history-design",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "node preview.mjs", "build": "node preview.mjs build", "typecheck": "node check.mjs" }
+}

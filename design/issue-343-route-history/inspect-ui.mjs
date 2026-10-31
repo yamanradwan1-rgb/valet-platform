@@ -1,0 +1,18 @@
+import { createRequire } from 'node:module';
+import { mkdir } from 'node:fs/promises';
+const require = createRequire('D:/kndoom/valet-platform/apps/dashboard/package.json');
+const { chromium } = require('@playwright/test');
+await mkdir(new URL('./screenshots', import.meta.url), { recursive: true });
+const browser = await chromium.launch({ headless: false });
+const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+page.on('pageerror', (error) => console.log('PAGE ERROR', error.message));
+page.on('console', (message) => { if (message.type() === 'error') console.log('CONSOLE', message.text()); });
+await page.goto('http://127.0.0.1:4343/');
+await page.getByRole('button', { name: 'Details: Parking', exact: true }).first().click();
+await page.getByRole('button', { name: 'View Route', exact: true }).waitFor();
+await page.screenshot({ path: new URL('./screenshots/route-section.png', import.meta.url).pathname.replace(/^\/(\w:)/, '$1'), fullPage: true });
+await page.getByRole('button', { name: 'View Route', exact: true }).click();
+await page.getByRole('group', { name: 'Recorded GPS coordinate map' }).waitFor();
+await page.screenshot({ path: new URL('./screenshots/route-viewer.png', import.meta.url).pathname.replace(/^\/(\w:)/, '$1'), fullPage: true });
+console.log('Viewer opened:', await page.getByRole('dialog').count());
+await browser.close();
