@@ -1,0 +1,126 @@
+@media (max-width: 1200px) {
+  .ps-layout {
+    grid-template-columns: 180px minmax(0, 1fr);
+    gap: 1.25rem;
+  }
+  .ps-pane-header {
+    padding: 1.5rem;
+  }
+  .ps-pane-body {
+    padding-inline: 1.5rem;
+  }
+  .ps-scope-note {
+    padding-inline: 1.5rem;
+  }
+  .ps-setting-summary {
+    grid-template-columns: minmax(0, 1fr) minmax(6rem, 0.45fr) auto;
+    gap: 0.75rem;
+  }
+  .ps-edit-button span {
+    display: none;
+  }
+}
+@media (max-width: 900px) {
+  .ps-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+  .ps-section-index {
+    padding: 0;
+  }
+  .ps-index-label,
+  .ps-index-foot {
+    display: none;
+  }
+  .ps-mobile-index {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0.75rem;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    text-align: start;
+    gap: 1rem;
+    font-weight: 600;
+    font-size: 0.8125rem;
+    cursor: pointer;
+  }
+  .ps-section-links {
+    display: none;
+    margin-block-start: 0.5rem;
+    padding: 0.375rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--surface);
+  }
+  .ps-section-links[data-open="true"] {
+    display: grid;
+  }
+  .ps-section-links a[aria-current="page"] {
+    background: var(--accent-soft);
+  }
+  .ps-context-bar {
+    flex-wrap: wrap;
+    padding-block-end: 1rem;
+  }
+  .ps-context-name {
+    text-align: start;
+  }
+}
+@media (max-width: 540px) {
+  .ps-scope-switch {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    width: 100%;
+  }
+  .ps-scope-switch button {
+    padding-inline: 0.5rem;
+    font-size: 0.6875rem;
+    line-height: 1.5;
+  }
+  .ps-scope-switch button svg {
+    display: none;
+  }
+  .ps-scope-switch button:only-child {
+    grid-column: 1 / -1;
+  }
+  .ps-pane-header {
+    padding: 1.25rem;
+  }
+  .ps-pane h2 {
+    font-size: 1.125rem;
+  }
+  .ps-pane-body {
+    padding-inline: 1.25rem;
+  }
+  .ps-scope-note {
+    padding-inline: 1.25rem;
+  }
+  .ps-setting-summary {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+  }
+  .ps-setting-copy {
+    grid-column: 1 / -1;
+  }
+  .ps-setting-value {
+    text-align: start;
+  }
+  .ps-setting-tools {
+    justify-self: end;
+  }
+  .ps-edit-button {
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+  }
+  .ps-edit-button span {
+    display: inline;
+  }
+  .ps-preview-footer {
+    font-size: 0.625rem;
+  }
+}

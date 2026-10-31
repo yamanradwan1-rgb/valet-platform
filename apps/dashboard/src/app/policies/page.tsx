@@ -1,5 +1,6 @@
 import { ProtectedDashboardRoute } from "../../components/foundation/protected-dashboard-route";
 import { SettingsPage } from "../../features/administration/settings/settings-page";
+import { PoliciesStudioPage } from "../../features/administration/policies-studio/policies-studio-page";
 
 export default async function PoliciesRoute({
   searchParams,
@@ -9,7 +10,11 @@ export default async function PoliciesRoute({
   const { tab } = await searchParams;
   return (
     <ProtectedDashboardRoute accessRequirement="DASHBOARD">
-      <SettingsPage serviceStatus={tab === "services"} />
+      {tab === "services" ? (
+        <SettingsPage serviceStatus />
+      ) : (
+        <PoliciesStudioPage />
+      )}
     </ProtectedDashboardRoute>
   );
 }
