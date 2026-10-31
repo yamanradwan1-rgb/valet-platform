@@ -1,11 +1,12 @@
 # Issue #343 engineering handoff
 
-**Verdict: BLOCKED — VERIFICATION INCOMPLETE**
+**Verdict: PIXEL-PERFECT UI FREEZE PASS — broader verification remains incomplete**
 
-The production feature source is implemented. Required verification is not
-complete, so this is a preservation handoff for independent review, not a claim
-of completion, merge approval or production readiness. No PR, merge or deployment
-was performed. All observations below refer to 2026-10-31 UTC.
+The production feature source is implemented and the owner-scoped pixel-perfect
+UI Freeze verification is complete. This handoff does not claim overall merge
+approval or production readiness; broader gates explicitly excluded from this
+continuation remain unverified. No PR, merge or deployment was performed. All
+observations below refer to 2026-10-31 UTC.
 
 ## A. Git state
 
@@ -103,64 +104,65 @@ The existing TasksContent remounts on identity/session/Location scope generation
 changes. This is source evidence plus closed/reopened stale-read browser
 coverage, not an exhaustive browser test of every possible identity transition.
 
-Residual limits: no repository-wide security audit or independent review has
-been completed; no live-provider verification; pagination spans independently
+Residual limits: no repository-wide security audit or live-provider verification
+was completed in this continuation. Independent UI Freeze verification was
+completed against the controlled local evidence. Pagination spans independently
 authorized reads rather than a cross-request snapshot. Existing finite retention
 can remove observations between requests. Already delivered data cannot be
 retroactively undisclosed; subsequent reads require current authority.
 
 ## D. UI Freeze
 
-**UI FREEZE: INCONCLUSIVE**
+**UI FREEZE: PASS**
 
-Baseline screenshots run the actual untouched main application in a separate
-checkout at the baseline SHA. Feature screenshots run the actual Dashboard.
-Both use the same isolated synthetic API fixtures and system Chromium
-154.0.8037.57; these are browser/rendering checks, not browser-to-live-API tests.
-The baseline uses webpack and the feature uses Turbopack because of scratch
-worktree dependency resolution. This renderer difference is a limitation.
-Only Next's development indicator is hidden in both captures. Existing product
-animations are allowed to settle and screenshot animation disabling is applied
-equally; no product animation/global CSS changes were made.
+The original Cloud comparison was retained as historical evidence: it used
+Webpack for the baseline and Turbopack for the feature, producing 42/48 exact
+pairs and six 4–25-pixel differences with maximum RGB-channel delta 1. The raw
+Cloud PNG/mask bundle and reported untracked follow-up file were not available
+from GitHub or authorized local worktrees, so their contents were not treated as
+recovered evidence.
 
-Evidence bundle:
+The 2026-10-31 local follow-up reproduced the baseline Webpack failure at
+`packages/contracts/src/index.ts` (`Can't resolve './api-errors.js'`). Rather
+than changing product imports or shared contracts, both pinned revisions were
+launched with their existing Next.js 16.4.3 Turbopack configuration. They used
+the same Playwright Chromium 151.0.7922.34 process, frozen dependencies, host,
+fonts, fixtures, viewport, DPR, locale/theme controls and screenshot settings.
 
-- `visual/baseline/`: 32 list/details captures across 320/390/768/1440 widths,
-  EN/AR and light/dark, plus 16 additional Emergency Takeover/empty/loading/error
-  captures covering representative width/locale/theme combinations.
-- `visual/after/`: matching 48 captures with the exact new insertion bounds.
-- `visual/comparison.json`: exact per-pixel comparison, no tolerance. Only the
-  new Route History section is masked in details/emergency captures; no header,
-  sidebar, table, original facts or existing action is masked.
-- 42/48 pairs are exactly identical outside that permitted mask. Six pairs
-  differ at 4–25 pixels, with maximum absolute RGB-channel difference 1.
-  These differences are retained as evidence, not silently accepted.
-- `visual/geometry-comparison.json`: all 16 main cases match exactly for
-  sidebar, topbar, table/header/row, original drawer and original fact geometry
-  and computed visual styles. CSS module class hashes are excluded from this
-  geometry comparison because build tools generate different identifiers.
-- `visual/action-geometry-comparison.json`: existing Emergency Takeover action
-  bounds match exactly in all four representative cases.
-- `viewer/`: 16 new-viewer screenshots. Prototype reference screenshots and
-  source were inspected; feature layout/styles are ported from that reference.
-  Production text/data, separate-recording selection and bounded-pagination
-  controls replace the prototype's synthetic-only controls.
+The new matrix completes 48 pairs: 32 Tasks list/Task Details combinations over
+320/390/768/1440, EN/AR and light/dark, plus 16 Emergency Takeover/empty/loading/
+error representative cases. Each image is captured twice per revision, for 192
+PNGs total. Baseline and feature repeat comparisons are both exact.
 
-Corrected unauthorized difference: the first insertion position could have
-moved the existing Emergency Takeover button. It now follows that action and
-its position is verified unchanged. Early captures caught existing transitions
-mid-animation and were replaced with settled captures. The residual one-level
-raster differences remain unresolved under the strict zero-difference rule.
-No tolerance increase or unrelated restyling was used to force a PASS.
+`tmp/issue-343-ui-freeze-evidence/comparison.json` records 48/48 exact pairs,
+zero failing pairs and **0 differing unmasked pixels**. The comparator uses exact
+RGBA equality with no tolerance, smoothing or resizing. Only the exact visible
+Route History section bounds are masked in Task Details/Emergency captures; list,
+empty, loading and error cases are unmasked. Emergency captures subtract the
+pre-existing nested Emergency dialog bounds from the feature mask, so none of the
+existing modal is excluded from comparison. The recorded mask scope and occlusion
+checks pass.
+All six historical residual cases now report zero differing pixels and zero max
+channel delta under the same renderer.
+
+Frozen geometry recorded with the captures matches exactly. A separate
+16-combination geometry audit also verifies the original Emergency Takeover
+button/toolbar, Close button and original fact rows exactly across all widths,
+locales and themes. No global Dashboard CSS, shell styling, production dependency
+or shared component styling was changed to obtain the PASS.
+
+The durable harness and exact comparator are committed with the task; raw PNGs
+remain in ignored/local evidence. Full methodology and evidence paths are in
+`docs/validation/ISSUE_343_UI_FREEZE_FOLLOWUP.md`.
 
 All 16 width/locale/theme browser keyboard cases passed: focus stays inside the
 viewer under forward/reverse Tab traversal, close remains reachable, the range
 supports Home/End, Escape closes only the viewer, and focus returns to View Route.
 The ten functional browser cases also exercise nested drawer behavior. Existing
 Emergency Takeover tests pass, including Arabic small-screen Cancel behavior.
-Native 200% desktop browser zoom remains unverified: headless profile preferences
-still reported DPR 1; extension-based native zoom could not start its service
-worker. CSS scaling or device emulation is not represented as native zoom.
+Native 200% desktop browser zoom remains outside this owner-directed UI Freeze
+continuation and was not rerun. CSS scaling or device emulation is not represented
+as native zoom.
 
 ## E. Executed verification
 
@@ -236,6 +238,13 @@ Other attempts/evidence:
   native 200%; see probe logs and section D. No live Google call was verified.
 - Root fixture bootstrap was not bypassed, CI environment was not spoofed, and
   unrelated policy/tests were not weakened to manufacture green gates.
+- Local UI Freeze follow-up: the pinned baseline and feature both launched with
+  `pnpm --dir apps/dashboard exec next dev --turbopack` on separate localhost
+  ports. `apps/dashboard/e2e/issue343-ui-freeze-local.spec.ts` passed and produced
+  48 captures plus 48 repeats per revision. The exact comparator reports 48/48
+  pairs, 0 failing pairs and 0 differing unmasked pixels. The separate Emergency
+  Takeover geometry spec passed 16/16 combinations. See
+  `ISSUE_343_UI_FREEZE_FOLLOWUP.md` for the controlled environment and evidence.
 
 ## F. Architecture and scope
 
@@ -250,7 +259,8 @@ The generated Next AGENTS/next-env changes are excluded from the feature commit.
 Dependencies: none. Package manifests/lockfile: unchanged. Prisma: unchanged.
 Migrations: none; existing migration history untouched. Retention and tracking
 writers: unchanged. Task/Dispatch/custody transitions: none added or changed.
-Documentation: only this task's implementation plan, source review and handoff.
+Documentation: only this task's implementation plan, source review, handoff and
+focused UI Freeze follow-up/reproducibility material.
 Architecture baseline: unchanged. Full file manifest follows.
 
 
@@ -272,6 +282,8 @@ Architecture baseline: unchanged. Full file manifest follows.
 | added | `apps/api/test/task-route-test-context.ts` | 57 |
 | added | `apps/dashboard/e2e/issue343-route-accessibility.spec.ts` | 80 |
 | added | `apps/dashboard/e2e/issue343-route-history.spec.ts` | 259 |
+| added | `apps/dashboard/e2e/issue343-ui-freeze-local.spec.ts` | 289 |
+| added | `apps/dashboard/e2e/issue343-emergency-geometry-local.spec.ts` | 154 |
 | added | `apps/dashboard/e2e/support/issue343-route-fixture.ts` | 100 |
 | modified | `apps/dashboard/src/features/operations/tasks/emergency-task-drawer.tsx` | 57 |
 | added | `apps/dashboard/src/features/operations/tasks/route-history/historical-google-runtime.test.ts` | 157 |
@@ -289,32 +301,26 @@ Architecture baseline: unchanged. Full file manifest follows.
 | added | `apps/dashboard/src/features/operations/tasks/route-history/route-viewer.tsx` | 129 |
 | added | `apps/dashboard/src/features/operations/tasks/route-history/sample-inspector.tsx` | 115 |
 | modified | `apps/dashboard/src/features/operations/tasks/task-drawer.tsx` | 109 |
-| added | `docs/validation/ISSUE_343_HANDOFF.md` | 320 |
+| added | `docs/validation/ISSUE_343_HANDOFF.md` | 324 |
 | added | `docs/validation/ISSUE_343_IMPLEMENTATION_PLAN.md` | 153 |
 | added | `docs/validation/ISSUE_343_SOURCE_REVIEW.md` | 145 |
+| added | `docs/validation/ISSUE_343_UI_FREEZE_FOLLOWUP.md` | 153 |
+| added | `docs/validation/issue-343-ui-freeze/compare.mjs` | 179 |
 | modified | `packages/contracts/src/index.ts` | 99 |
 | added | `packages/contracts/src/task-route-recordings.test.ts` | 47 |
 | added | `packages/contracts/src/task-route-recordings.ts` | 33 |
 
 ## G. Remaining gates and final verdict
 
-**BLOCKED — VERIFICATION INCOMPLETE**
+**PIXEL-PERFECT UI FREEZE: PASS**
 
-Required before a completion/merge-readiness claim:
+The strict UI Freeze residual from the earlier mixed-renderer run is resolved by
+the controlled same-render rerun described in section D and the focused follow-up.
+No RGB tolerance or broader mask was introduced.
 
-1. Resolve the strict UI Freeze residual pixel differences using an identical
-   pinned rendering setup, without masking any existing UI or increasing the
-   accepted tolerance. Repeat comparisons and retain the evidence.
-2. Verify actual 200% desktop browser zoom and live Google provider integration,
-   including provider-auth/failure/retry behavior, with approved configuration.
-3. Re-run required root suites using a repository-approved, verifiably attested
-   Issue #215 disposable fixture. Resolve/rebase over the independently reproduced
-   baseline help, Dispatch and migration-appendix test failures through their
-   proper ownership, and provision the expected browser runtime for existing
-   mounted-help tests.
-4. Obtain independent source/security review and actual remote CI evidence before
-   any future merge. No remote CI run or production runtime is claimed here.
-
-The current Owner brief authorizes preserving completed work on the feature
-branch when verification is blocked. The preservation commit/push must carry
-this blocked status. It does not convert any outstanding gate into a pass.
+The owner explicitly scoped this continuation to the remaining Pixel-perfect UI
+Freeze and excluded live Google Maps, native 200% zoom and unrelated root-suite
+failures. Those previously documented broader verification items remain
+unverified and are not converted into PASS claims here. No PR, merge, deployment,
+Issue closure, remote CI or overall production/merge-readiness claim is made by
+this handoff update.
