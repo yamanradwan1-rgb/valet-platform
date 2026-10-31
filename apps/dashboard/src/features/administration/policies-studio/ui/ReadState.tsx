@@ -5,7 +5,7 @@ import { useStudio } from "./studio-context";
 import { ui } from "./copy";
 
 export function ReadState({ children }: { children?: ReactNode }) {
-  const { route, locale, adapter } = useStudio();
+  const { route, locale, adapter, dirty } = useStudio();
   const copy = ui[locale];
   const sectionLoading =
     route.section === "presence" || route.section === "zones"
@@ -53,6 +53,11 @@ export function ReadState({ children }: { children?: ReactNode }) {
         <p>{copy.noLocationBody}</p>
       </div>
     );
+  // A conflicting/ambiguous mutation can start an authoritative re-read.
+  // Retain an open draft while the same authorized scope refreshes; the
+  // field editor will reject a changed server baseline before retrying.
+  if (dirty && (scenario === "loading" || scenario === "error"))
+    return <>{children}</>;
   if (scenario === "loading")
     return (
       <div className="ps-state" role="status" aria-busy="true">
