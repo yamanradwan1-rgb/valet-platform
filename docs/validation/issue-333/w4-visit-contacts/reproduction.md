@@ -19,7 +19,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File docs/validation/issue-333/w4
 
 The runner creates a dedicated cluster under the ignored `tmp/issue-333-w4-private/` subtree, uses a random nonstandard loopback port, verifies the exact data directory and owner identity, and stops/removes the cluster only after its child DB/connection inventory reaches zero. An explicit test-only gate rejects unrelated databases and CI environments. No shared or production database was used.
 
-Each race uses real authenticated HTTP and an authentic, active Location Manager session. Two active Location grants are created by the canonical Company Admin endpoint with valid sensitive MFA. A private synthetic marker is written through the existing fixture's canonical visit writer. The test-only spy pauses the reader immediately *after* `authorizeVisitContactRead` returns its granted Location set, while its database transaction remains open. The Company Admin then invokes the canonical `/location-access/revoke` HTTP endpoint for Location A with expected membership version. Only after that HTTP response returns `201` and a separate database read proves zero A grant rows does the test release the paused reader. It compares the actual pending HTTP response body with a fresh HTTP request by the same LM. The production authorizer, SQL queries, and writer remain unchanged.
+Each race uses real authenticated HTTP and an authentic, active Location Manager session. Two active Location grants are created by the canonical Company Admin endpoint with valid sensitive MFA. The test fixture **inserts synthetic visit records directly into the disposable database** for initial data setup; this is not evidence of a canonical visit-creation writer. The test-only spy pauses the reader immediately *after* `authorizeVisitContactRead` returns its granted Location set, while its database transaction remains open. The Company Admin then invokes the **canonical authorization-invalidating** `/location-access/revoke` HTTP endpoint for Location A with expected membership version. Only after that HTTP response returns `201` and a separate database read proves zero A grant rows does the test release the paused reader. It compares the actual pending HTTP response body with a fresh HTTP request by the same LM. The production authorizer, SQL queries, and grant-revocation writer remain unchanged.
 
 ## Two independent completed runs
 
@@ -39,6 +39,8 @@ Each race uses real authenticated HTTP and an authentic, active Location Manager
 The same **2 PASS / 3 FAIL**, canonical revoke `201`, persisted grant `0`, stale marker present, fresh marker absent, and verified owned-cluster cleanup repeated in two further runs. Run 3 used private PostgreSQL 17 port `60080`; fingerprinted run 4 used port `60310`, run ID `c439d8933e3a440aa550ded7c68def38`. Run 4 cleanup checked `0` child databases, `0` other child connections and `OWNED_CLUSTER_DIRECTORY_REMOVED=True`.
 
 The three red assertions check `expect(previousBody).not.toContain(privateMarker)`. They remain deliberately strict, preserving the precise unexpected body disclosure as the repeatable finding. The synthetic private marker is disclosed in the stale in-flight response; the same marker is absent from a newly authorized response. No full response JSON, private record identifiers, passwords, access tokens, MFA secrets or raw database credentials are stored in this committed document. Raw local captures remain ignored under the owned private test directory.
+
+**Independent Prime reproduction, fifth run:** From `/valet-platform/tmp/issue-333-prime`, the unchanged three test-code inputs reproduced **2 PASS / 3 strict RED FAIL** using a new task-owned PostgreSQL 17.11 cluster, port `63546`, run `8c70415fc99048978245cb84887ad5f0`. Each route's canonical CA revoke returned `201`, persisted Location A grant count was `0`, in-flight LM HTTP response returned `200` **with** its synthetic private marker, and a fresh HTTP `200` excluded the marker. Diagnostics respectively: contact PID `21820`, snapshot `1944:1944:`, elapsed reader/writer/fresh `115/80/33 ms`; customer visits PID `22908`, snapshot `1967:1967:`, `38/20/11 ms`; vehicle visits PID `22908`, snapshot `1990:1990:`, `42/23/18 ms`. All reader transactions reported `read committed`, blocking PID set `[]`. The runner exited **1 due solely to the three intentional security RED assertions**; post-run child databases `0`, child connections `0`, `OWNED_CLUSTER_DIRECTORY_REMOVED=True`. Private ignored traces: `tmp/issue-333-w4-private/evidence/issue333w4-8c70415fc99048978245cb84887ad5f0/`.
 
 ## Transaction diagnostics from real PostgreSQL
 
@@ -62,7 +64,7 @@ These are small synthetic development samples, with a forced concurrency pause, 
 
 ## Reproducible immutable source identity
 
-The private runner recorded these SHA-256 digests **before invoking Vitest** in fingerprinted run 4. They cover all test/runner implementation inputs and can be compared with the committed file bytes. The source was not edited after that run. Only this sanitized digest set is committed; raw response logs and the ephemeral cluster are not.
+The private runner recorded these SHA-256 digests **before invoking Vitest** in fingerprinted run 4. Only this sanitized digest set is committed; raw response logs and the ephemeral cluster are not. The three test-code hashes remain identical in the independent Prime rerun. Windows line-ending normalization changed the raw runner/config byte digests between the W4 and Prime worktrees; the independent run re-attests Prime's exact inputs below and supplies its own trace. Do not use the historical runner/config digests as a claimed byte-for-byte match to Prime.
 
 | Source path (worktree-relative) | SHA-256 |
 | --- | --- |
@@ -71,6 +73,8 @@ The private runner recorded these SHA-256 digests **before invoking Vitest** in 
 | `apps/api/test/issue333-w4-private-lab.ts` | `3285e76668ac62e391f959f3d30701a00bb623d18f390f948fab04a13c2897f5` |
 | `docs/validation/issue-333/w4-visit-contacts/vitest.config.mjs` | `3bcb3850c8314f80aaf65ec05467a09ad926dac6db6eb4443f6b3409bed9bb9f` |
 | `docs/validation/issue-333/w4-visit-contacts/run-private-lab.ps1` | `51cf2084d722f245736a10ff716c13d4a6bb67b2bea31c7c9a6f347d72e4187c` |
+
+Independent Prime run 5 runner/config SHA-256: `vitest.config.mjs` = `cfabf88a17c3b006995296865227f196774b3127d633738418ac902cb65a5b8b`; `run-private-lab.ps1` = `63e7c6298cd35a5dcaa46eba4e5c668e1a0cdf338e24527f50b2f5427dd08789`. The test-code digests equal those in the table.
 
 ## Interpretation and limits
 

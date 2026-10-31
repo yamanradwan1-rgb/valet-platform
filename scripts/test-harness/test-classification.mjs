@@ -32,6 +32,8 @@ const compoundApiTests = new Set(["guest-t4-mutation-retry.integration.test.ts"]
 // These suites deliberately require an owner-attested private PostgreSQL cluster.
 // Never collect them in the general CI/non-PostgreSQL test lane.
 const issue319PrivateSuite = /^dashboard-issue319-[^/]+\.integration\.test\.ts$/;
+const issue333PrivateSuite = /^dashboard-issue333-[^/]+\.integration\.test\.ts$/;
+const issue333W4PrivateSuite = /^issue333-w4-[^/]+\.integration\.test\.ts$/;
 const lazyPostgresOnlyTests = new Set([
   "postgres.test.ts",
   "shift-test-context-names.test.ts",
@@ -96,6 +98,10 @@ export function classifyPackageTests({ packageKind, rootDir }) {
     const project =
       packageKind === "api" && issue319PrivateSuite.test(relativeFile)
         ? "api-postgres-issue319-private"
+        : packageKind === "api" && issue333PrivateSuite.test(relativeFile)
+        ? "api-postgres-issue333-private"
+        : packageKind === "api" && issue333W4PrivateSuite.test(relativeFile)
+        ? "api-postgres-issue333-w4-private"
         : packageKind === "database" && isIssue215PostgresFile(relativeFile)
         ? ISSUE215_PROJECT
         : packageKind === "api" && relativeFile === issue309BrowserTest && dbBacked
