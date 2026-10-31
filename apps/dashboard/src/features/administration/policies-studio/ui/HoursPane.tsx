@@ -10,23 +10,36 @@ import { FieldList } from "./FieldList";
 import { ui } from "./copy";
 
 export function HoursPane() {
-  const { route, locale, adapter, setDirty, identity, announce } =
-    useStudio();
+  const { route, locale, adapter, setDirty, identity, announce } = useStudio();
   const ar = locale === "ar";
   const copy = ui[locale];
   const isLocation = route.scope === "location";
   const { effective, inherited } = adapter.hours;
   const blankDays: Day[] = [
-    "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY",
-    "FRIDAY", "SATURDAY", "SUNDAY",
+    "MONDAY",
+    "TUESDAY",
+    "WEDNESDAY",
+    "THURSDAY",
+    "FRIDAY",
+    "SATURDAY",
+    "SUNDAY",
   ].map((weekday) => ({ weekday, status: "CLOSED" }));
   const [editing, setEditing] = useState(false);
+  const [editingRevision, setEditingRevision] = useState<string | null>(null);
   const [draft, setDraft] = useState<Day[]>(() =>
     structuredClone(effective ?? blankDays),
   );
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const changed = JSON.stringify(draft) !== JSON.stringify(effective);
+  const stale =
+    editing &&
+    editingRevision !== null &&
+    adapter.hours.revision !== null &&
+    editingRevision !== adapter.hours.revision;
+  const staleMessage = ar
+    ? "تغيّر جدول ساعات العمل على الخادم. أغلق المحرّر وراجع الجدول الجديد قبل الحفظ."
+    : "Operating hours changed on the server. Close this editor and review the latest schedule before saving.";
   function update(index: number, patch: Partial<Day>) {
     const next = draft.map((day, i) =>
       i === index ? { ...day, ...patch } : day,
@@ -36,6 +49,10 @@ export function HoursPane() {
   }
   async function save(clear = false) {
     if (saving || adapter.hours.busy || !adapter.hours.editable) return;
+    if (stale) {
+      setError(staleMessage);
+      return;
+    }
     if (
       !clear &&
       draft.some(
@@ -68,7 +85,9 @@ export function HoursPane() {
       setDirty(false);
       setEditing(false);
       announce("");
-      requestAnimationFrame(() => document.getElementById("edit-hours")?.focus());
+      requestAnimationFrame(() =>
+        document.getElementById("edit-hours")?.focus(),
+      );
     } catch {
       setError(copy.errorBody);
     } finally {
@@ -96,8 +115,9 @@ export function HoursPane() {
         <div className="ps-schedule-meta">
           <CalendarDays size={17} aria-hidden="true" />
           <span>
-              {isLocation
-              ? (adapter.hours.timezone ?? (ar ? "المنطقة الزمنية للموقع" : "Location timezone"))
+            {isLocation
+              ? (adapter.hours.timezone ??
+                (ar ? "المنطقة الزمنية للموقع" : "Location timezone"))
               : ar
                 ? "الأوقات المحلية لكل موقع"
                 : "Local times at each location"}
@@ -184,15 +204,18 @@ export function HoursPane() {
         {!effective && !editing && (
           <p>{ar ? "لا يوجد جدول محفوظ." : "No saved schedule."}</p>
         )}
-        {error && (
+        {(error || stale) && (
           <p className="ps-error" role="alert">
-            {error}
+            {stale ? staleMessage : error}
           </p>
         )}
         <div className="ps-actions ps-schedule-actions">
           {editing ? (
             <>
-              <Button onClick={() => void save()} disabled={!changed || saving || adapter.hours.busy}>
+              <Button
+                onClick={() => void save()}
+                disabled={!changed || saving || adapter.hours.busy || stale}
+              >
                 {copy.save}
               </Button>
               <ContextHelp
@@ -201,12 +224,20 @@ export function HoursPane() {
                 scopeIdentity={identity}
               />
               {isLocation && !inherited && (
-                <Button variant="secondary" disabled={saving} onClick={() => void save(true)}>
+                <Button
+                  variant="secondary"
+                  disabled={saving || stale}
+                  onClick={() => void save(true)}
+                >
                   {copy.clear}
                 </Button>
               )}
               {!isLocation && effective && (
-                <Button variant="secondary" disabled={saving} onClick={() => void save(true)}>
+                <Button
+                  variant="secondary"
+                  disabled={saving || stale}
+                  onClick={() => void save(true)}
+                >
                   {ar ? "مسح الجدول" : "Clear schedule"}
                 </Button>
               )}
@@ -229,6 +260,7 @@ export function HoursPane() {
               disabled={!adapter.hours.editable}
               onClick={() => {
                 setEditing(true);
+                setEditingRevision(adapter.hours.revision);
                 setDraft(structuredClone(effective ?? blankDays));
               }}
             >

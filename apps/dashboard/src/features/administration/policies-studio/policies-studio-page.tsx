@@ -196,6 +196,7 @@ function DeniedStudio({ label }: { readonly label: string }) {
       clear: async () => blocked,
     },
     hours: {
+      revision: null,
       company: null,
       override: null,
       effective: null,
@@ -225,6 +226,7 @@ function DeniedStudio({ label }: { readonly label: string }) {
       saveZone: async () => blocked,
     },
     whatsapp: {
+      revision: null,
       defaults: {
         waEnabled: null,
         waLanguage: null,

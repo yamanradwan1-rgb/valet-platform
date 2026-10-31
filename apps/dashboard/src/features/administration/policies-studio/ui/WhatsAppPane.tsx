@@ -8,15 +8,13 @@ import type { StudioWhatsAppData } from "./studio-types";
 import { useStudio } from "./studio-context";
 import { displayValue } from "./value-text";
 import { ui } from "./copy";
+import {
+  whatsappRevisionChanged,
+  whatsappRevisionMessage,
+} from "./whatsapp-revision";
 
 export function WhatsAppPane() {
-  const {
-    locale,
-    route,
-    adapter,
-    setDirty,
-    announce,
-  } = useStudio();
+  const { locale, route, adapter, setDirty, announce } = useStudio();
   const ar = locale === "ar";
   const copy = ui[locale];
   const isLocation = route.scope === "location";
@@ -26,14 +24,25 @@ export function WhatsAppPane() {
   const saved = adapter.whatsapp.saved;
   const [draft, setDraft] = useState(saved);
   const [editing, setEditing] = useState(false);
+  const [editingRevision, setEditingRevision] = useState<number | null>(null);
   const [help, setHelp] = useState(false);
   const [error, setError] = useState("");
   const changed = JSON.stringify(draft) !== JSON.stringify(saved);
+  const stale =
+    editing &&
+    whatsappRevisionChanged(editingRevision, adapter.whatsapp.revision);
+  const visibleError = stale
+    ? whatsappRevisionMessage(locale)
+    : (adapter.whatsapp.error ?? error);
   useEffect(() => {
     setDirty(editing && changed);
   }, [editing, changed, setDirty]);
   async function save() {
     if (adapter.whatsapp.busy || !adapter.whatsapp.editable) return;
+    if (stale) {
+      setError(whatsappRevisionMessage(locale));
+      return;
+    }
     try {
       const result = await adapter.whatsapp.save(draft);
       if (!result.ok) {
@@ -144,13 +153,20 @@ export function WhatsAppPane() {
               <select
                 aria-label={waFields[2]!.labels[locale]}
                 value={String(draft.waTemplate ?? "")}
-                onChange={(event) => setDraft((old) => ({...old, waTemplate: event.target.value}))}
+                onChange={(event) =>
+                  setDraft((old) => ({
+                    ...old,
+                    waTemplate: event.target.value,
+                  }))
+                }
               >
                 <option value="">
                   {ar ? "لم يتم اعتماد قالب" : "No approved template"}
                 </option>
                 {adapter.whatsapp.templates.map((item) => (
-                  <option key={item.value} value={item.value}>{item.label}</option>
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
                 ))}
               </select>
             </label>
@@ -159,24 +175,31 @@ export function WhatsAppPane() {
               <select
                 aria-label={waFields[3]!.labels[locale]}
                 value={String(draft.waBinding ?? "")}
-                onChange={(event) => setDraft((old) => ({...old, waBinding: event.target.value}))}
+                onChange={(event) =>
+                  setDraft((old) => ({ ...old, waBinding: event.target.value }))
+                }
               >
                 <option value="">
                   {ar ? "لم يربط رقم معتمد" : "No verified sender connection"}
                 </option>
                 {adapter.whatsapp.senders.map((item) => (
-                  <option key={item.value} value={item.value}>{item.label}</option>
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
                 ))}
               </select>
             </label>
           </div>
-          {error && (
+          {visibleError && (
             <p role="alert" className="ps-error">
-              {error}
+              {visibleError}
             </p>
           )}
           <div className="ps-actions">
-            <Button type="submit" disabled={!changed || adapter.whatsapp.busy}>
+            <Button
+              type="submit"
+              disabled={!changed || adapter.whatsapp.busy || stale}
+            >
               {ar ? "حفظ إعدادات واتساب" : "Save WhatsApp settings"}
             </Button>
             {helpButton}
@@ -202,6 +225,7 @@ export function WhatsAppPane() {
             disabled={!adapter.whatsapp.editable || adapter.whatsapp.busy}
             onClick={() => {
               setEditing(true);
+              setEditingRevision(adapter.whatsapp.revision);
               setDraft(saved);
               setError("");
             }}

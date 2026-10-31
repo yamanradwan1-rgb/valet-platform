@@ -98,6 +98,7 @@ export function studioHoursBridge(
     settings.error === null;
   const present = snapshot?.overridePresent.operatingHours ?? false;
   return {
+    revision: snapshot?.updatedAt ?? null,
     company: days(snapshot?.defaults.operatingHours),
     override:
       isLocation && present ? days(snapshot?.overrides.operatingHours) : null,

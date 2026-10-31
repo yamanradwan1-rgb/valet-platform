@@ -48,6 +48,7 @@ export interface StudioSettingsData {
 }
 
 export interface StudioHoursData {
+  readonly revision: string | null;
   readonly company: StudioDay[] | null;
   readonly override: StudioDay[] | null;
   readonly effective: StudioDay[] | null;
@@ -87,6 +88,7 @@ export interface StudioPresenceData {
 }
 
 export interface StudioWhatsAppData {
+  readonly revision: number | null;
   readonly defaults: Record<
     "waEnabled" | "waLanguage" | "waTemplate" | "waBinding",
     Scalar

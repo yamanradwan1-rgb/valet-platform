@@ -57,6 +57,7 @@ export function studioWhatsAppBridge(
   const view = current.view;
   const allowed = editable && !!view && !current.loading && !current.saving;
   return {
+    revision: view?.policy.revision ?? null,
     defaults: values(view?.companyDefault ?? view?.policy ?? null),
     saved: values(view?.policy ?? null),
     templates: (view?.approvedTemplateVersions ?? []).map((name) => ({
