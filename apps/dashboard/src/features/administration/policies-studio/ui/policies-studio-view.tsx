@@ -145,6 +145,7 @@ export function PoliciesStudioView({
   }, [dirty, adapter.locale]);
 
   useEffect(() => {
+    if (dirty) return;
     const frame = requestAnimationFrame(() => {
       const target = route.setting
         ? document.querySelector<HTMLElement>(
@@ -163,7 +164,7 @@ export function PoliciesStudioView({
       else target.focus({ preventScroll: true });
     });
     return () => cancelAnimationFrame(frame);
-  }, [route.setting, identity]);
+  }, [route.setting, identity, adapter.status, dirty]);
 
   function navigate(patch: Partial<StudioRoute>) {
     const nextScope = patch.scope ?? route.scope;
