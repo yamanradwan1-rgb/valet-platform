@@ -108,6 +108,7 @@ export function studioPresenceBridge(
       read.snapshot.error?.message ??
       (outcome && mutationFailure ? presenceCopy(locale)(outcome) : null),
     editable: read.snapshot.canEdit,
+    zonesEditable: read.snapshot.canEditZones,
     busy: read.snapshot.blocked,
     availableKeys: policy ? presenceFields.map((field) => field.field) : [],
     savePolicy: async (key, value, clear, strictConfirmed) => {

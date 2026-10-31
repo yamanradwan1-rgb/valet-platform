@@ -36,11 +36,30 @@ function AuthorizedStudio({
 }: {
   readonly context: AuthorizedContext;
 }) {
-  const dashboard = useProtectedDashboard();
-  const { locale } = useDashboardLocale();
   const [scope, setScope] = useState<Scope>(
     context.role === "LOCATION_MANAGER" ? "location" : "company",
   );
+  return (
+    <AuthorizedScopedStudio
+      key={`${context.identity}:${scope}`}
+      context={context}
+      scope={scope}
+      onScopeChange={setScope}
+    />
+  );
+}
+
+function AuthorizedScopedStudio({
+  context,
+  scope,
+  onScopeChange,
+}: {
+  readonly context: AuthorizedContext;
+  readonly scope: Scope;
+  readonly onScopeChange: (next: Scope) => void;
+}) {
+  const dashboard = useProtectedDashboard();
+  const { locale } = useDashboardLocale();
   const isLocation = scope === "location";
   const validLocation = context.location?.status === "ACTIVE";
   const canRead = !isLocation || validLocation;
@@ -116,7 +135,7 @@ function AuthorizedStudio({
       context.role === "COMPANY_ADMIN" && canRead,
       locale,
     ),
-    onScopeChange: setScope,
+    onScopeChange,
     reload: async () => {
       settings.refresh();
       if (presence.mutation.pending) await presence.mutation.reconcile();
@@ -140,6 +159,13 @@ function AuthorizedStudio({
           api={dashboard.api}
           onAssured={presence.mutation.onAssured}
           onClose={presence.mutation.closeMfa}
+        />
+      ) : null}
+      {whatsapp.mfaOpen ? (
+        <SensitiveMfaDialog
+          api={dashboard.api}
+          onAssured={whatsapp.onMfaAssured}
+          onClose={whatsapp.closeMfa}
         />
       ) : null}
     </>
@@ -192,6 +218,7 @@ function DeniedStudio({ label }: { readonly label: string }) {
       loading: false,
       error: null,
       editable: false,
+      zonesEditable: false,
       busy: false,
       availableKeys: [],
       savePolicy: async () => blocked,

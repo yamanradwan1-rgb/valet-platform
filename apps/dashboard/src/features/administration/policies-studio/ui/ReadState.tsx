@@ -7,23 +7,34 @@ import { ui } from "./copy";
 export function ReadState({ children }: { children?: ReactNode }) {
   const { route, locale, adapter } = useStudio();
   const copy = ui[locale];
-  const sectionLoading = route.section === "presence" || route.section === "zones"
-    ? adapter.presence.loading
-    : route.section === "whatsapp"
-      ? adapter.whatsapp.loading
-      : false;
-  const sectionError = route.section === "presence" || route.section === "zones"
-    ? adapter.presence.error
-    : route.section === "whatsapp"
-      ? adapter.whatsapp.error
-      : null;
-  const scenario = route.scenario !== "ready"
-    ? route.scenario
-    : sectionLoading
+  const sectionLoading =
+    route.section === "presence" || route.section === "zones"
+      ? adapter.presence.loading
+      : route.section === "whatsapp"
+        ? adapter.whatsapp.loading
+        : false;
+  const sectionError =
+    route.section === "presence" || route.section === "zones"
+      ? adapter.presence.error
+      : route.section === "whatsapp"
+        ? adapter.whatsapp.error
+        : null;
+  const independentSection = ["presence", "zones", "whatsapp"].includes(
+    route.section,
+  );
+  const scenario = independentSection
+    ? sectionLoading
       ? "loading"
       : sectionError
         ? "error"
-        : "ready";
+        : "ready"
+    : route.scenario !== "ready"
+      ? route.scenario
+      : sectionLoading
+        ? "loading"
+        : sectionError
+          ? "error"
+          : "ready";
   if (route.role === "DENIED" || scenario === "denied")
     return (
       <div className="ps-state" role="alert">
@@ -50,9 +61,7 @@ export function ReadState({ children }: { children?: ReactNode }) {
         <div className="ps-skeleton" />
         <div className="ps-skeleton" />
         <Button variant="secondary" onClick={() => void adapter.reload()}>
-          {locale === "ar"
-            ? "إعادة التحميل"
-            : "Reload"}
+          {locale === "ar" ? "إعادة التحميل" : "Reload"}
         </Button>
       </div>
     );
@@ -62,10 +71,7 @@ export function ReadState({ children }: { children?: ReactNode }) {
         <CloudOff size={28} aria-hidden="true" />
         <h3>{copy.error}</h3>
         <p>{adapter.error ?? sectionError ?? copy.errorBody}</p>
-        <Button
-          variant="secondary"
-          onClick={() => void adapter.reload()}
-        >
+        <Button variant="secondary" onClick={() => void adapter.reload()}>
           {copy.retry}
         </Button>
       </div>

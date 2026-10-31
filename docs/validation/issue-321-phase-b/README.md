@@ -37,8 +37,11 @@ attribution below are fixed by the Owner's Issue #321 decision.
 Service Status. Current `/integrations` redirects to `/policies?tab=services`,
 and existing Help and e2e checks rely on it. A reversible legacy-query branch
 keeps those consumers available in the candidate, without adding a Studio
-section or new Dashboard menu item. The eventual accepted production placement
-is not recorded. Final merge is blocked pending the Owner's choice.
+section or new Dashboard menu item. This branch currently renders the complete
+legacy Settings page, including its existing editable tabs; **only the Service
+Status panel itself is read-only**. The eventual accepted production placement
+is not recorded. Final merge is blocked pending the Owner's choice; the legacy
+branch is temporary continuity, not a resolved frozen-UI placement.
 
 **U-002 — RESOLVED by the Owner on 2026-10-31.** The Owner expressly allowed
 exceptions for prototype-only material, including simulated/local/fixture
@@ -71,7 +74,8 @@ pixel differences and any blockers below only after they have been executed.
 - `pnpm architecture:check`: PASS. Existing grandfathered legacy file-size
   warnings remain; each authored Issue #321 file is under 300 lines.
 - `pnpm --filter @valet/dashboard exec vitest run
-  src/features/administration/policies-studio`: 30 PASS, 0 FAIL.
+  src/features/administration/policies-studio`: 34 PASS, 0 FAIL after the
+  WhatsApp sensitive-MFA follow-up.
 - `pnpm --filter @valet/dashboard exec playwright test
   e2e/issue321-policies-studio.spec.ts` against the compiled production app
   at `127.0.0.1:3014`, using `E2E_BASE_URL`: 3 PASS, 0 FAIL.
@@ -87,7 +91,7 @@ pixel differences and any blockers below only after they have been executed.
   container.` No disposable database target was changed or invented.
 - `pnpm format:check`: FAIL; Prettier reports widespread mismatches in
   unrelated current-main source, tests and documentation, beginning at
-  `.github/ISSUE_TEMPLATE/bug_report.yml`. No repository-wide reformat was
+  `.github/ISSUE_TEMPLATE/bug_report.yml` (4,980 files). No repository-wide reformat was
   performed. `pnpm exec prettier --check` on the eight Prime-owned integration
   files: 8 PASS, 0 FAIL.
 
@@ -99,6 +103,15 @@ for database-backed concurrency or permission integration tests.
 
 ### Independent visual and security review
 
+All six locally imported Policies Studio styles have byte-identical Git blob
+SHA-1s to the immutable source (`editors.css` `ede3e60f`, `responsive.css`
+`c412c784`, `usability.css` `c425e999`, `workspace-feedback.css` `b09b4b40`,
+`workspace.css` `ef27db1d`, `zone-map.css` `8e7106c0`). `git diff
+fcfa760..HEAD -- apps/dashboard/src/components apps/dashboard/src/app/globals.css
+apps/dashboard/src/app/layout.tsx packages/database` contains no modified
+global shell or DB files. CSS equality is source evidence, not a browser
+pixel-parity verdict.
+
 The pinned Vite source runs at `127.0.0.1:4322`; production candidate at
 `127.0.0.1:3014`. Worker 6 must record actual case counts, unmasked pixel
 differences, geometry, RTL/mobile and the unchanged global shell comparison.
@@ -108,6 +121,18 @@ review may be called PASS before its independent report is available.
 The current candidate implements a field-level server-refresh guard while an
 editor is open, in addition to existing server CAS. Source-only simulation
 copy exceptions are explicit Owner-authorized differences, never masked.
+WhatsApp's bundled policy save now uses existing `useSensitiveMutation`, which
+opens the already-approved MFA step-up dialog when assurance expires and asks
+the user to retry Save after confirmation. It never auto-submits. Company versus
+Location Studio composition is scope-keyed to retire pending Presence/MFA state,
+and independent Presence/Zones/WhatsApp read states are no longer suppressed
+by an unrelated general-settings read failure. Attendance zone editing uses
+the distinct authoritative `canEditZones` capability.
+
+Remaining independent-review concern: Presence and WhatsApp reads currently
+mount eagerly on the Studio route, including Location zone pagination. These
+are authorized reads but exceed the baseline's conditional tab-loading profile
+and should be assessed before merge for large-location performance.
 
 No production deployment, merge to `main`, or Issue #321 closure is authorized
 by Phase B. U-001 requires an accepted final placement decision before merge.

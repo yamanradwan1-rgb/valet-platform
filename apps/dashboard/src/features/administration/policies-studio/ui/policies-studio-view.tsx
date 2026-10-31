@@ -20,10 +20,15 @@ import "./usability.css";
 
 export type { PoliciesStudioAdapter, StudioSaveResult } from "./studio-types";
 
-function sectionFromUrl(allowed: readonly Section[], fallback: Section): Section {
+function sectionFromUrl(
+  allowed: readonly Section[],
+  fallback: Section,
+): Section {
   if (typeof window === "undefined") return fallback;
   const candidate = new URLSearchParams(window.location.search).get("section");
-  return allowed.includes(candidate as Section) ? (candidate as Section) : fallback;
+  return allowed.includes(candidate as Section)
+    ? (candidate as Section)
+    : fallback;
 }
 
 function updateSectionUrl(section: Section, replace = false) {
@@ -38,15 +43,21 @@ export function PoliciesStudioView({
 }: {
   readonly adapter: PoliciesStudioAdapter;
 }) {
-  const initialSection = availableSections(adapter.role, adapter.scope)[0] ?? "operations";
+  const initialSection =
+    availableSections(adapter.role, adapter.scope)[0] ?? "operations";
   const [section, setSection] = useState<Section>(() =>
-    sectionFromUrl(availableSections(adapter.role, adapter.scope), initialSection),
+    sectionFromUrl(
+      availableSections(adapter.role, adapter.scope),
+      initialSection,
+    ),
   );
   const [dirty, setDirty] = useState(false);
   const [notice, setNotice] = useState("");
   const [setting, setSetting] = useState<string | null>(null);
   const valid = availableSections(adapter.role, adapter.scope);
-  const currentSection = valid.includes(section) ? section : (valid[0] ?? "operations");
+  const currentSection = valid.includes(section)
+    ? section
+    : (valid[0] ?? "operations");
   const live = useRef({ dirty, section: currentSection });
   const route: StudioRoute = useMemo(
     () => ({
@@ -58,10 +69,22 @@ export function PoliciesStudioView({
       scenario: adapter.status,
       setting,
     }),
-    [currentSection, adapter.scope, adapter.role, adapter.organization.id, adapter.location?.id, adapter.status, setting],
+    [
+      currentSection,
+      adapter.scope,
+      adapter.role,
+      adapter.organization.id,
+      adapter.location?.id,
+      adapter.status,
+      setting,
+    ],
   );
   const identity = [
-    route.org, route.location, route.scope, route.role, route.section,
+    route.org,
+    route.location,
+    route.scope,
+    route.role,
+    route.section,
   ].join(":");
 
   useEffect(() => {
@@ -107,7 +130,7 @@ export function PoliciesStudioView({
       if (!(event.target instanceof Element)) return;
       const changingScope = event.target.closest(
         ".sidebar-scope, .location-context:not([aria-haspopup='listbox']), " +
-        "[data-testid='location-switch-menu'] [role='option']",
+          "[data-testid='location-switch-menu'] [role='option']",
       );
       const leavingPage = event.target.closest(
         ".sidebar-navigation a, .sidebar-utilities a",
@@ -123,7 +146,9 @@ export function PoliciesStudioView({
 
   useEffect(() => {
     if (!route.setting) return;
-    const target = document.querySelector<HTMLElement>(`[data-setting="${route.setting}"]`);
+    const target = document.querySelector<HTMLElement>(
+      `[data-setting="${route.setting}"]`,
+    );
     if (!target) return;
     target.scrollIntoView({ block: "center" });
     const button = target.querySelector<HTMLButtonElement>(".ps-edit-button");
@@ -138,7 +163,8 @@ export function PoliciesStudioView({
     setDirty(false);
     setNotice("");
     setSetting(null);
-    if (patch.scope && patch.scope !== route.scope) adapter.onScopeChange(patch.scope);
+    if (patch.scope && patch.scope !== route.scope)
+      adapter.onScopeChange(patch.scope);
     if (patch.section) {
       const allowed = availableSections(adapter.role, nextScope);
       if (allowed.includes(patch.section)) {
@@ -166,21 +192,34 @@ export function PoliciesStudioView({
     return result;
   }
 
-  const editable = adapter.status === "ready" && (
-    currentSection === "presence" || currentSection === "zones"
-      ? adapter.presence.editable
-      : currentSection === "hours"
-        ? adapter.hours.editable
-        : currentSection === "whatsapp"
-          ? adapter.whatsapp.editable
-          : adapter.settings.editableKeys.length > 0
+  const independentSection = ["presence", "zones", "whatsapp"].includes(
+    currentSection,
   );
+  const editable =
+    (adapter.status === "ready" || independentSection) &&
+    (currentSection === "zones"
+      ? adapter.presence.zonesEditable
+      : currentSection === "presence"
+        ? adapter.presence.editable
+        : currentSection === "hours"
+          ? adapter.hours.editable
+          : currentSection === "whatsapp"
+            ? adapter.whatsapp.editable
+            : adapter.settings.editableKeys.length > 0);
   return (
     <StudioProvider
       value={{
-        route, locale: adapter.locale, adapter, identity, editable, dirty,
-        setDirty, save, navigate,
-        notice, announce: setNotice,
+        route,
+        locale: adapter.locale,
+        adapter,
+        identity,
+        editable,
+        dirty,
+        setDirty,
+        save,
+        navigate,
+        notice,
+        announce: setNotice,
       }}
     >
       <Workspace />

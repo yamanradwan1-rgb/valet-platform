@@ -74,6 +74,7 @@ export interface StudioPresenceData {
   readonly loading: boolean;
   readonly error: string | null;
   readonly editable: boolean;
+  readonly zonesEditable: boolean;
   readonly busy: boolean;
   readonly availableKeys: readonly string[];
   savePolicy(
@@ -86,10 +87,22 @@ export interface StudioPresenceData {
 }
 
 export interface StudioWhatsAppData {
-  readonly defaults: Record<"waEnabled" | "waLanguage" | "waTemplate" | "waBinding", Scalar>;
-  readonly saved: Record<"waEnabled" | "waLanguage" | "waTemplate" | "waBinding", Scalar>;
-  readonly templates: readonly { readonly value: string; readonly label: string }[];
-  readonly senders: readonly { readonly value: string; readonly label: string }[];
+  readonly defaults: Record<
+    "waEnabled" | "waLanguage" | "waTemplate" | "waBinding",
+    Scalar
+  >;
+  readonly saved: Record<
+    "waEnabled" | "waLanguage" | "waTemplate" | "waBinding",
+    Scalar
+  >;
+  readonly templates: readonly {
+    readonly value: string;
+    readonly label: string;
+  }[];
+  readonly senders: readonly {
+    readonly value: string;
+    readonly label: string;
+  }[];
   readonly editable: boolean;
   readonly loading: boolean;
   readonly busy: boolean;
