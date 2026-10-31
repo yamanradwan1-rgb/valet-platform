@@ -47,6 +47,7 @@ export class NativeTaskTrackingFences {
     NativeTaskTrackingBinding
   >();
   private completion: TrackingFence | undefined;
+  private lastAuthoritativeBinding: NativeTaskTrackingBinding | undefined;
   private lastScopeKey: string | undefined;
   private network: TrackingFence | undefined;
 
@@ -58,6 +59,18 @@ export class NativeTaskTrackingFences {
 
   isCompleted(key: string | undefined): boolean {
     return key !== undefined && this.completed.has(key);
+  }
+
+  isLatestBinding(key: string | undefined): boolean {
+    return key !== undefined && this.lastAuthoritativeBinding?.key === key;
+  }
+
+  observeBinding(
+    binding: NativeTaskTrackingBinding | null,
+    successfulCount: number,
+  ): void {
+    if (binding !== null && successfulCount > 0)
+      this.lastAuthoritativeBinding = binding;
   }
 
   observeScope(generation: number, scope: EmployeeOperationalScope): void {
@@ -84,16 +97,17 @@ export class NativeTaskTrackingFences {
     subject: MovementSubject,
     currentKey: string | undefined,
   ): boolean {
+    const trusted = binding ?? this.lastAuthoritativeBinding;
     if (
-      binding === null ||
+      trusted === undefined ||
       (subject.session !== undefined && subject.session !== null
-        ? !matches(type, subject, binding)
-        : currentKey !== binding.key)
+        ? !matches(type, subject, trusted)
+        : currentKey !== trusted.key)
     )
       return false;
-    this.completionOrigins.set(type, binding);
+    this.completionOrigins.set(type, trusted);
     this.completion = {
-      key: binding.key,
+      key: trusted.key,
       snapshotCount: this.snapshotCount(),
     };
     return true;
@@ -111,8 +125,8 @@ export class NativeTaskTrackingFences {
         ? origin
         : matches(type, subject, origin)
           ? origin
-          : matches(type, subject, candidate)
-            ? candidate
+          : matches(type, subject, candidate ?? this.lastAuthoritativeBinding)
+            ? (candidate ?? this.lastAuthoritativeBinding)
             : undefined;
     if (completed === undefined) return undefined;
     const completedKey = completed.key;
@@ -149,6 +163,7 @@ export class NativeTaskTrackingFences {
     if (preserveForBackground) return;
     this.completed.clear();
     this.completionOrigins.clear();
+    this.lastAuthoritativeBinding = undefined;
     this.lastScopeKey = undefined;
     this.network = undefined;
     this.completion = undefined;

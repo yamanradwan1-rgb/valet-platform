@@ -50,8 +50,9 @@ export class NativeTaskTrackingRuntime {
       isAuthorized: (binding) => this.authorityMatches(binding),
       location: options.location,
       now: options.now,
-      onDefinitiveFailure: () => {
-        void this.options.operations.refreshQueue();
+      onDefinitiveFailure: (binding) => {
+        this.fences.pauseNetwork(binding.key);
+        void this.options.operations.refreshQueue(true);
       },
       onUnknown: (binding) => this.fences.pauseNetwork(binding.key),
       transport: options.transport,
@@ -198,8 +199,10 @@ export class NativeTaskTrackingRuntime {
       const authorityLost =
         auth.phase === "unauthenticated" ||
         auth.phase === "fatal" ||
+        snapshot.phase === "access-denied" ||
         snapshot.phase === "inactive" ||
         snapshot.phase === "no-active-shift" ||
+        snapshot.phase === "no-usable-location" ||
         snapshot.phase === "ambiguous-active-shifts" ||
         (snapshot.identityGeneration !== null &&
           snapshot.identityGeneration !== auth.authGeneration);
@@ -223,6 +226,10 @@ export class NativeTaskTrackingRuntime {
     }
     const projection = snapshot.taskTracking;
     const candidate = nativeTaskTrackingBinding(snapshot);
+    this.fences.observeBinding(
+      candidate,
+      snapshot.successfulQueueSnapshotCount,
+    );
     if (this.fences.isCompleted(candidate?.key)) {
       this.publisher.retire({ kind: "idle" });
       return;

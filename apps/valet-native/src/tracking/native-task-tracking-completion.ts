@@ -41,6 +41,10 @@ export class NativeTaskTrackingCompletion {
     );
     if (currentKey === undefined || currentKey === completedKey)
       this.publisher.retire({ kind: "idle" });
-    return completedKey !== undefined && completedKey === candidate?.key;
+    return (
+      completedKey !== undefined &&
+      (completedKey === candidate?.key ||
+        this.fences.isLatestBinding(completedKey))
+    );
   }
 }

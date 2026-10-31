@@ -22,10 +22,11 @@ const b = {
 function eligible(
   type: "PARKING" | "RETRIEVAL",
   ids = a,
+  successfulQueueSnapshotCount = 1,
 ): EmployeeOperationalSnapshot {
   return {
     ...operations("ready", { retainedScope: scope }),
-    successfulQueueSnapshotCount: 1,
+    successfulQueueSnapshotCount,
     tasks: [
       {
         createdAt: "2026-10-07T00:59:00.000Z",
@@ -120,6 +121,21 @@ function fixture(type: "PARKING" | "RETRIEVAL") {
     location,
     refreshQueue,
     runtime,
+    failQueue: () => {
+      current = {
+        ...current,
+        queueFailure: {
+          code: "QUEUE_UNAVAILABLE",
+          message: "Temporary failure",
+        },
+        taskTracking: null,
+      };
+      listeners.forEach((listener) => listener());
+    },
+    loseProjection: () => {
+      current = { ...current, taskTracking: null };
+      listeners.forEach((listener) => listener());
+    },
     serverTerminal: (ids = a) =>
       completionListeners.forEach((listener) =>
         listener({
@@ -130,8 +146,8 @@ function fixture(type: "PARKING" | "RETRIEVAL") {
           task: type === "RETRIEVAL" ? { taskId: ids.taskId } : null,
         }),
       ),
-    update: (ids: typeof a) => {
-      current = eligible(type, ids);
+    update: (ids: typeof a, count = 2) => {
+      current = eligible(type, ids, count);
       listeners.forEach((listener) => listener());
     },
   };
@@ -142,6 +158,66 @@ async function settle() {
 }
 
 describe("#401 canonical server terminal without local submission", () => {
+  it.each(["PARKING", "RETRIEVAL"] as const)(
+    "keeps %s A terminal quarantined after context temporarily drops projection",
+    async (type) => {
+      const s = fixture(type);
+      s.runtime.setForeground(true);
+      await settle();
+      s.loseProjection();
+      expect(s.location.watchers[0]?.remove).toHaveBeenCalledOnce();
+      s.serverTerminal();
+      s.update(a, 2);
+      await settle();
+      expect(s.location.watchers).toHaveLength(1);
+      s.update(b, 3);
+      await settle();
+      expect(s.location.watchers).toHaveLength(2);
+      s.runtime.dispose();
+    },
+  );
+
+  it.each(["PARKING", "RETRIEVAL"] as const)(
+    "quarantines server-terminal %s A when queue failure removed its projection",
+    async (type) => {
+      const s = fixture(type);
+      s.runtime.setForeground(true);
+      await settle();
+      expect(s.location.watchers).toHaveLength(1);
+      s.failQueue(); // Queue failure drops taskTracking; publisher retains A.
+      expect(s.location.watchers[0]?.remove).toHaveBeenCalledOnce();
+      s.serverTerminal();
+      s.update(a, 2); // Older pre-terminal A queue result arrives after completion.
+      await settle();
+      expect(s.location.watchers).toHaveLength(1);
+      expect(s.refreshQueue).toHaveBeenCalledWith(true);
+      s.update(b, 3);
+      await settle();
+      expect(s.location.watchers).toHaveLength(2);
+      expect(s.runtime.current()).toEqual({ kind: "active", taskType: type });
+      s.runtime.dispose();
+    },
+  );
+
+  it.each(["PARKING", "RETRIEVAL"] as const)(
+    "does not quarantine %s B after queue failure from old A terminal",
+    async (type) => {
+      const s = fixture(type);
+      s.runtime.setForeground(true);
+      await settle();
+      s.update(b, 2);
+      await settle();
+      expect(s.location.watchers).toHaveLength(2);
+      s.failQueue(); // Last authoritative movement was B, not A.
+      s.serverTerminal(a);
+      s.update(b, 3);
+      await settle();
+      expect(s.location.watchers).toHaveLength(3);
+      expect(s.runtime.current()).toEqual({ kind: "active", taskType: type });
+      s.runtime.dispose();
+    },
+  );
+
   it.each(["PARKING", "RETRIEVAL"] as const)(
     "stops current %s A immediately on server terminal without local submitting",
     async (type) => {
