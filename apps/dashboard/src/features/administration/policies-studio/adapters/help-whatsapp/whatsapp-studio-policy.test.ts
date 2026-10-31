@@ -1,10 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 import type { DashboardApiClient } from "../../../../../lib/api/dashboard-api-client";
+import { DashboardApiError } from "../../../../../lib/api/dashboard-api-error";
+import { executeSensitiveMutation } from "../../../sensitive-mutation-executor";
 import type { WhatsAppSettingsView } from "../../../settings/whatsapp-settings-api";
 import {
   assertWhatsAppStudioScope,
   readScopedWhatsAppStudio,
   saveScopedWhatsAppStudio,
+  saveSensitiveScopedWhatsAppStudio,
   whatsappStudioDirty,
   whatsappStudioFieldValue,
 } from "./whatsapp-studio-policy";
@@ -149,5 +152,118 @@ describe("Policies Studio WhatsApp scope and persistence adapter", () => {
       ),
     ).rejects.toThrow("WHATSAPP_SCOPE_MISMATCH");
     expect(request).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["MFA step-up", "MFA_REQUIRED", "mfa", 403],
+    ["CAS conflict", "CONFLICT", "conflict", 409],
+  ] as const)(
+    "does not report %s as a saved policy or replay the bundled PUT",
+    async (_label, code, kind, status) => {
+      const { api, request } = apiWith(locationView);
+      const reason = new DashboardApiError({
+        code,
+        kind,
+        status,
+        message: "authorization or revision challenge",
+      });
+      request.mockRejectedValueOnce(reason);
+      const onMfaRequired = vi.fn();
+      const onConflict = vi.fn();
+      const onError = vi.fn();
+      const run = vi.fn(async (operation, onSuccess) => {
+        await executeSensitiveMutation(operation, {
+          isCurrent: () => true,
+          onMfaRequired,
+          onConflict,
+          onError,
+          onSuccess,
+        });
+      });
+
+      const confirmed = await saveSensitiveScopedWhatsAppStudio(
+        run,
+        api,
+        "company-one",
+        "location-one",
+        locationView,
+        { ...locationView.policy, enabled: true, revision: 999 },
+      );
+
+      expect(confirmed).toBeNull();
+      expect(run).toHaveBeenCalledTimes(1);
+      expect(request).toHaveBeenCalledTimes(1);
+      expect(request).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(Object),
+        expect.objectContaining({
+          method: "PUT",
+          body: expect.objectContaining({ revision: 3, expectedRevision: 3 }),
+        }),
+      );
+      expect(onMfaRequired).toHaveBeenCalledTimes(kind === "mfa" ? 1 : 0);
+      expect(onConflict).toHaveBeenCalledTimes(kind === "conflict" ? 1 : 0);
+    },
+  );
+
+  it("confirms success only while the sensitive scope is current", async () => {
+    const { api, request } = apiWith(locationView);
+    let current = true;
+    request.mockImplementationOnce(async () => {
+      current = false;
+      return locationView;
+    });
+    const run = async (
+      operation: () => Promise<WhatsAppSettingsView>,
+      onSuccess: (result: WhatsAppSettingsView) => void,
+    ) =>
+      executeSensitiveMutation(operation, {
+        isCurrent: () => current,
+        onMfaRequired: vi.fn(),
+        onError: vi.fn(),
+        onSuccess,
+      });
+
+    expect(
+      await saveSensitiveScopedWhatsAppStudio(
+        run,
+        api,
+        "company-one",
+        "location-one",
+        locationView,
+        { ...locationView.policy, enabled: true },
+      ),
+    ).toBeNull();
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
+  it("confirms exactly one successful sensitive bundled policy write", async () => {
+    const saved = {
+      ...locationView,
+      policy: { ...locationView.policy, enabled: true, revision: 4 },
+    };
+    const { api, request } = apiWith(saved);
+    const run = async (
+      operation: () => Promise<WhatsAppSettingsView>,
+      onSuccess: (result: WhatsAppSettingsView) => void,
+    ) =>
+      executeSensitiveMutation(operation, {
+        isCurrent: () => true,
+        onMfaRequired: vi.fn(),
+        onError: vi.fn(),
+        onSuccess,
+      });
+
+    expect(
+      await saveSensitiveScopedWhatsAppStudio(
+        run,
+        api,
+        "company-one",
+        "location-one",
+        locationView,
+        { ...locationView.policy, enabled: true },
+      ),
+    ).toEqual(saved);
+    expect(request).toHaveBeenCalledTimes(1);
   });
 });

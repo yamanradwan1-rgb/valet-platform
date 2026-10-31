@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DashboardApiClient } from "../../../../../lib/api/dashboard-api-client";
 import type { DashboardLocale } from "../../../../../lib/i18n/locale";
+import { useSensitiveMutation } from "../../../use-sensitive-mutation";
 import type { WhatsAppSettingsView } from "../../../settings/whatsapp-settings-api";
 import {
   readScopedWhatsAppStudio,
-  saveScopedWhatsAppStudio,
+  saveSensitiveScopedWhatsAppStudio,
   whatsappStudioDirty,
   type WhatsAppStudioDraft,
   type WhatsAppStudioPatch,
@@ -156,12 +157,16 @@ export function useWhatsAppStudioSettings({
     );
   }, [scopeKey]);
 
-  const reload = useCallback(() => {
-    if (enabled && !savingRef.current) {
-      setState(initialState(scopeKey));
-      setReloadVersion((version) => version + 1);
-    }
+  const reRead = useCallback(() => {
+    if (!enabled || latestScope.current !== scopeKey) return;
+    setState(initialState(scopeKey));
+    setReloadVersion((version) => version + 1);
   }, [enabled, scopeKey]);
+
+  const reload = useCallback(() => {
+    if (!savingRef.current) reRead();
+  }, [reRead]);
+  const mutation = useSensitiveMutation(`whatsapp-studio:${scopeKey}`, reRead);
 
   const saveValues = useCallback(
     async (values: WhatsAppStudioDraft): Promise<boolean> => {
@@ -169,7 +174,8 @@ export function useWhatsAppStudioSettings({
         !enabled ||
         !current.view ||
         !whatsappStudioDirty(current.view.policy, values) ||
-        savingRef.current
+        savingRef.current ||
+        mutation.mfaOpen
       )
         return false;
       savingRef.current = true;
@@ -177,14 +183,15 @@ export function useWhatsAppStudioSettings({
         old.scopeKey === scopeKey ? { ...old, saving: true, error: null } : old,
       );
       try {
-        const view = await saveScopedWhatsAppStudio(
+        const view = await saveSensitiveScopedWhatsAppStudio(
+          mutation.run,
           api,
           organizationId,
           locationId,
           current.view,
           values,
         );
-        if (latestScope.current !== scopeKey) return false;
+        if (!view || latestScope.current !== scopeKey) return false;
         setState((old) =>
           old.scopeKey === scopeKey
             ? {
@@ -215,7 +222,16 @@ export function useWhatsAppStudioSettings({
         );
       }
     },
-    [api, organizationId, locationId, scopeKey, current.view, enabled],
+    [
+      api,
+      organizationId,
+      locationId,
+      scopeKey,
+      current.view,
+      enabled,
+      mutation.run,
+      mutation.mfaOpen,
+    ],
   );
 
   const save = useCallback(
@@ -229,9 +245,10 @@ export function useWhatsAppStudioSettings({
     saved: current.view?.policy ?? null,
     draft: current.draft,
     loading: current.loading,
-    saving: current.saving,
+    saving: current.saving || mutation.busy,
     error:
-      current.error === "load"
+      mutation.error ??
+      (current.error === "load"
         ? ar
           ? "تعذّر تحميل إعدادات واتساب."
           : "Could not load WhatsApp settings."
@@ -239,12 +256,15 @@ export function useWhatsAppStudioSettings({
           ? ar
             ? "لم يُحفظ التغيير. أعد تحميل الإعدادات وتحقق من الصلاحيات."
             : "Change not saved. Reload settings and verify access."
-          : null,
+          : null),
     dirty,
     updateDraft,
     reset,
     reload,
     save,
     saveValues,
+    mfaOpen: enabled && mutation.mfaOpen,
+    onMfaAssured: mutation.onMfaAssured,
+    closeMfa: mutation.closeMfa,
   };
 }

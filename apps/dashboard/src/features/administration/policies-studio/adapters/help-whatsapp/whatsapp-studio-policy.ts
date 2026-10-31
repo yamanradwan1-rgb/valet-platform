@@ -106,3 +106,32 @@ export async function saveScopedWhatsAppStudio(
     locationId,
   );
 }
+
+/** A sensitive save succeeds only when the guarded mutation confirms success. */
+export async function saveSensitiveScopedWhatsAppStudio(
+  run: (
+    operation: () => Promise<WhatsAppSettingsView>,
+    onSuccess: (view: WhatsAppSettingsView) => void,
+  ) => Promise<void>,
+  api: DashboardApiClient,
+  organizationId: string,
+  locationId: string | null,
+  authoritativeView: WhatsAppSettingsView,
+  draft: WhatsAppStudioDraft,
+): Promise<WhatsAppSettingsView | null> {
+  let confirmed: WhatsAppSettingsView | null = null;
+  await run(
+    () =>
+      saveScopedWhatsAppStudio(
+        api,
+        organizationId,
+        locationId,
+        authoritativeView,
+        draft,
+      ),
+    (view) => {
+      confirmed = view;
+    },
+  );
+  return confirmed;
+}
