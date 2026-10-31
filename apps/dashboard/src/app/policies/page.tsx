@@ -1,5 +1,6 @@
+import { redirect, RedirectType } from "next/navigation";
 import { ProtectedDashboardRoute } from "../../components/foundation/protected-dashboard-route";
-import { SettingsPage } from "../../features/administration/settings/settings-page";
+import { PoliciesStudioPage } from "../../features/administration/policies-studio/policies-studio-page";
 
 export default async function PoliciesRoute({
   searchParams,
@@ -7,9 +8,10 @@ export default async function PoliciesRoute({
   readonly searchParams: Promise<{ readonly tab?: string | string[] }>;
 }) {
   const { tab } = await searchParams;
+  if (tab === "services") redirect("/policies", RedirectType.replace);
   return (
     <ProtectedDashboardRoute accessRequirement="DASHBOARD">
-      <SettingsPage serviceStatus={tab === "services"} />
+      <PoliciesStudioPage />
     </ProtectedDashboardRoute>
   );
 }

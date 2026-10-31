@@ -91,7 +91,7 @@ describe("source-driven contextual-help coverage", () => {
       .toContain("Obsolete route: /overview");
     const broken = {
       ...helpRouteManifest,
-      "/integrations": { classification: "REDIRECT" as const, helpKey: "policies.services", reason: "bad" },
+      "/integrations": { classification: "REDIRECT" as const, helpKey: "policies.page", reason: "bad" },
     };
     expect(inspectRouteInventory(knownRoutes, broken))
       .toContain("Excluded route exposes help: /integrations");
@@ -148,8 +148,8 @@ describe("source-driven contextual-help coverage", () => {
   });
 
   it("accounts for all section surfaces with checked source anchors and valid content routes", () => {
-    expect(sectionKeys).toHaveLength(61);
-    expect(new Set(sectionKeys).size).toBe(61);
+    expect(sectionKeys).toHaveLength(60);
+    expect(new Set(sectionKeys).size).toBe(60);
     expect(Object.keys(helpSectionSourceFiles).sort()).toEqual(sectionKeys.slice().sort());
     for (const [feature, keys] of Object.entries(helpSectionManifest)) {
       const route = helpSectionRoutes[feature as keyof typeof helpSectionRoutes];
@@ -161,15 +161,15 @@ describe("source-driven contextual-help coverage", () => {
     }
   });
 
-  it("covers all non-ordinary editors, read-only service facts and every declared semantic entry", () => {
-    expect(specialSettingsHelpKeys).toHaveLength(13);
-    expect(additionalHelpKeys).toHaveLength(9);
+  it("covers all non-ordinary editors and every declared semantic entry", () => {
+    expect(specialSettingsHelpKeys).toHaveLength(12);
+    expect(additionalHelpKeys).toHaveLength(8);
     for (const key of ["setting.operatingHours", "setting.slaTargetSeconds",
       "policies.presence", "presence.readiness", "presence.zones",
-      "presence.zoneForm", "presence.exceptions", "presence.review",
-      "services.status"]) expect(additionalHelpKeys).toContain(key);
+      "presence.zoneForm", "presence.exceptions", "presence.review"])
+      expect(additionalHelpKeys).toContain(key);
     // The accepted #316 guest-information route has its own bilingual help key.
-    expect(new Set(allDeclaredKeys).size).toBe(112);
+    expect(new Set(allDeclaredKeys).size).toBe(110);
     expect(inspectHelpCatalog(Object.entries(contextHelpRegistry), allDeclaredKeys)).toEqual([]);
     expect(Object.keys(contextHelpRegistry).slice().sort()).toEqual(allDeclaredKeys.slice().sort());
   });

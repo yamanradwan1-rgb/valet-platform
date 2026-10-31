@@ -22,26 +22,21 @@ for (const width of [1440, 480]) {
         await page.setViewportSize({ width, height: 900 });
         const t = administrationCopy(locale);
         const surfaces = [
-          "policies-company",
-          "policies-location",
+          "policies",
           "roles-permissions",
           "branding",
-          "integrations",
           "billing-active",
           "help",
           "billing-null",
           "security",
         ];
         for (const surface of surfaces) {
-          const route = surface.startsWith("policies")
-            ? "policies"
-            : surface.startsWith("billing")
+          const route = surface.startsWith("billing")
               ? "billing-subscription"
               : surface;
           if (surface === "billing-null") state.nullSubscription = true;
           if (
-            surface !== "policies-company" &&
-            surface !== "policies-location"
+            surface !== "policies"
           ) {
             await page.setViewportSize({ width: 1440, height: 900 });
             if (surface === "billing-null") {
@@ -52,8 +47,6 @@ for (const width of [1440, 480]) {
             } else await page.locator(`nav a[href="/${route}"]`).click();
             await page.setViewportSize({ width, height: 900 });
           }
-          if (surface === "policies-location")
-            await page.getByRole("tab", { name: t.locationOverrides }).click();
           const title = page.locator("h1");
           await expect(title).toHaveCount(1);
           await expect(title).toBeVisible();
@@ -61,16 +54,12 @@ for (const width of [1440, 480]) {
             await expect(title).toHaveText(t.rolesTitle);
             await expect(page.locator("tbody tr")).toHaveCount(4);
           }
-          if (surface.startsWith("policies"))
+          if (surface === "policies")
             await expect(
-              page.locator('[data-setting="tipsEnabled"]'),
+              page.locator('[data-setting="checkInPhotosRequired"]'),
             ).toBeVisible();
           if (surface === "branding")
             await expect(page.getByLabel(t.displayName)).toHaveValue("VAYLET");
-          if (surface === "integrations")
-            await expect(
-              page.getByText("PLATE_OCR", { exact: true }),
-            ).toBeVisible();
           if (surface === "billing-active")
             await expect(
               page.getByText(t.planCode, { exact: true }),
@@ -137,7 +126,7 @@ for (const width of [1440, 480]) {
           if (
             width === 1440 &&
             locale === "en" &&
-            (surface.startsWith("policies") || surface === "roles-permissions")
+            surface === "roles-permissions"
           ) {
             await expect
               .poll(async () => (await title.boundingBox())?.y)

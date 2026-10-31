@@ -1,0 +1,245 @@
+# Issue #321 Phase B — Policies Studio integration evidence
+
+Status: integration candidate; **not a release approval**. The design and source
+attribution below are fixed by the Owner's Issue #321 decision.
+
+## Immutable source and baseline
+
+- Repository: `yamanradwan1-rgb/valet-platform`.
+- Current main baseline: `fcfa760e4f17abae5fc9871417c6b68feecd089c`.
+- Approved source commit: `5596e2312f622fbbfdcd498408769149407a6399`.
+- Approved source directory: `prototypes/issue-321-policies-studio/`.
+- Historical base / merge base: `92638c499a1062db3f814687ca3761f235361298`.
+- Integration branch: `feat/issue-321-policies-studio-integration`.
+- Integration worktree: `tmp/issue-321-b-prime` (relative to repo root).
+- The source branch was inspected and imported file by file. Its historical base
+  was never merged into the current production branch.
+- The superseded four-prototype directory and `prototypes/issue-321/` are not
+  implementation/design authorities.
+
+## Contract and ownership
+
+- Settings: existing Company Admin typed management settings routes, exact
+  Location Manager configuration route, `expectedUpdatedAt` CAS, independent
+  sensitive-MFA flow, authoritative reads and explicit override presence.
+- Presence: existing independent Start/End rules, exact scope and revision,
+  readiness, zone CAS, one-shot geolocation and mutation reconciliation.
+- WhatsApp: existing bundled policy read/PUT, revision, actual approved template
+  and provider-binding catalog; live sending remains disabled.
+- Contextual Help: existing Issue #278 bilingual registry and focus handling.
+- Service Status: the Owner's 2026-10-31 U-001 decision removes its Dashboard
+  UI surface and links. Existing Issue #238 backend API, authorization,
+  persistence, and domain contracts remain unchanged.
+- No ValetSession or Task/Dispatch lifecycle transition changes; no new database
+  model, migration, backend mutation, permission or audit writer.
+
+## Owner decisions
+
+**U-001 — RESOLVED by the Owner on 2026-10-31.** Service Status is removed
+from the Management Dashboard UI entirely. The frozen eight-section Studio
+continues to exclude it; no new page, menu item, or placement is authorized.
+The legacy `/policies?tab=services` link and `/integrations` redirect must
+resolve safely to `/policies`, where the authenticated Studio is the only
+settings composition. Remove the status-only Dashboard panel and its Help
+entries, and update affected frontend tests. Preserve existing backend status
+APIs and operational contracts. This latest Owner instruction supersedes the
+previous Service Status UI-placement requirement without changing DEC-087's
+backend read-only/provider authorization contract.
+
+**U-002 — RESOLVED by the Owner on 2026-10-31.** The Owner expressly allowed
+exceptions for prototype-only material, including simulated/local/fixture
+copy. Commit `3f42ac3b` imports Worker 2's follow-up: eight UI TS/TSX files
+replace misleading English/Arabic strings with truthful server-save,
+readiness, loading, catalog and illustrative-map wording. No CSS, icon,
+component geometry or global shell files changed. The resulting localized
+text pixels are an approved exception, to be recorded openly in comparison
+evidence rather than concealed with image masks.
+
+## Verification rules
+
+The source's historical 24/24, 31/31, 20/20 setting coverage and 261 viewport
+checks are **prototype-only** evidence. The integrated candidate needs fresh
+functional authorization/CAS and browser pixel checks against the immutable
+source using normalized API fixtures, matching Chromium/DPR/fonts/locale/theme,
+no broad image masks, and independent review. The global Dashboard shell and
+non-Policies pages must be compared to current main, with zero intentional
+visual changes. Record test commands, actual exit statuses, screenshot hashes,
+pixel differences and any blockers below only after they have been executed.
+
+## Results and artifacts
+
+### Static and runtime verification (2026-10-31)
+
+- `pnpm lint`: PASS; all 11 Turbo tasks succeeded.
+- `pnpm typecheck`: PASS; all 11 Turbo tasks succeeded.
+- `pnpm build` with `API_ORIGIN=http://127.0.0.1:3001`: PASS; all
+  10 Turbo tasks succeeded, including optimized production Dashboard build.
+- `pnpm architecture:check`: PASS. Existing grandfathered legacy file-size
+  warnings remain; each authored Issue #321 file is under 300 lines.
+- `pnpm --filter @valet/dashboard exec vitest run
+  src/features/administration/policies-studio`: 34 PASS, 0 FAIL after the
+  WhatsApp sensitive-MFA follow-up.
+- `pnpm --filter @valet/dashboard exec playwright test
+  e2e/issue321-policies-studio.spec.ts` against the compiled production app
+  at `127.0.0.1:3014`, using `E2E_BASE_URL`: 3 PASS, 0 FAIL. This now
+  asserts editor keyboard focus stays on a reverted draft and returns to its
+  Edit control after successful Save and Cancel.
+- `pnpm --filter @valet/dashboard exec playwright test
+  e2e/issue238-service-status.spec.ts e2e/issue321-policies-studio.spec.ts
+  --workers=1`: 5 PASS, 0 FAIL in the compiled production Dashboard. Both
+  legacy `/integrations` and `/policies?tab=services` routes replace-redirect
+  to the authenticated Studio and make zero Service Status API reads.
+- Six additional production Playwright cases in
+  `administration-behavior`, `administration-concurrency`, `md-r11-commercial`,
+  `md-r11-privacy`, `md-r11-presentation`, and `task01-mfa-session-fencing`:
+  **6 PASS, 0 FAIL** after correcting obsolete navigation and value assertions.
+  This includes an actual delayed cross-Organization settings-read isolation
+  check and an in-flight MFA refresh fence.
+- Real-backend `e2e-runtime/md-r11-administration.spec.ts` was updated to the
+  current Studio editor and U-001 redirect expectations. Playwright test
+  discovery reports **2 tests**; the real database-backed runtime suite has
+  **not** run because a verified disposable PostgreSQL target is unavailable.
+- U-001 replaces the legacy Service Status branch and deletes its UI panel.
+  The affected Company Admin and Location Manager browser tests now assert
+  `/integrations` and `?tab=services` redirect to `/policies`, render the
+  authorized Studio and make zero Service Status API calls. A post-change
+  production browser rerun is recorded below.
+- `pnpm --filter @valet/dashboard test`: 1149 PASS, 0 FAIL across 172
+  test files. Removed Service Status-only Help entries and corrected the
+  catalogue cardinality assertions; existing backend API-helper coverage
+  remains intact.
+- `pnpm test`: blocked at repository test-target preflight, before tests run:
+  `Issue 215 test target is not the verified task-owned disposable PostgreSQL
+  container.` No disposable database target was changed or invented.
+- `pnpm format:check`: FAIL; Prettier reports widespread mismatches in
+  unrelated current-main source, tests and documentation, beginning at
+  `.github/ISSUE_TEMPLATE/bug_report.yml` (4,980 files). No repository-wide reformat was
+  performed. `pnpm exec prettier --check` on the eight Prime-owned integration
+  files: 8 PASS, 0 FAIL.
+
+The Issue #215 test database preflight and repository-wide Prettier baseline
+remain **environment/repository** failures, not passing checks. No remote
+CI execution is claimed. All browser assertions above used real production
+Next.js page hydration with network API fixtures; they are not a substitute
+for database-backed concurrency or permission integration tests.
+
+### Independent visual and security review
+
+All six locally imported Policies Studio styles have byte-identical Git blob
+SHA-1s to the immutable source (`editors.css` `ede3e60f`, `responsive.css`
+`c412c784`, `usability.css` `c425e999`, `workspace-feedback.css` `b09b4b40`,
+`workspace.css` `ef27db1d`, `zone-map.css` `8e7106c0`). `git diff
+fcfa760..HEAD -- apps/dashboard/src/components apps/dashboard/src/app/globals.css
+apps/dashboard/src/app/layout.tsx packages/database` contains no modified
+global shell or DB files. CSS equality is source evidence, not a browser
+pixel-parity verdict.
+
+The pinned Vite source runs at `127.0.0.1:4322`; compiled production candidate
+at `127.0.0.1:3014`. The committed evidence script captures four normalized
+Company operations scenarios, at 1x DPR with the same Chromium, fonts,
+API fixture, locale, theme and keyboard focus state. For 320px the signed-in
+Dashboard selects Garden Hotel Demo then Company defaults to match the source
+topbar wrapping. All screenshots are raw; there are **zero masks** and **zero
+tolerances**. The script records both the entire `.ps-pane` locator screenshot
+and the visible viewport region cut from the full screenshot, with SHA-256s,
+rectangles and red difference PNGs in `evidence/comparison.json`.
+
+| Scenario | Entire pane differing pixels | Visible region differing pixels | Pixel/geometry verdict |
+|---|---:|---:|---|
+| 1440 × 1000 EN/light | 0 / 591,300 | 0 / 589,548 | Exact PASS |
+| 768 × 900 EN/dark | 0 / 665,392 | 0 / 391,664 | Exact PASS |
+| 390 × 844 AR/dark | 0 / 331,100 | 0 / 133,350 | Exact PASS |
+| 320 × 800 AR/light | 0 / 288,120 | **8 / 71,400** | **Strict FAIL** |
+
+Independent Worker 6 performed a separate four-case visible-region comparison
+using the same pinned source and production commit. It recorded 0 differences
+in the first three cases, then **8 / 71,400 differing pixels at 320px**,
+limited to the top-left rounded pane corner (`x=0..1`, `y=7..11`, color delta
+≤1/255). All DOM pane rectangles, RTL/LTR, focus, spacing, icons and content
+geometry matched, with no overflow. The final Prime evidence harness rerun
+**reproduces the same 8 differing pixels** in the cropped full-viewport region,
+although a separately painted screenshot of the complete `.ps-pane` is pixel
+identical in all four cases. Four independent repetitions on each side have
+stable hashes; this is a deterministic fractional-edge compositor discrepancy.
+It is a **strict visual FAIL under the Owner's zero-difference rule**. No CSS,
+mask or acceptance threshold was altered to hide it.
+
+Separate W6 1440 EN/light open-editor case found 1,753 / 593,928 pixels
+different, exclusively inside the Owner-authorized U-002 simulation-note text
+band; editor rectangles match. W6 visited `/overview` before and after the
+Policies route and obtained an exact 0 / 1,296,000 pixel and CSS/geometry
+match, with no global selector or shell mutation. In addition, the Prime ran
+the unchanged `/overview` route on an isolated full-build `origin/main`
+worktree at `:3015` against the compiled candidate at `:3014`, with the same
+authenticated Company Admin fixture and Chromium. These are direct full
+viewport, unmasked screenshots, with identical DOM rectangles:
+
+| `/overview` baseline vs candidate | Differing pixels | Geometry |
+|---|---:|---|
+| 1440 × 900 EN/light | 0 / 1,296,000 | Equal |
+| 390 × 844 AR/dark | 0 / 329,160 | Equal |
+
+The exact screenshots, red difference PNGs and hashes are saved under
+`evidence/shell-*.png` and `evidence/shell-comparison.json`; rerun with
+`apps/dashboard/e2e/issue321-shell-evidence.mjs` and
+`POLICIES_MAIN_URL=http://127.0.0.1:3015` and
+`POLICIES_CANDIDATE_URL=http://127.0.0.1:3014`.
+This covers a representative non-Policies page at two sizes. Full-viewport
+prototype versus candidate images include expected synthetic-vs-production
+shell text and are not used to assert global shell parity.
+
+Worker 7 independently reviewed the CAS guards and confirmed the earlier
+lost-update P1 was closed. No P0 auth, tenant or CAS bypass was found.
+The previous P2 legacy editable Settings branch has been removed under the
+Owner's resolved U-001 decision. Remaining P2 review items: Presence,
+WhatsApp and zones load on other Studio sections; full conflict-recovery
+browser coverage is incomplete. Inherited unverified WhatsApp sender options
+remain selectable (P3) but are rejected by the existing backend. Independent
+final U-001 review and exact visual acceptance remain open.
+Neither independent review constitutes a complete role/section/zoom matrix;
+native 160–200% browser zoom was not exercised.
+
+The current candidate implements a field-level server-refresh guard while an
+editor is open, in addition to existing server CAS. Source-only simulation
+copy exceptions are explicit Owner-authorized differences, never masked.
+WhatsApp's bundled policy save now uses existing `useSensitiveMutation`, which
+opens the already-approved MFA step-up dialog when assurance expires and asks
+the user to retry Save after confirmation. It never auto-submits. Company versus
+Location Studio composition is scope-keyed to retire pending Presence/MFA state,
+and independent Presence/Zones/WhatsApp read states are no longer suppressed
+by an unrelated general-settings read failure. Attendance zone editing uses
+the distinct authoritative `canEditZones` capability.
+WhatsApp editor revisions are captured from the authoritative policy when an
+editor opens; Operating Hours captures the authoritative settings `updatedAt`.
+After a 409 or ambiguous re-read returns a newer revision, the unsaved draft
+remains visible but Save/Clear are blocked until the editor is closed and the
+new server values are reviewed. Worker 7 independently confirmed this closes
+the previously reported bundled-policy lost-update path; no server CAS bypass
+was found. The immutable prototype's heading-focus behavior has been restored
+on initial route/section changes without overriding the user's focus inside an
+editor or the return focus after Save/Cancel. The regression found during W7's
+review was fixed and the real production browser test now passes, with no CSS
+change.
+
+The production-only evidence script
+`apps/dashboard/e2e/issue321-visual-evidence.mjs` runs against the pinned local
+Vite preview (`:4322`) and compiled Next route (`:3014`) using the existing
+Dashboard API test fixture. Invoke it with `node
+apps/dashboard/e2e/issue321-visual-evidence.mjs`, optionally supplying
+`POLICIES_SOURCE_URL`, `POLICIES_CANDIDATE_URL` and
+`POLICIES_CANDIDATE_SHA`. It writes raw PNGs, pane difference images and
+`evidence/comparison.json`, including all raw full, pane, visible-pane and
+difference PNGs for each scenario (33 Policies evidence files, plus 7 baseline
+shell comparison files). It is a test-only
+script and cannot change live
+Dashboard configuration. A script-level comparison is not an independent
+visual review; Worker 6 supplies that separate verdict.
+
+Remaining independent-review concern: Presence and WhatsApp reads currently
+mount eagerly on the Studio route, including Location zone pagination. These
+are authorized reads but exceed the baseline's conditional tab-loading profile
+and should be assessed before merge for large-location performance.
+
+No production deployment, merge to `main`, or Issue #321 closure is authorized
+by Phase B. U-001 is resolved; the remaining visual and functional gates still
+require successful verification and Owner review before any merge.

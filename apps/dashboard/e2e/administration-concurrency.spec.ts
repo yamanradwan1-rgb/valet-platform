@@ -7,6 +7,7 @@ import {
   ORG_B,
 } from "./support/dashboard-api-fixture";
 import { signInOnCurrentPage } from "./support/foundation-ui";
+import { companySettings } from "./support/administration-fixtures";
 
 const STAFF_EMAIL = "worker@example.com";
 const CREATED_LOCATION_ID = "55555555-5555-4555-8555-555555555555";
@@ -68,20 +69,6 @@ function staffDetail(
     ...staffProjection(role, version),
     locationAccess: { items: [], totalCount: 0, truncated: false },
   };
-}
-
-function integrations(
-  organizationId: string,
-  status: "DEGRADED" | "OPERATIONAL",
-) {
-  return {
-    organizationId,
-    integrations: [
-      { key: "PLATE_OCR", status },
-      { key: "STAFF_PUSH", status },
-      { key: "DIGITAL_PAYMENT", status },
-    ],
-  } as const;
 }
 
 test("Location create keeps one operationId after an unknown first outcome", async ({
@@ -189,11 +176,11 @@ test("staff role conflict reloads authoritative detail without local success", a
   await expect(row).not.toContainText("Location Manager");
 });
 
-test("delayed Integrations read cannot repopulate after Organization scope change", async ({
+test("delayed Policies settings read cannot repopulate after Organization scope change", async ({
   page,
 }) => {
-  const oldPath = `/v1/staff/management/organizations/${ORG_A.organizationId}/integrations`;
-  const newPath = `/v1/staff/management/organizations/${ORG_B.organizationId}/integrations`;
+  const oldPath = `/v1/staff/management/organizations/${ORG_A.organizationId}/settings`;
+  const newPath = `/v1/staff/management/organizations/${ORG_B.organizationId}/settings`;
   const fixture = new DashboardApiFixture({
     companyOrganizations: [ORG_A, ORG_B],
     companyLocations: {
@@ -203,16 +190,25 @@ test("delayed Integrations read cannot repopulate after Organization scope chang
     override: (path) => {
       if (path === oldPath)
         return {
-          body: integrations(ORG_A.organizationId, "DEGRADED"),
+          body: companySettings(),
           delayMs: 450,
         };
       if (path === newPath)
-        return { body: integrations(ORG_B.organizationId, "OPERATIONAL") };
+        return {
+          body: {
+            ...companySettings(),
+            organizationId: ORG_B.organizationId,
+            defaults: {
+              ...companySettings().defaults,
+              checkInPhotosRequired: true,
+            },
+          },
+        };
       return undefined;
     },
   });
   await fixture.install(page);
-  await page.goto("/integrations");
+  await page.goto("/policies?section=operations");
   await signInOnCurrentPage(page);
   await page.getByRole("button", { name: ORG_A.name }).click();
 
@@ -222,8 +218,7 @@ test("delayed Integrations read cannot repopulate after Organization scope chang
   await page.getByRole("button", { name: "All Locations" }).click();
   await oldRequest;
   await page
-    .locator(".topbar")
-    .getByRole("button", { name: "Change scope" })
+    .getByRole("button", { name: /Organization:.*Change scope/u })
     .click();
   await page.getByRole("button", { name: ORG_B.name }).click();
   const newRequest = page.waitForRequest(
@@ -232,11 +227,10 @@ test("delayed Integrations read cannot repopulate after Organization scope chang
   await page.getByRole("button", { name: "All Locations" }).click();
   await newRequest;
 
-  await expect(
-    page.getByRole("heading", { name: "Integrations & Connectors" }),
-  ).toBeVisible();
-  await expect(page.getByText("Operational", { exact: true })).toHaveCount(3);
+  const currentValue = page.locator(
+    '[data-setting="checkInPhotosRequired"] .ps-setting-value strong',
+  );
+  await expect(currentValue).toHaveText("Yes");
   await page.waitForTimeout(550);
-  await expect(page.getByText("Operational", { exact: true })).toHaveCount(3);
-  await expect(page.getByText("Degraded", { exact: true })).toHaveCount(0);
+  await expect(currentValue).toHaveText("Yes");
 });

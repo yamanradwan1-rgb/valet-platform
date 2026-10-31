@@ -6,15 +6,19 @@ import {
   signIn,
 } from "./support/runtime-fixture";
 
-test("R11 real Company settings, inherited Location values, Branding and read-only administration", async ({
+test("R11 real Studio Company defaults, Location overrides, Branding and read-only administration", async ({
   page,
 }) => {
   await signIn(page, f.emails.conflictAdmin);
   await assurePreEnrolled(page);
   await selectLocation(page, f.organizations.a.name, f.locations.a.name);
   await page.locator('nav a[href="/policies"]').click();
+  await expect(page.locator(".ps-workspace")).toBeVisible();
+  await page.getByRole("button", { name: "Company defaults" }).click();
+  await page.locator('.ps-section-links a[href*="section=payments"]').click();
   const row = page.locator('[data-setting="tipsEnabled"]');
   await expect(row).toBeVisible();
+  await row.locator(".ps-edit-button").click();
   const original = await row.locator("select").inputValue();
   await row
     .locator("select")
@@ -23,13 +27,12 @@ test("R11 real Company settings, inherited Location values, Branding and read-on
     (r) =>
       r.request().method() === "PUT" && r.url().endsWith("/settings/default"),
   );
-  await row.getByRole("button", { name: "Save", exact: true }).click();
+  await row.locator('button[type="submit"]').click();
   expect((await companyWrite).status()).toBe(200);
-  await expect(
-    row.getByRole("button", { name: "Save", exact: true }),
-  ).toBeDisabled();
-  await page.getByRole("tab", { name: "Location overrides" }).click();
+  await expect(row.locator(".ps-edit-button")).toBeVisible();
+  await page.getByRole("button", { name: "Location overrides" }).click();
   await expect(row).toContainText("Inherited");
+  await row.locator(".ps-edit-button").click();
   const current = await row.locator("select").inputValue();
   await row
     .locator("select")
@@ -38,23 +41,12 @@ test("R11 real Company settings, inherited Location values, Branding and read-on
     (r) =>
       r.request().method() === "PUT" && r.url().endsWith("/settings/override"),
   );
-  await row.getByRole("button", { name: "Save", exact: true }).click();
+  await row.locator('button[type="submit"]').click();
   expect((await locationWrite).status()).toBe(200);
   await expect(row).toContainText("Overridden");
-  await row.getByRole("button", { name: "Clear override" }).click();
+  await row.locator(".ps-edit-button").click();
+  await row.getByRole("button", { name: "Clear Override" }).click();
   await expect(row).toContainText("Inherited");
-  const sla = page.locator('[data-setting="slaTargetSeconds"]');
-  await sla.locator("input").fill("29");
-  await expect(
-    sla.getByRole("button", { name: "Save", exact: true }),
-  ).toBeDisabled();
-  await sla.locator("input").fill("180");
-  await sla.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(
-    sla.getByRole("button", { name: "Save", exact: true }),
-  ).toBeDisabled();
-  await sla.getByRole("button", { name: "Clear override" }).click();
-  await expect(sla.locator("input")).toHaveValue("");
   await page.locator('nav a[href="/branding"]').click();
   await expect(
     page.getByRole("heading", { name: "Branding", exact: true }),
@@ -71,14 +63,17 @@ test("R11 real Company settings, inherited Location values, Branding and read-on
   // Roles & Permissions is intentionally a read-only reference. Staff
   // assignments and the directory are in the separate Employees route.
   await page.locator('nav a[href="/employees"]').click();
-  await expect(page.getByRole("heading", { name: "Employees & Shifts" }))
-    .toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Employees & Shifts" }),
+  ).toBeVisible();
   await expect(page.locator("tbody")).toContainText(f.emails.locationManager);
-  // The legacy Integrations URL now redirects to the authorized read-only
-  // Service Status tab under Policies, not a standalone navigation item.
+  // The Owner retired Service Status from every Dashboard UI surface.
   await page.goto("/integrations");
-  await expect(page.getByRole("tab", { name: "Service Status" })).toBeVisible();
-  await expect(page.locator('[class*="integrationCard"]')).toHaveCount(3);
+  await expect(page).toHaveURL(/\/policies$/u);
+  await expect(page.locator(".ps-workspace")).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Service Status" })).toHaveCount(
+    0,
+  );
   await page.locator('nav a[href="/billing-subscription"]').click();
   await expect(page.locator("tbody tr")).toHaveCount(3);
   await page.locator('nav a[href="/help"]').click();
@@ -91,7 +86,9 @@ test("R11 real Location Manager retains narrow settings and exact Location Brand
   await signIn(page, f.emails.locationManager);
   await selectLocation(page, f.organizations.a.name, f.locations.a.name);
   await page.locator('nav a[href="/policies"]').click();
-  await expect(page.getByRole("tab")).toHaveCount(0);
+  await expect(page.locator(".ps-workspace")).toBeVisible();
+  await expect(page.locator(".ps-scope-switch button")).toHaveCount(1);
+  await page.locator('.ps-section-links a[href*="section=payments"]').click();
   await expect(page.locator('[data-setting="tipsEnabled"]')).toBeVisible();
   for (const key of [
     "slaTargetSeconds",

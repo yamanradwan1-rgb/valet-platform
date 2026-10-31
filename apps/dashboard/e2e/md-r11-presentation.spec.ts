@@ -91,7 +91,7 @@ test("R11 Help is static, keyboard usable and requests no administration dataset
   await question.focus();
   await page.keyboard.press("Enter");
   await expect(
-    page.getByText(/Integrations shows service status/),
+    page.getByText(/Subscription shows the recorded plan and features/),
   ).toBeVisible();
   for (const suffix of ["settings", "branding", "integrations", "staff"])
     expect(fixture.count(`${r11Base}/${suffix}`)).toBe(0);

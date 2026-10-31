@@ -19,7 +19,7 @@ export const helpSectionManifest = {
   locations: [
     "locations.list", "locations.detail", "locations.lifecycle", "locations.create",
   ],
-  policies: ["policies.company", "policies.location", "policies.services"],
+  policies: ["policies.company", "policies.location"],
   roles: ["roles.reference"],
   branding: ["branding.company", "branding.location"],
   billing: ["billing.status", "billing.entitlements"],

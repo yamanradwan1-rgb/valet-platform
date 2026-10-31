@@ -1,0 +1,154 @@
+{
+  "baseline": "fcfa760e4f17abae5fc9871417c6b68feecd089c",
+  "candidate": "U001-worktree",
+  "cases": [
+    {
+      "id": "shell-en-light-1440",
+      "viewport": [
+        1440,
+        900
+      ],
+      "locale": "en",
+      "theme": "light",
+      "main": {
+        "sidebar": [
+          0,
+          0,
+          260,
+          900
+        ],
+        "topbar": [
+          260,
+          0,
+          1180,
+          64
+        ],
+        "content": [
+          260,
+          64,
+          1180,
+          836
+        ],
+        "heading": [
+          292,
+          96,
+          101.625,
+          32
+        ],
+        "title": "Overview",
+        "overflow": false,
+        "sha256": "6747e557ff602ea9a71040b3a475662dfbd5fd30274241e590ec19467da640df"
+      },
+      "candidate": {
+        "sidebar": [
+          0,
+          0,
+          260,
+          900
+        ],
+        "topbar": [
+          260,
+          0,
+          1180,
+          64
+        ],
+        "content": [
+          260,
+          64,
+          1180,
+          836
+        ],
+        "heading": [
+          292,
+          96,
+          101.625,
+          32
+        ],
+        "title": "Overview",
+        "overflow": false,
+        "sha256": "6747e557ff602ea9a71040b3a475662dfbd5fd30274241e590ec19467da640df"
+      },
+      "comparison": {
+        "differences": 0,
+        "pixels": 1296000,
+        "maxChannelDelta": 0,
+        "geometryEqual": true
+      },
+      "pass": true
+    },
+    {
+      "id": "shell-ar-dark-390",
+      "viewport": [
+        390,
+        844
+      ],
+      "locale": "ar",
+      "theme": "dark",
+      "main": {
+        "sidebar": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "topbar": [
+          0,
+          0,
+          390,
+          92.1875
+        ],
+        "content": [
+          0,
+          92.1875,
+          390,
+          751.8125
+        ],
+        "heading": [
+          269.765625,
+          112.1875,
+          100.234375,
+          32
+        ],
+        "title": "نظرة عامة",
+        "overflow": false,
+        "sha256": "adf055db3e478965994e65a320396dd4f8fdeb9e889bcb37a534b29a3ed3743d"
+      },
+      "candidate": {
+        "sidebar": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "topbar": [
+          0,
+          0,
+          390,
+          92.1875
+        ],
+        "content": [
+          0,
+          92.1875,
+          390,
+          751.8125
+        ],
+        "heading": [
+          269.765625,
+          112.1875,
+          100.234375,
+          32
+        ],
+        "title": "نظرة عامة",
+        "overflow": false,
+        "sha256": "adf055db3e478965994e65a320396dd4f8fdeb9e889bcb37a534b29a3ed3743d"
+      },
+      "comparison": {
+        "differences": 0,
+        "pixels": 329160,
+        "maxChannelDelta": 0,
+        "geometryEqual": true
+      },
+      "pass": true
+    }
+  ]
+}

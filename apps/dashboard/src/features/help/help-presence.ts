@@ -73,12 +73,6 @@ const presenceDescriptions = {
     ar: { title: "مراجعة استثناء الحضور",
       body: "افحص الأدلة المسجلة والحالة الحالية وإجراء المراجعة المسموح قبل اعتماد الاستثناء. تُعالج الإصدارات القديمة وإلغاء الصلاحية ونتائج العمليات غير المؤكدة عبر مسار الاستعادة المحمي الموجود." },
   },
-  "services.status": {
-    en: { title: "Service status",
-      body: "Service health is an observed technical status, not a tenant-level switch. There is no Save here; a service reported healthy may still require credentials, entitlements or per-Location configuration elsewhere." },
-    ar: { title: "حالة الخدمات",
-      body: "حالة الخدمة هي ملاحظة تقنية وليست مفتاح تشغيل خاصاً بالشركة. لا يوجد حفظ هنا؛ قد تحتاج الخدمة السليمة إلى بيانات اعتماد أو اشتراك أو تهيئة خاصة بالموقع في موضع آخر." },
-  },
 } as const satisfies Record<string, ContextHelpCopy>;
 
 const policyContext = {
