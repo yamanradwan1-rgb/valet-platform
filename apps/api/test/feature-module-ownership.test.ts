@@ -92,6 +92,8 @@ import { LiveMapController } from "../src/modules/tracking/live-map.controller";
 import { LiveMapService } from "../src/modules/tracking/live-map.service";
 import { RouteHistoryController } from "../src/modules/tracking/route-history.controller";
 import { RouteHistoryService } from "../src/modules/tracking/route-history.service";
+import { TaskRouteRecordingsController } from "../src/modules/tracking/task-route-recordings.controller";
+import { TaskRouteRecordingsService } from "../src/modules/tracking/task-route-recordings.service";
 import { TrackingModule } from "../src/modules/tracking/tracking.module";
 
 function metadata<T>(module: object, key: string): T[] {
@@ -155,11 +157,13 @@ describe("accepted feature module ownership", () => {
       GpsIngestionController,
       LiveMapController,
       RouteHistoryController,
+      TaskRouteRecordingsController,
     ]);
     expect(metadata(TrackingModule, MODULE_METADATA.PROVIDERS)).toEqual([
       GpsIngestionService,
       LiveMapService,
       RouteHistoryService,
+      TaskRouteRecordingsService,
     ]);
   });
 

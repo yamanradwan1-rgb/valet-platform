@@ -4,6 +4,7 @@ import type { ManagementLocation, TaskOverviewEntry } from "@valet/contracts";
 import { useCallback, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import type { DashboardApiClient } from "../../../lib/api/dashboard-api-client";
+import { RouteHistorySection } from "./route-history/route-section";
 import { TaskDrawer } from "./task-drawer";
 import { canOfferEmergencyTakeover } from "./emergency-tasks-visibility";
 import { useEmergencyActionEligibility } from "./use-emergency-action-eligibility";
@@ -39,6 +40,16 @@ export function EmergencyTaskDrawer(props: {
       item={props.item}
       locale={props.locale}
       location={props.location}
+      routeHistory={
+        <RouteHistorySection
+          key={`${props.scopeKey}:${props.item.taskId}:${props.item.status}`}
+          api={props.api}
+          item={props.item}
+          location={props.location}
+          scopeKey={props.scopeKey}
+          role={props.role}
+        />
+      }
       onClose={closeDrawer}
       {...(eligible ? { onEmergencyTakeover: props.onTakeover } : {})}
     />

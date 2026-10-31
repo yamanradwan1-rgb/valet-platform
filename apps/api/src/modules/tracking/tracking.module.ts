@@ -11,14 +11,23 @@ import { LiveMapService } from "./live-map.service";
 import { RouteHistoryController } from "./route-history.controller";
 import { RouteHistoryService } from "./route-history.service";
 
+import { TaskRouteRecordingsController } from "./task-route-recordings.controller";
+import { TaskRouteRecordingsService } from "./task-route-recordings.service";
+
 @Module({
   controllers: [
     GpsIngestionController,
     LiveMapController,
     RouteHistoryController,
+    TaskRouteRecordingsController,
   ],
   imports: [AuthModule, RuntimeDatabaseModule, HttpInfrastructureModule],
-  providers: [GpsIngestionService, LiveMapService, RouteHistoryService],
+  providers: [
+    GpsIngestionService,
+    LiveMapService,
+    RouteHistoryService,
+    TaskRouteRecordingsService,
+  ],
 })
 export class TrackingModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
@@ -28,6 +37,7 @@ export class TrackingModule implements NestModule {
         GpsIngestionController,
         LiveMapController,
         RouteHistoryController,
+        TaskRouteRecordingsController,
       );
   }
 }

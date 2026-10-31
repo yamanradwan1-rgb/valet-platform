@@ -19,6 +19,7 @@ import {
 
 export function TaskDrawer(props: {
   readonly help?: ReactNode;
+  readonly routeHistory?: ReactNode;
   readonly item: TaskOverviewEntry;
   readonly locale: "en" | "ar";
   readonly location: ManagementLocation;
@@ -102,6 +103,7 @@ export function TaskDrawer(props: {
           </button>
         </div>
       ) : null}
+      {props.routeHistory}
     </OperationsDrawer>
   );
 }
