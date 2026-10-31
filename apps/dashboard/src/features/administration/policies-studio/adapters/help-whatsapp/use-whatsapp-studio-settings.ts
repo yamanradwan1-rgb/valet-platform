@@ -163,58 +163,66 @@ export function useWhatsAppStudioSettings({
     }
   }, [enabled, scopeKey]);
 
-  const save = useCallback(async (): Promise<boolean> => {
-    if (
-      !enabled ||
-      !current.view ||
-      !current.draft ||
-      !dirty ||
-      savingRef.current
-    )
-      return false;
-    const input = current.draft;
-    savingRef.current = true;
-    setState((old) =>
-      old.scopeKey === scopeKey ? { ...old, saving: true, error: null } : old,
-    );
-    try {
-      const view = await saveScopedWhatsAppStudio(
-        api,
-        organizationId,
-        locationId,
-        input,
-      );
-      if (latestScope.current !== scopeKey) return false;
+  const saveValues = useCallback(
+    async (values: WhatsAppStudioDraft): Promise<boolean> => {
+      if (
+        !enabled ||
+        !current.view ||
+        !whatsappStudioDirty(current.view.policy, values) ||
+        savingRef.current
+      )
+        return false;
+      savingRef.current = true;
       setState((old) =>
-        old.scopeKey === scopeKey
-          ? {
-              ...old,
-              view,
-              draft: view.policy,
-              saving: false,
-              error: null,
-            }
-          : old,
+        old.scopeKey === scopeKey ? { ...old, saving: true, error: null } : old,
       );
-      return true;
-    } catch {
-      if (latestScope.current === scopeKey)
+      try {
+        const view = await saveScopedWhatsAppStudio(
+          api,
+          organizationId,
+          locationId,
+          current.view,
+          values,
+        );
+        if (latestScope.current !== scopeKey) return false;
         setState((old) =>
           old.scopeKey === scopeKey
             ? {
                 ...old,
-                error: "save",
+                view,
+                draft: view.policy,
+                saving: false,
+                error: null,
               }
             : old,
         );
-      return false;
-    } finally {
-      savingRef.current = false;
-      setState((old) =>
-        old.scopeKey === scopeKey ? { ...old, saving: false } : old,
-      );
-    }
-  }, [api, organizationId, locationId, scopeKey, current, dirty, enabled]);
+        return true;
+      } catch {
+        if (latestScope.current === scopeKey)
+          setState((old) =>
+            old.scopeKey === scopeKey
+              ? {
+                  ...old,
+                  error: "save",
+                }
+              : old,
+          );
+        return false;
+      } finally {
+        savingRef.current = false;
+        setState((old) =>
+          old.scopeKey === scopeKey ? { ...old, saving: false } : old,
+        );
+      }
+    },
+    [api, organizationId, locationId, scopeKey, current.view, enabled],
+  );
+
+  const save = useCallback(
+    (): Promise<boolean> =>
+      current.draft ? saveValues(current.draft) : Promise.resolve(false),
+    [current.draft, saveValues],
+  );
 
   return {
     view: current.view,
@@ -237,5 +245,6 @@ export function useWhatsAppStudioSettings({
     reset,
     reload,
     save,
+    saveValues,
   };
 }

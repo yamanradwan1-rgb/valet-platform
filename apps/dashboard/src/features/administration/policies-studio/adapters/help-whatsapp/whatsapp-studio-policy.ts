@@ -88,10 +88,20 @@ export async function saveScopedWhatsAppStudio(
   api: DashboardApiClient,
   organizationId: string,
   locationId: string | null,
+  authoritativeView: WhatsAppSettingsView,
   draft: WhatsAppStudioDraft,
 ) {
+  assertWhatsAppStudioScope(authoritativeView, organizationId, locationId);
+  // W2's editor owns its draft; only the loaded server view owns the CAS token.
+  const mutation: WhatsAppStudioDraft = {
+    enabled: draft.enabled,
+    language: draft.language,
+    templateCatalogVersion: draft.templateCatalogVersion,
+    providerBindingId: draft.providerBindingId,
+    revision: authoritativeView.policy.revision,
+  };
   return assertWhatsAppStudioScope(
-    await saveWhatsAppSettings(api, organizationId, locationId, draft),
+    await saveWhatsAppSettings(api, organizationId, locationId, mutation),
     organizationId,
     locationId,
   );

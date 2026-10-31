@@ -119,15 +119,35 @@ describe("Policies Studio WhatsApp scope and persistence adapter", () => {
       policy: { ...locationView.policy, enabled: false, revision: 4 },
     };
     const { api, request } = apiWith(updated);
-    const draft = { ...locationView.policy, enabled: false };
+    const draft = { ...locationView.policy, enabled: false, revision: 999 };
     expect(
-      await saveScopedWhatsAppStudio(api, "company-one", "location-one", draft),
+      await saveScopedWhatsAppStudio(
+        api,
+        "company-one",
+        "location-one",
+        locationView,
+        draft,
+      ),
     ).toBe(updated);
     expect(request).toHaveBeenCalledTimes(1);
     expect(request).toHaveBeenCalledWith(
       "/v1/staff/management/organizations/company-one/locations/location-one/whatsapp-settings",
       expect.any(Object),
-      { method: "PUT", body: { ...draft, expectedRevision: 3 } },
+      { method: "PUT", body: { ...draft, revision: 3, expectedRevision: 3 } },
     );
+  });
+
+  it("rejects a stale or foreign authoritative view before any mutation", async () => {
+    const { api, request } = apiWith(locationView);
+    await expect(
+      saveScopedWhatsAppStudio(
+        api,
+        "company-other",
+        "location-one",
+        locationView,
+        locationView.policy,
+      ),
+    ).rejects.toThrow("WHATSAPP_SCOPE_MISMATCH");
+    expect(request).not.toHaveBeenCalled();
   });
 });
