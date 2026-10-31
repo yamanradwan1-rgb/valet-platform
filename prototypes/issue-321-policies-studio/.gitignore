@@ -1,0 +1,8 @@
+node_modules/
+.vite/
+.generated/
+dist/
+*.log
+evidence/network.json
+evidence/production-hashes-before.json
+evidence/git-status-*.txt

@@ -1,0 +1,8 @@
+{
+  "status": "BLOCKED",
+  "nativeBrowserWindowCandidates": 0,
+  "nativeAppCandidates": 0,
+  "before": { "innerWidth": 1424, "outerWidth": 1440, "devicePixelRatio": 1 },
+  "afterShortcut": { "innerWidth": 1424, "outerWidth": 1440, "devicePixelRatio": 1 },
+  "note": "Computer Use did not expose the isolated Chromium window. The Playwright keyboard shortcut did not change native zoom. Native 160-200% zoom is not verified. Effective-width reflow at 900px and 720px is recorded separately; it is not CSS zoom or native zoom."
+}

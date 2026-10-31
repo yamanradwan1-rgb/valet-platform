@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "checks": [
+    "Strict location policy rejected without a usable active zone",
+    "Strict policy succeeds after a zone is saved",
+    "Disabling the final usable zone is rejected while strict mode is effective",
+    "Company strict policy checks every affected synthetic location",
+    "Zone code comparison preserves backend case-sensitive uniqueness"
+  ],
+  "data": "local synthetic fixture only"
+}

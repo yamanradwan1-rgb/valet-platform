@@ -1,0 +1,15 @@
+{
+  "name": "vaylet-policies-studio",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/preview.mjs",
+    "build": "node scripts/build.mjs",
+    "typecheck": "node scripts/typecheck.mjs",
+    "test": "node tests/verify.mjs",
+    "test:parity": "node tests/settings-parity.mjs",
+    "test:location": "node tests/current-location.mjs",
+    "capture": "node tests/capture.mjs"
+  }
+}

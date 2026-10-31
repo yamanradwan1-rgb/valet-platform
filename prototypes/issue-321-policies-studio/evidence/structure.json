@@ -1,0 +1,206 @@
+[
+  {
+    "Name": "src\\App.tsx",
+    "Lines": 241
+  },
+  {
+    "Name": "src\\catalog.ts",
+    "Lines": 259
+  },
+  {
+    "Name": "src\\copy.ts",
+    "Lines": 87
+  },
+  {
+    "Name": "src\\CurrentLocationButton.tsx",
+    "Lines": 48
+  },
+  {
+    "Name": "src\\EditorContext.tsx",
+    "Lines": 72
+  },
+  {
+    "Name": "src\\editors.css",
+    "Lines": 221
+  },
+  {
+    "Name": "src\\env.d.ts",
+    "Lines": 5
+  },
+  {
+    "Name": "src\\FieldEditor.tsx",
+    "Lines": 244
+  },
+  {
+    "Name": "src\\FieldList.tsx",
+    "Lines": 128
+  },
+  {
+    "Name": "src\\fixtures.ts",
+    "Lines": 125
+  },
+  {
+    "Name": "src\\HoursPane.tsx",
+    "Lines": 245
+  },
+  {
+    "Name": "src\\image-entry.ts",
+    "Lines": 1
+  },
+  {
+    "Name": "src\\link-entry.ts",
+    "Lines": 1
+  },
+  {
+    "Name": "src\\main.tsx",
+    "Lines": 40
+  },
+  {
+    "Name": "src\\next-shims.tsx",
+    "Lines": 12
+  },
+  {
+    "Name": "src\\OfflineMap.tsx",
+    "Lines": 188
+  },
+  {
+    "Name": "src\\presence-readiness.ts",
+    "Lines": 77
+  },
+  {
+    "Name": "src\\PresenceReadiness.tsx",
+    "Lines": 44
+  },
+  {
+    "Name": "src\\PreviewDialogs.tsx",
+    "Lines": 136
+  },
+  {
+    "Name": "src\\ReadState.tsx",
+    "Lines": 68
+  },
+  {
+    "Name": "src\\responsive.css",
+    "Lines": 126
+  },
+  {
+    "Name": "src\\SectionIcon.tsx",
+    "Lines": 37
+  },
+  {
+    "Name": "src\\setting-guidance.ts",
+    "Lines": 106
+  },
+  {
+    "Name": "src\\setting-validation.ts",
+    "Lines": 19
+  },
+  {
+    "Name": "src\\SettingsScope.tsx",
+    "Lines": 79
+  },
+  {
+    "Name": "src\\studio-context.tsx",
+    "Lines": 36
+  },
+  {
+    "Name": "src\\usability.css",
+    "Lines": 212
+  },
+  {
+    "Name": "src\\use-preview-route.ts",
+    "Lines": 136
+  },
+  {
+    "Name": "src\\value-text.ts",
+    "Lines": 47
+  },
+  {
+    "Name": "src\\WhatsAppPane.tsx",
+    "Lines": 267
+  },
+  {
+    "Name": "src\\workspace-feedback.css",
+    "Lines": 88
+  },
+  {
+    "Name": "src\\workspace.css",
+    "Lines": 263
+  },
+  {
+    "Name": "src\\Workspace.tsx",
+    "Lines": 213
+  },
+  {
+    "Name": "src\\zone-map.css",
+    "Lines": 144
+  },
+  {
+    "Name": "src\\ZoneForm.tsx",
+    "Lines": 170
+  },
+  {
+    "Name": "src\\ZonesPane.tsx",
+    "Lines": 216
+  },
+  {
+    "Name": "scripts\\build.mjs",
+    "Lines": 2
+  },
+  {
+    "Name": "scripts\\preview.mjs",
+    "Lines": 4
+  },
+  {
+    "Name": "scripts\\runtime.mjs",
+    "Lines": 99
+  },
+  {
+    "Name": "scripts\\typecheck.mjs",
+    "Lines": 42
+  },
+  {
+    "Name": "tests\\browser-support.mjs",
+    "Lines": 42
+  },
+  {
+    "Name": "tests\\capture.mjs",
+    "Lines": 33
+  },
+  {
+    "Name": "tests\\current-location.mjs",
+    "Lines": 178
+  },
+  {
+    "Name": "tests\\extra-flows.mjs",
+    "Lines": 102
+  },
+  {
+    "Name": "tests\\flows.mjs",
+    "Lines": 275
+  },
+  {
+    "Name": "tests\\matrix.mjs",
+    "Lines": 184
+  },
+  {
+    "Name": "tests\\presence-readiness.mjs",
+    "Lines": 108
+  },
+  {
+    "Name": "tests\\settings-parity.mjs",
+    "Lines": 254
+  },
+  {
+    "Name": "tests\\settings-value-parity.mjs",
+    "Lines": 80
+  },
+  {
+    "Name": "tests\\usability-flows.mjs",
+    "Lines": 55
+  },
+  {
+    "Name": "tests\\verify.mjs",
+    "Lines": 99
+  }
+]

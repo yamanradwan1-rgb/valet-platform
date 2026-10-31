@@ -1,0 +1,133 @@
+{
+  "coordinateSource": "mock only",
+  "checks": [
+    {
+      "name": "Explicit click only; mock coordinates fill draft; radius and saved data unchanged",
+      "status": "PASS"
+    },
+    {
+      "name": "Permission denial, timeout, unavailable and retry feedback",
+      "status": "PASS"
+    },
+    {
+      "name": "Late location result cannot overwrite manual edits or a cancelled draft",
+      "status": "PASS"
+    },
+    {
+      "name": "Unsupported browser fallback preserves manual coordinate entry",
+      "status": "PASS"
+    },
+    {
+      "locale": "en",
+      "theme": "light",
+      "width": 320,
+      "name": "No search; location button visible and no overflow",
+      "status": "PASS"
+    },
+    {
+      "locale": "en",
+      "theme": "light",
+      "width": 390,
+      "name": "No search; location button visible and no overflow",
+      "status": "PASS"
+    },
+    {
+      "locale": "en",
+      "theme": "light",
+      "width": 768,
+      "name": "No search; location button visible and no overflow",
+      "status": "PASS"
+    },
+    {
+      "locale": "en",
+      "theme": "light",
+      "width": 1440,
+      "name": "No search; location button visible and no overflow",
+      "status": "PASS"
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "width": 320,
+      "name": "No search; location button visible and no overflow",
+      "status": "PASS"
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "width": 390,
+      "name": "No search; location button visible and no overflow",
+      "status": "PASS"
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "width": 768,
+      "name": "No search; location button visible and no overflow",
+      "status": "PASS"
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "width": 1440,
+      "name": "No search; location button visible and no overflow",
+      "status": "PASS"
+    },
+    {
+      "locale": "ar",
+      "theme": "light",
+      "width": 320,
+      "name": "No search; location button visible and no overflow",
+      "status": "PASS"
+    },
+    {
+      "locale": "ar",
+      "theme": "light",
+      "width": 390,
+      "name": "No search; location button visible and no overflow",
+      "status": "PASS"
+    },
+    {
+      "locale": "ar",
+      "theme": "light",
+      "width": 768,
+      "name": "No search; location button visible and no overflow",
+      "status": "PASS"
+    },
+    {
+      "locale": "ar",
+      "theme": "light",
+      "width": 1440,
+      "name": "No search; location button visible and no overflow",
+      "status": "PASS"
+    },
+    {
+      "locale": "ar",
+      "theme": "dark",
+      "width": 320,
+      "name": "No search; location button visible and no overflow",
+      "status": "PASS"
+    },
+    {
+      "locale": "ar",
+      "theme": "dark",
+      "width": 390,
+      "name": "No search; location button visible and no overflow",
+      "status": "PASS"
+    },
+    {
+      "locale": "ar",
+      "theme": "dark",
+      "width": 768,
+      "name": "No search; location button visible and no overflow",
+      "status": "PASS"
+    },
+    {
+      "locale": "ar",
+      "theme": "dark",
+      "width": 1440,
+      "name": "No search; location button visible and no overflow",
+      "status": "PASS"
+    }
+  ]
+}

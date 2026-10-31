@@ -1,0 +1,31 @@
+{
+  "baseline": "92638c499a1062db3f814687ca3761f235361298",
+  "scope": "isolated prototype only",
+  "configurationCoverage": {
+    "companyAdminCompany": 24,
+    "companyAdminLocation": 31,
+    "locationManagerLocation": 20
+  },
+  "typecheck": "PASS",
+  "build": "PASS",
+  "sourceContractChecks": 37,
+  "browserFlows": 18,
+  "responsiveChecks": 261,
+  "locationChecks": 20,
+  "presenceReadinessChecks": 5,
+  "browserErrors": [],
+  "failedResponses": [],
+  "externalRequests": [],
+  "apiRequests": [],
+  "mutationRequests": [],
+  "architecture": "PASS with pre-existing grandfathered-file warnings",
+  "nativeZoom": "BLOCKED - see native-zoom.json",
+  "productionCodeChanged": false,
+  "productionBackendConnected": false,
+  "remoteCI": "NOT RUN",
+  "ownerDesignApproved": false,
+  "mergeGate": "BLOCK MERGE: separate Phase B and Owner design review required",
+  "format": "PASS",
+  "authoredFilesWithin300Lines": 51,
+  "scopeFiles": 75
+}

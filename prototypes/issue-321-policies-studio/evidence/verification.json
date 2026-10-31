@@ -1,0 +1,2044 @@
+{
+  "timestamp": "2026-10-31T01:51:53.786Z",
+  "browser": "151.0.7922.34",
+  "flows": [
+    {
+      "name": "Local save, draft/effective separation, persistence",
+      "status": "PASS"
+    },
+    {
+      "name": "Existing Help, Escape, focus return and Tab trap",
+      "status": "PASS"
+    },
+    {
+      "name": "Unsaved navigation modal: keep, discard; section focus",
+      "status": "PASS"
+    },
+    {
+      "name": "Browser Back, Forward, Refresh, removed service link fallback",
+      "status": "PASS"
+    },
+    {
+      "name": "Override, Clear Override, inheritance and organization isolation",
+      "status": "PASS"
+    },
+    {
+      "name": "Numeric validation and Location-only SLA",
+      "status": "PASS"
+    },
+    {
+      "name": "Seven-day schedule: saved locally and clear-to-inherit",
+      "status": "PASS"
+    },
+    {
+      "name": "Offline zone selection, edit, create, persistence",
+      "status": "PASS"
+    },
+    {
+      "name": "Company Admin, Location Manager, denied, no-location, read-only capability",
+      "status": "PASS"
+    },
+    {
+      "name": "Loading, empty, denied, error/retry",
+      "status": "PASS"
+    },
+    {
+      "name": "WhatsApp policy distinct from live activation",
+      "status": "PASS"
+    },
+    {
+      "name": "Dirty browser Back: cancel restores URL and draft, accept discards",
+      "status": "PASS"
+    },
+    {
+      "name": "WhatsApp bundled save and missing onboarding validation",
+      "status": "PASS"
+    },
+    {
+      "name": "Strict-mode confirmation and saved/draft separation",
+      "status": "PASS"
+    },
+    {
+      "name": "Schedule rejects reversed/overnight interval matching source",
+      "status": "PASS"
+    },
+    {
+      "name": "No search; direct inherited editing and inline save feedback",
+      "status": "PASS"
+    },
+    {
+      "name": "Navigation preserves unsaved-change protection",
+      "status": "PASS"
+    },
+    {
+      "name": "Arabic mobile navigation without search and without overflow",
+      "status": "PASS"
+    }
+  ],
+  "matrix": [
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "light",
+      "section": "operations",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "light",
+      "section": "operations",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "light",
+      "section": "payments",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "light",
+      "section": "payments",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "light",
+      "section": "hours",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "light",
+      "section": "hours",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "light",
+      "section": "tracking",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "light",
+      "section": "tracking",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "light",
+      "section": "notifications",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "light",
+      "section": "notifications",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "light",
+      "section": "presence",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "light",
+      "section": "presence",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "light",
+      "section": "zones",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "light",
+      "section": "zones",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "light",
+      "section": "whatsapp",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "light",
+      "section": "whatsapp",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "dark",
+      "section": "operations",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "dark",
+      "section": "operations",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "dark",
+      "section": "payments",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "dark",
+      "section": "payments",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "dark",
+      "section": "hours",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "dark",
+      "section": "hours",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "dark",
+      "section": "tracking",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "dark",
+      "section": "tracking",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "dark",
+      "section": "notifications",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "dark",
+      "section": "notifications",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "dark",
+      "section": "presence",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "dark",
+      "section": "presence",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "dark",
+      "section": "zones",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "dark",
+      "section": "zones",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "dark",
+      "section": "whatsapp",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "en",
+      "theme": "dark",
+      "section": "whatsapp",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "light",
+      "section": "operations",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "light",
+      "section": "operations",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "light",
+      "section": "payments",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "light",
+      "section": "payments",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "light",
+      "section": "hours",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "light",
+      "section": "hours",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "light",
+      "section": "tracking",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "light",
+      "section": "tracking",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "light",
+      "section": "notifications",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "light",
+      "section": "notifications",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "light",
+      "section": "presence",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "light",
+      "section": "presence",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "light",
+      "section": "zones",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "light",
+      "section": "zones",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "light",
+      "section": "whatsapp",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "light",
+      "section": "whatsapp",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "operations",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "operations",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "payments",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "payments",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "hours",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "hours",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "tracking",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "tracking",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "notifications",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "notifications",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "presence",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "presence",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "zones",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "zones",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "whatsapp",
+      "status": "PASS"
+    },
+    {
+      "width": 320,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "whatsapp",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "light",
+      "section": "operations",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "light",
+      "section": "operations",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "light",
+      "section": "payments",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "light",
+      "section": "payments",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "light",
+      "section": "hours",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "light",
+      "section": "hours",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "light",
+      "section": "tracking",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "light",
+      "section": "tracking",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "light",
+      "section": "notifications",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "light",
+      "section": "notifications",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "light",
+      "section": "presence",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "light",
+      "section": "presence",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "light",
+      "section": "zones",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "light",
+      "section": "zones",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "light",
+      "section": "whatsapp",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "light",
+      "section": "whatsapp",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "dark",
+      "section": "operations",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "dark",
+      "section": "operations",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "dark",
+      "section": "payments",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "dark",
+      "section": "payments",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "dark",
+      "section": "hours",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "dark",
+      "section": "hours",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "dark",
+      "section": "tracking",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "dark",
+      "section": "tracking",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "dark",
+      "section": "notifications",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "dark",
+      "section": "notifications",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "dark",
+      "section": "presence",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "dark",
+      "section": "presence",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "dark",
+      "section": "zones",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "dark",
+      "section": "zones",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "dark",
+      "section": "whatsapp",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "en",
+      "theme": "dark",
+      "section": "whatsapp",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "light",
+      "section": "operations",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "light",
+      "section": "operations",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "light",
+      "section": "payments",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "light",
+      "section": "payments",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "light",
+      "section": "hours",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "light",
+      "section": "hours",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "light",
+      "section": "tracking",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "light",
+      "section": "tracking",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "light",
+      "section": "notifications",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "light",
+      "section": "notifications",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "light",
+      "section": "presence",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "light",
+      "section": "presence",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "light",
+      "section": "zones",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "light",
+      "section": "zones",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "light",
+      "section": "whatsapp",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "light",
+      "section": "whatsapp",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "operations",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "operations",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "payments",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "payments",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "hours",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "hours",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "tracking",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "tracking",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "notifications",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "notifications",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "presence",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "presence",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "zones",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "zones",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "whatsapp",
+      "status": "PASS"
+    },
+    {
+      "width": 390,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "whatsapp",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "light",
+      "section": "operations",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "light",
+      "section": "operations",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "light",
+      "section": "payments",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "light",
+      "section": "payments",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "light",
+      "section": "hours",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "light",
+      "section": "hours",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "light",
+      "section": "tracking",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "light",
+      "section": "tracking",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "light",
+      "section": "notifications",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "light",
+      "section": "notifications",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "light",
+      "section": "presence",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "light",
+      "section": "presence",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "light",
+      "section": "zones",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "light",
+      "section": "zones",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "light",
+      "section": "whatsapp",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "light",
+      "section": "whatsapp",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "dark",
+      "section": "operations",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "dark",
+      "section": "operations",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "dark",
+      "section": "payments",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "dark",
+      "section": "payments",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "dark",
+      "section": "hours",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "dark",
+      "section": "hours",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "dark",
+      "section": "tracking",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "dark",
+      "section": "tracking",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "dark",
+      "section": "notifications",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "dark",
+      "section": "notifications",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "dark",
+      "section": "presence",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "dark",
+      "section": "presence",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "dark",
+      "section": "zones",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "dark",
+      "section": "zones",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "dark",
+      "section": "whatsapp",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "en",
+      "theme": "dark",
+      "section": "whatsapp",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "light",
+      "section": "operations",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "light",
+      "section": "operations",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "light",
+      "section": "payments",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "light",
+      "section": "payments",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "light",
+      "section": "hours",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "light",
+      "section": "hours",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "light",
+      "section": "tracking",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "light",
+      "section": "tracking",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "light",
+      "section": "notifications",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "light",
+      "section": "notifications",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "light",
+      "section": "presence",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "light",
+      "section": "presence",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "light",
+      "section": "zones",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "light",
+      "section": "zones",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "light",
+      "section": "whatsapp",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "light",
+      "section": "whatsapp",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "operations",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "operations",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "payments",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "payments",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "hours",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "hours",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "tracking",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "tracking",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "notifications",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "notifications",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "presence",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "presence",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "zones",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "zones",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "whatsapp",
+      "status": "PASS"
+    },
+    {
+      "width": 768,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "whatsapp",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "light",
+      "section": "operations",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "light",
+      "section": "operations",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "light",
+      "section": "payments",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "light",
+      "section": "payments",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "light",
+      "section": "hours",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "light",
+      "section": "hours",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "light",
+      "section": "tracking",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "light",
+      "section": "tracking",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "light",
+      "section": "notifications",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "light",
+      "section": "notifications",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "light",
+      "section": "presence",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "light",
+      "section": "presence",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "light",
+      "section": "zones",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "light",
+      "section": "zones",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "light",
+      "section": "whatsapp",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "light",
+      "section": "whatsapp",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "dark",
+      "section": "operations",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "dark",
+      "section": "operations",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "dark",
+      "section": "payments",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "dark",
+      "section": "payments",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "dark",
+      "section": "hours",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "dark",
+      "section": "hours",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "dark",
+      "section": "tracking",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "dark",
+      "section": "tracking",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "dark",
+      "section": "notifications",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "dark",
+      "section": "notifications",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "dark",
+      "section": "presence",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "dark",
+      "section": "presence",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "dark",
+      "section": "zones",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "dark",
+      "section": "zones",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "dark",
+      "section": "whatsapp",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "en",
+      "theme": "dark",
+      "section": "whatsapp",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "light",
+      "section": "operations",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "light",
+      "section": "operations",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "light",
+      "section": "payments",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "light",
+      "section": "payments",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "light",
+      "section": "hours",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "light",
+      "section": "hours",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "light",
+      "section": "tracking",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "light",
+      "section": "tracking",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "light",
+      "section": "notifications",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "light",
+      "section": "notifications",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "light",
+      "section": "presence",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "light",
+      "section": "presence",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "light",
+      "section": "zones",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "light",
+      "section": "zones",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "light",
+      "section": "whatsapp",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "light",
+      "section": "whatsapp",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "operations",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "operations",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "payments",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "payments",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "hours",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "hours",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "tracking",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "tracking",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "notifications",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "notifications",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "presence",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "presence",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "zones",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "zones",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "whatsapp",
+      "status": "PASS"
+    },
+    {
+      "width": 1440,
+      "locale": "ar",
+      "theme": "dark",
+      "section": "whatsapp",
+      "state": "editing",
+      "status": "PASS"
+    },
+    {
+      "check": "Effective-width reflow; not native zoom",
+      "percent": 160,
+      "width": 900,
+      "locale": "en",
+      "status": "PASS"
+    },
+    {
+      "check": "Effective-width reflow; not native zoom",
+      "percent": 160,
+      "width": 900,
+      "locale": "ar",
+      "status": "PASS"
+    },
+    {
+      "check": "Effective-width reflow; not native zoom",
+      "percent": 200,
+      "width": 720,
+      "locale": "en",
+      "status": "PASS"
+    },
+    {
+      "check": "Effective-width reflow; not native zoom",
+      "percent": 200,
+      "width": 720,
+      "locale": "ar",
+      "status": "PASS"
+    },
+    {
+      "check": "Mobile secondary navigation Enter, Escape and focus",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "badResponses": [],
+  "network": {
+    "totalRequests": 16224,
+    "external": [],
+    "mutations": [],
+    "api": []
+  },
+  "nativeBrowserZoom": {
+    "status": "NOT VERIFIED",
+    "note": "Effective-width reflow was checked separately; no CSS zoom is reported as native zoom."
+  }
+}

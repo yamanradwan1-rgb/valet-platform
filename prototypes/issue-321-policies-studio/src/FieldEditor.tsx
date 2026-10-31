@@ -1,0 +1,244 @@
+import { useEffect, useRef, useState } from "react";
+import { Button } from "@dashboard/components/presentation/button";
+import { FocusDialog } from "@dashboard/components/presentation/focus-dialog";
+import { ContextHelp } from "@dashboard/features/help/context-help";
+import { settingOptionLabel } from "@dashboard/features/administration/settings/settings-copy";
+import type { Field, Scalar } from "./catalog";
+import { useStudio } from "./studio-context";
+import { displayValue } from "./value-text";
+import { ui } from "./copy";
+import { EditorContext } from "./EditorContext";
+
+export { parseField } from "./setting-validation";
+import { parseField } from "./setting-validation";
+
+export function FieldEditor({
+  field,
+  effective,
+  inherited,
+  onClose,
+}: {
+  field: Field;
+  effective: Scalar;
+  inherited: boolean;
+  onClose: (saved?: boolean) => void;
+}) {
+  const { locale, route, defaults, overrides, save, setDirty, identity } =
+    useStudio();
+  const ar = locale === "ar";
+  const copy = ui[locale];
+  const [draft, setDraft] = useState(String(effective ?? ""));
+  const [source, setSource] = useState(inherited ? "inherit" : "custom");
+  const [error, setError] = useState("");
+  const [strict, setStrict] = useState(false);
+  const [strictClear, setStrictClear] = useState(false);
+  const input = useRef<HTMLSelectElement & HTMLInputElement>(null);
+  const isLocation = route.scope === "location";
+  const locationOnly = field.key === "slaTargetSeconds";
+  const changed =
+    draft !== String(effective ?? "") ||
+    source !== (inherited ? "inherit" : "custom");
+  useEffect(() => {
+    input.current?.focus();
+  }, []);
+  useEffect(() => {
+    setDirty(changed);
+  }, [changed, setDirty]);
+  function finish(clear = false) {
+    const value = parseField(field, draft);
+    if (!clear && source !== "inherit" && value === undefined) {
+      setError(copy.invalid);
+      return;
+    }
+    const saved = save(
+      field.key,
+      value ?? null,
+      clear || (isLocation && source === "inherit"),
+    );
+    if (!saved) {
+      setError(
+        ar
+          ? "لم يُحفظ التغيير. يلزم وجود منطقة حضور نشطة صالحة في كل موقع تتأثر سياسته الإلزامية."
+          : "Not saved. Each location whose effective policy becomes strict needs a usable active attendance zone.",
+      );
+      return;
+    }
+    onClose(true);
+  }
+  function submit(clear = false) {
+    const target =
+      clear || (isLocation && source === "inherit")
+        ? defaults[field.key]
+        : draft;
+    if (
+      field.section === "presence" &&
+      ["REQUIRE", "REQUIRE_OR_OVERRIDE"].includes(String(target))
+    ) {
+      setStrictClear(clear);
+      setStrict(true);
+      return;
+    }
+    finish(clear);
+  }
+  const options = field.kind === "boolean" ? ["false", "true"] : field.options;
+  return (
+    <div className="ps-editor">
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          submit();
+        }}
+      >
+        <p className="ps-editor-intro">
+          {isLocation && !locationOnly
+            ? ar
+              ? "غيّر القيمة لتخصيصها لهذا الموقع، ثم احفظ."
+              : "Change the value to customize this location, then Save."
+            : ar
+              ? "اختر القيمة الجديدة، ثم احفظ التغيير."
+              : "Choose the new value, then Save."}
+        </p>
+        <label>
+          {copy.draft} · {field.labels[locale]}
+          {options ? (
+            <select
+              ref={input}
+              value={draft}
+              onChange={(event) => {
+                setDraft(event.target.value);
+                if (isLocation) setSource("custom");
+              }}
+            >
+              {options.map((option) => (
+                <option key={option} value={option}>
+                  {field.kind === "boolean"
+                    ? option === "true"
+                      ? ar
+                        ? "نعم"
+                        : "Yes"
+                      : ar
+                        ? "لا"
+                        : "No"
+                    : displayValue(option, field, locale) === option
+                      ? settingOptionLabel(option, locale)
+                      : displayValue(option, field, locale)}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              ref={input}
+              inputMode={field.kind === "money" ? "decimal" : "numeric"}
+              dir="ltr"
+              value={draft}
+              onChange={(event) => {
+                setDraft(event.target.value);
+                if (isLocation) setSource("custom");
+              }}
+            />
+          )}
+          {field.kind === "integer" && (
+            <small>
+              {field.min}–{field.max}
+            </small>
+          )}
+          {field.kind === "money" && (
+            <small>
+              {ar
+                ? "JOD · حتى ٣ خانات عشرية، دون تقريب."
+                : "JOD · Up to 3 decimal places; no rounding."}
+            </small>
+          )}
+        </label>
+        <EditorContext
+          field={field}
+          effective={effective}
+          inherited={inherited}
+          source={source}
+          onSourceChange={(value) => {
+            setSource(value);
+            if (value === "inherit")
+              setDraft(String(defaults[field.key] ?? ""));
+          }}
+        />
+        {error && (
+          <p role="alert" className="ps-error">
+            {error}
+          </p>
+        )}
+        <div className="ps-actions">
+          {changed && (
+            <span className="ps-draft-status">
+              {ar ? "تغيير غير محفوظ" : "Unsaved change"}
+            </span>
+          )}
+          <Button type="submit" disabled={!changed}>
+            {copy.save}
+          </Button>
+          {field.help && (
+            <ContextHelp
+              helpKey={field.help}
+              locale={locale}
+              scopeIdentity={identity}
+            />
+          )}
+          {isLocation && !inherited && (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => submit(true)}
+            >
+              {copy.clear}
+            </Button>
+          )}
+          <Button
+            type="button"
+            variant="quiet"
+            onClick={() => {
+              if (!changed || window.confirm(copy.leave)) onClose();
+            }}
+          >
+            {copy.cancel}
+          </Button>
+        </div>
+        <small className="ps-inline-note">
+          {ar
+            ? "تظل القيمة الفعلية المحفوظة كما هي إلى أن تحفظ التغيير. الحفظ محلي فقط."
+            : "The saved effective value stays in use until you save. Saves are local only."}
+        </small>
+      </form>
+      {strict && (
+        <FocusDialog
+          label={ar ? "تأكيد وضع الحضور" : "Confirm presence mode"}
+          onClose={() => setStrict(false)}
+        >
+          <div className="ps-dialog">
+            <h2>
+              {ar
+                ? "تأكيد وضع الحضور الإلزامي"
+                : "Confirm strict presence mode"}
+            </h2>
+            <p>
+              {ar
+                ? "في الإنتاج يتطلب الوضع الإلزامي مناطق وجاهزية محفوظة. هذه محاكاة تصميم فقط ولا تثبت الجاهزية."
+                : "In production, strict modes require saved zones and current readiness. This design simulation does not prove readiness."}
+            </p>
+            <div className="ps-actions">
+              <Button variant="secondary" onClick={() => setStrict(false)}>
+                {copy.cancel}
+              </Button>
+              <Button
+                onClick={() => {
+                  setStrict(false);
+                  finish(strictClear);
+                }}
+              >
+                {ar ? "حفظ المحاكاة" : "Save simulation"}
+              </Button>
+            </div>
+          </div>
+        </FocusDialog>
+      )}
+    </div>
+  );
+}
