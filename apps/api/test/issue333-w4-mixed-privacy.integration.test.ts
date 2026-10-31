@@ -78,9 +78,9 @@ describe("Issue333 P001 private mixed-Location aggregate RED characterization", 
       `/v1/staff/management/organizations/${organizationId}/visit-contacts?name=W4P001SHARED`,
       "W4-P001-A",
       (previous, fresh) => {
-        expect(previous).toContain('"completedVisitCount":"2"');
+        expect(previous).toContain('"completedVisitCount":2');
         expect(previous).toContain("W4-P001-B");
-        expect(fresh).toContain('"completedVisitCount":"1"');
+        expect(fresh).toContain('"completedVisitCount":1');
         expect(fresh).toContain("W4-P001-B");
         expect(fresh).not.toContain("W4-P001-A");
       },
