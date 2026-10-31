@@ -78,7 +78,9 @@ pixel differences and any blockers below only after they have been executed.
   WhatsApp sensitive-MFA follow-up.
 - `pnpm --filter @valet/dashboard exec playwright test
   e2e/issue321-policies-studio.spec.ts` against the compiled production app
-  at `127.0.0.1:3014`, using `E2E_BASE_URL`: 3 PASS, 0 FAIL.
+  at `127.0.0.1:3014`, using `E2E_BASE_URL`: 3 PASS, 0 FAIL. This now
+  asserts editor keyboard focus stays on a reverted draft and returns to its
+  Edit control after successful Save and Cancel.
 - `pnpm --filter @valet/dashboard exec playwright test
   e2e/issue238-service-status.spec.ts` against the same compiled app:
   2 PASS, 0 FAIL; the legacy Service Status query works read-only.
@@ -144,11 +146,25 @@ Separate W6 1440 EN/light open-editor case found 1,753 / 593,928 pixels
 different, exclusively inside the Owner-authorized U-002 simulation-note text
 band; editor rectangles match. W6 visited `/overview` before and after the
 Policies route and obtained an exact 0 / 1,296,000 pixel and CSS/geometry
-match, with no global selector or shell mutation. This is a candidate-only
-navigation leak test; a distinct browser screenshot of current `main` versus
-the candidate's `/overview` has **not** been executed. Full-viewport prototype
-versus candidate images include expected synthetic-vs-production shell text
-and are not used to assert global shell parity.
+match, with no global selector or shell mutation. In addition, the Prime ran
+the unchanged `/overview` route on an isolated full-build `origin/main`
+worktree at `:3015` against the compiled candidate at `:3014`, with the same
+authenticated Company Admin fixture and Chromium. These are direct full
+viewport, unmasked screenshots, with identical DOM rectangles:
+
+| `/overview` baseline vs candidate | Differing pixels | Geometry |
+|---|---:|---|
+| 1440 × 900 EN/light | 0 / 1,296,000 | Equal |
+| 390 × 844 AR/dark | 0 / 329,160 | Equal |
+
+The exact screenshots, red difference PNGs and hashes are saved under
+`evidence/shell-*.png` and `evidence/shell-comparison.json`; rerun with
+`apps/dashboard/e2e/issue321-shell-evidence.mjs` and
+`POLICIES_MAIN_URL=http://127.0.0.1:3015` and
+`POLICIES_CANDIDATE_URL=http://127.0.0.1:3014`.
+This covers a representative non-Policies page at two sizes. Full-viewport
+prototype versus candidate images include expected synthetic-vs-production
+shell text and are not used to assert global shell parity.
 
 Worker 7 independently reviewed the CAS guards and confirmed the earlier
 lost-update P1 was closed. No P0 auth, tenant or CAS bypass was found.
@@ -177,7 +193,10 @@ remains visible but Save/Clear are blocked until the editor is closed and the
 new server values are reviewed. Worker 7 independently confirmed this closes
 the previously reported bundled-policy lost-update path; no server CAS bypass
 was found. The immutable prototype's heading-focus behavior has been restored
-after initial loading and section navigation without changing any CSS.
+on initial route/section changes without overriding the user's focus inside an
+editor or the return focus after Save/Cancel. The regression found during W7's
+review was fixed and the real production browser test now passes, with no CSS
+change.
 
 The production-only evidence script
 `apps/dashboard/e2e/issue321-visual-evidence.mjs` runs against the pinned local
@@ -187,7 +206,8 @@ apps/dashboard/e2e/issue321-visual-evidence.mjs`, optionally supplying
 `POLICIES_SOURCE_URL`, `POLICIES_CANDIDATE_URL` and
 `POLICIES_CANDIDATE_SHA`. It writes raw PNGs, pane difference images and
 `evidence/comparison.json`, including all raw full, pane, visible-pane and
-difference PNGs for each scenario (33 saved evidence files). It is a test-only
+difference PNGs for each scenario (33 Policies evidence files, plus 7 baseline
+shell comparison files). It is a test-only
 script and cannot change live
 Dashboard configuration. A script-level comparison is not an independent
 visual review; Worker 6 supplies that separate verdict.

@@ -258,6 +258,8 @@ try {
       "PASS",
       item.exactPanePass && item.exactVisiblePanePass,
     );
+  if (results.some((item) => !item.exactPanePass || !item.exactVisiblePanePass))
+    process.exitCode = 1;
 } finally {
   await browser.close();
 }

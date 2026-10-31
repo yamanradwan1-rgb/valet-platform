@@ -1,7 +1,7 @@
 {
   "sourceCommit": "5596e2312f622fbbfdcd498408769149407a6399",
   "baseline": "fcfa760e4f17abae5fc9871417c6b68feecd089c",
-  "candidate": "66bb8c6797d1c83820b1859e5c7f7a07bc2388dc",
+  "candidate": "ca7e44ff1b475957083add3838d38a8e26c8138a",
   "cases": [
     {
       "id": "en-light-1440",
