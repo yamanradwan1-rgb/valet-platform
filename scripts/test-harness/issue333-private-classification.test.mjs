@@ -11,6 +11,8 @@ test("Issue333 private PostgreSQL races never join default CI projects", () => {
   try {
     for (const name of [
       "dashboard-issue333-live-map.integration.test.ts",
+      "dashboard-issue333-scope-races.integration.test.ts",
+      "dashboard-issue333-scope-rollback.integration.test.ts",
       "dashboard-issue333-harness.integration.test.ts",
       "issue333-w4-visit-contacts.integration.test.ts",
       "ordinary.integration.test.ts",
@@ -24,6 +26,8 @@ test("Issue333 private PostgreSQL races never join default CI projects", () => {
     assert.deepEqual(projects["api-postgres-issue333-private"], [
       "dashboard-issue333-harness.integration.test.ts",
       "dashboard-issue333-live-map.integration.test.ts",
+      "dashboard-issue333-scope-races.integration.test.ts",
+      "dashboard-issue333-scope-rollback.integration.test.ts",
     ]);
     assert.deepEqual(projects["api-postgres-issue333-w4-private"], [
       "issue333-w4-visit-contacts.integration.test.ts",
@@ -31,7 +35,7 @@ test("Issue333 private PostgreSQL races never join default CI projects", () => {
     assert.deepEqual(projects["api-non-postgres"], [
       "ordinary.integration.test.ts",
     ]);
-    assert.equal(Object.values(projects).flat().length, 4);
+    assert.equal(Object.values(projects).flat().length, 6);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

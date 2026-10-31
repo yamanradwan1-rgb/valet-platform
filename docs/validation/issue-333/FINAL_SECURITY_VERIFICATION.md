@@ -1,5 +1,12 @@
 # Issue #333 — security verification and owner handoff
 
+> **Later Owner contract — 2026-10-31:** U-001 has now been accepted in
+> [DEC-108](../../decisions/DEC-108_LOCATION_ACCESS_REVOCATION_DELIVERY.md).
+> The earlier classifications and unresolved-U-001 statements below are the
+> preserved evidence snapshot from commit `22360d666539f1817ea1dc221f53e17d2a2c4b86`.
+> Current conclusions, the P1-B follow-up and the conditional remediation plan
+> are maintained in [U001 Owner contract and remediation](U001_OWNER_CONTRACT_AND_REMEDIATION.md).
+
 Status: **repeatable security RED observations; accepted in-flight grant contract requires Owner decision; Issue remains open**. Baseline `c638a437749cae1f78a8c8a417fd4d53e6a34920` from freshly fetched `origin/main` on 2026-10-31. Worktree `tmp/issue-333-prime`, dedicated branch `audit/issue-333-authorization-concurrency-verification`. This is development PostgreSQL evidence, not production certification.
 
 ## 1. Repository facts discovered

@@ -1,5 +1,10 @@
 # Issue #333 — authorization reader/writer source audit
 
+> **Owner U-001 update, 2026-10-31:** The historical unresolved-contract row
+> below is superseded by Accepted [DEC-108](../../decisions/DEC-108_LOCATION_ACCESS_REVOCATION_DELIVERY.md).
+> Its current implications, including P1-B follow-up disclosure, are recorded in
+> [U001 Owner contract and remediation](U001_OWNER_CONTRACT_AND_REMEDIATION.md).
+
 Baseline: `c638a437749cae1f78a8c8a417fd4d53e6a34920` (`origin/main`, 2026-10-31). Audit scope is security verification only. The historical #319 inventory identifies 40 Dashboard, 45 Management and four adjacent operational GET routes; **89 inspected route patterns does not mean 89 race-tested endpoints**. This is a current-source candidate inventory, not a security certification.
 
 ## Binding contract

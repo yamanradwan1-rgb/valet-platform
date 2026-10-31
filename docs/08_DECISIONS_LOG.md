@@ -4372,3 +4372,24 @@ PR/merge or deployment is authorized** by this approval.
 
 Full focused decision:
 [DEC-103_ISSUE_276_AUDIT_DISCOVERABILITY_VALIDATION.md](decisions/DEC-103_ISSUE_276_AUDIT_DISCOVERABILITY_VALIDATION.md).
+
+## DEC-108 — LocationAccess revocation and protected response delivery
+
+Status: Accepted (Owner security contract; design and verification only under #333)
+Date: 2026-10-31
+Owner: VAYLET product owner
+
+After canonical `LocationAccess` revocation commits, the former grant holder
+must not receive protected data from that Location, including a request that
+authorized before the revoke but has not finished delivering its protected
+response. A reader may retain data from other currently authorized Locations.
+DEC-023 session/logout handling is not a blanket in-flight Location-disclosure
+exception. DEC-081 emergency/security disable remains strictly immediate for
+new **and current** access, with affected sessions revoked. Existing role,
+Organization, MFA, CAS, audit, tenant, operational and historical data rules
+remain unchanged. RED Live Map and Visit Contact evidence must be assessed
+against this now-accepted contract. **No runtime fix or deployment is approved**
+under Issue #333 without a separate Owner GO.
+
+Full focused contract:
+[DEC-108_LOCATION_ACCESS_REVOCATION_DELIVERY.md](decisions/DEC-108_LOCATION_ACCESS_REVOCATION_DELIVERY.md).
