@@ -180,7 +180,7 @@ test("Company Branding CAS conflict reloads authoritative server state", async (
   await expect(page.getByLabel("Display name")).not.toHaveValue("Client Brand");
 });
 
-test("Integrations renders the fixed truthful read-only projection", async ({ page }) => {
+test("The retired Integrations URL opens Policies Studio without requesting service status", async ({ page }) => {
   const fixture = new DashboardApiFixture({
     companyOrganizations: [ORG_A],
     companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
@@ -200,26 +200,11 @@ test("Integrations renders the fixed truthful read-only projection", async ({ pa
   await fixture.install(page);
   await openCompanyAllLocations(page, "/integrations");
 
-  const md02 = page.getByTestId("md02-page");
-  await expect(md02.getByRole("button", { name: "Plate OCR" })).toBeVisible();
-  await expect(md02.getByRole("button", { name: "Staff Push" })).toBeVisible();
-  await expect(md02.getByRole("button", { name: "Digital Payment" })).toBeVisible();
-  await expect(md02.getByText("Unknown", { exact: true })).toBeVisible();
-  await expect(md02.getByText("Disabled", { exact: true })).toBeVisible();
-  await expect(md02.getByText("Operational", { exact: true })).toBeVisible();
-
-  const unknownBadge = md02.getByText("Unknown", { exact: true });
-  expect(
-    await unknownBadge.evaluate((element) =>
-      element.className.trim().split(/\s+/u).filter(Boolean).length),
-  ).toBe(1);
-  await expect(
-    md02.getByRole("button", { name: /configure|test connection|webhook|secret/i }),
-  ).toHaveCount(0);
-  await expect(
-    md02.getByRole("link", { name: /configure|test connection|webhook|secret/i }),
-  ).toHaveCount(0);
-  await expect(md02.getByText(/api key|webhook|secret/i)).toHaveCount(0);
+  await expect(page).toHaveURL(/\/policies$/u);
+  await expect(page.locator(".ps-workspace")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Vehicle operations" })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Service Status" })).toHaveCount(0);
+  expect(fixture.count(integrationsPath)).toBe(0);
 });
 
 test("Billing renders a null subscription truthfully with no mutation controls", async ({

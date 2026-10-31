@@ -1,7 +1,7 @@
 {
   "sourceCommit": "5596e2312f622fbbfdcd498408769149407a6399",
   "baseline": "fcfa760e4f17abae5fc9871417c6b68feecd089c",
-  "candidate": "ca7e44ff1b475957083add3838d38a8e26c8138a",
+  "candidate": "U001-worktree",
   "cases": [
     {
       "id": "en-light-1440",
@@ -349,7 +349,7 @@
         "activeElement": "H2",
         "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
         "overflow": false,
-        "fullSha256": "65c7fe1b24f1e3e9adaa15d9ea09b0ba6e4417bdd6ffd2e7e6f6aceaa4551a2a",
+        "fullSha256": "19f7150d3e612f9f200b00331a3884b8f5eeb4fbb62f908d9ef00787420d451a",
         "paneSha256": "eda09c120500c06f4ffdbd0a6ee25c3ac02e44b38c5cd0fbc49013b4f2910906"
       },
       "comparison": {
@@ -359,13 +359,13 @@
         "geometryEqual": true
       },
       "visibleComparison": {
-        "differences": 0,
+        "differences": 8,
         "pixels": 71400,
-        "maxChannelDelta": 0,
+        "maxChannelDelta": 1,
         "geometryEqual": true
       },
       "exactPanePass": true,
-      "exactVisiblePanePass": true
+      "exactVisiblePanePass": false
     }
   ]
 }

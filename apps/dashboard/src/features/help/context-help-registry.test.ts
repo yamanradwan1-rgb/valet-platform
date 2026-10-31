@@ -22,14 +22,14 @@ describe("contextual help bilingual static catalog", () => {
   it("rejects duplicate keys across raw source modules before object spreading", () => {
     expect(inspectRawHelpKeys(rawCatalogs)).toEqual([]);
     const rawKeys = rawCatalogs.flatMap((catalog) => Object.keys(catalog));
-    expect(rawKeys).toHaveLength(111);
+    expect(rawKeys).toHaveLength(110);
     expect(rawKeys.slice().sort()).toEqual(keys.slice().sort());
     const collision = { "live.page": helpoperations["live.kpis"] };
     expect(inspectRawHelpKeys([helppages, collision]))
       .toEqual(["Duplicate raw help key: live.page"]);
   });
-  it("provides exactly one substantial English and Arabic explanation for all 111 semantic IDs", () => {
-    expect(keys).toHaveLength(111);
+  it("provides exactly one substantial English and Arabic explanation for all 110 semantic IDs", () => {
+    expect(keys).toHaveLength(110);
     expect(new Set(keys).size).toBe(keys.length);
     expect(dashboardLocales).toEqual(["en", "ar"]);
     expect(inspectHelpCatalog(entries, keys)).toEqual([]);
@@ -77,7 +77,8 @@ describe("contextual help bilingual static catalog", () => {
   it("describes availability without inventing released audit enrichment or continuous GPS", () => {
     expect(contextHelpRegistry["audit.detail"].en.body).toContain("remain hidden");
     expect(contextHelpRegistry["maps.page"].en.body).toContain("Never infer continuous employee tracking");
-    expect(contextHelpRegistry["services.status"].en.body).toContain("There is no Save");
+    expect(isContextHelpKey("services.status")).toBe(false);
+    expect(isContextHelpKey("policies.services")).toBe(false);
     expect(contextHelpRegistry["roles.page"].en.body).toContain("not a role builder");
   });
 });

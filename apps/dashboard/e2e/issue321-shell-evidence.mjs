@@ -77,6 +77,12 @@ async function snapshot(browser, baseUrl, scenario) {
     if (scenario.locale === "ar")
       await page.getByRole("button", { name: "Language" }).click();
     await page.locator(".content").waitFor({ state: "visible" });
+    await page
+      .getByRole("heading", {
+        level: 1,
+        name: scenario.locale === "ar" ? "نظرة عامة" : "Overview",
+      })
+      .waitFor({ state: "visible" });
     await page.evaluate(async () => {
       await document.fonts.ready;
       document.querySelector(".content")?.scrollTo(0, 0);

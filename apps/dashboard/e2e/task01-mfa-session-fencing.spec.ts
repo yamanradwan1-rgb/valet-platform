@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { integrationsProjection } from "./support/administration-fixtures";
+import { companySettings } from "./support/administration-fixtures";
 import {
   DashboardApiFixture,
   LOCATION_A,
@@ -12,7 +12,7 @@ const brandingPath = `/v1/staff/management/organizations/${ORG_A.organizationId}
 const brandingWritePath = `${brandingPath}/default`;
 const refreshPath = "/v1/staff/auth/refresh";
 const stepUpPath = "/v1/staff/auth/mfa/step-up";
-const integrationsPath = `/v1/staff/management/organizations/${ORG_A.organizationId}/integrations`;
+const settingsPath = `/v1/staff/management/organizations/${ORG_A.organizationId}/settings`;
 
 function deferred() {
   let resolve!: () => void;
@@ -36,9 +36,9 @@ test("session refresh during MFA fences the old mutation intent without replay",
 }) => {
   const stepStarted = deferred();
   const releaseStep = deferred();
-  let integrationReads = 0;
-  let forceIntegration401 = false;
-  let forcedIntegration401 = false;
+  let settingsReads = 0;
+  let forceSettings401 = false;
+  let forcedSettings401 = false;
   const fixture = new DashboardApiFixture({
     companyOrganizations: [ORG_A],
     companyLocations: { [ORG_A.organizationId]: [LOCATION_A] },
@@ -61,10 +61,10 @@ test("session refresh during MFA fences the old mutation intent without replay",
         await releaseStep.promise;
         return { body: { state: "ASSURED" } };
       }
-      if (path === integrationsPath) {
-        integrationReads += 1;
-        if (forceIntegration401 && !forcedIntegration401) {
-          forcedIntegration401 = true;
+      if (path === settingsPath) {
+        settingsReads += 1;
+        if (forceSettings401 && !forcedSettings401) {
+          forcedSettings401 = true;
           return {
             status: 401,
             body: {
@@ -74,7 +74,7 @@ test("session refresh during MFA fences the old mutation intent without replay",
             },
           };
         }
-        return { body: integrationsProjection() };
+        return { body: companySettings() };
       }
       return undefined;
     },
@@ -91,22 +91,16 @@ test("session refresh during MFA fences the old mutation intent without replay",
   await dialog.getByLabel("6-digit authenticator code").fill("123456");
   await dialog.getByRole("button", { name: "Verify" }).click();
   await stepStarted.promise;
+  forceSettings401 = true;
+  const refreshesBefore = fixture.count(refreshPath);
   await page
-    .getByRole("link", { name: "Integrations" })
+    .getByRole("link", { name: "Policies & Settings" })
     .evaluate((element: HTMLAnchorElement) => element.click());
 
-  await expect(
-    page.getByRole("heading", { name: "Integrations & Connectors" }),
-  ).toBeVisible();
-  forceIntegration401 = true;
-  const refreshesBefore = fixture.count(refreshPath);
-  const readsBeforeRefresh = integrationReads;
-  await page.getByRole("button", { name: "Refresh" }).click();
+  await expect(page.locator(".ps-workspace")).toBeVisible();
   await expect.poll(() => fixture.count(refreshPath)).toBe(refreshesBefore + 1);
-  await expect
-    .poll(() => integrationReads)
-    .toBeGreaterThanOrEqual(readsBeforeRefresh + 2);
-  expect(integrationReads).toBeLessThanOrEqual(readsBeforeRefresh + 4);
+  await expect.poll(() => settingsReads).toBeGreaterThanOrEqual(2);
+  expect(settingsReads).toBeLessThanOrEqual(4);
   releaseStep.resolve();
   await expect.poll(() => fixture.count(stepUpPath)).toBe(1);
   await expect(dialog).toHaveCount(0);
@@ -114,7 +108,7 @@ test("session refresh during MFA fences the old mutation intent without replay",
   await page.waitForLoadState("networkidle");
   expect(fixture.count(brandingWritePath)).toBe(1);
   await expect(page.getByText("submit the action again")).toHaveCount(0);
-  const settledIntegrationReads = integrationReads;
+  const settledSettingsReads = settingsReads;
   await page.waitForTimeout(300);
-  expect(integrationReads).toBe(settledIntegrationReads);
+  expect(settingsReads).toBe(settledSettingsReads);
 });

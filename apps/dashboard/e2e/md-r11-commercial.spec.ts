@@ -7,26 +7,9 @@ import {
 import { enterR11, r11Base } from "./support/md-r11-fixtures";
 import { signInOnCurrentPage } from "./support/foundation-ui";
 
-test("R11 integration statuses stay distinct, bounded and read-only", async ({
+test("R11 legacy integration entry redirects to Studio without status read or writes", async ({
   page,
 }) => {
-  const statuses = [
-    "DISABLED",
-    "UNAVAILABLE",
-    "MISCONFIGURED",
-    "DEGRADED",
-    "OPERATIONAL",
-    "UNKNOWN",
-  ] as const;
-  const labels = [
-    "Disabled",
-    "Unavailable",
-    "Misconfigured",
-    "Degraded",
-    "Operational",
-    "Unknown",
-  ];
-  let index = 0;
   const writes: string[] = [];
   const fixture = new DashboardApiFixture({
     companyOrganizations: [ORG_A],
@@ -34,33 +17,16 @@ test("R11 integration statuses stay distinct, bounded and read-only", async ({
     override: (path, request) => {
       if (!path.startsWith("/v1/staff/auth/") && request.method() !== "GET")
         writes.push(path);
-      if (path !== `${r11Base}/integrations`) return undefined;
-      return {
-        body: {
-          organizationId: ORG_A.organizationId,
-          integrations: [
-            { key: "PLATE_OCR", status: statuses[index] },
-            { key: "STAFF_PUSH", status: "UNKNOWN" },
-            { key: "DIGITAL_PAYMENT", status: "DISABLED" },
-          ],
-        },
-      };
+      return undefined;
     },
   });
   await fixture.install(page);
   await enterR11(page, "/integrations");
-  const card = page
-    .getByText("PLATE_OCR", { exact: true })
-    .locator('xpath=ancestor::div[contains(@class,"integrationCard")]');
-  for (index = 0; index < statuses.length; index += 1) {
-    if (index > 0) {
-      const before = fixture.count(`${r11Base}/integrations`);
-      await page.getByRole("button", { name: "Refresh", exact: true }).click();
-      await expect(card).toContainText(labels[index]!);
-      expect(fixture.count(`${r11Base}/integrations`)).toBe(before + 1);
-    } else await expect(card).toContainText(labels[index]!);
-  }
-  await expect(page.locator('[class*="integrationCard"]')).toHaveCount(3);
+  await expect(page).toHaveURL(/\/policies$/u);
+  await expect(page.locator(".ps-workspace")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Vehicle operations" })).toBeVisible();
+  await expect(page.locator('[class*="integrationCard"]')).toHaveCount(0);
+  expect(fixture.count(`${r11Base}/integrations`)).toBe(0);
   await expect(
     page.getByRole("button", {
       name: /Configure|Test Connection|Connect|Enable/,

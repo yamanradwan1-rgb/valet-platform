@@ -63,9 +63,9 @@ export const helppages = {
   },
   "policies.page": {
     en: { title: "Policies & Settings",
-      body: "Settings control typed, authorized company defaults and Location overrides. A displayed effective value may be inherited; a Save changes only its own setting after validation, while Service Status is informational and does not enable infrastructure." },
+      body: "Settings control typed, authorized company defaults and Location overrides. A displayed effective value may be inherited; Save changes only the edited setting after validation and server confirmation." },
     ar: { title: "السياسات والإعدادات",
-      body: "تتحكم الإعدادات بالقيم الافتراضية للشركة واستثناءات الموقع المصرّح بها. قد تكون القيمة الفعلية موروثة؛ زر الحفظ يغيّر إعداداً محدداً فقط بعد التحقق، بينما حالة الخدمات معلوماتية ولا تُفعّل البنية التحتية." },
+      body: "تتحكم الإعدادات بالقيم الافتراضية للشركة واستثناءات الموقع المصرّح بها. قد تكون القيمة الفعلية موروثة؛ زر الحفظ يغيّر الإعداد المحرر فقط بعد التحقق وتأكيد الخادم." },
   },
   "guest-information.page": {
     en: { title: "Privacy & Contact",

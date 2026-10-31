@@ -133,7 +133,11 @@ export function Workspace() {
                     <p>{section.hint[ar ? 1 : 0]}</p>
                   </div>
                   <ContextHelp
-                    helpKey={section.help}
+                    helpKey={
+                      route.scope === "location" && section.help === "policies.company"
+                        ? "policies.location"
+                        : section.help
+                    }
                     locale={locale}
                     scopeIdentity={identity}
                   />

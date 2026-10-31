@@ -17,6 +17,7 @@ export interface StudioValue {
   readonly dirty: boolean;
   readonly notice: string;
   setDirty(value: boolean): void;
+  requestFocus(setting: string): void;
   save(
     key: string,
     value: Scalar,

@@ -13,10 +13,9 @@ const mounts = {
   "locations.lifecycle":
     "../administration/locations/location-lifecycle-panel.tsx",
   "locations.create": "../administration/locations/location-create-dialog.tsx",
-  "policies.page": "../administration/settings/settings-page.tsx",
-  "policies.company": "../administration/settings/settings-page.tsx",
-  "policies.location": "../administration/settings/settings-page.tsx",
-  "policies.services": "../administration/commercial/service-status-panel.tsx",
+  "policies.page": "../administration/policies-studio/ui/Workspace.tsx",
+  "policies.company": "../administration/policies-studio/ui/Workspace.tsx",
+  "policies.location": "../administration/policies-studio/ui/Workspace.tsx",
   "roles.page": "../administration/roles/roles-page.tsx",
   "roles.reference": "../administration/roles/roles-page.tsx",
   "branding.page": "../administration/branding/branding-page.tsx",
@@ -25,22 +24,25 @@ const mounts = {
   "billing.page": "../administration/commercial/subscription-page.tsx",
   "billing.status": "../administration/commercial/subscription-page.tsx",
   "billing.entitlements": "../administration/commercial/subscription-page.tsx",
-  "services.status": "../administration/commercial/service-status-panel.tsx",
 } as const;
 
 describe("Administration contextual-help mounts", () => {
-  it("keeps the six route, assigned section, and service-status help keys in their owners", () => {
-    expect(Object.keys(mounts)).toHaveLength(22);
+  it("keeps route and section help keys in their active owners", () => {
+    expect(Object.keys(mounts)).toHaveLength(20);
 
     for (const [key, source] of Object.entries(mounts)) {
       const contents = readFileSync(
         fileURLToPath(new URL(source, import.meta.url)),
         "utf8",
       );
-      expect(contents, source).toContain("ScopedContextHelp");
-      if (key === "policies.company" || key === "policies.location") {
-        expect(contents, `${key}: ${source}`).toContain(`"${key}"`);
+      if (key.startsWith("policies.")) {
+        expect(contents, source).toContain("ContextHelp");
+        if (key === "policies.page")
+          expect(contents, source).toContain(`helpKey="${key}"`);
+        else
+          expect(contents, `${key}: ${source}`).toContain(`"${key}"`);
       } else {
+        expect(contents, source).toContain("ScopedContextHelp");
         expect(contents, `${key}: ${source}`).toContain(`helpKey="${key}"`);
       }
     }

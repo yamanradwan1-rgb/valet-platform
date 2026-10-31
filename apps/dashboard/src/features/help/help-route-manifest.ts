@@ -38,7 +38,7 @@ export const helpRouteManifest = {
   "/staff/activate": { classification: "CONTENT", helpKey: "activation.page" },
   "/integrations": {
     classification: "REDIRECT",
-    reason: "Redirects to the authorized Policies service tab",
+    reason: "Legacy URL redirects to the existing Policies Studio page",
   },
   "/foundation-test-subscription-recovery": {
     classification: "TEST_ONLY",

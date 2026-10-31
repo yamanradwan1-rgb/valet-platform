@@ -27,21 +27,24 @@ attribution below are fixed by the Owner's Issue #321 decision.
 - WhatsApp: existing bundled policy read/PUT, revision, actual approved template
   and provider-binding catalog; live sending remains disabled.
 - Contextual Help: existing Issue #278 bilingual registry and focus handling.
-- Service Status: existing Issue #238 read-only implementation and API preserved.
+- Service Status: the Owner's 2026-10-31 U-001 decision removes its Dashboard
+  UI surface and links. Existing Issue #238 backend API, authorization,
+  persistence, and domain contracts remain unchanged.
 - No ValetSession or Task/Dispatch lifecycle transition changes; no new database
   model, migration, backend mutation, permission or audit writer.
 
-## Open Owner decisions
+## Owner decisions
 
-**U-001 — Service Status placement.** The frozen eight-section Studio excludes
-Service Status. Current `/integrations` redirects to `/policies?tab=services`,
-and existing Help and e2e checks rely on it. A reversible legacy-query branch
-keeps those consumers available in the candidate, without adding a Studio
-section or new Dashboard menu item. This branch currently renders the complete
-legacy Settings page, including its existing editable tabs; **only the Service
-Status panel itself is read-only**. The eventual accepted production placement
-is not recorded. Final merge is blocked pending the Owner's choice; the legacy
-branch is temporary continuity, not a resolved frozen-UI placement.
+**U-001 — RESOLVED by the Owner on 2026-10-31.** Service Status is removed
+from the Management Dashboard UI entirely. The frozen eight-section Studio
+continues to exclude it; no new page, menu item, or placement is authorized.
+The legacy `/policies?tab=services` link and `/integrations` redirect must
+resolve safely to `/policies`, where the authenticated Studio is the only
+settings composition. Remove the status-only Dashboard panel and its Help
+entries, and update affected frontend tests. Preserve existing backend status
+APIs and operational contracts. This latest Owner instruction supersedes the
+previous Service Status UI-placement requirement without changing DEC-087's
+backend read-only/provider authorization contract.
 
 **U-002 — RESOLVED by the Owner on 2026-10-31.** The Owner expressly allowed
 exceptions for prototype-only material, including simulated/local/fixture
@@ -82,12 +85,29 @@ pixel differences and any blockers below only after they have been executed.
   asserts editor keyboard focus stays on a reverted draft and returns to its
   Edit control after successful Save and Cancel.
 - `pnpm --filter @valet/dashboard exec playwright test
-  e2e/issue238-service-status.spec.ts` against the same compiled app:
-  2 PASS, 0 FAIL; the legacy Service Status query works read-only.
-- `pnpm --filter @valet/dashboard test`: 1143 PASS, 2 FAIL. Both failures
-  were pre-existing `context-help-registry.test.ts` assertions expecting 111
-  registered Help entries while the current source has 112. The mismatch was
-  reproduced independently against the pre-integration main baseline.
+  e2e/issue238-service-status.spec.ts e2e/issue321-policies-studio.spec.ts
+  --workers=1`: 5 PASS, 0 FAIL in the compiled production Dashboard. Both
+  legacy `/integrations` and `/policies?tab=services` routes replace-redirect
+  to the authenticated Studio and make zero Service Status API reads.
+- Six additional production Playwright cases in
+  `administration-behavior`, `administration-concurrency`, `md-r11-commercial`,
+  `md-r11-privacy`, `md-r11-presentation`, and `task01-mfa-session-fencing`:
+  **6 PASS, 0 FAIL** after correcting obsolete navigation and value assertions.
+  This includes an actual delayed cross-Organization settings-read isolation
+  check and an in-flight MFA refresh fence.
+- Real-backend `e2e-runtime/md-r11-administration.spec.ts` was updated to the
+  current Studio editor and U-001 redirect expectations. Playwright test
+  discovery reports **2 tests**; the real database-backed runtime suite has
+  **not** run because a verified disposable PostgreSQL target is unavailable.
+- U-001 replaces the legacy Service Status branch and deletes its UI panel.
+  The affected Company Admin and Location Manager browser tests now assert
+  `/integrations` and `?tab=services` redirect to `/policies`, render the
+  authorized Studio and make zero Service Status API calls. A post-change
+  production browser rerun is recorded below.
+- `pnpm --filter @valet/dashboard test`: 1149 PASS, 0 FAIL across 172
+  test files. Removed Service Status-only Help entries and corrected the
+  catalogue cardinality assertions; existing backend API-helper coverage
+  remains intact.
 - `pnpm test`: blocked at repository test-target preflight, before tests run:
   `Issue 215 test target is not the verified task-owned disposable PostgreSQL
   container.` No disposable database target was changed or invented.
@@ -97,8 +117,8 @@ pixel differences and any blockers below only after they have been executed.
   performed. `pnpm exec prettier --check` on the eight Prime-owned integration
   files: 8 PASS, 0 FAIL.
 
-The two Help fixture assertions and the Issue #215 test database preflight are
-unresolved **baseline/environment** failures, not passing checks. No remote
+The Issue #215 test database preflight and repository-wide Prettier baseline
+remain **environment/repository** failures, not passing checks. No remote
 CI execution is claimed. All browser assertions above used real production
 Next.js page hydration with network API fixtures; they are not a substitute
 for database-backed concurrency or permission integration tests.
@@ -129,18 +149,20 @@ rectangles and red difference PNGs in `evidence/comparison.json`.
 | 1440 × 1000 EN/light | 0 / 591,300 | 0 / 589,548 | Exact PASS |
 | 768 × 900 EN/dark | 0 / 665,392 | 0 / 391,664 | Exact PASS |
 | 390 × 844 AR/dark | 0 / 331,100 | 0 / 133,350 | Exact PASS |
-| 320 × 800 AR/light | 0 / 288,120 | 0 / 71,400 | Exact PASS in repeatable script |
+| 320 × 800 AR/light | 0 / 288,120 | **8 / 71,400** | **Strict FAIL** |
 
 Independent Worker 6 performed a separate four-case visible-region comparison
 using the same pinned source and production commit. It recorded 0 differences
 in the first three cases, then **8 / 71,400 differing pixels at 320px**,
 limited to the top-left rounded pane corner (`x=0..1`, `y=7..11`, color delta
 ≤1/255). All DOM pane rectangles, RTL/LTR, focus, spacing, icons and content
-geometry matched, with no overflow. The automated evidence rerun recorded 0
-in that case under equivalent inputs. The two observed measurements are both
-retained; the independent 8-pixel discrepancy is a **strict visual FAIL under
-the Owner's zero-difference rule**, despite appearing limited to nondeterministic
-edge antialiasing. No CSS or acceptance threshold was altered to hide it.
+geometry matched, with no overflow. The final Prime evidence harness rerun
+**reproduces the same 8 differing pixels** in the cropped full-viewport region,
+although a separately painted screenshot of the complete `.ps-pane` is pixel
+identical in all four cases. Four independent repetitions on each side have
+stable hashes; this is a deterministic fractional-edge compositor discrepancy.
+It is a **strict visual FAIL under the Owner's zero-difference rule**. No CSS,
+mask or acceptance threshold was altered to hide it.
 
 Separate W6 1440 EN/light open-editor case found 1,753 / 593,928 pixels
 different, exclusively inside the Owner-authorized U-002 simulation-note text
@@ -168,11 +190,12 @@ shell text and are not used to assert global shell parity.
 
 Worker 7 independently reviewed the CAS guards and confirmed the earlier
 lost-update P1 was closed. No P0 auth, tenant or CAS bypass was found.
-Remaining P2 review items: the temporary `?tab=services` compatibility branch
-still renders the old editable Settings tabs; Presence, WhatsApp and zones
-load on other Studio sections; full conflict-recovery browser coverage is
-incomplete. Inherited unverified WhatsApp sender options remain selectable
-(P3) but are rejected by the existing backend. U-001 still blocks merge.
+The previous P2 legacy editable Settings branch has been removed under the
+Owner's resolved U-001 decision. Remaining P2 review items: Presence,
+WhatsApp and zones load on other Studio sections; full conflict-recovery
+browser coverage is incomplete. Inherited unverified WhatsApp sender options
+remain selectable (P3) but are rejected by the existing backend. Independent
+final U-001 review and exact visual acceptance remain open.
 Neither independent review constitutes a complete role/section/zoom matrix;
 native 160–200% browser zoom was not exercised.
 
@@ -218,4 +241,5 @@ are authorized reads but exceed the baseline's conditional tab-loading profile
 and should be assessed before merge for large-location performance.
 
 No production deployment, merge to `main`, or Issue #321 closure is authorized
-by Phase B. U-001 requires an accepted final placement decision before merge.
+by Phase B. U-001 is resolved; the remaining visual and functional gates still
+require successful verification and Owner review before any merge.

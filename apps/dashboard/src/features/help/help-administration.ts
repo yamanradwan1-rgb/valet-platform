@@ -55,12 +55,6 @@ export const helpadministration = {
     ar: { title: "استثناءات إعدادات الموقع",
       body: "قارن قيمة الشركة الافتراضية واستثناء الموقع والقيمة الفعلية قبل تعديل سياسة الموقع. إزالة استثناء إعداد عادي تعيد وراثة قيمة الشركة دون ضبطه عشوائياً إلى صفر أو «لا». يختلف هدف SLA الخاص بالموقع: إزالته تحذف الهدف ولا تورث هدفاً من الشركة." },
   },
-  "policies.services": {
-    en: { title: "Service Status tab",
-      body: "Read the reported availability/configuration of dependent services. These facts are informational; there is no Save button here and a green display does not authorize an otherwise disabled capability." },
-    ar: { title: "تبويب حالة الخدمات",
-      body: "اقرأ حالة توفر الخدمات التابعة وتهيئتها كما يعرضها النظام. هذه معلومات فقط ولا يوجد زر حفظ هنا؛ الحالة الإيجابية لا تمنح صلاحية لميزة معطلة." },
-  },
   "roles.reference": {
     en: { title: "Fixed role table",
       body: "Compare fixed role capabilities, Location scope and conditions. The table does not create custom permission sets or bypass Company Admin MFA." },

@@ -145,33 +145,24 @@ test("Manager sees only authorized Location sections and no WhatsApp controls", 
   expect(fixture.count(companyPath)).toBe(0);
 });
 
-test("Existing Service Status query retains read-only legacy route", async ({
+test("Legacy Service Status query redirects into the authenticated Studio", async ({
   page,
 }) => {
   const fixture = new DashboardApiFixture({
     companyOrganizations: [ORG_A],
     override: (path) =>
-      path.endsWith("/integrations")
-        ? {
-            body: {
-              organizationId: ORG_A.organizationId,
-              integrations: [
-                { key: "PLATE_OCR", status: "UNKNOWN" },
-                { key: "STAFF_PUSH", status: "DEGRADED" },
-                { key: "DIGITAL_PAYMENT", status: "OPERATIONAL" },
-              ],
-            },
-          }
-        : undefined,
+      path === companyPath ? { body: companySettings() } : undefined,
   });
   await fixture.install(page);
   await page.goto("/policies?tab=services");
+  await expect(page).toHaveURL(/\/policies$/u);
   await signInOnCurrentPage(page);
   await page.getByRole("button", { name: ORG_A.name }).click();
   await page
     .getByRole("button", { name: "All Locations", exact: true })
     .click();
-  await expect(page.getByRole("tab", { name: "Service Status" })).toBeVisible();
-  await expect(page.getByText("Unknown", { exact: true })).toBeVisible();
-  await expect(page.locator(".ps-workspace")).toHaveCount(0);
+  await expect(page.locator(".ps-workspace")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Vehicle operations" })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Service Status" })).toHaveCount(0);
+  expect(fixture.count(`/v1/staff/management/organizations/${ORG_A.organizationId}/integrations`)).toBe(0);
 });

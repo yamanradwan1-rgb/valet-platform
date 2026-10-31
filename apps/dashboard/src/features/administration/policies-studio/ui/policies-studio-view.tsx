@@ -147,6 +147,10 @@ export function PoliciesStudioView({
 
   useEffect(() => {
     const focusKey = `${identity}:${route.setting ?? ""}`;
+    if (route.setting && adapter.status !== "ready") {
+      focusedRoute.current = null;
+      return;
+    }
     if (live.current.dirty || focusedRoute.current === focusKey) return;
     const frame = requestAnimationFrame(() => {
       const target = route.setting
@@ -231,6 +235,7 @@ export function PoliciesStudioView({
         editable,
         dirty,
         setDirty,
+        requestFocus: setSetting,
         save,
         navigate,
         notice,

@@ -41,7 +41,6 @@ export const additionalHelpKeys = [
   "presence.zoneForm",
   "presence.exceptions",
   "presence.review",
-  "services.status",
 ] as const satisfies readonly ContextHelpKey[];
 
 export const specialSettingsHelpKeys = [

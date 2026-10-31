@@ -18,6 +18,7 @@ export function FieldList({ fields }: { fields: Field[] }) {
     editable,
     dirty,
     setDirty,
+    requestFocus,
     identity,
     adapter,
   } = useStudio();
@@ -35,6 +36,7 @@ export function FieldList({ fields }: { fields: Field[] }) {
     const id = editing;
     if (saved) setLastSaved(id);
     setEditing(null);
+    if (saved && id) requestFocus(id);
     requestAnimationFrame(() => document.getElementById(`edit-${id}`)?.focus());
   }
   return (

@@ -8,14 +8,17 @@ test("R11 settings, directory, branding draft and commercial data remain memory-
   const { fixture } = r11Fixture();
   await fixture.install(page);
   await enterR11(page);
-  await expect(page.locator("#setting-valetServiceFee")).toHaveValue("5.500");
-  await page.locator('nav a[href="/roles-permissions"]').click();
-  await page.getByRole("tab", { name: "Users" }).click();
+  await page.locator('.ps-section-links a[href*="section=payments"]').click();
+  await expect(
+    page.locator('[data-setting="valetServiceFee"] .ps-setting-value strong'),
+  ).toHaveText("5.500 JOD");
+  await page.locator('nav a[href="/employees"]').click();
   await expect(page.getByText("worker@example.com")).toBeVisible();
   await page.locator('nav a[href="/branding"]').click();
   await page.getByLabel("Display name").fill("R11_UNSAVED_PRIVATE_DRAFT");
-  await page.locator('nav a[href="/integrations"]').click();
-  await expect(page.getByText("PLATE_OCR", { exact: true })).toBeVisible();
+  await page.goto("/integrations");
+  await expect(page).toHaveURL(/\/policies$/u);
+  await expect(page.locator(".ps-workspace")).toBeVisible();
   await page.locator('nav a[href="/billing-subscription"]').click();
   await expect(page.locator("h2 bdi")).toBeVisible();
   const plan = await page.locator("h2 bdi").innerText();
@@ -23,7 +26,6 @@ test("R11 settings, directory, branding draft and commercial data remain memory-
     "5.500",
     "worker@example.com",
     "R11_UNSAVED_PRIVATE_DRAFT",
-    "PLATE_OCR",
     plan,
   ])
     expect(await persistentMatches(page, sentinel)).toEqual({
