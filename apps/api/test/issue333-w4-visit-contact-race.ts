@@ -46,6 +46,7 @@ export async function raceWithCanonicalRevoke(
   s: Scenario,
   path: string,
   privateMarker: string,
+  inspect?: (previousBody: string, freshBody: string) => void,
 ) {
   const authorized = latch();
   const resume = latch();
@@ -153,6 +154,7 @@ export async function raceWithCanonicalRevoke(
       freshDisclosure: freshBody.includes(privateMarker),
     }),
   );
+  inspect?.(previousBody, freshBody);
   expect(freshBody).not.toContain(privateMarker);
   // Security invariant: the completed canonical revocation precedes the protected SQL projection.
   expect(previousBody).not.toContain(privateMarker);

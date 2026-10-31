@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
+import { Buffer } from "node:buffer";
 import test from "node:test";
 
-import { bounded, deferred, listen, rawClient } from "./issue333-u002-http-socket-fixture.mjs";
+import {
+  bounded,
+  deferred,
+  listen,
+  rawClient,
+} from "./issue333-u002-http-socket-fixture.mjs";
 
 const privateMarker = "W4_PRIVATE_SYNTHETIC_ONLY_NOT_REAL_CUSTOMER";
 const largeBody = Buffer.alloc(24 * 1024 * 1024, 0x59);
@@ -14,7 +20,10 @@ test("disconnect before delayed handler resolution closes without protected byte
   const events = [];
   const app = await listen((_request, response) => {
     response.once("finish", () => events.push("finish"));
-    response.once("close", () => { events.push("close"); closed.resolve(); });
+    response.once("close", () => {
+      events.push("close");
+      closed.resolve();
+    });
     entered.resolve(response);
     void continueRead.promise.then(() => {
       if (response.destroyed || response.writableEnded) {
@@ -49,7 +58,10 @@ test("client abort after partial protected write retains prefix, never finish", 
   const events = [];
   const app = await listen((_request, response) => {
     response.once("finish", () => events.push("finish"));
-    response.once("close", () => { events.push("close"); closed.resolve(); });
+    response.once("close", () => {
+      events.push("close");
+      closed.resolve();
+    });
     response.write(privateMarker);
     entered.resolve(response);
     void continueStream.promise.then(() => {
@@ -84,7 +96,10 @@ test("shutdown closeAllConnections aborts active response and releases close gat
   const events = [];
   const app = await listen((_request, response) => {
     response.once("finish", () => events.push("finish"));
-    response.once("close", () => { events.push("close"); closed.resolve(); });
+    response.once("close", () => {
+      events.push("close");
+      closed.resolve();
+    });
     entered.resolve(response);
     // The handler deliberately remains pending as the application drains.
   });
@@ -107,8 +122,14 @@ test("abort after synchronous finish cannot retract already queued HTTP data", a
   const closed = deferred();
   const events = [];
   const app = await listen((_request, response) => {
-    response.once("finish", () => { events.push("finish"); finished.resolve(); });
-    response.once("close", () => { events.push("close"); closed.resolve(); });
+    response.once("finish", () => {
+      events.push("finish");
+      finished.resolve();
+    });
+    response.once("close", () => {
+      events.push("close");
+      closed.resolve();
+    });
     response.write(largeBody);
     response.end(privateMarker);
     enqueued.resolve(response);
@@ -122,7 +143,11 @@ test("abort after synchronous finish cannot retract already queued HTTP data", a
   await bounded(finished.promise, "large body server finish");
   assert.equal(response.writableFinished, true);
   assert.deepEqual(events, ["finish", "close"]);
-  assert.equal(client.state.bytes, 0, "paused JavaScript client has not read data");
+  assert.equal(
+    client.state.bytes,
+    0,
+    "paused JavaScript client has not read data",
+  );
   client.socket.destroy();
   await bounded(closed.promise, "aborted response close");
   assert.equal(response.writableFinished, true);

@@ -2,7 +2,7 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    include: ["test/issue333-w4-visit-contacts.integration.test.ts"],
+    include: ["test/issue333-w4-visit-contacts.integration.test.ts", "test/issue333-w4-mixed-privacy.integration.test.ts"],
     pool: "forks",
     fileParallelism: false,
     maxWorkers: 1,

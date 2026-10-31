@@ -44,6 +44,7 @@ try {
   $sourceFiles = @(
     'apps/api/test/issue333-w4-visit-contacts.integration.test.ts',
     'apps/api/test/issue333-w4-visit-contact-race.ts',
+    'apps/api/test/issue333-w4-mixed-privacy.integration.test.ts',
     'apps/api/test/issue333-w4-private-lab.ts',
     'docs/validation/issue-333/w4-visit-contacts/vitest.config.mjs',
     'docs/validation/issue-333/w4-visit-contacts/run-private-lab.ps1'

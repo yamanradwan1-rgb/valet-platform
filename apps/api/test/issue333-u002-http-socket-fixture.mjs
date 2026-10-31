@@ -1,5 +1,7 @@
+import { Buffer } from "node:buffer";
 import { createServer, get } from "node:http";
 import { Socket } from "node:net";
+import { clearTimeout, setTimeout } from "node:timers";
 
 export function deferred() {
   let resolve;
@@ -17,7 +19,10 @@ export async function bounded(promise, label, timeoutMs = 12_000) {
     return await Promise.race([
       promise,
       new Promise((_, reject) => {
-        timer = setTimeout(() => reject(new Error(`${label} timed out`)), timeoutMs);
+        timer = setTimeout(
+          () => reject(new Error(`${label} timed out`)),
+          timeoutMs,
+        );
       }),
     ]);
   } finally {
@@ -52,7 +57,9 @@ export async function rawClient(port, { paused = false } = {}) {
     state.tail = Buffer.concat([state.tail, chunk]).subarray(-256);
     firstData.resolve();
   });
-  socket.on("error", (error) => { state.error = error.code ?? error.message; });
+  socket.on("error", (error) => {
+    state.error = error.code ?? error.message;
+  });
   socket.once("close", () => {
     firstData.resolve();
     closed.resolve();
@@ -62,22 +69,34 @@ export async function rawClient(port, { paused = false } = {}) {
     socket.once("error", reject);
     socket.connect(port, "127.0.0.1", resolve);
   });
-  socket.write("GET / HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n");
-  return { socket, state, firstData: firstData.promise, closed: closed.promise };
+  socket.write(
+    "GET / HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n",
+  );
+  return {
+    socket,
+    state,
+    firstData: firstData.promise,
+    closed: closed.promise,
+  };
 }
 
 export async function httpBody(port, { agent } = {}) {
   return new Promise((resolve, reject) => {
-    const request = get({ hostname: "127.0.0.1", port, path: "/", agent }, (response) => {
-      const chunks = [];
-      response.on("data", (chunk) => chunks.push(chunk));
-      response.once("error", reject);
-      response.once("end", () => resolve({
-        status: response.statusCode,
-        body: Buffer.concat(chunks).toString("utf8"),
-        reusedSocket: request.reusedSocket,
-      }));
-    });
+    const request = get(
+      { hostname: "127.0.0.1", port, path: "/", agent },
+      (response) => {
+        const chunks = [];
+        response.on("data", (chunk) => chunks.push(chunk));
+        response.once("error", reject);
+        response.once("end", () =>
+          resolve({
+            status: response.statusCode,
+            body: Buffer.concat(chunks).toString("utf8"),
+            reusedSocket: request.reusedSocket,
+          }),
+        );
+      },
+    );
     request.once("error", reject);
   });
 }

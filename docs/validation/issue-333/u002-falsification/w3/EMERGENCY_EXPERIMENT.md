@@ -1,6 +1,10 @@
 # Issue #333 / U-002 W3 — emergency global User disable falsification
 
-Status: **verification design; results pending**. This experiment is limited to disposable local PostgreSQL 17, test-only Nest API child processes and the supported controlled security-disable CLI. It does not implement the U-002 response fence.
+Status: **executed; confirmed RED**. See `EMERGENCY_W3_RESULT.md` and
+`../PRIME_E001_INDEPENDENT_REPRODUCTION.md` for two separate private
+PostgreSQL/HTTP executions. This experiment is limited to disposable local
+PostgreSQL 17, test-only Nest API child processes and the supported controlled
+security-disable CLI. It does not implement the U-002 response fence.
 
 ## Locked boundary and distinct action
 
