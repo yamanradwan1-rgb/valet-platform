@@ -4,6 +4,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { diffPanes } from "./support/issue321-visual-diff.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const dashboardRequire = createRequire(
@@ -37,62 +38,32 @@ const outDir = join(root, "docs/validation/issue-321-phase-b/evidence");
 const sourceUrl = process.env.POLICIES_SOURCE_URL ?? "http://127.0.0.1:4322";
 const candidateUrl =
   process.env.POLICIES_CANDIDATE_URL ?? "http://127.0.0.1:3014";
-const cases = [{ id: "en-light-1440", width: 1440, height: 1000 }];
+const cases = [
+  {
+    id: "en-light-1440",
+    width: 1440,
+    height: 1000,
+    locale: "en",
+    theme: "light",
+  },
+  { id: "en-dark-768", width: 768, height: 900, locale: "en", theme: "dark" },
+  { id: "ar-dark-390", width: 390, height: 844, locale: "ar", theme: "dark" },
+  {
+    id: "ar-light-320",
+    width: 320,
+    height: 800,
+    locale: "ar",
+    theme: "light",
+    location: "garden",
+  },
+];
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
-
-async function panePixels(bytes) {
-  const { data, info } = await sharp(bytes)
-    .ensureAlpha()
-    .raw()
-    .toBuffer({ resolveWithObject: true });
-  return { data, width: info.width, height: info.height };
-}
-
-async function diffPanes(sourcePng, candidatePng) {
-  const source = await panePixels(sourcePng);
-  const candidate = await panePixels(candidatePng);
-  if (source.width !== candidate.width || source.height !== candidate.height) {
-    return {
-      differences: null,
-      pixels: null,
-      diffPng: null,
-      geometryEqual: false,
-    };
-  }
-  const output = Buffer.alloc(source.data.length);
-  let differences = 0;
-  let maxChannelDelta = 0;
-  for (let offset = 0; offset < source.data.length; offset += 4) {
-    let changed = false;
-    for (let channel = 0; channel < 4; channel++) {
-      const delta = Math.abs(
-        source.data[offset + channel] - candidate.data[offset + channel],
-      );
-      maxChannelDelta = Math.max(maxChannelDelta, delta);
-      changed ||= delta !== 0;
-    }
-    if (changed) {
-      differences++;
-      output[offset] = 255;
-      output[offset + 3] = 255;
-    }
-  }
-  const diffPng = await sharp(output, {
-    raw: { width: source.width, height: source.height, channels: 4 },
-  })
-    .png()
-    .toBuffer();
-  return {
-    differences,
-    pixels: source.width * source.height,
-    maxChannelDelta,
-    geometryEqual: true,
-    diffPng,
-  };
-}
 
 async function capture(page) {
   await page.locator("#studio-heading").waitFor({ state: "visible" });
+  // Normalize keyboard input modality before comparing the frozen focus ring.
+  await page.keyboard.press("Tab");
+  await page.locator("#studio-heading").focus();
   await page.evaluate(async () => {
     await document.fonts.ready;
     document.querySelector(".content")?.scrollTo(0, 0);
@@ -121,18 +92,27 @@ async function capture(page) {
   const panePng = await page
     .locator(".ps-pane")
     .screenshot({ animations: "disabled" });
-  return { geometry, fullPng, panePng };
+  const [x, y, width, height] = geometry.pane;
+  const viewport = page.viewportSize();
+  const crop = {
+    left: Math.ceil(x),
+    top: Math.ceil(y),
+    width: Math.floor(Math.min(x + width, viewport.width)) - Math.ceil(x),
+    height: Math.floor(Math.min(y + height, viewport.height)) - Math.ceil(y),
+  };
+  const visiblePng = await sharp(fullPng).extract(crop).png().toBuffer();
+  return { geometry, fullPng, panePng, visiblePng };
 }
 
 async function runCase(browser, scenario) {
   const context = await browser.newContext({
-    viewport: { width: scenario.width, height: scenario.height },
+    viewport: { width: 1440, height: 1000 },
     deviceScaleFactor: 1,
   });
   try {
     const source = await context.newPage();
     await source.goto(
-      `${sourceUrl}/policies?locale=en&theme=light&scope=company&section=operations`,
+      `${sourceUrl}/policies?locale=${scenario.locale}&theme=${scenario.theme}&scope=company&section=operations`,
     );
     const candidate = await context.newPage();
     const fixture = new DashboardApiFixture({
@@ -164,22 +144,62 @@ async function runCase(browser, scenario) {
     await candidate.getByLabel("Password").fill("fixture-password");
     await candidate.getByRole("button", { name: "Sign in" }).click();
     await candidate.getByRole("button", { name: "Demo Hospitality" }).click();
-    await candidate
-      .getByRole("button", { name: "All Locations", exact: true })
-      .click();
+    if (scenario.location === "garden") {
+      await candidate
+        .getByRole("button", { name: "Garden Hotel Demo", exact: true })
+        .click();
+      await candidate
+        .getByRole("button", { name: "Company defaults", exact: true })
+        .click();
+    } else {
+      await candidate
+        .getByRole("button", { name: "All Locations", exact: true })
+        .click();
+    }
+    if (scenario.theme === "dark") {
+      await candidate
+        .getByRole("button", { name: "Dark", exact: true })
+        .click();
+    }
+    if (scenario.locale === "ar") {
+      await candidate.getByRole("button", { name: "Language" }).click();
+    }
     await candidate
       .locator('[data-setting="checkInPhotosRequired"]')
       .waitFor({ state: "visible" });
 
+    await Promise.all([
+      source.setViewportSize({
+        width: scenario.width,
+        height: scenario.height,
+      }),
+      candidate.setViewportSize({
+        width: scenario.width,
+        height: scenario.height,
+      }),
+    ]);
+
     const reference = await capture(source);
     const production = await capture(candidate);
-    const difference = await diffPanes(reference.panePng, production.panePng);
+    const difference = await diffPanes(
+      sharp,
+      reference.panePng,
+      production.panePng,
+    );
+    const visibleDifference = await diffPanes(
+      sharp,
+      reference.visiblePng,
+      production.visiblePng,
+    );
     for (const [name, bytes] of [
       ["reference-full", reference.fullPng],
       ["candidate-full", production.fullPng],
       ["reference-pane", reference.panePng],
       ["candidate-pane", production.panePng],
       ["diff-pane", difference.diffPng],
+      ["reference-visible-pane", reference.visiblePng],
+      ["candidate-visible-pane", production.visiblePng],
+      ["diff-visible-pane", visibleDifference.diffPng],
     ]) {
       if (bytes)
         writeFileSync(join(outDir, `${scenario.id}-${name}.png`), bytes);
@@ -187,6 +207,8 @@ async function runCase(browser, scenario) {
     return {
       id: scenario.id,
       viewport: [scenario.width, scenario.height],
+      locale: scenario.locale,
+      theme: scenario.theme,
       reference: {
         ...reference.geometry,
         fullSha256: sha256(reference.fullPng),
@@ -198,7 +220,10 @@ async function runCase(browser, scenario) {
         paneSha256: sha256(production.panePng),
       },
       comparison: { ...difference, diffPng: undefined },
+      visibleComparison: { ...visibleDifference, diffPng: undefined },
       exactPanePass: difference.geometryEqual && difference.differences === 0,
+      exactVisiblePanePass:
+        visibleDifference.geometryEqual && visibleDifference.differences === 0,
     };
   } finally {
     await context.close();
@@ -224,7 +249,15 @@ try {
     ),
   );
   for (const item of results)
-    console.log(item.id, item.comparison, "PASS", item.exactPanePass);
+    console.log(
+      item.id,
+      "pane",
+      item.comparison.differences,
+      "visible",
+      item.visibleComparison.differences,
+      "PASS",
+      item.exactPanePass && item.exactVisiblePanePass,
+    );
 } finally {
   await browser.close();
 }

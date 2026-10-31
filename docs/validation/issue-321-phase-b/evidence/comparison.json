@@ -1,0 +1,371 @@
+{
+  "sourceCommit": "5596e2312f622fbbfdcd498408769149407a6399",
+  "baseline": "fcfa760e4f17abae5fc9871417c6b68feecd089c",
+  "candidate": "66bb8c6797d1c83820b1859e5c7f7a07bc2388dc",
+  "cases": [
+    {
+      "id": "en-light-1440",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "locale": "en",
+      "theme": "light",
+      "reference": {
+        "shell": null,
+        "sidebar": [
+          0,
+          0,
+          260,
+          1000
+        ],
+        "topbar": [
+          260,
+          0,
+          1180,
+          64
+        ],
+        "workspace": [
+          292,
+          96,
+          1116,
+          974.125
+        ],
+        "pane": [
+          532,
+          321.5,
+          876,
+          673.609375
+        ],
+        "heading": "Vehicle operations",
+        "focusVisible": true,
+        "activeElement": "H2",
+        "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "overflow": false,
+        "fullSha256": "c2eb87659e5610bb603ddc429063582a57bae60fb6d1620b7141062760dec2f8",
+        "paneSha256": "61a0b6aae410df364643d8d9e8c1d6419a085ab0da5c6c022f0397f43eb63aa8"
+      },
+      "production": {
+        "shell": null,
+        "sidebar": [
+          0,
+          0,
+          260,
+          1000
+        ],
+        "topbar": [
+          260,
+          0,
+          1180,
+          64
+        ],
+        "workspace": [
+          292,
+          96,
+          1116,
+          910.125
+        ],
+        "pane": [
+          532,
+          321.5,
+          876,
+          673.609375
+        ],
+        "heading": "Vehicle operations",
+        "focusVisible": true,
+        "activeElement": "H2",
+        "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "overflow": false,
+        "fullSha256": "2a5805b886c80cedaaae20837934c5f5a2ff7df88c54fb01495be168941451d4",
+        "paneSha256": "61a0b6aae410df364643d8d9e8c1d6419a085ab0da5c6c022f0397f43eb63aa8"
+      },
+      "comparison": {
+        "differences": 0,
+        "pixels": 591300,
+        "maxChannelDelta": 0,
+        "geometryEqual": true
+      },
+      "visibleComparison": {
+        "differences": 0,
+        "pixels": 589548,
+        "maxChannelDelta": 0,
+        "geometryEqual": true
+      },
+      "exactPanePass": true,
+      "exactVisiblePanePass": true
+    },
+    {
+      "id": "en-dark-768",
+      "viewport": [
+        768,
+        900
+      ],
+      "locale": "en",
+      "theme": "dark",
+      "reference": {
+        "shell": null,
+        "sidebar": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "topbar": [
+          0,
+          0,
+          768,
+          64
+        ],
+        "workspace": [
+          20,
+          84,
+          728,
+          1254.421875
+        ],
+        "pane": [
+          20,
+          361.5,
+          728,
+          912.921875
+        ],
+        "heading": "Vehicle operations",
+        "focusVisible": true,
+        "activeElement": "H2",
+        "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "overflow": false,
+        "fullSha256": "94acf48f1ee1d8e69a6649ec43323e0df411bb8edb80598c4c360658f302ef80",
+        "paneSha256": "7025d83158df4488289c7846e2fe34d69c068357b11aa9e71126af8c085a46b9"
+      },
+      "production": {
+        "shell": null,
+        "sidebar": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "topbar": [
+          0,
+          0,
+          768,
+          64
+        ],
+        "workspace": [
+          20,
+          84,
+          728,
+          1190.421875
+        ],
+        "pane": [
+          20,
+          361.5,
+          728,
+          912.921875
+        ],
+        "heading": "Vehicle operations",
+        "focusVisible": true,
+        "activeElement": "H2",
+        "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "overflow": false,
+        "fullSha256": "31a71c5361a129bd4f28a6096574255701a2080212cefc77b48749777d9ffd29",
+        "paneSha256": "7025d83158df4488289c7846e2fe34d69c068357b11aa9e71126af8c085a46b9"
+      },
+      "comparison": {
+        "differences": 0,
+        "pixels": 665392,
+        "maxChannelDelta": 0,
+        "geometryEqual": true
+      },
+      "visibleComparison": {
+        "differences": 0,
+        "pixels": 391664,
+        "maxChannelDelta": 0,
+        "geometryEqual": true
+      },
+      "exactPanePass": true,
+      "exactVisiblePanePass": true
+    },
+    {
+      "id": "ar-dark-390",
+      "viewport": [
+        390,
+        844
+      ],
+      "locale": "ar",
+      "theme": "dark",
+      "reference": {
+        "shell": null,
+        "sidebar": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "topbar": [
+          0,
+          0,
+          390,
+          92.1875
+        ],
+        "workspace": [
+          20,
+          112.1875,
+          350,
+          1359.296875
+        ],
+        "pane": [
+          20,
+          462.6875,
+          350,
+          944.796875
+        ],
+        "heading": "عمليات المركبات",
+        "focusVisible": true,
+        "activeElement": "H2",
+        "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "overflow": false,
+        "fullSha256": "2f2fd9abbb262474fdc013dd78da0bc5d20f905d60ffd0a6bd5a939616822ce4",
+        "paneSha256": "b6bbb07a7dcff8fc57862e1f2127f5f3220b84bbff8430758abca033c89ce7e6"
+      },
+      "production": {
+        "shell": null,
+        "sidebar": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "topbar": [
+          0,
+          0,
+          390,
+          92.1875
+        ],
+        "workspace": [
+          20,
+          112.1875,
+          350,
+          1295.296875
+        ],
+        "pane": [
+          20,
+          462.6875,
+          350,
+          944.796875
+        ],
+        "heading": "عمليات المركبات",
+        "focusVisible": true,
+        "activeElement": "H2",
+        "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "overflow": false,
+        "fullSha256": "d2e998e896775d5fc7aa969b8e236a22d5d8a1d31382daef21f988ddd7eca9da",
+        "paneSha256": "b6bbb07a7dcff8fc57862e1f2127f5f3220b84bbff8430758abca033c89ce7e6"
+      },
+      "comparison": {
+        "differences": 0,
+        "pixels": 331100,
+        "maxChannelDelta": 0,
+        "geometryEqual": true
+      },
+      "visibleComparison": {
+        "differences": 0,
+        "pixels": 133350,
+        "maxChannelDelta": 0,
+        "geometryEqual": true
+      },
+      "exactPanePass": true,
+      "exactVisiblePanePass": true
+    },
+    {
+      "id": "ar-light-320",
+      "viewport": [
+        320,
+        800
+      ],
+      "locale": "ar",
+      "theme": "light",
+      "reference": {
+        "shell": null,
+        "sidebar": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "topbar": [
+          0,
+          0,
+          320,
+          138.59375
+        ],
+        "workspace": [
+          20,
+          158.59375,
+          280,
+          1478.40625
+        ],
+        "pane": [
+          20,
+          544.09375,
+          280,
+          1028.90625
+        ],
+        "heading": "عمليات المركبات",
+        "focusVisible": true,
+        "activeElement": "H2",
+        "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "overflow": false,
+        "fullSha256": "9adcce8eaabd26ad365cc4638fdc933f4c3bf202ba13f7db7c1ff4189459f84e",
+        "paneSha256": "eda09c120500c06f4ffdbd0a6ee25c3ac02e44b38c5cd0fbc49013b4f2910906"
+      },
+      "production": {
+        "shell": null,
+        "sidebar": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "topbar": [
+          0,
+          0,
+          320,
+          138.59375
+        ],
+        "workspace": [
+          20,
+          158.59375,
+          280,
+          1414.40625
+        ],
+        "pane": [
+          20,
+          544.09375,
+          280,
+          1028.90625
+        ],
+        "heading": "عمليات المركبات",
+        "focusVisible": true,
+        "activeElement": "H2",
+        "font": "Inter, \"Segoe UI\", Tahoma, Arial, sans-serif",
+        "overflow": false,
+        "fullSha256": "65c7fe1b24f1e3e9adaa15d9ea09b0ba6e4417bdd6ffd2e7e6f6aceaa4551a2a",
+        "paneSha256": "eda09c120500c06f4ffdbd0a6ee25c3ac02e44b38c5cd0fbc49013b4f2910906"
+      },
+      "comparison": {
+        "differences": 0,
+        "pixels": 288120,
+        "maxChannelDelta": 0,
+        "geometryEqual": true
+      },
+      "visibleComparison": {
+        "differences": 0,
+        "pixels": 71400,
+        "maxChannelDelta": 0,
+        "geometryEqual": true
+      },
+      "exactPanePass": true,
+      "exactVisiblePanePass": true
+    }
+  ]
+}

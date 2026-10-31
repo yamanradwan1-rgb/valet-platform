@@ -112,11 +112,53 @@ apps/dashboard/src/app/layout.tsx packages/database` contains no modified
 global shell or DB files. CSS equality is source evidence, not a browser
 pixel-parity verdict.
 
-The pinned Vite source runs at `127.0.0.1:4322`; production candidate at
-`127.0.0.1:3014`. Worker 6 must record actual case counts, unmasked pixel
-differences, geometry, RTL/mobile and the unchanged global shell comparison.
-Worker 7 must record the exact final diff and adversarial verdict. Neither
-review may be called PASS before its independent report is available.
+The pinned Vite source runs at `127.0.0.1:4322`; compiled production candidate
+at `127.0.0.1:3014`. The committed evidence script captures four normalized
+Company operations scenarios, at 1x DPR with the same Chromium, fonts,
+API fixture, locale, theme and keyboard focus state. For 320px the signed-in
+Dashboard selects Garden Hotel Demo then Company defaults to match the source
+topbar wrapping. All screenshots are raw; there are **zero masks** and **zero
+tolerances**. The script records both the entire `.ps-pane` locator screenshot
+and the visible viewport region cut from the full screenshot, with SHA-256s,
+rectangles and red difference PNGs in `evidence/comparison.json`.
+
+| Scenario | Entire pane differing pixels | Visible region differing pixels | Pixel/geometry verdict |
+|---|---:|---:|---|
+| 1440 × 1000 EN/light | 0 / 591,300 | 0 / 589,548 | Exact PASS |
+| 768 × 900 EN/dark | 0 / 665,392 | 0 / 391,664 | Exact PASS |
+| 390 × 844 AR/dark | 0 / 331,100 | 0 / 133,350 | Exact PASS |
+| 320 × 800 AR/light | 0 / 288,120 | 0 / 71,400 | Exact PASS in repeatable script |
+
+Independent Worker 6 performed a separate four-case visible-region comparison
+using the same pinned source and production commit. It recorded 0 differences
+in the first three cases, then **8 / 71,400 differing pixels at 320px**,
+limited to the top-left rounded pane corner (`x=0..1`, `y=7..11`, color delta
+≤1/255). All DOM pane rectangles, RTL/LTR, focus, spacing, icons and content
+geometry matched, with no overflow. The automated evidence rerun recorded 0
+in that case under equivalent inputs. The two observed measurements are both
+retained; the independent 8-pixel discrepancy is a **strict visual FAIL under
+the Owner's zero-difference rule**, despite appearing limited to nondeterministic
+edge antialiasing. No CSS or acceptance threshold was altered to hide it.
+
+Separate W6 1440 EN/light open-editor case found 1,753 / 593,928 pixels
+different, exclusively inside the Owner-authorized U-002 simulation-note text
+band; editor rectangles match. W6 visited `/overview` before and after the
+Policies route and obtained an exact 0 / 1,296,000 pixel and CSS/geometry
+match, with no global selector or shell mutation. This is a candidate-only
+navigation leak test; a distinct browser screenshot of current `main` versus
+the candidate's `/overview` has **not** been executed. Full-viewport prototype
+versus candidate images include expected synthetic-vs-production shell text
+and are not used to assert global shell parity.
+
+Worker 7 independently reviewed the CAS guards and confirmed the earlier
+lost-update P1 was closed. No P0 auth, tenant or CAS bypass was found.
+Remaining P2 review items: the temporary `?tab=services` compatibility branch
+still renders the old editable Settings tabs; Presence, WhatsApp and zones
+load on other Studio sections; full conflict-recovery browser coverage is
+incomplete. Inherited unverified WhatsApp sender options remain selectable
+(P3) but are rejected by the existing backend. U-001 still blocks merge.
+Neither independent review constitutes a complete role/section/zoom matrix;
+native 160–200% browser zoom was not exercised.
 
 The current candidate implements a field-level server-refresh guard while an
 editor is open, in addition to existing server CAS. Source-only simulation
@@ -128,6 +170,27 @@ Location Studio composition is scope-keyed to retire pending Presence/MFA state,
 and independent Presence/Zones/WhatsApp read states are no longer suppressed
 by an unrelated general-settings read failure. Attendance zone editing uses
 the distinct authoritative `canEditZones` capability.
+WhatsApp editor revisions are captured from the authoritative policy when an
+editor opens; Operating Hours captures the authoritative settings `updatedAt`.
+After a 409 or ambiguous re-read returns a newer revision, the unsaved draft
+remains visible but Save/Clear are blocked until the editor is closed and the
+new server values are reviewed. Worker 7 independently confirmed this closes
+the previously reported bundled-policy lost-update path; no server CAS bypass
+was found. The immutable prototype's heading-focus behavior has been restored
+after initial loading and section navigation without changing any CSS.
+
+The production-only evidence script
+`apps/dashboard/e2e/issue321-visual-evidence.mjs` runs against the pinned local
+Vite preview (`:4322`) and compiled Next route (`:3014`) using the existing
+Dashboard API test fixture. Invoke it with `node
+apps/dashboard/e2e/issue321-visual-evidence.mjs`, optionally supplying
+`POLICIES_SOURCE_URL`, `POLICIES_CANDIDATE_URL` and
+`POLICIES_CANDIDATE_SHA`. It writes raw PNGs, pane difference images and
+`evidence/comparison.json`, including all raw full, pane, visible-pane and
+difference PNGs for each scenario (33 saved evidence files). It is a test-only
+script and cannot change live
+Dashboard configuration. A script-level comparison is not an independent
+visual review; Worker 6 supplies that separate verdict.
 
 Remaining independent-review concern: Presence and WhatsApp reads currently
 mount eagerly on the Studio route, including Location zone pagination. These
