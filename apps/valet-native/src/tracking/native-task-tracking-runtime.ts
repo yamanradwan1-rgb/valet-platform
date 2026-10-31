@@ -34,6 +34,7 @@ export class NativeTaskTrackingRuntime {
   private disposed = false;
   private readonly fences: NativeTaskTrackingFences;
   private foreground = false;
+  private lastScopeKey: string | undefined;
   private online = true;
   private readonly publisher: NativeTaskGpsPublisher;
   private readonly unsubscribers: Array<() => void> = [];
@@ -91,10 +92,10 @@ export class NativeTaskTrackingRuntime {
         const previous = confirmPhase;
         confirmPhase = snapshot.phase;
         if (snapshot.phase === "submitting" && previous !== "submitting") {
-          this.suspendForCompletion();
+          this.suspendForCompletion("PARKING");
         }
         if (snapshot.phase === "parked" && previous !== "parked") {
-          this.finishMovement();
+          this.finishMovement("PARKING");
           if (previous === "submitting")
             void this.options.operations.refreshQueue(true);
         } else if (
@@ -111,10 +112,10 @@ export class NativeTaskTrackingRuntime {
           snapshot.phase === "submitting-ready" &&
           previous !== "submitting-ready"
         ) {
-          this.suspendForCompletion();
+          this.suspendForCompletion("RETRIEVAL");
         }
         if (snapshot.phase === "ready" && previous !== "ready") {
-          this.finishMovement();
+          this.finishMovement("RETRIEVAL");
           if (
             previous === "submitting-ready" ||
             previous === "submitting-start"
@@ -184,9 +185,27 @@ export class NativeTaskTrackingRuntime {
       snapshot.scope === null ||
       snapshot.identityGeneration !== auth.authGeneration
     ) {
-      this.retire();
+      const authorityLost =
+        auth.phase === "unauthenticated" ||
+        auth.phase === "fatal" ||
+        snapshot.phase === "inactive" ||
+        snapshot.phase === "no-active-shift" ||
+        snapshot.phase === "ambiguous-active-shifts" ||
+        (snapshot.identityGeneration !== null &&
+          snapshot.identityGeneration !== auth.authGeneration);
+      this.retire(!authorityLost);
       return;
     }
+    const scopeKey = [
+      auth.authGeneration,
+      snapshot.scope.organizationId,
+      snapshot.scope.membershipId,
+      snapshot.scope.locationId,
+      snapshot.scope.shiftId,
+    ].join(":");
+    if (this.lastScopeKey !== undefined && this.lastScopeKey !== scopeKey)
+      this.fences.clear();
+    this.lastScopeKey = scopeKey;
     if (!this.online) {
       this.pauseForNetwork({ kind: "offline" });
       return;
@@ -203,6 +222,10 @@ export class NativeTaskTrackingRuntime {
     }
     const projection = snapshot.taskTracking;
     const candidate = nativeTaskTrackingBinding(snapshot);
+    if (this.fences.isCompleted(candidate?.key)) {
+      this.publisher.retire({ kind: "idle" });
+      return;
+    }
     if (!this.fences.release("network", candidate?.key)) return;
     if (!this.fences.release("completion", candidate?.key)) return;
     if (projection?.status === "AMBIGUOUS") {
@@ -234,15 +257,19 @@ export class NativeTaskTrackingRuntime {
     this.publisher.pause(status);
   }
 
-  private suspendForCompletion(): void {
-    if (!this.fences.suspendCompletion(this.publisher.currentBindingKey()))
+  private suspendForCompletion(type: "PARKING" | "RETRIEVAL"): void {
+    if (
+      !this.fences.suspendCompletion(this.publisher.currentBindingKey(), type)
+    )
       return;
     this.publisher.retire({ kind: "checking" });
   }
 
-  private finishMovement(): void {
-    this.fences.finishMovement(this.publisher.currentBindingKey());
-    this.publisher.retire({ kind: "idle" });
+  private finishMovement(type: "PARKING" | "RETRIEVAL"): void {
+    const currentKey = this.publisher.currentBindingKey();
+    const completedKey = this.fences.finishMovement(type, currentKey);
+    if (currentKey === undefined || currentKey === completedKey)
+      this.publisher.retire({ kind: "idle" });
   }
 
   private retire(preserveForBackground = false): void {
