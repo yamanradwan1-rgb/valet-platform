@@ -59,6 +59,7 @@ export function PoliciesStudioView({
     ? section
     : (valid[0] ?? "operations");
   const live = useRef({ dirty, section: currentSection });
+  const focusedRoute = useRef<string | null>(null);
   const route: StudioRoute = useMemo(
     () => ({
       section: currentSection,
@@ -145,7 +146,8 @@ export function PoliciesStudioView({
   }, [dirty, adapter.locale]);
 
   useEffect(() => {
-    if (dirty) return;
+    const focusKey = `${identity}:${route.setting ?? ""}`;
+    if (live.current.dirty || focusedRoute.current === focusKey) return;
     const frame = requestAnimationFrame(() => {
       const target = route.setting
         ? document.querySelector<HTMLElement>(
@@ -156,15 +158,17 @@ export function PoliciesStudioView({
         document
           .getElementById("studio-heading")
           ?.focus({ preventScroll: true });
+        if (!route.setting) focusedRoute.current = focusKey;
         return;
       }
       target.scrollIntoView({ block: "center" });
       const button = target.querySelector<HTMLButtonElement>(".ps-edit-button");
       if (button) button.focus({ preventScroll: true });
       else target.focus({ preventScroll: true });
+      focusedRoute.current = focusKey;
     });
     return () => cancelAnimationFrame(frame);
-  }, [route.setting, identity, adapter.status, dirty]);
+  }, [route.setting, identity, adapter.status]);
 
   function navigate(patch: Partial<StudioRoute>) {
     const nextScope = patch.scope ?? route.scope;

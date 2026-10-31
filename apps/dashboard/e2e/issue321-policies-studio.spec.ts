@@ -81,6 +81,17 @@ test("Studio uses authenticated Company settings, server save and browser sectio
     .first()
     .selectOption("true");
   await page
+    .locator('[data-setting="checkInPhotosRequired"] select')
+    .first()
+    .selectOption("false");
+  await expect(
+    page.locator('[data-setting="checkInPhotosRequired"] select').first(),
+  ).toBeFocused();
+  await page
+    .locator('[data-setting="checkInPhotosRequired"] select')
+    .first()
+    .selectOption("true");
+  await page
     .locator('[data-setting="checkInPhotosRequired"] button[type="submit"]')
     .click();
   await expect.poll(() => writes).toBe(1);
@@ -89,6 +100,14 @@ test("Studio uses authenticated Company settings, server save and browser sectio
       '[data-setting="checkInPhotosRequired"] .ps-setting-value strong',
     ),
   ).toHaveText("Yes");
+  await expect(page.locator("#edit-checkInPhotosRequired")).toBeFocused();
+
+  await page.locator("#edit-checkInPhotosRequired").click();
+  await page
+    .locator('[data-setting="checkInPhotosRequired"] .ps-actions button')
+    .getByText("Cancel", { exact: true })
+    .click();
+  await expect(page.locator("#edit-checkInPhotosRequired")).toBeFocused();
 
   await page.locator('.ps-section-links a[href*="section=payments"]').click();
   await expect(page).toHaveURL(/section=payments/u);
