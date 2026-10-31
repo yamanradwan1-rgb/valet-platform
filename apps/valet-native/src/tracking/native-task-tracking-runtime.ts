@@ -9,6 +9,7 @@ import {
 
 import { nativeIdentityState } from "../auth/identity-state-boundary";
 import { createNativeEmployeeClient } from "../tasks/native-operational-http";
+import { NativeTaskTrackingCompletion } from "./native-task-tracking-completion";
 import { NativeTaskGpsPublisher } from "./native-task-gps-publisher";
 import { NativeTaskTrackingFences } from "./native-task-tracking-fences";
 import type { NativeTaskLocationPort } from "./native-task-location-adapter";
@@ -31,10 +32,10 @@ export interface NativeTaskTrackingRuntimeOptions {
 }
 
 export class NativeTaskTrackingRuntime {
+  private readonly completion: NativeTaskTrackingCompletion;
   private disposed = false;
   private readonly fences: NativeTaskTrackingFences;
   private foreground = false;
-  private lastScopeKey: string | undefined;
   private online = true;
   private readonly publisher: NativeTaskGpsPublisher;
   private readonly unsubscribers: Array<() => void> = [];
@@ -55,6 +56,11 @@ export class NativeTaskTrackingRuntime {
       onUnknown: (binding) => this.fences.pauseNetwork(binding.key),
       transport: options.transport,
     });
+    this.completion = new NativeTaskTrackingCompletion(
+      this.fences,
+      this.publisher,
+      options.operations,
+    );
     this.unsubscribers.push(
       options.operations.subscribe(() => this.reconcile()),
       options.auth.subscribe(() => {
@@ -92,11 +98,11 @@ export class NativeTaskTrackingRuntime {
         const previous = confirmPhase;
         confirmPhase = snapshot.phase;
         if (snapshot.phase === "submitting" && previous !== "submitting") {
-          this.suspendForCompletion("PARKING");
+          this.completion.suspend("PARKING", snapshot);
         }
         if (snapshot.phase === "parked" && previous !== "parked") {
-          this.finishMovement("PARKING");
-          if (previous === "submitting")
+          const completedCurrent = this.completion.finish("PARKING", snapshot);
+          if (previous === "submitting" || completedCurrent)
             void this.options.operations.refreshQueue(true);
         } else if (
           previous === "submitting" &&
@@ -112,13 +118,17 @@ export class NativeTaskTrackingRuntime {
           snapshot.phase === "submitting-ready" &&
           previous !== "submitting-ready"
         ) {
-          this.suspendForCompletion("RETRIEVAL");
+          this.completion.suspend("RETRIEVAL", snapshot);
         }
         if (snapshot.phase === "ready" && previous !== "ready") {
-          this.finishMovement("RETRIEVAL");
+          const completedCurrent = this.completion.finish(
+            "RETRIEVAL",
+            snapshot,
+          );
           if (
             previous === "submitting-ready" ||
-            previous === "submitting-start"
+            previous === "submitting-start" ||
+            completedCurrent
           ) {
             void this.options.operations.refreshQueue(true);
           }
@@ -196,16 +206,7 @@ export class NativeTaskTrackingRuntime {
       this.retire(!authorityLost);
       return;
     }
-    const scopeKey = [
-      auth.authGeneration,
-      snapshot.scope.organizationId,
-      snapshot.scope.membershipId,
-      snapshot.scope.locationId,
-      snapshot.scope.shiftId,
-    ].join(":");
-    if (this.lastScopeKey !== undefined && this.lastScopeKey !== scopeKey)
-      this.fences.clear();
-    this.lastScopeKey = scopeKey;
+    this.fences.observeScope(auth.authGeneration, snapshot.scope);
     if (!this.online) {
       this.pauseForNetwork({ kind: "offline" });
       return;
@@ -255,21 +256,6 @@ export class NativeTaskTrackingRuntime {
   private pauseForNetwork(status: NativeTaskTrackingStatus): void {
     this.fences.pauseNetwork(this.publisher.currentBindingKey());
     this.publisher.pause(status);
-  }
-
-  private suspendForCompletion(type: "PARKING" | "RETRIEVAL"): void {
-    if (
-      !this.fences.suspendCompletion(this.publisher.currentBindingKey(), type)
-    )
-      return;
-    this.publisher.retire({ kind: "checking" });
-  }
-
-  private finishMovement(type: "PARKING" | "RETRIEVAL"): void {
-    const currentKey = this.publisher.currentBindingKey();
-    const completedKey = this.fences.finishMovement(type, currentKey);
-    if (currentKey === undefined || currentKey === completedKey)
-      this.publisher.retire({ kind: "idle" });
   }
 
   private retire(preserveForBackground = false): void {
