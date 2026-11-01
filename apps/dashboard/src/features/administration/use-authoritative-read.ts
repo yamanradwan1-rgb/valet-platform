@@ -60,6 +60,7 @@ export function useAuthoritativeRead<T>(
   key: string,
   load: (signal: AbortSignal) => Promise<T>,
   enabled = true,
+  retainDataOnError = false,
 ): AuthoritativeReadState<T> {
   const [revision, setRevision] = useState(0);
   const generationRef = useRef(0);
@@ -90,20 +91,23 @@ export function useAuthoritativeRead<T>(
       },
       (reason: unknown) => {
         if (disposed || generation !== generationRef.current) return;
-        setState({
+        setState((previous) => ({
           baseKey: key,
-          data: null,
+          data:
+            retainDataOnError && previous.baseKey === key
+              ? previous.data
+              : null,
           error:
             reason instanceof Error ? reason : new Error("Request failed."),
           requestKey,
-        });
+        }));
       },
     );
     return () => {
       disposed = true;
       read.release();
     };
-  }, [enabled, key, load, requestKey]);
+  }, [enabled, key, load, requestKey, retainDataOnError]);
 
   const refresh = useCallback(() => setRevision((value) => value + 1), []);
   const replace = useCallback(

@@ -21,15 +21,22 @@ export function boundPostgresQueries(
         ? { text: args[0] }
         : (args[0] as { text?: string; query_timeout?: number });
     const callback = args.at(-1);
+    const guest = isGuestDatabaseOperation();
+    let deadlineLimited = false;
     try {
-      const maximum = isGuestDatabaseOperation()
-        ? 3500
-        : general.statementMs + 500;
+      const maximum = guest ? 3500 : general.statementMs + 500;
       const remaining =
         config?.text === "ROLLBACK"
           ? 3500
           : remainingDatabaseOperationMs(maximum);
       if (config?.text !== undefined) {
+        deadlineLimited =
+          remaining < maximum &&
+          !(
+            config.query_timeout &&
+            config.query_timeout > 0 &&
+            config.query_timeout < remaining
+          );
         args[0] = {
           ...config,
           query_timeout: Math.min(
@@ -63,7 +70,11 @@ export function boundPostgresQueries(
         // Discard, never recycle, a connection with an ambiguous protocol outcome.
         measurements.queryTimeouts += 1;
         client.release(true);
-        return new RuntimeDatabaseUnavailableError("QUERY_TIMEOUT");
+        // A shortened general-operation timer can fire just before its watchdog.
+        // Preserve Guest and operator query-timeout classification otherwise.
+        return new RuntimeDatabaseUnavailableError(
+          !guest && deadlineLimited ? "OPERATION_DEADLINE" : "QUERY_TIMEOUT",
+        );
       }
       return error;
     };

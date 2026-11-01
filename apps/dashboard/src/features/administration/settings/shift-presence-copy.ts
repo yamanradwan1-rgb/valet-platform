@@ -270,6 +270,10 @@ const messages = {
     "Authority is busy. Refresh before trying again.",
     "الصلاحيات مشغولة. حدّث قبل إعادة المحاولة.",
   ],
+  readBusyError: [
+    "Attendance settings are temporarily busy. Please retry in a moment.",
+    "إعدادات الحضور مشغولة مؤقتًا. يُرجى إعادة المحاولة بعد قليل.",
+  ],
   notReadyError: [
     "This change cannot be applied with the current presence configuration. Review Readiness, active attendance zones, and the saved Start/End Shift policies.",
     "لا يمكن تطبيق هذا التغيير مع إعدادات الحضور الحالية. راجع الجاهزية ومناطق الحضور المفعّلة وسياسات بداية ونهاية الشفت المحفوظة.",

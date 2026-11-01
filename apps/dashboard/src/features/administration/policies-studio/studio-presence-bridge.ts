@@ -7,6 +7,7 @@ import {
   type PresencePolicyDraftState,
 } from "../settings/shift-presence-policy-fields";
 import { presenceCopy } from "../settings/shift-presence-copy";
+import { presenceErrorKey } from "../settings/shift-presence-errors";
 import type { PresenceWriteOutcome } from "./adapters/presence/presence-policy-adapter";
 import type { usePoliciesStudioPresence } from "./adapters/presence/use-policies-studio-presence";
 import type { Scalar } from "./ui/catalog";
@@ -86,6 +87,7 @@ export function studioPresenceBridge(
   const policy = read.snapshot.policy;
   const readiness = read.snapshot.readiness;
   const outcome = read.snapshot.mutationMessage;
+  const readErrorKey = presenceErrorKey(read.snapshot.error);
   const mutationFailure =
     outcome === "failed" ||
     outcome === "unknown" ||
@@ -100,13 +102,18 @@ export function studioPresenceBridge(
         ? "READY"
         : "BLOCKED";
   return {
+    readState: read.snapshot.readState,
     unavailable: !read.snapshot.available,
     values: currentValues(read),
     readiness: { state },
     zones: read.snapshot.zones,
     loading: read.snapshot.policyLoading || read.snapshot.zonesLoading,
     error:
-      read.snapshot.error?.message ??
+      (read.snapshot.error
+        ? presenceCopy(locale)(
+            readErrorKey === "busyError" ? "readBusyError" : "failed",
+          )
+        : null) ??
       (outcome && mutationFailure ? presenceCopy(locale)(outcome) : null),
     editable: read.snapshot.canEdit,
     zonesEditable: read.snapshot.canEditZones,

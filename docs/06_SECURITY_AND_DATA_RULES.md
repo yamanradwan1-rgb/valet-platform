@@ -1386,6 +1386,29 @@ Deployment must supply a persistent protected base64 HMAC key of at least 32 byt
 
 All new operational presence routes authenticate before existing user-scoped HMAC AntiAbuse enforcement and before allocation/selector lookup; no request material enters limiter keys. Challenges 30, exception requests 10 and shared status reads 180 per User per rolling 15 minutes. Standard concealed 429/Retry-After and safe 503 failure apply. Ordinary OFF Shift routes remain independent. Management results freshly prove exact current tenant/Location authority before null-zone UNKNOWN disclosure. Immutable typed management receipts prove successful no-op completion and reserve every successful mutation UUID, without fake change audits or raw request persistence. All repeated committed UUIDs conflict; GET reconciliation never replays a write.
 
+## Issue #406 Presence configuration read recovery
+
+The Owner's Issue #406 repair instruction authorizes bounded recovery of Company
+policy, exact-Location policy, zone-list and zone-detail reads after a refused
+`staff-management-org` advisory try-lock. Each attempt uses a new transaction and
+repeats the complete current session, User, membership, role, Organization,
+Location/access, entitlement and applicable MFA proof. The existing settings ->
+lifecycle -> authority/entity lock graph and exclusive nonblocking authority
+boundary remain unchanged. No mutation, exception operation or mutation-result
+reconciliation is automatically replayed. SQLSTATE 55P03 and 40P01 remain separate
+diagnostic origins and are not automatically retried.
+
+The technical envelope is eight attempts, 25/50/100/200ms capped backoff outside
+transactions, and a two-second total read deadline (shortened by an enclosing
+deadline). General database lease limits remain applicable; this is not Guest
+admission or a global retry policy. Timeout interrupts the owned database lease.
+Public busy/denial contracts remain unchanged. Structured diagnostics allow only
+operation category, origin, outcome, attempts and duration, without resource or
+principal identifiers. Dashboard read failure blocks writes but is not evidence
+of revoked permission; fresh authoritative success is required to restore writes.
+See `docs/validation/ISSUE_406_PRESENCE_READ_CONTENTION.md` for the contract ledger,
+reproduction, lock inventory and verification evidence.
+
 ## Guest T3 resilience amendment — 2026-10-08
 
 The Owner-approved U-07 T3 policy is defined in

@@ -18,7 +18,7 @@ import { PresenceReadiness } from "./PresenceReadiness";
 
 export function Workspace() {
   const studio = useStudio();
-  const { route, locale, identity, navigate, notice, editable, adapter } = studio;
+  const { route, locale, identity, navigate, notice, adapter } = studio;
   const copy = ui[locale];
   const ar = locale === "ar";
   const [navOpen, setNavOpen] = useState(false);
@@ -26,7 +26,9 @@ export function Workspace() {
   const sections = availableSections(route.role, route.scope);
   const section = sectionCopy[route.section];
   const denied = route.role === "DENIED" || route.scenario === "denied";
-  const readonly = !editable && ["presence", "zones"].includes(route.section);
+  const readonly =
+    adapter.presence.readState === "READ_ONLY" &&
+    ["presence", "zones"].includes(route.section);
   const hint =
     route.section === "zones"
       ? ar
@@ -134,7 +136,8 @@ export function Workspace() {
                   </div>
                   <ContextHelp
                     helpKey={
-                      route.scope === "location" && section.help === "policies.company"
+                      route.scope === "location" &&
+                      section.help === "policies.company"
                         ? "policies.location"
                         : section.help
                     }
@@ -152,8 +155,12 @@ export function Workspace() {
                 }
                 <div className="ps-pane-body">
                   <ReadState>
-                    {route.section === "hours" ? <HoursPane key={identity} /> : null}
-                    {route.section === "zones" ? <ZonesPane key={identity} /> : null}
+                    {route.section === "hours" ? (
+                      <HoursPane key={identity} />
+                    ) : null}
+                    {route.section === "zones" ? (
+                      <ZonesPane key={identity} />
+                    ) : null}
                     {route.section === "presence" ? (
                       <>
                         <PresenceReadiness />
@@ -164,7 +171,9 @@ export function Workspace() {
                         </p>
                       </>
                     ) : null}
-                    {route.section === "whatsapp" ? <WhatsAppPane key={identity} /> : null}
+                    {route.section === "whatsapp" ? (
+                      <WhatsAppPane key={identity} />
+                    ) : null}
                     {!["hours", "whatsapp"].includes(route.section) && (
                       <FieldList
                         key={`${identity}:fields`}
@@ -175,7 +184,9 @@ export function Workspace() {
                         ).filter((field) =>
                           field.section === "presence"
                             ? adapter.presence.availableKeys.includes(field.key)
-                            : adapter.settings.availableKeys.includes(field.key),
+                            : adapter.settings.availableKeys.includes(
+                                field.key,
+                              ),
                         )}
                       />
                     )}

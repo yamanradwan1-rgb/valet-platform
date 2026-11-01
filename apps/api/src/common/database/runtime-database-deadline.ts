@@ -22,6 +22,7 @@ export type DatabaseFailureReason =
 interface OperationDeadline {
   readonly at: number;
   readonly clients: Set<{ end(): Promise<void> }>;
+  readonly guest: boolean;
 }
 
 const deadlines = new AsyncLocalStorage<OperationDeadline>();
@@ -44,12 +45,33 @@ export function withDatabaseDeadline<T>(
   maximumMs: number,
   action: () => Promise<T>,
 ): Promise<T> {
+  return runWithDatabaseDeadline(maximumMs, action, true);
+}
+
+/** A narrow operation budget without opting Staff work into Guest lease policy. */
+export function withGeneralDatabaseDeadline<T>(
+  maximumMs: number,
+  action: () => Promise<T>,
+): Promise<T> {
+  return runWithDatabaseDeadline(
+    remainingDatabaseOperationMs(maximumMs),
+    action,
+    deadlines.getStore()?.guest === true,
+  );
+}
+
+function runWithDatabaseDeadline<T>(
+  maximumMs: number,
+  action: () => Promise<T>,
+  guest: boolean,
+): Promise<T> {
   if (!Number.isInteger(maximumMs) || maximumMs <= 0) {
     throw new Error("Runtime database deadline must be a positive integer.");
   }
   const scope: OperationDeadline = {
     at: performance.now() + maximumMs,
     clients: new Set(),
+    guest,
   };
   return deadlines.run(
     scope,
@@ -81,7 +103,7 @@ export function trackDatabaseOperationClient(client: {
 }
 
 export function isGuestDatabaseOperation(): boolean {
-  return deadlines.getStore() !== undefined;
+  return deadlines.getStore()?.guest === true;
 }
 
 export function remainingDatabaseOperationMs(
