@@ -148,7 +148,7 @@ test("#409 an old MFA verification response cannot assure a replacement session"
   expect(fixture.mfaAssured).toBe(false);
 });
 
-test("#409 MFA-denied Contact PUT cannot replay after assurance or discard unsaved edits", async ({
+test("#409 MFA-denied Contact PUT preserves unsaved edits without automatic replay", async ({
   page,
 }) => {
   const { fixture, state } = issue409GuestMfaFixture("ASSURED");
