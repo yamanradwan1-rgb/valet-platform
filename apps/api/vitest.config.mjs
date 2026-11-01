@@ -14,6 +14,8 @@ const ownership = classifyPackageTests({
   rootDir: testRoot,
 });
 const privateIssue319Project = "api-postgres-issue319-private";
+const privateIssue333Project = "api-postgres-issue333-private";
+const privateIssue333W4Project = "api-postgres-issue333-w4-private";
 
 function ownedFiles(projectName) {
   const files = ownership[projectName] ?? [];
@@ -70,6 +72,28 @@ export default defineConfig({
             fileParallelism: false,
             maxWorkers: 1,
             env: { VAYLET_TEST_PROJECT: privateIssue319Project },
+          } }]
+        : []),
+      ...(process.env.CI !== "true" &&
+      process.env.ISSUE333_EPHEMERAL_PG === "I_OWN_THIS_CLUSTER"
+        ? [{ test: {
+            name: privateIssue333Project,
+            include: ownedFiles(privateIssue333Project),
+            pool: "forks",
+            fileParallelism: false,
+            maxWorkers: 1,
+            env: { VAYLET_TEST_PROJECT: privateIssue333Project },
+          } }]
+        : []),
+      ...(process.env.CI !== "true" &&
+      process.env.ISSUE333_W4_PRIVATE_PG === "I_OWN_W4_CLUSTER"
+        ? [{ test: {
+            name: privateIssue333W4Project,
+            include: ownedFiles(privateIssue333W4Project),
+            pool: "forks",
+            fileParallelism: false,
+            maxWorkers: 1,
+            env: { VAYLET_TEST_PROJECT: privateIssue333W4Project },
           } }]
         : []),
     ],

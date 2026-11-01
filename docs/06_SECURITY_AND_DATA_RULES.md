@@ -1023,6 +1023,12 @@ Accepted DEC-078 through DEC-094 add these binding Management controls:
   registration can be re-established from the disabled User's sessions. Exact
   disable retries converge by operation ID; changing the recorded operation
   facts under the same ID is rejected.
+- Following the 2026-11-01 Owner practical security amendment (DEC-081/108),
+  a committed global User disable also denies every newly authorized protected
+  request using persisted User status. A request successfully authorized before
+  that commit may finish afterward; cancellation of in-flight responses is
+  best effort with no last-byte delivery guarantee. No indefinite protected
+  streams or background operations may extend this bounded exception.
 - Staff-management tenant audit and account-security audit remain separate.
   Changed role/status/grant commands append one Organization audit event in the
   same transaction; desired-state no-ops append none. Global User disable writes

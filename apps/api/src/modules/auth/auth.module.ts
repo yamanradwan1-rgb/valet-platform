@@ -1,4 +1,5 @@
 import { MiddlewareConsumer, Module, type NestModule } from "@nestjs/common";
+import { APP_INTERCEPTOR } from "@nestjs/core";
 
 import { RuntimeDatabaseModule } from "../../common/database/runtime-database.module";
 import { HttpInfrastructureModule } from "../../common/http/http-infrastructure.module";
@@ -28,6 +29,7 @@ import {
   DatabaseStaffSessionContextResolver,
   STAFF_SESSION_CONTEXT_RESOLVER,
 } from "./staff-session-context";
+import { StaffResponseUserRevalidationInterceptor } from "./staff-response-user-revalidation.interceptor";
 
 @Module({
   controllers: [
@@ -62,6 +64,10 @@ import {
     {
       provide: STAFF_PASSWORD_VERIFIER,
       useExisting: Argon2StaffPasswordVerifier,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: StaffResponseUserRevalidationInterceptor,
     },
   ],
   exports: [
