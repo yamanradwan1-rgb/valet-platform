@@ -8,7 +8,7 @@ import { lockAndRecheckStaffSessionContext } from "../auth/staff-session-revalid
 import { lockAndRecheckMfaSession } from "../auth/mfa/mfa-session-repository";
 import { requireMfaAssuranceInTransaction } from "../auth/mfa/mfa-assurance-policy";
 import { ManagementAccessDeniedError } from "./management-authorization";
-import { ShiftPresenceError } from "../shifts/shift-presence-errors";
+import { PresenceManagementBusyError } from "./presence-management-diagnostics";
 
 export interface PresenceManagementTarget {
   readonly authority: "COMPANY_ADMIN" | "LOCATION_MANAGER";
@@ -76,7 +76,7 @@ export async function protectPresenceManagementAuthority(
     [organizationId],
   );
   if (boundary.rows[0]?.acquired !== true)
-    throw new ShiftPresenceError("PRESENCE_AUTHORITY_BUSY");
+    throw new PresenceManagementBusyError("ADVISORY_TRY_LOCK_BUSY");
   const member = await transaction.query<{
     id: string;
     role: string;

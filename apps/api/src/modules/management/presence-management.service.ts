@@ -1,8 +1,4 @@
 import { readPresenceManagementResult } from "./presence-management-result";
-import {
-  recordPresenceManagementMutation,
-  type PresenceMutationIdentity,
-} from "./presence-management-mutation";
 import { Inject, Injectable } from "@nestjs/common";
 import type {
   ShiftPresenceCompanySetRequest,
@@ -17,17 +13,9 @@ import type {
   PostgresPool,
   PostgresTransaction,
 } from "../../common/database/postgres";
-import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
 import type { StaffSessionContext } from "../auth/staff-session-context";
 import {
-  recordAdminActivityInTransaction,
-  requireMfaAssuranceInTransaction,
-} from "../auth/mfa/mfa-assurance-policy";
-import { lockAndRecheckStaffSessionContext } from "../auth/staff-session-revalidation";
-import { UnauthorizedException } from "@nestjs/common";
-import {
-  protectPresenceManagementAuthority,
   type PresenceManagementActor,
   type PresenceManagementTarget,
 } from "./presence-management-authority";
@@ -49,9 +37,11 @@ import {
   listManagementPresenceExceptions,
   reviewManagementPresenceException,
 } from "./presence-management-exception";
-import { PresenceManagementError } from "./presence-management-errors";
-import { ShiftPresenceError } from "../shifts/shift-presence-errors";
-import { ManagementAccessDeniedError } from "./management-authorization";
+import {
+  runPresenceManagementTransaction,
+  type PresenceManagementIdentity,
+} from "./presence-management-transaction";
+import type { PresenceManagementOperation } from "./presence-management-diagnostics";
 
 @Injectable()
 export class PresenceManagementService {
@@ -59,7 +49,8 @@ export class PresenceManagementService {
     @Inject(RUNTIME_POSTGRES_POOL) private readonly pool: PostgresPool,
   ) {}
 
-  private async run<T>(
+  private run<T>(
+    name: PresenceManagementOperation,
     context: StaffSessionContext,
     target: PresenceManagementTarget,
     mutation: boolean,
@@ -68,74 +59,43 @@ export class PresenceManagementService {
       transaction: PostgresTransaction,
       actor: PresenceManagementActor,
     ) => Promise<T>,
-    identity?: Omit<PresenceMutationIdentity, "entityId"> & {
-      readonly entityId?: string;
-    },
+    identity?: PresenceManagementIdentity,
   ): Promise<T> {
-    try {
-      return await inPostgresTransaction(this.pool, async (transaction) => {
-        const actor = await protectPresenceManagementAuthority(
-          transaction,
-          context,
-          target,
-          { mutation, configurationWriter },
-        );
-        const result =
-          identity === undefined
-            ? await operation(transaction, actor)
-            : await recordPresenceManagementMutation(
-                transaction,
-                actor,
-                {
-                  ...identity,
-                  entityId:
-                    identity.entityId ??
-                    actor.locationId ??
-                    actor.organizationId,
-                },
-                () => operation(transaction, actor),
-              );
-        if (
-          (await lockAndRecheckStaffSessionContext(transaction, context)) ===
-          undefined
-        )
-          throw new UnauthorizedException();
-        if (mutation)
-          await requireMfaAssuranceInTransaction(transaction, context, {
-            sensitive: true,
-          });
-        if (mutation || target.authority === "COMPANY_ADMIN")
-          await recordAdminActivityInTransaction(transaction, context);
-        return result;
-      });
-    } catch (error) {
-      const database = error as { code?: string; constraint?: string };
-      if (database.code === "55P03" || database.code === "40P01")
-        throw new ShiftPresenceError("PRESENCE_AUTHORITY_BUSY");
-      if (database.code === "40001")
-        throw new PresenceManagementError("PRESENCE_CONFIGURATION_CONFLICT");
-      if (database.code === "42501") throw new ManagementAccessDeniedError();
-      if (database.code === "23505")
-        throw new PresenceManagementError("PRESENCE_MUTATION_CONFLICT");
-      if (
-        database.code === "23514" &&
-        database.constraint?.startsWith("shift_presence")
-      )
-        throw new PresenceManagementError("PRESENCE_CONFIGURATION_CONFLICT");
-      throw error;
-    }
+    return runPresenceManagementTransaction(
+      this.pool,
+      name,
+      context,
+      target,
+      mutation,
+      configurationWriter,
+      operation,
+      identity,
+    );
   }
 
   company(context: StaffSessionContext, target: PresenceManagementTarget) {
-    return this.run(context, target, false, false, async (tx, actor) => ({
-      organizationId: actor.organizationId,
-      policy: await presenceCompanyPolicy(tx, actor.organizationId),
-      capabilities: { canEdit: true, strictActivationAllowed: true as const },
-    }));
+    return this.run(
+      "COMPANY_POLICY_READ",
+      context,
+      target,
+      false,
+      false,
+      async (tx, actor) => ({
+        organizationId: actor.organizationId,
+        policy: await presenceCompanyPolicy(tx, actor.organizationId),
+        capabilities: { canEdit: true, strictActivationAllowed: true as const },
+      }),
+    );
   }
   location(context: StaffSessionContext, target: PresenceManagementTarget) {
-    return this.run(context, target, false, false, (tx, actor) =>
-      presenceLocationPolicy(tx, actor.organizationId, actor.locationId!),
+    return this.run(
+      "LOCATION_POLICY_READ",
+      context,
+      target,
+      false,
+      false,
+      (tx, actor) =>
+        presenceLocationPolicy(tx, actor.organizationId, actor.locationId!),
     );
   }
   setCompany(
@@ -144,6 +104,7 @@ export class PresenceManagementService {
     command: ShiftPresenceCompanySetRequest,
   ) {
     return this.run(
+      "COMPANY_POLICY_SET",
       context,
       target,
       true,
@@ -159,6 +120,7 @@ export class PresenceManagementService {
       ShiftPresenceLocationSetRequest | ShiftPresenceLocationClearRequest,
   ) {
     return this.run(
+      "LOCATION_POLICY_CHANGE",
       context,
       target,
       true,
@@ -172,7 +134,7 @@ export class PresenceManagementService {
     target: PresenceManagementTarget,
     query: { limit: number; cursor?: string | undefined },
   ) {
-    return this.run(context, target, false, false, (tx, actor) =>
+    return this.run("ZONE_LIST", context, target, false, false, (tx, actor) =>
       listPresenceZones(tx, actor, query),
     );
   }
@@ -181,16 +143,23 @@ export class PresenceManagementService {
     target: PresenceManagementTarget,
     zoneId: string,
   ) {
-    return this.run(context, target, false, false, async (tx, actor) => ({
-      zone: await readPresenceZone(tx, actor, zoneId),
-      readiness: (
-        await presenceLocationPolicy(
-          tx,
-          actor.organizationId,
-          actor.locationId!,
-        )
-      ).readiness,
-    }));
+    return this.run(
+      "ZONE_READ",
+      context,
+      target,
+      false,
+      false,
+      async (tx, actor) => ({
+        zone: await readPresenceZone(tx, actor, zoneId),
+        readiness: (
+          await presenceLocationPolicy(
+            tx,
+            actor.organizationId,
+            actor.locationId!,
+          )
+        ).readiness,
+      }),
+    );
   }
   saveZone(
     context: StaffSessionContext,
@@ -199,6 +168,7 @@ export class PresenceManagementService {
     zoneId?: string,
   ) {
     return this.run(
+      "ZONE_SAVE",
       context,
       target,
       true,
@@ -220,8 +190,13 @@ export class PresenceManagementService {
       cursor?: string | undefined;
     },
   ) {
-    return this.run(context, target, false, false, (tx, actor) =>
-      listManagementPresenceExceptions(tx, actor, query),
+    return this.run(
+      "EXCEPTION_LIST",
+      context,
+      target,
+      false,
+      false,
+      (tx, actor) => listManagementPresenceExceptions(tx, actor, query),
     );
   }
   exception(
@@ -229,8 +204,13 @@ export class PresenceManagementService {
     target: PresenceManagementTarget,
     exceptionId: string,
   ) {
-    return this.run(context, target, false, false, (tx, actor) =>
-      readManagementPresenceException(tx, actor, exceptionId),
+    return this.run(
+      "EXCEPTION_READ",
+      context,
+      target,
+      false,
+      false,
+      (tx, actor) => readManagementPresenceException(tx, actor, exceptionId),
     );
   }
   review(
@@ -241,6 +221,7 @@ export class PresenceManagementService {
     action: "APPROVED" | "REJECTED",
   ) {
     return this.run(
+      "EXCEPTION_REVIEW",
       context,
       target,
       true,
@@ -267,8 +248,15 @@ export class PresenceManagementService {
     mutationId: string,
     query: ShiftPresenceManagementResultQuery = { kind: "POLICY" },
   ) {
-    return this.run(context, target, false, false, async (tx, actor) => {
-      return readPresenceManagementResult(tx, actor, mutationId, query);
-    });
+    return this.run(
+      "RESULT_READ",
+      context,
+      target,
+      false,
+      false,
+      async (tx, actor) => {
+        return readPresenceManagementResult(tx, actor, mutationId, query);
+      },
+    );
   }
 }

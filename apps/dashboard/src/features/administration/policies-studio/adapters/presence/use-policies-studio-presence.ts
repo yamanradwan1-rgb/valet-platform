@@ -27,6 +27,7 @@ import {
   type StudioPresenceZone,
 } from "./presence-zone-adapter";
 import { presenceStudioAccess, presenceStudioScopeKey } from "./presence-scope";
+import type { PresenceReadState } from "../../ui/studio-types";
 
 async function allAuthorizedZones(
   api: ReturnType<typeof usePresenceApi>["api"],
@@ -48,14 +49,18 @@ async function allAuthorizedZones(
 }
 
 /** Mount this under a scope-keyed parent, as the existing presence mutation does. */
-export function usePoliciesStudioPresence({ company = false }: {
+export function usePoliciesStudioPresence({
+  company = false,
+}: {
   readonly company?: boolean;
 } = {}) {
   const dashboard = useProtectedDashboard();
   const selected = dashboard.selectedScope;
   const scopeKey = presenceStudioScopeKey(dashboard, company);
   const scopeRef = useRef(scopeKey);
-  useLayoutEffect(() => { scopeRef.current = scopeKey; }, [scopeKey]);
+  useLayoutEffect(() => {
+    scopeRef.current = scopeKey;
+  }, [scopeKey]);
   const access = presenceStudioAccess(selected, company);
   const enabled = access === "REQUESTABLE";
   const noLocation = access === "NO_LOCATION";
@@ -65,25 +70,34 @@ export function usePoliciesStudioPresence({ company = false }: {
     lifetime.current = { scopeKey, enabled, live };
   }, [scopeKey, enabled, live]);
   const current = useCallback(
-    () => lifetime.current.live.current &&
+    () =>
+      lifetime.current.live.current &&
       lifetime.current.scopeKey === scopeKey &&
-      lifetime.current.enabled && scopeRef.current === scopeKey,
+      lifetime.current.enabled &&
+      scopeRef.current === scopeKey,
     [scopeKey],
   );
   const loadPolicy = useCallback(
-    (signal: AbortSignal) => api.policy(signal), [api],
+    (signal: AbortSignal) => api.policy(signal),
+    [api],
   );
   const policyRead = useAuthoritativeRead(
-    `${scopeKey}:studio-policy`, loadPolicy, enabled,
+    `${scopeKey}:studio-policy`,
+    loadPolicy,
+    enabled,
+    true,
   );
-  const locationData = policyRead.data && "overrides" in policyRead.data
-    ? policyRead.data : null;
+  const locationData =
+    policyRead.data && "overrides" in policyRead.data ? policyRead.data : null;
   const loadZones = useCallback(
-    (signal: AbortSignal) => allAuthorizedZones(api, signal), [api],
+    (signal: AbortSignal) => allAuthorizedZones(api, signal),
+    [api],
   );
   const zonesRead = useAuthoritativeRead(
-    `${scopeKey}:studio-zones`, loadZones,
+    `${scopeKey}:studio-zones`,
+    loadZones,
     enabled && !company && locationData !== null,
+    true,
   );
   const { refresh: refreshPolicy, replace: replacePolicy } = policyRead;
   const { refresh: refreshZones } = zonesRead;
@@ -92,23 +106,49 @@ export function usePoliciesStudioPresence({ company = false }: {
     refreshPolicy();
     refreshZones();
   }, [current, refreshPolicy, refreshZones]);
-  const onCanonical = useCallback((canonical: PresenceCanonical) => {
-    if (!current()) return;
-    if (canonical.kind === "POLICY") replacePolicy(canonical.value);
-  }, [current, replacePolicy]);
+  const onCanonical = useCallback(
+    (canonical: PresenceCanonical) => {
+      if (!current()) return;
+      if (canonical.kind === "POLICY") replacePolicy(canonical.value);
+    },
+    [current, replacePolicy],
+  );
   const mutation = useShiftPresenceMutation(api, onCanonical, refresh);
   usePresenceForeground(refresh, enabled);
 
-  const denied = access === "DENIED" || isPresenceDenied(policyRead.error) ||
-    isPresenceDenied(zonesRead.error) || mutation.denied;
-  const policyBlocked = !enabled || denied || policyRead.loading ||
-    policyRead.error !== null || mutation.blocked;
-  const zonesBlocked = policyBlocked || zonesRead.loading ||
-    zonesRead.error !== null;
+  const denied =
+    access === "DENIED" ||
+    isPresenceDenied(policyRead.error) ||
+    isPresenceDenied(zonesRead.error) ||
+    mutation.denied;
+  const policyBlocked =
+    !enabled ||
+    denied ||
+    policyRead.loading ||
+    policyRead.error !== null ||
+    zonesRead.loading ||
+    zonesRead.error !== null ||
+    mutation.blocked;
+  const zonesBlocked =
+    policyBlocked || zonesRead.loading || zonesRead.error !== null;
   const policy: PresenceCompany | PresenceLocation | null =
     enabled && !denied ? policyRead.data : null;
-  const canEditPolicy = !policyBlocked && (policy?.capabilities.canEdit ?? false);
+  const canEditPolicy =
+    !policyBlocked && (policy?.capabilities.canEdit ?? false);
   const canEditZones = !zonesBlocked && canEditPolicy && locationData !== null;
+  const readState: PresenceReadState = denied
+    ? "DENIED"
+    : noLocation
+      ? "NO_LOCATION"
+      : access === "INACTIVE_LOCATION"
+        ? "INACTIVE"
+        : policyRead.loading || zonesRead.loading
+          ? "LOADING"
+          : policyRead.error || zonesRead.error
+            ? "ERROR"
+            : policy?.capabilities.canEdit
+              ? "EDITABLE"
+              : "READ_ONLY";
 
   async function savePolicyDraft(
     field: Field["field"],
@@ -117,21 +157,29 @@ export function usePoliciesStudioPresence({ company = false }: {
   ): Promise<PresenceWriteOutcome> {
     if (!policy || !canEditPolicy || !current()) return "BLOCKED";
     return saveStudioPresencePolicy(policy, field, draft, strictConfirmed, {
-      api, mutation, current,
+      api,
+      mutation,
+      current,
     });
   }
 
-  async function saveZone(zone: StudioPresenceZone): Promise<PresenceWriteOutcome> {
+  async function saveZone(
+    zone: StudioPresenceZone,
+  ): Promise<PresenceWriteOutcome> {
     if (!locationData || !canEditZones || !current()) return "BLOCKED";
     return saveStudioPresenceZone(zone, {
-      api, mutation, current, canEdit: canEditZones,
+      api,
+      mutation,
+      current,
+      canEdit: canEditZones,
     });
   }
 
   const snapshot = {
+    readState,
     policy,
-    zones: !denied && enabled
-      ? (zonesRead.data ?? []).map(studioPresenceZone) : [],
+    zones:
+      !denied && enabled ? (zonesRead.data ?? []).map(studioPresenceZone) : [],
     readiness: locationData && !denied ? locationData.readiness : null,
     policyLoading: enabled && policyRead.loading,
     zonesLoading: enabled && !company && zonesRead.loading,
@@ -149,14 +197,18 @@ export function usePoliciesStudioPresence({ company = false }: {
     mutationMessage: mutation.message,
   };
   return {
-    scopeKey, snapshot, api, mutation,
+    scopeKey,
+    snapshot,
+    api,
+    mutation,
     actions: {
       refresh,
       savePolicyDraft,
       saveZone,
-      loadZone: (id: string) => current() && locationData
-        ? api.zone(id).then((value) => studioPresenceZone(value.zone))
-        : Promise.resolve(null),
+      loadZone: (id: string) =>
+        current() && locationData
+          ? api.zone(id).then((value) => studioPresenceZone(value.zone))
+          : Promise.resolve(null),
     },
   };
 }

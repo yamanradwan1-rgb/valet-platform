@@ -60,7 +60,17 @@ export interface StudioHoursData {
   clear(): Promise<StudioSaveResult>;
 }
 
+export type PresenceReadState =
+  | "LOADING"
+  | "EDITABLE"
+  | "READ_ONLY"
+  | "ERROR"
+  | "DENIED"
+  | "NO_LOCATION"
+  | "INACTIVE";
+
 export interface StudioPresenceData {
+  readonly readState: PresenceReadState;
   /** Real denial/inactive scope, distinct from a transient read/provider error. */
   readonly unavailable?: boolean;
   readonly values: {

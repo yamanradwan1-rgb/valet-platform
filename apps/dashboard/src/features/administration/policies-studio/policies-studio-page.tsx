@@ -208,6 +208,7 @@ function DeniedStudio({ label }: { readonly label: string }) {
       clear: async () => blocked,
     },
     presence: {
+      readState: "DENIED",
       values: {
         defaults: {},
         overrides: {},
