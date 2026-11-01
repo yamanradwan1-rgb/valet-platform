@@ -6,7 +6,13 @@ function startRegistration(): void {
   if (registrationAttempt) return;
 
   try {
-    registrationAttempt = Promise.resolve(navigator.serviceWorker.register('/sw.js'));
+    const script =
+      process.env.NODE_ENV === "development"
+        ? "/sw.js?development=1"
+        : "/sw.js";
+    registrationAttempt = Promise.resolve(
+      navigator.serviceWorker.register(script),
+    );
     void registrationAttempt.catch(() => {
       // A later initialization may retry after a transient registration failure.
       registrationAttempt = null;
@@ -18,20 +24,26 @@ function startRegistration(): void {
 }
 
 export function registerServiceWorker(): void {
-  if (process.env.NODE_ENV !== 'production' ||
-      typeof window === 'undefined' || typeof document === 'undefined' ||
-      typeof navigator === 'undefined' ||
-      typeof navigator.serviceWorker?.register !== 'function') return;
+  if (
+    (process.env.NODE_ENV !== "production" &&
+      process.env.NODE_ENV !== "development") ||
+    typeof window === "undefined" ||
+    typeof document === "undefined" ||
+    window.isSecureContext !== true ||
+    typeof navigator === "undefined" ||
+    typeof navigator.serviceWorker?.register !== "function"
+  )
+    return;
 
   if (registrationAttempt) return;
-  if (document.readyState === 'complete') {
+  if (document.readyState === "complete") {
     if (loadListenerAttached) {
-      window.removeEventListener('load', startRegistration);
+      window.removeEventListener("load", startRegistration);
       loadListenerAttached = false;
     }
     startRegistration();
   } else if (!loadListenerAttached) {
     loadListenerAttached = true;
-    window.addEventListener('load', startRegistration, { once: true });
+    window.addEventListener("load", startRegistration, { once: true });
   }
 }

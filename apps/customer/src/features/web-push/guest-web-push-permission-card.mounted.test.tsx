@@ -105,7 +105,11 @@ describe("Guest Web Push permission card mounted lifecycle", () => {
       expect.any(AbortSignal),
     );
     expect(container.textContent).toContain("Not now");
-    const loadingButton = findElement(container, "button", "Enable notifications");
+    const loadingButton = findElement(
+      container,
+      "button",
+      "Enable notifications",
+    );
     expect(loadingButton.getAttribute("disabled")).not.toBeNull();
     expect(loadingButton.getAttribute("aria-busy")).toBe("true");
     expect(loadingButton.childNodes).toHaveLength(2);
@@ -154,7 +158,7 @@ describe("Guest Web Push permission card mounted lifecycle", () => {
     expect(client.enable).toHaveBeenCalledTimes(1);
   });
 
-  it("context change aborts active registration and hides obsolete card", async () => {
+  it("context change aborts registration and requires refresh without accepting late success", async () => {
     const pending = deferred<"ENABLED">();
     client.enable.mockReturnValue(pending.promise);
     await mount();
@@ -169,9 +173,14 @@ describe("Guest Web Push permission card mounted lifecycle", () => {
       );
     });
     expect(signal.aborted).toBe(true);
-    expect(container.textContent).toBe("");
+    expect(container.textContent).toContain(
+      "Visit changed. Refresh before enabling alerts.",
+    );
     await act(async () => pending.resolve("ENABLED"));
-    expect(container.textContent).toBe("");
+    expect(container.textContent).toContain(
+      "Visit changed. Refresh before enabling alerts.",
+    );
+    await click("Enable notifications");
     expect(client.enable).toHaveBeenCalledTimes(1);
   });
 

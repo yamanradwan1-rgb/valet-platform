@@ -18,7 +18,11 @@ function browserFixture(readyState: DocumentReadyState): BrowserFixture {
     if (event === "load") listeners.delete(callback);
   });
   const document = { readyState };
-  vi.stubGlobal("window", { addEventListener, removeEventListener });
+  vi.stubGlobal("window", {
+    isSecureContext: true,
+    addEventListener,
+    removeEventListener,
+  });
   vi.stubGlobal("document", document);
   vi.stubGlobal("navigator", { serviceWorker: { register } });
 
@@ -47,6 +51,17 @@ afterEach(() => {
 });
 
 describe("Customer PWA service worker registration", () => {
+  it("registers a shared non-caching development worker without waiting for readiness", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    const browser = browserFixture("complete");
+    const { registerServiceWorker } = await import("./register-pwa");
+    registerServiceWorker();
+    registerServiceWorker();
+    expect(browser.register).toHaveBeenCalledExactlyOnceWith(
+      "/sw.js?development=1",
+    );
+  });
+
   it("registers once immediately when initialized after window load", async () => {
     const browser = browserFixture("complete");
     const { registerServiceWorker } = await import("./register-pwa");
@@ -151,13 +166,15 @@ describe("Customer PWA service worker registration", () => {
     expect(browser.register).toHaveBeenCalledTimes(2);
   });
 
-  it("does nothing outside production or without compatible browser APIs", async () => {
+  it("does nothing in test, insecure contexts or without compatible browser APIs", async () => {
     const browser = browserFixture("complete");
     const { registerServiceWorker } = await import("./register-pwa");
 
-    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("NODE_ENV", "test");
     registerServiceWorker();
     vi.stubEnv("NODE_ENV", "production");
+    vi.stubGlobal("window", { isSecureContext: false });
+    registerServiceWorker();
     vi.stubGlobal("navigator", {});
     registerServiceWorker();
     vi.stubGlobal("navigator", { serviceWorker: {} });

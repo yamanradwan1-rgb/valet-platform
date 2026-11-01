@@ -171,7 +171,7 @@ describe("Guest Web Push bounded browser stages", () => {
     const clientTransport = transport({ registerSubscription });
     await expect(
       enableGuestWebPush(clientTransport, "en", undefined, dependencies),
-    ).rejects.toThrow("response lost after commit");
+    ).rejects.toMatchObject({ stage: "server registration" });
     expect(current.unsubscribe).not.toHaveBeenCalled();
     await expect(
       enableGuestWebPush(clientTransport, "en", undefined, dependencies),

@@ -3,8 +3,22 @@ const OPERATION_DEADLINE_MS = 30_000;
 export class GuestWebPushTimeoutError extends Error {
   override readonly name = "GuestWebPushTimeoutError";
 
-  constructor(stage: string) {
+  constructor(readonly stage: string) {
     super(`Guest Web Push ${stage} timed out.`);
+  }
+}
+
+// Only retain a controlled stage and native error name, never browser details.
+export class GuestWebPushStageError extends Error {
+  override readonly name = "GuestWebPushStageError";
+  readonly nativeName: string;
+
+  constructor(
+    readonly stage: string,
+    error: unknown,
+  ) {
+    super("Guest Web Push setup could not complete.");
+    this.nativeName = error instanceof Error ? error.name : "";
   }
 }
 
