@@ -250,7 +250,7 @@ describe("Native operational HTTP transport", () => {
     expect(authSession.refresh).toHaveBeenCalledTimes(1);
   });
 
-  it("never refreshes or replays a rejected POST", async () => {
+  it("recovers authentication without replaying a rejected POST", async () => {
     vi.stubGlobal("__DEV__", false);
     const fetchMock = vi.fn(async () =>
       Response.json(
@@ -270,12 +270,9 @@ describe("Native operational HTTP transport", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(authSession.refresh).not.toHaveBeenCalled();
-    expect(authSession.handleDefinitiveAuthorizationLoss).toHaveBeenCalledTimes(
-      1,
-    );
-    expect(authSession.handleDefinitiveAuthorizationLoss).toHaveBeenCalledWith(
-      1,
-    );
+    expect(authSession.refresh).toHaveBeenCalledTimes(1);
+    expect(
+      authSession.handleDefinitiveAuthorizationLoss,
+    ).not.toHaveBeenCalled();
   });
 });

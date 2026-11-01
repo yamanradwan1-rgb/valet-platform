@@ -63,7 +63,7 @@ describe("Native operational request auth generation", () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(auth.refresh).toHaveBeenCalledTimes(1);
-    expect(auth.loss).toHaveBeenCalledExactlyOnceWith(1);
+    expect(auth.loss).not.toHaveBeenCalled();
   });
 
   it.each([

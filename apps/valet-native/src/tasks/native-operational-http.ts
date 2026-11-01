@@ -25,6 +25,7 @@ import {
 } from "../auth/native-api-http";
 import { getNativeTelemetry } from "../telemetry/native-telemetry-owner";
 import { NativeHttpTelemetryTransport } from "../telemetry/native-http-telemetry";
+import { NativeProtectedTransport } from "../auth/native-protected-transport";
 
 /**
  * Bounded correlation pattern — identical to the API's X-Request-Id contract.
@@ -48,7 +49,6 @@ class NativeBearerTransport implements EmployeeTransport {
   constructor(
     apiOrigin: string,
     private readonly accessToken: () => string | undefined,
-    private readonly onResponse: (status: number) => void,
     private readonly signal?: AbortSignal,
   ) {
     this.apiOrigin = validateNativeApiOrigin(apiOrigin);
@@ -86,7 +86,6 @@ class NativeBearerTransport implements EmployeeTransport {
         headers,
         method: request.method,
       });
-      this.onResponse(response.status);
       return {
         payload: await readNativeResponsePayload(response),
         requestId: readRequestId(response),
@@ -116,41 +115,16 @@ export function createNativeEmployeeClient(
     readonly record: (event: EmployeeTelemetryEvent) => void;
   },
 ): EmployeeClient {
-  const requestGeneration = auth.current().authGeneration;
-  const isCurrent = () => auth.current().authGeneration === requestGeneration;
-  let responseStatus: number | undefined;
   // An explicit telemetry recorder wins; otherwise the module registry (a
   // no-op until bootstrap wires memory) keeps behavior identical to today.
-  const recorder = telemetry?.record ?? getNativeTelemetry().record.bind(getNativeTelemetry());
+  const recorder =
+    telemetry?.record ?? getNativeTelemetry().record.bind(getNativeTelemetry());
   return new EmployeeClient({
-    authorizationRecovery: {
-      allowRefresh: true,
-      onAuthorizationLoss: () => {
-        if (responseStatus === 401 && isCurrent()) {
-          void auth.handleDefinitiveAuthorizationLoss(requestGeneration);
-        }
-      },
-      refreshAuthorization: async () => {
-        if (!isCurrent()) return "definitive-failure";
-        const result = await auth.refresh();
-        if (!isCurrent()) return "definitive-failure";
-        return result === "refreshed"
-          ? "refreshed"
-          : result === "transient-failure"
-            ? "transient-failure"
-            : "definitive-failure";
-      },
-    },
-    transport: new NativeHttpTelemetryTransport(
-      new NativeBearerTransport(
-        apiOrigin,
-        () => (isCurrent() ? auth.getAccessToken() : undefined),
-        (status) => {
-          responseStatus = status;
-        },
-        signal,
-      ),
-      recorder,
+    transport: new NativeProtectedTransport(auth, (request, token) =>
+      new NativeHttpTelemetryTransport(
+        new NativeBearerTransport(apiOrigin, () => token, signal),
+        recorder,
+      ).execute(request),
     ),
   });
 }

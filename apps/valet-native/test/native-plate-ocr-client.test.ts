@@ -121,13 +121,13 @@ describe("Native OCR Staff transport", () => {
     expect(await c.run()).toEqual({ status: "NO_MATCH" });
     expect(c.http).toHaveBeenCalledOnce();
   });
-  it("preserves existing POST 401 behavior without introducing generic replay", async () => {
+  it("recovers authentication after POST 401 without replaying the upload", async () => {
     const c = setup();
     c.http.mockResolvedValueOnce(new Response("{}", { status: 401 }));
     await expect(c.run()).rejects.toMatchObject({ status: 401 });
     expect(c.http).toHaveBeenCalledOnce();
-    expect(c.refresh).not.toHaveBeenCalled();
-    expect(c.loss).toHaveBeenCalledExactlyOnceWith(1);
+    expect(c.refresh).toHaveBeenCalledOnce();
+    expect(c.loss).not.toHaveBeenCalled();
   });
   it.each([403, 404, 500, 503])(
     "does not log out or queue a replay on %s",
