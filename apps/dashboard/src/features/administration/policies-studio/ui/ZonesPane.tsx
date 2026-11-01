@@ -1,23 +1,45 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { MapPin, Plus, Pencil } from "lucide-react";
 import { Button } from "../../../../components/presentation/button";
 import { ContextHelp } from "../../../../features/help/context-help";
 import type { StudioZone as Zone } from "./studio-types";
 import { useStudio } from "./studio-context";
-import { OfflineMap } from "./OfflineMap";
+import { StudioZoneMap } from "./StudioZoneMap";
 import { ui } from "./copy";
 import { ZoneForm } from "./ZoneForm";
-import { useAttendanceZoneLocation } from "../../../../features/administration/settings/use-attendance-zone-location";
+import { useDashboardTheme } from "../../../../lib/theme/theme-provider";
+import { usePoliciesStudioZoneLocation } from "../adapters/presence/use-policies-studio-zone-location";
 
 export function ZonesPane() {
-  const {
-    locale,
-    adapter,
-    editable,
-    setDirty,
-    identity,
-    announce,
-  } = useStudio();
+  const { adapter, locale, setDirty } = useStudio();
+  const unavailable = adapter.presence.unavailable === true;
+  useEffect(() => {
+    if (unavailable) setDirty(false);
+  }, [unavailable, setDirty]);
+  if (unavailable)
+    return (
+      <p role="status">
+        {locale === "ar"
+          ? "مناطق الحضور غير متاحة لهذا النطاق."
+          : "Attendance zones are unavailable for this scope."}
+      </p>
+    );
+  return <AvailableZonesPane />;
+}
+
+function AvailableZonesPane() {
+  const { locale, adapter, editable, setDirty, identity, announce } =
+    useStudio();
+  const { theme } = useDashboardTheme();
+  const lifetime = useRef({ alive: false, generation: 0, flight: false });
+  useLayoutEffect(() => {
+    const live = lifetime.current;
+    live.alive = true;
+    return () => {
+      live.alive = false;
+      live.generation++;
+    };
+  }, []);
   const ar = locale === "ar";
   const copy = ui[locale];
   const zones = adapter.presence.zones;
@@ -27,7 +49,8 @@ export function ZonesPane() {
   const [draft, setDraft] = useState<Zone | null>(null);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-  const deviceLocation = useAttendanceZoneLocation((center) => {
+  const deviceLocation = usePoliciesStudioZoneLocation(identity, (center) => {
+    if (!editable || lifetime.current.flight || adapter.presence.busy) return;
     setDraft((old) =>
       old ? { ...old, latitude: center.lat, longitude: center.lng } : old,
     );
@@ -40,18 +63,22 @@ export function ZonesPane() {
     setDirty(changed);
   }, [changed, setDirty]);
   function edit(zone: Zone) {
+    if (!editable || lifetime.current.flight || adapter.presence.busy) return;
     if (changed && !window.confirm(copy.leave)) return;
+    lifetime.current.generation++;
     deviceLocation.retire();
     setError("");
     setSelected(zone);
     setDraft(structuredClone(zone));
   }
   function patch(value: Partial<Zone>) {
+    if (!editable || lifetime.current.flight || adapter.presence.busy) return;
     deviceLocation.retire();
     setDraft((old) => (old ? { ...old, ...value } : old));
   }
   async function save() {
-    if (!draft || !editable || saving || adapter.presence.busy) return;
+    if (!draft || !editable || lifetime.current.flight || adapter.presence.busy)
+      return;
     deviceLocation.retire();
     const normalized = {
       ...draft,
@@ -83,8 +110,13 @@ export function ZonesPane() {
       return;
     }
     setSaving(true);
+    lifetime.current.flight = true;
+    const ticket = lifetime.current.generation;
+    const current = () =>
+      lifetime.current.alive && lifetime.current.generation === ticket;
     try {
       const result = await adapter.presence.saveZone(normalized);
+      if (!current()) return;
       if (!result.ok) {
         setError(result.message ?? copy.errorBody);
         return;
@@ -93,13 +125,15 @@ export function ZonesPane() {
       setDraft(null);
       setDirty(false);
       announce("");
-      requestAnimationFrame(() =>
-        document.getElementById(`zone-${normalized.id}`)?.focus(),
-      );
+      requestAnimationFrame(() => {
+        if (current())
+          document.getElementById(`zone-${normalized.id}`)?.focus();
+      });
     } catch {
-      setError(copy.errorBody);
+      if (current()) setError(copy.errorBody);
     } finally {
-      setSaving(false);
+      lifetime.current.flight = false;
+      if (current()) setSaving(false);
     }
   }
   return (
@@ -131,11 +165,14 @@ export function ZonesPane() {
           </Button>
         )}
       </div>
-      <OfflineMap
+      <StudioZoneMap
         zones={zones}
-        selected={draft ?? canonicalSelected}
+        selectedId={canonicalSelected?.id ?? null}
+        draft={draft}
         locale={locale}
-        editable={!!draft && editable}
+        theme={theme}
+        scopeIdentity={identity}
+        editable={!!draft && editable && !saving && !adapter.presence.busy}
         onPick={(latitude, longitude) =>
           patch({
             latitude: Number(latitude.toFixed(6)),
@@ -151,9 +188,12 @@ export function ZonesPane() {
           save={save}
           changed={changed && !saving && !adapter.presence.busy}
           error={error}
+          disabled={!editable || saving || adapter.presence.busy}
           onCancel={() => {
+            lifetime.current.generation++;
             deviceLocation.retire();
             setDraft(null);
+            setSaving(false);
             setDirty(false);
           }}
         />

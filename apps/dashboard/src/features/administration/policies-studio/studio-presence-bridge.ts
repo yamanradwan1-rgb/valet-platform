@@ -100,6 +100,7 @@ export function studioPresenceBridge(
         ? "READY"
         : "BLOCKED";
   return {
+    unavailable: !read.snapshot.available,
     values: currentValues(read),
     readiness: { state },
     zones: read.snapshot.zones,

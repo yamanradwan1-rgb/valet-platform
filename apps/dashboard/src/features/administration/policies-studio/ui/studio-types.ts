@@ -61,6 +61,8 @@ export interface StudioHoursData {
 }
 
 export interface StudioPresenceData {
+  /** Real denial/inactive scope, distinct from a transient read/provider error. */
+  readonly unavailable?: boolean;
   readonly values: {
     readonly defaults: Record<string, Scalar>;
     readonly overrides: Record<string, Scalar>;
