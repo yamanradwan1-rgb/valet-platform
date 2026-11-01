@@ -7,18 +7,13 @@ import { useState, type ReactNode } from "react";
 import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
 import { useStaffAuth } from "../../lib/auth/staff-auth-context";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
-import {
-  dashboardNavigationRegistrations,
-  resolveNavigation,
-} from "../../lib/navigation";
-import { reconcileAccountSecurityNavigation } from "../../lib/navigation/account-security-navigation";
+import { dashboardNavigationRegistrations } from "../../lib/navigation";
 import type { DashboardRouteAccessRequirement } from "../../lib/scope/dashboard-commercial-access";
 import { Button } from "../presentation/button";
 import { useAccountSecurityAccess } from "../security/account-security-access-provider";
 import { DashboardShell } from "../shell";
 import { LocationSwitchControl } from "../scope/location-switch-control";
 import type { SwitchableDashboardScope } from "../scope/location-switch-authority";
-import { navigationForLocationStatus } from "../scope/location-switch-policy";
 import {
   DashboardNavigationPresentationCapture,
   dashboardShellPresentationKey,
@@ -27,18 +22,19 @@ import { dashboardShellLabels } from "./dashboard-shell-labels";
 import { HeaderLocaleControl, HeaderThemeControl } from "./header-preferences";
 import { ProtectedDashboardContextProvider } from "./protected-dashboard-context";
 import { RootProductLanding } from "./root-product-landing";
-import { selectedScopePresentation } from "./scope-presentation";
 import { SelectedScopeMfaPanel } from "./selected-scope-mfa-panel";
 import { useSelectedScope } from "./selected-scope-provider";
 import {
   isDashboardUnavailable,
   isLocationSwitchSource,
-  selectedManagementLocationStatus,
 } from "./selected-management-shell-policy";
+import { selectedManagementShellNavigation } from "./selected-management-shell-navigation";
 import { StandaloneFoundationPanel } from "./standalone-foundation-panel";
 import { useNavigationAuthority } from "./use-navigation-authority";
 import { useSelectedScopeRevalidation } from "./use-selected-scope-revalidation";
+import { useNestedMfaBridge } from "./use-nested-mfa-bridge";
 import { useSelectedManagementShellTransition } from "./selected-management-shell-transition";
+import { useSelectedManagementDraftMemory } from "./use-selected-management-draft-memory";
 
 export function SelectedManagementShell({
   accessRequirement,
@@ -69,6 +65,13 @@ export function SelectedManagementShell({
   const [switchMfaKey, setSwitchMfaKey] = useState<string | null>(null);
   const currentSwitchKey = `${auth.identityGeneration}:${auth.sessionGeneration}:${currentPath}:${selectionRevision}`;
   const switchMfaRequired = switchMfaKey === currentSwitchKey;
+  const nestedMfa = useNestedMfaBridge({
+    currentPath,
+    identityGeneration: auth.identityGeneration,
+    selectedScope,
+    selectionRevision,
+    sessionGeneration: auth.sessionGeneration,
+  });
   const { beginTransition, onDenied, transitionActive } =
     useSelectedManagementShellTransition({
       clearScopeIfEpoch,
@@ -86,6 +89,16 @@ export function SelectedManagementShell({
     sessionGeneration: auth.sessionGeneration,
     onDenied,
     selectedScope,
+  });
+  const guestDraftMfa = useSelectedManagementDraftMemory({
+    currentPath,
+    identityGeneration: auth.identityGeneration,
+    selectedScope,
+    sessionGeneration: auth.sessionGeneration,
+    staffSessionId: auth.client.getStaffAuthSessionId(),
+    validationStatus: routeRevalidation.status,
+    onReadResult: nestedMfa.onReadResult,
+    completeAssurance: nestedMfa.completeAssurance,
   });
   const navigationAuthority = useNavigationAuthority({
     api,
@@ -151,40 +164,21 @@ export function SelectedManagementShell({
     );
   }
 
-  const presentation = selectedScopePresentation(selectedScope);
-  const resolvedNavigation =
-    navigationAuthority.status === "valid"
-      ? navigationForLocationStatus(
-          resolveNavigation(
-            dashboardNavigationRegistrations,
-            presentation.navigation,
-            locale,
-            navigationAuthority.authority,
-          ),
-          selectedManagementLocationStatus(selectedScope),
-          selectedScope.authority === "COMPANY_ADMIN",
-        )
-      : [];
-  const navigation = reconcileAccountSecurityNavigation(
-    dashboardNavigationRegistrations,
-    resolvedNavigation,
-    locale,
-    securityAccess.snapshot.status === "eligible",
-  );
+  const { presentation, navigation, selectedLocation } =
+    selectedManagementShellNavigation({
+      selectedScope,
+      navigationAuthority,
+      locale,
+      securityEligible: securityAccess.snapshot.status === "eligible",
+      allLocationsLabel: t("allLocations"),
+      locationsLabel: t("locations"),
+    });
   const presentationBindingKey = dashboardShellPresentationKey({
     identityGeneration: auth.identityGeneration,
     selectedScope,
     selectionRevision,
     sessionGeneration: auth.sessionGeneration,
   });
-  const selectedLocation =
-    presentation.location ??
-    (selectedScope.authority === "COMPANY_ADMIN" &&
-    selectedScope.context.scope.kind === "ALL_LOCATIONS"
-      ? { id: "all-locations", label: t("allLocations") }
-      : selectedScope.authority === "LOCATION_MANAGER_GRANT_SET"
-        ? { id: "location-grant-set", label: t("locations") }
-        : null);
 
   const commitSwitch = (
     scope: SwitchableDashboardScope,
@@ -245,11 +239,17 @@ export function SelectedManagementShell({
           navigation={navigation}
         />
       ) : null}
-      {switchMfaRequired ? (
+      {switchMfaRequired || nestedMfa.required ? (
         <SelectedScopeMfaPanel
           changeScopeLabel={t("changeScope")}
-          generationKey={`location-switch:${authGenerationKey}:${selectionRevision}`}
+          generationKey={
+            nestedMfa.required
+              ? nestedMfa.generationKey
+              : `location-switch:${authGenerationKey}:${selectionRevision}`
+          }
           onAssured={() => {
+            if (nestedMfa.required && !guestDraftMfa.completeAssurance())
+              return;
             setSwitchMfaKey(null);
             selectScope(selectedScope);
           }}
@@ -278,6 +278,8 @@ export function SelectedManagementShell({
             selectedScope,
             selectionRevision,
             sessionGeneration: auth.sessionGeneration,
+            draftMemory: guestDraftMfa.memory,
+            onNestedMfaRead: guestDraftMfa.onReadResult,
           }}
         >
           {children}

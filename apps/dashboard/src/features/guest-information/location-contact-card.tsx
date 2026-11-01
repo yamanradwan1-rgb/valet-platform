@@ -10,6 +10,7 @@ import {
   type ContactField, type GuestLanguage, type LocationContact,
 } from "./guest-information-model";
 import { useRevisionedDraft } from "./use-revisioned-draft";
+import { useOptionalGuestDraftMemory } from "../../components/foundation/protected-dashboard-context";
 import { contactFieldError } from "./guest-contact-input";
 
 export function LocationContactCard({
@@ -25,12 +26,19 @@ export function LocationContactCard({
   readonly onDirtyChange: (dirty: boolean) => void;
   readonly keepUnsavedOnConflict?: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
-  const [field, setField] = useState<ContactField>("phone");
+  const memory = useOptionalGuestDraftMemory();
+  const [expanded, setExpanded] = useState<boolean>(() =>
+    memory?.restoreEditor<boolean>("contact:expanded", false) ?? false);
+  const [field, setField] = useState<ContactField>(() =>
+    memory?.restoreEditor<ContactField>("contact:field", "phone") ?? "phone");
   const [fields, setFields] = useRevisionedDraft(
-    contact.revision, contact.fields, keepUnsavedOnConflict);
+    contact.revision, contact.fields, keepUnsavedOnConflict, "contact:fields");
   const [hoursConfirmed, setHoursConfirmed] = useRevisionedDraft(
-    contact.revision, contact.hoursConfirmed, keepUnsavedOnConflict);
+    contact.revision, contact.hoursConfirmed, keepUnsavedOnConflict, "contact:hours");
+  useEffect(() => {
+    memory?.rememberEditor("contact:expanded", expanded);
+    memory?.rememberEditor("contact:field", field);
+  }, [memory, expanded, field]);
   const [saving, setSaving] = useState(false);
   const [invalid, setInvalid] = useState<ContactField | null>(null);
   const toggle = useRef<HTMLButtonElement>(null);
