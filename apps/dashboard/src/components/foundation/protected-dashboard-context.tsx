@@ -5,12 +5,17 @@ import { createContext, useContext, type ReactNode } from "react";
 import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
 import type { SelectedDashboardScope } from "../scope";
 
+export type NestedMfaReadResult =
+  | { readonly kind: "required"; readonly reason: Error }
+  | { readonly kind: "succeeded" };
+
 export interface ProtectedDashboardContextValue {
   readonly api: DashboardApiClient;
   readonly identityGeneration: number;
   readonly selectedScope: SelectedDashboardScope;
   readonly selectionRevision: number;
   readonly sessionGeneration: number;
+  readonly onNestedMfaRead?: (result: NestedMfaReadResult) => void;
 }
 
 const ProtectedDashboardContext =

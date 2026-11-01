@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useProtectedDashboard } from "../../components/foundation/protected-dashboard-context";
+import { nestedMfaReadResult } from "../../components/foundation/use-nested-mfa-bridge";
 import { useSelectedScope } from "../../components/foundation/selected-scope-provider";
 import { proveLocationSwitchCandidate } from "../../components/scope/location-switch-authority";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
@@ -91,6 +92,20 @@ function GuestInformationContent() {
     (isCompanyAdmin && defaults.loading);
   const error = privacy.error || contact.error ||
     (isCompanyAdmin ? defaults.error : null);
+  const onNestedMfaRead = dashboard.onNestedMfaRead;
+  useEffect(() => {
+    const result = nestedMfaReadResult(
+      [overview.error, privacy.error, defaults.error, contact.error, preview.error],
+      Boolean(!overview.loading && !preview.loading &&
+        !privacy.loading && !contact.loading &&
+        (!isCompanyAdmin || !defaults.loading) && overview.data && preview.data &&
+        privacy.data && contact.data && (!isCompanyAdmin || defaults.data)),
+    );
+    if (result) onNestedMfaRead?.(result);
+  }, [onNestedMfaRead, overview.error, privacy.error, defaults.error,
+    contact.error, preview.error, overview.loading, preview.loading,
+    privacy.loading, contact.loading, defaults.loading, overview.data,
+    preview.data, privacy.data, contact.data, defaults.data, isCompanyAdmin]);
   const locationName = dashboard.selectedScope.authority === "COMPANY_ADMIN"
     ? dashboard.selectedScope.context.selectedLocation?.name ?? ""
     : dashboard.selectedScope.authority === "LOCATION_MANAGER"

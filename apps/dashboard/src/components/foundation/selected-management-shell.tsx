@@ -38,6 +38,7 @@ import {
 import { StandaloneFoundationPanel } from "./standalone-foundation-panel";
 import { useNavigationAuthority } from "./use-navigation-authority";
 import { useSelectedScopeRevalidation } from "./use-selected-scope-revalidation";
+import { useNestedMfaBridge } from "./use-nested-mfa-bridge";
 import { useSelectedManagementShellTransition } from "./selected-management-shell-transition";
 
 export function SelectedManagementShell({
@@ -69,6 +70,10 @@ export function SelectedManagementShell({
   const [switchMfaKey, setSwitchMfaKey] = useState<string | null>(null);
   const currentSwitchKey = `${auth.identityGeneration}:${auth.sessionGeneration}:${currentPath}:${selectionRevision}`;
   const switchMfaRequired = switchMfaKey === currentSwitchKey;
+  const nestedMfa = useNestedMfaBridge({
+    currentPath, identityGeneration: auth.identityGeneration,
+    selectedScope, selectionRevision, sessionGeneration: auth.sessionGeneration,
+  });
   const { beginTransition, onDenied, transitionActive } =
     useSelectedManagementShellTransition({
       clearScopeIfEpoch,
@@ -245,11 +250,13 @@ export function SelectedManagementShell({
           navigation={navigation}
         />
       ) : null}
-      {switchMfaRequired ? (
+      {switchMfaRequired || nestedMfa.required ? (
         <SelectedScopeMfaPanel
           changeScopeLabel={t("changeScope")}
-          generationKey={`location-switch:${authGenerationKey}:${selectionRevision}`}
+          generationKey={nestedMfa.required ? nestedMfa.generationKey :
+            `location-switch:${authGenerationKey}:${selectionRevision}`}
           onAssured={() => {
+            if (nestedMfa.required && !nestedMfa.completeAssurance()) return;
             setSwitchMfaKey(null);
             selectScope(selectedScope);
           }}
@@ -278,6 +285,7 @@ export function SelectedManagementShell({
             selectedScope,
             selectionRevision,
             sessionGeneration: auth.sessionGeneration,
+            onNestedMfaRead: nestedMfa.onReadResult,
           }}
         >
           {children}
