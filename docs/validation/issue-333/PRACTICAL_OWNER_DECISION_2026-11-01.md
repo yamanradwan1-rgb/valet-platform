@@ -55,9 +55,12 @@ is established by these local synthetic schedules.
 - Reader-first requests retain only the Owner-accepted bounded in-flight
   behavior; each new page, retry, or newly required authorization decision
   revalidates rather than inheriting an old grant snapshot.
-- The P001 before-query schedule demonstrates current-scope revalidation before
-  protected aggregate/search/count/latest/vehicle/cursor derivation; no
-  cross-tenant or unauthorized Location data enters a freshly authorized query.
+- Historical P001 pauses an already-authorized A+B request **after authorization
+  but before aggregate SQL**; its old A-derived response is the accepted
+  bounded in-flight exception, not proof of a fresh-authorization bypass.
+  Newly authorized post-COMMIT queries and cursor continuations must revalidate
+  the persisted scope and derive aggregate/search/count/latest/vehicle data
+  from B only; a test must prove that distinction independently.
 - Global disable invalidates affected Staff sessions and push/attention
   registrations, denies newly authorized protected requests and attempts
   best-effort cancellation of existing in-flight responses.

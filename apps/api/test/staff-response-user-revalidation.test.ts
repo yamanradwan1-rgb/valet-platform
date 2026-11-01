@@ -12,12 +12,14 @@ import { StaffResponseUserRevalidationInterceptor } from "../src/modules/auth/st
 
 const bearer = `Bearer vsa1.${"A".repeat(43)}`;
 
-function scenario(options: {
-  readonly method?: string;
-  readonly path?: string;
-  readonly authorization?: string;
-  readonly headersSent?: boolean;
-} = {}) {
+function scenario(
+  options: {
+    readonly method?: string;
+    readonly path?: string;
+    readonly authorization?: string;
+    readonly headersSent?: boolean;
+  } = {},
+) {
   const query = vi.fn().mockResolvedValue({ rows: [{ status: "ACTIVE" }] });
   const pool = { query } as unknown as PostgresPool;
   const interceptor = new StaffResponseUserRevalidationInterceptor(pool);
@@ -43,8 +45,9 @@ function scenario(options: {
 describe("Staff emergency near-response revalidation", () => {
   it("permits an active user and looks up the bearer identity once", async () => {
     const test = scenario();
-    await expect(lastValueFrom(test.interceptor.intercept(test.context, test.next)))
-      .resolves.toEqual({ privateData: true });
+    await expect(
+      lastValueFrom(test.interceptor.intercept(test.context, test.next)),
+    ).resolves.toEqual({ privateData: true });
     expect(test.query).toHaveBeenCalledOnce();
     expect(test.query).toHaveBeenCalledWith(
       expect.stringContaining("FROM staff_auth_sessions"),
@@ -52,26 +55,38 @@ describe("Staff emergency near-response revalidation", () => {
     );
   });
 
+  it("also checks case-insensitive Staff GET routes", async () => {
+    const test = scenario({ path: "/V1/STAFF/dashboard/organizations" });
+    test.query.mockResolvedValue({ rows: [{ status: "DISABLED" }] });
+    await expect(
+      lastValueFrom(test.interceptor.intercept(test.context, test.next)),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+    expect(test.query).toHaveBeenCalledOnce();
+  });
+
   it("suppresses the pending protected body after security disable", async () => {
     const test = scenario();
     test.query.mockResolvedValue({ rows: [{ status: "DISABLED" }] });
-    await expect(lastValueFrom(test.interceptor.intercept(test.context, test.next)))
-      .rejects.toBeInstanceOf(UnauthorizedException);
+    await expect(
+      lastValueFrom(test.interceptor.intercept(test.context, test.next)),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
     expect(test.query).toHaveBeenCalledOnce();
   });
 
   it("allows an already-authorized response if a refresh rotated its token", async () => {
     const test = scenario();
     test.query.mockResolvedValue({ rows: [] });
-    await expect(lastValueFrom(test.interceptor.intercept(test.context, test.next)))
-      .resolves.toEqual({ privateData: true });
+    await expect(
+      lastValueFrom(test.interceptor.intercept(test.context, test.next)),
+    ).resolves.toEqual({ privateData: true });
   });
 
   it("fails closed when the recheck cannot query PostgreSQL", async () => {
     const test = scenario();
     test.query.mockRejectedValue(new Error("unavailable"));
-    await expect(lastValueFrom(test.interceptor.intercept(test.context, test.next)))
-      .rejects.toThrow("unavailable");
+    await expect(
+      lastValueFrom(test.interceptor.intercept(test.context, test.next)),
+    ).rejects.toThrow("unavailable");
   });
 
   it("does not change writes, non-staff routes, bad credentials or started streams", async () => {
@@ -82,8 +97,9 @@ describe("Staff emergency near-response revalidation", () => {
       { authorization: "bad" },
     ]) {
       const test = scenario(options);
-      await expect(lastValueFrom(test.interceptor.intercept(test.context, test.next)))
-        .resolves.toEqual({ privateData: true });
+      await expect(
+        lastValueFrom(test.interceptor.intercept(test.context, test.next)),
+      ).resolves.toEqual({ privateData: true });
       expect(test.query).not.toHaveBeenCalled();
     }
   });

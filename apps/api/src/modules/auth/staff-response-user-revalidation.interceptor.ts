@@ -10,7 +10,10 @@ import { mergeMap, type Observable } from "rxjs";
 
 import type { PostgresPool } from "../../common/database/postgres";
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
-import { accessBearerPattern, staffCredentialHash } from "./staff-auth-credential";
+import {
+  accessBearerPattern,
+  staffCredentialHash,
+} from "./staff-auth-credential";
 
 interface StaffHttpRequest {
   readonly method?: string;
@@ -39,21 +42,27 @@ export class StaffResponseUserRevalidationInterceptor implements NestInterceptor
     if (context.getType() !== "http") return next.handle();
     const request = context.switchToHttp().getRequest<StaffHttpRequest>();
     const authorization = request.headers?.authorization;
-    const token = typeof authorization === "string"
-      ? accessBearerPattern.exec(authorization)?.[1]
-      : undefined;
+    const token =
+      typeof authorization === "string"
+        ? accessBearerPattern.exec(authorization)?.[1]
+        : undefined;
     if (
       request.method !== "GET" ||
-      !request.path?.startsWith("/v1/staff/") ||
+      !request.path?.toLowerCase().startsWith("/v1/staff/") ||
       token === undefined
-    ) return next.handle();
+    )
+      return next.handle();
 
     const response = context.switchToHttp().getResponse<StaffHttpResponse>();
     const tokenHash = staffCredentialHash("access", token);
     return next.handle().pipe(
       mergeMap(async (value: unknown) => {
         // Manual streaming controllers may have sent bytes already.
-        if (!response.headersSent && !response.writableEnded && !response.destroyed) {
+        if (
+          !response.headersSent &&
+          !response.writableEnded &&
+          !response.destroyed
+        ) {
           const result = await this.pool.query<{ readonly status: string }>(
             `SELECT actor.status::text AS status
              FROM staff_auth_sessions AS session
