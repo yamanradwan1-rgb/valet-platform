@@ -3942,9 +3942,12 @@ Status: Accepted
 Date: 2026-09-15
 
 Company Admin owns company roles and Location grants. Last-usable-admin and
-handover protections apply. Emergency disable blocks access immediately without
-fabricating completion of operational work. Membership disable affects only its
-Organization; global User disable remains separate.
+handover protections apply. After global emergency User disable commits, fresh
+protected authorization is denied, sessions/attention endpoints are revoked,
+and old in-flight responses receive best-effort cancellation without an absolute
+last-byte guarantee. No unbounded streams/background operations or fabricated
+completion of operational work. Membership disable affects only its Organization;
+global User disable remains separate (Owner amendment 2026-11-01).
 
 Full contract:
 `docs/decisions/DEC-081_STAFF_ROLE_AND_ACCESS_LIFECYCLE.md`.
@@ -4373,23 +4376,26 @@ PR/merge or deployment is authorized** by this approval.
 Full focused decision:
 [DEC-103_ISSUE_276_AUDIT_DISCOVERABILITY_VALIDATION.md](decisions/DEC-103_ISSUE_276_AUDIT_DISCOVERABILITY_VALIDATION.md).
 
-## DEC-108 — LocationAccess revocation and protected response delivery
+## DEC-108 — LocationAccess revocation and practical in-flight response security
 
-Status: Accepted (Owner security contract; design and verification only under #333)
+Status: Accepted (Owner practical launch-security contract; implementation GO under #333)
 Date: 2026-10-31
+Amended: 2026-11-01
 Owner: VAYLET product owner
 
-After canonical `LocationAccess` revocation commits, the former grant holder
-must not receive protected data from that Location, including a request that
-authorized before the revoke but has not finished delivering its protected
-response. A reader may retain data from other currently authorized Locations.
-DEC-023 session/logout handling is not a blanket in-flight Location-disclosure
-exception. DEC-081 emergency/security disable remains strictly immediate for
-new **and current** access, with affected sessions revoked. Existing role,
-Organization, MFA, CAS, audit, tenant, operational and historical data rules
-remain unchanged. RED Live Map and Visit Contact evidence must be assessed
-against this now-accepted contract. **No runtime fix or deployment is approved**
-under Issue #333 without a separate Owner GO.
+After canonical `LocationAccess` revocation commits, every **newly authorized**
+protected request uses the persisted revoked Location scope. A request
+successfully authorized before commit may finish afterward: the Owner accepts
+this bounded in-flight residual. Revalidate near protected database reads and
+response generation where practical; never reuse stale grants where fresh
+authorization is required. DEC-081 global User disable immediately denies
+new protected authorization after commit, revokes sessions/attention endpoints
+and best-effort cancels old responses without last-byte guarantees. No
+unbounded streams/background operations. Existing role, Organization, Shift,
+MFA, CAS, audit, tenant and historical-data rules remain unchanged. Historical
+strict RED evidence remains preserved, but old postcommit delivery alone is
+not a violation of this practical contract. **Issue #333 implementation GO**
+does not itself approve merge or deployment.
 
 Full focused contract:
 [DEC-108_LOCATION_ACCESS_REVOCATION_DELIVERY.md](decisions/DEC-108_LOCATION_ACCESS_REVOCATION_DELIVERY.md).

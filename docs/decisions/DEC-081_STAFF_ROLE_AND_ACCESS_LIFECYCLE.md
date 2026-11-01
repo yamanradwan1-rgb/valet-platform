@@ -17,11 +17,15 @@ only when another usable Company Admin remains. The last usable Company Admin
 cannot normally remove, demote, or deactivate themselves.
 
 Normal deactivation or access revocation requires proper handover of active
-Shifts, Tasks, key/custody responsibility, and other live work. Emergency or
-security disable must block new and current access immediately and revoke
-affected Staff sessions/attention endpoints, but must not fabricate Task,
-KeyCustodyEvent, Shift, Incident, or ValetSession completion. Those records stay
-truthful and require explicit authorized operational recovery.
+Shifts, Tasks, key/custody responsibility, and other live work. After global
+emergency/security User disable commits, every newly authorized protected
+request must be denied using current persisted User state, and affected Staff
+sessions/attention endpoints must be revoked. Attempt cancellation of already
+authorized in-flight responses on a best-effort basis; they may complete after
+commit, with no absolute last-byte guarantee. No unbounded protected streams
+or background operations may extend this residual risk. Disable must not
+fabricate Task, KeyCustodyEvent, Shift, Incident, or ValetSession completion.
+Those records stay truthful and require explicit authorized recovery.
 
 Membership disable is Organization-scoped. Disabling one
 `OrganizationMembership` does not disable the User or memberships in other
