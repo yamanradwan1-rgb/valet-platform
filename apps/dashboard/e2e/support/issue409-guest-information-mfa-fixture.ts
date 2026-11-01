@@ -33,6 +33,9 @@ export function issue409GuestMfaFixture(mfaState: InitialMfaState) {
     denyAfterAssurance: false,
     denyWrites: false,
     writes: 0,
+    lastWriteExpectedRevision: null as number | null,
+    privacyRevision: 0,
+    contactRevision: 0,
     readPaths: [] as string[],
     readBarrier: null as null | { path: string; wait: Promise<void> },
   };
@@ -49,6 +52,13 @@ export function issue409GuestMfaFixture(mfaState: InitialMfaState) {
 
       if (request.method() === "PUT" || request.method() === "POST") {
         state.writes++;
+        const payload = request.postDataJSON() as {
+          expectedRevision?: unknown;
+        } | null;
+        state.lastWriteExpectedRevision =
+          typeof payload?.expectedRevision === "number"
+            ? payload.expectedRevision
+            : null;
         return state.denyWrites
           ? failure(403, "MFA_STEP_UP_REQUIRED")
           : failure(400, "REQUEST_INVALID");
@@ -70,9 +80,9 @@ export function issue409GuestMfaFixture(mfaState: InitialMfaState) {
       for (const location of [LOCATION_A, LOCATION_B]) {
         const paths = guestPaths(location.locationId);
         if (path === paths.privacy)
-          return { body: privacy(location.locationId) };
+          return { body: privacy(location.locationId, state.privacyRevision) };
         if (path === paths.contact)
-          return { body: contact(location.locationId) };
+          return { body: contact(location.locationId, state.contactRevision) };
         if (path === paths.preview)
           return {
             body: preview(
@@ -95,6 +105,39 @@ export async function enterIssue409GuestPage(
   await openLocationManagerWorkspace(page);
   await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
   await page.goto("/guest-information");
+}
+
+export async function denyNextPreviewWithMfa(page: Page) {
+  let challenged = false;
+  await page.route("**" + guestPaths().preview + "*", async (route) => {
+    if (challenged) return route.fallback();
+    challenged = true;
+    await route.fulfill({
+      status: 403,
+      contentType: "application/json",
+      body: JSON.stringify({
+        code: "MFA_STEP_UP_REQUIRED",
+        message: "MFA step-up required",
+        requestId: "issue409-draft-red",
+      }),
+    });
+  });
+  return () => challenged;
+}
+
+export async function completeIssue409StepUp(page: Page) {
+  const code = page.locator("#mfa-totp-mfaVerify");
+  await expect(code).toBeVisible();
+  await code.fill("123456");
+  await page
+    .locator("form:has(#mfa-totp-mfaVerify) button[type=submit]")
+    .click();
+  await expect(page).toHaveURL(/\/guest-information$/u);
+  await expect(code).toHaveCount(0);
+  await page.getByRole("button", { name: "اللغة", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Privacy & Contact" }),
+  ).toBeVisible();
 }
 
 export async function showGuestPreview(page: Page) {
@@ -122,36 +165,41 @@ function overview() {
   };
 }
 
-function privacy(locationId: string) {
+function privacy(locationId: string, revision = 0) {
   return {
     organizationId: ORG_A.organizationId,
     locationId,
-    revision: 0,
+    revision,
     updatedAt: null,
-    drafts: { en: { text: "", url: "" }, ar: { text: "", url: "" } },
+    drafts: {
+      en: { text: revision ? "Updated elsewhere" : "", url: "" },
+      ar: { text: "", url: "" },
+    },
     published: null,
     publishedVersion: null,
     publishedAt: null,
   };
 }
 
-function contact(locationId: string) {
+function contact(locationId: string, revision = 0) {
   const inherit = { mode: "INHERIT", value: null };
   return {
     organizationId: ORG_A.organizationId,
     locationId,
-    revision: 0,
+    revision,
     updatedAt: null,
     values: {
       displayName: inherit,
-      phone: inherit,
+      phone: revision ? { mode: "OVERRIDE", value: "+962799999888" } : inherit,
       supportUrl: inherit,
       hours: inherit,
       hoursConfirmed: false,
     },
     effective: {
       displayName: { source: "COMPANY", value: previewMarker(locationId) },
-      phone: { source: "COMPANY", value: null },
+      phone: revision
+        ? { source: "LOCATION", value: "+962799999888" }
+        : { source: "COMPANY", value: null },
       supportUrl: { source: "COMPANY", value: null },
       hours: { source: "COMPANY", value: null },
     },

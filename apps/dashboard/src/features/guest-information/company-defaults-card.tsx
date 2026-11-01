@@ -9,6 +9,7 @@ import {
   type ContactField, type GuestLanguage,
 } from "./guest-information-model";
 import { useRevisionedDraft } from "./use-revisioned-draft";
+import { useOptionalGuestDraftMemory } from "../../components/foundation/protected-dashboard-context";
 import { contactFieldError } from "./guest-contact-input";
 
 export function CompanyDefaultsCard({
@@ -24,9 +25,12 @@ export function CompanyDefaultsCard({
   readonly onDirtyChange: (dirty: boolean) => void;
   readonly keepUnsavedOnConflict?: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const memory = useOptionalGuestDraftMemory();
+  const [expanded, setExpanded] = useState<boolean>(() =>
+    memory?.restoreEditor<boolean>("company:expanded", false) ?? false);
   const [values, setValues] = useRevisionedDraft(
-    defaults.revision, defaults, keepUnsavedOnConflict);
+    defaults.revision, defaults, keepUnsavedOnConflict, "company:values");
+  useEffect(() => memory?.rememberEditor("company:expanded", expanded), [memory, expanded]);
   const [saving, setSaving] = useState(false);
   const [invalid, setInvalid] = useState<ContactField | null>(null);
   const toggle = useRef<HTMLButtonElement>(null);
@@ -49,7 +53,7 @@ export function CompanyDefaultsCard({
     }
     setSaving(true);
     try {
-      await onSave(values);
+      await onSave({ ...values, revision: defaults.revision });
     } finally {
       setSaving(false);
     }

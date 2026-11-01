@@ -9,6 +9,7 @@ import {
   type PolicyContent,
 } from "./guest-information-model";
 import { useRevisionedDraft } from "./use-revisioned-draft";
+import { useOptionalGuestDraftMemory } from "../../components/foundation/protected-dashboard-context";
 
 type Drafts = Record<GuestLanguage, PolicyContent>;
 type PrivacyOperation = "save" | "publish" | "unpublish";
@@ -27,9 +28,12 @@ export function PrivacySection({
   readonly onDirtyChange: (dirty: boolean) => void;
   readonly keepUnsavedOnConflict?: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const memory = useOptionalGuestDraftMemory();
+  const [expanded, setExpanded] = useState<boolean>(() =>
+    memory?.restoreEditor<boolean>("privacy:expanded", false) ?? false);
   const [drafts, setDrafts] = useRevisionedDraft<Drafts>(
-    privacy.revision, privacy.drafts, keepUnsavedOnConflict);
+    privacy.revision, privacy.drafts, keepUnsavedOnConflict, "privacy:drafts");
+  useEffect(() => memory?.rememberEditor("privacy:expanded", expanded), [memory, expanded]);
   const [saving, setSaving] = useState(false);
   const [invalid, setInvalid] = useState<"text" | "url" | null>(null);
   const firstField = useRef<HTMLTextAreaElement>(null);

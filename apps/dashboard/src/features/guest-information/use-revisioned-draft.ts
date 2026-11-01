@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useState, type SetStateAction } from "react";
+import { useCallback, useEffect, useState, type SetStateAction } from "react";
+import { useOptionalGuestDraftMemory } from "../../components/foundation/protected-dashboard-context";
+import type { GuestDraftKey } from "../../components/foundation/nested-mfa-draft-memory";
 
 export interface RevisionedDraft<T> {
   readonly revision: number;
@@ -9,11 +11,13 @@ export interface RevisionedDraft<T> {
 }
 
 export function reconcilePersistedDraft<T>(
-  local: RevisionedDraft<T>, persisted: Omit<RevisionedDraft<T>, "savedValue">,
+  local: RevisionedDraft<T>,
+  persisted: Omit<RevisionedDraft<T>, "savedValue">,
   keepUnsavedOnConflict = false,
 ): RevisionedDraft<T> {
   if (local.revision === persisted.revision) return local;
-  const dirty = JSON.stringify(local.value) !== JSON.stringify(local.savedValue);
+  const dirty =
+    JSON.stringify(local.value) !== JSON.stringify(local.savedValue);
   return {
     revision: persisted.revision,
     value: keepUnsavedOnConflict && dirty ? local.value : persisted.value,
@@ -24,22 +28,42 @@ export function reconcilePersistedDraft<T>(
 // Keep an unsaved draft during ordinary re-renders and locale switches. When
 // the server acknowledges a new revision, adopt its canonicalized values.
 export function useRevisionedDraft<T>(
-  revision: number, value: T, keepUnsavedOnConflict = false,
+  revision: number,
+  value: T,
+  keepUnsavedOnConflict = false,
+  draftKey?: GuestDraftKey,
 ) {
-  const [state, setState] = useState<RevisionedDraft<T>>(() => ({
-    revision, value, savedValue: value,
-  }));
+  const memory = useOptionalGuestDraftMemory();
+  const [state, setState] = useState<RevisionedDraft<T>>(
+    () =>
+      (draftKey && memory?.restore<T>(draftKey, revision)) ?? {
+        revision,
+        value,
+        savedValue: value,
+      },
+  );
   if (state.revision !== revision) {
     // React re-renders this component before passing the stale draft to its
     // descendants. A revision change represents committed server data.
-    setState(reconcilePersistedDraft(state, { revision, value }, keepUnsavedOnConflict));
+    setState(
+      reconcilePersistedDraft(
+        state,
+        { revision, value },
+        keepUnsavedOnConflict,
+      ),
+    );
   }
   const update = useCallback((next: SetStateAction<T>) => {
     setState((current) => ({
       ...current,
-      value: typeof next === "function"
-        ? (next as (current: T) => T)(current.value) : next,
+      value:
+        typeof next === "function"
+          ? (next as (current: T) => T)(current.value)
+          : next,
     }));
   }, []);
+  useEffect(() => {
+    if (draftKey) memory?.remember(draftKey, state);
+  }, [draftKey, memory, state]);
   return [state.value, update] as const;
 }

@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useProtectedDashboard } from "../../components/foundation/protected-dashboard-context";
-import { nestedMfaReadResult } from "../../components/foundation/use-nested-mfa-bridge";
 import { useSelectedScope } from "../../components/foundation/selected-scope-provider";
 import { proveLocationSwitchCandidate } from "../../components/scope/location-switch-authority";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
@@ -24,6 +23,11 @@ import {
 } from "./guest-information-model";
 import { OverviewSection } from "./overview-section";
 import { PrivacySection } from "./privacy-section";
+import { useGuestInformationMfaRead } from "./use-guest-information-mfa-read";
+import {
+  confirmGuestInformationConflict, guestInformationConflictNotice,
+  useGuestDraftReconciliation,
+} from "./use-guest-draft-reconciliation";
 import {
   GuestSectionNavigation, type GuestInformationView,
 } from "./section-navigation";
@@ -46,13 +50,17 @@ function GuestInformationContent() {
   const isCompanyAdmin = scope.authority === "COMPANY_ADMIN";
   const scopeKey = administrationScopeKey(dashboard);
   const { locale, setLocale } = useDashboardLocale();
-  const [view, setView] = useState<GuestInformationView>("overview");
+  const [view, setView] = useState<GuestInformationView>(() =>
+    dashboard.draftMemory?.restoreEditor<GuestInformationView>(
+      "guest:view", "overview") ?? "overview");
   const [dirty, setDirty] = useState({ privacy: false, location: false, company: false });
   const [notice, setNotice] = useState<Notice | null>(null);
   const [keepUnsavedOnConflict, setKeepUnsavedOnConflict] = useState(false);
   const pane = useRef<HTMLDivElement>(null);
   const locationSwitch = useRef<AbortController | null>(null);
   useEffect(() => () => locationSwitch.current?.abort(), []);
+  useEffect(() => dashboard.draftMemory?.rememberEditor("guest:view", view),
+    [dashboard.draftMemory, view]);
   const setPrivacyDirty = useCallback((value: boolean) =>
     setDirty((state) => state.privacy === value ? state : { ...state, privacy: value }), []);
   const setLocationDirty = useCallback((value: boolean) =>
@@ -92,20 +100,10 @@ function GuestInformationContent() {
     (isCompanyAdmin && defaults.loading);
   const error = privacy.error || contact.error ||
     (isCompanyAdmin ? defaults.error : null);
-  const onNestedMfaRead = dashboard.onNestedMfaRead;
-  useEffect(() => {
-    const result = nestedMfaReadResult(
-      [overview.error, privacy.error, defaults.error, contact.error, preview.error],
-      Boolean(!overview.loading && !preview.loading &&
-        !privacy.loading && !contact.loading &&
-        (!isCompanyAdmin || !defaults.loading) && overview.data && preview.data &&
-        privacy.data && contact.data && (!isCompanyAdmin || defaults.data)),
-    );
-    if (result) onNestedMfaRead?.(result);
-  }, [onNestedMfaRead, overview.error, privacy.error, defaults.error,
-    contact.error, preview.error, overview.loading, preview.loading,
-    privacy.loading, contact.loading, defaults.loading, overview.data,
-    preview.data, privacy.data, contact.data, defaults.data, isCompanyAdmin]);
+  useGuestInformationMfaRead({
+    onRead: dashboard.onNestedMfaRead,
+    overview, privacy, defaults, contact, preview, isCompanyAdmin,
+  });
   const locationName = dashboard.selectedScope.authority === "COMPANY_ADMIN"
     ? dashboard.selectedScope.context.selectedLocation?.name ?? ""
     : dashboard.selectedScope.authority === "LOCATION_MANAGER"
@@ -175,18 +173,10 @@ function GuestInformationContent() {
       retry();
     } catch (reason: unknown) {
       if (reason instanceof DashboardApiError && reason.status === 409) {
-        const keep = window.confirm(translate(locale,
-          "These settings changed elsewhere. Press OK to keep your edits for review, " +
-          "or Cancel to discard them and load the latest saved values.",
-          "تغيّرت هذه الإعدادات في جلسة أخرى. اضغط موافق للاحتفاظ بتعديلاتك " +
-          "للمراجعة، أو إلغاء لتجاهلها وتحميل آخر نسخة محفوظة."));
+        const keep = confirmGuestInformationConflict(locale);
         setKeepUnsavedOnConflict(keep);
         retry();
-        show(translate(locale,
-          keep ? "Latest settings are loading. Review your edits before saving again." :
-            "Latest saved settings are loading.",
-          keep ? "جارٍ تحميل آخر نسخة. راجع تعديلاتك قبل إعادة الحفظ." :
-            "جارٍ تحميل آخر إعدادات محفوظة."), "error");
+        show(guestInformationConflictNotice(locale, keep), "error");
         return;
       }
       show(contactSave ? guestInformationSaveError(reason, locale) :
@@ -200,6 +190,16 @@ function GuestInformationContent() {
     ? defaults.data ? defaultsView(defaults.data) : null
     : contact.data ? scopedEffectiveDefaults(contact.data) : null;
   const currentContact = contact.data ? contactView(contact.data) : null;
+  const onDraftConflictDecision = useCallback((keep: boolean) => {
+    setKeepUnsavedOnConflict(keep);
+    setNotice({ text: guestInformationConflictNotice(locale, keep), kind: "error" });
+  }, [locale]);
+  const draftConflictPending = useGuestDraftReconciliation({
+    memory: dashboard.draftMemory, ready: Boolean(loaded) && !error,
+    locale, privacy: currentPrivacy, contact: currentContact,
+    company: isCompanyAdmin ? currentDefaults : null,
+    onDecision: onDraftConflictDecision,
+  });
   const counts = currentDefaults && currentContact
     ? contactCounts(currentDefaults, currentContact) : null;
   return (
@@ -238,7 +238,9 @@ function GuestInformationContent() {
                   {translate(locale, "Retry", "إعادة المحاولة")}
                 </button>
               </div>
-            ) : loaded && currentPrivacy && currentDefaults && currentContact && counts ? (
+            ) : draftConflictPending ? <div className="v-empty" role="status">
+              {translate(locale, "Loading…", "جارٍ التحميل…")}
+            </div> : loaded && currentPrivacy && currentDefaults && currentContact && counts ? (
               <>
                 {overview.data ? (
                   <OverviewSection active={view === "overview"} locale={locale}
