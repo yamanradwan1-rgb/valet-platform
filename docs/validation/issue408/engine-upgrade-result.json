@@ -1,0 +1,14 @@
+{
+  "scope": "Owned disposable loopback PostgreSQL only; actual Prisma 106-to-107 engine and actual psql rollout script; no production migration",
+  "beforeMembers": 100016,
+  "afterMembers": 100016,
+  "applied": 107,
+  "beforeMissingIndex": "Rejected as required",
+  "manualTestLedgerResolution": "Rolled back failed test attempt before re-deploy",
+  "index": {
+    "indisvalid": true,
+    "indisready": true,
+    "definition": "CREATE INDEX organization_memberships_user_id_id_idx ON public.organization_memberships USING btree (user_id, id)"
+  },
+  "result": "PASS"
+}

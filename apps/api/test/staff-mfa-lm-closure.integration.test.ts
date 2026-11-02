@@ -129,7 +129,7 @@ describe("T05-F existing LM-only MFA ceremony closure", () => {
   }, 30_000);
 
   it.each(["VALET_SUPERVISOR", "VALET_EMPLOYEE"] as const)(
-    "denies management MFA enrollment, step-up and recovery to %s",
+    "admits own-account enrollment for %s without accepting invalid proofs or granting Management",
     async (role) => {
       const user = await fixture.createUser();
       await fixture.createMembership(user.id, { role });
@@ -147,14 +147,15 @@ describe("T05-F existing LM-only MFA ceremony closure", () => {
           auth.accessToken,
           body,
         );
-        expect(response.status).toBe(409);
-        expect(response.body?.code).toBe("MFA_ENROLLMENT_NOT_AVAILABLE");
+        expect(response.status).toBe(path === "enrollment/begin" ? 200 : 403);
+        if (path !== "enrollment/begin")
+          expect(response.body?.code).toBe("MFA_VERIFICATION_FAILED");
       }
     },
   );
 
   it.each(["membership", "organization", "user", "session"])(
-    "denies existing LM enrollment after %s invalidation",
+    "requires live User/session for own enrollment after %s invalidation",
     async (loss) => {
       const user = await fixture.createUser();
       const member = await fixture.createMembership(user.id, {
@@ -181,7 +182,7 @@ describe("T05-F existing LM-only MFA ceremony closure", () => {
       expect(
         (await fixture.postMfa(`${prefix}/enrollment/begin`, auth.accessToken))
           .status,
-      ).toBe(loss === "membership" || loss === "organization" ? 409 : 401);
+      ).toBe(loss === "membership" || loss === "organization" ? 200 : 401);
     },
   );
 });

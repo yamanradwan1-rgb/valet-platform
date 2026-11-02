@@ -1,0 +1,314 @@
+[
+  {
+    "name": "ar-dark-1440",
+    "baseline_size": [1440, 1000],
+    "final_size": [1440, 1000],
+    "changed_pixels": 73252,
+    "bbox": [32, 474, 1148, 543],
+    "frozen_region_above_mfa_changed_pixels": 0,
+    "baseline_boxes": [
+      {
+        "x": 32,
+        "y": 176,
+        "width": 1116,
+        "height": 94
+      },
+      {
+        "x": 32,
+        "y": 294,
+        "width": 1116,
+        "height": 191.59375
+      }
+    ],
+    "final_boxes": [
+      {
+        "x": 32,
+        "y": 176,
+        "width": 1116,
+        "height": 94
+      },
+      {
+        "x": 32,
+        "y": 294,
+        "width": 1116,
+        "height": 249.1875
+      }
+    ],
+    "mfa_height_increase": 57.59375,
+    "automatic_posts_baseline": 0,
+    "automatic_posts_final": 0
+  },
+  {
+    "name": "ar-dark-390",
+    "baseline_size": [390, 1000],
+    "final_size": [390, 1000],
+    "changed_pixels": 22696,
+    "bbox": [20, 510, 370, 579],
+    "frozen_region_above_mfa_changed_pixels": 0,
+    "baseline_boxes": [
+      {
+        "x": 20,
+        "y": 192.1875,
+        "width": 350,
+        "height": 94
+      },
+      {
+        "x": 20,
+        "y": 310.1875,
+        "width": 350,
+        "height": 211.59375
+      }
+    ],
+    "final_boxes": [
+      {
+        "x": 20,
+        "y": 192.1875,
+        "width": 350,
+        "height": 94
+      },
+      {
+        "x": 20,
+        "y": 310.1875,
+        "width": 350,
+        "height": 269.1875
+      }
+    ],
+    "mfa_height_increase": 57.59375,
+    "automatic_posts_baseline": 0,
+    "automatic_posts_final": 0
+  },
+  {
+    "name": "ar-light-1440",
+    "baseline_size": [1440, 1000],
+    "final_size": [1440, 1000],
+    "changed_pixels": 41754,
+    "bbox": [32, 474, 1148, 543],
+    "frozen_region_above_mfa_changed_pixels": 0,
+    "baseline_boxes": [
+      {
+        "x": 32,
+        "y": 176,
+        "width": 1116,
+        "height": 94
+      },
+      {
+        "x": 32,
+        "y": 294,
+        "width": 1116,
+        "height": 191.59375
+      }
+    ],
+    "final_boxes": [
+      {
+        "x": 32,
+        "y": 176,
+        "width": 1116,
+        "height": 94
+      },
+      {
+        "x": 32,
+        "y": 294,
+        "width": 1116,
+        "height": 249.1875
+      }
+    ],
+    "mfa_height_increase": 57.59375,
+    "automatic_posts_baseline": 0,
+    "automatic_posts_final": 0
+  },
+  {
+    "name": "ar-light-390",
+    "baseline_size": [390, 1000],
+    "final_size": [390, 1000],
+    "changed_pixels": 14944,
+    "bbox": [20, 510, 370, 579],
+    "frozen_region_above_mfa_changed_pixels": 0,
+    "baseline_boxes": [
+      {
+        "x": 20,
+        "y": 192.1875,
+        "width": 350,
+        "height": 94
+      },
+      {
+        "x": 20,
+        "y": 310.1875,
+        "width": 350,
+        "height": 211.59375
+      }
+    ],
+    "final_boxes": [
+      {
+        "x": 20,
+        "y": 192.1875,
+        "width": 350,
+        "height": 94
+      },
+      {
+        "x": 20,
+        "y": 310.1875,
+        "width": 350,
+        "height": 269.1875
+      }
+    ],
+    "mfa_height_increase": 57.59375,
+    "automatic_posts_baseline": 0,
+    "automatic_posts_final": 0
+  },
+  {
+    "name": "en-dark-1440",
+    "baseline_size": [1440, 1000],
+    "final_size": [1440, 1000],
+    "changed_pixels": 73252,
+    "bbox": [292, 474, 1408, 543],
+    "frozen_region_above_mfa_changed_pixels": 0,
+    "baseline_boxes": [
+      {
+        "x": 292,
+        "y": 176,
+        "width": 1116,
+        "height": 94
+      },
+      {
+        "x": 292,
+        "y": 294,
+        "width": 1116,
+        "height": 191.59375
+      }
+    ],
+    "final_boxes": [
+      {
+        "x": 292,
+        "y": 176,
+        "width": 1116,
+        "height": 94
+      },
+      {
+        "x": 292,
+        "y": 294,
+        "width": 1116,
+        "height": 249.1875
+      }
+    ],
+    "mfa_height_increase": 57.59375,
+    "automatic_posts_baseline": 0,
+    "automatic_posts_final": 0
+  },
+  {
+    "name": "en-dark-390",
+    "baseline_size": [390, 1000],
+    "final_size": [390, 1000],
+    "changed_pixels": 22696,
+    "bbox": [20, 530, 370, 599],
+    "frozen_region_above_mfa_changed_pixels": 0,
+    "baseline_boxes": [
+      {
+        "x": 20,
+        "y": 192.1875,
+        "width": 350,
+        "height": 94
+      },
+      {
+        "x": 20,
+        "y": 310.1875,
+        "width": 350,
+        "height": 231.59375
+      }
+    ],
+    "final_boxes": [
+      {
+        "x": 20,
+        "y": 192.1875,
+        "width": 350,
+        "height": 94
+      },
+      {
+        "x": 20,
+        "y": 310.1875,
+        "width": 350,
+        "height": 289.1875
+      }
+    ],
+    "mfa_height_increase": 57.59375,
+    "automatic_posts_baseline": 0,
+    "automatic_posts_final": 0
+  },
+  {
+    "name": "en-light-1440",
+    "baseline_size": [1440, 1000],
+    "final_size": [1440, 1000],
+    "changed_pixels": 41044,
+    "bbox": [292, 474, 1408, 543],
+    "frozen_region_above_mfa_changed_pixels": 0,
+    "baseline_boxes": [
+      {
+        "x": 292,
+        "y": 176,
+        "width": 1116,
+        "height": 94
+      },
+      {
+        "x": 292,
+        "y": 294,
+        "width": 1116,
+        "height": 191.59375
+      }
+    ],
+    "final_boxes": [
+      {
+        "x": 292,
+        "y": 176,
+        "width": 1116,
+        "height": 94
+      },
+      {
+        "x": 292,
+        "y": 294,
+        "width": 1116,
+        "height": 249.1875
+      }
+    ],
+    "mfa_height_increase": 57.59375,
+    "automatic_posts_baseline": 0,
+    "automatic_posts_final": 0
+  },
+  {
+    "name": "en-light-390",
+    "baseline_size": [390, 1000],
+    "final_size": [390, 1000],
+    "changed_pixels": 14234,
+    "bbox": [20, 530, 370, 599],
+    "frozen_region_above_mfa_changed_pixels": 0,
+    "baseline_boxes": [
+      {
+        "x": 20,
+        "y": 192.1875,
+        "width": 350,
+        "height": 94
+      },
+      {
+        "x": 20,
+        "y": 310.1875,
+        "width": 350,
+        "height": 231.59375
+      }
+    ],
+    "final_boxes": [
+      {
+        "x": 20,
+        "y": 192.1875,
+        "width": 350,
+        "height": 94
+      },
+      {
+        "x": 20,
+        "y": 310.1875,
+        "width": 350,
+        "height": 289.1875
+      }
+    ],
+    "mfa_height_increase": 57.59375,
+    "automatic_posts_baseline": 0,
+    "automatic_posts_final": 0
+  }
+]

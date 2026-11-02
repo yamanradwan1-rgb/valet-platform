@@ -92,6 +92,9 @@ const statusByCode: Readonly<Record<string, number>> = {
   LOCATION_NOT_READY: HttpStatus.CONFLICT,
   MAP_SETUP_CONFLICT: HttpStatus.CONFLICT,
   MFA_ENROLLMENT_NOT_AVAILABLE: HttpStatus.CONFLICT,
+  MFA_STATE_CHANGED: HttpStatus.CONFLICT,
+  MFA_OPERATION_BUSY: HttpStatus.CONFLICT,
+  MFA_DISABLE_NOT_ALLOWED: HttpStatus.FORBIDDEN,
   MFA_RATE_LIMITED: HttpStatus.TOO_MANY_REQUESTS,
   MFA_SECURITY_UNAVAILABLE: HttpStatus.SERVICE_UNAVAILABLE,
   MFA_STEP_UP_REQUIRED: HttpStatus.FORBIDDEN,
@@ -151,19 +154,27 @@ const statusByCode: Readonly<Record<string, number>> = {
 };
 
 const safeMessages: Readonly<Record<string, string>> = {
-  AUDIT_INVESTIGATION_SNAPSHOT_UNAVAILABLE: "Investigation history is temporarily unavailable.",
-  AUDIT_INVESTIGATION_TIMELINE_UNAVAILABLE: "Investigation history is temporarily unavailable.",
+  AUDIT_INVESTIGATION_SNAPSHOT_UNAVAILABLE:
+    "Investigation history is temporarily unavailable.",
+  AUDIT_INVESTIGATION_TIMELINE_UNAVAILABLE:
+    "Investigation history is temporarily unavailable.",
   CONDITION_PHOTO_NOT_FOUND: "The requested photo operation is not available.",
   CONDITION_PHOTO_TOO_LARGE: "The image exceeds the allowed size.",
   CONDITION_PHOTO_INVALID_IMAGE: "The image could not be verified.",
-  CONDITION_PHOTO_OPERATION_CONFLICT: "The upload operation conflicts with a prior request.",
-  CONDITION_PHOTO_LIMIT_REACHED: "The photo limit for this session has been reached.",
+  CONDITION_PHOTO_OPERATION_CONFLICT:
+    "The upload operation conflicts with a prior request.",
+  CONDITION_PHOTO_LIMIT_REACHED:
+    "The photo limit for this session has been reached.",
   CONDITION_PHOTO_EXPIRED: "The upload operation has expired.",
   CONDITION_PHOTO_RATE_LIMITED: "Too many photo requests. Try again later.",
-  CONDITION_PHOTO_STORAGE_UNAVAILABLE: "Photo storage is temporarily unavailable.",
-  DASHBOARD_SESSION_PHOTO_NOT_VISIBLE: "The requested resource is not available.",
-  DASHBOARD_SESSION_PHOTO_UNAVAILABLE: "Photo evidence is temporarily unavailable.",
-  DASHBOARD_SESSION_PHOTO_RATE_LIMITED: "Too many photo requests. Try again later.",
+  CONDITION_PHOTO_STORAGE_UNAVAILABLE:
+    "Photo storage is temporarily unavailable.",
+  DASHBOARD_SESSION_PHOTO_NOT_VISIBLE:
+    "The requested resource is not available.",
+  DASHBOARD_SESSION_PHOTO_UNAVAILABLE:
+    "Photo evidence is temporarily unavailable.",
+  DASHBOARD_SESSION_PHOTO_RATE_LIMITED:
+    "Too many photo requests. Try again later.",
   SHIFT_ALREADY_ENDED: "The Shift has already ended.",
   ANTI_ABUSE_UNAVAILABLE: "Service temporarily unavailable.",
   AUTHORIZATION_DENIED: "The requested resource is not available.",
@@ -173,15 +184,20 @@ const safeMessages: Readonly<Record<string, string>> = {
     "A different rating is already recorded for this visit.",
   GUEST_RATING_NOT_AVAILABLE:
     "Guest rating is available only after the visit is completed.",
-  GUEST_PUSH_REGISTRATION_UNAVAILABLE: "Guest notifications are temporarily unavailable.",
+  GUEST_PUSH_REGISTRATION_UNAVAILABLE:
+    "Guest notifications are temporarily unavailable.",
   FINANCIAL_RELEASE_NOT_SATISFIED:
     "The financial release requirement is not satisfied.",
   HANDOFF_SECURITY_UNAVAILABLE: "Service temporarily unavailable.",
   HANDOFF_VERIFICATION_FAILED: "Handoff verification failed.",
   HANDOFF_VERIFICATION_RATE_LIMITED: "Too many requests. Try again later.",
   LOCATION_ACCESS_DENIED: "The requested resource is not available.",
-  LOCATION_INTAKE_STOPPED: "New vehicle intake is unavailable at this location.",
+  LOCATION_INTAKE_STOPPED:
+    "New vehicle intake is unavailable at this location.",
   MFA_ENROLLMENT_NOT_AVAILABLE: "MFA enrollment is not available.",
+  MFA_STATE_CHANGED: "Account security changed. Refresh and try again.",
+  MFA_OPERATION_BUSY: "Account security is busy. Refresh and try again.",
+  MFA_DISABLE_NOT_ALLOWED: "MFA disabling is not available for this account.",
   MFA_RATE_LIMITED: "Too many requests. Try again later.",
   MFA_SECURITY_UNAVAILABLE: "Service temporarily unavailable.",
   MFA_STEP_UP_REQUIRED: "Additional authentication is required.",

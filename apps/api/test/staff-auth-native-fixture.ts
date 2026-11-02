@@ -123,7 +123,7 @@ export class StaffAuthNativeFixture {
       NODE_ENV: "test",
     });
     this.adminPool = new Pool({ connectionString: this.migrationUrl });
-    process.env.DATABASE_URL = applicationUrl;
+    process.env.DATABASE_URL = this.applicationDatabaseUrl(applicationUrl);
     process.env.STAFF_AUTH_ALLOWED_ORIGINS = allowedOrigin;
     process.env.ANTI_ABUSE_HMAC_SECRET_B64URL =
       randomBytes(32).toString("base64url");
@@ -136,6 +136,15 @@ export class StaffAuthNativeFixture {
 
   async resetLimits(): Promise<void> {
     await this.query("DELETE FROM anti_abuse_events");
+  }
+
+  protected applicationDatabaseUrl(url: string): string {
+    return url;
+  }
+
+  application(): INestApplication {
+    if (!this.app) throw new Error("Fixture not started.");
+    return this.app;
   }
 
   async createUser(

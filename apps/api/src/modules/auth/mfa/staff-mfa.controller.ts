@@ -11,6 +11,9 @@ import {
   Res,
 } from "@nestjs/common";
 import {
+  staffMfaDisableAvailabilitySchema,
+  staffMfaDisableRequestSchema,
+  staffMfaDisableResponseSchema,
   staffMfaEnrollmentBeginRequestSchema,
   staffMfaEnrollmentBeginResponseSchema,
   staffMfaEnrollmentConfirmRequestSchema,
@@ -45,6 +48,8 @@ import {
   setPrivateAuthHeaders,
 } from "../staff-auth.transport";
 import { MfaEnrollmentService } from "./mfa-enrollment.service";
+import { MfaDisableService } from "./mfa-disable.service";
+import { ApiTransportValidationError } from "../../../common/http/api-errors";
 import { MfaRecoveryService } from "./mfa-recovery.service";
 import { MfaStateService } from "./mfa-state.service";
 import { MfaStepUpService } from "./mfa-step-up.service";
@@ -57,7 +62,52 @@ export class StaffMfaController {
     private readonly stepUpService: MfaStepUpService,
     private readonly stateService: MfaStateService,
     private readonly runner: ApiOperationRunner,
+    private readonly disableService: MfaDisableService,
   ) {}
+
+  @Get("disable")
+  @HttpCode(HttpStatus.OK)
+  async disableAvailability(
+    @Headers("authorization") authorization: string | undefined,
+    @Body() rawBody: unknown,
+    @Query() rawQuery: unknown,
+    @Req() request: ApiRequest,
+    @Res({ passthrough: true }) response: AuthResponse,
+  ) {
+    setPrivateAuthHeaders(response, true);
+    return this.runner.run(
+      "STAFF_AUTH_MFA_DISABLE_AVAILABILITY",
+      request,
+      async () => {
+        requireEmptyAuthQuery(rawQuery);
+        if (rawBody !== undefined) throw new ApiTransportValidationError();
+        return staffMfaDisableAvailabilitySchema.parse(
+          await this.disableService.availability(authorization),
+        );
+      },
+    );
+  }
+
+  @Post("disable")
+  @HttpCode(HttpStatus.OK)
+  async disable(
+    @Headers("authorization") authorization: string | undefined,
+    @Headers("content-type") contentType: string | undefined,
+    @Body() rawBody: unknown,
+    @Query() rawQuery: unknown,
+    @Req() request: ApiRequest,
+    @Res({ passthrough: true }) response: AuthResponse,
+  ) {
+    setPrivateAuthHeaders(response, true);
+    return this.runner.run("STAFF_AUTH_MFA_DISABLE", request, async () => {
+      requireAuthJson(contentType);
+      requireEmptyAuthQuery(rawQuery);
+      const input = parseAuthBody(staffMfaDisableRequestSchema, rawBody);
+      return staffMfaDisableResponseSchema.parse(
+        await this.disableService.disable(authorization, input),
+      );
+    });
+  }
 
   @Get("state")
   @HttpCode(HttpStatus.OK)
@@ -87,17 +137,21 @@ export class StaffMfaController {
     @Res({ passthrough: true }) response: AuthResponse,
   ): Promise<StaffMfaEnrollmentBeginResponse> {
     setPrivateAuthHeaders(response);
-    return this.runner.run("STAFF_AUTH_MFA_ENROLLMENT_BEGIN", request, async () => {
-      requireAuthJson(contentType);
-      requireEmptyAuthQuery(rawQuery);
-      parseAuthBody<StaffMfaEnrollmentBeginRequest>(
-        staffMfaEnrollmentBeginRequestSchema,
-        rawBody === undefined ? {} : rawBody,
-      );
-      return staffMfaEnrollmentBeginResponseSchema.parse(
-        await this.enrollment.begin(authorization),
-      );
-    });
+    return this.runner.run(
+      "STAFF_AUTH_MFA_ENROLLMENT_BEGIN",
+      request,
+      async () => {
+        requireAuthJson(contentType);
+        requireEmptyAuthQuery(rawQuery);
+        parseAuthBody<StaffMfaEnrollmentBeginRequest>(
+          staffMfaEnrollmentBeginRequestSchema,
+          rawBody === undefined ? {} : rawBody,
+        );
+        return staffMfaEnrollmentBeginResponseSchema.parse(
+          await this.enrollment.begin(authorization),
+        );
+      },
+    );
   }
 
   @Post("enrollment/confirm")
@@ -111,17 +165,21 @@ export class StaffMfaController {
     @Res({ passthrough: true }) response: AuthResponse,
   ): Promise<StaffMfaEnrollmentConfirmResponse> {
     setPrivateAuthHeaders(response);
-    return this.runner.run("STAFF_AUTH_MFA_ENROLLMENT_CONFIRM", request, async () => {
-      requireAuthJson(contentType);
-      requireEmptyAuthQuery(rawQuery);
-      const input = parseAuthBody<StaffMfaEnrollmentConfirmRequest>(
-        staffMfaEnrollmentConfirmRequestSchema,
-        rawBody,
-      );
-      return staffMfaEnrollmentConfirmResponseSchema.parse(
-        await this.enrollment.confirm(authorization, input),
-      );
-    });
+    return this.runner.run(
+      "STAFF_AUTH_MFA_ENROLLMENT_CONFIRM",
+      request,
+      async () => {
+        requireAuthJson(contentType);
+        requireEmptyAuthQuery(rawQuery);
+        const input = parseAuthBody<StaffMfaEnrollmentConfirmRequest>(
+          staffMfaEnrollmentConfirmRequestSchema,
+          rawBody,
+        );
+        return staffMfaEnrollmentConfirmResponseSchema.parse(
+          await this.enrollment.confirm(authorization, input),
+        );
+      },
+    );
   }
 
   @Post("step-up")
@@ -159,17 +217,24 @@ export class StaffMfaController {
     @Res({ passthrough: true }) response: AuthResponse,
   ): Promise<StaffMfaSelfRecoveryBeginResponse> {
     setPrivateAuthHeaders(response);
-    return this.runner.run("STAFF_AUTH_MFA_SELF_RECOVERY_BEGIN", request, async () => {
-      requireAuthJson(contentType);
-      requireEmptyAuthQuery(rawQuery);
-      const input = parseAuthBody<StaffMfaSelfRecoveryBeginRequest>(
-        staffMfaSelfRecoveryBeginRequestSchema,
-        rawBody,
-      );
-      return staffMfaSelfRecoveryBeginResponseSchema.parse(
-        await this.recovery.beginSelfRecovery(authorization, input.recoveryCode),
-      );
-    });
+    return this.runner.run(
+      "STAFF_AUTH_MFA_SELF_RECOVERY_BEGIN",
+      request,
+      async () => {
+        requireAuthJson(contentType);
+        requireEmptyAuthQuery(rawQuery);
+        const input = parseAuthBody<StaffMfaSelfRecoveryBeginRequest>(
+          staffMfaSelfRecoveryBeginRequestSchema,
+          rawBody,
+        );
+        return staffMfaSelfRecoveryBeginResponseSchema.parse(
+          await this.recovery.beginSelfRecovery(
+            authorization,
+            input.recoveryCode,
+          ),
+        );
+      },
+    );
   }
 
   @Post("recovery-codes/reissue")

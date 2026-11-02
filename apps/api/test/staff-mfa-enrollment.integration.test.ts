@@ -58,15 +58,15 @@ async function enrolledAdmin() {
 }
 
 describe("MGT-BE-02 MFA enrollment and one-time verification", () => {
-  it("requires Company Admin eligibility and converges repeated begin on one pending factor", async () => {
+  it("admits active Staff and converges repeated begin on one pending factor", async () => {
     const employee = await fixture.createUser();
     const employeeAuth = await fixture.nativeLogin(employee);
     const denied = await fixture.postMfa(
       routes.begin,
       employeeAuth.accessToken,
     );
-    expect(denied.status).toBe(409);
-    expect(denied.body).toMatchObject({ code: "MFA_ENROLLMENT_NOT_AVAILABLE" });
+    expect(denied.status).toBe(200);
+    expect(denied.body).toMatchObject({ factorId: expect.any(String) });
 
     const admin = await fixture.createCompanyAdmin();
     const auth = await fixture.nativeLogin(admin);

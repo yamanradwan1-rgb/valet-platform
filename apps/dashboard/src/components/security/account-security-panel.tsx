@@ -16,6 +16,7 @@ import {
   TotpForm,
 } from "./mfa-ceremonies";
 import type { AccountSecurityCeremonyState } from "./use-account-security-ceremony";
+import { MfaDisableControls } from "./mfa-disable-controls";
 
 export function AccountSecurityPanel({
   ceremony,
@@ -25,7 +26,9 @@ export function AccountSecurityPanel({
   readonly mfaState: StaffMfaStateValue;
 }) {
   const { t } = useDashboardLocale();
-  const errorId = ceremony.errorKey ? "account-security-ceremony-error" : undefined;
+  const errorId = ceremony.errorKey
+    ? "account-security-ceremony-error"
+    : undefined;
   const restoreReissueFocusRef = useRef(false);
 
   useEffect(() => {
@@ -40,7 +43,9 @@ export function AccountSecurityPanel({
         <div className={helpSlot.anchor}>
           <h2>{t("mfa")}</h2>
           {!ceremony.recoveryCodes && !ceremony.enrollment ? (
-            <span className={helpSlot.corner}><AccountContextHelp helpKey="security.auth" /></span>
+            <span className={helpSlot.corner}>
+              <AccountContextHelp helpKey="security.auth" />
+            </span>
           ) : null}
           <p className="muted">{t("mfaIntro")}</p>
         </div>
@@ -141,6 +146,11 @@ export function AccountSecurityPanel({
             )}
           </div>
         )}
+        {!ceremony.enrollment &&
+        !ceremony.recoveryCodes &&
+        !ceremony.reissueOpen ? (
+          <MfaDisableControls ceremony={ceremony.disable} />
+        ) : null}
       </div>
     </section>
   );

@@ -16,6 +16,10 @@ export const subsequentAppendedMigrationDirectories = [
   "20261022010100_issue316_guest_information_contracts",
   "20261022010200_issue316_guest_information_authority",
   "20261026010300_issue346_resume_location_intake",
+  "20261029010400_issue352_emergency_dispatch_type",
+  "20261029010500_issue352_emergency_takeover_persistence",
+  "20261030010600_issue363_session_bound_pending_mfa",
+  "20261101010700_issue408_mfa_disable_policy_index",
 ] as const;
 
 export const expectedCurrentMigrationDirectories = [

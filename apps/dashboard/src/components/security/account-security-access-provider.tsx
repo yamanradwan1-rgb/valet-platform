@@ -21,15 +21,25 @@ import { ScopeGenerationGuard } from "../../lib/scope/scope-generation";
 
 export type AccountSecurityAccessSnapshot =
   | { readonly status: "checking"; readonly state: null; readonly error: null }
-  | { readonly status: "eligible"; readonly state: StaffMfaStateValue; readonly error: null }
-  | { readonly status: "ineligible"; readonly state: null; readonly error: DashboardApiError }
+  | {
+      readonly status: "eligible";
+      readonly state: StaffMfaStateValue;
+      readonly error: null;
+    }
+  | {
+      readonly status: "ineligible";
+      readonly state: null;
+      readonly error: DashboardApiError;
+    }
   | { readonly status: "error"; readonly state: null; readonly error: unknown };
 
 interface AccountSecurityAccessContextValue {
   readonly client: DashboardMfaClient;
   readonly snapshot: AccountSecurityAccessSnapshot;
   readonly publishState: (state: StaffMfaStateValue) => void;
-  readonly refreshState: () => Promise<AccountSecurityAccessSnapshot>;
+  readonly refreshState: (
+    force?: boolean,
+  ) => Promise<AccountSecurityAccessSnapshot>;
 }
 
 const AccountSecurityAccessContext =
@@ -94,59 +104,66 @@ export function AccountSecurityAccessProvider({
     authenticatedRef.current = auth.status === "authenticated";
   }, [auth.identityGeneration, auth.status, currentAuthKey]);
 
-  const refreshState = useCallback(async () => {
-    const startAuthKey = authKeyRef.current;
-    if (inFlightRef.current?.authKey === startAuthKey) {
-      return inFlightRef.current.promise;
-    }
-    const ticket = guard.begin();
-    const requestId = Symbol("account-security-state");
-    setBoundSnapshot({ key: startAuthKey, snapshot: checkingSnapshot });
-    let crossedAuthBoundary = false;
-    const active = (async (): Promise<AccountSecurityAccessSnapshot> => {
-      try {
-        const response = await client.state(ticket.signal, (generation) => {
-          if (inFlightRef.current?.requestId !== requestId) return;
-          inFlightRef.current = {
-            ...inFlightRef.current,
-            authKey: `${generation.identityGeneration}:${generation.sessionGeneration}`,
-          };
-        });
-        const next: AccountSecurityAccessSnapshot = {
-          error: null,
-          state: response.state,
-          status: "eligible",
-        };
-        if (guard.isCurrent(ticket)) {
-          setBoundSnapshot({ key: authKeyRef.current, snapshot: next });
-        }
-        return next;
-      } catch (error: unknown) {
-        crossedAuthBoundary = startAuthKey !== authKeyRef.current;
-        if (crossedAuthBoundary && authenticatedRef.current) {
-          return checkingSnapshot;
-        }
-        const next = deniedSnapshot(error);
-        if (guard.isCurrent(ticket)) {
-          setBoundSnapshot({ key: authKeyRef.current, snapshot: next });
-        }
-        return next;
-      } finally {
-        if (inFlightRef.current?.requestId === requestId) {
-          inFlightRef.current = null;
-        }
-        if (crossedAuthBoundary && authenticatedRef.current) {
-          setReadRevision((value) => value + 1);
-        }
+  const refreshState = useCallback(
+    async (force = false) => {
+      if (force) {
+        guard.invalidate();
+        inFlightRef.current = null;
       }
-    })();
-    inFlightRef.current = {
-      authKey: startAuthKey,
-      promise: active,
-      requestId,
-    };
-    return active;
-  }, [client, guard]);
+      const startAuthKey = authKeyRef.current;
+      if (inFlightRef.current?.authKey === startAuthKey) {
+        return inFlightRef.current.promise;
+      }
+      const ticket = guard.begin();
+      const requestId = Symbol("account-security-state");
+      setBoundSnapshot({ key: startAuthKey, snapshot: checkingSnapshot });
+      let crossedAuthBoundary = false;
+      const active = (async (): Promise<AccountSecurityAccessSnapshot> => {
+        try {
+          const response = await client.state(ticket.signal, (generation) => {
+            if (inFlightRef.current?.requestId !== requestId) return;
+            inFlightRef.current = {
+              ...inFlightRef.current,
+              authKey: `${generation.identityGeneration}:${generation.sessionGeneration}`,
+            };
+          });
+          const next: AccountSecurityAccessSnapshot = {
+            error: null,
+            state: response.state,
+            status: "eligible",
+          };
+          if (guard.isCurrent(ticket)) {
+            setBoundSnapshot({ key: authKeyRef.current, snapshot: next });
+          }
+          return next;
+        } catch (error: unknown) {
+          crossedAuthBoundary = startAuthKey !== authKeyRef.current;
+          if (crossedAuthBoundary && authenticatedRef.current) {
+            return checkingSnapshot;
+          }
+          const next = deniedSnapshot(error);
+          if (guard.isCurrent(ticket)) {
+            setBoundSnapshot({ key: authKeyRef.current, snapshot: next });
+          }
+          return next;
+        } finally {
+          if (inFlightRef.current?.requestId === requestId) {
+            inFlightRef.current = null;
+          }
+          if (crossedAuthBoundary && authenticatedRef.current) {
+            setReadRevision((value) => value + 1);
+          }
+        }
+      })();
+      inFlightRef.current = {
+        authKey: startAuthKey,
+        promise: active,
+        requestId,
+      };
+      return active;
+    },
+    [client, guard],
+  );
 
   const publishState = useCallback(
     (state: StaffMfaStateValue) => {

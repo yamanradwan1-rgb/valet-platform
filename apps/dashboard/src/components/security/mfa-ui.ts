@@ -4,8 +4,12 @@ import type { TranslationKey } from "../../lib/i18n/dictionaries";
 export function mfaErrorKey(error: unknown): TranslationKey {
   if (!(error instanceof DashboardApiError)) return "mfaErrorGeneric";
   if (error.code === "MFA_VERIFICATION_FAILED") return "mfaErrorVerification";
+  if (error.code === "MFA_OPERATION_BUSY") return "mfaDisableBusy";
+  if (error.code === "MFA_STATE_CHANGED") return "mfaErrorStateChanged";
+  if (error.code === "MFA_DISABLE_NOT_ALLOWED") return "mfaDisablePolicy";
   if (error.code === "MFA_RATE_LIMITED") return "mfaErrorRateLimited";
-  if (error.code === "MFA_ENROLLMENT_NOT_AVAILABLE") return "mfaErrorStateChanged";
+  if (error.code === "MFA_ENROLLMENT_NOT_AVAILABLE")
+    return "mfaErrorStateChanged";
   if (error.code === "AUTH_STATE_CHANGED") return "mfaErrorSession";
 
   switch (error.kind) {

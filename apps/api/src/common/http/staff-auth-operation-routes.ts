@@ -4,6 +4,16 @@ export const staffAuthOperationRoutes: ReadonlyArray<{
   path: RegExp;
 }> = [
   {
+    method: "GET",
+    operation: "STAFF_AUTH_MFA_DISABLE_AVAILABILITY",
+    path: /^\/v1\/staff\/auth\/mfa\/disable$/,
+  },
+  {
+    method: "POST",
+    operation: "STAFF_AUTH_MFA_DISABLE",
+    path: /^\/v1\/staff\/auth\/mfa\/disable$/,
+  },
+  {
     method: "POST",
     operation: "STAFF_AUTH_ACTIVATE",
     path: /^\/v1\/staff\/auth\/activate$/,

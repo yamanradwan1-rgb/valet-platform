@@ -17,6 +17,10 @@ import {
 } from "../observability/operation-observability";
 import { resolveRequestId, type ApiRequest } from "./api-request";
 import {
+  normalizeMfaDisableException,
+  privateMfaDisableResponse,
+} from "./mfa-disable-response";
+import {
   guestAccessOperations,
   guestOperationRoutes,
 } from "./guest-operation-routes";
@@ -198,13 +202,17 @@ export class ApiExceptionFilter implements ExceptionFilter {
       return;
     }
     const requestId = request.requestId ?? resolveRequestId(request.headers);
+    exception = normalizeMfaDisableException(exception, operation, requestId);
     request.requestId = requestId;
     response.setHeader("X-Request-Id", requestId);
     if (operation.startsWith("STAFF_AUTH_")) {
       response.setHeader("Cache-Control", "no-store");
       response.setHeader("Pragma", "no-cache");
     }
-    if (guestAccessOperations.has(operation) || operation.startsWith("CHECK_IN_CONDITION_PHOTO_")) {
+    if (
+      guestAccessOperations.has(operation) ||
+      operation.startsWith("CHECK_IN_CONDITION_PHOTO_")
+    ) {
       setNoStoreResponseHeaders(response);
     }
 
@@ -237,6 +245,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
       if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
         this.reportUnexpected(requestId, operation);
       }
+      privateMfaDisableResponse(operation, response);
       response.status(status).json(body);
       return;
     }
@@ -248,6 +257,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
     const status = isBadRequest
       ? HttpStatus.BAD_REQUEST
       : HttpStatus.INTERNAL_SERVER_ERROR;
+    privateMfaDisableResponse(operation, response);
     response.status(status).json({
       code,
       message: isBadRequest

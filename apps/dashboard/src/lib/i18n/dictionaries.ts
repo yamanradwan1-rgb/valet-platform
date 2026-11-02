@@ -9,7 +9,8 @@ export const en = {
   closeNavigation: "Close navigation",
   companyAdmin: "Company Admin",
   dark: "Dark",
-  dashboardAccessUnavailable: "Management Dashboard access is unavailable for this authorized scope.",
+  dashboardAccessUnavailable:
+    "Management Dashboard access is unavailable for this authorized scope.",
   email: "Email",
   english: "English",
   expandNavigation: "Expand sidebar",
@@ -28,8 +29,22 @@ export const en = {
   loginFailed: "The Staff account could not be signed in.",
   loginIntro: "Use your VAYLET Staff account.",
   logout: "Sign out",
-  logoutUnconfirmed: "Sign-out could not be confirmed. Protected access stays blocked until the server session is closed.",
+  logoutUnconfirmed:
+    "Sign-out could not be confirmed. Protected access stays blocked until the server session is closed.",
   mfa: "Multi-factor authentication",
+  mfaDisable: "Disable MFA",
+  mfaDisableConfirm: "Confirm and disable MFA",
+  mfaDisableImpact:
+    "Disabling MFA removes the extra protection from your account. Enter a new code from your current authenticator to confirm. Features that require MFA will need setup and verification again.",
+  mfaDisablePolicy:
+    "Your account is required to use MFA. Disabling it is not available under the current policy.",
+  mfaDisableBusy:
+    "Account security is busy. Refresh the status and start a new confirmation to try again.",
+  mfaDisableComplete:
+    "MFA is not enabled. You can set up an authenticator again.",
+  mfaDisableUncertain:
+    "The request outcome could not be confirmed. Review the current server status. Any new attempt requires a new explicit confirmation.",
+
   mfaAssuredBody: "This session currently has server-verified MFA assurance.",
   mfaBeginEnrollment: "Set up authenticator",
   mfaBeginRecovery: "Use recovery code",
@@ -37,43 +52,57 @@ export const en = {
   mfaCompanyAdminPrompt: "Verify account security to use Company Admin scope.",
   mfaConfirmEnrollment: "Confirm authenticator",
   mfaContinueEnrollment: "Continue authenticator setup",
-  mfaErrorAuthorization: "Account security is not available for this Staff session.",
+  mfaErrorAuthorization:
+    "Account security is not available for this Staff session.",
   mfaErrorGeneric: "The account security request could not be completed.",
-  mfaErrorInvalidResponse: "Account security received an invalid server response.",
-  mfaErrorNetwork: "The network request could not be completed. Check your connection and try again.",
+  mfaErrorInvalidResponse:
+    "Account security received an invalid server response.",
+  mfaErrorNetwork:
+    "The network request could not be completed. Check your connection and try again.",
   mfaErrorRateLimited: "Too many verification attempts. Try again later.",
   mfaErrorSession: "Your Staff session changed. Sign in again if needed.",
-  mfaErrorStateChanged: "The MFA state changed. Review the current status and continue from there.",
+  mfaErrorStateChanged:
+    "The MFA state changed. Review the current status and continue from there.",
   mfaErrorStateRead: "The current MFA status could not be loaded safely.",
-  mfaErrorUncertain: "The result could not be confirmed. The current server MFA status was checked before continuing.",
+  mfaErrorUncertain:
+    "The result could not be confirmed. The current server MFA status was checked before continuing.",
   mfaErrorVerification: "The verification code was not accepted.",
-  mfaEnrollmentPendingBody: "An authenticator setup is already in progress. Continue to retrieve its current setup key.",
-  mfaEnrollmentRequiredBody: "Add a TOTP authenticator before using Company Admin features.",
-  mfaIntro: "Manage the TOTP authenticator and one-time recovery codes for this Staff session.",
-  mfaRecoveryBody: "If you cannot use your authenticator, enter one unused recovery code to start a replacement authenticator setup.",
+  mfaEnrollmentPendingBody:
+    "An authenticator setup is already in progress. Continue to retrieve its current setup key.",
+  mfaEnrollmentRequiredBody:
+    "Protect your account with a TOTP authenticator. Set it up to use features that require MFA.",
+  mfaIntro:
+    "Manage the TOTP authenticator and one-time recovery codes for this Staff session.",
+  mfaRecoveryBody:
+    "If you cannot use your authenticator, enter one unused recovery code to start a replacement authenticator setup.",
   mfaRecoveryCode: "Recovery code",
-  mfaRecoveryCodesBody: "Save all ten codes in a secure place. They will not be shown again after you close this disclosure.",
+  mfaRecoveryCodesBody:
+    "Save all ten codes in a secure place. They will not be shown again after you close this disclosure.",
   mfaRecoveryCodesDone: "I saved these codes",
   mfaRecoveryCodesTitle: "Recovery codes",
   mfaRecoveryCodesWarning: "Each recovery code can be used only once.",
   mfaRecoveryTitle: "Recover authenticator access",
-  mfaReissueBody: "Verify with your current authenticator to replace the existing recovery-code set.",
+  mfaReissueBody:
+    "Verify with your current authenticator to replace the existing recovery-code set.",
   mfaReissueRecoveryCodes: "Replace recovery codes",
   mfaSetupDetails: "VAYLET uses SHA-1 TOTP with 6 digits every 30 seconds.",
-  mfaSetupInstructions: "Add a new account manually in your authenticator app using this server-issued setup key, then enter the current 6-digit code.",
+  mfaSetupInstructions:
+    "Add a new account manually in your authenticator app using this server-issued setup key, then enter the current 6-digit code.",
   mfaSetupSecret: "Setup key",
   mfaSetupTitle: "Authenticator setup",
   mfaStatus: "MFA status",
   mfaStatusAssured: "Verified",
   mfaStatusChecking: "Checking server status…",
   mfaStatusEnrollmentPending: "Setup in progress",
-  mfaStatusEnrollmentRequired: "Setup required",
+  mfaStatusEnrollmentRequired: "MFA not enabled",
   mfaStatusStepUpRequired: "Verification required",
   mfaStatusUnavailable: "Account security unavailable",
-  mfaStepUpBody: "Enter the current 6-digit code from your authenticator app to verify this session.",
+  mfaStepUpBody:
+    "Enter the current 6-digit code from your authenticator app to verify this session.",
   mfaTotpCode: "6-digit authenticator code",
   mfaVerify: "Verify",
-  noEligibleScope: "No eligible Management workspace is available for this Staff session.",
+  noEligibleScope:
+    "No eligible Management workspace is available for this Staff session.",
   navigation: "Management navigation",
   inactiveHistorical: "Historical location",
   openNavigation: "Open navigation",
@@ -90,7 +119,8 @@ export const en = {
   theme: "Theme",
   unavailable: "The requested Management resource is not available.",
   workspace: "Workspace",
-  workspaceReady: "Your authorized Management workspace is ready for feature modules.",
+  workspaceReady:
+    "Your authorized Management workspace is ready for feature modules.",
   workspaceTitle: "Authorized workspace",
 } as const;
 
@@ -108,7 +138,8 @@ export const ar: TranslationDictionary = {
   closeNavigation: "إغلاق التنقل",
   companyAdmin: "مسؤول الشركة",
   dark: "داكن",
-  dashboardAccessUnavailable: "الوصول إلى لوحة الإدارة غير متاح لهذا النطاق المصرح به.",
+  dashboardAccessUnavailable:
+    "الوصول إلى لوحة الإدارة غير متاح لهذا النطاق المصرح به.",
   email: "البريد الإلكتروني",
   english: "English",
   expandNavigation: "توسيع الشريط الجانبي",
@@ -127,8 +158,22 @@ export const ar: TranslationDictionary = {
   loginFailed: "تعذر تسجيل الدخول بحساب الموظف.",
   loginIntro: "استخدم حساب موظفي VAYLET الخاص بك.",
   logout: "تسجيل الخروج",
-  logoutUnconfirmed: "تعذر تأكيد تسجيل الخروج. سيبقى الوصول المحمي محظورًا حتى إغلاق الجلسة على الخادم.",
+  logoutUnconfirmed:
+    "تعذر تأكيد تسجيل الخروج. سيبقى الوصول المحمي محظورًا حتى إغلاق الجلسة على الخادم.",
   mfa: "المصادقة متعددة العوامل",
+  mfaDisable: "إيقاف المصادقة متعددة العوامل",
+  mfaDisableConfirm: "تأكيد وإيقاف المصادقة متعددة العوامل",
+  mfaDisableImpact:
+    "يؤدي إيقاف المصادقة متعددة العوامل إلى إزالة الحماية الإضافية عن حسابك. أدخل رمزًا جديدًا من تطبيق المصادقة الحالي للتأكيد. ستتطلب الميزات المحمية إعداد المصادقة والتحقق مجددًا.",
+  mfaDisablePolicy:
+    "تتطلب سياسة حسابك استخدام المصادقة متعددة العوامل. لا يمكن إيقافها وفق السياسة الحالية.",
+  mfaDisableBusy:
+    "أمان الحساب مشغول. حدّث الحالة وابدأ تأكيدًا جديدًا للمحاولة مجددًا.",
+  mfaDisableComplete:
+    "المصادقة متعددة العوامل غير مفعلة. يمكنك إعداد تطبيق المصادقة مجددًا.",
+  mfaDisableUncertain:
+    "تعذر تأكيد نتيجة الطلب. راجع الحالة الحالية من الخادم. تتطلب أي محاولة جديدة تأكيدًا صريحًا جديدًا.",
+
   mfaAssuredBody: "هذه الجلسة تمتلك حاليًا تحقق MFA مؤكّدًا من الخادم.",
   mfaBeginEnrollment: "إعداد تطبيق المصادقة",
   mfaBeginRecovery: "استخدام رمز استرداد",
@@ -144,32 +189,42 @@ export const ar: TranslationDictionary = {
   mfaErrorSession: "تغيّرت جلسة الموظف. سجّل الدخول مجددًا إذا لزم الأمر.",
   mfaErrorStateChanged: "تغيّرت حالة MFA. راجع الحالة الحالية وتابع منها.",
   mfaErrorStateRead: "تعذر تحميل حالة MFA الحالية بأمان.",
-  mfaErrorUncertain: "تعذر تأكيد نتيجة العملية. تم التحقق من حالة MFA الحالية على الخادم قبل المتابعة.",
+  mfaErrorUncertain:
+    "تعذر تأكيد نتيجة العملية. تم التحقق من حالة MFA الحالية على الخادم قبل المتابعة.",
   mfaErrorVerification: "لم يتم قبول رمز التحقق.",
-  mfaEnrollmentPendingBody: "إعداد تطبيق المصادقة جارٍ بالفعل. تابع لاسترجاع مفتاح الإعداد الحالي.",
-  mfaEnrollmentRequiredBody: "أضف تطبيق TOTP للمصادقة قبل استخدام ميزات مسؤول الشركة.",
-  mfaIntro: "أدر تطبيق TOTP ورموز الاسترداد أحادية الاستخدام لجلسة الموظف الحالية.",
-  mfaRecoveryBody: "إذا تعذر استخدام تطبيق المصادقة، أدخل رمز استرداد غير مستخدم لبدء إعداد تطبيق مصادقة بديل.",
+  mfaEnrollmentPendingBody:
+    "إعداد تطبيق المصادقة جارٍ بالفعل. تابع لاسترجاع مفتاح الإعداد الحالي.",
+  mfaEnrollmentRequiredBody:
+    "احمِ حسابك بتطبيق TOTP للمصادقة، وأعدّه لاستخدام الميزات التي تتطلب المصادقة متعددة العوامل.",
+  mfaIntro:
+    "أدر تطبيق TOTP ورموز الاسترداد أحادية الاستخدام لجلسة الموظف الحالية.",
+  mfaRecoveryBody:
+    "إذا تعذر استخدام تطبيق المصادقة، أدخل رمز استرداد غير مستخدم لبدء إعداد تطبيق مصادقة بديل.",
   mfaRecoveryCode: "رمز الاسترداد",
-  mfaRecoveryCodesBody: "احفظ الرموز العشرة كلها في مكان آمن. لن تظهر مرة أخرى بعد إغلاق هذا العرض.",
+  mfaRecoveryCodesBody:
+    "احفظ الرموز العشرة كلها في مكان آمن. لن تظهر مرة أخرى بعد إغلاق هذا العرض.",
   mfaRecoveryCodesDone: "حفظت هذه الرموز",
   mfaRecoveryCodesTitle: "رموز الاسترداد",
   mfaRecoveryCodesWarning: "يمكن استخدام كل رمز استرداد مرة واحدة فقط.",
   mfaRecoveryTitle: "استرداد الوصول إلى تطبيق المصادقة",
-  mfaReissueBody: "تحقق باستخدام تطبيق المصادقة الحالي لاستبدال مجموعة رموز الاسترداد الموجودة.",
+  mfaReissueBody:
+    "تحقق باستخدام تطبيق المصادقة الحالي لاستبدال مجموعة رموز الاسترداد الموجودة.",
   mfaReissueRecoveryCodes: "استبدال رموز الاسترداد",
-  mfaSetupDetails: "يستخدم VAYLET بروتوكول TOTP بخوارزمية SHA-1 ورمزًا من 6 أرقام كل 30 ثانية.",
-  mfaSetupInstructions: "أضف حسابًا جديدًا يدويًا في تطبيق المصادقة باستخدام مفتاح الإعداد الصادر من الخادم، ثم أدخل الرمز الحالي المكوّن من 6 أرقام.",
+  mfaSetupDetails:
+    "يستخدم VAYLET بروتوكول TOTP بخوارزمية SHA-1 ورمزًا من 6 أرقام كل 30 ثانية.",
+  mfaSetupInstructions:
+    "أضف حسابًا جديدًا يدويًا في تطبيق المصادقة باستخدام مفتاح الإعداد الصادر من الخادم، ثم أدخل الرمز الحالي المكوّن من 6 أرقام.",
   mfaSetupSecret: "مفتاح الإعداد",
   mfaSetupTitle: "إعداد تطبيق المصادقة",
   mfaStatus: "حالة MFA",
   mfaStatusAssured: "تم التحقق",
   mfaStatusChecking: "جارٍ التحقق من حالة الخادم…",
   mfaStatusEnrollmentPending: "الإعداد جارٍ",
-  mfaStatusEnrollmentRequired: "الإعداد مطلوب",
+  mfaStatusEnrollmentRequired: "المصادقة متعددة العوامل غير مفعلة",
   mfaStatusStepUpRequired: "التحقق مطلوب",
   mfaStatusUnavailable: "أمان الحساب غير متاح",
-  mfaStepUpBody: "أدخل الرمز الحالي المكوّن من 6 أرقام من تطبيق المصادقة للتحقق من هذه الجلسة.",
+  mfaStepUpBody:
+    "أدخل الرمز الحالي المكوّن من 6 أرقام من تطبيق المصادقة للتحقق من هذه الجلسة.",
   mfaTotpCode: "رمز تطبيق المصادقة المكوّن من 6 أرقام",
   mfaVerify: "تحقق",
   noEligibleScope: "لا توجد مساحة إدارة متاحة ومصرح بها لجلسة الموظف الحالية.",

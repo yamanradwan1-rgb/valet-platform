@@ -101,7 +101,9 @@ export type StaffMfaEnrollmentConfirmResponse = z.infer<
   typeof staffMfaEnrollmentConfirmResponseSchema
 >;
 export type StaffMfaStepUpRequest = z.infer<typeof staffMfaStepUpRequestSchema>;
-export type StaffMfaStepUpResponse = z.infer<typeof staffMfaStepUpResponseSchema>;
+export type StaffMfaStepUpResponse = z.infer<
+  typeof staffMfaStepUpResponseSchema
+>;
 export type StaffMfaSelfRecoveryBeginRequest = z.infer<
   typeof staffMfaSelfRecoveryBeginRequestSchema
 >;
@@ -116,3 +118,42 @@ export type StaffMfaRecoveryCodesReissueResponse = z.infer<
 >;
 export type StaffMfaStateValue = z.infer<typeof staffMfaStateValueSchema>;
 export type StaffMfaStateResponse = z.infer<typeof staffMfaStateResponseSchema>;
+
+export const staffMfaDisableAvailabilitySchema = z.discriminatedUnion(
+  "availability",
+  [
+    z
+      .object({
+        availability: z.literal("AVAILABLE"),
+        expectedFactorId: staffMfaFactorIdSchema,
+      })
+      .strict(),
+    z.object({ availability: z.literal("MFA_REQUIRED_BY_POLICY") }).strict(),
+    z.object({ availability: z.literal("MFA_NOT_ENABLED") }).strict(),
+  ],
+);
+export const staffMfaDisableRequestSchema = z
+  .object({
+    expectedFactorId: staffMfaFactorIdSchema,
+    code: staffMfaTotpCodeSchema,
+  })
+  .strict();
+export const staffMfaDisableResponseSchema = z
+  .object({
+    state: z.literal("ENROLLMENT_REQUIRED"),
+  })
+  .strict();
+export const staffMfaDisableErrorCodeSchema = z.enum([
+  "MFA_STATE_CHANGED",
+  "MFA_OPERATION_BUSY",
+  "MFA_DISABLE_NOT_ALLOWED",
+]);
+export type StaffMfaDisableAvailability = z.infer<
+  typeof staffMfaDisableAvailabilitySchema
+>;
+export type StaffMfaDisableRequest = z.infer<
+  typeof staffMfaDisableRequestSchema
+>;
+export type StaffMfaDisableResponse = z.infer<
+  typeof staffMfaDisableResponseSchema
+>;

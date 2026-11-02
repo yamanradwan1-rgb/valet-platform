@@ -1,0 +1,151 @@
+{
+  "baseline_sha": "0a1d7420c9690d15c9765f9624e6d8e7c2470294",
+  "main_read_set_complete": true,
+  "full_text_reviewed": 20,
+  "total": 20,
+  "items": [
+    {
+      "path": "AGENTS.md",
+      "lines": 278,
+      "sha256": "b9a566acf79c1bd8b7232d1370c010f0228cb6396ce22c739f73aa85e6748c73",
+      "read_status": "FULL_TEXT_REVIEWED"
+    },
+    {
+      "path": "docs/00_SOURCE_OF_TRUTH.md",
+      "lines": 156,
+      "sha256": "0fcccbce488b8056f410b84fca7f477b1e8f2f04dfa509f570cfb7b24f6c8f44",
+      "read_status": "FULL_TEXT_REVIEWED"
+    },
+    {
+      "path": "docs/01_PRODUCT_SCOPE.md",
+      "lines": 510,
+      "sha256": "a26106481ffa3944ea6a377e201ad1fe93958a12abf37225efe5ca4c539cd867",
+      "read_status": "FULL_TEXT_REVIEWED"
+    },
+    {
+      "path": "docs/02_DOMAIN_MODEL.md",
+      "lines": 815,
+      "sha256": "03d60025ddec75e5c69d48bd9646d600e12b583395d14f8081d1fe0cc34b1255",
+      "read_status": "FULL_TEXT_REVIEWED"
+    },
+    {
+      "path": "docs/03_DATABASE_SCHEMA.md",
+      "lines": 3285,
+      "sha256": "bfd9e24f44f06aa06c98b424b97b04a6db76ba907513d136e52d6154fabda3df",
+      "read_status": "FULL_TEXT_REVIEWED"
+    },
+    {
+      "path": "docs/04_VALET_SESSION_STATE_MACHINE.md",
+      "lines": 561,
+      "sha256": "ed8a52e804a9928e1863a6fa1422a5b228d00d0c2b94ebb3e6b0ab92dd906d20",
+      "read_status": "FULL_TEXT_REVIEWED"
+    },
+    {
+      "path": "docs/05_ENGINEERING_RULES.md",
+      "lines": 287,
+      "sha256": "321bfe7857297d5007f423a9e7734425f5e2142dbd8f9a3049f3e25a272fd238",
+      "read_status": "FULL_TEXT_REVIEWED"
+    },
+    {
+      "path": "docs/06_SECURITY_AND_DATA_RULES.md",
+      "lines": 1435,
+      "sha256": "303fbf8b6271374da2e23d25ed36166cebc32a7dcfdeed765d8348e6ffd62f75",
+      "read_status": "FULL_TEXT_REVIEWED"
+    },
+    {
+      "path": "docs/07_DEFINITION_OF_DONE.md",
+      "lines": 144,
+      "sha256": "762a83b9779909e38a936ffe6cb0fbcdc958ff45162d59ce768aaf228796d400",
+      "read_status": "FULL_TEXT_REVIEWED"
+    },
+    {
+      "path": "docs/08_DECISIONS_LOG.md",
+      "lines": 4401,
+      "sha256": "77649e66c55a08ef06f6edcc83320fc9fc94f1e6f74f58d5fa783f56c6fd3b34",
+      "read_status": "FULL_TEXT_REVIEWED"
+    },
+    {
+      "path": "docs/09_TECH_STACK.md",
+      "lines": 198,
+      "sha256": "e8d9e6df0de67543c83f70e01c5842717f98e487aa296333a22548415e53e983",
+      "read_status": "FULL_TEXT_REVIEWED"
+    },
+    {
+      "path": "docs/10_REPOSITORY_STRUCTURE.md",
+      "lines": 306,
+      "sha256": "d410b10ff1c8a7b80cd19130ca2554ae962a0ad8b483b512f65c761730e82370",
+      "read_status": "FULL_TEXT_REVIEWED"
+    },
+    {
+      "path": "docs/11_REQUIREMENTS_TRACEABILITY.md",
+      "lines": 134,
+      "sha256": "d0480cc2f38ba534b6edc1115bebb385ceacffa27ef21eea5195e271eedc2d33",
+      "read_status": "FULL_TEXT_REVIEWED"
+    },
+    {
+      "path": "docs/12_AGENT_EXECUTION_PLAN.md",
+      "lines": 466,
+      "sha256": "37fd63f712941cacae256338a1ed2f2909b47ae2ecc2265534fa216e9e86828e",
+      "read_status": "FULL_TEXT_REVIEWED"
+    },
+    {
+      "path": "docs/13_COLLABORATION_WORKFLOW.md",
+      "lines": 356,
+      "sha256": "e42256f160fb6f3576fad83b9f2250f9f178047b97ca5807748cf0e680f28f5d",
+      "read_status": "FULL_TEXT_REVIEWED"
+    },
+    {
+      "path": "docs/14_PROJECT_STATUS.md",
+      "lines": 210,
+      "sha256": "0d1a7c78374b69489b3b49587e14ac1aab6f552a682552b1bb6e2cc75a93252d",
+      "read_status": "FULL_TEXT_REVIEWED"
+    },
+    {
+      "path": "docs/15_BLUEPRINT_V1_REBASELINE.md",
+      "lines": 192,
+      "sha256": "394ac2459fb5b02636c46fcfa370b17fc3fa336afdcf2e9398ea2d2f4e36e9dc",
+      "read_status": "FULL_TEXT_REVIEWED"
+    },
+    {
+      "path": "docs/16_PRODUCTION_DATABASE_DEPLOYMENT_CHECKLIST.md",
+      "lines": 104,
+      "sha256": "44a97785e143f137850dc5f549597a3bfa2067b96626e71f14224337e28a3ec2",
+      "read_status": "FULL_TEXT_REVIEWED"
+    },
+    {
+      "path": "docs/17_AGENT_CODE_STRUCTURE_RULES.md",
+      "lines": 190,
+      "sha256": "220d9fe3807a1ab9e6d758d5fd6d91a685689e239d5d133171f46aae54c80ab1",
+      "read_status": "FULL_TEXT_REVIEWED"
+    },
+    {
+      "path": "docs/18_PHASE3_OPERATIONS_EXECUTION_PLAN.md",
+      "lines": 490,
+      "sha256": "597aef0ef289102b443a5ca40ecb17a28ecc5720fed46de2ab6d15888d2c48cd",
+      "read_status": "FULL_TEXT_REVIEWED"
+    }
+  ],
+  "focused_decisions_complete": [
+    "DEC-078",
+    "DEC-079",
+    "DEC-080",
+    "DEC-081",
+    "DEC-108",
+    "DEC-023 (canonical log)",
+    "DEC-024",
+    "DEC-025",
+    "DEC-026",
+    "DEC-027",
+    "DEC-028",
+    "DEC-029",
+    "DEC-030",
+    "DEC-072",
+    "DEC-073",
+    "DEC-075",
+    "DEC-076",
+    "DEC-032"
+  ],
+  "remaining_focused_preflight": null,
+  "review_note": "Full primary read set finished, including complete 03 and 08 and previously truncated-range repairs; Native/session/Push focused decisions read in full. Focused infrastructure stubs resolve to canonical log.",
+  "additional_binding_map": "docs/validation/ISSUE_240D_STAFF_ACTIVATION_UI.md fully reviewed"
+}

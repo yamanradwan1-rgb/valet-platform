@@ -40,8 +40,14 @@ export function requireEmptyAuthQuery(query: unknown): void {
   parseAuthBody(emptyRequestSchema, query === undefined ? {} : query);
 }
 
-export function setPrivateAuthHeaders(response: AuthResponse): void {
-  response.setHeader("Cache-Control", "no-store");
+export function setPrivateAuthHeaders(
+  response: AuthResponse,
+  explicitlyPrivate = false,
+): void {
+  response.setHeader(
+    "Cache-Control",
+    explicitlyPrivate ? "private, no-store" : "no-store",
+  );
   response.setHeader("Pragma", "no-cache");
 }
 

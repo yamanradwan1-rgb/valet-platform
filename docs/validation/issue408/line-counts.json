@@ -1,0 +1,237 @@
+[
+  {
+    "path": "apps/api/src/common/http/api-errors.ts",
+    "baseline_lines": 280,
+    "final_lines": 296
+  },
+  {
+    "path": "apps/api/src/common/http/api-exception.filter.ts",
+    "baseline_lines": 276,
+    "final_lines": 286
+  },
+  {
+    "path": "apps/api/src/common/http/mfa-disable-response.ts",
+    "baseline_lines": null,
+    "final_lines": 31
+  },
+  {
+    "path": "apps/api/src/common/http/staff-auth-operation-routes.ts",
+    "baseline_lines": 71,
+    "final_lines": 81
+  },
+  {
+    "path": "apps/api/src/modules/auth/auth.module.ts",
+    "baseline_lines": 90,
+    "final_lines": 92
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-disable-command.ts",
+    "baseline_lines": null,
+    "final_lines": 98
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-disable-errors.ts",
+    "baseline_lines": null,
+    "final_lines": 25
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-disable-locks.ts",
+    "baseline_lines": null,
+    "final_lines": 94
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-disable-policy.ts",
+    "baseline_lines": null,
+    "final_lines": 43
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-disable.service.ts",
+    "baseline_lines": null,
+    "final_lines": 80
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-factor-repository.ts",
+    "baseline_lines": 88,
+    "final_lines": 89
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/mfa-session-repository.ts",
+    "baseline_lines": 92,
+    "final_lines": 84
+  },
+  {
+    "path": "apps/api/src/modules/auth/mfa/staff-mfa.controller.ts",
+    "baseline_lines": 202,
+    "final_lines": 267
+  },
+  {
+    "path": "apps/api/src/modules/auth/staff-auth.transport.ts",
+    "baseline_lines": 76,
+    "final_lines": 82
+  },
+  {
+    "path": "apps/api/test/mfa-disable-ceremonies.integration.test.ts",
+    "baseline_lines": null,
+    "final_lines": 97
+  },
+  {
+    "path": "apps/api/test/mfa-disable-failure-fixture.ts",
+    "baseline_lines": null,
+    "final_lines": 120
+  },
+  {
+    "path": "apps/api/test/mfa-disable-failures.integration.test.ts",
+    "baseline_lines": null,
+    "final_lines": 127
+  },
+  {
+    "path": "apps/api/test/mfa-disable-http.integration.test.ts",
+    "baseline_lines": null,
+    "final_lines": 183
+  },
+  {
+    "path": "apps/api/test/mfa-disable-policy-lifecycle.integration.test.ts",
+    "baseline_lines": null,
+    "final_lines": 68
+  },
+  {
+    "path": "apps/api/test/mfa-disable-policy-races.integration.test.ts",
+    "baseline_lines": null,
+    "final_lines": 186
+  },
+  {
+    "path": "apps/api/test/mfa-disable-test-fixture.ts",
+    "baseline_lines": null,
+    "final_lines": 93
+  },
+  {
+    "path": "apps/api/test/staff-auth-native-fixture.ts",
+    "baseline_lines": 270,
+    "final_lines": 279
+  },
+  {
+    "path": "apps/api/test/staff-mfa-eligibility.integration.test.ts",
+    "baseline_lines": 137,
+    "final_lines": 140
+  },
+  {
+    "path": "apps/api/test/staff-mfa-enrollment.integration.test.ts",
+    "baseline_lines": 203,
+    "final_lines": 203
+  },
+  {
+    "path": "apps/api/test/staff-mfa-lm-closure.integration.test.ts",
+    "baseline_lines": 187,
+    "final_lines": 188
+  },
+  {
+    "path": "apps/dashboard/e2e/issue408-mfa-disable.spec.ts",
+    "baseline_lines": null,
+    "final_lines": 165
+  },
+  {
+    "path": "apps/dashboard/e2e/issue408-mfa-fencing.spec.ts",
+    "baseline_lines": null,
+    "final_lines": 89
+  },
+  {
+    "path": "apps/dashboard/e2e/issue408-security-visual.spec.ts",
+    "baseline_lines": null,
+    "final_lines": 103
+  },
+  {
+    "path": "apps/dashboard/e2e/md-r11-security.spec.ts",
+    "baseline_lines": 89,
+    "final_lines": 89
+  },
+  {
+    "path": "apps/dashboard/e2e/mfa.spec.ts",
+    "baseline_lines": 113,
+    "final_lines": 113
+  },
+  {
+    "path": "apps/dashboard/e2e/support/issue408-mfa-fixture.ts",
+    "baseline_lines": null,
+    "final_lines": 97
+  },
+  {
+    "path": "apps/dashboard/src/components/security/account-security-access-provider.tsx",
+    "baseline_lines": 200,
+    "final_lines": 217
+  },
+  {
+    "path": "apps/dashboard/src/components/security/account-security-panel.tsx",
+    "baseline_lines": 147,
+    "final_lines": 157
+  },
+  {
+    "path": "apps/dashboard/src/components/security/account-security-workspace.tsx",
+    "baseline_lines": 88,
+    "final_lines": 100
+  },
+  {
+    "path": "apps/dashboard/src/components/security/mfa-ceremonies.tsx",
+    "baseline_lines": 198,
+    "final_lines": 218
+  },
+  {
+    "path": "apps/dashboard/src/components/security/mfa-disable-controls.tsx",
+    "baseline_lines": null,
+    "final_lines": 86
+  },
+  {
+    "path": "apps/dashboard/src/components/security/mfa-ui.ts",
+    "baseline_lines": 44,
+    "final_lines": 48
+  },
+  {
+    "path": "apps/dashboard/src/components/security/use-account-security-ceremony.ts",
+    "baseline_lines": 203,
+    "final_lines": 220
+  },
+  {
+    "path": "apps/dashboard/src/components/security/use-mfa-disable-ceremony.ts",
+    "baseline_lines": null,
+    "final_lines": 239
+  },
+  {
+    "path": "apps/dashboard/src/components/security/use-mfa-disable-refresh.ts",
+    "baseline_lines": null,
+    "final_lines": 50
+  },
+  {
+    "path": "apps/dashboard/src/lib/i18n/dictionaries.ts",
+    "baseline_lines": 194,
+    "final_lines": 249
+  },
+  {
+    "path": "apps/dashboard/src/lib/mfa/dashboard-mfa-client.ts",
+    "baseline_lines": 106,
+    "final_lines": 136
+  },
+  {
+    "path": "packages/contracts/src/staff-mfa-disable.test.ts",
+    "baseline_lines": null,
+    "final_lines": 49
+  },
+  {
+    "path": "packages/contracts/src/staff-mfa.ts",
+    "baseline_lines": 118,
+    "final_lines": 159
+  },
+  {
+    "path": "packages/database/src/issue304-migration-source-appendix.test.ts",
+    "baseline_lines": 34,
+    "final_lines": 42
+  },
+  {
+    "path": "packages/database/src/issue304-migration-source-appendix.ts",
+    "baseline_lines": 26,
+    "final_lines": 30
+  },
+  {
+    "path": "packages/database/src/mfa-disable-migration.integration.test.ts",
+    "baseline_lines": null,
+    "final_lines": 150
+  }
+]

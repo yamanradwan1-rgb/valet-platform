@@ -1,0 +1,104 @@
+[
+  {
+    "path": "docs/decisions/DEC-024_SHARED_DURABLE_ANTI_ABUSE.md",
+    "lines": 14,
+    "sha256": "0aef75c7ca89e25d65bce8e7a838dda64004ab203a0f51567eaae593a8476895",
+    "read_status": "FULL_TEXT_REVIEWED"
+  },
+  {
+    "path": "docs/decisions/DEC-025_PRODUCTION_DATABASE_CONNECTION_HARDENING.md",
+    "lines": 7,
+    "sha256": "8c7f687b98c2c0f21eaab2f6bed4ff147be34db568c54a4bd7a31a501807c71c",
+    "read_status": "FULL_TEXT_REVIEWED"
+  },
+  {
+    "path": "docs/decisions/DEC-026_SHARED_API_INFRASTRUCTURE_OWNERSHIP.md",
+    "lines": 6,
+    "sha256": "b9188dd59ecc4032404da4782bc7ccc0424fa016cb1c18d2f74267b10cd3c5fa",
+    "read_status": "FULL_TEXT_REVIEWED"
+  },
+  {
+    "path": "docs/decisions/DEC-027_FEATURE_MODULE_OWNERSHIP.md",
+    "lines": 6,
+    "sha256": "10b1d774eac17c498082d4351e9335c1304ca80bd9d68cf59e03b7817649d6d9",
+    "read_status": "FULL_TEXT_REVIEWED"
+  },
+  {
+    "path": "docs/decisions/DEC-028_ARCHITECTURE_GUARD.md",
+    "lines": 6,
+    "sha256": "f1ecbefa1f376cd8172037793c127f117e575f07e3bee7bc0e3bea9b91eabea2",
+    "read_status": "FULL_TEXT_REVIEWED"
+  },
+  {
+    "path": "docs/decisions/DEC-029_CONTROLLED_STAFF_PROVISIONING.md",
+    "lines": 6,
+    "sha256": "8f608703decbc9a36e6ae151f037c4e8526c8fe433c2c5de6abe44d07b9ed162",
+    "read_status": "FULL_TEXT_REVIEWED"
+  },
+  {
+    "path": "docs/decisions/DEC-030_AGENT_CODE_STRUCTURE_LIMITS.md",
+    "lines": 6,
+    "sha256": "5d48cd82726a5a136fa855c7f5ae90924b0f139ac8304d62caf6ff52052a1de0",
+    "read_status": "FULL_TEXT_REVIEWED"
+  },
+  {
+    "path": "docs/decisions/DEC-032_SHIFT_OPERATIONAL_ELIGIBILITY.md",
+    "lines": 387,
+    "sha256": "40861e6d385cb6836ebf5cb43e94627e5c9a7b41e60258908bb90c5e0d43a5fb",
+    "read_status": "FULL_TEXT_REVIEWED"
+  },
+  {
+    "path": "docs/decisions/DEC-072_NATIVE_STAFF_AUTHENTICATION_ARCHITECTURE.md",
+    "lines": 676,
+    "sha256": "ca7d15d099e612b5d9c7cee9d9873c7e359a41c263c01b1491a8a33f3d52a595",
+    "read_status": "FULL_TEXT_REVIEWED"
+  },
+  {
+    "path": "docs/decisions/DEC-073_NATIVE_PUSH_ARCHITECTURE.md",
+    "lines": 927,
+    "sha256": "bd7bf5ab9c6c46a5e73aa5541a3bd9bd374847e57117b57c237db5750336d96e",
+    "read_status": "FULL_TEXT_REVIEWED"
+  },
+  {
+    "path": "docs/decisions/DEC-075_STAFF_PUSH_OPERATIONAL_POLICY.md",
+    "lines": 499,
+    "sha256": "df68ba469c582e2c894466ba675cdddb054617a395f634373033d0799529f859",
+    "read_status": "FULL_TEXT_REVIEWED"
+  },
+  {
+    "path": "docs/decisions/DEC-076_STALE_STAFF_PUSH_REGISTRATION_LIFECYCLE.md",
+    "lines": 200,
+    "sha256": "a1c7ba0c4b4b618d7c90f953cee92574f9e915f9f62c2b59a835ea0dd1f1590d",
+    "read_status": "FULL_TEXT_REVIEWED"
+  },
+  {
+    "path": "docs/decisions/DEC-078_COMPANY_ADMIN_MFA.md",
+    "lines": 68,
+    "sha256": "e8a76a60ae5ac41485d4987057903ff6024c225a9d086196c86e84931687b4bd",
+    "read_status": "FULL_TEXT_REVIEWED"
+  },
+  {
+    "path": "docs/decisions/DEC-079_MANAGEMENT_AUDIT_SCOPES.md",
+    "lines": 60,
+    "sha256": "c26f0ce429c6de3b867d3985b82d5c7befcaff1f6ed6c8f1a72a688e2b493880",
+    "read_status": "FULL_TEXT_REVIEWED"
+  },
+  {
+    "path": "docs/decisions/DEC-080_COMPANY_ADMIN_AUTHORITY.md",
+    "lines": 62,
+    "sha256": "d5ec02e4c21bbc7b1b831267fc55cd202b64d7c4cdce6da3f4970fc9600f3f2c",
+    "read_status": "FULL_TEXT_REVIEWED"
+  },
+  {
+    "path": "docs/decisions/DEC-081_STAFF_ROLE_AND_ACCESS_LIFECYCLE.md",
+    "lines": 238,
+    "sha256": "111f43a2f4a9c3379e825339262f5c9de609008539759bd005d4db62ae59d697",
+    "read_status": "FULL_TEXT_REVIEWED"
+  },
+  {
+    "path": "docs/decisions/DEC-108_LOCATION_ACCESS_REVOCATION_DELIVERY.md",
+    "lines": 105,
+    "sha256": "1dc7800c423b3a6ff7a6a2193ce8588c9fefa15267c3b1ccb2c9ee5930012a34",
+    "read_status": "FULL_TEXT_REVIEWED"
+  }
+]

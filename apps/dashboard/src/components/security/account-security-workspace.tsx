@@ -20,17 +20,23 @@ const stateKey = {
   STEP_UP_REQUIRED: "mfaStatusStepUpRequired",
 } as const;
 
-export function AccountSecurityWorkspace({ ready = true }: { readonly ready?: boolean }) {
+export function AccountSecurityWorkspace({
+  ready = true,
+}: {
+  readonly ready?: boolean;
+}) {
   const { t } = useDashboardLocale();
   const access = useAccountSecurityAccess();
-  const ceremony = useAccountSecurityCeremony();
+  const ceremony = useAccountSecurityCeremony({ allowDisable: true });
   const titleRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     titleRef.current?.focus();
   }, []);
   const snapshot = ready ? access.snapshot : null;
-  const sensitiveDisclosure = Boolean(ceremony.enrollment || ceremony.recoveryCodes);
+  const sensitiveDisclosure = Boolean(
+    ceremony.enrollment || ceremony.recoveryCodes,
+  );
   const status =
     snapshot?.status === "eligible"
       ? t(stateKey[snapshot.state])
@@ -47,9 +53,13 @@ export function AccountSecurityWorkspace({ ready = true }: { readonly ready?: bo
   return (
     <div className={helpStyles.page}>
       <header className={helpSlot.anchor}>
-        <h1 ref={titleRef} tabIndex={-1}>{t("security")}</h1>
+        <h1 ref={titleRef} tabIndex={-1}>
+          {t("security")}
+        </h1>
         {snapshot?.status === "eligible" && !sensitiveDisclosure ? (
-          <span className={helpSlot.corner}><AccountContextHelp helpKey="security.page" /></span>
+          <span className={helpSlot.corner}>
+            <AccountContextHelp helpKey="security.page" />
+          </span>
         ) : null}
         <p>{t("securityIntro")}</p>
       </header>
@@ -58,7 +68,9 @@ export function AccountSecurityWorkspace({ ready = true }: { readonly ready?: bo
           <div className={helpSlot.anchor}>
             <h2>{t("mfaStatus")}</h2>
             {snapshot?.status === "eligible" && !sensitiveDisclosure ? (
-              <span className={helpSlot.corner}><AccountContextHelp helpKey="security.sessions" /></span>
+              <span className={helpSlot.corner}>
+                <AccountContextHelp helpKey="security.sessions" />
+              </span>
             ) : null}
             <p className="muted" role="status">
               {t("mfaStatus")}: {status}

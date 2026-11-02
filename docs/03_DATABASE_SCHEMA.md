@@ -3283,3 +3283,14 @@ Reason/privacy, current staff session/MFA, expected version, active Shift,
 scope and custody checks are enforced by the protected API/command and
 accepted source policies; FKs alone cannot prove physical key transfer.
 This implementation is not a migration deployment authorization.
+
+
+## Issue #408 — MFA disable policy boundary (Owner accepted, 2026-11-01)
+
+Forward migration 107 adds only nonunique organization_memberships(user_id,id), covering
+all roles/statuses for account-wide ordered policy locks. Existing MFA factor indexes,
+constraints, lifecycle and recovery history remain unchanged. Fresh empty bootstrap may
+create the index under a guarded table lock. Existing data must have the exact valid/ready
+index preinstalled through a separately authorized concurrent rollout before migrate:deploy;
+the migration fails closed on missing/wrong/invalid indexes. No new runtime grants.
+See docs/validation/ISSUE_408_MFA_DISABLE_CONTRACT.md for the accepted check-to-write boundary.

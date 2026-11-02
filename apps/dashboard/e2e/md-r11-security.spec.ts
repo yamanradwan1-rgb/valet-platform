@@ -3,7 +3,7 @@ import { DashboardApiFixture } from "./support/dashboard-api-fixture";
 import { persistentMatches } from "./support/persistent-storage";
 
 for (const [state, label] of [
-  ["ENROLLMENT_REQUIRED", "Setup required"],
+  ["ENROLLMENT_REQUIRED", "MFA not enabled"],
   ["ENROLLMENT_PENDING", "Setup in progress"],
   ["STEP_UP_REQUIRED", "Verification required"],
   ["ASSURED", "Verified"],

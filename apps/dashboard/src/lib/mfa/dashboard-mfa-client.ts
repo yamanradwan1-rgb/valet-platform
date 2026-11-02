@@ -1,4 +1,8 @@
 import {
+  staffMfaDisableAvailabilitySchema,
+  staffMfaDisableRequestSchema,
+  staffMfaDisableResponseSchema,
+  type StaffMfaDisableRequest,
   staffMfaEnrollmentBeginRequestSchema,
   staffMfaEnrollmentBeginResponseSchema,
   staffMfaEnrollmentConfirmRequestSchema,
@@ -33,6 +37,26 @@ const MFA_BASE = "/v1/staff/auth/mfa";
 export class DashboardMfaClient {
   constructor(private readonly api: DashboardApiClient) {}
 
+  disableAvailability(signal?: AbortSignal) {
+    return this.api.request(
+      `${MFA_BASE}/disable`,
+      staffMfaDisableAvailabilitySchema,
+      { method: "GET", signal },
+    );
+  }
+
+  disable(input: StaffMfaDisableRequest, signal?: AbortSignal) {
+    return this.api.request(
+      `${MFA_BASE}/disable`,
+      staffMfaDisableResponseSchema,
+      {
+        method: "POST",
+        body: staffMfaDisableRequestSchema.parse(input),
+        signal,
+      },
+    );
+  }
+
   state(
     signal?: AbortSignal,
     onAuthReconciled?: (generation: {
@@ -47,7 +71,9 @@ export class DashboardMfaClient {
     });
   }
 
-  beginEnrollment(signal?: AbortSignal): Promise<StaffMfaEnrollmentBeginResponse> {
+  beginEnrollment(
+    signal?: AbortSignal,
+  ): Promise<StaffMfaEnrollmentBeginResponse> {
     const body = staffMfaEnrollmentBeginRequestSchema.parse({});
     return this.api.request(
       `${MFA_BASE}/enrollment/begin`,
@@ -73,11 +99,15 @@ export class DashboardMfaClient {
     signal?: AbortSignal,
   ): Promise<StaffMfaStepUpResponse> {
     const body = staffMfaStepUpRequestSchema.parse(input);
-    return this.api.request(`${MFA_BASE}/step-up`, staffMfaStepUpResponseSchema, {
-      method: "POST",
-      body,
-      signal,
-    });
+    return this.api.request(
+      `${MFA_BASE}/step-up`,
+      staffMfaStepUpResponseSchema,
+      {
+        method: "POST",
+        body,
+        signal,
+      },
+    );
   }
 
   beginRecovery(

@@ -11,7 +11,7 @@ import {
 import { expectedMigrationDirectories } from "./migration-manifest.js";
 
 describe("Issue #304 additive forward-only migration history", () => {
-  it("keeps migrations 1..97 frozen and appends approved 98..103 migrations in exact order", () => {
+  it("keeps migrations 1..97 frozen and appends approved 98..107 migrations in exact order", () => {
     expect(expectedMigrationDirectories).toHaveLength(93);
     expect(issue300AppendedMigrationDirectories).toHaveLength(3);
     expect(issue304AppendedMigrationDirectories).toEqual([
@@ -24,11 +24,19 @@ describe("Issue #304 additive forward-only migration history", () => {
       "20261022010100_issue316_guest_information_contracts",
       "20261022010200_issue316_guest_information_authority",
       "20261026010300_issue346_resume_location_intake",
+      "20261029010400_issue352_emergency_dispatch_type",
+      "20261029010500_issue352_emergency_takeover_persistence",
+      "20261030010600_issue363_session_bound_pending_mfa",
+      "20261101010700_issue408_mfa_disable_policy_index",
     ]);
-    expect(expectedCurrentMigrationDirectories).toHaveLength(103);
-    const migrationRoot = fileURLToPath(new URL("../prisma/migrations/", import.meta.url));
+    expect(expectedCurrentMigrationDirectories).toHaveLength(107);
+    const migrationRoot = fileURLToPath(
+      new URL("../prisma/migrations/", import.meta.url),
+    );
     const actual = readdirSync(migrationRoot, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort();
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort();
     expect(actual).toEqual(expectedCurrentMigrationDirectories);
   });
 });

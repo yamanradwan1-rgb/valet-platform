@@ -1,8 +1,6 @@
 "use client";
 
-import type {
-  StaffMfaEnrollmentBeginResponse,
-} from "@valet/contracts";
+import type { StaffMfaEnrollmentBeginResponse } from "@valet/contracts";
 import { useCallback, useEffect, useState } from "react";
 
 import type { TranslationKey } from "../../lib/i18n/dictionaries";
@@ -12,12 +10,17 @@ import {
 } from "../../lib/scope/scope-generation";
 import { useAccountSecurityAccess } from "./account-security-access-provider";
 import {
+  useMfaDisableCeremony,
+  type MfaDisableCeremony,
+} from "./use-mfa-disable-ceremony";
+import {
   isUncertainMfaMutation,
   mfaErrorKey,
   shouldReconcileMfaMutation,
 } from "./mfa-ui";
 
 export interface AccountSecurityCeremonyState {
+  readonly disable: MfaDisableCeremony;
   readonly beginEnrollment: () => Promise<void>;
   readonly beginRecovery: (recoveryCode: string) => Promise<void>;
   readonly busy: boolean;
@@ -33,15 +36,23 @@ export interface AccountSecurityCeremonyState {
   readonly stepUp: (code: string) => Promise<void>;
 }
 
-export function useAccountSecurityCeremony(): AccountSecurityCeremonyState {
+export function useAccountSecurityCeremony({
+  allowDisable = false,
+} = {}): AccountSecurityCeremonyState {
   const access = useAccountSecurityAccess();
   const [guard] = useState(() => new ScopeGenerationGuard());
   const [enrollment, setEnrollment] =
     useState<StaffMfaEnrollmentBeginResponse | null>(null);
-  const [recoveryCodes, setRecoveryCodes] = useState<readonly string[] | null>(null);
+  const [recoveryCodes, setRecoveryCodes] = useState<readonly string[] | null>(
+    null,
+  );
   const [reissueOpen, setReissueOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
+  const disable = useMfaDisableCeremony(
+    allowDisable,
+    busy || enrollment !== null || recoveryCodes !== null || reissueOpen,
+  );
 
   const clearSensitive = useCallback(() => {
     setEnrollment(null);
@@ -77,7 +88,7 @@ export function useAccountSecurityCeremony(): AccountSecurityCeremonyState {
   );
 
   const runMutation = useCallback(
-    async <T,>(
+    async <T>(
       operation: (signal: AbortSignal) => Promise<T>,
       publish: (result: T) => void,
     ) => {
@@ -86,7 +97,11 @@ export function useAccountSecurityCeremony(): AccountSecurityCeremonyState {
       setErrorKey(null);
       try {
         const result = await operation(ticket.signal);
-        if (guard.isCurrent(ticket)) publish(result);
+        if (guard.isCurrent(ticket)) {
+          publish(result);
+          disable.announce();
+          void disable.refresh(false);
+        }
       } catch (error: unknown) {
         if (!guard.isCurrent(ticket)) return;
         if (shouldReconcileMfaMutation(error)) {
@@ -98,7 +113,7 @@ export function useAccountSecurityCeremony(): AccountSecurityCeremonyState {
         if (guard.isCurrent(ticket)) setBusy(false);
       }
     },
-    [guard, reconcileFailure],
+    [disable, guard, reconcileFailure],
   );
 
   const beginEnrollment = useCallback(
@@ -183,12 +198,14 @@ export function useAccountSecurityCeremony(): AccountSecurityCeremonyState {
   const finishRecoveryCodes = useCallback(() => {
     setRecoveryCodes(null);
     access.publishState("ASSURED");
-  }, [access]);
+    void disable.refresh("force");
+  }, [access, disable]);
 
   return {
+    disable,
     beginEnrollment,
     beginRecovery,
-    busy,
+    busy: busy || disable.busy || disable.factorId !== null,
     closeEnrollment,
     confirmEnrollment,
     enrollment,

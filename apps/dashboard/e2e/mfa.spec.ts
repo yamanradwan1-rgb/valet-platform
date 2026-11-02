@@ -39,7 +39,7 @@ test("enrollment shows server setup material and one-time recovery codes", async
 
   await expect(
     page.getByRole("status").filter({ hasText: "MFA status:" }),
-  ).toContainText("Setup required");
+  ).toContainText("MFA not enabled");
   await page.getByRole("button", { name: "Set up authenticator" }).click();
   await expect(
     page.getByRole("heading", { name: "Authenticator setup" }),

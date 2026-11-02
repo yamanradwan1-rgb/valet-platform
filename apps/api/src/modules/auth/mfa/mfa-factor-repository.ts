@@ -18,13 +18,14 @@ export interface MfaFactorRow {
 export async function lockCurrentFactor(
   transaction: PostgresTransaction,
   userId: string,
+  options: { readonly nowait?: boolean } = {},
 ): Promise<MfaFactorRow | undefined> {
   const result = await transaction.query<MfaFactorRow>(
     `SELECT id, user_id, state, protected_secret, pending_enrollment_session_id, last_accepted_step,
             recovery_set_generation, created_at, activated_at, retired_at
      FROM user_mfa_totp_factors
      WHERE user_id = $1 AND state IN ('PENDING', 'ACTIVE')
-     FOR UPDATE`,
+     FOR UPDATE${options.nowait ? " NOWAIT" : ""}`,
     [userId],
   );
   if ((result.rowCount ?? 0) > 1) {

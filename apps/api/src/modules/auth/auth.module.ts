@@ -12,6 +12,7 @@ import { StaffAuthController } from "./staff-auth.controller";
 import { StaffLoginService } from "./staff-login.service";
 import { StaffAuthOriginPolicy } from "./staff-auth.origin";
 import { MfaAntiAbuse } from "./mfa/mfa-anti-abuse";
+import { MfaDisableService } from "./mfa/mfa-disable.service";
 import { MfaAssurancePolicy } from "./mfa/mfa-assurance-policy";
 import { MfaEnrollmentService } from "./mfa/mfa-enrollment.service";
 import { MfaRecoveryService } from "./mfa/mfa-recovery.service";
@@ -45,6 +46,7 @@ import { StaffResponseUserRevalidationInterceptor } from "./staff-response-user-
     StaffActivationService,
     StaffAuthOriginPolicy,
     MfaAntiAbuse,
+    MfaDisableService,
     MfaAssurancePolicy,
     MfaEnrollmentService,
     MfaRecoveryService,

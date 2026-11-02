@@ -46,16 +46,8 @@ export async function requireManagementMfaEligibility(
   userId: string,
 ): Promise<void> {
   const result = await transaction.query(
-    `SELECT membership.id
-     FROM organization_memberships AS membership
-     INNER JOIN organizations AS organization
-       ON organization.id = membership.organization_id
-     WHERE membership.user_id = $1
-       AND membership.role IN ('ORG_ADMIN', 'LOCATION_MANAGER')
-       AND membership.status = 'ACTIVE'
-       AND organization.status = 'ACTIVE'
-     ORDER BY membership.id
-     LIMIT 1`,
+    // Issue #408: eligibility for own-account ceremonies grants no business authority.
+    `SELECT id FROM users WHERE id=$1 AND status='ACTIVE'`,
     [userId],
   );
   if (result.rowCount !== 1) throw new MfaEnrollmentNotAvailableError();

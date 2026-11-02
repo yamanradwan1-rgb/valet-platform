@@ -47,9 +47,12 @@ async function addMembership(
   );
 }
 
-async function expectUnavailable(response: { status: number; body: unknown }) {
-  expect(response.status).toBe(409);
-  expect(response.body).toMatchObject({ code: "MFA_ENROLLMENT_NOT_AVAILABLE" });
+async function expectOwnAccountAvailable(response: {
+  status: number;
+  body: unknown;
+}) {
+  expect(response.status).toBe(200);
+  expect(response.body).toMatchObject({ state: "ENROLLMENT_REQUIRED" });
 }
 
 describe("MFA account eligibility", () => {
@@ -68,12 +71,12 @@ describe("MFA account eligibility", () => {
     }
   }, 15_000);
 
-  it("rejects Supervisor, Employee, inactive membership and inactive Organization", async () => {
+  it("allows active Staff with Supervisor/Employee or inactive tenant scopes under Issue 408", async () => {
     for (const role of ["VALET_SUPERVISOR", "VALET_EMPLOYEE"] as const) {
       const user = await fixture.createUser();
       await addMembership(user.id, role);
       const auth = await fixture.nativeLogin(user);
-      await expectUnavailable(
+      await expectOwnAccountAvailable(
         await fixture.getMfa(statePath, auth.accessToken),
       );
     }
@@ -84,7 +87,7 @@ describe("MFA account eligibility", () => {
     });
     const inactiveMembershipAuth =
       await fixture.nativeLogin(inactiveMembership);
-    await expectUnavailable(
+    await expectOwnAccountAvailable(
       await fixture.getMfa(statePath, inactiveMembershipAuth.accessToken),
     );
 
@@ -94,7 +97,7 @@ describe("MFA account eligibility", () => {
     });
     const inactiveOrganizationAuth =
       await fixture.nativeLogin(inactiveOrganization);
-    await expectUnavailable(
+    await expectOwnAccountAvailable(
       await fixture.getMfa(statePath, inactiveOrganizationAuth.accessToken),
     );
 
@@ -103,7 +106,7 @@ describe("MFA account eligibility", () => {
       membershipStatus: "INACTIVE",
     });
     const inactiveManagerAuth = await fixture.nativeLogin(inactiveManager);
-    await expectUnavailable(
+    await expectOwnAccountAvailable(
       await fixture.getMfa(statePath, inactiveManagerAuth.accessToken),
     );
   }, 15_000);

@@ -12,10 +12,20 @@ interface TotpFormProps {
   readonly errorId?: string | undefined;
   readonly focusOnMount?: boolean | undefined;
   readonly onSubmit: (code: string) => Promise<void>;
-  readonly submitLabel: "mfaConfirmEnrollment" | "mfaVerify" | "mfaReissueRecoveryCodes";
+  readonly submitLabel:
+    | "mfaConfirmEnrollment"
+    | "mfaVerify"
+    | "mfaReissueRecoveryCodes"
+    | "mfaDisableConfirm";
 }
 
-export function TotpForm({ busy, errorId, focusOnMount = false, onSubmit, submitLabel }: TotpFormProps) {
+export function TotpForm({
+  busy,
+  errorId,
+  focusOnMount = false,
+  onSubmit,
+  submitLabel,
+}: TotpFormProps) {
   const { t } = useDashboardLocale();
   const [code, setCode] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -53,7 +63,9 @@ export function TotpForm({ busy, errorId, focusOnMount = false, onSubmit, submit
           inputMode="numeric"
           maxLength={6}
           minLength={6}
-          onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
+          onChange={(event) =>
+            setCode(event.target.value.replace(/\D/g, "").slice(0, 6))
+          }
           pattern="[0-9]{6}"
           ref={inputRef}
           required
@@ -115,7 +127,11 @@ export function RecoveryForm({
           value={recoveryCode}
         />
       </div>
-      <Button disabled={busy || recoveryCode.trim().length === 0} type="submit" variant="secondary">
+      <Button
+        disabled={busy || recoveryCode.trim().length === 0}
+        type="submit"
+        variant="secondary"
+      >
         {t("mfaBeginRecovery")}
       </Button>
     </form>
@@ -143,7 +159,9 @@ export function EnrollmentCeremony({
   return (
     <div className="stack">
       <div>
-        <h2 ref={headingRef} tabIndex={-1}>{t("mfaSetupTitle")}</h2>
+        <h2 ref={headingRef} tabIndex={-1}>
+          {t("mfaSetupTitle")}
+        </h2>
         <p className="muted">{t("mfaSetupInstructions")}</p>
       </div>
       <div className="field">
@@ -179,7 +197,9 @@ export function RecoveryCodesDisclosure({
   return (
     <div className="stack">
       <div>
-        <h2 ref={headingRef} tabIndex={-1}>{t("mfaRecoveryCodesTitle")}</h2>
+        <h2 ref={headingRef} tabIndex={-1}>
+          {t("mfaRecoveryCodesTitle")}
+        </h2>
         <p className="muted">{t("mfaRecoveryCodesBody")}</p>
         <p className="muted">{t("mfaRecoveryCodesWarning")}</p>
       </div>

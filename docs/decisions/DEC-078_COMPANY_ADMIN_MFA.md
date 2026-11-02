@@ -66,3 +66,14 @@ session transport and DEC-075/076 push-session rules remain binding.
 
 `docs/08_DECISIONS_LOG.md`, `docs/23_MANAGEMENT_BACKEND_216_EXECUTION_PLAN.md`,
 future auth/contracts/database tests and implementation.
+
+
+## Owner-approved Issue #408 amendment — 2026-11-01
+
+Own-account MFA enrollment/management is available to every ACTIVE authenticated Staff
+User, without business permissions. Disabling requires a fresh unused TOTP and is denied
+when any ACTIVE ORG_ADMIN membership belongs to an ACTIVE Organization. Base sessions
+and Native/Push lifecycle are preserved; retired factors provide no effective assurance.
+The approved C1–C4 transport, atomic MFA_TOTP_DISABLED account-security event, fail-fast
+policy locking, replay/reconciliation and membership-only index contract is recorded in
+`docs/validation/ISSUE_408_MFA_DISABLE_CONTRACT.md`. No platform identity/MFA bypass.
