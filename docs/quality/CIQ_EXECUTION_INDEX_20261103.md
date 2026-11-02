@@ -65,3 +65,13 @@ Exact integration testing after CIQ-03 and CIQ-04 cherry-pick: Node harness 45/4
 Inventory artifact contains 2,031 tracked test files; 742 API and 102 database source tests were matched to the current classifier (844 total). Other tracked database scripts (2), miscellaneous scripts (35), dashboard mock Playwright (270), nonpackage tests (14) and other package files remain separately labelled for execution/owner review, not removed.
 
 Current remote origin/main remains a5a46de42c1a075f84806ecda60a31791493c990; no branch push, PR, main merge, GitHub CI dispatch, deployment or production migration. This is a working review checkpoint, not completion or release readiness.
+
+## Final scoped execution status — same turn
+- **CIQ-03** worker-6 commit d28d6807; worker-3 independently reviewed CLEAN TO MERGE; integrated locally as db8e5816. All 45 Node harness tests passed in integration.
+- **CIQ-04** worker-3 commit 24e4403f; worker-6 independently reviewed CLEAN TO MERGE; integrated locally as 524f28cf. Exactly 106 migration directories now tracked; no historic SQL changed; source manifest Vitest passed 1/1 in integration.
+- **CIQ-05** worker-5 commits 7a876055 and b7db40af; worker-7 independently reviewed final immutable b7db40af and reported MERGEABLE AFTER FIXES: implementation semantics and strict request budget preserved but actual isolated DB-backed Playwright E2E **NOT RUN**. **Not integrated**; awaiting safe approved disposable DB and exact current-head E2E evidence.
+- **CIQ-02** worker-7 docs-only commit e4cf1086; reviewed by Prime and integrated ec356f6b, 19 dedupe candidates classified without deleting any test.
+- **CIQ-01/06/08** Prime produced inventory CSV and docs after worker-13/14/15 failed native COS browser startup. Findings remain test-plan review candidates and do not certify exhaustive risk-weighted coverage or measured speedup.
+- Frozen offline install, full Node harness 45/45, migration manifest 1/1, database lint/typecheck, architecture check and diff integrity all PASS on integration before this docs-only status addition. No production/PostgreSQL E2E, no remote GitHub CI on integration SHA.
+- **Remaining gating**: classify unresolved security-functional API failures; independent runtime proof for CIQ-05; inventory execution ownership for 35 scripts and 38 private/manual API suites; statistical CI timing/optimizations; authorized/tested dedupe/removals only after evidence and Owner decision; actual green CI on pushed SHA if separately approved.
+- No branch pushed or PR/main merge/deploy triggered. Final status is **PARTIAL — OWNER ACTION REQUIRED**, NOT a production-ready or CI-green claim.
