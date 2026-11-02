@@ -9,10 +9,18 @@ import {
 test("Company analytics uses one Company request and zero Location fan-out", async ({ page }) => {
   await signIn(page, f.emails.exportAdmin);
   await assurePreEnrolled(page);
-  await selectCompany(page);
-
   const companyPath =
     `/v1/staff/management/organizations/${f.organizations.a.id}/analytics/all-locations`;
+  // Company scope opens Overview, which reads this same endpoint. Finish that
+  // page's request before measuring Analytics' own initial and Apply reads.
+  const overviewRead = page.waitForResponse((item) =>
+    item.request().method() === "GET" && new URL(item.url()).pathname === companyPath);
+  await selectCompany(page);
+  expect((await overviewRead).status()).toBe(200);
+  await expect(page.getByTestId("md05-overview-page")).toBeVisible();
+  await expect(page.getByTestId("md05-overview-page")
+    .getByText(/^\d[\d,]* active employees$/u)).toBeVisible();
+
   let companyReads = 0;
   let locationReads = 0;
   page.on("request", (request) => {

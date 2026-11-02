@@ -14,7 +14,10 @@ test("R11 real Studio Company defaults, Location overrides, Branding and read-on
   await selectLocation(page, f.organizations.a.name, f.locations.a.name);
   await page.locator('nav a[href="/policies"]').click();
   await expect(page.locator(".ps-workspace")).toBeVisible();
-  await page.getByRole("button", { name: "Company defaults" }).click();
+  const companyScope = page.getByRole("group", { name: "Settings scope" })
+    .getByRole("button", { name: "Company defaults", exact: true });
+  await companyScope.click();
+  await expect(companyScope).toHaveAttribute("aria-pressed", "true");
   await page.locator('.ps-section-links a[href*="section=payments"]').click();
   const row = page.locator('[data-setting="tipsEnabled"]');
   await expect(row).toBeVisible();
