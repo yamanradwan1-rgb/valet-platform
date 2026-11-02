@@ -10,10 +10,14 @@ import {
 } from "./issue304-migration-source-appendix.js";
 import { expectedMigrationDirectories } from "./migration-manifest.js";
 
-describe("Issue #304 additive forward-only migration history", () => {
-  it("keeps migrations 1..97 frozen and appends approved 98..103 migrations in exact order", () => {
+describe("append-only migration source history", () => {
+  it("preserves migrations 1..103 and records 104..106 in exact order", () => {
     expect(expectedMigrationDirectories).toHaveLength(93);
-    expect(issue300AppendedMigrationDirectories).toHaveLength(3);
+    expect(issue300AppendedMigrationDirectories).toEqual([
+      "20261018009400_issue_300_u05_birth_xid",
+      "20261018009500_issue_300_option_b_task_relation_provenance",
+      "20261018009600_issue_300_option_b_attribution_freeze",
+    ]);
     expect(issue304AppendedMigrationDirectories).toEqual([
       "20261020009700_issue304_key_slot_label",
     ]);
@@ -24,11 +28,18 @@ describe("Issue #304 additive forward-only migration history", () => {
       "20261022010100_issue316_guest_information_contracts",
       "20261022010200_issue316_guest_information_authority",
       "20261026010300_issue346_resume_location_intake",
+      "20261029010400_issue352_emergency_dispatch_type",
+      "20261029010500_issue352_emergency_takeover_persistence",
+      "20261030010600_issue363_session_bound_pending_mfa",
     ]);
-    expect(expectedCurrentMigrationDirectories).toHaveLength(103);
-    const migrationRoot = fileURLToPath(new URL("../prisma/migrations/", import.meta.url));
+    expect(expectedCurrentMigrationDirectories).toHaveLength(106);
+    const migrationRoot = fileURLToPath(
+      new URL("../prisma/migrations/", import.meta.url),
+    );
     const actual = readdirSync(migrationRoot, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort();
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort();
     expect(actual).toEqual(expectedCurrentMigrationDirectories);
   });
 });
