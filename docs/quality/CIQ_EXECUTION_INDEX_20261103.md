@@ -49,3 +49,19 @@ CIQ-07 actual deletion/consolidation is intentionally deferred until CIQ-02 prov
 
 ## Current status
 Worktrees created and worker messages issued. Worker startup acceptance alone is not evidence of successful execution or any passed test. Branch commits, validated results, reviewer verdicts and final SHA must be appended once observed.
+
+## Verified execution checkpoint (2026-11-03, branch-local)
+| Task | Worker | Local source commit | Independent review | Integration status |
+| --- | --- | --- | --- | --- |
+| CIQ-01/06/08 | Prime (COS startup failures for workers 13/14/15) | fd206a5d, a91053a4, bc93dc9d | Prime evidence review; dynamic classifier verified | Included, docs/CSV only |
+| CIQ-02 | worker-7 | e4cf1086f5e7992cb3c3652757851c00f903f303 | Prime reviewed actual 156-line candidate report | Included as ec356f6b |
+| CIQ-03 | worker-6 | d28d6807220f24afc8291453e5881673b675a3ed | worker-3: CLEAN TO MERGE | Included as db8e5816 |
+| CIQ-04 | worker-3 | 24e4403fafc1c321c0d2a7f3c37fe3f0fdf575d7 | worker-6: CLEAN TO MERGE | Included as 524f28cf |
+| CIQ-05 | worker-5 | 7a876055722a26915a6ad85ea638918777a7a558, superseded if worker amends | worker-7: MERGEABLE AFTER FIXES | HELD outside integration pending real DB-backed E2E and review correction |
+| CIQ-07 | none | none | n/a | No test deletion or dedupe change authorized by evidence yet |
+
+Exact integration testing after CIQ-03 and CIQ-04 cherry-pick: Node harness 45/45 pass, migration source non-Postgres Vitest 1/1 pass, database lint/typecheck PASS, architecture PASS with preexisting grandfathered warnings, git diff origin/main --check PASS. Offline frozen pnpm install PASS. No full CI, database PostgreSQL runtime or real Dashboard E2E run has been performed on this integration SHA.
+
+Inventory artifact contains 2,031 tracked test files; 742 API and 102 database source tests were matched to the current classifier (844 total). Other tracked database scripts (2), miscellaneous scripts (35), dashboard mock Playwright (270), nonpackage tests (14) and other package files remain separately labelled for execution/owner review, not removed.
+
+Current remote origin/main remains a5a46de42c1a075f84806ecda60a31791493c990; no branch push, PR, main merge, GitHub CI dispatch, deployment or production migration. This is a working review checkpoint, not completion or release readiness.
