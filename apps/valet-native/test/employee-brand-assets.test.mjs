@@ -10,10 +10,10 @@ const webBrandDirectory = resolve(
   "../../valet/public/brand",
 );
 const nativeBrandDirectory = resolve(import.meta.dirname, "../assets/brand");
-// The Native dark asset is 4x the approved Web wordmark's dimensions.
-// Check full PNG decode: the earlier hash-only test pinned a truncated IDAT.
+// The Native dark asset keeps the approved 3.1:1 canvas geometry at 4x,
+// with optical centering and a fully decodable PNG. The old IDAT was truncated.
 const approvedDarkLogoHashes = {
-  native: "dd74db01c7041fca81d5bb38f00e0f6b9ebe23f8a19bdedc232a0765da546172",
+  native: "b16e81e800bde048226db9f85cb78b063e82a386d2cf97140c7b3dae896300f9",
   web: "819ff2c5cd568619f7d642a44d981a52a8320c26fd7c013d8cf51e50d1075bf3",
 };
 
