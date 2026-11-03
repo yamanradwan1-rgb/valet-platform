@@ -1,7 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { inPostgresTransaction } from "../src/common/database/postgres-transaction";
-import { queryPresenceReviewAlertCases } from "../src/modules/dashboard/management-alert-sources/presence-review-alert-reader";
+import {
+  findPresenceReviewAlertCaseById,
+  queryPresenceReviewAlertCases,
+} from "../src/modules/dashboard/management-alert-sources/presence-review-alert-reader";
 import type { ManagementAlertReaderInput } from "../src/modules/dashboard/management-alert-sources/management-alert-source-contract";
 import { pendingPresenceException } from "./shift-presence-exception-test-helper";
 import { PresenceServerTestContext } from "./shift-presence-server-test-context";
@@ -36,8 +39,28 @@ describe("Issue #414 ALT-12 reviewability for current principal", () => {
         title: "Presence exception requires review",
       },
     ]);
+    expect(
+      await inPostgresTransaction(db.runtimePool, (tx) =>
+        findPresenceReviewAlertCaseById(tx, {
+          context: input.context,
+          scope: input.scope,
+          sourceId: String(sample.exception.exceptionId),
+        }),
+      ),
+    ).toMatchObject({
+      sourceId: sample.exception.exceptionId,
+    });
     await sample.approve();
     expect(await read()).toEqual([]);
+    expect(
+      await inPostgresTransaction(db.runtimePool, (tx) =>
+        findPresenceReviewAlertCaseById(tx, {
+          context: input.context,
+          scope: input.scope,
+          sourceId: String(sample.exception.exceptionId),
+        }),
+      ),
+    ).toBeNull();
   });
 
   it("excludes expired challenges and denies access after exact Location grant revocation", async () => {

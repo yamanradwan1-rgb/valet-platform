@@ -2,8 +2,14 @@ import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { inPostgresTransaction } from "../src/common/database/postgres-transaction";
-import { queryRetrievalSlaAlertCases } from "../src/modules/dashboard/management-alert-sources/retrieval-sla-alert-reader";
-import { queryIncidentAlertCases } from "../src/modules/dashboard/management-alert-sources/incident-alert-reader";
+import {
+  findRetrievalSlaAlertCaseById,
+  queryRetrievalSlaAlertCases,
+} from "../src/modules/dashboard/management-alert-sources/retrieval-sla-alert-reader";
+import {
+  findIncidentAlertCaseById,
+  queryIncidentAlertCases,
+} from "../src/modules/dashboard/management-alert-sources/incident-alert-reader";
 import type { ManagementAlertReaderInput } from "../src/modules/dashboard/management-alert-sources/management-alert-source-contract";
 import { DashboardOverviewTestContext } from "./dashboard-overview-test-context";
 
@@ -71,11 +77,31 @@ describe("Issue #414 P1 authoritative ALT-01 and ALT-08 source probes", () => {
         title: "Retrieval SLA exceeded",
       },
     ]);
+    expect(
+      await inPostgresTransaction(db.runtimePool, (tx) =>
+        findRetrievalSlaAlertCaseById(tx, {
+          context: input.context,
+          scope: input.scope,
+          sourceId: requestId,
+          graceSeconds: 60,
+        }),
+      ),
+    ).toMatchObject({ sourceId: requestId, valetSessionId: sessionId });
     await db.adminPool.query(
       "UPDATE retrieval_requests SET status='CANCELLED' WHERE id=$1",
       [requestId],
     );
     expect(await read(0)).toEqual([]);
+    expect(
+      await inPostgresTransaction(db.runtimePool, (tx) =>
+        findRetrievalSlaAlertCaseById(tx, {
+          context: input.context,
+          scope: input.scope,
+          sourceId: requestId,
+          graceSeconds: 0,
+        }),
+      ),
+    ).toBeNull();
     await db.adminPool.query(
       "UPDATE valet_sessions SET state='READY', ready_at=clock_timestamp() WHERE id=$1",
       [sessionId],
@@ -175,6 +201,15 @@ describe("Issue #414 P1 authoritative ALT-01 and ALT-08 source probes", () => {
           item.sourceId === qualified[21] && item.severity === "CRITICAL",
       ),
     ).toBe(true);
+    expect(
+      await inPostgresTransaction(db.runtimePool, (tx) =>
+        findIncidentAlertCaseById(tx, {
+          context: input.context,
+          scope: input.scope,
+          sourceId: resolved,
+        }),
+      ),
+    ).toBeNull();
   });
 
   it("denies a forged scope and a current Location Manager with no grant", async () => {

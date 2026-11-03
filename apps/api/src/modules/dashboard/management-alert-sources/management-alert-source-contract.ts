@@ -23,6 +23,24 @@ export interface ManagementAlertReaderInput {
   readonly limit: number;
 }
 
+export interface ManagementAlertExactReaderInput extends Omit<
+  ManagementAlertReaderInput,
+  "limit"
+> {
+  readonly sourceId: string;
+}
+
+/** Same UUID syntax accepted by existing Management exact-source routes. */
+export function requireManagementAlertSourceId(sourceId: string): void {
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      sourceId,
+    )
+  ) {
+    throw new DashboardOverviewError("AUTHORIZATION_DENIED");
+  }
+}
+
 /** Recheck the caller's currently entitled exact Location before any source probe. */
 export async function requireManagementAlertSourceScope(
   transaction: PostgresTransaction,
