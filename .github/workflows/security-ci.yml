@@ -75,7 +75,7 @@ jobs:
         run: |
           opts=()
           if [[ -n "$SECURITY_BASE_SHA" ]]; then opts+=("--baseline-commit=$SECURITY_BASE_SHA"); fi
-          "$HOME/.local/bin/semgrep" scan --config p/security-audit --config p/owasp-top-ten \
+          semgrep scan --config p/security-audit --config p/owasp-top-ten \
             --metrics=off --disable-version-check --json \
             --output security-reports/semgrep-head.json \
             --exclude '**/node_modules/**' --exclude '**/dist/**' \
