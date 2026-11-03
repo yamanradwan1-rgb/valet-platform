@@ -23,6 +23,7 @@ import { STAFF_SESSION_CONTEXT_RESOLVER } from "../src/modules/auth/staff-sessio
 import { CheckInModule } from "../src/modules/check-in-api/check-in.module";
 import { DashboardModule } from "../src/modules/dashboard/dashboard.module";
 import { DispatchController } from "../src/modules/dispatch/dispatch.controller";
+import { EmergencyTaskTakeoverController } from "../src/modules/dispatch/emergency-task-takeover.controller";
 import { DispatchModule } from "../src/modules/dispatch/dispatch.module";
 import { DispatchService } from "../src/modules/dispatch/dispatch.service";
 import { GuestAccessModule } from "../src/modules/guest-access/guest-access.module";
@@ -191,9 +192,10 @@ describe("accepted feature module ownership", () => {
     ]);
   });
 
-  it("keeps Hybrid Dispatch ownership focused", () => {
+  it("keeps Hybrid Dispatch and approved emergency takeover ownership focused", () => {
     expect(metadata(DispatchModule, MODULE_METADATA.CONTROLLERS)).toEqual([
       DispatchController,
+      EmergencyTaskTakeoverController,
     ]);
     expect(metadata(DispatchModule, MODULE_METADATA.PROVIDERS)).toEqual([
       DispatchService,
