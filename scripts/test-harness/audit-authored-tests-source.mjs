@@ -1,3 +1,6 @@
+import { unwrap, callChain } from "./audit-authored-tests-ast.mjs";
+import { sourceSignals } from "./audit-authored-tests-signals.mjs";
+
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
@@ -29,33 +32,6 @@ const suiteModifiers = new Set([
   "sequential",
 ]);
 
-const patterns = {
-  arbitrary_wait:
-    /(?:waitForTimeout|sleep)\s*\(|new\s+Promise\s*\([^)]*setTimeout/gi,
-  strict_text: /\.(?:toContainText|toHaveText|toEqualText|toHaveTitle)\s*\(/gi,
-  structural_locator: /\.locator\s*\(\s*['"`][\s]*[.#>\[]/gi,
-  position_locator: /\.(?:nth|first|last)\s*\(/gi,
-  snapshot:
-    /\.(?:toMatchSnapshot|toMatchInlineSnapshot|toHaveScreenshot)\s*\(/gi,
-  implementation_calls:
-    /\.(?:toHaveBeenCalledTimes|toHaveBeenNthCalledWith)\s*\(/gi,
-  module_mock: /\b(?:vi|jest)\.mock\s*\(/gi,
-  synthetic_ssr: /\brenderToStaticMarkup\s*\(/gi,
-  mutable_global:
-    /\b(?:vi|jest)\.(?:stubGlobal|setSystemTime|useFakeTimers)\s*\(/gi,
-};
-
-function sourceSignals(source) {
-  return Object.entries(patterns)
-    .map(([name, regexp]) => {
-      regexp.lastIndex = 0;
-      const count = [...source.matchAll(regexp)].length;
-      return count ? `${name}:${count}` : null;
-    })
-    .filter(Boolean)
-    .join(";");
-}
-
 function titleOf(node, source) {
   if (ts.isStringLiteralLike(node)) return node.text;
   if (ts.isTemplateExpression(node))
@@ -63,41 +39,12 @@ function titleOf(node, source) {
   return `DYNAMIC_EXPRESSION:${node.getText(source).slice(0, 120)}`;
 }
 
-function unwrap(node) {
-  while (
-    node &&
-    (ts.isParenthesizedExpression(node) ||
-      ts.isAsExpression(node) ||
-      ts.isSatisfiesExpression(node) ||
-      ts.isNonNullExpression(node))
-  )
-    node = node.expression;
-  return node;
-}
-
-function callChain(node) {
-  node = unwrap(node);
-  if (ts.isIdentifier(node)) return [node.text];
-  if (ts.isPropertyAccessExpression(node)) {
-    const base = callChain(node.expression);
-    return base ? [...base, node.name.text] : null;
-  }
-  if (
-    ts.isElementAccessExpression(node) &&
-    ts.isStringLiteralLike(node.argumentExpression)
-  ) {
-    const base = callChain(node.expression);
-    return base ? [...base, node.argumentExpression.text] : null;
-  }
-  if (ts.isCallExpression(node) || ts.isTaggedTemplateExpression(node)) {
-    return callChain(node.expression);
-  }
-  return null;
-}
-
 function declaredBindings(file) {
   const aliases = new Map(),
-    namespaces = new Set();
+    namespaces = new Set(),
+    nodeRoots = new Set(),
+    nodeNamespaces = new Set(),
+    indirect = new Set();
   for (const statement of file.statements) {
     if (
       !ts.isImportDeclaration(statement) ||
@@ -107,23 +54,38 @@ function declaredBindings(file) {
       continue;
     const bindings = statement.importClause;
     if (!bindings) continue;
-    if (bindings.name)
-      aliases.set(
-        bindings.name.text,
-        statement.moduleSpecifier.text === "node:test" ? "test" : "test",
-      );
+    const fromNode = statement.moduleSpecifier.text === "node:test";
+    if (bindings.name) aliases.set(bindings.name.text, "test");
+    if (fromNode && bindings.name) nodeRoots.add(bindings.name.text);
     const named = bindings.namedBindings;
     if (named && ts.isNamespaceImport(named)) namespaces.add(named.name.text);
+    if (fromNode && named && ts.isNamespaceImport(named))
+      nodeNamespaces.add(named.name.text);
     if (named && ts.isNamedImports(named)) {
       for (const entry of named.elements) {
-        aliases.set(
-          entry.name.text,
-          entry.propertyName?.text ?? entry.name.text,
-        );
+        const sourceName = entry.propertyName?.text ?? entry.name.text;
+        aliases.set(entry.name.text, sourceName);
+        if (fromNode && caseNames.has(sourceName))
+          nodeRoots.add(entry.name.text);
       }
     }
   }
-  return { aliases, namespaces };
+  for (const statement of file.statements) {
+    if (!ts.isVariableStatement(statement)) continue;
+    for (const declaration of statement.declarationList.declarations) {
+      const value = declaration.initializer && unwrap(declaration.initializer);
+      if (
+        ts.isIdentifier(declaration.name) &&
+        value &&
+        ts.isIdentifier(value) &&
+        (caseNames.has(value.text) ||
+          suiteNames.has(value.text) ||
+          aliases.has(value.text))
+      )
+        indirect.add(declaration.name.text);
+    }
+  }
+  return { aliases, namespaces, nodeRoots, nodeNamespaces, indirect };
 }
 
 function describeCall(node, source, bindings, nodeContexts) {
@@ -202,7 +164,12 @@ function describeCall(node, source, bindings, nodeContexts) {
   } else if (title.startsWith("DYNAMIC_")) {
     expansion = "dynamic-title";
   }
-  return { kind, title, expansion, declaredRows, identifier };
+  const root = parts[0];
+  const nodeRegistered =
+    bindings.nodeRoots.has(root) ||
+    (bindings.nodeNamespaces.has(root) && parts[1] === "test") ||
+    (nodeContexts.has(root) && parts[1] === "test");
+  return { kind, title, expansion, declaredRows, identifier, nodeRegistered };
 }
 
 export function scanAuthoredSource(path, source) {
@@ -212,6 +179,13 @@ export function scanAuthoredSource(path, source) {
   let suiteDeclarations = 0;
   let unresolvedComputedRegistrations = 0;
   function visit(node, suite = [], multiplier = 1, nodeContexts = new Set()) {
+    if (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      bindings.indirect.has(node.expression.text)
+    ) {
+      unresolvedComputedRegistrations++;
+    }
     if (
       ts.isCallExpression(node) &&
       ts.isElementAccessExpression(node.expression) &&
@@ -276,7 +250,7 @@ export function scanAuthoredSource(path, source) {
       if (
         metadata?.kind === "case" &&
         ts.isFunctionLike(child) &&
-        path.endsWith(".mjs") &&
+        metadata.nodeRegistered &&
         child.parameters.length > 0
       ) {
         const first = child.parameters[0].name;

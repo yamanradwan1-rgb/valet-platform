@@ -143,3 +143,38 @@ test("detects Node test contexts without counting arbitrary object methods", () 
     ["parent", "child"],
   );
 });
+
+test("does not mistake Vitest dataset fixture.test for a Node subtest in .mjs", () => {
+  const source = `import { test } from "vitest";
+    test.each([{ test: () => true }])("fixture %s", (fixture) => {
+      fixture.test("this is an ordinary method");
+    });`;
+  const result = scanAuthoredSource("fixture.test.mjs", source);
+  assert.deepEqual(
+    result.tests.map((item) => item.title),
+    ["fixture %s"],
+  );
+});
+
+test("recognizes real Node subtests in .test.ts by imported runner provenance", () => {
+  const source = `import { test as nodeTest } from "node:test";
+    nodeTest("parent", async (context) => {
+      await context.test("real child", () => {});
+      const unrelated = { test: () => true };
+      unrelated.test("not a subtest");
+    });`;
+  const result = scanAuthoredSource("auth.test.ts", source);
+  assert.deepEqual(
+    result.tests.map((item) => item.title),
+    ["parent", "real child"],
+  );
+});
+
+test("warns on indirect runner aliases instead of silently claiming exhaustive counts", () => {
+  const source = `import { test } from "vitest";
+    const register = test;
+    register("real but indirect", () => {});`;
+  const result = scanAuthoredSource("indirect.test.ts", source);
+  assert.equal(result.tests.length, 0);
+  assert.equal(result.unresolvedComputedRegistrations, 1);
+});

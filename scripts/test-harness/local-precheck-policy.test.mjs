@@ -92,6 +92,8 @@ test("Playwright, Node script and ambiguous spec files never get a Vitest run su
     "apps/dashboard/src/feature/mfa.spec.ts",
     "apps/dashboard/e2e/auth.spec.ts",
     "apps/valet/src/worker.test.mjs",
+    "apps/dashboard/src/worker.test.mts",
+    "apps/dashboard/src/worker.test.cts",
   ]) {
     const p = adviseLocalPrecheck([file]);
     assert.equal(p.fullPullRequestCiRequired, true);

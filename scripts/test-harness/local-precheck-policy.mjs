@@ -123,7 +123,8 @@ export function adviseLocalPrecheck(
     const relative = file.slice(prefix.length);
     if (
       /\.(?:spec|e2e)\.[cm]?[jt]sx?$/.test(relative) ||
-      /\.(?:test|spec)\.[cm]?js$/.test(relative)
+      /\.test\.[cm][jt]s$/.test(relative) ||
+      /\.test\.jsx$/.test(relative)
     ) {
       return defaultPlan("uncertain-test-runner", [
         `Browser/Node test extension requires explicit runner: ${file}.`,
