@@ -161,15 +161,12 @@ describe("#312 mounted presentation and latest authorization", () => {
     expect(controller.selection?.surface).toBe("payment");
   });
 
-  it.each(["bootstrap", "expired", "missing", "network", "ambiguous"])(
-    "blocks %s authority",
-    async () => {
-      allowed = false;
-      await render();
-      expect(controller.selection).toBeNull();
-      expect(api.loadSession).not.toHaveBeenCalled();
-    },
-  );
+  it("does not load the session or show rating selection when visitor authority is denied", async () => {
+    allowed = false;
+    await render();
+    expect(controller.selection).toBeNull();
+    expect(api.loadSession).not.toHaveBeenCalled();
+  });
 
   it("blocks cancelled and non-completed visits", async () => {
     // Hostile snapshot: the real API parser rejects CANCELLED before routing.

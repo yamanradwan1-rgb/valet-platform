@@ -168,6 +168,8 @@ jobs:
         env:
           VAYLET_ISSUE215_TEST_TARGET: ci
           VAYLET_ISSUE215_CI_POSTGRES_CONTAINER_ID: ${{ job.services.postgres.id }}
+          # Diagnostic-only phase timings; no database name, credentials or URLs.
+          VAYLET_PG_FIXTURE_TIMING: "1"
         run: pnpm --filter @valet/api exec node ../../scripts/test-harness/run-postgres-projects.mjs vitest.config.mjs ${{ matrix.project }}
 
       - name: Run bounded PostgreSQL database lane
