@@ -59,12 +59,18 @@ describe('Dev Preview Safety & Invariant Contracts', () => {
       'utf8',
     );
 
-    // Verify handleRequestConfirm executes retrieval.requestVehicle()
-    expect(rootSource).toContain('const handleRequestConfirm = async () => {');
-    expect(rootSource).toContain('await retrieval.requestVehicle()');
+    // Production confirmation delegates to the identity guard, which invokes
+    // the existing retrieval mutation only for the original pending intent.
+    expect(rootSource).toContain('useRequestConfirmation({');
+    expect(rootSource).toContain('requestVehicle: retrieval.requestVehicle');
+    const confirmationSource = fs.readFileSync(
+      path.resolve(__dirname, '../retrieval/use-request-confirmation.ts'), 'utf8',
+    );
+    expect(confirmationSource).toContain('current.pending !== pending');
+    expect(confirmationSource).toContain('await current.context.requestVehicle()');
 
-    // Verify production OverlayConfirmRequest is wired to handleRequestConfirm and retrieval.isRequesting
-    expect(rootSource).toContain('onConfirm={handleRequestConfirm}');
+    // Keep production confirm and loading wired independently from previews.
+    expect(rootSource).toContain('onConfirm={() => void requestConfirmation.confirm()}');
     expect(rootSource).toContain('isRequesting={retrieval.isRequesting}');
     const overlaySource = fs.readFileSync(path.resolve(__dirname, '../../app/guest-live-overlays.tsx'), 'utf8');
     expect(overlaySource).toContain('isLoading={isRequesting}');
