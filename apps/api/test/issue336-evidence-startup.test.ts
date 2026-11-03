@@ -62,6 +62,9 @@ describe("Issue #374 evidence CLI validation ordering", () => {
       expect(boundary.pool).not.toHaveBeenCalled();
       expect(boundary.connect).not.toHaveBeenCalled();
     },
+    // First dynamic import transforms the CLI dependency graph on cold
+    // runners. Keep every fail-before-Pool assertion, bound only this case.
+    15_000,
   );
 
   it("passes only the validated explicit configuration to the pool", async () => {
