@@ -875,6 +875,7 @@ model StaffRefreshCredential {
 }
 
 model OrganizationMembership {
+  managementAlertTimingPreference ManagementAlertTimingPreference?
   shiftPresenceManagementResults ShiftPresenceManagementResult[]
   id             String           @id @default(uuid()) @db.Uuid
   organizationId String           @map("organization_id") @db.Uuid
@@ -933,6 +934,25 @@ model OrganizationMembership {
   shiftPresenceExceptions ShiftPresenceException[]
   @@unique([organizationId, id, userId], map: "organization_memberships_presence_identity_key")
   @@map("organization_memberships")
+}
+
+// Issue #414 / DEC-109: personal alert appearance delays, never Location SLA.
+model ManagementAlertTimingPreference {
+  organizationId            String   @map("organization_id") @db.Uuid
+  userId                    String   @map("user_id") @db.Uuid
+  alt01GraceSeconds         Int      @default(0) @map("alt01_grace_seconds")
+  alt02QueueSeconds         Int      @default(60) @map("alt02_queue_seconds")
+  alt03DeclineSeconds       Int      @default(0) @map("alt03_decline_seconds")
+  alt04StageSeconds         Int      @default(300) @map("alt04_stage_seconds")
+  alt06HandoffSeconds       Int      @default(300) @map("alt06_handoff_seconds")
+  alt11UnknownPaymentSeconds Int     @default(120) @map("alt11_unknown_payment_seconds")
+  revision                  Int      @default(1)
+  updatedAt                 DateTime @default(now()) @map("updated_at") @db.Timestamptz(3)
+
+  membership OrganizationMembership @relation(fields: [organizationId, userId], references: [organizationId, userId], onDelete: Restrict, onUpdate: Restrict, map: "management_alert_timing_preferences_membership_fkey")
+
+  @@id([organizationId, userId], map: "management_alert_timing_preferences_pkey")
+  @@map("management_alert_timing_preferences")
 }
 
 model StaffOnboardingInvitation {

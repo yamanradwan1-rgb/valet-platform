@@ -28,6 +28,8 @@ import {
 } from "./audit-investigation/timeline/timeline.controller";
 import { ManagementSettingsController } from "./management-settings.controller";
 import { ManagementSettingsService } from "./management-settings.service";
+import { ManagementAlertTimingPreferencesController } from "./management-alert-timing-preferences.controller";
+import { ManagementAlertTimingPreferencesService } from "./management-alert-timing-preferences.service";
 import { ManagementBrandingController } from "./management-branding.controller";
 import { ManagementBrandingService } from "./management-branding.service";
 import { ManagementLocationController } from "./management-location.controller";
@@ -74,6 +76,7 @@ import {
     StaffOnboardingController,
     StaffLocationAccessController,
     ManagementSettingsController,
+    ManagementAlertTimingPreferencesController,
     ManagementBrandingController,
     ManagementLocationController,
     ManagementVisitContactController,
@@ -103,6 +106,7 @@ import {
     StaffManagementMutationService,
     StaffOnboardingService,
     ManagementSettingsService,
+    ManagementAlertTimingPreferencesService,
     ManagementBrandingService,
     ManagementLocationService,
     ManagementVisitContactService,
@@ -136,6 +140,7 @@ export class ManagementModule implements NestModule {
         StaffOnboardingController,
         StaffLocationAccessController,
         ManagementSettingsController,
+        ManagementAlertTimingPreferencesController,
         ManagementBrandingController,
         ManagementLocationController,
         ManagementVisitContactController,
