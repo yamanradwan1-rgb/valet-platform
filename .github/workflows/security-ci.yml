@@ -1,0 +1,236 @@
+name: Security CI
+# Independent of CI; triggers on every branch push and pull request.
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: security-${{ github.workflow }-${{ github.ref }
+  cancel-in-progress: true
+
+jobs:
+  secrets-gitleaks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Select push/PR comparison
+        env:
+          EVENT: ${{ github.event_name }
+          PR_BASE: ${{ github.event.pull_request.base.sha }
+          BEFORE: ${{ github.event.before }
+        run: |
+          mkdir -p security-reports
+          base="$BEFORE"
+          if [[ "$EVENT" == pull_request ]]; then base="$PR_BASE"; fi
+          if [[ -n "$base" && ! "$base" =~ ^0+$ ]] && git cat-file -e "$base^{commit}"; then
+            echo "SCAN_RANGE=$base..HEAD" >> "$GITHUB_ENV"
+          else
+            echo "SCAN_RANGE=--all" >> "$GITHUB_ENV"
+          fi
+      - name: Gitleaks scan (redacted; raw stays on runner)
+        run: |
+          docker run --rm -v "$PWD:/src:ro" -v "$RUNNER_TEMP:/out" -w /src \
+            ghcr.io/gitleaks/gitleaks:v8.30.1 git --log-opts="$SCAN_RANGE" \
+            --redact=100 --exit-code 0 --report-format json \
+            --report-path /out/gitleaks-raw.json /src
+      - name: Gate leaked secrets
+        run: python3 scripts/security/ci_gate.py gitleaks "$RUNNER_TEMP/gitleaks-raw.json"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-gitleaks-${{ github.run_id }
+          path: security-reports/*-sanitized.json
+          retention-days: 7
+
+  sast-semgrep:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Select comparison commit
+        env:
+          EVENT: ${{ github.event_name }
+          PR_BASE: ${{ github.event.pull_request.base.sha }
+          BEFORE: ${{ github.event.before }
+        run: |
+          mkdir -p security-reports
+          base="$BEFORE"
+          if [[ "$EVENT" == pull_request ]]; then base="$PR_BASE"; fi
+          if [[ -n "$base" && ! "$base" =~ ^0+$ ]] && git cat-file -e "$base^{commit}"; then
+            echo "SECURITY_BASE_SHA=$base" >> "$GITHUB_ENV"
+          fi
+      - name: Install Semgrep Community
+        run: pipx install semgrep
+      - name: Run Semgrep
+        env:
+          SECURITY_BASE_SHA: ${{ env.SECURITY_BASE_SHA }
+        run: |
+          opts=()
+          if [[ -n "$SECURITY_BASE_SHA" ]]; then opts+=("--baseline-commit=$SECURITY_BASE_SHA"); fi
+          "$HOME/.local/bin/semgrep" scan --config p/security-audit --config p/owasp-top-ten \
+            --metrics=off --disable-version-check --json \
+            --output security-reports/semgrep-head.json \
+            --exclude '**/node_modules/**' --exclude '**/dist/**' \
+            --exclude '**/.next/**' "${{opts[@]}" apps packages scripts infra
+      - name: Gate high and critical findings / parser errors
+        run: python3 scripts/security/ci_gate.py semgrep security-reports/semgrep-head.json
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-semgrep-${{ github.run_id }
+          path: security-reports/*-sanitized.json
+          retention-days: 7
+
+  dependencies-trivy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Prepare base worktree
+        env:
+          EVENT: ${{ github.event_name }
+          PR_BASE: ${{ github.event.pull_request.base.sha }
+          BEFORE: ${{ github.event.before }
+        run: |
+          mkdir -p security-reports
+          base="$BEFORE"
+          if [[ "$EVENT" == pull_request ]]; then base="$PR_BASE"; fi
+          if [[ -n "$base" && ! "$base" =~ ^0+$ ]] && git cat-file -e "$base^{commit}"; then
+            git worktree add --detach "$RUNNER_TEMP/security-base" "$base"
+            echo "SECURITY_BASE_TREE=$RUNNER_TEMP/security-base" >> "$GITHUB_ENV"
+          fi
+      - uses: aquasecurity/setup-trivy@v0.3.1
+        with:
+          version: v0.68.2
+          cache: true
+      - name: Scan head
+        run: trivy fs --scanners vuln,misconfig --format json --exit-code 0 --output security-reports/trivy-head.json .
+      - name: Scan base
+        if: env.SECURITY_BASE_TREE != ''
+        run: |
+          cd "$SECURITY_BASE_TREE"
+          trivy fs --scanners vuln,misconfig --format json --exit-code 0 --output "$GITHUB_WORKSPACE/security-reports/trivy-base.json" .
+      - name: Gate new high and critical vulnerabilities
+        env:
+          BASE_TREE: ${{ env.SECURITY_BASE_TREE }
+        run: |
+          if [[ -n "$BASE_TREE" ]]; then
+            python3 scripts/security/ci_gate.py trivy security-reports/trivy-head.json security-reports/trivy-base.json
+          else
+            python3 scripts/security/ci_gate.py trivy security-reports/trivy-head.json
+          fi
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-trivy-${{ github.run_id }
+          path: security-reports/*-sanitized.json
+          retention-days: 7
+
+  dependencies-osv:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Prepare base worktree
+        env:
+          EVENT: ${{ github.event_name }
+          PR_BASE: ${{ github.event.pull_request.base.sha }
+          BEFORE: ${{ github.event.before }
+        run: |
+          mkdir -p security-reports
+          base="$BEFORE"
+          if [[ "$EVENT" == pull_request ]]; then base="$PR_BASE"; fi
+          if [[ -n "$base" && ! "$base" =~ ^0+$ ]] && git cat-file -e "$base^{commit}"; then
+            git worktree add --detach "$RUNNER_TEMP/security-base" "$base"
+            echo "SECURITY_BASE_TREE=$RUNNER_TEMP/security-base" >> "$GITHUB_ENV"
+          fi
+      - name: OSV head scan
+        run: |
+          set +e
+          docker run --rm -v "$PWD:/src:ro" ghcr.io/google/osv-scanner:v2.3.3 scan source \
+            --recursive --format=json /src > security-reports/osv-head.json
+          code=$?
+          set -e
+          test "$code" -le 1
+      - name: OSV base scan
+        if: env.SECURITY_BASE_TREE != ''
+        run: |
+          cd "$SECURITY_BASE_TREE"
+          set +e
+          docker run --rm -v "$PWD:/src:ro" ghcr.io/google/osv-scanner:v2.3.3 scan source \
+            --recursive --format=json /src > "$GITHUB_WORKSPACE/security-reports/osv-base.json"
+          code=$?
+          set -e
+          test "$code" -le 1
+      - name: Gate new high, critical, or unrated advisories
+        env:
+          BASE_TREE: ${{ env.SECURITY_BASE_TREE }
+        run: |
+          if [[ -n "$BASE_TREE" ]]; then
+            python3 scripts/security/ci_gate.py osv security-reports/osv-head.json security-reports/osv-base.json
+          else
+            python3 scripts/security/ci_gate.py osv security-reports/osv-head.json
+          fi
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-osv-${{ github.run_id }
+          path: security-reports/*-sanitized.json
+          retention-days: 7
+
+  sast-codeql:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+          build-mode: none
+          queries: security-extended
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:javascript-typescript
+          upload: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'never' || 'always' }
+
+  security-gate:
+    if: always()
+    needs: [secrets-gitleaks, sast-semgrep, dependencies-trivy, dependencies-osv, sast-codeql]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Fail closed for failed / skipped security checks
+        env:
+          GITLEAKS: ${{ needs.secrets-gitleaks.result }
+          SEMGREP: ${{ needs.sast-semgrep.result }
+          TRIVY: ${{ needs.dependencies-trivy.result }
+          OSV: ${{ needs.dependencies-osv.result }
+          CODEQL: ${{ needs.sast-codeql.result }
+        run: |
+          failed=0
+          for key in GITLEAKS SEMGREP TRIVY OSV CODEQL; do
+            result="$(printenv "$key")"
+            echo "$key: $result"
+            if [[ "$result" != success ]]; then failed=1; fi
+          done
+          exit "$failed"
