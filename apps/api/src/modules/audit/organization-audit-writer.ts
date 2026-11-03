@@ -61,7 +61,10 @@ export async function appendOrganizationAuditEvent(
        $1, $2, NULL, NULL, $3, $4::audit_actor_type,
        $5, $6, $7, $8::jsonb, $9
      )
-     ON CONFLICT (id) DO NOTHING
+     -- Both the global id PK and the Organization-scoped composite unique
+     -- index can arbitrate a concurrent exact retry. Compare all persisted
+     -- facts below before accepting any skipped insert as idempotent.
+     ON CONFLICT DO NOTHING
      RETURNING id::text AS id`,
     [
       input.eventId,
