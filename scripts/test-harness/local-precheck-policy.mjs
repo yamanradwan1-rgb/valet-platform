@@ -49,7 +49,10 @@ function defaultPlan(category, reasons) {
  * LOCAL preview only. This is a fail-closed developer precheck recommendation,
  * not a dependency graph and never a selector of required PR/merge CI.
  */
-export function adviseLocalPrecheck(changedFiles) {
+export function adviseLocalPrecheck(
+  changedFiles,
+  { structuralChanges = [] } = {},
+) {
   const files = [
     ...new Set(
       changedFiles.map((file) =>
@@ -57,6 +60,12 @@ export function adviseLocalPrecheck(changedFiles) {
       ),
     ),
   ].sort();
+  if (structuralChanges.length > 0) {
+    return defaultPlan("deleted-or-renamed", [
+      "Deletions and renames may remove test ownership or break dependency paths.",
+      "Review the original and new paths and run the complete local non-Postgres lane.",
+    ]);
+  }
   if (files.length === 0) {
     return {
       category: "no-local-changes",
@@ -71,10 +80,9 @@ export function adviseLocalPrecheck(changedFiles) {
   if (
     files.some(
       (file) =>
-        file.startsWith("../") ||
-        file.startsWith("/") ||
         !file ||
-        !/^[a-zA-Z0-9_./-]+$/.test(file),
+        !/^[a-zA-Z0-9_./-]+$/.test(file) ||
+        file.split("/").some((part) => part === "." || part === ".." || !part),
     )
   ) {
     return defaultPlan("untrusted-path", ["Untrusted or out-of-tree input."]);
@@ -88,7 +96,8 @@ export function adviseLocalPrecheck(changedFiles) {
   if (
     files.every(
       (file) =>
-        (file.startsWith("docs/quality/") || file.endsWith(".md")) &&
+        file.startsWith("docs/") &&
+        /\.(?:md|mdx|txt)$/.test(file) &&
         !file.startsWith("docs/decisions/"),
     )
   ) {
@@ -112,6 +121,14 @@ export function adviseLocalPrecheck(changedFiles) {
     }
     const [prefix, packageName] = owner;
     const relative = file.slice(prefix.length);
+    if (
+      /\.(?:spec|e2e)\.[cm]?[jt]sx?$/.test(relative) ||
+      /\.(?:test|spec)\.[cm]?js$/.test(relative)
+    ) {
+      return defaultPlan("uncertain-test-runner", [
+        `Browser/Node test extension requires explicit runner: ${file}.`,
+      ]);
+    }
     if (!relative.startsWith("src/") && !relative.startsWith("test/")) {
       return defaultPlan("runtime-or-configuration-impact", [
         `Browser, Native, or package config needs explicit manual suite selection: ${file}.`,
@@ -129,9 +146,7 @@ export function adviseLocalPrecheck(changedFiles) {
   const commands = [];
   for (const [pkg, sources] of owners) {
     commands.push(`pnpm --filter ${pkg} typecheck`);
-    const testFiles = sources.filter((file) =>
-      /\.(?:test|spec)\.[cm]?[jt]sx?$/.test(file),
-    );
+    const testFiles = sources.filter((file) => /\.test\.[jt]sx?$/.test(file));
     const regularSources = sources.filter(
       (file) => /\.[cm]?[jt]sx?$/.test(file) && !testFiles.includes(file),
     );

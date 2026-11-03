@@ -3,9 +3,11 @@
 Immutable audit source: `f9ecebd9af85b44580771b4027515d06c0a31de4`. This is an automatically generated **static AST inventory**, not a manual approval of every test's domain contract.
 
 - Tracked test/spec files: **2036**.
-- Authored test declarations: **9420** (some parameterized declarations expand to multiple runtime cases).
-- Dynamic titles or dataset declarations: **845**; these require real runner collection to measure case count.
-- Files with no recognized direct test()/it()/specify() call: **0** (possible generated tests, unusual runners, or helper-only naming).
+- Authored test declarations: **9343** (some parameterized declarations expand to multiple runtime cases).
+- Dynamic titles or dataset declarations: **283**; these require real runner collection to measure case count.
+- Files with no recognized direct test()/it()/specify() call: **1** (possible generated tests, unusual runners, or helper-only naming).
+- Files containing direct top-level assert-style scripts without registered cases: **1**; they remain tracked tests but have no case-registration rows.
+- Computed runner registrations needing manual review: **0** potential syntax sites; arbitrary aliases and dynamic registration cannot be proven exhaustive by AST alone.
 - Files with TypeScript AST parse diagnostics: **0**; see the file ledger for exact paths.
 - Every declaration and file is explicitly marked `NOT_SEMANTICALLY_REVIEWED` until a human/worker verifies its invariant and unique defect-detection value.
 
@@ -42,4 +44,4 @@ Immutable audit source: `f9ecebd9af85b44580771b4027515d06c0a31de4`. This is an a
 3. A file without direct cases is not automatically redundant or safe to remove.
 4. The previous file inventory may be older than this SHA; mismatch is surfaced rather than hidden. CI ownership must be checked by the official classifier.
 5. Required PostgreSQL/Issue215/tenant/Location/MFA/payment/custody/retry tests must not be skipped or deleted based only on a numeric risk score.
-6. To claim exhaustive runtime cases, reconcile this registry against Vitest/Node/Playwright collection across all approved lanes and separately identify manual/private suites.
+6. To claim exhaustive runtime cases, reconcile this registry against Vitest/Node/Playwright collection across all approved lanes and separately identify manual/private suites. An AST parser with zero diagnostics still can miss computed/indirect registrations.

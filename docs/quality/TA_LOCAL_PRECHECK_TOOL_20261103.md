@@ -15,7 +15,7 @@ node scripts/test-harness/local-precheck.mjs --base origin/main
 
 It inspects committed differences (`origin/main...HEAD`), unstaged/staged differences and untracked files; changes in application-local `apps/dashboard/src`, `apps/customer/src`, `apps/valet/src`, and `apps/valet-native/src` yield package typecheck and focused `vitest run` for edited test source, or `vitest related --run` **plus** an explicit full package test recommendation for edited application source.
 
-Shared packages (including `packages/employee-client`), API source, migrations, workflow, runner tooling, infrastructure and binding decisions **fail closed** to the root non-Postgres precheck and explicit protected PostgreSQL/browser gate reminder. More than two changed app packages or an unknown config also fails closed. Docs-only outside binding decisions still requires architecture and normal PR CI.
+Shared packages (including `packages/employee-client`), API source, migrations, workflow, runner tooling, infrastructure and binding decisions **fail closed** to the root non-Postgres precheck and explicit protected PostgreSQL/browser gate reminder. More than two changed app packages, an unknown config, any deleted/renamed file, and ambiguous `.spec.*` or Node `.test.mjs` runner input also fail closed. Docs-only applies to text files **under `docs/`**, outside binding decisions, and still requires architecture and normal PR CI.
 
 Warnings:
 - `vitest related` sees static imports only; runtime dynamic imports can be missed. Package `test` should be run when low-risk changes require complete local confidence.
@@ -25,6 +25,6 @@ Warnings:
 - The authoritative required GitHub workflow is unchanged.
 
 ## Gate evidence
-The policy has five fail-closed Node tests: local Dashboard fast plan, exact test-file plan, protected/shared inputs, unknown/multi-app/untrusted paths, and docs/empty input; all need to pass before publication. The script may be used in local development only. Measure actual reduction in manual pre-push work on 20 comparable feature edits before calling it a time-saving solution.
+The policy now has **eight** fail-closed Node tests: local Dashboard fast plan, exact test-file plan, protected/shared inputs, unknown/multi-app/untrusted paths, docs/empty input, executable documentation outside `docs/`, ambiguous runner types and deletion/rename/traversal negatives. These must pass before publication. The script may be used in local development only. Measure actual reduction in manual pre-push work on 20 comparable feature edits before calling it a time-saving solution.
 
 Official documentation: https://v4.vitest.dev/guide/cli (related covers static imports, not runtime imports); https://pnpm.io/filtering (explicit package ownership); https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow (skipped required checks can block merges).

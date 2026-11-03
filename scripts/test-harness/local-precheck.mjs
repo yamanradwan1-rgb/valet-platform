@@ -13,6 +13,30 @@ function git(args) {
   return result.stdout.split("\0").filter(Boolean);
 }
 
+function diffChanges(args) {
+  const items = git(["diff", "--name-status", "--find-renames", "-z", ...args]);
+  const paths = [],
+    structuralChanges = [];
+  for (let i = 0; i < items.length;) {
+    const status = items[i++];
+    if (!/^[A-Z][0-9]*$/.test(status)) {
+      throw new Error(`Unexpected git diff status ${status}`);
+    }
+    const path = items[i++];
+    if (!path) throw new Error("Missing path in Git diff status output.");
+    paths.push(path);
+    if (/^[RC]/.test(status)) {
+      const renamedTo = items[i++];
+      if (!renamedTo) throw new Error("Missing renamed path in Git diff.");
+      paths.push(renamedTo);
+      structuralChanges.push(status);
+    } else if (status.startsWith("D")) {
+      structuralChanges.push(status);
+    }
+  }
+  return { paths, structuralChanges };
+}
+
 function main() {
   const args = process.argv.slice(2);
   const refIndex = args.indexOf("--base");
@@ -27,13 +51,18 @@ function main() {
       "Base must be a plain Git ref name, never a shell command.",
     );
   }
+  const diff = [
+    diffChanges([`${base}...HEAD`]),
+    diffChanges([]),
+    diffChanges(["--cached"]),
+  ];
   const changes = [
-    ...git(["diff", "--name-only", "-z", `${base}...HEAD`]),
-    ...git(["diff", "--name-only", "-z"]),
-    ...git(["diff", "--cached", "--name-only", "-z"]),
+    ...diff.flatMap((change) => change.paths),
     ...git(["ls-files", "--others", "--exclude-standard", "-z"]),
   ];
-  const plan = adviseLocalPrecheck(changes);
+  const plan = adviseLocalPrecheck(changes, {
+    structuralChanges: diff.flatMap((change) => change.structuralChanges),
+  });
   process.stdout.write(
     JSON.stringify(
       {

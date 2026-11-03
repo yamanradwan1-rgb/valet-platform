@@ -26,6 +26,8 @@ const fileColumns = [
   "dynamic_declarations",
   "suite_declarations",
   "parse_diagnostics",
+  "unresolved_computed_registrations",
+  "direct_assertion_script",
   "source_signals",
   "review_state",
   "evidence_level",
@@ -86,14 +88,19 @@ export function buildInventory() {
     fileRows = [];
   const paths = gitPaths();
   for (const path of paths) {
-    const parsed = scanAuthoredSource(
-      path,
-      readFileSync(join(root, path), "utf8"),
-    );
+    const source = readFileSync(join(root, path), "utf8");
+    const parsed = scanAuthoredSource(path, source);
     const ci_lane = lanes.get(path) ?? "NOT_IN_PREVIOUS_FILE_INVENTORY";
-    const dynamic_declarations = parsed.tests.filter((test) =>
-      test.expansion.startsWith("dynamic"),
+    const dynamic_declarations = parsed.tests.filter(
+      (test) =>
+        test.expansion.startsWith("dynamic") ||
+        test.declaredRows === 0 ||
+        test.title.startsWith("DYNAMIC_"),
     ).length;
+    const direct_assertion_script =
+      parsed.tests.length === 0 &&
+      path.endsWith(".test.mjs") &&
+      /\bassert\.(?:equal|deepEqual|match|ok|strictEqual)\s*\(/.test(source);
     fileRows.push({
       path,
       ci_lane,
@@ -101,6 +108,8 @@ export function buildInventory() {
       dynamic_declarations,
       suite_declarations: parsed.suiteDeclarations,
       parse_diagnostics: parsed.parseDiagnostics,
+      unresolved_computed_registrations: parsed.unresolvedComputedRegistrations,
+      direct_assertion_script,
       source_signals: parsed.sourceSignals,
       review_state: "NOT_SEMANTICALLY_REVIEWED",
       evidence_level: "STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES",
@@ -129,6 +138,10 @@ function markdown({ caseRows, fileRows }, revision) {
     0,
   );
   const invalid = fileRows.filter((file) => file.parse_diagnostics !== 0);
+  const unresolved = fileRows.reduce(
+    (n, f) => n + f.unresolved_computed_registrations,
+    0,
+  );
   const withoutCalls = fileRows.filter(
     (file) => file.static_case_declarations === 0,
   );
@@ -143,6 +156,8 @@ Immutable audit source: \`${revision}\`. This is an automatically generated **st
 - Authored test declarations: **${caseRows.length}** (some parameterized declarations expand to multiple runtime cases).
 - Dynamic titles or dataset declarations: **${totalDynamic}**; these require real runner collection to measure case count.
 - Files with no recognized direct test()/it()/specify() call: **${withoutCalls.length}** (possible generated tests, unusual runners, or helper-only naming).
+- Files containing direct top-level assert-style scripts without registered cases: **${fileRows.filter((file) => file.direct_assertion_script).length}**; they remain tracked tests but have no case-registration rows.
+- Computed runner registrations needing manual review: **${unresolved}** potential syntax sites; arbitrary aliases and dynamic registration cannot be proven exhaustive by AST alone.
 - Files with TypeScript AST parse diagnostics: **${invalid.length}**; see the file ledger for exact paths.
 - Every declaration and file is explicitly marked \`NOT_SEMANTICALLY_REVIEWED\` until a human/worker verifies its invariant and unique defect-detection value.
 
@@ -157,7 +172,7 @@ ${laneLines}
 3. A file without direct cases is not automatically redundant or safe to remove.
 4. The previous file inventory may be older than this SHA; mismatch is surfaced rather than hidden. CI ownership must be checked by the official classifier.
 5. Required PostgreSQL/Issue215/tenant/Location/MFA/payment/custody/retry tests must not be skipped or deleted based only on a numeric risk score.
-6. To claim exhaustive runtime cases, reconcile this registry against Vitest/Node/Playwright collection across all approved lanes and separately identify manual/private suites.
+6. To claim exhaustive runtime cases, reconcile this registry against Vitest/Node/Playwright collection across all approved lanes and separately identify manual/private suites. An AST parser with zero diagnostics still can miss computed/indirect registrations.
 `;
 }
 
@@ -199,6 +214,10 @@ function main() {
         0,
       ),
       unparsed: inventory.fileRows.filter((f) => f.parse_diagnostics).length,
+      unresolvedComputed: inventory.fileRows.reduce(
+        (n, f) => n + f.unresolved_computed_registrations,
+        0,
+      ),
       withoutDirectCases: inventory.fileRows.filter(
         (f) => !f.static_case_declarations,
       ).length,

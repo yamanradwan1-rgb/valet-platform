@@ -72,3 +72,57 @@ test("docs-only does not silently skip PR CI and empty changes do not invent tes
   assert.equal(doc.fullPullRequestCiRequired, true);
   assert.equal(adviseLocalPrecheck([]).commands.length, 0);
 });
+
+test("executable README and package-local docs cannot masquerade as docs-only", () => {
+  for (const path of [
+    "apps/dashboard/src/install.md",
+    "scripts/review.md",
+    "packages/contracts/src/notes.md",
+  ]) {
+    assert.notEqual(adviseLocalPrecheck([path]).category, "documentation");
+  }
+  assert.equal(
+    adviseLocalPrecheck(["docs/quality/report.md"]).category,
+    "documentation",
+  );
+});
+
+test("Playwright, Node script and ambiguous spec files never get a Vitest run suggestion", () => {
+  for (const file of [
+    "apps/dashboard/src/feature/mfa.spec.ts",
+    "apps/dashboard/e2e/auth.spec.ts",
+    "apps/valet/src/worker.test.mjs",
+  ]) {
+    const p = adviseLocalPrecheck([file]);
+    assert.equal(p.fullPullRequestCiRequired, true);
+    assert.equal(p.commands.includes("pnpm test:non-postgres"), true, file);
+    assert.ok(
+      p.commands.every((line) => !line.includes("vitest run")),
+      file,
+    );
+  }
+});
+
+test("path traversal, deletion and rename never produce a narrow package plan", () => {
+  for (const path of [
+    "apps/dashboard/src/../lib/private.ts",
+    "apps/dashboard//src/file.ts",
+    "apps/dashboard/src/./file.ts",
+    "apps/dashboard/src/file;unsafe.ts",
+  ]) {
+    assert.equal(adviseLocalPrecheck([path]).category, "untrusted-path", path);
+  }
+  assert.equal(
+    adviseLocalPrecheck(["apps/dashboard/src/file.test.ts"], {
+      structuralChanges: ["D"],
+    }).category,
+    "deleted-or-renamed",
+  );
+  assert.equal(
+    adviseLocalPrecheck(
+      ["apps/dashboard/src/old.ts", "apps/customer/src/new.ts"],
+      { structuralChanges: ["R100"] },
+    ).category,
+    "deleted-or-renamed",
+  );
+});
