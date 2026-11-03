@@ -1200,7 +1200,7 @@
 "apps/dashboard/src/features/help/context-help-coverage.test.ts","PACKAGE_NON_POSTGRES_CANDIDATE","6","0","1","0","","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
 "apps/dashboard/src/features/help/context-help-phase-e-mounts.test.ts","PACKAGE_NON_POSTGRES_CANDIDATE","3","0","1","0","","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
 "apps/dashboard/src/features/help/context-help-registry.test.ts","PACKAGE_NON_POSTGRES_CANDIDATE","6","0","1","0","","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
-"apps/dashboard/src/features/help/context-help.test.tsx","PACKAGE_NON_POSTGRES_CANDIDATE","10","0","1","0","arbitrary_wait:1;structural_locator:6;position_locator:5","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
+"apps/dashboard/src/features/help/context-help.test.tsx","PACKAGE_NON_POSTGRES_CANDIDATE","10","0","1","0","structural_locator:6;position_locator:6","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
 "apps/dashboard/src/features/intelligence/analytics-presentation.test.ts","PACKAGE_NON_POSTGRES_CANDIDATE","9","0","3","0","","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
 "apps/dashboard/src/features/intelligence/customer-feedback-api.test.ts","PACKAGE_NON_POSTGRES_CANDIDATE","2","0","1","0","","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
 "apps/dashboard/src/features/intelligence/customer-feedback-section.test.tsx","PACKAGE_NON_POSTGRES_CANDIDATE","5","0","1","0","synthetic_ssr:1","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
