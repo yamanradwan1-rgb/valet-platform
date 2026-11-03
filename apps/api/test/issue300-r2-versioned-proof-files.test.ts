@@ -66,14 +66,30 @@ it("new lease and SHA reject the stale old resource even if fixed alias exists",
   })).toBeNull();
 });
 
-it("rejects forged leaf symlinks and hard links; exposes changed bytes for digest checks", () => {
+it("rejects forged leaf symlinks", (context) => {
   const { entrypoint, owned, path } = caseFiles();
   const alias = join(owned, r2VersionedManifestName(otherSha, lease)!);
-  symlinkSync(path, alias, "file");
+  try {
+    symlinkSync(path, alias, "file");
+  } catch (error) {
+    // Windows requires special user privileges to create file symlinks.
+    // Keep the real symlink denial enforced on CI/Linux, and report a skip
+    // only when this local OS refuses to create the test fixture.
+    if (process.platform === "win32" &&
+      (error as NodeJS.ErrnoException).code === "EPERM") {
+      context.skip("Windows file symlink privilege is unavailable");
+      return;
+    }
+    throw error;
+  }
   expect(r2ReadVersionedManifest(entrypoint, {
     artifactVersion: 1, candidateSha: otherSha, leaseId: lease,
     resourceManifestFilename: r2VersionedManifestName(otherSha, lease)!,
   })).toBeNull();
+});
+
+it("rejects forged hard links and exposes changed bytes for digest checks", () => {
+  const { entrypoint, owned, path } = caseFiles();
   const hardAlias = join(owned, "hardlink-alias.bin");
   linkSync(path, hardAlias);
   expect(r2ReadVersionedManifest(entrypoint, {
