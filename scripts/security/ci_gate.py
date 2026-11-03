@@ -65,9 +65,11 @@ def trivy(data):
                             "version": text(vuln.get("InstalledVersion")),
                             "severity": severity(vuln.get("Severity"))})
         for issue in section.get("Misconfigurations") or []:
+            cause = issue.get("CauseMetadata") or {}
             results.append({"kind": "misconfiguration", "file": target,
                             "id": text(issue.get("ID")),
-                            "package": "", "version": "",
+                            "package": text(cause.get("Resource")),
+                            "line": cause.get("StartLine"), "version": "",
                             "severity": severity(issue.get("Severity"))})
     return results
 
