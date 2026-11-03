@@ -2024,6 +2024,7 @@
 "scripts/test-harness/issue215-api-classification.test.mjs","EXPLICIT_HARNESS_TEST","4","0","0","0","","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
 "scripts/test-harness/issue319-private-ownership.test.mjs","EXPLICIT_HARNESS_TEST","1","0","0","0","","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
 "scripts/test-harness/issue333-private-classification.test.mjs","EXPLICIT_HARNESS_TEST","3","1","0","0","","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
+"scripts/test-harness/local-precheck-policy.test.mjs","NOT_IN_PREVIOUS_FILE_INVENTORY","5","0","0","0","","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
 "scripts/test-harness/owned-cleanup.test.mjs","EXPLICIT_HARNESS_TEST","3","0","0","0","","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
 "scripts/test-harness/ownership-state.test.mjs","EXPLICIT_HARNESS_TEST","7","0","0","0","","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
 "scripts/test-harness/postgres-runtime.test.mjs","EXPLICIT_HARNESS_TEST","6","0","0","0","","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"

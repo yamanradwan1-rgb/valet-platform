@@ -18,10 +18,18 @@ Before: `apps/dashboard/src/features/help/context-help.test.tsx:84-94` unconditi
 
 After: wait for the actual **visible English Help button**, with a bounded 5-second condition wait and the existing detailed mount diagnostics on failure. Retain all ten browser tests for keyboard focus, modal semantics, Arabic RTL, dismissals, stale-scope revocation, privacy and no network/geo/mutation side effects. No product HTML/text/design changes.
 
+## R03 — Eliminate five identical Guest Rating authority labels
+
+Before: `apps/customer/src/features/post-visit/guest-auto-rating.mounted.test.tsx:164-172` used `it.each(["bootstrap","expired","missing","network","ambiguous"])` with a zero-argument callback; **all five iterations set the same `allowed=false`**, called `render()`, and checked the same null selection/no `loadSession`. The labels suggested coverage of five different failure mechanisms without injecting any.
+
+After: one accurately named negative test proves a visitor without host authority cannot load or expose Rating selection. Separate real network-error, canceled/non-completed and cross-visit tests remain. The mounted Rating file now executes **12 tests rather than 16**, removing four duplicate-looking cases without claiming this single UI case proves five distinct API failure causes.
+
 ## Execution evidence
 
 - Targeted `vitest run studio-settings-confirmation.test.ts studio-settings-commands.test.ts`: **6/6 PASS** (two confirmation + four command cases).
 - Targeted real Chromium-backed Vitest `context-help.test.tsx`: **10/10 PASS** using Playwright's browser server in the suite; one observed run completed in ~15.6s for ten cases. This is **not** a controlled before/after runtime A/B.
+- Targeted Customer Rating + Branding mounted suites: **16/16 PASS**, relevant Customer Prettier PASS. No live HTTP or PostgreSQL inference from these mounted mocks.
+- Combined R01 + R03: **six fewer duplicate-looking runtime cases** with no lost independently exercised path established in either original test; their static authored declaration count remains unchanged.
 - Architecture check and full harness suite: earlier this audit branch passed 50/50 and source file size policy; rerun at final integrated SHA.
 - Source AST audit is regenerated after these changes. A `.each` authored declaration becomes a direct `it` declaration, so its *static declaration count* stays the same even though the **executed test count decreases by two**. Never count static declarations as executed cases.
 

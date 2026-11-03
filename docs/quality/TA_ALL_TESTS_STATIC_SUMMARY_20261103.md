@@ -2,8 +2,8 @@
 
 Immutable audit source: `f9ecebd9af85b44580771b4027515d06c0a31de4`. This is an automatically generated **static AST inventory**, not a manual approval of every test's domain contract.
 
-- Tracked test/spec files: **2035**.
-- Authored test declarations: **9415** (some parameterized declarations expand to multiple runtime cases).
+- Tracked test/spec files: **2036**.
+- Authored test declarations: **9420** (some parameterized declarations expand to multiple runtime cases).
 - Dynamic titles or dataset declarations: **845**; these require real runner collection to measure case count.
 - Files with no recognized direct test()/it()/specify() call: **0** (possible generated tests, unusual runners, or helper-only naming).
 - Files with TypeScript AST parse diagnostics: **0**; see the file ledger for exact paths.
@@ -30,7 +30,7 @@ Immutable audit source: `f9ecebd9af85b44580771b4027515d06c0a31de4`. This is an a
 | EXPLICIT_HARNESS_TEST | 11 |
 | CLASSIFIED:database-postgres-issue215 | 8 |
 | CLASSIFIED:database-non-postgres | 8 |
-| NOT_IN_PREVIOUS_FILE_INVENTORY | 4 |
+| NOT_IN_PREVIOUS_FILE_INVENTORY | 5 |
 | CLASSIFIED:api-postgres-issue333-w4-private | 2 |
 | DATABASE_OUTSIDE_CLASSIFIER_EXECUTION_UNVERIFIED | 2 |
 | CLASSIFIED:api-postgres-issue309-browser | 1 |
