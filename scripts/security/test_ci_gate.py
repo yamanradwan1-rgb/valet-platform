@@ -63,6 +63,16 @@ class SecurityGateTests(unittest.TestCase):
         # Severity escalation is a newly unacceptable risk, even if ID is old.
         self.assertEqual(self.run_gate("trivy", {"Results": [item]}, base), 1)
 
+    def test_new_second_iac_misconfiguration_blocks(self):
+        existing = {"ID": "AVD-AWS-0001", "Severity": "HIGH",
+                    "CauseMetadata": {"Resource": "bucket-a", "StartLine": 10}}
+        additional = {"ID": "AVD-AWS-0001", "Severity": "HIGH",
+                      "CauseMetadata": {"Resource": "bucket-b", "StartLine": 20}}
+        base = {"Results": [{"Target": "infra/main.tf", "Misconfigurations": [existing]}]}
+        head = {"Results": [{"Target": "infra/main.tf",
+                            "Misconfigurations": [existing, additional]}]}
+        self.assertEqual(self.run_gate("trivy", head, base), 1)
+
     def test_osv_unrated_new_advisory_requires_triage(self):
         report = {"results": [{"source": {"path": "/src/pnpm-lock.yaml"},
                    "packages": [{"package": {"name": "some-package", "version": "1"},
