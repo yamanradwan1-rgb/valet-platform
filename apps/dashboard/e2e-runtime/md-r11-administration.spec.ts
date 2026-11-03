@@ -21,11 +21,12 @@ test("R11 real Studio Company defaults, Location overrides, Branding and read-on
   await page.locator('.ps-section-links a[href*="section=payments"]').click();
   const row = page.locator('[data-setting="tipsEnabled"]');
   await expect(row).toBeVisible();
+  const valueEditor = row.locator(".ps-editor > form > label")
+    .getByRole("combobox");
   await row.locator(".ps-edit-button").click();
-  const original = await row.locator("select").inputValue();
-  await row
-    .locator("select")
-    .selectOption(original === "true" ? "false" : "true");
+  await expect(valueEditor).toHaveCount(1);
+  const original = await valueEditor.inputValue();
+  await valueEditor.selectOption(original === "true" ? "false" : "true");
   const companyWrite = page.waitForResponse(
     (r) =>
       r.request().method() === "PUT" && r.url().endsWith("/settings/default"),
@@ -36,10 +37,9 @@ test("R11 real Studio Company defaults, Location overrides, Branding and read-on
   await page.getByRole("button", { name: "Location overrides" }).click();
   await expect(row).toContainText("Inherited");
   await row.locator(".ps-edit-button").click();
-  const current = await row.locator("select").inputValue();
-  await row
-    .locator("select")
-    .selectOption(current === "true" ? "false" : "true");
+  await expect(valueEditor).toHaveCount(1);
+  const current = await valueEditor.inputValue();
+  await valueEditor.selectOption(current === "true" ? "false" : "true");
   const locationWrite = page.waitForResponse(
     (r) =>
       r.request().method() === "PUT" && r.url().endsWith("/settings/override"),
