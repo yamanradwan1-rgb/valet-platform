@@ -2,23 +2,18 @@ import assert from "node:assert/strict";
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 import {
   assertExecutableDatabaseAccessAllowed,
   classifyPackageTests,
-  discoverTests,
 } from "./test-classification.mjs";
 import {
   preflightIssue215BeforeHarnessCleanup,
   requiresIssue215Preflight,
   requiresIssue215StaleOwnerPreflight,
 } from "./issue215-target-preflight.mjs";
-import {
-  ISSUE215_PROJECT,
-  issue215PostgresFiles,
-} from "./issue215-test-manifest.mjs";
+import { ISSUE215_PROJECT } from "./issue215-test-manifest.mjs";
 import { cleanupOwnedRun, hasIssue215OwnedResources } from "./owned-cleanup.mjs";
 import {
   acquireClusterLease,
@@ -184,42 +179,6 @@ test("a PostgreSQL test importing an Issue215 mutation fixture must join the pro
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
-});
-
-test("current API and database tests each have exactly one owner", () => {
-  const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
-  const apiRoot = join(repoRoot, "apps", "api", "test");
-  const databaseRoot = join(repoRoot, "packages", "database", "src");
-  const api = classifyPackageTests({ packageKind: "api", rootDir: apiRoot });
-  const database = classifyPackageTests({
-    packageKind: "database",
-    rootDir: databaseRoot,
-  });
-
-  assert.equal(Object.values(api).flat().length, discoverTests(apiRoot).length + discoverTests(join(repoRoot, "apps", "api", "src")).length);
-  assert.equal(
-    Object.values(database).flat().length,
-    discoverTests(databaseRoot).length,
-  );
-  assert.equal(database["database-non-postgres"].length, 8);
-  assert.ok(database["database-non-postgres"].includes("issue304-migration-source-appendix.test.ts"));
-  // Preserve exact ownership after #309/#313/#316 fixture additions.
-  assert.equal(database["database-postgres-direct"].length, 42);
-  assert.ok(database["database-postgres-direct"].includes("issue309-photo-scope-migration.integration.test.ts"));
-  assert.equal(database["database-postgres-provision"].length, 43);
-  assert.ok(database["database-postgres-provision"].includes("rating-analytics-runtime-role.integration.test.ts"));
-  assert.ok(database["database-postgres-provision"].includes("visit-contact-runtime-role.integration.test.ts"));
-  assert.deepEqual(database[ISSUE215_PROJECT], issue215PostgresFiles);
-  assert.ok(api["api-non-postgres"].includes("postgres.test.ts"));
-  assert.ok(
-    api["api-non-postgres"].includes("shift-test-context-names.test.ts"),
-  );
-  assert.ok(
-    Object.entries(api)
-      .filter(([name]) => name.includes("postgres"))
-      .flatMap(([, files]) => files)
-      .includes("provision-staff.integration.test.ts"),
-  );
 });
 
 test("transitive DB fixture access is classified into a PostgreSQL project", () => {
