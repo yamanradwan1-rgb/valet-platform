@@ -1,17 +1,17 @@
 # Issue #414 — Management Important & Critical Alerts: Complete Master Implementation Plan
 
-**Status:** PLANNING ONLY — OWNER DECISIONS REQUIRED.
-**Planning verdict:** **DECISION REQUIRED**. This document is an implementation roadmap, not implementation authorization or an Accepted Decision.
+**Status:** PLANNING ONLY — PHASE-1 OWNER POLICY ACCEPTED (DEC-109); SOURCE AND VERIFICATION GATES OPEN.
+**Planning verdict:** **DECISION REQUIRED** for unresolved technical/source evidence and later-phase policy. **OD-01..OD-06 policy is now Owner-approved in Accepted DEC-109**; this plan is not itself an Accepted Decision or implementation authorization.
 **Prepared:** November 4, 2026.
 **Repository:** [yamanradwan1-rgb/valet-platform](https://github.com/yamanradwan1-rgb/valet-platform) · [Issue #414](https://github.com/yamanradwan1-rgb/valet-platform/issues/414).
 **Immutable inspection baseline:** [`3ab80f98940147a71ab37262eeff5080234eb6e8`](https://github.com/yamanradwan1-rgb/valet-platform/tree/3ab80f98940147a71ab37262eeff5080234eb6e8).
-**Authority:** Current Issue #414 §§0–11 and §10A, Accepted focused Decisions, repository source-of-truth hierarchy, and direct source inspection at the SHA above.
+**Authority:** Issue #414 §§0–11 and §10A, **Accepted DEC-109 (2026-11-04; later binding Phase-1 Owner policy supersedes relevant §10A candidates)**, other Accepted Decisions and source-of-truth hierarchy, and the historic pinned source inspection.
 **Scope boundary:** Exactly 17 eventual categories, IMPORTANT/CRITICAL only; ALT-14 remains EXTERNAL DEPENDENCY / DEFERRED / DISABLED; no Cash Reconciliation implementation or Issue #415 Live Operations auto-refresh.
 **Evidence legend:** `LOCKED` = binding contract; `DERIVED` = mechanics that follow from LOCKED contracts and verified source; `UNRESOLVED` = choices or recommendations requiring Owner/source verification; `CONTRADICTED` = evidence conflicts with a stated claim. Tests and runtime checks are explicitly distinguished from source inspection.
 
-**Executive technical verdict:** Most underlying operational records exist. The alert-specific aggregation, per-user timing preferences, category-specific authorization, reliable queue/stage episode ordering, authorized Seen receipts, exact-item navigation and measured polling performance do not yet exist as an approved implementation. Phase 1 cannot be called READY until T-01/T-02, chronology, MFA-neutral reads, source projections and real verification gates are satisfied.
+**Executive technical verdict (2026-11-04):** Owner-approved **Phase-1 product/contract policy** is now binding through DEC-109: T-01 ranges, folded ALT-02/03, current-source CA/LM audience for five categories, typed own-user preferences/CAS/MFA/audit, and additive UI placement. This approval does not implement alerts or prove Dispatch ordering, exact source queries, atomic writer compatibility, MFA-neutral reads, navigation or real PG/browser/performance checks. Phase 1 is **NOT READY TO RELEASE**; code implementation remains separately authorized.
 
-**الملخص التنفيذي:** تمت مراجعة Issue #414 على أحدث نسخة مؤكدة من `origin/main`. توجد المصادر التشغيلية لمعظم التنبيهات، لكن عقود التأخير الشخصي (T-01) والصلاحيات الدقيقة (T-02) لم تُعتمد. توجد مخاطر مؤكدة في ترتيب أحداث المهام، وتداخل تنبيهات الاسترجاع، وتجديد نشاط MFA بسبب قراءات Dashboard غير المباشرة. التوصية هي التنفيذ المرحلي بعد اعتماد العقود والتحقق من أمان الصلاحيات والعزل والأداء. ALT-14 يبقى مؤجلاً ومُعطّلاً إلى حين اعتماد مصدر مستقل لإنهاء Cash Reconciliation.
+**الملخص التنفيذي (2026-11-04):** تم اعتماد قرارات OD-01 إلى OD-06 رسميًا ضمن DEC-109، بما فيها حدود التأخير والصلاحيات الخاصة بالمرحلة الأولى وآلية إعدادات المستخدم وموضعها. لم يتم تنفيذ الميزة؛ ترتيب أحداث Dispatch لا يزال بحاجة لإثبات، والحالات غير القابلة للترتيب تُستبعد بدل اختلاق ترتيب. أي Marker أو تعديل Source Schema يحتاج موافقة مستقلة. اختبارات الصلاحيات وMFA وPostgreSQL وواجهة المستخدم والأداء لم تُنفّذ لهذه الميزة. ALT-14 يبقى مؤجلًا وخارج نطاق Cash Reconciliation.
 
 ---
 
@@ -61,8 +61,8 @@ The repository authority hierarchy places Accepted focused Decisions above the B
 |---|---|---|---|---|
 | R01 — Exactly 17 IMPORTANT/CRITICAL Management categories | Issue §§0–2, §10 | Canonical sources exist; Management alert facade absent | `LOCKED` | None on scope |
 | R02 — Derived current cases and selected durable occurrences | Issue §4, P02 | Operational tables and Dispatch/Audit/Geofence events exist; no alert correlation | `LOCKED` | Approve detailed source contracts |
-| R03 — Personal User+Organization timing | Issue §3/§10A; DEC-083 | No typed alert preference model/endpoint | `UNRESOLVED` | T-01 defaults, ranges, write contract |
-| R04 — Source-specific role/Location eligibility | Issue §5/§10A; DEC-059/080/082/100 | General Management authorization exists; category-specific matrix absent | `UNRESOLVED` | T-02 matrix |
+| R03 — Personal User+Organization timing | Issue §3/§10A; DEC-083/**109** | Owner-approved typed preference/limits; implementation absent | `LOCKED` | API/SQL/PG tests and audit compatibility remain |
+| R04 — Phase-1 source-specific role/Location eligibility | Issue §5/§10A; DEC-059/080/082/100/**109** | Phase-1 CA/LM audience approved; exact source readers absent | `LOCKED` | Prove source authority; later-phase T-02 remains open |
 | R05 — Saved retrieval SLA history | DEC-095:19–42,68–86; `schema.prisma:1722–1740` | Saved snapshot exists; NULL means uncovered; grace is new | `LOCKED` | Do not change SLA |
 | R06 — User-specific Seen receipts, occurrences only | Issue §4/§9 | No source-linked User+Org receipt table or endpoint | `LOCKED` | Approve detailed storage/transaction contract before P2 |
 | R07 — No polling-induced Company Admin MFA activity | Issue §5; DEC-078 | Preview can suppress activity; subscription/context reads still record it | `DERIVED` | Implement and prove narrow closure |
@@ -133,13 +133,13 @@ This flow is **proposed**. No named alert route, reader, table or migration is c
 
 **Critical source fact 2 — retrieval phase overlap:** `retrieval/mark-ready-command.ts:100–114` moves a ValetSession to READY while returning `taskStatus: IN_PROGRESS`; `initiate-handoff-command.ts:43–75` keeps the original READY clock. ALT-04 cannot alert solely because a Task remains IN_PROGRESS after READY. The current Session phase must retire ALT-04 and allow ALT-06 instead.
 
-## 5. T-01 Recommended Contract
+## 5. T-01 Owner-Approved Phase-1 Policy (DEC-109)
 
-**Recommendation:** persist one typed timing preference set per authenticated User and Organization, using integer seconds and optimistic concurrency. Start with somewhat tighter maximum delays than those suggested in Issue §10A, because long configurable delays can postpone operational warnings without improving the underlying SLA.
+**Owner-approved (DEC-109):** one typed timing preference set per authenticated User + Organization, integer seconds, optimistic concurrency, and tighter pilot maxima than the historical §10A recommendations. Domain SLA and other users' settings are untouched; implementation is still pending.
 
-These values are **recommendations requiring Owner approval**.
+**These exact defaults and inclusive ranges are Owner-approved in DEC-109** (initial pilot contract, not measured production safety).
 
-| Category | Recommended default | Recommended inclusive range | Issue §10A proposed range | Rationale |
+| Category | Approved default | Approved inclusive range | Historical §10A candidate | Rationale |
 |---|---:|---:|---:|---|
 | ALT-01 — SLA grace | 0 s | 0–60 s | 0–120 s | The alert is already beyond a saved SLA; another two minutes is difficult to justify without pilot evidence |
 | ALT-02 — Initially uncovered queue | 60 s | 0–300 s | 0–600 s | Avoid hiding ten minutes of unassigned work |
@@ -148,13 +148,13 @@ These values are **recommendations requiring Owner approval**.
 | ALT-06 — Ready/handoff delay | 300 s | 60–900 s | 60–900 s | Preserve a practical handoff window |
 | ALT-11 — Unknown payment outcome | 120 s | 60–600 s | 60–600 s | Allow routine reconciliation without masking prolonged uncertainty |
 
-The defaults preserve Issue §10A's proposed values. The tighter maximums are a **pilot recommendation**, not an empirically established safe operating threshold. The Owner may choose the original wider ranges with the trade-off documented.
+DEC-109 accepts the tighter pilot bounds. Wider §10A values remain historical alternative proposals, **not** active approved maximums. Validate pilot performance before enabling polling.
 
 ALT-11 remains IMPORTANT only. The proposed 900-second CRITICAL escalation is **disabled** unless separately approved. All other categories are immediate upon an eligible current source condition or a committed occurrence; no new user-configurable delay is inferred.
 
-### Proposed storage and validation
+### Approved storage/write policy — implementation not run
 
-One conditional, forward-only PostgreSQL migration would introduce a typed preference relation. Its final name is not approved.
+DEC-109 accepts the **architecture/scope** of a focused forward-only PostgreSQL preference migration, **only for future separately authorized implementation**. Exact schema symbols/HTTP route spelling require inspection of repo conventions; no migration has run.
 
 | Field or constraint | Recommendation |
 |---|---|
@@ -170,7 +170,7 @@ One conditional, forward-only PostgreSQL migration would introduce a typed prefe
 | Location behavior | Same preferences across user's authorized Locations within one Organization |
 | Exclusions | No Company/Location override, JSON catch-all, polling preference, disable toggle or Location SLA mutation |
 
-A conditional `GET own effective preferences` contract should return all six values plus revision. A conditional `PUT own complete preferences` should require `expectedRevision` and the full typed value set. Actual route names and DTO identifiers must be accepted in Phase 0.
+DEC-109 accepts **GET own effective preferences** (six values/revision) and **PUT own complete preferences** (six values/`expectedRevision`) under live session, User/Organization and current role/grant checks. Concrete route/DTO symbols must follow existing conventions.
 
 For each write, use one protected transaction to resolve and revalidate current Staff session, User, OrganizationMembership, role, active Organization, applicable Location grant for LM, commercial entitlement and Company Admin MFA. Serialize the per-(Organization, User) key, compare persisted revision and enforce:
 
@@ -179,9 +179,9 @@ For each write, use one protected transaction to resolve and revalidate current 
 - **Stale revision + differing state:** typed conflict (HTTP `409` proposed) and no mutation.
 - **Expired/revoked/wrong tenant/entitlement/MFA failure:** nondisclosing denial and no mutation.
 
-First-write races with no row require a unique database constraint plus deterministic concurrent insertion; a uniqueness exception may not silently overwrite. If personal preference changes enter the append-only tenant audit catalog, the new event and permissible viewers require a focused contract decision; any authorized audit must commit atomically with the change.
+First-write races with no row require a unique database constraint plus deterministic concurrent insertion; a uniqueness exception may not silently overwrite. DEC-109 requires one safe atomic tenant Management audit on actual changes: approved event `MANAGEMENT_ALERT_TIMING_PREFERENCES_CHANGED`, own User/Organization and actor membership, bounded changed-field names and before/after revision **without values/secrets**. No audit on reads, exact no-ops or denials and no audit-reader permission expansion. Audit-writer scope compatibility must be verified before implementation.
 
-Recommend SENSITIVE Company Admin MFA freshness for preference **writes**, because changing delays changes operational attention. Reads remain activity-neutral. This write classification is a **proposed** T-02 detail, not an accepted extension of LM authentication policy.
+DEC-109 requires **SENSITIVE Company Admin MFA within five minutes** for changed personal preference writes. LM uses accepted active-session/Location grants, not newly added TOTP. Reads and automatic renewals are activity-neutral; unrelated Management calls are unchanged.
 
 ### Clock and episode contract
 
@@ -193,28 +193,28 @@ ALT-01 eligibility requires a still-current covered retrieval attempt, non-NULL 
 
 Equality is **not** a breach. Old cancelled attempts cannot be reused for later requests. Changes to Location SLA targets never rewrite the snapshot. See `docs/decisions/DEC-095_MANAGEMENT_KPI_SOURCE_CONTRACTS.md:19–42,68–86` and `packages/database/prisma/migrations/20260917004300_mgt_be_10_kpi_analytics/migration.sql:44–92`.
 
-For ALT-02/03 recommend **one uncovered Task case per proven queue episode** with reason-specific precedence: initial QUEUED uses ALT-02 delay anchored at the QUEUED event; a fresh DECLINED requeue uses ALT-03 delay anchored at the DECLINED event. Do not add, minimize or run both timers concurrently. The episode key must be proven from canonical history; assignment/progression retires it. **Owner approval and same-ms ordering proof are mandatory.**
+DEC-109 approves **one uncovered Task case per proven queue episode** with reason-specific precedence: initial QUEUED uses ALT-02 delay anchored at the QUEUED event; a fresh DECLINED requeue uses ALT-03 delay anchored at the DECLINED event. Do not add, minimize or run both timers concurrently. The episode key must be proven from canonical history; assignment/progression retires it. **Owner policy is accepted; same-millisecond chronological source proof remains a mandatory implementation gate.**
 
 ALT-04 uses the current ACCEPTED/IN_PROGRESS stage-entry source event, resets on a real new stage and retires when retrieval Session reaches READY. ALT-06 starts at the original `ready_at` and continues through HANDOFF_PENDING; it must not reset at handoff initiation.
 
-## 6. T-02 Recommended Authorization Matrix
+## 6. T-02 Accepted Phase-1 Audience; Later-Phase Proposed Matrix
 
-The following is **Prime's proposed recipient policy**. `P` = proposed audience, subject to current source authorization and Owner approval; `G` = new/reconciled category-specific source permission contract required; `D` = denied; `X` = deliberately disabled. None of the `P/G` rows represents approved T-02 permission.
+Under DEC-109, `A` = **approved Phase-1 CA/LM audience**, still requiring currently verified source authorization in API/list/count/detail; `P` = proposed later-phase audience; `G` = later-phase source policy/reader contract not yet approved; `D` = denied; `X` = disabled. Approval of the audience does **not** establish a working source query or new financial/audit permission.
 
 | ALT | Company Admin | Location Manager | Supervisor / Employee / Guest | Source permission and scope condition |
 |---|---|---|---|---|
-| 01 | P | P | D | Current authorized retrieval attempt and saved SLA, exact Location |
-| 02 | P | P | D | Current authorized Task queue and proven uncovered episode |
-| 03 | P | P | D | Current Task plus latest decline/requeue evidence; folded with 02 |
+| 01 | A | A | D | Current authorized retrieval attempt and saved SLA, exact Location |
+| 02 | A | A | D | Current authorized Task queue and proven uncovered episode |
+| 03 | A | A | D | Current Task plus latest decline/requeue evidence; folded with 02 |
 | 04 | P | P | D | Task stage-event visibility and current Session phase |
 | 05 | G | G | D | Committed takeover operation, sanitized detail; DEC-107 gate |
 | 06 | P | P | D | Current retrieval Session and original READY episode |
 | 07 | G | G | D | Terminalized handoff/override audit permission; never proof secrets |
-| 08 | P | P | D | Persisted authorized HIGH/CRITICAL Incident, exact Location |
+| 08 | A | A | D | Persisted authorized HIGH/CRITICAL Incident, exact Location |
 | 09 | G | G | D | Geofence event metadata under precise tracking source visibility |
 | 10 | G | G | D | Specific FAILED Payment authority; aggregate finance insufficient |
 | 11 | G | G | D | Specific payment operation UNKNOWN/REFERENCE_ATTACHED authority |
-| 12 | P | P | D | Current per-viewer Presence `canReview=true`; self-review forbidden |
+| 12 | A | A | D | Current per-viewer Presence `canReview=true`; self-review forbidden |
 | 13 | G | G | D | Committed forced-Shift closure/audit visibility, exact Location |
 | 14 | X | X | D | External cash retirement absent; globally disabled |
 | 15 | G | D | D | CA-only sensitive role/grant revocation event, proposed |
@@ -253,7 +253,7 @@ A **real PostgreSQL 17** HTTP/integration test with MFA bypass **OFF** must demo
 
 | ID / Phase | Severity; source and proposed identity | Timing, eligibility and retirement | Overlap, navigation, verification and readiness |
 |---|---|---|---|
-| **ALT-01 / P1** | CRITICAL; saved retrieval request/session SLA snapshot; current retrieval attempt ID | Active if strict overdue saved target+grace, NULL excluded; retire READY/cancel/terminal or superseding attempt | Suppresses same-attempt ALT-04. Exact authorized Session/retrieval. Test NULL/equality/historical target/cancel/retry. **Blocked T-01/T-02** |
+| **ALT-01 / P1** | CRITICAL; saved retrieval request/session SLA snapshot; current retrieval attempt ID | Active if strict overdue saved target+grace, NULL excluded; retire READY/cancel/terminal or superseding attempt | Suppresses same-attempt ALT-04. Exact authorized Session/retrieval. Test NULL/equality/historical target/cancel/retry. **Policy accepted; code/evidence pending** |
 | **ALT-02 / P1** | IMPORTANT; `tasks` + `dispatch_events.QUEUED`; Task+initial uncovered episode | Current QUEUED/unassigned beyond delay; retire on assignment/progression/terminal | Fold with ALT-03. Exact Task; queue and same-ms tests. **Blocked episode/T-01/T-02** |
 | **ALT-03 / P1** | IMPORTANT; `dispatch_events.DECLINED`; Task+requeue episode | Current uncovered QUEUED after committed decline; use decline clock, retire on assignment/progression | Same ALT-02 family, never second badge. Repeated decline and old-history tests. **Blocked episode/T-01/T-02** |
 | **ALT-04 / P2** | IMPORTANT; ACCEPTED/IN_PROGRESS Task + authoritative stage-entry Dispatch event | Active when current eligible stage duration exceeds delay; reset at stage transition; retire on progression or retrieval READY | ALT-01 wins overdue retrieval overlap; ALT-06 starts after READY. Test same-ms, reset, READY+Task IN_PROGRESS. **Blocked chronology** |
@@ -290,8 +290,8 @@ The Issue's Owner-approved release composition remains unchanged. Source impleme
 
 | Phase | Exact intended delivery | Readiness |
 |---|---|---|
-| **Phase 0 — Decisions and contracts** | Approve T-01, T-02, source clocks/episodes, persistence/DTOs, occurrence identity, source links, MFA-neutral reads, SQL performance strategy and UI allowlist | **Decision required** |
-| **Phase 1 — First usable release** | ALT-01, 02, 03, 08, 12; personal preferences, bell/panel, authorized previews/count, exact navigation, foreground polling, MFA-neutral closure, API/PG/browser tests | **Blocked T-01/T-02 and queue chronology** |
+| **Phase 0 — Decisions and contracts** | Approve T-01, T-02, source clocks/episodes, persistence/DTOs, occurrence identity, source links, MFA-neutral reads, SQL performance strategy and UI allowlist | **DEC-109 policy accepted; source proof open** |
+| **Phase 1 — First usable release** | ALT-01, 02, 03, 08, 12; personal preferences, bell/panel, authorized previews/count, exact navigation, foreground polling, MFA-neutral closure, API/PG/browser tests | **Policy accepted; source chronology and implementation pending** |
 | **Phase 2 — Operational progression and durable occurrences** | ALT-04, 05, 06, 07, 09; occurrence identity, authorized idempotent Seen receipts, correlation, navigation and regression tests | **Blocked Phase 1, stage/episode contracts and DEC-107 reconciliation** |
 | **Phase 3 — Financial and administrative** | ALT-10, 11, 13, 15, 16, 17; financial/source security and restricted subscription utility | **Blocked source-specific T-02 and earlier foundation** |
 | **ALT-14 external** | No work authorized under #414; cash completion/retirement requires separately approved workflow | **EXTERNAL / DEFERRED / DISABLED** |
@@ -335,8 +335,8 @@ Independent review roles below are **expected future reviewers**, not actual imp
 
 | ID / dependency | Scope, input → output and repository area | Security, data and acceptance verification | Reviewer; estimate; status |
 |---|---|---|---|
-| **414-00-01** Timing contract | Issue §§3,10A + DEC-083/095 → six-value timing, ALT-02/03 fold, preference revision; `docs/decisions`, `packages/contracts/src` | Explicit range/default, NULL SLA, bounded seconds, retry/CAS; record Owner choice before schema | Product + DB; **M; OWNER GATE** |
-| **414-00-02** Category permission contract | Issue §§2,5,10A + DEC-059/078/080/082/088/099/100 → 17-row recipient/source matrix; docs, Dashboard/Management authorization | Current Staff session, exact Location, MFA/entitlement, negative preview/count/detail/Seen tests | Security + Product; **L; OWNER GATE** |
+| **414-00-01** Timing contract | DEC-109 Accepted + DEC-083/095 → six-value timing, ALT-02/03 fold, preference revision; `docs/decisions`, `packages/contracts/src` | Explicit range/default, NULL SLA, bounded seconds, retry/CAS; Owner choice accepted; validate DTO/DB/source clocks | Product + DB; **M; POLICY LOCKED / SOURCE PROOF GATED** |
+| **414-00-02** Category permission contract | DEC-109 Accepted for P1 + DEC-059/078/080/082/088/099/100 → five P1 approved rows; later rows require OD-07/08; docs, Dashboard/Management authorization | Current Staff session, exact Location, MFA/entitlement, negative preview/count/detail/Seen tests | Security + Product; **L; P1 POLICY LOCKED / SOURCE PROOF GATED** |
 | **414-00-03** Episode identity and chronology | Task/Dispatch, retrieval, audit → accepted total-order and episode rules; `apps/api/src/modules/dispatch`, `retrieval`, schema/docs | Same-ms ties, stage/reset, latest queue, READY overlap; migration only if accepted source marker required | Dispatch + DB; **L; SOURCE GATE** |
 | **414-00-04** UI and performance contract | Live Policies Studio/topbar and candidate SQL → additive UI allowlist, safe navigation plan, performance method; Dashboard/API areas | Frozen DOM/screenshots, no #415, branch budgets and disabled default | UI/a11y + Security + DB; **M; CONTRACT GATE** |
 
@@ -345,11 +345,11 @@ Independent review roles below are **expected future reviewers**, not actual imp
 | ID / dependency | Scope, input → output and repository area | Security, DB/retry and acceptance verification | Reviewer; estimate; status |
 |---|---|---|---|
 | **414-01-01** MFA-neutral reads; Issue §5 | `management-context.service.ts`, `management-commercial-read.service.ts`, Dashboard auth/scope caller → automatic/manual subscription/context neutrality | No migration; preserve session/MFA/locks; real PG MFA bypass OFF proves 30m/8h, token renewal and ordinary interactive activity | Security + Auth; **M; CONTRACT DERIVABLE** |
-| **414-01-02** Personal preferences; 00-01/02 | `packages/database`, `packages/contracts`, focused `apps/api` Management API → typed own User+Org GET/PUT | **Proposed design requires a forward migration, pending contract approval**; composite FK/CHECK, CAS, first-insert race, idempotent exact retry; cross-user/tenant/role/MFA | DB + Security; **L; BLOCKED T-01/T-02** |
+| **414-01-02** Personal preferences; 00-01/02 | `packages/database`, `packages/contracts`, focused `apps/api` Management API → typed own User+Org GET/PUT | **DEC-109 accepted forward migration design (not executed; implementation separately authorized)**; composite FK/CHECK, CAS, first-insert race, idempotent exact retry; cross-user/tenant/role/MFA | DB + Security; **L; POLICY LOCKED / IMPLEMENTATION NOT RUN** |
 | **414-01-03** ALT-01; 01-02/00-02 | Saved retrieval SLA/Session source → eligible overdue cases in focused Dashboard reader | Bounded read-only query; NULL/equality/cancel/new attempt; current source auth/grace | Retrieval + DB; **M; BLOCKED CONTRACT** |
 | **414-01-04** ALT-02/03 fold; 00-03/01-02 | Dispatch and Task reader → single current uncovered episode | No Task `updated_at` clock; same-ms, decline, assignment, requeue race; source index migration conditional | Dispatch + Security; **L; BLOCKED CHRONOLOGY** |
-| **414-01-05** ALT-08; 00-02 | `dashboard/incidents-query.ts`, Incident contracts → severity-filtered cases and exact safe target | Filter before LIMIT, sanitized fields, older-than-first-page and cross-Location negative tests | Incident + Security; **M; BLOCKED T-02** |
-| **414-01-06** ALT-12; 00-02 | `management/presence-management-exception.ts` → currently `canReview` cases and exact target | Reuse source predicate *inside* eligible SQL; self, expired, challenged, revoked and count tests | Presence + Security; **M; BLOCKED T-02** |
+| **414-01-05** ALT-08; 00-02 | `dashboard/incidents-query.ts`, Incident contracts → severity-filtered cases and exact safe target | Filter before LIMIT, sanitized fields, older-than-first-page and cross-Location negative tests | Incident + Security; **M; P1 AUDIENCE LOCKED / SOURCE PROOF OPEN** |
+| **414-01-06** ALT-12; 00-02 | `management/presence-management-exception.ts` → currently `canReview` cases and exact target | Reuse source predicate *inside* eligible SQL; self, expired, challenged, revoked and count tests | Presence + Security; **M; P1 AUDIENCE LOCKED / SOURCE PROOF OPEN** |
 | **414-01-07** Preview + correlation; 01-03–06 | Focused `apps/api/src/modules/dashboard` facade + `packages/contracts` DTO → safe cases, priority, stable identity, bounded 20+ count | Authorize before source/count, correlate before limit, no activity on GET, no secrets, index/PG plan | Backend + DB/Security; **L; DEPENDENT** |
 | **414-01-08** Timing Settings UI; 01-02 | Active `/policies` Policies Studio → separate self/Org subsection visible to CA and LM | No Company/Location config changes; revision conflict, independent error, EN/AR and existing draft/navigation guards | Frontend + a11y; **M; DEPENDENT** |
 | **414-01-09** Bell, panel and poll; 01-01/07 | `components/shell/topbar.tsx`, shell props, feature-local coordinator/styles → compact authorized attention | Foreground single-flight, timeout/jitter/backoff, scope epoch clear, false-zero/error, extract near-300-line files | Frontend + Security; **L; DEPENDENT** |
@@ -410,7 +410,7 @@ This section records **observed source limitations** separately from **future im
 
 ### Transaction-level preference proof
 
-The proposed preference mutation is conditional until the Owner approves T-01/T-02. Acceptance requires a real SQL transaction that (1) resolves the authenticated Staff session and User from the credential; (2) locks/revalidates session, active OrganizationMembership and permitted role; (3) establishes Organization ownership and exact LM Location grant when relevant; (4) verifies current entitlement and CA MFA assurance using accepted lock order; (5) obtains a serialized per-(Organization, User) preference writer boundary; (6) validates expected revision and all six bounded integer-second values; (7) applies an actual change and required typed audit **atomically**; and (8) returns only safe own-user DTO data. Exact desired-state retry is a no-op; stale differing retry is a conflict. No mutation or audit occurs on unauthorized/error/no-op outcomes. Real PG tests must race two first inserts, concurrent revisions, revocation and a provider/network unknown response.
+DEC-109 now accepts the preference mutation policy; its source implementation and real DB transaction proof remain unperformed. Acceptance requires a real SQL transaction that (1) resolves the authenticated Staff session and User from the credential; (2) locks/revalidates session, active OrganizationMembership and permitted role; (3) establishes Organization ownership and exact LM Location grant when relevant; (4) verifies current entitlement and CA MFA assurance using accepted lock order; (5) obtains a serialized per-(Organization, User) preference writer boundary; (6) validates expected revision and all six bounded integer-second values; (7) applies an actual change and required typed audit **atomically**; and (8) returns only safe own-user DTO data. Exact desired-state retry is a no-op; stale differing retry is a conflict. No mutation or audit occurs on unauthorized/error/no-op outcomes. Real PG tests must race two first inserts, concurrent revisions, revocation and a provider/network unknown response.
 
 ### Transaction-level Seen proof
 
@@ -489,7 +489,7 @@ The backend must enforce source-specific hard bounds even if frontend polling is
 | **V02 — Source temporal** | Saved SLA NULL/equality/request reattempt, decline requeue vs initial queue, tied same-ms committed Dispatch events, stage entry/reset, READY with Task IN_PROGRESS, handoff without ready reset | **BLOCKED** chronology/Owner contract; tests **NOT RUN** |
 | **V03 — Schema/constraints** | Unique User+Org preference, composite tenant FK, SQL CHECK, first insert CAS, unique Seen key, source FK/key constraints, retention and forward-only migration/fixtures | **BLOCKED** contract; tests **NOT RUN** |
 | **V04 — Real PG races** | Concurrent preference write/no-op/409, duplicate Seen from two tabs, revoke during authorization/use, exact-source operation idempotency and transaction rollback | **PLANNED / NOT RUN** |
-| **V05 — Negative auth** | Wrong Organization/Location/grant, Supervisor/Employee/Guest Management denial, expired Staff session, CA/LM source differences, exact payment detail, no count/detail/Seen oracle | **BLOCKED** T-02; tests **NOT RUN** |
+| **V05 — Negative auth** | Wrong Organization/Location/grant, Supervisor/Employee/Guest Management denial, expired Staff session, CA/LM source differences, exact payment detail, no count/detail/Seen oracle | **SOURCE AUTH PROOF PENDING**; tests **NOT RUN** |
 | **V06 — Presence and Incident** | `canReview=true` before count/pagination, requester self/expiry/challenge, severity filtered inside SQL before LIMIT, inaccessible/off-page exact item | **PLANNED / NOT RUN** |
 | **V07 — MFA-neutral full request** | **MFA bypass OFF**; idle 30m, absolute 8h, sensitive 5m, preview+refresh+subscription/context does not update `last_admin_activity_at`, mutations still protected | **CRITICAL BLOCKER / NOT RUN** |
 | **V08 — Credential and revocation** | Refresh/token rotation/revoked session, DEC-108 bounded old in-flight versus fresh new deny, entitlement restricted shell, A→B→A delayed success/error fenced | **PLANNED / NOT RUN** |
@@ -507,7 +507,7 @@ The backend must enforce source-specific hard bounds even if frontend polling is
 
 ### Phase acceptance gates and outcomes
 
-- **Phase 0:** all Phase 1 T-01 and T-02 values/permissions approved, exact queue episode contract settled, source query/DTO/storage/policy/API/UI allowlist documented, no unresolved binding conflict. **Current: BLOCKED by Owner choices.**
+- **Phase 0:** Phase-1 OD-01..06 policy is **Accepted in DEC-109**; authoritative Dispatch chronology, source reader/DTO/audit-writer compatibility and implementation authorization remain open. **Current: POLICY LOCKED / SOURCE PROOF OPEN.**
 - **Phase 1:** five categories exact, no false alert/count disclosure, no MFA idle extension, authorized Settings and source navigation, PG17 and mounted E2E/visual/bounded performance passing. **Current: NOT RUN and BLOCKED.**
 - **Phase 2:** five additional categories, terminalized/committed event identity, real Seen source authorization/retry uniqueness, overlap retirement and no privacy leak, full regression. **Current: BLOCKED / NOT RUN.**
 - **Phase 3:** six additional enabled categories with approved financial/staff/subscription rights, unknown payment separated from failure, restricted subscription utility, full PG/browser/CI evidence; ALT-14 explicitly disabled. **Current: BLOCKED / NOT RUN.**
@@ -517,7 +517,7 @@ A future failing test must be recorded **FAILED** with reproduction, evidence, r
 
 ## 13. Independent Review Findings
 
-The review applied the VAYLET Code Review adversarial checklist to **existing source and proposed contracts**. There is **no implementation diff** to review, so no formal patch-security verdict, passed-test claim or `CLEAN TO MERGE` assertion is warranted. Independent W1 cross-review was undertaken after its own requirements work, and W5 independently inspected active UI/refresh code. W3/W4 startup failures were recorded; Prime owns direct checks in those areas.
+The original review applied the VAYLET Code Review adversarial checklist to **existing source and then-proposed contracts**. DEC-109 subsequently accepted the P1 policy, without implementation tests. There is **no implementation diff** to review, so no formal patch-security verdict, passed-test claim or `CLEAN TO MERGE` assertion is warranted. Independent W1 cross-review was undertaken after its own requirements work, and W5 independently inspected active UI/refresh code. W3/W4 startup failures were recorded; Prime owns direct checks in those areas.
 
 | Cross-review finding / severity | Independent evidence | Prime reconciliation and implementation gate |
 |---|---|---|
@@ -531,70 +531,32 @@ The review applied the VAYLET Code Review adversarial checklist to **existing so
 | **CR-08 — indexes and partial counts do not prove 60s safety / Significant** | `schema.prisma:1304–1306,1332–1333,1938,2715` indexes have different access patterns; Incident severity and Presence reviewability are not source-filtered in first-page readers | **Accepted.** Prove bounded per-family source SQL, correct folded 20+ count and real PG17 p95/pool waits before enabling poll |
 | **CR-09 — LM Settings section visibility / Significant** | Mounted `/policies`; `ui/catalog.ts:217–241` excludes existing Notifications section for LM | **Accepted.** Add isolated approved LM-visible personal Timing subsection, preserve frozen Company/Location settings; compare DOM/screenshots |
 | **CR-10 — stale response/permission revocation / Significant** | Existing `ScopeGenerationGuard` is reusable; Dashboard API fences identity/session but not alert preference and Location epoch; DEC-108 permits bounded in-flight completion | **Accepted.** New monotonic alert scope epoch, data purge on changes and source-authoritative fresh request checks, without inventing last-byte fencing |
-| **CR-11 — unapproved contract promotion / Critical governance defect** | Issue §10A T-01/T-02 are recommendations, DEC-107 Proposed, ALT-14 external, ALT-11 CRITICAL escalation unapproved | **Accepted.** All such contracts classified UNRESOLVED/disabled; none silently treated as an Accepted DEC or READY |
+| **CR-11 — unapproved contract promotion (historic finding; Phase-1 policy since accepted)** | Issue §10A T-01/T-02 are recommendations, DEC-107 Proposed, ALT-14 external, ALT-11 CRITICAL escalation unapproved | **2026-11-04 update:** DEC-109 accepts P1 OD-01..06 only; later-phase rights/DEC-107/ALT-11 CRITICAL/ALT-14 remain gated. No implementation readiness claim |
 | **CR-12 — UI Freeze/Issue #415 scope creep / Significant** | Issue §6 permits four additive surfaces; Live Operations auto-refresh is separate #415 | **Accepted.** Restrict future task diffs to bell/panel, personal Timing, safe links and feature-local wiring/tests; no #415 or redesign |
 
 **Worker-specific conclusions:** W1 confirmed Issue/DEC authority, 17 IDs and proposed/Accepted distinction; W2 exposed event ordering, personal timing/CAS and ALT-02/03 fold; W5 located the live Settings route, near-limit files, A→B→A fencing and transitive MFA bug; Prime validated direct current-source permissions and canonical event identities. W1's independent review challenged the most material claims with pinned source-line references. There were no claims of independent runtime execution.
 
 **Prime resolution:** The eight principal security/contract objections were accepted and integrated into Sections 5–12 and the WBS. The broader audit added UI placement, stale response and governance gates. None requires rewriting an Accepted Decision; **material gaps remain unresolved**. The correct verdict is `DECISION REQUIRED` rather than a false `READY TO IMPLEMENT` or an unproven `REPOSITORY CONTRADICTION`. When later implementation commits exist, repeat this adversarial checklist against the **actual diff**, its source contracts, live migrations and executed PG/browser tests.
 
-## 14. Owner Decisions Required
+## 14. Owner Decisions — Phase 1 Accepted, Later Phases Open
 
-This register includes **genuinely unresolved choices**, with the minimum precise approval, rationale and what can safely proceed. It deliberately does **not** request reapproval of the 17-ID scope, two severities, hybrid design, current-vs-occurrence distinction, seven-day occurrence attention, CA/LM-only Management audience, STRICT additive UI Freeze, Phase boundaries, DEC-078/108, ALT-14 exclusion or #415 exclusion. Those are already locked.
+OD-01..OD-06 are now **Owner-accepted in DEC-109**. This register retains later-phase OD-07/08 and the external ALT-14 dependency; all prior binding product, UI Freeze, MFA and #415 exclusions remain in force.
 
-### OD-01 — T-01 numerical defaults, bounds and units (Phase 0; blocks Phase 1 preference UI/API)
 
-- **Issue and evidence:** Issue §§3,10A recommends six delay default/range pairs without final Owner approval. DEC-095 fixes historical Location SLA independently. No personal alert preference schema exists.
-- **Viable options:** A: accept Issue §10A original inclusive ranges: ALT-01 `0 / 0–120`, ALT-02 `60 / 0–600`, ALT-03 `0 / 0–120`, ALT-04 `300 / 60–1800`, ALT-06 `300 / 60–900`, ALT-11 IMPORTANT `120 / 60–600` (seconds). B: keep those defaults but cap ALT-01 at **60**, ALT-02 at **300**, ALT-04 at **900** as in Section 5. C: choose explicit alternative bounded integer seconds or a finite approved dropdown value set.
-- **Trade-offs:** Wider ranges offer flexibility but can hide overdue/unassigned/stuck cases; tighter caps may cause avoidable alert volume without pilot operational data. Discrete values simplify UI/SQL compatibility but reduce precision.
-- **Prime recommendation:** **B** pilot caps and identical §10A defaults, strict integer seconds; later adjust ranges only on evidence. No user-controlled polling/disable. ALT-11 CRITICAL remains disabled.
-- **Minimum approval:** Exact six defaults, min/max or discrete allowed values, units, and whether changing them is sensitive for CA.
-- **Can proceed without it:** Inspect source clocks, analyze performance, implement neither preference schema nor user-facing delay settings.
+### OD-01..OD-06 — Accepted Phase-1 policy (DEC-109; 2026-11-04)
 
-### OD-02 — ALT-02/03 folded case and delay precedence (Phase 0; blocks Phase 1 uncovered queue)
+**Owner approval recorded:** Prime's recommended choices for the six Phase-1 decisions are now binding in [DEC-109](../decisions/DEC-109_ISSUE_414_MANAGEMENT_ALERT_PHASE1_POLICY.md). Their old proposals/options are historical and no longer outstanding. Approval is **policy**, not evidence that code, source chronology, migration, API contracts, tests or release exist.
 
-- **Issue and evidence:** §10A recommends folding but does not settle two competing grace periods. `decline-task-command.ts:23–49` requeues a Task and persists a DECLINED event; `assign-task-command.ts` covers it on assignment.
-- **Viable options:** A: initial QUEUED uses ALT-02 clock/delay, later declined requeue uses ALT-03 clock/delay, one case at a time. B: take the minimum of both delays for every uncovered case. C: show separate category cases.
-- **Trade-offs:** A reflects real episode reason; B loses the policy distinction and may fire unexpectedly; C duplicates attention/count for the same Task.
-- **Prime recommendation:** **A**, with one current uncovered Task episode keyed by proven source chronology.
-- **Minimum approval:** Reason-based precedence, queue/requeue source clock and retirement identity, and one-case dedup behavior.
-- **Can proceed without it:** Generic source inventory and test specifications; do not enable ALT-02/03 or count their unproven episodes.
+| Decision | Approved Owner choice | Still-open technical gate |
+|---|---|---|
+| **OD-01 ACCEPTED** | Option B: exact six defaults/inclusive integer-second caps in §5; no ALT-11 CRITICAL escalation | Typed validation, SQL constraints and pilot threshold/performance proof |
+| **OD-02 ACCEPTED** | Option A: **one** uncovered Task case, ALT-02 initial QUEUED clock, ALT-03 actual decline/requeue clock | Prove current episode source identity/retirement under concurrency |
+| **OD-03 SAFETY POLICY ACCEPTED / SOURCE PROOF OPEN** | Investigate existing total order first. For ambiguous episodes **fail closed**. New atomic per-Task marker is **not** authorized without a separate focused Owner contract | Real-PG same-ms, rollback, ordering and legacy proof; ALT-02/03 not READY without it |
+| **OD-04 ACCEPTED** | Typed per-(Organization,User) six-field preferences, own GET/full PUT, revision/CAS, 409 conflicts, CA sensitive 5-min MFA, atomic safe tenant audit only on changes | Migration and API source/writer compatibility; no code/migration execution yet |
+| **OD-05 ACCEPTED FOR PHASE 1** | CA and exact-granted LM for ALT-01/02/03/08/12 **only**; source authorization before preview/count/navigation; no Supervisor/Employee/Guest bell | Exact source-reader queries/negative tests, current grant/MFA/entitlement validation |
+| **OD-06 ACCEPTED** | Isolated personal Timing subsection on mounted `/policies`; minimal management bell/panel and narrow safe exact source navigation within UI Freeze | UI/browsers, no frozen layout changes, AR/EN and a11y proof |
 
-### OD-03 — Authoritative Dispatch episode order (Phase 0; blocks ALT-02/03 and ALT-04)
-
-- **Issue and evidence:** Timestamp(3)+random UUID does not define chronological order for same-millisecond commits; no current authoritative source stage-entry column.
-- **Viable options:** A: demonstrate a reliable persisted source total order from existing facts through real PG edge-case proof, with a conservative fallback for ambiguous legacy rows. B: approve a minimal per-Task monotonic episode/stage marker written atomically by existing Dispatch commands and a forward-only migration, preserving event history. C: omit ambiguous episodes from attention until supported, accepting reduced coverage.
-- **Trade-offs:** A avoids schema work but may not be provable; B adds controlled source-domain storage/migration and cross-command race work; C preserves truth at the cost of incomplete coverage and operational visibility.
-- **Prime recommendation:** Investigate **A** first. If unprovable, approve the smallest correct **B**, retaining **C** as the safe legacy fallback. Do not order by random UUID as if it were a sequence.
-- **Minimum approval:** The accepted canonical episode ordering rule and, if needed, a narrow atomic source marker/migration with ownership/tests.
-- **Can proceed without it:** ALT-01/08/12 source reader and MFA-neutral work after their own authorization contracts; ALT-02/03 remains off.
-
-### OD-04 — Personal preference persistence, API, CAS, MFA and audit classification (Phase 0; blocks Phase 1 Settings)
-
-- **Issue and evidence:** Issue requires per-User+Org server persistence; existing Company/Location Management Settings endpoints are CA-only and have incompatible authority/scope. `schema.prisma:779–796,877–935` provides a composite membership uniqueness contract.
-- **Viable options:** A: focused typed User+Organization relation, single row/revision CAS with own-user GET/PUT, strict SQL CHECKs and optional atomic typed audit if accepted. B: reuse Company/Location settings or untyped JSON object. C: client/local-only preferences.
-- **Trade-offs:** A requires one forward migration but provides tenant integrity, retry safety and independent personal policy; B conflates global policy with individual attention and weakens bounded typing; C violates server-side multi-device persistence.
-- **Prime recommendation:** **A**. Decide sensitive CA write vs standard fresh MFA, whether preference writes enter the tenant audit allowlist, and exact DTO/API semantics. Exact field/route names are conditional.
-- **Minimum approval:** Typed key/columns, defaults representation, revision/desired-state retry and conflict contract, own-user authorization, CA MFA classification, typed audit policy if required.
-- **Can proceed without it:** Read-only contract checks, source queries and standalone MFA-neutral read closure after implementation authorization; no schema writes.
-
-### OD-05 — Phase 1 T-02 exact audience and source actions (Phase 0; blocks entire Phase 1)
-
-- **Issue and evidence:** Issue §§5,10A recommends a recipient matrix but says source-reader compatibility is unresolved. Existing CA/LM Management/Incident/Task/Presence permissions differ, and unauthorized badge/detail leakage is possible.
-- **Viable options:** A: approve CA and current exact-granted LM for **ALT-01/02/03/08/12**, conditional on each current source permission with no Supervisor/Employee/Guest bell, and approve only safe source-specific list/count/preview/detail/Seen actions. B: CA only for selected categories pending LM source proof. C: broadly reuse generic Dashboard or Audit read capabilities without per-source proof.
-- **Trade-offs:** A matches the target Management workflow while demanding focused per-source enforcement; B narrows early usefulness for LM; C risks cross-role disclosure and violates T-02's central purpose.
-- **Prime recommendation:** **A**, with source predicates applied before count/limit, selected exact Location for LM, committed source checks, no sensitive fields and nondisclosing inaccessible details. Later-phase permission questions may be deferred to those phases.
-- **Minimum approval:** The five Phase 1 CA/LM rows, exact Organization/Location source rights, count/preview/direct-item policies and own-user preference read/write authority; deny other roles.
-- **Can proceed without it:** Static reader inventory and SQL plan prototyping with fixtures. No production Management bell/count/preview enabling.
-
-### OD-06 — Exact UI subsection and source navigation contracts (Phase 0/1; blocks user-visible completion)
-
-- **Issue and evidence:** §6 locks four additive UI surfaces; current mounted `/policies` has CA-only existing Notifications section and 50-row local Task/Incident drawers. The Owner has not picked precise insertion/navigation behavior when an existing frozen surface cannot support it.
-- **Viable options:** A: one feature-local personal Timing subsection in live Policies Studio visible to CA and LM; feature-local topbar bell prop; add narrowly authorized exact-item read/select contracts without redesign. B: place Timing under existing CA-only Notifications area and withhold LM. C: widen existing page/shell redesign to accommodate alerts.
-- **Trade-offs:** A needs focused insertion/extraction but preserves the freeze and full LM audience; B violates user audience; C violates frozen UI without a new Owner exception.
-- **Prime recommendation:** **A**. Existing controls/order/geometry must remain, including draft navigation and AR/EN light/dark/mobile.
-- **Minimum approval:** Confirm exact additive location if the frozen placement is materially ambiguous, and authorize only the narrow source-specific exact-item selector/detail behavior. No broad page redesign.
-- **Can proceed without it:** Server authorization and preference contract investigation, screenshot baseline inventory; UI may not claim completed navigation.
+OD-07/08 remain later-phase decisions. **No implementation has been authorized by this plan/Decision**, and policy acceptance does not close the Dispatch chronology technical blocker.
 
 ### OD-07 — Phase 2 occurrence rights and DEC-107 compatibility (Later Phase 0/P2 gate)
 
@@ -620,25 +582,25 @@ ALT-14's eventual source retirement remains **EXTERNAL / DEFERRED / DISABLED**, 
 
 ### Decision sequencing and smallest Phase 1 approval set
 
-The immediate minimum is **OD-01 through OD-06**, scoped to Phase 1, plus explicit authorization for later implementation work. OD-03 may conclude that source proofs are sufficient; if not, approval of a narrow source marker is required. OD-07 and OD-08 can be deferred until the matching Phase 2/3 contracts are ready. Neither the independent review nor this published Markdown is itself Owner approval of any proposed contract.
+**Owner's Phase-1 OD-01..OD-06 policy decisions are accepted.** What remains is **technical source proof and separately authorized implementation**, not a second approval of the same policies. OD-03's accepted fail-closed rule does not prove chronology; any new atomic marker/migration requires a separate focused Owner contract. OD-07/08 remain later-phase decision gates.
 
-## 15. Final Planning Verdict
+## 15. Final Planning Verdict — Updated after Owner Approval (2026-11-04)
 
-**Final verdict: `DECISION REQUIRED`.**
+**Final planning verdict: `DECISION REQUIRED` for technical evidence and later phases; DEC-109 now resolves OD-01 through OD-06 policy.**
 
-The immutable `origin/main` review proves canonical records and considerable reusable authorization, source-query, Dashboard and test infrastructure. It does **not** prove that a Management alerts feature is implemented, deployable or ready. The 17-category target and three delivery phases are locked, but personal timing ranges, ALT-02/03 folded delay, authoritative Task event ordering, recipient/source permissions and exact deep-link contracts remain Owner/source gates. The transitive Company Admin MFA activity issue is a concrete Phase 1 correctness blocker. Query cost and UI Freeze acceptance must be measured against the actual implementation before activation. ALT-14 cannot be called delivered because its external canonical cash retirement source does not exist.
+The Owner approved the actual Phase-1 policy for T-01 and the five-category T-02 recipients, their exact personal timing, ALT-02/03 one-case handling, preference/CAS/MFA/audit contract and feature-additive placement. **This is not evidence of implementation or authority to start coding.** Dispatch same-ms event ordering, source authorization/DTO/writer compatibility, correct source episode attribution, neutral MFA renewal, counted/paginated SQL performance, exact-detail navigation and actual PG/browser tests still need proof. Do not describe ALT-02/03 as READY until the source chronology is proven; a new source marker is not authorized without separate focused approval.
 
-| Scope | Planning readiness | What must change before implementation activation |
+| Scope | Policy status | Remaining to implement / verify |
 |---|---|---|
-| Phase 0 | **DECISION REQUIRED** | OD-01–06 and source ordering/API/auth/UI contracts |
-| Phase 1 / ALT-01,02,03,08,12 | **NOT READY** as a release; isolated MFA-neutral source fix is contract-derivable | T-01/T-02, current queue episode, safe source queries/detail, real PG/browser/MFA/perf proofs |
-| Phase 2 / ALT-04,05,06,07,09 | **BLOCKED** | P1, stage clock, approved Seen identity and permissions, DEC-107 reconciliation, privacy/source proof |
-| Phase 3 / ALT-10,11,13,15,16,17 | **BLOCKED** | P2 foundations, per-payment and staff-security source rights, restricted-shell contract, executed performance/regression |
-| ALT-14 | **EXTERNAL DEPENDENCY / DEFERRED / DISABLED** | Separately accepted post-force-end cash completion/retirement outside #414 |
-| Runtime/CI/release | **NOT RUN** | Actual migration, tests, benchmarks, visual freeze, independent implementation diff review, GitHub CI, separate rollout approval |
+| **Phase 0** | **OD-01..OD-06 ACCEPTED in DEC-109** | Prove Dispatch ordering; align current source readers and safe audit writer; record any necessary separate marker decision |
+| **Phase 1 / ALT-01/02/03/08/12** | **Owner audience and timing LOCKED; NOT READY for activation** | Actual typed preferences and source queries, MFA-neutral reads, bell/panel, exact navigation, race/security/PG/browser and performance gates |
+| **Phase 2 / ALT-04/05/06/07/09** | **OD-07 OPEN; BLOCKED** | Phase 1 foundation, stage order, Seen contract, DEC-107 reconciliation, tracking/custody privacy |
+| **Phase 3 / ALT-10/11/13/15/16/17** | **OD-08 OPEN; BLOCKED** | Finance/staff/subscription source-specific rights and tests; no ALT-11 CRITICAL escalation |
+| **ALT-14** | **EXTERNAL / DEFERRED / DISABLED** | No Cash Reconciliation work under #414, no false 17/17 claim |
+| **CI and release** | **NOT RUN for feature implementation** | Real code diff, actual migrations/tests/performance/CI and separate activation approval |
 
-**Planning quality gates checked:** all ALT-01..ALT-17 IDs enumerated; ALT-14 disabled; T-01/T-02 unapproved; ALT-11 CRITICAL escalation unapproved; no new Supervisor/Employee/Guest alert authority; no cross-tenant/Location expansion; no source mutation on GET/poll; no hidden MFA activity extension acceptable; badge counts require source authority; no outbound `Notification` reuse; no invented accepted endpoint/migration/event names; no source-view redesign; no #415 refresh; no invented passed tests/CI/production proof; DEC-107 Proposed and DEC-108 accepted in-flight allowance preserved.
+**Historical evidence:** Sections 1–13 document the pinned source review and future tasks, not completed implementation. The present docs-only owner decision update must not be represented as executed testing. Existing code source refs must be rechecked at implementation HEAD.
 
-**Recommended first implementation slice after separate Owner authorization:** **414-01-01 — narrow Company Admin MFA-neutral subscription/context read closure**, after the implementation owner verifies Issue #414 §5, DEC-078, current exact Staff-session/MFA/lock semantics and all automatic/manually invoked caller paths. It requires no database migration, changes only the identified activity-recording side effects, and must be accepted only after real PostgreSQL 17 HTTP/integration tests with MFA bypass **OFF** prove the idle/absolute/sensitive clocks are unchanged by preview + token renewal + context/subscription refresh, while ordinary interactive actions still use their accepted safeguards. Independent security cross-review and source diff check are required.
+**Recommended first independently authorized implementation slice:** 414-01-01 (CA subscription/context MFA-neutral read closure) with real PostgreSQL 17 HTTP/integration proof, MFA bypass OFF and independent security review. It is **not** authorized by this docs merge.
 
-**Exact remaining Phase 1 Owner decisions after that first slice:** OD-01 (six timing defaults/ranges/units); OD-02 (one ALT-02/03 reason-specific queue episode); OD-03 (chronological source ordering or approved atomic marker/legacy fail-closed); OD-04 (typed personal preferences, CAS/own-user/API and CA write MFA/audit); OD-05 (five-category exact CA/LM source/preview/count rights); OD-06 (strict additive LM-visible Timing placement and exact safe source navigation). Phase 2/3 decisions OD-07/08 remain later gates. Do not begin source implementation, migrations, feature activation, merges or deployment merely because this plan has been published.
+**Outstanding choices before each future phase:** Phase-1 source chronology technical evidence or, if impossible, a **separate approved** atomic marker contract; exact repository-compatible SQL/DTO/audit writer design and tests. Later Phase 2 **OD-07**, Phase 3 **OD-08**, and external ALT-14 remain distinct gates. **No source code, migration, release, CI bypass for code or deployment is authorized here.**

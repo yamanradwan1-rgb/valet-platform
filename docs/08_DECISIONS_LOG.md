@@ -2,6 +2,21 @@
 
 Important decisions must not live only in chat.
 
+
+## DEC-109 — Issue #414 Phase-1 Management Alerts: Timing, Source Rights and Placement
+
+Status: **Accepted — Owner-approved OD-01 through OD-06; chronology/source proof OPEN**
+Date: 2026-11-04
+Issue: #414
+
+The Owner accepted the Phase-1 alert-timing bounds: ALT-01 default 0 / 0–60 s; ALT-02 60 / 0–300 s; ALT-03 0 / 0–120 s; ALT-04 300 / 60–900 s; ALT-06 300 / 60–900 s; ALT-11 IMPORTANT 120 / 60–600 s. No ALT-11 CRITICAL escalation and no Location SLA changes.
+
+ALT-02/03 share one uncovered Task case using reason-specific queue vs decline/requeue timing. Source chronology must be **proved**, and ambiguous episodes are omitted; a new Dispatch order marker/migration needs a distinct focused Owner approval. Personal (Organization, User) typed preference settings use revisions/CAS, current tenant/session/source permission and CA sensitive 5-minute MFA for changed writes, with safe atomic tenant audit. Phase-1 ALT-01/02/03/08/12 recipients are exact-source-authorized CA and LM only. The only UI changes are the own-user `/policies` Timing subsection, minimal topbar bell/panel and narrow authorized source-item navigation within the strict additive UI Freeze.
+
+**Not an implementation release:** exact chronology proof, source query/DTO/writer compatibility, real-PG MFA/performance and browser/CI remain gates; OD-07/08 later-phase, ALT-14 Cash Reconciliation external/deferred/disabled, #415 deferred. No source code, migration, deployment or feature activation authorized by this decision.
+
+Full contract: [DEC-109](decisions/DEC-109_ISSUE_414_MANAGEMENT_ALERT_PHASE1_POLICY.md).
+
 ## DEC-107 — Emergency Task Takeover
 
 Status: Proposed engineering reconciliation; Issue #352 Owner policies,
