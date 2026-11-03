@@ -84,8 +84,13 @@ describe("ContextHelp real-browser mounted accessibility and lifecycle", () => {
     await page.setContent("<!doctype html><html lang='en'><body><div id='root'></div></body></html>");
     await page.addStyleTag({ content: styles });
     await page.addScriptTag({ content: browserScript });
-    await page.waitForTimeout(150);
-    if (await page.locator('button[aria-label^="Help:"]').count() === 0) {
+    // Wait for the mounted user-facing control, not a fixed render delay.
+    const mounted = await page
+      .locator('button[aria-label^="Help:"]')
+      .first()
+      .waitFor({ state: "visible", timeout: 5_000 })
+      .then(() => true, () => false);
+    if (!mounted) {
       throw new Error("Harness mounted no ContextHelp trigger: " +
         errors.join("; ") + " / HTML: " +
         (await page.locator("#root").innerHTML()).slice(0, 600) +
