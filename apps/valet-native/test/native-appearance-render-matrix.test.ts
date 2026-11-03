@@ -233,6 +233,8 @@ describe("Native EN/AR appearance render matrix at 320px host width", () => {
     vi.unstubAllGlobals();
   });
 
+  // The cold first render transpiles pinned Git baseline trees in memory.
+  // The freeze test checks exact geometry, not interaction latency.
   it.each(["en", "ar"] as const)(
     "freezes Light against pushed #226 and Dark geometry in %s",
     (locale) => {
@@ -289,5 +291,6 @@ describe("Native EN/AR appearance render matrix at 320px host width", () => {
       }
       expect(uncolored).toEqual([]);
     },
+    15_000,
   );
 });
