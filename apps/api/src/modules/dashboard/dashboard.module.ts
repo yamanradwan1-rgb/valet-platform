@@ -1,4 +1,5 @@
 import { DashboardIncidentsController } from "./incidents.controller";
+import { ManagementAlertPreviewController } from "./management-alert-preview.controller";
 import { MiddlewareConsumer, Module, type NestModule } from "@nestjs/common";
 import { RuntimeDatabaseModule } from "../../common/database/runtime-database.module";
 import { HttpInfrastructureModule } from "../../common/http/http-infrastructure.module";
@@ -34,6 +35,7 @@ import {
 
 @Module({
   controllers: [
+    ManagementAlertPreviewController,
     DashboardIncidentsController,
     PresenceLmPolicyController,
     PresenceLmZoneController,
@@ -74,6 +76,7 @@ export class DashboardModule implements NestModule {
     consumer
       .apply(RequestIdMiddleware)
       .forRoutes(
+        ManagementAlertPreviewController,
         DashboardIncidentsController,
         PresenceLmPolicyController,
         PresenceLmZoneController,
