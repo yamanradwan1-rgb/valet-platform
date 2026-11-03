@@ -17,7 +17,7 @@ const testFilePattern = /\.(?:test|spec)\.(?:[cm]?[jt]sx?)$/;
 const dbSignalPattern =
   /(?:new\s+(?:(?:pg\.)?(?:Pool|Client)|fixture\.ConditionPhotoP1TestContext|target\.ConditionPhotoP1OwnedTarget)\s*\(|createRuntimePostgresPool\s*\(|CREATE\s+DATABASE|DROP\s+DATABASE)/i;
 const raceSignalPattern =
-  /(?:race|concurren|waitFor(?:Lock|Advisory)|pg_advisory|LOCK\s+TABLE|FOR\s+UPDATE|Promise\.all\s*\()/i;
+  /(?:\brace|concurren|waitFor(?:Lock|Advisory)|pg_advisory|LOCK\s+TABLE|FOR\s+UPDATE|Promise\.all\s*\()/i;
 const subprocessSignalPattern =
   /(?:node:child_process|runtime:provision|provision-runtime-role|migrate:deploy|run-migrate-deploy|raw-gps-cleanup)/i;
 const compoundMarkers = new Set([
