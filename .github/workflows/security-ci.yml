@@ -66,10 +66,52 @@ jobs:
           if [[ "$EVENT" == pull_request ]]; then base="$PR_BASE"; fi
           if [[ -n "$base" && ! "$base" =~ ^0+$ ]] && git cat-file -e "$base^{commit}"; then
             echo "SECURITY_BASE_SHA=$base" >> "$GITHUB_ENV"
+            # An unchanged scan scope needs no incremental Semgrep scan.
+            # Diff errors must never be interpreted as no changes.
+            if git diff --quiet "$base" HEAD -- apps packages scripts infra; then
+              echo "SEMGREP_NO_SCOPED_CHANGES=true" >> "$GITHUB_ENV"
+            else
+              status=$?
+              if [[ "$status" -ne 1 ]]; then
+                echo "::error::Could not determine Semgrep scan scope (git diff exit $status)"
+                exit "$status"
+              fi
+              echo "SEMGREP_NO_SCOPED_CHANGES=false" >> "$GITHUB_ENV"
+            fi
+          else
+            # Missing/unusable base: run Semgrep rather than presume no changes.
+            echo "SEMGREP_NO_SCOPED_CHANGES=false" >> "$GITHUB_ENV"
           fi
+      - name: Record no scoped changes (not a skipped security job)
+        if: env.SEMGREP_NO_SCOPED_CHANGES == 'true'
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          report = Path("security-reports/semgrep-sanitized.json")
+          report.write_text(json.dumps({
+              "scanner": "semgrep",
+              "status": "not_applicable",
+              "reason": "Verified no changes in apps, packages, scripts or infra",
+              "total": 0,
+              "new": 0,
+              "blocked": 0,
+              "findings": [],
+          }, indent=2) + "\n", encoding="utf-8")
+          summary = os.getenv("GITHUB_STEP_SUMMARY")
+          if summary:
+              with open(summary, "a", encoding="utf-8") as output:
+                  output.write("### Security CI: semgrep\n"
+                               "No changes in tracked Semgrep scan scopes; "
+                               "incremental scan not applicable.\n")
+          PY
       - name: Install Semgrep Community
+        if: env.SEMGREP_NO_SCOPED_CHANGES != 'true'
         run: pipx install semgrep
       - name: Run Semgrep
+        if: env.SEMGREP_NO_SCOPED_CHANGES != 'true'
         env:
           SECURITY_BASE_SHA: ${{ env.SECURITY_BASE_SHA }}
         run: |
@@ -81,6 +123,7 @@ jobs:
             --exclude '**/node_modules/**' --exclude '**/dist/**' \
             --exclude '**/.next/**' "${opts[@]}" apps packages scripts infra
       - name: Gate high and critical findings / parser errors
+        if: env.SEMGREP_NO_SCOPED_CHANGES != 'true'
         run: python3 scripts/security/ci_gate.py semgrep security-reports/semgrep-head.json
       - if: always()
         uses: actions/upload-artifact@v4
