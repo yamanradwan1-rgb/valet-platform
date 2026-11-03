@@ -2017,7 +2017,7 @@
 "scripts/issue300-w8-workload.test.mjs","SCRIPT_EXECUTION_UNVERIFIED","4","0","0","0","0","false","","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
 "scripts/test-harness/api-compound-ownership.test.mjs","EXPLICIT_HARNESS_TEST","2","0","0","0","0","false","","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
 "scripts/test-harness/api-source-adjacent-ownership.test.mjs","EXPLICIT_HARNESS_TEST","2","0","0","0","0","false","","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
-"scripts/test-harness/audit-authored-tests.test.mjs","NOT_IN_PREVIOUS_FILE_INVENTORY","13","0","0","0","0","false","arbitrary_wait:1;strict_text:1;structural_locator:1","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
+"scripts/test-harness/audit-authored-tests.test.mjs","NOT_IN_PREVIOUS_FILE_INVENTORY","14","0","0","0","0","false","arbitrary_wait:1;strict_text:1;structural_locator:1","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
 "scripts/test-harness/classification-ownership.test.mjs","NOT_IN_PREVIOUS_FILE_INVENTORY","2","0","0","0","0","false","","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
 "scripts/test-harness/classification.test.mjs","EXPLICIT_HARNESS_TEST","11","0","0","0","0","false","","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"
 "scripts/test-harness/contracts-runtime-imports.test.mjs","EXPLICIT_HARNESS_TEST","1","0","0","0","0","false","","NOT_SEMANTICALLY_REVIEWED","STATIC_AST_DECLARATIONS_NOT_RUNTIME_CASES"

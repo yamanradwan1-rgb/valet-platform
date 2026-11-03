@@ -3,7 +3,7 @@
 Immutable audit source: `f9ecebd9af85b44580771b4027515d06c0a31de4`. This is an automatically generated **static AST inventory**, not a manual approval of every test's domain contract.
 
 - Tracked test/spec files: **2036**.
-- Authored test declarations: **9346** (some parameterized declarations expand to multiple runtime cases).
+- Authored test declarations: **9347** (some parameterized declarations expand to multiple runtime cases).
 - Dynamic titles or dataset declarations: **283**; these require real runner collection to measure case count.
 - Files with no recognized direct test()/it()/specify() call: **1** (possible generated tests, unusual runners, or helper-only naming).
 - Files containing direct top-level assert-style scripts without registered cases: **1**; they remain tracked tests but have no case-registration rows.

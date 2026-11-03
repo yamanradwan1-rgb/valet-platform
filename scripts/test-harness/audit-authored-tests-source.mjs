@@ -70,21 +70,24 @@ function declaredBindings(file) {
       }
     }
   }
-  for (const statement of file.statements) {
-    if (!ts.isVariableStatement(statement)) continue;
-    for (const declaration of statement.declarationList.declarations) {
-      const value = declaration.initializer && unwrap(declaration.initializer);
+  function findIndirect(node) {
+    if (ts.isVariableDeclaration(node)) {
+      const value = node.initializer && unwrap(node.initializer);
       if (
-        ts.isIdentifier(declaration.name) &&
+        ts.isIdentifier(node.name) &&
         value &&
         ts.isIdentifier(value) &&
         (caseNames.has(value.text) ||
           suiteNames.has(value.text) ||
-          aliases.has(value.text))
-      )
-        indirect.add(declaration.name.text);
+          aliases.has(value.text) ||
+          indirect.has(value.text))
+      ) {
+        indirect.add(node.name.text);
+      }
     }
+    ts.forEachChild(node, findIndirect);
   }
+  ts.forEachChild(file, findIndirect);
   return { aliases, namespaces, nodeRoots, nodeNamespaces, indirect };
 }
 

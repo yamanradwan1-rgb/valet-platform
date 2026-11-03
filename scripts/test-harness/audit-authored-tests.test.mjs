@@ -178,3 +178,14 @@ test("warns on indirect runner aliases instead of silently claiming exhaustive c
   assert.equal(result.tests.length, 0);
   assert.equal(result.unresolvedComputedRegistrations, 1);
 });
+
+test("flags indirect runner registration inside nested describe callbacks", () => {
+  const source = `import { test, describe } from "vitest";
+    describe("group", () => {
+      const register = test;
+      register("nested indirect", () => {});
+    });`;
+  const result = scanAuthoredSource("indirect-nested.test.ts", source);
+  assert.equal(result.tests.length, 0);
+  assert.equal(result.unresolvedComputedRegistrations, 1);
+});
