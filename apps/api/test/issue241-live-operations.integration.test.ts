@@ -128,9 +128,14 @@ describe("#241 authorized operational projection", () => {
     const tasks = taskOverviewListResponseSchema.parse(
       (await context.request("GET", `${base}/tasks`, { authorization })).body,
     ).items;
+    // The authorized Tasks history retains the persisted assignee on a
+    // CANCELLED row, unlike the active-only Session/queue projections.
     expect(
-      tasks.find((item) => item.taskId === terminalRetrieval)!.assignee,
-    ).toBeNull();
+      tasks.find((item) => item.taskId === terminalRetrieval),
+    ).toMatchObject({
+      status: "CANCELLED",
+      assignee: projected.activeTask!.assignee,
+    });
     expect(tasks.find((item) => item.taskId === taskId)!.assignee).toEqual(
       projected.activeTask!.assignee,
     );

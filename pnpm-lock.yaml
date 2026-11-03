@@ -277,6 +277,12 @@ importers:
       '@types/react-dom':
         specifier: ^19.0.0
         version: 19.2.4(@types/react@19.2.18)
+      '@types/react-test-renderer':
+        specifier: 19.1.0
+        version: 19.1.0
+      react-test-renderer:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.2.8)
       tailwindcss:
         specifier: ^4.0.0
         version: 4.3.3
@@ -5097,6 +5103,11 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  react-test-renderer@19.2.8:
+    resolution: {integrity: sha512-GHKPaDRaNYU24PHTLG8Bx8VMY9t+qNfxQbt/Yjp7aMWBkKU6766SR0n6TnYu7P5I1MfEuAMUadqiyDHyI4Yy9Q==}
+    peerDependencies:
+      react: ^19.2.8
 
   react@19.2.3:
     resolution: {integrity: sha512-Ku/hhYbVjOQnXDZFv2+RibmLFGwFdeeKHFcOTlrt7xplBnya5OGn/hIRDsqDiSUcfORsDC7MPxwork8jBwsIWA==}
@@ -11126,6 +11137,12 @@ snapshots:
       tslib: 2.8.1
     optionalDependencies:
       '@types/react': 19.2.18
+
+  react-test-renderer@19.2.8(react@19.2.8):
+    dependencies:
+      react: 19.2.8
+      react-is: 19.2.8
+      scheduler: 0.27.0
 
   react@19.2.3: {}
 

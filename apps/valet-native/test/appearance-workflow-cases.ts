@@ -116,6 +116,19 @@ export const workflowRenderCases: RenderCase[] = [
         completion: null,
         releaseRequiresPayment: false,
         releaseSatisfied: true,
+        // The frozen verified-release presentation requires real proof context.
+        // READY without a verified timestamp must render Release blocked instead.
+        session: {
+          ...session,
+          state: "HANDOFF_PENDING",
+          handoff: {
+            pendingAt: session.handoff.pendingAt,
+            verification: {
+              ...session.handoff.verification,
+              verifiedAt: "2026-09-03T10:01:00Z",
+            },
+          },
+        },
       },
     }),
   },

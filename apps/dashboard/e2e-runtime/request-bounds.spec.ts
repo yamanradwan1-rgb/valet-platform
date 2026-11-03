@@ -9,10 +9,18 @@ import {
 test("Company analytics uses one Company request and zero Location fan-out", async ({ page }) => {
   await signIn(page, f.emails.exportAdmin);
   await assurePreEnrolled(page);
-  await selectCompany(page);
-
   const companyPath =
     `/v1/staff/management/organizations/${f.organizations.a.id}/analytics/all-locations`;
+  // Company scope opens Overview, which reads this same endpoint. Finish that
+  // page's request before measuring Analytics' own initial and Apply reads.
+  const overviewRead = page.waitForResponse((item) =>
+    item.request().method() === "GET" && new URL(item.url()).pathname === companyPath);
+  await selectCompany(page);
+  expect((await overviewRead).status()).toBe(200);
+  await expect(page.getByTestId("md05-overview-page")).toBeVisible();
+  await expect(page.getByTestId("md05-overview-page")
+    .getByText(/^\d[\d,]* active employees$/u)).toBeVisible();
+
   let companyReads = 0;
   let locationReads = 0;
   page.on("request", (request) => {
@@ -54,6 +62,10 @@ test("Company analytics uses one Company request and zero Location fan-out", asy
   expect(appliedQuery.get("to")).toBe("2026-09-21");
   await expect(page.getByTestId("md05-analytics-page")).toBeVisible();
   await expect(dialog).toHaveCount(0);
+  // The changed period key clears prior cards until its response is rendered.
+  await expect(page.getByTestId("dashboard-period-control")
+    .getByText("2026-09-01 – 2026-09-21", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("analytics-card-value").first()).not.toHaveText("—");
   expect(Date.now() - startedAt).toBeLessThan(2_000);
   expect(companyReads).toBe(2);
   expect(locationReads).toBe(0);

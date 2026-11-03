@@ -10,7 +10,9 @@ import {
 } from "./issue333-u002-http-socket-fixture.mjs";
 
 const privateMarker = "W4_PRIVATE_SYNTHETIC_ONLY_NOT_REAL_CUSTOMER";
-const largeBody = Buffer.alloc(24 * 1024 * 1024, 0x59);
+// This checks the boundary AFTER finish, not transport backpressure. A
+// paused client cannot guarantee the kernel will buffer a 24 MiB response.
+const bufferedBody = Buffer.alloc(4 * 1024, 0x59);
 
 test("disconnect before delayed handler resolution closes without protected bytes", async (t) => {
   const entered = deferred();
@@ -130,7 +132,7 @@ test("abort after synchronous finish cannot retract already queued HTTP data", a
       events.push("close");
       closed.resolve();
     });
-    response.write(largeBody);
+    response.write(bufferedBody);
     response.end(privateMarker);
     enqueued.resolve(response);
   });

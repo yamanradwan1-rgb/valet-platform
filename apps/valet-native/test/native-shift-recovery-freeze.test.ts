@@ -112,6 +112,9 @@ function omitFeedback(tree: unknown): unknown {
   );
 }
 
+// 144 in-memory baseline/current tree pairs are expensive on cold, busy CI
+// runners. Keep every exact comparison; only bound the computation separately
+// from Vitest's default 5s timeout intended for simple unit tests.
 it("compares complete Shift trees against exact base across EN/AR, themes, widths and font scales", () => {
   const comparisons: unknown[] = [];
   for (const locale of ["en", "ar"] as const)
@@ -192,7 +195,7 @@ it("compares complete Shift trees against exact base across EN/AR, themes, width
       2,
     ) + "\n",
   );
-});
+}, 30_000);
 
 it.each(["en", "ar"] as const)(
   "publishes every localized status in %s with matching typography and accessible busy state",

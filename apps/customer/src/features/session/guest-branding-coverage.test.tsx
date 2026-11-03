@@ -1,6 +1,7 @@
 import React from 'react';
 import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { Btn } from '../../components/primitives/btn';
@@ -62,15 +63,15 @@ describe('actual Guest primary consumers and semantic exceptions', () => {
   });
 
   it('keeps raw fixed VAYLET accents out of active Customer components', () => {
-    const root = new URL('../../', import.meta.url);
+    const root = fileURLToPath(new URL('../../', import.meta.url));
     function audit(directory: string) {
       for (const entry of readdirSync(directory, { withFileTypes: true })) {
         const path = join(directory, entry.name);
         if (entry.isDirectory()) { audit(path); continue; }
-        if (!path.endsWith('.tsx') || path.includes('.test.') || path.includes('/demo/')) continue;
+        if (!path.endsWith('.tsx') || path.includes('.test.') || path.includes(sep + 'demo' + sep)) continue;
         expect(readFileSync(path, 'utf8'), path).not.toMatch(/#(?:176BFF|2575FC|0F5EEA)|C\.(?:brandBlue|brandBlueHover|blueh?)(?!\w)/iu);
       }
     }
-    audit(root.pathname);
+    audit(root);
   });
 });
