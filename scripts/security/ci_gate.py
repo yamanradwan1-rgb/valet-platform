@@ -121,8 +121,9 @@ def run(scanner, head_path, base_path=None):
     parser = parsers[scanner]
     head = parser(load(head_path))
     base = parser(load(base_path)) if base_path else []
-    previous = {fingerprint(item) for item in base}
-    new = [item for item in head if fingerprint(item) not in previous]
+    previous = {fingerprint(item): item["severity"] for item in base}
+    new = [item for item in head if fingerprint(item) not in previous or
+           (item["severity"] in BLOCK and previous[fingerprint(item)] not in BLOCK)]
     # Gitleaks scans *only* newly introduced commits/files, always gate any secret.
     # OSV advisories without severity must be reviewed, not silently treated as safe.
     blocked = [item for item in new if item["severity"] in BLOCK or
