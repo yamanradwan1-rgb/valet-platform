@@ -60,9 +60,8 @@ class SecurityGateTests(unittest.TestCase):
         base = {"Results": [{"Target": "pnpm-lock.yaml", "Vulnerabilities": [
             {"VulnerabilityID": "CVE-2026-0001", "PkgName": "lib",
              "InstalledVersion": "1.0", "Severity": "LOW"}]}]}
-        # Existing fingerprint is not considered new: changed severity is
-        # deliberately NOT a newly introduced vulnerability.
-        self.assertEqual(self.run_gate("trivy", {"Results": [item]}, base), 0)
+        # Severity escalation is a newly unacceptable risk, even if ID is old.
+        self.assertEqual(self.run_gate("trivy", {"Results": [item]}, base), 1)
 
     def test_osv_unrated_new_advisory_requires_triage(self):
         report = {"results": [{"source": {"path": "/src/pnpm-lock.yaml"},
