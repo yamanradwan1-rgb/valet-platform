@@ -6,7 +6,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: security-${{ github.workflow }-${{ github.ref }
+  group: security-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -20,9 +20,9 @@ jobs:
           persist-credentials: false
       - name: Select push/PR comparison
         env:
-          EVENT: ${{ github.event_name }
-          PR_BASE: ${{ github.event.pull_request.base.sha }
-          BEFORE: ${{ github.event.before }
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          BEFORE: ${{ github.event.before }}
         run: |
           mkdir -p security-reports
           base="$BEFORE"
@@ -43,7 +43,7 @@ jobs:
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: security-gitleaks-${{ github.run_id }
+          name: security-gitleaks-${{ github.run_id }}
           path: security-reports/*-sanitized.json
           retention-days: 7
 
@@ -57,9 +57,9 @@ jobs:
           persist-credentials: false
       - name: Select comparison commit
         env:
-          EVENT: ${{ github.event_name }
-          PR_BASE: ${{ github.event.pull_request.base.sha }
-          BEFORE: ${{ github.event.before }
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          BEFORE: ${{ github.event.before }}
         run: |
           mkdir -p security-reports
           base="$BEFORE"
@@ -71,7 +71,7 @@ jobs:
         run: pipx install semgrep
       - name: Run Semgrep
         env:
-          SECURITY_BASE_SHA: ${{ env.SECURITY_BASE_SHA }
+          SECURITY_BASE_SHA: ${{ env.SECURITY_BASE_SHA }}
         run: |
           opts=()
           if [[ -n "$SECURITY_BASE_SHA" ]]; then opts+=("--baseline-commit=$SECURITY_BASE_SHA"); fi
@@ -79,13 +79,13 @@ jobs:
             --metrics=off --disable-version-check --json \
             --output security-reports/semgrep-head.json \
             --exclude '**/node_modules/**' --exclude '**/dist/**' \
-            --exclude '**/.next/**' "${{opts[@]}" apps packages scripts infra
+            --exclude '**/.next/**' "${opts[@]}" apps packages scripts infra
       - name: Gate high and critical findings / parser errors
         run: python3 scripts/security/ci_gate.py semgrep security-reports/semgrep-head.json
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: security-semgrep-${{ github.run_id }
+          name: security-semgrep-${{ github.run_id }}
           path: security-reports/*-sanitized.json
           retention-days: 7
 
@@ -99,9 +99,9 @@ jobs:
           persist-credentials: false
       - name: Prepare base worktree
         env:
-          EVENT: ${{ github.event_name }
-          PR_BASE: ${{ github.event.pull_request.base.sha }
-          BEFORE: ${{ github.event.before }
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          BEFORE: ${{ github.event.before }}
         run: |
           mkdir -p security-reports
           base="$BEFORE"
@@ -123,7 +123,7 @@ jobs:
           trivy fs --scanners vuln,misconfig --format json --exit-code 0 --output "$GITHUB_WORKSPACE/security-reports/trivy-base.json" .
       - name: Gate new high and critical vulnerabilities
         env:
-          BASE_TREE: ${{ env.SECURITY_BASE_TREE }
+          BASE_TREE: ${{ env.SECURITY_BASE_TREE }}
         run: |
           if [[ -n "$BASE_TREE" ]]; then
             python3 scripts/security/ci_gate.py trivy security-reports/trivy-head.json security-reports/trivy-base.json
@@ -133,7 +133,7 @@ jobs:
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: security-trivy-${{ github.run_id }
+          name: security-trivy-${{ github.run_id }}
           path: security-reports/*-sanitized.json
           retention-days: 7
 
@@ -147,9 +147,9 @@ jobs:
           persist-credentials: false
       - name: Prepare base worktree
         env:
-          EVENT: ${{ github.event_name }
-          PR_BASE: ${{ github.event.pull_request.base.sha }
-          BEFORE: ${{ github.event.before }
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          BEFORE: ${{ github.event.before }}
         run: |
           mkdir -p security-reports
           base="$BEFORE"
@@ -178,7 +178,7 @@ jobs:
           test "$code" -le 1
       - name: Gate new high, critical, or unrated advisories
         env:
-          BASE_TREE: ${{ env.SECURITY_BASE_TREE }
+          BASE_TREE: ${{ env.SECURITY_BASE_TREE }}
         run: |
           if [[ -n "$BASE_TREE" ]]; then
             python3 scripts/security/ci_gate.py osv security-reports/osv-head.json security-reports/osv-base.json
@@ -188,7 +188,7 @@ jobs:
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: security-osv-${{ github.run_id }
+          name: security-osv-${{ github.run_id }}
           path: security-reports/*-sanitized.json
           retention-days: 7
 
@@ -211,7 +211,7 @@ jobs:
       - uses: github/codeql-action/analyze@v4
         with:
           category: /language:javascript-typescript
-          upload: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'never' || 'always' }
+          upload: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && 'never' || 'always' }}
 
   security-gate:
     if: always()
@@ -221,11 +221,11 @@ jobs:
     steps:
       - name: Fail closed for failed / skipped security checks
         env:
-          GITLEAKS: ${{ needs.secrets-gitleaks.result }
-          SEMGREP: ${{ needs.sast-semgrep.result }
-          TRIVY: ${{ needs.dependencies-trivy.result }
-          OSV: ${{ needs.dependencies-osv.result }
-          CODEQL: ${{ needs.sast-codeql.result }
+          GITLEAKS: ${{ needs.secrets-gitleaks.result }}
+          SEMGREP: ${{ needs.sast-semgrep.result }}
+          TRIVY: ${{ needs.dependencies-trivy.result }}
+          OSV: ${{ needs.dependencies-osv.result }}
+          CODEQL: ${{ needs.sast-codeql.result }}
         run: |
           failed=0
           for key in GITLEAKS SEMGREP TRIVY OSV CODEQL; do
