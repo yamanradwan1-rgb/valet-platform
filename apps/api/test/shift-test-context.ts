@@ -70,7 +70,25 @@ async function runPnpm(args: string[], environment: NodeJS.ProcessEnv) {
   });
 }
 
+async function timedFixtureStage<T>(
+  stage: "create" | "migrate" | "provision" | "teardown",
+  trace: string,
+  operation: () => Promise<T>,
+): Promise<T> {
+  if (process.env.VAYLET_PG_FIXTURE_TIMING !== "1") return operation();
+  const started = process.hrtime.bigint();
+  try {
+    return await operation();
+  } finally {
+    const elapsedMs = Number(process.hrtime.bigint() - started) / 1_000_000;
+    console.info(
+      `[pg-fixture-timing] helper=ShiftTestContext trace=${trace} stage=${stage} elapsedMs=${elapsedMs.toFixed(1)}`,
+    );
+  }
+}
+
 export class ShiftTestContext {
+  readonly timingTraceId = randomBytes(6).toString("hex");
   readonly adminPool: Pool;
   readonly databaseName: string;
   readonly migrationUrl: string;
@@ -96,36 +114,44 @@ export class ShiftTestContext {
   }
 
   async setup(): Promise<void> {
-    const bootstrap = new Pool({ connectionString: baseDatabaseUrl });
-    try {
-      await bootstrap.query(`CREATE DATABASE "${this.databaseName}"`);
-    } finally {
-      await bootstrap.end();
-    }
-    await runPnpm(["--filter", "@valet/database", "migrate:deploy"], {
-      MIGRATION_DATABASE_URL: this.migrationUrl,
-      NODE_ENV: "test",
+    await timedFixtureStage("create", this.timingTraceId, async () => {
+      const bootstrap = new Pool({ connectionString: baseDatabaseUrl });
+      try {
+        await bootstrap.query(`CREATE DATABASE "${this.databaseName}"`);
+      } finally {
+        await bootstrap.end();
+      }
     });
-    await runPnpm(["--filter", "@valet/database", "runtime:provision"], {
-      DATABASE_URL: this.runtimeUrl,
-      MIGRATION_DATABASE_URL: this.migrationUrl,
-      NODE_ENV: "test",
-    });
+    await timedFixtureStage("migrate", this.timingTraceId, () =>
+      runPnpm(["--filter", "@valet/database", "migrate:deploy"], {
+        MIGRATION_DATABASE_URL: this.migrationUrl,
+        NODE_ENV: "test",
+      }),
+    );
+    await timedFixtureStage("provision", this.timingTraceId, () =>
+      runPnpm(["--filter", "@valet/database", "runtime:provision"], {
+        DATABASE_URL: this.runtimeUrl,
+        MIGRATION_DATABASE_URL: this.migrationUrl,
+        NODE_ENV: "test",
+      }),
+    );
     this.runtimePool = createRuntimePostgresPool(this.runtimeUrl);
   }
 
   async teardown(): Promise<void> {
-    await this.runtimePool?.end();
-    await this.adminPool.end();
-    const bootstrap = new Pool({ connectionString: baseDatabaseUrl });
-    try {
-      await bootstrap.query(
-        `DROP DATABASE "${this.databaseName}" WITH (FORCE)`,
-      );
-      await bootstrap.query(`DROP ROLE IF EXISTS "${this.runtimeRole}"`);
-    } finally {
-      await bootstrap.end();
-    }
+    await timedFixtureStage("teardown", this.timingTraceId, async () => {
+      await this.runtimePool?.end();
+      await this.adminPool.end();
+      const bootstrap = new Pool({ connectionString: baseDatabaseUrl });
+      try {
+        await bootstrap.query(
+          `DROP DATABASE "${this.databaseName}" WITH (FORCE)`,
+        );
+        await bootstrap.query(`DROP ROLE IF EXISTS "${this.runtimeRole}"`);
+      } finally {
+        await bootstrap.end();
+      }
+    });
   }
 
   async createFixture(
