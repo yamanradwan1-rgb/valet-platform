@@ -73,14 +73,16 @@ async function trackedAdmin() {
   );
   await fixture.query(
     `INSERT INTO task_tracking_sessions
-       (id, organization_id, location_id, valet_session_id, task_id, started_at)
-     VALUES ($1, $2, $3, $4, $5, transaction_timestamp() - interval '1 minute')`,
+       (id, organization_id, location_id, valet_session_id, task_id,
+        assignee_membership_id, started_at)
+     VALUES ($1, $2, $3, $4, $5, $6, transaction_timestamp() - interval '1 minute')`,
     [
       trackingSessionId,
       membership.organizationId,
       location.locationId,
       valetSessionId,
       taskId,
+      workerMembershipId,
     ],
   );
   await fixture.query(
@@ -102,7 +104,7 @@ async function trackedAdmin() {
 
   const auth = await fixture.nativeLogin(admin);
   await fixture.enrollAndAssure(auth);
-  return { auth, location, membership, trackingSessionId };
+  return { auth, location, membership, trackingSessionId, workerMembershipId };
 }
 
 describe("MGT-BE-03 Company Admin tracking boundaries", () => {
@@ -113,7 +115,10 @@ describe("MGT-BE-03 Company Admin tracking boundaries", () => {
     const current = await fixture.managementGet(path, state.auth.accessToken);
     expect(current.status).toBe(200);
     expect(current.body?.items).toEqual([
-      expect.objectContaining({ trackingSessionId: state.trackingSessionId }),
+      expect.objectContaining({
+        assigneeMembershipId: state.workerMembershipId,
+        trackingSessionId: state.trackingSessionId,
+      }),
     ]);
 
     await fixture.query(
