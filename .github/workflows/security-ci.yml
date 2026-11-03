@@ -110,17 +110,20 @@ jobs:
             git worktree add --detach "$RUNNER_TEMP/security-base" "$base"
             echo "SECURITY_BASE_TREE=$RUNNER_TEMP/security-base" >> "$GITHUB_ENV"
           fi
-      - uses: aquasecurity/setup-trivy@v0.3.1
-        with:
-          version: v0.68.2
-          cache: true
-      - name: Scan head
-        run: trivy fs --scanners vuln,misconfig --format json --exit-code 0 --output security-reports/trivy-head.json .
-      - name: Scan base
+      - name: Scan head using official Trivy container
+        run: |
+          mkdir -p "$RUNNER_TEMP/trivy-cache"
+          docker run --rm -v "$PWD:/src:ro" -v "$PWD/security-reports:/out:rw" \
+            -v "$RUNNER_TEMP/trivy-cache:/root/.cache/trivy:rw" \
+            ghcr.io/aquasecurity/trivy:0.68.2 fs --scanners vuln,misconfig \
+            --format json --exit-code 0 --output /out/trivy-head.json /src
+      - name: Scan base using the same image and cache
         if: env.SECURITY_BASE_TREE != ''
         run: |
-          cd "$SECURITY_BASE_TREE"
-          trivy fs --scanners vuln,misconfig --format json --exit-code 0 --output "$GITHUB_WORKSPACE/security-reports/trivy-base.json" .
+          docker run --rm -v "$SECURITY_BASE_TREE:/src:ro" -v "$PWD/security-reports:/out:rw" \
+            -v "$RUNNER_TEMP/trivy-cache:/root/.cache/trivy:rw" \
+            ghcr.io/aquasecurity/trivy:0.68.2 fs --scanners vuln,misconfig \
+            --format json --exit-code 0 --output /out/trivy-base.json /src
       - name: Gate new high and critical vulnerabilities
         env:
           BASE_TREE: ${{ env.SECURITY_BASE_TREE }}
