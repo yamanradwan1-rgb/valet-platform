@@ -83,7 +83,7 @@ describe("source-driven contextual-help coverage", () => {
     expect(excluded.every((route) => !("helpKey" in route))).toBe(true);
   });
 
-  it("catches newly added, deleted, unclassified, or wrongly exposed routes", () => {
+  it("catches added, deleted, unclassified, missing-help, or wrongly exposed routes", () => {
     const knownRoutes = actualAppRoutes();
     expect(inspectRouteInventory([...knownRoutes, "/brand-new"], helpRouteManifest))
       .toContain("Unclassified route: /brand-new");
@@ -95,15 +95,14 @@ describe("source-driven contextual-help coverage", () => {
     };
     expect(inspectRouteInventory(knownRoutes, broken))
       .toContain("Excluded route exposes help: /integrations");
-    const swapped = {
-      ...expectedPageHelpByRoute,
-      "/vehicles": "tasks.page",
-      "/tasks": "vehicles.page",
-    };
-    expect(swapped).not.toEqual(expectedPageHelpByRoute);
-    expect(Object.fromEntries(contentRoutes.map(([path, entry]) =>
-      [path, entry.classification === "CONTENT" ? entry.helpKey : ""])))
-      .not.toEqual(swapped);
+    // This deliberately invalid fixture bypasses compile-time manifest typing
+    // to exercise the runtime validator's missing-CONTENT-help rejection.
+    const missingHelp = {
+      ...helpRouteManifest,
+      "/vehicles": { classification: "CONTENT" as const, helpKey: "" },
+    } as unknown as typeof helpRouteManifest;
+    expect(inspectRouteInventory(knownRoutes, missingHelp))
+      .toContain("Content route missing help: /vehicles");
   });
 
   it("maps every ordinary typed Settings row exactly once and respects the LM legacy subset", () => {
