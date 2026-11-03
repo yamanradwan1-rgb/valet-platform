@@ -135,7 +135,7 @@ describe("VAL-009C overview HTTP boundary", () => {
     expect(result.status).toBe(404);
   });
 
-  it("keeps DEC-049 supervisor live-map behavior out of generic overview scope", async () => {
+  it("limits shifted supervisor to in-progress Tasks, not other Dashboard overview reads", async () => {
     const fixture = await context.managerFixture();
     await context.seedOverviewData();
     const shiftedSupervisor = await context.staffBearer(
@@ -152,13 +152,28 @@ describe("VAL-009C overview HTTP boundary", () => {
       authorization: unshiftedSupervisor,
     });
     expect(unshiftedLive.status).toBe(404);
+    const supervisorTasksPath = `/v1/staff/dashboard/locations/${fixture.locationId}/overview/tasks`;
     const supervisorOverview = await context.request(
       "GET",
-      `/v1/staff/dashboard/locations/${fixture.locationId}/overview/tasks`,
+      supervisorTasksPath,
       { authorization: shiftedSupervisor },
     );
-    expect(supervisorOverview.status).toBe(404);
-    expect(supervisorOverview.body?.code).toBe("AUTHORIZATION_DENIED");
+    // The owner-approved #352 exception is Tasks-only, and the seeded
+    // ASSIGNED retrieval Task must never become an eligible IN_PROGRESS row.
+    expect(supervisorOverview.status).toBe(200);
+    expect(supervisorOverview.body?.items).toEqual([]);
+    const unshiftedTasks = await context.request("GET", supervisorTasksPath, {
+      authorization: unshiftedSupervisor,
+    });
+    expect(unshiftedTasks.status).toBe(404);
+    expect(unshiftedTasks.body?.code).toBe("AUTHORIZATION_DENIED");
+    const supervisorSessions = await context.request(
+      "GET",
+      `/v1/staff/dashboard/locations/${fixture.locationId}/overview/sessions`,
+      { authorization: shiftedSupervisor },
+    );
+    expect(supervisorSessions.status).toBe(404);
+    expect(supervisorSessions.body?.code).toBe("AUTHORIZATION_DENIED");
     const admin = await context.staffBearer("ORG_ADMIN");
     const adminOverview = await context.request(
       "GET",
