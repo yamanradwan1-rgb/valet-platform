@@ -14,14 +14,16 @@ test("R11 real Studio Company defaults, Location overrides, Branding and read-on
   await selectLocation(page, f.organizations.a.name, f.locations.a.name);
   await page.locator('nav a[href="/policies"]').click();
   await expect(page.locator(".ps-workspace")).toBeVisible();
-  const companyScope = page.getByRole("group", { name: "Settings scope" })
+  const companyScope = page
+    .getByRole("group", { name: "Settings scope" })
     .getByRole("button", { name: "Company defaults", exact: true });
   await companyScope.click();
   await expect(companyScope).toHaveAttribute("aria-pressed", "true");
   await page.locator('.ps-section-links a[href*="section=payments"]').click();
   const row = page.locator('[data-setting="tipsEnabled"]');
   await expect(row).toBeVisible();
-  const valueEditor = row.locator(".ps-editor > form > label")
+  const valueEditor = row
+    .locator(".ps-editor > form > label")
     .getByRole("combobox");
   await row.locator(".ps-edit-button").click();
   await expect(valueEditor).toHaveCount(1);
