@@ -4,7 +4,6 @@ import { Inject, Injectable } from "@nestjs/common";
 import type { PostgresPool } from "../../common/database/postgres";
 import { inPostgresTransaction } from "../../common/database/postgres-transaction";
 import { RUNTIME_POSTGRES_POOL } from "../../common/database/runtime-database.module";
-import { recordAdminActivityInTransaction } from "../auth/mfa/mfa-assurance-policy";
 import type { StaffSessionContext } from "../auth/staff-session-context";
 import { authorizeCompanyAdminManagement } from "./management-authorization";
 
@@ -41,7 +40,6 @@ export class ManagementCommercialReadService {
          WHERE organization_id = $1`,
         [scope.organizationId],
       );
-      await recordAdminActivityInTransaction(transaction, context);
       const row = result.rows[0];
       return {
         organizationId: scope.organizationId,
