@@ -36,8 +36,16 @@ test("R11 real Studio Company defaults, Location overrides, Branding and read-on
   await row.locator('button[type="submit"]').click();
   expect((await companyWrite).status()).toBe(200);
   await expect(row.locator(".ps-edit-button")).toBeVisible();
+  const sourceLabel = row.locator(".ps-source");
+  const companySource = (await sourceLabel.textContent())?.trim();
+  expect(companySource).toBeTruthy();
   await page.getByRole("button", { name: "Location overrides" }).click();
-  await expect(row).toContainText("Inherited");
+  await expect(sourceLabel).not.toHaveText(companySource!);
+  const shownValue = row.locator(".ps-setting-value strong");
+  const inheritedLabel = (await sourceLabel.textContent())?.trim();
+  const inheritedValue = (await shownValue.textContent())?.trim();
+  expect(inheritedLabel).toBeTruthy();
+  expect(inheritedValue).toBeTruthy();
   await row.locator(".ps-edit-button").click();
   await expect(valueEditor).toHaveCount(1);
   const current = await valueEditor.inputValue();
@@ -48,10 +56,13 @@ test("R11 real Studio Company defaults, Location overrides, Branding and read-on
   );
   await row.locator('button[type="submit"]').click();
   expect((await locationWrite).status()).toBe(200);
-  await expect(row).toContainText("Overridden");
+  // Verify real value/source transitions, not incidental translated UI copy.
+  await expect(sourceLabel).not.toHaveText(inheritedLabel!);
+  await expect(shownValue).not.toHaveText(inheritedValue!);
   await row.locator(".ps-edit-button").click();
   await row.getByRole("button", { name: "Clear Override" }).click();
-  await expect(row).toContainText("Inherited");
+  await expect(sourceLabel).toHaveText(inheritedLabel!);
+  await expect(shownValue).toHaveText(inheritedValue!);
   await page.locator('nav a[href="/branding"]').click();
   await expect(
     page.getByRole("heading", { name: "Branding", exact: true }),
