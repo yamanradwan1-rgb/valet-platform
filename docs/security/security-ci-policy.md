@@ -5,7 +5,7 @@ The independent Security CI workflow runs on every branch push and PR. It invoke
 
 ## Gates and baselines
 - Gitleaks blocks any detected new secret. On a first push without a comparison commit, history is scanned. Raw secret strings must never be uploaded.
-- Semgrep uses a comparison commit where available and blocks new ERROR (High) or explicitly High/Critical findings; failed parsing and zero scanned paths fail closed.
+- Semgrep uses a comparison commit where available and blocks new ERROR (High) or explicitly High/Critical findings. On a push/PR with a usable base and **verified zero changes under `apps`, `packages`, `scripts` and `infra`**, Semgrep records `not_applicable` (a successful job, not an unverified clean scan). If those paths changed, Semgrep must run; parsing errors or zero scanned paths fail closed. A missing/unusable base also requires an actual scan.
 - Trivy compares dependency and IaC findings in base and head. New High/Critical findings and severity escalations block.
 - OSV compares package/advisory IDs and installed versions. New High/Critical advisories block; unrated new advisories also block pending review.
 - CodeQL must complete successfully and uploads analysis to GitHub Code Scanning on same-repository PRs and pushes. A successful CodeQL check **does not** assert that no alerts were found. Blocking merges on newly introduced CodeQL alerts additionally needs repository Code Scanning merge protection where available.
