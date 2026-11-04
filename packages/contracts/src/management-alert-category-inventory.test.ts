@@ -23,29 +23,29 @@ describe("Issue 414 Phase 2/3 selected-category inventory", () => {
 
   it("keeps ALT-14 external and excluded from every enabled candidate", () => {
     expect(managementAlertDeferredCategoryId).toBe("ALT-14");
-    expect(managementAlertInScopeCategorySchema.safeParse("ALT-14").success).toBe(
-      false,
-    );
+    expect(
+      managementAlertInScopeCategorySchema.safeParse("ALT-14").success,
+    ).toBe(false);
     for (const category of managementAlertInScopeCategoryIds) {
-      expect(managementAlertInScopeCategorySchema.safeParse(category).success).toBe(
-        true,
-      );
+      expect(
+        managementAlertInScopeCategorySchema.safeParse(category).success,
+      ).toBe(true);
     }
   });
 
   it("does not widen the deployed Phase 1 preview category schema", () => {
     for (const category of managementAlertPhaseOneCategoryIds) {
-      expect(managementAlertPhaseOneCategorySchema.safeParse(category).success).toBe(
-        true,
-      );
+      expect(
+        managementAlertPhaseOneCategorySchema.safeParse(category).success,
+      ).toBe(true);
     }
     for (const category of [
       ...managementAlertPhaseTwoCategoryIds,
       ...managementAlertPhaseThreeCategoryIds,
     ]) {
-      expect(managementAlertPhaseOneCategorySchema.safeParse(category).success).toBe(
-        false,
-      );
+      expect(
+        managementAlertPhaseOneCategorySchema.safeParse(category).success,
+      ).toBe(false);
     }
   });
 
