@@ -17,6 +17,8 @@ export interface CustodyOccurrenceAlertCandidate {
     | "TERMINAL_HANDOFF_FAILURE"
     | "HANDOFF_SUPERVISOR_OVERRIDE";
   readonly sourceId: string;
+  /** Committed occurrence key for per-user Seen; never a Task/Session key. */
+  readonly episodeId: string;
   readonly organizationId: string;
   readonly locationId: string;
   readonly valetSessionId: string;

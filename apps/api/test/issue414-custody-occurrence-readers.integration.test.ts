@@ -152,6 +152,20 @@ describe("Issue #414 DEC-110: committed custody sources, real PostgreSQL", () =>
     const auditId = randomUUID();
     const operationTime = new Date();
     const actor = admin.membershipId;
+    // Match the committed Issue #352 writer's exact Audit metadata shape.
+    const metadata = {
+      operationId,
+      previousAssigneeMembershipId: previous.membershipId,
+      newAssigneeMembershipId: replacement.membershipId,
+      reason: "PRIVATE",
+      sessionId,
+      fromStatus: "IN_PROGRESS",
+      toStatus: "IN_PROGRESS",
+      fromVersion: 1,
+      toVersion: 2,
+      fromSessionVersion: 1,
+      toSessionVersion: 2,
+    };
     await db.adminPool.query(
       `INSERT INTO dispatch_events
          (id,organization_id,location_id,task_id,valet_session_id,event_type,
@@ -166,8 +180,9 @@ describe("Issue #414 DEC-110: committed custody sources, real PostgreSQL", () =>
          (id,organization_id,location_id,valet_session_id,actor_membership_id,
           event_type,entity_type,entity_id,metadata_json,occurred_at)
        VALUES($1,$2,$3,$4,$5,'TASK_EMERGENCY_TAKEOVER','Task',$6,
-          '{"reason":"PRIVATE"}'::jsonb,$7)`,
-      [auditId, fixture.organizationId, fixture.locationId, sessionId, actor, taskId, operationTime],
+          $7::jsonb,$8)`,
+      [auditId, fixture.organizationId, fixture.locationId, sessionId,
+        actor, taskId, JSON.stringify(metadata), operationTime],
     );
     await db.adminPool.query(
       `INSERT INTO emergency_task_takeover_operations
@@ -186,7 +201,8 @@ describe("Issue #414 DEC-110: committed custody sources, real PostgreSQL", () =>
     expect((await read()).map((entry) => entry.sourceId)).toContain(operationId);
     expect(await inPostgresTransaction(db.runtimePool, (tx) =>
       findEmergencyTakeoverAlertOccurrence(tx, { ...input, sourceId: operationId }),
-    )).toMatchObject({ category: "ALT-05", sourceId: operationId, taskId });
+    )).toMatchObject({ category: "ALT-05", sourceId: operationId,
+      episodeId: operationId, taskId });
     // Current sensitive CA assurance is required even for historical receipt replay.
     await db.adminPool.query(
       `UPDATE staff_auth_sessions SET mfa_authenticated_at=clock_timestamp()-interval '6 minutes'

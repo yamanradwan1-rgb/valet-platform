@@ -112,6 +112,7 @@ describe("Issue #414 DEC-110: ALT-05 committed takeover read", () => {
       severity: "CRITICAL",
       sourceKind: "EMERGENCY_TAKEOVER",
       sourceId: operationId,
+      episodeId: operationId,
       organizationId,
       locationId,
       valetSessionId: sessionId,
@@ -123,8 +124,18 @@ describe("Issue #414 DEC-110: ALT-05 committed takeover read", () => {
     expect(sql[0]).toContain("FROM emergency_task_takeover_operations");
     expect(sql[0]).toContain("dispatch.event_type='EMERGENCY_TAKEOVER'");
     expect(sql[0]).toContain("audit.event_type='TASK_EMERGENCY_TAKEOVER'");
+    expect(sql[0]).toContain("dispatch.actor_membership_id=takeover.actor_membership_id");
+    expect(sql[0]).toContain("dispatch.previous_assignee_membership_id=takeover.previous_assignee_membership_id");
+    expect(sql[0]).toContain("dispatch.new_assignee_membership_id=takeover.new_assignee_membership_id");
+    expect(sql[0]).toContain("audit.actor_membership_id=takeover.actor_membership_id");
+    expect(sql[0]).toContain("audit.metadata_json @> jsonb_build_object(");
+    for (const field of ["operationId", "sessionId", "previousAssigneeMembershipId",
+      "newAssigneeMembershipId", "fromVersion", "toVersion",
+      "fromSessionVersion", "toSessionVersion"]) {
+      expect(sql[0]).toContain(`'${field}'`);
+    }
     expect(sql[0]).toContain("INTERVAL '7 days'");
-    expect(sql[0]).not.toMatch(/reason|request_fingerprint|actor_membership_id/);
+    expect(sql[0]).not.toMatch(/\breason\b|request_fingerprint|SELECT.*metadata_json.*FROM/s);
   });
 
   it("rejects an LM without takeover source permission before looking up any operation", async () => {
@@ -147,6 +158,7 @@ describe("Issue #414 DEC-110: ALT-05 committed takeover read", () => {
       ...input, sourceId: operationId,
     });
     expect(replay).toEqual(first[0]);
+    expect(replay?.episodeId).toBe(operationId);
     expect(sql[1]).toContain("takeover.operation_id=$4::uuid");
     expect(sql[1]).toContain("LIMIT $3");
     expect(calls.filter((value) => value === "source")).toHaveLength(2);
@@ -197,6 +209,7 @@ describe("Issue #414 DEC-110: ALT-07 terminal handoff occurrence", () => {
     ], calls);
     const result = await queryHandoffTerminalAlertOccurrences(tx, input);
     expect(result.map((item) => item.sourceId)).toEqual([eventId, overrideId]);
+    expect(result.map((item) => item.episodeId)).toEqual([eventId, overrideId]);
     expect(result.map((item) => item.sourceKind)).toEqual([
       "TERMINAL_HANDOFF_FAILURE",
       "HANDOFF_SUPERVISOR_OVERRIDE",
@@ -219,7 +232,7 @@ describe("Issue #414 DEC-110: ALT-07 terminal handoff occurrence", () => {
       ...input, sourceId: eventId,
     });
     expect(result?.sourceId).toBe(eventId);
-    expect(result).not.toHaveProperty("episodeId");
+    expect(result?.episodeId).toBe(eventId);
     expect(sql[0]).toContain("event.id=$4::uuid");
     expect(sql[0]).not.toMatch(/LAG\(|ROW_NUMBER\(|verification_id/);
   });

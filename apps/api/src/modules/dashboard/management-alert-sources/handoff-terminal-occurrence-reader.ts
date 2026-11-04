@@ -77,6 +77,7 @@ async function sourceOccurrences(
         ? ("HANDOFF_SUPERVISOR_OVERRIDE" as const)
         : ("TERMINAL_HANDOFF_FAILURE" as const),
       sourceId: row.eventId,
+      episodeId: row.eventId,
       organizationId: scope.organizationId,
       locationId: scope.locationId,
       valetSessionId: row.valetSessionId,

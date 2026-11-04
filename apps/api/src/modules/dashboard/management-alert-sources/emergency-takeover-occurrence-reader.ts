@@ -42,6 +42,9 @@ async function sourceOccurrences(
       AND dispatch.valet_session_id=takeover.valet_session_id
       AND dispatch.event_type='EMERGENCY_TAKEOVER'
       AND dispatch.occurred_at=takeover.occurred_at
+      AND dispatch.actor_membership_id=takeover.actor_membership_id
+      AND dispatch.previous_assignee_membership_id=takeover.previous_assignee_membership_id
+      AND dispatch.new_assignee_membership_id=takeover.new_assignee_membership_id
      INNER JOIN audit_events AS audit
        ON audit.organization_id=takeover.organization_id
       AND audit.id=takeover.audit_event_id
@@ -51,6 +54,17 @@ async function sourceOccurrences(
       AND audit.entity_id=takeover.task_id
       AND audit.event_type='TASK_EMERGENCY_TAKEOVER'
       AND audit.occurred_at=takeover.occurred_at
+      AND audit.actor_membership_id=takeover.actor_membership_id
+      AND audit.metadata_json @> jsonb_build_object(
+         'operationId', takeover.operation_id::text,
+         'sessionId', takeover.valet_session_id::text,
+         'previousAssigneeMembershipId', takeover.previous_assignee_membership_id::text,
+         'newAssigneeMembershipId', takeover.new_assignee_membership_id::text,
+         'fromStatus', 'IN_PROGRESS', 'toStatus', 'IN_PROGRESS',
+         'fromVersion', takeover.expected_task_version,
+         'toVersion', takeover.result_task_version,
+         'fromSessionVersion', takeover.expected_session_version,
+         'toSessionVersion', takeover.result_session_version)
      WHERE takeover.organization_id=$1::uuid
        AND takeover.location_id=$2::uuid
        AND takeover.occurred_at <= clock_timestamp()
@@ -74,6 +88,7 @@ async function sourceOccurrences(
       severity: "CRITICAL" as const,
       sourceKind: "EMERGENCY_TAKEOVER" as const,
       sourceId: row.operationId,
+      episodeId: row.operationId,
       organizationId: scope.organizationId,
       locationId: scope.locationId,
       valetSessionId: row.valetSessionId,
