@@ -195,8 +195,8 @@ describe("Issue #414 DEC-110: committed custody sources, real PostgreSQL", () =>
         taskId, actor, previous.membershipId, replacement.membershipId,
         "a".repeat(64), operationTime, dispatchId, auditId],
     );
-    const read = () => inPostgresTransaction(db.runtimePool, (tx) =>
-      queryEmergencyTakeoverAlertOccurrences(tx, input),
+    const read = (readerInput = input) => inPostgresTransaction(db.runtimePool, (tx) =>
+      queryEmergencyTakeoverAlertOccurrences(tx, readerInput),
     );
     expect((await read()).map((entry) => entry.sourceId)).toContain(operationId);
     expect(await inPostgresTransaction(db.runtimePool, (tx) =>
@@ -204,11 +204,16 @@ describe("Issue #414 DEC-110: committed custody sources, real PostgreSQL", () =>
     )).toMatchObject({ category: "ALT-05", sourceId: operationId,
       episodeId: operationId, taskId });
     // Current sensitive CA assurance is required even for historical receipt replay.
-    await db.adminPool.query(
-      `UPDATE staff_auth_sessions SET mfa_authenticated_at=clock_timestamp()-interval '6 minutes'
-       WHERE id=$1`,
+    const aged = await db.adminPool.query<{ created_at: Date }>(
+      `UPDATE staff_auth_sessions
+       SET created_at=clock_timestamp()-interval '1 hour',
+           mfa_authenticated_at=clock_timestamp()-interval '6 minutes',
+           last_admin_activity_at=clock_timestamp()-interval '2 minutes'
+       WHERE id=$1 RETURNING created_at`,
       [context.staffAuthSessionId],
     );
-    await expect(read()).rejects.toMatchObject({ code: "MFA_STEP_UP_REQUIRED" });
+    await expect(read({ ...input, context: {
+      ...context, createdAt: aged.rows[0]!.created_at,
+    } })).rejects.toMatchObject({ code: "MFA_STEP_UP_REQUIRED" });
   });
 });
