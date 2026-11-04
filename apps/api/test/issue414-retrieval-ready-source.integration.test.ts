@@ -87,7 +87,7 @@ describe("Issue #414 ALT-06 original READY phase source proof", () => {
     const gated = await inPostgresTransaction(db.runtimePool, tx =>
       queryRetrievalReadyAlertCases(tx, {
         ...input, postLockClockCutover:
-          new Date(process.env.MANAGEMENT_ALERTS_PHASE1_DISPATCH_POST_LOCK_CUTOVER!),
+          new Date(process.env.MANAGEMENT_ALERTS_PHASE23_STAGE_POST_LOCK_CUTOVER!),
       }));
     expect(gated.some(x => x.sourceId === newer.sessionId)).toBe(false);
   });
@@ -95,13 +95,44 @@ describe("Issue #414 ALT-06 original READY phase source proof", () => {
   it("denies stale LM grant before examining handoff source", async () => {
     const input = await phaseReaderInput(db);
     await seedPhaseReady(db);
-    await db.adminPool.query(
-      "DELETE FROM membership_location_access WHERE membership_id=$1",
-      [input.scope.membershipId],
-    );
+    const fixture = await db.managerFixture();
+    try {
+      await db.adminPool.query(
+        "DELETE FROM membership_location_access WHERE membership_id=$1",
+        [input.scope.membershipId],
+      );
+      await expect(inPostgresTransaction(db.runtimePool, tx =>
+        queryRetrievalReadyAlertCases(tx, input)))
+        .rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
+    } finally {
+      await db.grantAccess(fixture, input.scope.membershipId);
+    }
+  });
+
+  it("denies exact ungranted LM, employee, supervisor and CA missing MFA", async () => {
+    const input = await phaseReaderInput(db);
+    await seedPhaseReady(db);
+    const fixture = await db.managerFixture();
+    for (const role of [
+      "LOCATION_MANAGER", "VALET_EMPLOYEE", "VALET_SUPERVISOR",
+    ] as const) {
+      const actor = await db.createActor(fixture, role, { access: false });
+      const context = await db.staffSessionContext(actor.userId);
+      await expect(inPostgresTransaction(db.runtimePool, tx =>
+        queryRetrievalReadyAlertCases(tx, {
+          ...input,
+          context,
+          scope: { ...input.scope, membershipId: actor.membershipId },
+        }))).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
+    }
+    const admin = await db.createActor(fixture, "ORG_ADMIN");
+    const adminContext = await db.staffSessionContext(admin.userId);
     await expect(inPostgresTransaction(db.runtimePool, tx =>
-      queryRetrievalReadyAlertCases(tx, input)))
-      .rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
+      queryRetrievalReadyAlertCases(tx, {
+        ...input,
+        context: adminContext,
+        scope: { ...input.scope, membershipId: admin.membershipId },
+      }))).rejects.toThrow();
   });
 
   it("does not expose a READY Session through another granted LM Location", async () => {
@@ -124,14 +155,8 @@ describe("Issue #414 ALT-06 original READY phase source proof", () => {
   it("fails closed without throwing on a persisted out-of-range JSON version", async () => {
     const input = await phaseReaderInput(db);
     const valid = await seedPhaseReady(db);
-    const corrupt = await seedPhaseReady(db);
-    await db.adminPool.query(
-      `UPDATE audit_events
-       SET metadata_json=jsonb_set(metadata_json,'{toVersion}',
-         '9999999999999999999999999999999999999999999999'::jsonb)
-       WHERE id=$1`,
-      [corrupt.auditId],
-    );
+    // Separate append-only candidate: Issue #300 forbids Audit UPDATE.
+    const corrupt = await seedPhaseReady(db, { malformedAuditVersion: true });
     const actual = await inPostgresTransaction(db.runtimePool, tx =>
       queryRetrievalReadyAlertCases(tx, input));
     expect(actual.some(item => item.sourceId === valid.sessionId)).toBe(true);

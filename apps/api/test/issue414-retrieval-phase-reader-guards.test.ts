@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { PostgresTransaction } from "../src/common/database/postgres";
 import { lockAndRecheckStaffSessionContext } from "../src/modules/auth/staff-session-revalidation";
 import { authorizeDashboardReadLocation } from "../src/modules/dashboard/dashboard-read-authorization";
-import { requireManagementAlertClockCutover } from "../src/modules/dashboard/management-alert-clock-cutover";
+import { requireRetrievalPhaseStageClockCutover } from "../src/modules/dashboard/management-alert-sources/retrieval-phase-stage-clock-cutover";
 import {
   findRetrievalStageAlertCaseById,
   queryRetrievalStageAlertCases,
@@ -20,8 +20,8 @@ vi.mock("../src/modules/dashboard/dashboard-read-authorization", () => ({
 vi.mock("../src/modules/auth/staff-session-revalidation", () => ({
   lockAndRecheckStaffSessionContext: vi.fn(),
 }));
-vi.mock("../src/modules/dashboard/management-alert-clock-cutover", () => ({
-  requireManagementAlertClockCutover: vi.fn(),
+vi.mock("../src/modules/dashboard/management-alert-sources/retrieval-phase-stage-clock-cutover", () => ({
+  requireRetrievalPhaseStageClockCutover: vi.fn(),
 }));
 
 const sourceId = "11111111-1111-4111-8111-111111111111";
@@ -36,7 +36,7 @@ const input: RetrievalPhaseAlertInput & { readonly alt01GraceSeconds: number } =
 };
 const staff = vi.mocked(lockAndRecheckStaffSessionContext);
 const authorized = vi.mocked(authorizeDashboardReadLocation);
-const cutover = vi.mocked(requireManagementAlertClockCutover);
+const cutover = vi.mocked(requireRetrievalPhaseStageClockCutover);
 
 function fixtureTransaction(
   rows: Record<string, unknown>[] = [],
@@ -171,7 +171,7 @@ describe("Issue #414 P2 restricted source-reader boundaries", () => {
     expect(calls[1]!.args?.at(-1)).toBe(sourceId);
   });
 
-  it("denies a LM with a valid exact Dashboard grant but without owning source-read eligibility", async () => {
+  it("fails closed if the persisted source recheck denies after mocked Dashboard scope", async () => {
     const { tx, calls } = fixtureTransaction([], false);
     await expect(queryRetrievalStageAlertCases(tx, input))
       .rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
@@ -181,6 +181,8 @@ describe("Issue #414 P2 restricted source-reader boundaries", () => {
     expect(calls).toHaveLength(2);
     expect(calls.every((call) => call.sql.includes('AS "sourceReadAllowed"')))
       .toBe(true);
+    // This injected denial only tests defense-in-depth. A separate persisted
+    // Task ACL does not exist; actual LM grant/role negatives use real PG.
   });
 
   it("rejects CA without current MFA before any owning Task/Session source probe", async () => {

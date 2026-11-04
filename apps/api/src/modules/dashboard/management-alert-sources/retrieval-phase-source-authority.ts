@@ -9,9 +9,20 @@ import {
 /**
  * OD-07A: purpose-limited Task/Retrieval management source read, not custody
  * detail, Task mutation, takeover, audit investigation, or location tracking.
- * The existing management Task/queue readers authorize CA or exact-granted LM;
- * this independent source fence rechecks that *same* narrow role/source scope
- * before the reader examines any Task, Session, request or Audit candidate.
+ * Existing management read-only sources:
+ * - overview-retrieval-tasks-query.ts: listDashboardTasks/listRetrievalQueue
+ * - overview-sessions-query.ts: listDashboardSessions
+ * all use authorizeDashboardReadLocation(LOCATION_DASHBOARD_READ). There is
+ * no separately persisted management Task/Session ACL. This guard is the
+ * source-specific read-only equivalent: the SAME role, exact active Location
+ * grant for LM, Organization, commercial entitlement and CA MFA through
+ * requireManagementAlertSourceScope, plus an independent persisted source
+ * scope recheck before selecting Task/Session evidence.
+ *
+ * It is NOT equivalent to staff-valet-session.service custody-detail access
+ * (employee task ownership and active Shift), and grants no custody command,
+ * protected private metadata, audit investigation, route or tracking access.
+ * Task/Session source SQL returns sanitized alerts only, never row contents.
  */
 export async function requireRetrievalPhaseSourceScope(
   tx: PostgresTransaction,

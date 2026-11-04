@@ -5,19 +5,26 @@ import type { DashboardActor } from "./dashboard-test-context";
 import { DashboardOverviewTestContext } from "./dashboard-overview-test-context";
 
 const staffByDatabase = new WeakMap<DashboardOverviewTestContext, Promise<DashboardActor>>();
-const originalCutover = process.env.MANAGEMENT_ALERTS_PHASE1_DISPATCH_POST_LOCK_CUTOVER;
+const originalCutover =
+  process.env.MANAGEMENT_ALERTS_PHASE23_STAGE_POST_LOCK_CUTOVER;
 
-/** PG tests exercise the *same* env-bound cutover fence as real readers. */
+/**
+ * Simulated post-quiescence stage epoch in an isolated disposable PG fixture.
+ * This does NOT capture, attest or replace the required production quiescence
+ * and server-clock release evidence; the seeded stages are deliberately
+ * historical so their personalized 60-second delay can be exercised.
+ */
 export function setTrustedPhaseTestCutover(value: Date): void {
-  process.env.MANAGEMENT_ALERTS_PHASE1_DISPATCH_POST_LOCK_CUTOVER =
+  process.env.MANAGEMENT_ALERTS_PHASE23_STAGE_POST_LOCK_CUTOVER =
     value.toISOString();
 }
 
 export function restoreTrustedPhaseTestCutover(): void {
   if (originalCutover === undefined) {
-    delete process.env.MANAGEMENT_ALERTS_PHASE1_DISPATCH_POST_LOCK_CUTOVER;
+    delete process.env.MANAGEMENT_ALERTS_PHASE23_STAGE_POST_LOCK_CUTOVER;
   } else {
-    process.env.MANAGEMENT_ALERTS_PHASE1_DISPATCH_POST_LOCK_CUTOVER = originalCutover;
+    process.env.MANAGEMENT_ALERTS_PHASE23_STAGE_POST_LOCK_CUTOVER =
+      originalCutover;
   }
 }
 
@@ -128,7 +135,10 @@ export async function seedPhaseStage(
     requestId, sessionId, taskId };
 }
 
-export async function seedPhaseReady(db: DashboardOverviewTestContext) {
+export async function seedPhaseReady(
+  db: DashboardOverviewTestContext,
+  options: { readonly malformedAuditVersion?: boolean } = {},
+) {
   const fixture = await db.managerFixture();
   const actor = await sourceStaff(db);
   const sessionId = await db.seedSession({ state: "READY" });
@@ -150,6 +160,18 @@ export async function seedPhaseReady(db: DashboardOverviewTestContext) {
     [sessionId, requestId, at],
   );
   const auditId = randomUUID();
+  const normalAuditMetadata = JSON.stringify({
+    fromState: "RETRIEVING", toState: "READY",
+    fromVersion: 6, toVersion: 7, taskId,
+  });
+  // Only the initial INSERT is allowed. Issue #300 DB triggers forbid any
+  // audit metadata UPDATE, including test-only rewrites.
+  const auditMetadata = options.malformedAuditVersion === true
+    ? normalAuditMetadata.replace(
+      '"toVersion":7',
+      '"toVersion":999999999999999999999999999999999999999999999999',
+    )
+    : normalAuditMetadata;
   await db.adminPool.query(
     `INSERT INTO audit_events
        (id,organization_id,location_id,valet_session_id,
@@ -158,8 +180,7 @@ export async function seedPhaseReady(db: DashboardOverviewTestContext) {
      VALUES($1,$2,$3,$4,$5,'VALET_SESSION_READY','VALET_SESSION',$4,$6::jsonb,$7)`,
     [auditId, fixture.organizationId, fixture.locationId, sessionId,
       actor.membershipId,
-      JSON.stringify({ fromState: "RETRIEVING", toState: "READY",
-        fromVersion: 6, toVersion: 7, taskId }), at],
+      auditMetadata, at],
   );
   return { at, actorMembershipId: actor.membershipId, auditId, sessionId, taskId };
 }

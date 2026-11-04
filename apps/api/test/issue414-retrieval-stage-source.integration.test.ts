@@ -184,13 +184,37 @@ describe("Issue #414 ALT-04 current stage source proof", () => {
   it("denies revoked exact LM grant before source selection", async () => {
     const input = await phaseReaderInput(db);
     await seedPhaseStage(db, "ACCEPTED");
-    await db.adminPool.query(
-      "DELETE FROM membership_location_access WHERE membership_id=$1",
-      [input.scope.membershipId],
-    );
-    await expect(inPostgresTransaction(db.runtimePool, tx =>
-      queryRetrievalStageAlertCases(tx, input)))
-      .rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
+    const fixture = await db.managerFixture();
+    try {
+      await db.adminPool.query(
+        "DELETE FROM membership_location_access WHERE membership_id=$1",
+        [input.scope.membershipId],
+      );
+      await expect(inPostgresTransaction(db.runtimePool, tx =>
+        queryRetrievalStageAlertCases(tx, input)))
+        .rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
+    } finally {
+      await db.grantAccess(fixture, input.scope.membershipId);
+    }
+  });
+
+  it("denies real ungranted LM and unsupported staff roles before selecting Task source", async () => {
+    const input = await phaseReaderInput(db);
+    await seedPhaseStage(db, "ACCEPTED");
+    const fixture = await db.managerFixture();
+    for (const role of [
+      "LOCATION_MANAGER", "VALET_EMPLOYEE", "VALET_SUPERVISOR",
+    ] as const) {
+      const actor = await db.createActor(fixture, role, { access: false });
+      const deniedInput = {
+        ...input,
+        context: await db.staffSessionContext(actor.userId),
+        scope: { ...input.scope, membershipId: actor.membershipId },
+      };
+      await expect(inPostgresTransaction(db.runtimePool, tx =>
+        queryRetrievalStageAlertCases(tx, deniedInput)))
+        .rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
+    }
   });
 
   it("does not leak a Task outside the LM's selected owning Location even with a current exact grant", async () => {

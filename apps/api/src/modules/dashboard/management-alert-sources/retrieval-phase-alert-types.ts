@@ -1,7 +1,7 @@
 import type { ManagementAlertReaderInput } from "./management-alert-source-contract";
-import { requireManagementAlertClockCutover } from "../management-alert-clock-cutover";
+import { requireRetrievalPhaseStageClockCutover } from "./retrieval-phase-stage-clock-cutover";
 
-/** Release-gated from a DB-side millisecond clock after all old writers stop. */
+/** Post-lock stage writers require their own release cutover, never Phase 1's. */
 export interface RetrievalPhaseAlertInput extends ManagementAlertReaderInput {
   readonly delaySeconds: number;
   readonly alt01GraceSeconds?: number;
@@ -40,7 +40,7 @@ export function validateRetrievalPhaseAlertInput(
   // Fail closed if the post-quiescence server release gate is absent, invalid,
   // or not the *exact* millisecond cutover passed by the management facade.
   if (input.postLockClockCutover.getTime() !==
-    requireManagementAlertClockCutover().getTime()) {
+    requireRetrievalPhaseStageClockCutover().getTime()) {
     throw new RangeError("Unproven retrieval phase source-clock cutover.");
   }
 }
