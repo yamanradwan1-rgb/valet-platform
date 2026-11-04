@@ -6,10 +6,11 @@ export function readManagementAlertsPreview(
   api: DashboardApiClient,
   locationId: string,
   signal: AbortSignal,
+  currentAuthority?: () => boolean,
 ) {
   return api.request(
     `/v1/staff/dashboard/locations/${encodeURIComponent(locationId)}/alerts/preview`,
     previewSchemaForLocation(locationId),
-    { signal },
+    { signal, beforeTransport: currentAuthority },
   );
 }

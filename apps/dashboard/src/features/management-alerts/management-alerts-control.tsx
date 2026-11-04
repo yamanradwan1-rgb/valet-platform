@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { Bell } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+} from "react";
 import type { DashboardApiClient } from "../../lib/api/dashboard-api-client";
 import { useStaffAuth } from "../../lib/auth/staff-auth-context";
 import { useDashboardLocale } from "../../lib/i18n/locale-provider";
@@ -11,6 +17,7 @@ import { FocusDialog } from "../../components/presentation/focus-dialog";
 import { managementAlertsEnabled } from "./alert-feature-gate";
 import { alertBadge } from "./alert-model";
 import { readManagementAlertsPreview } from "./alert-preview-api";
+import { readWithAlertTransportLease } from "./alert-read-lease";
 import { AlertPollOwner, type AlertPollState } from "./alert-poll-owner";
 import { managementAlertsLocation } from "./alert-scope";
 import { managementAlertCopy } from "./alert-copy";
@@ -44,27 +51,41 @@ export function ManagementAlertsControl({
     scopeRevisionRef.current = liveScopeRevision;
   }, [liveScopeRevision]);
   const locationId = managementAlertsLocation(selectedScope);
-  const organizationId = selectedScope.authority === "COMPANY_ADMIN"
-    ? selectedScope.context.organization.organizationId
-    : selectedScope.authority === "LOCATION_MANAGER"
-      ? selectedScope.organization.organizationId : null;
+  const organizationId =
+    selectedScope.authority === "COMPANY_ADMIN"
+      ? selectedScope.context.organization.organizationId
+      : selectedScope.authority === "LOCATION_MANAGER"
+        ? selectedScope.organization.organizationId
+        : null;
   const identity = auth.identityGeneration;
   const session = auth.sessionGeneration;
   const authClient = auth.client;
   const allowed =
-    managementAlertsEnabled && authorized && locationId !== null &&
-    auth.status === "authenticated" && authClient.getStaffAuthSessionId() !== null;
+    managementAlertsEnabled &&
+    authorized &&
+    locationId !== null &&
+    auth.status === "authenticated" &&
+    authClient.getStaffAuthSessionId() !== null;
 
   useEffect(() => {
     if (!allowed || locationId === null) return;
     let mounted = true;
     const currentAuthority = () =>
-      mounted && authClient.getIdentityGeneration() === identity &&
+      mounted &&
+      authClient.getIdentityGeneration() === identity &&
       authClient.getSessionGeneration() === session &&
       scopeRevisionRef.current === selectionRevision &&
       authClient.getStaffAuthSessionId() !== null;
     const coordinator = new AlertPollOwner({
-      load: (signal) => readManagementAlertsPreview(api, locationId, signal),
+      load: (signal) =>
+        readWithAlertTransportLease(signal, currentAuthority, (activeSignal) =>
+          readManagementAlertsPreview(
+            api,
+            locationId,
+            activeSignal,
+            currentAuthority,
+          ),
+        ),
       currentAuthority,
       onState: (next) => {
         if (mounted) setState(next);
@@ -73,8 +94,9 @@ export function ManagementAlertsControl({
     owner.current = coordinator;
     const reconcileForeground = () => {
       coordinator.setForeground(
-        document.visibilityState === "visible" && navigator.onLine &&
-        currentAuthority(),
+        document.visibilityState === "visible" &&
+          navigator.onLine &&
+          currentAuthority(),
       );
     };
     document.addEventListener("visibilitychange", reconcileForeground);
@@ -82,7 +104,8 @@ export function ManagementAlertsControl({
     window.addEventListener("offline", reconcileForeground);
     window.addEventListener("focus", reconcileForeground);
     const unsubscribe = subscribeAlertTimingChanges((changedOrganization) => {
-      if (changedOrganization === organizationId) coordinator.invalidatePreferences();
+      if (changedOrganization === organizationId)
+        coordinator.invalidatePreferences();
     });
     queueMicrotask(() => {
       if (mounted) reconcileForeground();
@@ -98,8 +121,14 @@ export function ManagementAlertsControl({
       unsubscribe();
     };
   }, [
-    allowed, api, authClient, identity, locationId, organizationId,
-    selectionRevision, session,
+    allowed,
+    api,
+    authClient,
+    identity,
+    locationId,
+    organizationId,
+    selectionRevision,
+    session,
   ]);
 
   if (!allowed) return null;
@@ -110,10 +139,17 @@ export function ManagementAlertsControl({
     item: NonNullable<typeof preview>["items"][number],
   ) => {
     if (
-      event.button !== 0 || event.ctrlKey || event.metaKey ||
-      event.shiftKey || event.altKey
-    ) return;
-    if (item.sourceKind === "PRESENCE" && window.location.pathname === "/policies") {
+      event.button !== 0 ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      event.altKey
+    )
+      return;
+    if (
+      item.sourceKind === "PRESENCE" &&
+      window.location.pathname === "/policies"
+    ) {
       event.preventDefault();
       // The already-mounted Studio owns section history and draft confirmation.
       window.history.pushState(window.history.state, "", alertSourceHref(item));
@@ -132,14 +168,21 @@ export function ManagementAlertsControl({
         onClick={() => setOpen(true)}
       >
         <Bell size={18} aria-hidden="true" />
-        <span className="management-alert-badge" aria-hidden="true">{badge}</span>
+        <span className="management-alert-badge" aria-hidden="true">
+          {badge}
+        </span>
       </button>
       {open ? (
         <FocusDialog label={copy.title} onClose={() => setOpen(false)}>
-          <div className="management-alert-panel" dir={locale === "ar" ? "rtl" : "ltr"}>
+          <div
+            className="management-alert-panel"
+            dir={locale === "ar" ? "rtl" : "ltr"}
+          >
             <div className="management-alert-panel-heading">
               <h2>{copy.title}</h2>
-              <button type="button" onClick={() => setOpen(false)}>{copy.close}</button>
+              <button type="button" onClick={() => setOpen(false)}>
+                {copy.close}
+              </button>
             </div>
             {preview === null ? (
               <p role="status">{copy.unavailable}</p>
@@ -150,7 +193,9 @@ export function ManagementAlertsControl({
                 {preview.items.map((item) => (
                   <li key={item.id}>
                     <span className="management-alert-severity">
-                      {item.severity === "CRITICAL" ? copy.critical : copy.important}
+                      {item.severity === "CRITICAL"
+                        ? copy.critical
+                        : copy.important}
                     </span>
                     <bdi>{item.title}</bdi>
                     <small>{item.category}</small>
@@ -166,8 +211,11 @@ export function ManagementAlertsControl({
             )}
             <button
               type="button"
-              onClick={() => void (state.status === "suspended"
-                ? owner.current?.recover() : owner.current?.refresh())}
+              onClick={() =>
+                void (state.status === "suspended"
+                  ? owner.current?.recover()
+                  : owner.current?.refresh())
+              }
             >
               {state.status === "suspended" ? copy.retry : copy.refresh}
             </button>

@@ -9,6 +9,8 @@ export interface DashboardApiRequestOptions {
   readonly body?: unknown;
   readonly query?: Readonly<Record<string, string | number | boolean | null | undefined>>;
   readonly signal?: AbortSignal | undefined;
+  /** Feature-owned identity/session/Location fence checked at physical GET dispatch. */
+  readonly beforeTransport?: (() => boolean) | undefined;
   readonly requireAuth?: boolean;
   readonly onAuthReconciled?: ((generation: {
     readonly identityGeneration: number;

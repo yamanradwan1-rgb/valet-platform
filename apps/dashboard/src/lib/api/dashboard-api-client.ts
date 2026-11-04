@@ -252,6 +252,11 @@ export class DashboardApiClient {
     const token = requireAuth ? this.auth.getAccessToken() : null;
     if (token !== null) headers.Authorization = `Bearer ${token}`;
     if (options.body !== undefined) headers["Content-Type"] = "application/json";
+    // A refresh or GET 401-retry may retire the original owner after enqueue.
+    // Recheck its live authority with no await between the check and fetch.
+    if (options.signal?.aborted || options.beforeTransport?.() === false) {
+      throw dashboardAuthBoundaryError();
+    }
     let response: Response;
     try {
       response = await this.fetcher(this.buildUrl(path, options.query), {
