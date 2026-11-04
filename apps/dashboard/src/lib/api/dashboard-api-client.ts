@@ -9,6 +9,7 @@ import {
   dashboardNetworkError,
 } from "./dashboard-api-error";
 import { parseDashboardBinaryHeaders } from "./dashboard-binary-response";
+import { buildDashboardApiUrl } from "./dashboard-api-url";
 import { readProtectedJpegBody } from "./dashboard-protected-jpeg-body";
 import type {
   DashboardApiRequestOptions,
@@ -135,7 +136,7 @@ export class DashboardApiClient {
 
     let response: Response;
     try {
-      response = await this.fetcher(this.buildUrl(path), {
+      response = await this.fetcher(buildDashboardApiUrl(this.baseUrl, path), {
         method: options.method ?? "POST",
         headers,
         ...(options.method === "GET" ? {} : { body: JSON.stringify(options.body) }),
@@ -252,9 +253,14 @@ export class DashboardApiClient {
     const token = requireAuth ? this.auth.getAccessToken() : null;
     if (token !== null) headers.Authorization = `Bearer ${token}`;
     if (options.body !== undefined) headers["Content-Type"] = "application/json";
+    // A refresh or GET 401-retry may retire the original owner after enqueue.
+    // Recheck its live authority with no await between the check and fetch.
+    if (options.signal?.aborted || options.beforeTransport?.() === false) {
+      throw dashboardAuthBoundaryError();
+    }
     let response: Response;
     try {
-      response = await this.fetcher(this.buildUrl(path, options.query), {
+      response = await this.fetcher(buildDashboardApiUrl(this.baseUrl, path, options.query), {
         method,
         headers,
         cache: "no-store",
@@ -283,17 +289,4 @@ export class DashboardApiClient {
     }
   }
 
-  private buildUrl(
-    path: string,
-    query?: DashboardApiRequestOptions["query"],
-  ): string {
-    const url = `${this.baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
-    if (query === undefined) return url;
-    const params = new URLSearchParams();
-    for (const [key, value] of Object.entries(query)) {
-      if (value !== undefined && value !== null) params.append(key, String(value));
-    }
-    const encoded = params.toString();
-    return encoded.length === 0 ? url : `${url}?${encoded}`;
-  }
 }

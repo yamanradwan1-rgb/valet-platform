@@ -1,0 +1,223 @@
+{
+  "category": "SIMULATED_TABS_REAL_HTTP_PG17",
+  "runId": "run_focused-api_5wg_6912db922465",
+  "databaseVersion": 170011,
+  "resultCount": 3,
+  "inSuiteComplete": true,
+  "cleanupVerified": true,
+  "complete": true,
+  "results": [
+    {
+      "classification": "SIMULATED_FOREGROUND_TABS_REAL_LOCAL_BEARER_HTTP_PG17",
+      "tabs": 25,
+      "nominalPeriodMs": 60000,
+      "maxScheduledJitterMs": 3000,
+      "configuredArithmeticGetsPerSecond": 0.4166666666666667,
+      "warmupPlanned": 25,
+      "measuredPlanned": 25,
+      "warmupCompleted": 25,
+      "warmupHttpSuccess": 25,
+      "measuredCompleted": 25,
+      "measuredHttpSuccess": 25,
+      "missedInFlightTicks": 0,
+      "statusCounts": {
+        "200": 50
+      },
+      "measuredSuccessByAudience": {
+        "CA": 13,
+        "LM": 12
+      },
+      "measuredEndToEndHttp": {
+        "p50Ms": 57.646,
+        "p95Ms": 85.088,
+        "maxMs": 87.271
+      },
+      "measuredSuccessfulHttp": {
+        "p50Ms": 57.646,
+        "p95Ms": 85.088,
+        "maxMs": 87.271
+      },
+      "measuredScheduleLateness": {
+        "p50Ms": 1.024,
+        "p95Ms": 2.382,
+        "maxMs": 2.386
+      },
+      "measuredDispatchSpanMs": 58894.61459999999,
+      "actualFirstSendToLastCompletionMs": 58967.718400000005,
+      "observedSuccessfulGetsPerSecond": 0.424,
+      "peakHttpInFlight": 2,
+      "pool": {
+        "actualMountedPoolMax": 4,
+        "observedPeakPoolActive": 2,
+        "observedPeakPoolWaiting": 0,
+        "cumulativePoolPeakAdmitted": 3,
+        "cumulativePoolPeakWaiting": 1,
+        "acquisitionTimeoutsDelta": 0,
+        "transactionTimeoutsDelta": 0,
+        "leaseExpirationsDelta": 0,
+        "rejectedDelta": 0,
+        "connectionFailuresDelta": 0,
+        "poolErrorsDelta": 0,
+        "clientErrorsDelta": 0,
+        "leaseSetupFailuresDelta": 0,
+        "expiredAcquisitionsDelta": 0,
+        "releaseFailuresDelta": 0,
+        "failuresDelta": 0,
+        "queryTimeoutsDelta": 0,
+        "lockTimeoutsDelta": 0,
+        "statementTimeoutsDelta": 0,
+        "deadlocksDelta": 0,
+        "pgActivitySamplerIntervalMs": 200,
+        "pgActivitySamples": 605,
+        "positiveLockSamples": 0,
+        "peakLockedBackends": 0,
+        "peakPgActiveBackends": 1,
+        "samplerErrors": []
+      },
+      "telemetryValid": true,
+      "complete": true
+    },
+    {
+      "classification": "SIMULATED_FOREGROUND_TABS_REAL_LOCAL_BEARER_HTTP_PG17",
+      "tabs": 100,
+      "nominalPeriodMs": 60000,
+      "maxScheduledJitterMs": 3000,
+      "configuredArithmeticGetsPerSecond": 1.6666666666666667,
+      "warmupPlanned": 100,
+      "measuredPlanned": 100,
+      "warmupCompleted": 100,
+      "warmupHttpSuccess": 100,
+      "measuredCompleted": 100,
+      "measuredHttpSuccess": 100,
+      "missedInFlightTicks": 0,
+      "statusCounts": {
+        "200": 200
+      },
+      "measuredSuccessByAudience": {
+        "CA": 50,
+        "LM": 50
+      },
+      "measuredEndToEndHttp": {
+        "p50Ms": 50.138,
+        "p95Ms": 84.989,
+        "maxMs": 97.268
+      },
+      "measuredSuccessfulHttp": {
+        "p50Ms": 50.138,
+        "p95Ms": 84.989,
+        "maxMs": 97.268
+      },
+      "measuredScheduleLateness": {
+        "p50Ms": 0.948,
+        "p95Ms": 2.23,
+        "maxMs": 3.118
+      },
+      "measuredDispatchSpanMs": 59927.87209999998,
+      "actualFirstSendToLastCompletionMs": 59975.31660000002,
+      "observedSuccessfulGetsPerSecond": 1.6674,
+      "peakHttpInFlight": 3,
+      "pool": {
+        "actualMountedPoolMax": 4,
+        "observedPeakPoolActive": 2,
+        "observedPeakPoolWaiting": 0,
+        "cumulativePoolPeakAdmitted": 5,
+        "cumulativePoolPeakWaiting": 1,
+        "acquisitionTimeoutsDelta": 0,
+        "transactionTimeoutsDelta": 0,
+        "leaseExpirationsDelta": 0,
+        "rejectedDelta": 0,
+        "connectionFailuresDelta": 0,
+        "poolErrorsDelta": 0,
+        "clientErrorsDelta": 0,
+        "leaseSetupFailuresDelta": 0,
+        "expiredAcquisitionsDelta": 0,
+        "releaseFailuresDelta": 0,
+        "failuresDelta": 0,
+        "queryTimeoutsDelta": 0,
+        "lockTimeoutsDelta": 0,
+        "statementTimeoutsDelta": 0,
+        "deadlocksDelta": 0,
+        "pgActivitySamplerIntervalMs": 200,
+        "pgActivitySamples": 606,
+        "positiveLockSamples": 2,
+        "peakLockedBackends": 1,
+        "peakPgActiveBackends": 2,
+        "samplerErrors": []
+      },
+      "telemetryValid": true,
+      "complete": true
+    },
+    {
+      "classification": "SIMULATED_FOREGROUND_TABS_REAL_LOCAL_BEARER_HTTP_PG17",
+      "tabs": 200,
+      "nominalPeriodMs": 60000,
+      "maxScheduledJitterMs": 3000,
+      "configuredArithmeticGetsPerSecond": 3.3333333333333335,
+      "warmupPlanned": 200,
+      "measuredPlanned": 200,
+      "warmupCompleted": 200,
+      "warmupHttpSuccess": 200,
+      "measuredCompleted": 200,
+      "measuredHttpSuccess": 200,
+      "missedInFlightTicks": 0,
+      "statusCounts": {
+        "200": 400
+      },
+      "measuredSuccessByAudience": {
+        "CA": 100,
+        "LM": 100
+      },
+      "measuredEndToEndHttp": {
+        "p50Ms": 51.269,
+        "p95Ms": 91.995,
+        "maxMs": 147.606
+      },
+      "measuredSuccessfulHttp": {
+        "p50Ms": 51.269,
+        "p95Ms": 91.995,
+        "maxMs": 147.606
+      },
+      "measuredScheduleLateness": {
+        "p50Ms": 0.899,
+        "p95Ms": 2.24,
+        "maxMs": 3.434
+      },
+      "measuredDispatchSpanMs": 61323.836699999985,
+      "actualFirstSendToLastCompletionMs": 61371.77779999998,
+      "observedSuccessfulGetsPerSecond": 3.2588,
+      "peakHttpInFlight": 4,
+      "pool": {
+        "actualMountedPoolMax": 4,
+        "observedPeakPoolActive": 2,
+        "observedPeakPoolWaiting": 0,
+        "cumulativePoolPeakAdmitted": 5,
+        "cumulativePoolPeakWaiting": 1,
+        "acquisitionTimeoutsDelta": 0,
+        "transactionTimeoutsDelta": 0,
+        "leaseExpirationsDelta": 0,
+        "rejectedDelta": 0,
+        "connectionFailuresDelta": 0,
+        "poolErrorsDelta": 0,
+        "clientErrorsDelta": 0,
+        "leaseSetupFailuresDelta": 0,
+        "expiredAcquisitionsDelta": 0,
+        "releaseFailuresDelta": 0,
+        "failuresDelta": 0,
+        "queryTimeoutsDelta": 0,
+        "lockTimeoutsDelta": 0,
+        "statementTimeoutsDelta": 0,
+        "deadlocksDelta": 0,
+        "pgActivitySamplerIntervalMs": 200,
+        "pgActivitySamples": 612,
+        "positiveLockSamples": 5,
+        "peakLockedBackends": 1,
+        "peakPgActiveBackends": 2,
+        "samplerErrors": []
+      },
+      "telemetryValid": true,
+      "complete": true
+    }
+  ],
+  "caveat": "Never a production capacity SLO; no actual browser tabs",
+  "cleanupProof": "focused runner finished owned PostgreSQL cleanup and lease release"
+}

@@ -64,20 +64,27 @@ describe("management audit projection", () => {
       reason: "private-reason",
       storage_object_key: "private-storage-key",
     };
-    expect(managementAuditKnownEventTypes).toHaveLength(104);
-    expect(managementAuditKnownEventTypes).toContain("MANAGEMENT_GUEST_INFORMATION_CHANGED");
+    expect(managementAuditKnownEventTypes).toHaveLength(105);
+    expect(managementAuditKnownEventTypes).toContain(
+      "MANAGEMENT_GUEST_INFORMATION_CHANGED",
+    );
     for (const eventType of managementAuditKnownEventTypes) {
-      const eventMetadata = eventType === "MANAGEMENT_GUEST_INFORMATION_CHANGED"
-        ? { ...sensitiveMetadata, operation: "PRIVACY_PUBLISHED" }
-        : sensitiveMetadata;
+      const eventMetadata =
+        eventType === "MANAGEMENT_GUEST_INFORMATION_CHANGED"
+          ? { ...sensitiveMetadata, operation: "PRIVACY_PUBLISHED" }
+          : sensitiveMetadata;
+      const sourceRow = row(eventType, eventMetadata);
       const projected = projectManagementAuditEvent(
-        row(eventType, eventMetadata),
+        eventType === "MANAGEMENT_ALERT_TIMING_PREFERENCES_CHANGED"
+          ? { ...sourceRow, entityType: "User", locationId: null }
+          : sourceRow,
         admin,
       );
       expect(projected.eventType).toBe(eventType);
       if (eventType === "MANAGEMENT_GUEST_INFORMATION_CHANGED") {
         expect(projected.details).toEqual({
-          kind: "GUEST_INFORMATION", operation: "PRIVACY_PUBLISHED",
+          kind: "GUEST_INFORMATION",
+          operation: "PRIVACY_PUBLISHED",
         });
       }
       const serialized = JSON.stringify(projected);
@@ -104,7 +111,9 @@ describe("management audit projection", () => {
   it("uses an operational-only supervisor allowlist", () => {
     expect(managementAuditSupervisorEventTypes).toHaveLength(39);
     expect(managementAuditSupervisorEventTypes).toContain("TASK_ASSIGNED");
-    expect(managementAuditSupervisorEventTypes).toContain("TASK_EMERGENCY_TAKEOVER");
+    expect(managementAuditSupervisorEventTypes).toContain(
+      "TASK_EMERGENCY_TAKEOVER",
+    );
     expect(managementAuditSupervisorEventTypes).toContain(
       "VALET_SESSION_COMPLETED",
     );
@@ -116,6 +125,7 @@ describe("management audit projection", () => {
       "MAP_SETUP_POINT_CREATED",
       "STAFF_ROLE_CHANGED",
       "MANAGEMENT_COMPANY_SETTING_DEFAULT_CHANGED",
+      "MANAGEMENT_ALERT_TIMING_PREFERENCES_CHANGED",
       "LOCATION_DEACTIVATED",
       "VISIT_CONTACT_NAME_CORRECTED",
       "VISIT_CONTACT_PHONE_CORRECTED",
@@ -132,14 +142,17 @@ describe("management audit projection", () => {
 
   it("projects emergency takeover versions without exposing the private reason", () => {
     const projected = projectManagementAuditEvent(
-      { ...row("TASK_EMERGENCY_TAKEOVER", {
-        fromStatus: "IN_PROGRESS",
-        toStatus: "IN_PROGRESS",
-        fromVersion: 7,
-        toVersion: 8,
-        reason: "private emergency explanation",
-        operationId: eventId,
-      }), entityType: "Task" },
+      {
+        ...row("TASK_EMERGENCY_TAKEOVER", {
+          fromStatus: "IN_PROGRESS",
+          toStatus: "IN_PROGRESS",
+          fromVersion: 7,
+          toVersion: 8,
+          reason: "private emergency explanation",
+          operationId: eventId,
+        }),
+        entityType: "Task",
+      },
       supervisor,
     );
     expect(projected.details).toEqual({
@@ -149,7 +162,9 @@ describe("management audit projection", () => {
       fromVersion: 7,
       toVersion: 8,
     });
-    expect(JSON.stringify(projected)).not.toContain("private emergency explanation");
+    expect(JSON.stringify(projected)).not.toContain(
+      "private emergency explanation",
+    );
     expect(JSON.stringify(projected)).not.toContain("operationId");
   });
 

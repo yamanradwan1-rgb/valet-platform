@@ -1,0 +1,126 @@
+.management-alert-bell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-block-size: 2.75rem;
+  min-inline-size: 2.75rem;
+  padding: 0.4rem;
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 0.75rem;
+  cursor: pointer;
+}
+
+.management-alert-bell:focus-visible,
+.management-alert-panel button:focus-visible,
+.management-alert-timing input:focus-visible,
+.management-alert-timing button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.management-alert-badge {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.management-alert-panel {
+  inline-size: min(26rem, calc(100vw - 3rem));
+  max-block-size: min(72vh, 34rem);
+  overflow: auto;
+}
+
+.management-alert-panel-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.management-alert-panel-heading h2 {
+  margin-block-start: 0;
+  font-size: 1.15rem;
+}
+
+.management-alert-list {
+  display: grid;
+  gap: 0.65rem;
+  padding-inline-start: 1.2rem;
+  margin-block: 1rem;
+}
+
+.management-alert-list li {
+  display: grid;
+  gap: 0.2rem;
+  overflow-wrap: anywhere;
+}
+
+.management-alert-severity,
+.management-alert-source-note {
+  font-size: 0.8rem;
+}
+
+.management-alert-timing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: 1rem;
+  margin-block: 1rem;
+}
+
+.management-alert-timing-grid label {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.management-alert-timing input {
+  max-inline-size: 100%;
+  min-block-size: 2.75rem;
+  padding: 0.5rem;
+  color: inherit;
+  background: var(--surface, transparent);
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+}
+
+.management-alert-timing button,
+.management-alert-panel button,
+.management-alert-exact-source button {
+  min-block-size: 2.75rem;
+  padding: 0.4rem 0.8rem;
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.management-alert-exact-source {
+  inline-size: min(26rem, calc(100vw - 3rem));
+  max-block-size: min(70vh, 32rem);
+  overflow: auto;
+  overflow-wrap: anywhere;
+}
+
+.management-alert-source-facts {
+  display: grid;
+  gap: 0.45rem;
+  margin-block: 1rem;
+}
+
+.management-alert-source-facts dt {
+  font-weight: 600;
+}
+
+.management-alert-source-facts dd {
+  margin-inline-start: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .management-alert-bell,
+  .management-alert-panel,
+  .management-alert-timing {
+    scroll-behavior: auto;
+  }
+}

@@ -3283,3 +3283,34 @@ Reason/privacy, current staff session/MFA, expected version, active Shift,
 scope and custody checks are enforced by the protected API/command and
 accepted source policies; FKs alone cannot prove physical key transfer.
 This implementation is not a migration deployment authorization.
+
+### Issue #414 — personal Management Alert timing preferences (DEC-109)
+
+Forward migration `20261104010700_issue414_personal_alert_timing_preferences`
+adds `management_alert_timing_preferences`, a typed User + Organization
+preference record independent of Company defaults, Location overrides,
+outbound Notification and the immutable Retrieval SLA snapshot. The composite
+primary key is `(organization_id, user_id)`; a composite foreign key to
+`organization_memberships(organization_id, user_id)` prevents cross-tenant
+membership confusion. A record is optional; without one, the API returns
+effective defaults and revision 0 without inserting a row.
+
+The six mandatory integer-second columns are `alt01_grace_seconds` (default
+0, permitted 0..60), `alt02_queue_seconds` (60, 0..300),
+`alt03_decline_seconds` (0, 0..120), `alt04_stage_seconds` (300,
+60..900), `alt06_handoff_seconds` (300, 60..900), and
+`alt11_unknown_payment_seconds` (120, 60..600). Every range is enforced
+by SQL CHECK and matching shared Zod contracts. `revision` is monotonic
+and nonnegative; first changed write inserts revision 1, subsequent changed
+writes increment exactly once, and identical writes do not change revision.
+`updated_at` is server-owned. The API must derive User from authenticated
+Staff session, verify active Organization/Location permission and the
+applicable MFA/entitlement, serialize writes and append the approved
+`MANAGEMENT_ALERT_TIMING_PREFERENCES_CHANGED` tenant audit in the same
+transaction. Audit metadata includes only changed key names and revision
+before/after; no threshold values or secrets.
+
+The preferences do not alter SLA, Task, Shift, Incident or Payment source
+state; they are used only when server projections decide when a Management
+alert becomes visible to an eligible user. This migration does not add a
+Dispatch episode marker, Seen receipts, Phase 2/3 alerts or polling.

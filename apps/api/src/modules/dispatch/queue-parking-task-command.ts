@@ -7,10 +7,8 @@ import type {
 import { lockShiftOperationalEligibility } from "../shifts/shift-operational-eligibility";
 import { appendDispatchEvent } from "./dispatch-event-writer";
 import { DispatchOperationError } from "./dispatch-errors";
-import {
-  inDispatchTransaction,
-  loadDispatchOperationTime,
-} from "./dispatch-transaction";
+import { inDispatchTransaction } from "./dispatch-transaction";
+import { loadPostLockQueueEpisodeTime } from "./queue-episode-operation-time";
 import type { LockedTaskRow, TaskProjection } from "./dispatch-types";
 import { toTaskProjection } from "./dispatch-types";
 
@@ -78,7 +76,7 @@ async function executeQueue(
   );
   if (existing.rows[0] !== undefined) return toTaskProjection(existing.rows[0]);
 
-  const operationTime = await loadDispatchOperationTime(transaction);
+  const operationTime = await loadPostLockQueueEpisodeTime(transaction);
   const inserted = await transaction.query<LockedTaskRow>(
     `INSERT INTO tasks
        (id, organization_id, location_id, valet_session_id, task_type,

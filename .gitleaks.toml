@@ -1,0 +1,24 @@
+# Keep upstream Gitleaks detection intact; scope exceptions to verified
+# non-secret alert preference *field names* that resemble API credentials.
+# Security CI scans the whole PR commit range, including the historical
+# commits where these names first appeared. Do not exclude either file.
+title = "VAYLET Gitleaks - narrow alert preference false positives"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "The static timing-fields metadata keys contain no credentials"
+condition = "AND"
+targetRules = ["generic-api-key"]
+paths = ['''^apps/dashboard/src/features/management-alerts/alert-timing-contract\.ts$''']
+regexTarget = "match"
+regexes = ['''^key: "(?:alt01GraceSeconds|alt04StageSeconds|alt06HandoffSeconds)"$''']
+
+[[allowlists]]
+description = "The audit test invalid metadata fixture is a literal field name"
+condition = "AND"
+targetRules = ["generic-api-key"]
+paths = ['''^apps/api/test/management-alert-timing-audit-projection\.test\.ts$''']
+regexTarget = "match"
+regexes = ['''^changedKeys: "alt01GraceSeconds"$''']

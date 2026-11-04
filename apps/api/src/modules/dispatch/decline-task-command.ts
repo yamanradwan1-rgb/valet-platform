@@ -1,10 +1,8 @@
 import type { PostgresPool } from "../../common/database/postgres";
 import { lockOperationalTask, requireTaskActor } from "./task-authorization";
 import { DispatchOperationError } from "./dispatch-errors";
-import {
-  inDispatchTransaction,
-  loadDispatchOperationTime,
-} from "./dispatch-transaction";
+import { inDispatchTransaction } from "./dispatch-transaction";
+import { loadPostLockQueueEpisodeTime } from "./queue-episode-operation-time";
 import { requireExpectedTaskVersion, requireTaskStatus } from "./task-mutation";
 import {
   recordTaskMutation,
@@ -34,7 +32,7 @@ export function createDeclineTaskCommandExecutor(
       requireExpectedTaskVersion(task, request.expectedVersion);
       requireTaskStatus(task, ["ASSIGNED"]);
       const reason = request.reason?.trim() || null;
-      const operationTime = await loadDispatchOperationTime(transaction);
+      const operationTime = await loadPostLockQueueEpisodeTime(transaction);
       return recordTaskMutation(
         transaction,
         {

@@ -9,6 +9,7 @@ import type {
 
 export function DashboardTopbar({
   accountControl,
+  alertsControl,
   labels,
   localeControl,
   locationControl,
@@ -19,6 +20,7 @@ export function DashboardTopbar({
   themeControl,
 }: {
   readonly accountControl?: ReactNode;
+  readonly alertsControl?: ReactNode;
   readonly labels: DashboardShellLabels;
   readonly localeControl?: ReactNode;
   readonly locationControl?: ReactNode;
@@ -74,6 +76,7 @@ export function DashboardTopbar({
       <div className="topbar-actions">
         {localeControl}
         {themeControl}
+        {alertsControl}
         {accountControl}
       </div>
     </header>

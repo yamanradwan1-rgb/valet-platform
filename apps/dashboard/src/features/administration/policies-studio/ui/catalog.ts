@@ -7,11 +7,13 @@ import {
   type ContextHelpKey,
 } from "../../../../features/help/context-help-registry";
 import type { DashboardLocale } from "../../../../lib/i18n/locale";
+import { managementAlertsEnabled } from "../../../management-alerts/alert-feature-gate";
 
 export type Locale = DashboardLocale;
 export type Role = "COMPANY_ADMIN" | "LOCATION_MANAGER" | "DENIED";
 export type Section =
   | "operations"
+  | "alertsTiming"
   | "payments"
   | "hours"
   | "tracking"
@@ -35,6 +37,15 @@ export const sectionCopy: Record<
   Section,
   { en: string; ar: string; hint: [string, string]; help: ContextHelpKey }
 > = {
+  alertsTiming: {
+    en: "Alert Timing",
+    ar: "توقيت التنبيهات",
+    hint: [
+      "Personal Important & Critical alert delays for this organization.",
+      "فترات التأخير الشخصية للتنبيهات المهمة والحرجة في هذه المؤسسة.",
+    ],
+    help: "policies.company",
+  },
   operations: {
     en: "Vehicle operations",
     ar: "عمليات المركبات",
@@ -217,7 +228,10 @@ fields.push(
 export function availableSections(role: Role, scope: Scope): Section[] {
   if (role === "DENIED") return [];
   if (role === "LOCATION_MANAGER")
-    return ["operations", "payments", "tracking", "presence", "zones"];
+    return [
+      "operations", "payments", "tracking", "presence", "zones",
+      ...(managementAlertsEnabled ? (["alertsTiming"] as const) : []),
+    ];
   return scope === "company"
     ? [
         "operations",
@@ -227,6 +241,7 @@ export function availableSections(role: Role, scope: Scope): Section[] {
         "notifications",
         "presence",
         "whatsapp",
+        ...(managementAlertsEnabled ? (["alertsTiming"] as const) : []),
       ]
     : [
         "operations",
@@ -237,6 +252,7 @@ export function availableSections(role: Role, scope: Scope): Section[] {
         "presence",
         "zones",
         "whatsapp",
+        ...(managementAlertsEnabled ? (["alertsTiming"] as const) : []),
       ];
 }
 export function visibleFields(section: Section, role: Role, scope: Scope) {

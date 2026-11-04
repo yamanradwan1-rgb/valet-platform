@@ -5,6 +5,10 @@ import {
   incidentTypeLabel,
   incidentSeverityLabel,
 } from "../operations/incidents/incident-presentation";
+import {
+  timingLabels,
+} from "../management-alerts/alert-copy";
+import type { AlertTimingKey } from "../management-alerts/alert-timing-contract";
 
 type Kind = ManagementAuditEvent["details"]["kind"];
 const kinds: Record<Kind, readonly [string, string]> = {
@@ -85,6 +89,12 @@ export function auditDetailValue(
   value: string | number | boolean,
   locale: DashboardLocale,
 ): string {
+  if (kind === "MANAGEMENT" && key === "changedKeys" && typeof value === "string") {
+    return value.split(", ").map((field) => {
+      const label = timingLabels[field as AlertTimingKey];
+      return label ? label[locale] : "";
+    }).filter(Boolean).join(", ");
+  }
   if (typeof value === "boolean")
     return value
       ? locale === "ar"

@@ -61,7 +61,7 @@ async function setRecentAssurance(
 }
 
 describe("MGT-BE-03 Management activity and assurance", () => {
-  it("records only successful Management use and never slides MFA authentication", async () => {
+  it("keeps successful context reads activity-neutral without sliding MFA authentication", async () => {
     const state = await assuredAdmin();
     await setRecentAssurance(state.auth.sessionId, "2 minutes", "1 minute");
     const before = (await fixture.sessionSnapshot(state.auth.sessionId))
@@ -74,9 +74,7 @@ describe("MGT-BE-03 Management activity and assurance", () => {
     const after = (await fixture.sessionSnapshot(state.auth.sessionId))
       .rows[0]!;
     expect(after.mfa_authenticated_at).toEqual(before.mfa_authenticated_at);
-    expect(after.last_admin_activity_at!.getTime()).toBeGreaterThan(
-      before.last_admin_activity_at!.getTime(),
-    );
+    expect(after.last_admin_activity_at).toEqual(before.last_admin_activity_at);
   });
 
   it("does not record activity for cross-tenant or missing target denial", async () => {

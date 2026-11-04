@@ -13,8 +13,11 @@ const membershipId = "018f1234-5678-4abc-9234-56789abcdef2";
 
 describe("management audit contracts", () => {
   it("publishes the exact bounded current event catalog", () => {
-    expect(managementAuditKnownEventTypes).toHaveLength(104);
-    expect(new Set(managementAuditKnownEventTypes)).toHaveLength(104);
+    expect(managementAuditKnownEventTypes).toHaveLength(105);
+    expect(new Set(managementAuditKnownEventTypes)).toHaveLength(105);
+    expect(managementAuditKnownEventTypes).toContain(
+      "MANAGEMENT_ALERT_TIMING_PREFERENCES_CHANGED",
+    );
     expect(managementAuditKnownEventTypes).toContain("TASK_EMERGENCY_TAKEOVER");
     expect(managementAuditKnownEventTypes).toContain("INCIDENT_RESOLVED");
     expect(managementAuditKnownEventTypes).toContain(
@@ -172,5 +175,44 @@ describe("management audit contracts", () => {
         nextCursor: null,
       }).success,
     ).toBe(false);
+  });
+  it("accepts only safe typed personal timing audit fields and no raw values", () => {
+    const known = {
+      actor: { membershipId, type: "MEMBERSHIP" },
+      details: {
+        kind: "MANAGEMENT",
+        changedKeys: ["alt02QueueSeconds", "alt11UnknownPaymentSeconds"],
+        beforeRevision: 0,
+        afterRevision: 1,
+      },
+      entity: null,
+      eventId,
+      eventType: "MANAGEMENT_ALERT_TIMING_PREFERENCES_CHANGED",
+      occurredAt: "2026-11-04T00:00:00.000Z",
+      scope: { kind: "ORGANIZATION" },
+    };
+    const response = (event: unknown) => ({
+      items: [event],
+      nextCursor: null,
+    });
+    expect(
+      managementAuditResponseSchema.safeParse(response(known)).success,
+    ).toBe(true);
+    for (const forbidden of [
+      { ...known.details, alt02QueueSeconds: 75 },
+      { ...known.details, changedKeys: ["accessToken"] },
+      {
+        ...known.details,
+        changedKeys: ["alt02QueueSeconds", "alt02QueueSeconds"],
+      },
+      { ...known.details, beforeRevision: -1 },
+      { ...known.details, afterRevision: 0 },
+    ]) {
+      expect(
+        managementAuditResponseSchema.safeParse(
+          response({ ...known, details: forbidden }),
+        ).success,
+      ).toBe(false);
+    }
   });
 });

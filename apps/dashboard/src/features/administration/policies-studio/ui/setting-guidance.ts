@@ -1,6 +1,10 @@
 import type { Locale, Section } from "./catalog";
 
 export const sectionGuidance: Record<Section, [string, string]> = {
+  alertsTiming: [
+    "Your own Important & Critical alert delays",
+    "تأخيرات تنبيهاتك المهمة والحرجة",
+  ],
   operations: [
     "Photos, plate scan & handoff",
     "صور الدخول، قراءة اللوحة والتسليم",

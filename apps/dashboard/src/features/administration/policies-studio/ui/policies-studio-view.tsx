@@ -11,6 +11,7 @@ import type {
 import { StudioProvider } from "./studio-context";
 import { Workspace } from "./Workspace";
 import { ui } from "./copy";
+import { clearAlertIntentFromUrl } from "../../../management-alerts/alert-source-intent";
 import "./workspace.css";
 import "./workspace-feedback.css";
 import "./responsive.css";
@@ -102,7 +103,17 @@ export function PoliciesStudioView({
       const target = sectionFromUrl(allowed, fallback);
       if (target === live.current.section) return;
       if (live.current.dirty && !window.confirm(ui[adapter.locale].leave)) {
-        updateSectionUrl(live.current.section);
+        // The bell pushes exact Presence-source parameters before Studio's
+        // dirty-draft guard decides. Cancel means the alert navigation did
+        // not happen: retire those parameters as well as restoring section.
+        const parameters = new URLSearchParams(window.location.search);
+        if (
+          ["alertCategory", "alertSourceId", "alertEpisodeId"].some((field) =>
+            parameters.has(field),
+          )
+        )
+          clearAlertIntentFromUrl(live.current.section);
+        else updateSectionUrl(live.current.section);
         return;
       }
       setDirty(false);
