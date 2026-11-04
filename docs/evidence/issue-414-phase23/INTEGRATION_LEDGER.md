@@ -1,6 +1,6 @@
 # Issue #414 — Phase 2 + Phase 3 Integration Ledger
 
-Status: IN PROGRESS / NOT ACCEPTED. This is evidence, not an Accepted Decision or release approval.
+Status: **IMPLEMENTATION IN PROGRESS; PHASE 2/3 GATES NOT PASSED.** This ledger is evidence, not an Accepted Decision or release approval. **OD-07A–D and OD-08A–G Owner policy is now Accepted (DEC-110/111, Prime commit `7bffd45d`).** Historic WBS "OD decision required" statuses below describe the earlier checkpoint; **source proof and unimplemented functionality remain open**, not reapproval of the same choices. Current code/commit/test status must be updated separately per Worker.
 
 ## Immutable Git and COS provenance
 
@@ -68,10 +68,10 @@ The verification build/non-Postgres tests regenerated three Next `next-env.d.ts`
 ## Binding versus unresolved
 
 - Accepted DEC-109 fixes six per-user delay values, Phase-1 audience, and fail-closed source chronology. The Phase-1 implementation is already merged.
-- Master Plan §14 OD-07 and OD-08 remain open. DEC-107 remains Proposed despite separately approved Issue #352 operational instructions.
+- Master Plan §14 OD-07 and OD-08 **policy was subsequently accepted in focused DEC-110/111 (2026-11-04)**. DEC-107 remains Proposed despite separately approved Issue #352 operational instructions. Source identity, contested-lock clocks, grouping and implementation tests remain outstanding.
 - ALT-14 remains `EXTERNAL / DEFERRED / DISABLED`, outside this combined task.
 - Owner requested two *separate* Phase 2 and Phase 3 acceptance gates and no auto-merge/production operation.
-- Source existence is not permission to expose source data via Management Alerts. Owner decisions must precede any gated endpoint, Seen mutation, sensitive DTO or source authorization widening.
+- Source existence is not permission to expose source data via Management Alerts. **DEC-110/111 now authorize the exact narrow source-specific boundaries described there**, but not blanket audit/payment/GPS rights, guessed episode history or a substantial new source-state model.
 
 ## Gate checkpoints
 

@@ -67,6 +67,7 @@ export * from "./management-integrations.js";
 export * from "./management-settings.js";
 export * from "./management-alert-preview.js";
 export * from "./management-alert-category-inventory.js";
+export * from "./management-alert-unified-preview.js";
 export * from "./management-alert-timing-preferences.js";
 export * from "./management-branding.js";
 export * from "./management-location-lifecycle.js";
