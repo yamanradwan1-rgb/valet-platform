@@ -90,7 +90,8 @@ const financialSourceSql = `WITH now_at AS MATERIALIZED (SELECT clock_timestamp(
 SELECT * FROM (
   SELECT * FROM unresolved UNION ALL SELECT * FROM failed
 ) AS eligible
-ORDER BY eligible."sourceAt" DESC, eligible."operationId" DESC
+ORDER BY eligible."sourceAt" DESC, eligible.category ASC,
+         eligible."operationId" DESC
 LIMIT $4`;
 
 interface ClassifiedRow extends FinancialAlertSourceRow {

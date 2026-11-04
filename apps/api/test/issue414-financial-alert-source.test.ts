@@ -141,6 +141,9 @@ describe("DEC-111 ALT-10/11 financial-only source reader", () => {
       null,
     ]);
     expect(source.sql).toContain("UNION ALL SELECT * FROM failed");
+    expect(source.sql).toMatch(
+      /ORDER BY eligible\."sourceAt" DESC, eligible\.category ASC,\s*eligible\."operationId" DESC/,
+    );
     expect(source.sql).toContain(
       "state IN ('OUTCOME_UNKNOWN', 'REFERENCE_ATTACHED')",
     );

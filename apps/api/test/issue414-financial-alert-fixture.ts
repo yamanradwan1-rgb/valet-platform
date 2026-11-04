@@ -23,11 +23,11 @@ export class FinancialAlertTestContext extends DashboardOverviewTestContext {
   async seedUnresolved(
     state: "OUTCOME_UNKNOWN" | "REFERENCE_ATTACHED" = "OUTCOME_UNKNOWN",
     elapsedSeconds = 240,
+    operationId: string = randomUUID(),
   ): Promise<CollectionSeed> {
     const manager = await this.managerFixture();
     const sessionId = await this.seedSession({ state: "PARKED" });
     const paymentId = randomUUID();
-    const operationId = randomUUID();
     const reference = `reference-${randomUUID()}`;
     const providerReference = state === "REFERENCE_ATTACHED" ? reference : null;
     await this.adminPool.query(
