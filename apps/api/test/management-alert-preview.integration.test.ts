@@ -67,17 +67,57 @@ describe("Issue #414 P1 integrated source-authorized alert preview (real Postgre
   });
 
   it("proves 20+ with 21 distinct current authorized cases", async () => {
-    const sessionId = await database.seedSession({ state: "PARKED" });
-    await Promise.all(
-      Array.from({ length: 21 }, () =>
-        database.seedIncident({ sessionId, status: "OPEN" }),
-      ),
+    // The other tests intentionally keep eligible incidents. A separate
+    // fixture is necessary: 21 new cases on top of one existing case would
+    // exercise 22, never the exact 20 -> 21 overflow boundary.
+    const isolated = new DashboardOverviewTestContext(
+      "414-preview-exact-20-21",
     );
-    const result = await preview();
-    expect(result).toMatchObject({ count: 20, hasMore: true });
-    expect(new Set(result.items.map((item) => item.id)).size).toBe(20);
-    expect(result.items.every((item) => item.category === "ALT-08")).toBe(true);
-  });
+    await isolated.setup();
+    try {
+      const owner = await isolated.managerFixture();
+      const sessionId = await isolated.seedSession({ state: "PARKED" });
+      const isolatedContext = await isolated.staffSessionContext(owner.userId);
+      const read = () =>
+        listManagementAlertPreview(isolated.runtimePool, {
+          context: isolatedContext,
+          locationId: owner.locationId,
+        });
+
+      expect(await read()).toEqual({ items: [], count: 0, hasMore: false });
+      const firstTwentyIds = await Promise.all(
+        Array.from({ length: 20 }, () =>
+          isolated.seedIncident({ sessionId, status: "OPEN" }),
+        ),
+      );
+      expect(new Set(firstTwentyIds).size).toBe(20);
+      const exactlyTwenty = await read();
+      expect(exactlyTwenty).toMatchObject({ count: 20, hasMore: false });
+      expect(exactlyTwenty.items).toHaveLength(20);
+      expect(new Set(exactlyTwenty.items.map((item) => item.sourceId))).toEqual(
+        new Set(firstTwentyIds),
+      );
+
+      const twentyFirstId = await isolated.seedIncident({
+        sessionId,
+        status: "OPEN",
+      });
+      const allAuthorizedIds = new Set([...firstTwentyIds, twentyFirstId]);
+      expect(allAuthorizedIds.size).toBe(21);
+      const overflow = await read();
+      expect(overflow).toMatchObject({ count: 20, hasMore: true });
+      expect(overflow.items).toHaveLength(20);
+      const visible = overflow.items.map((item) => item.sourceId);
+      expect(new Set(visible).size).toBe(20);
+      expect(visible.every((id) => allAuthorizedIds.has(id))).toBe(true);
+      expect(visible).toContain(twentyFirstId);
+      expect(overflow.items.every((item) => item.category === "ALT-08")).toBe(
+        true,
+      );
+    } finally {
+      await isolated.teardown();
+    }
+  }, 120_000);
 
   it("reauthorizes a selected exact case and rejects old/foreign episodes", async () => {
     const selected = (await preview()).items[0]!;
