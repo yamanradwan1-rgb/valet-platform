@@ -165,6 +165,24 @@ the combined run passed.
 No deployment, CI, pilot-scale query-plan check or product runtime was
 verified.
 
+**W1 cutover precision BLOCKER (subsequent review, 2026-11-04):** the
+instruction above to sample raw `clock_timestamp()` is not safe when that
+unrounded microsecond-resolution timestamp passes through a JavaScript
+`Date` (whose parser truncates to milliseconds). An old QUEUED episode
+whose actual pre-quiescence instant was `.500800` is persisted through
+`::timestamptz(3)` as `.501`; a later raw server cutoff `.500900`
+arrives in JavaScript as `.500`, so the existing strict
+`episode_time > cutover` predicate wrongly admits the old episode.
+**P1 ALT-02/03 activation remains BLOCKED**, regardless of earlier
+chronology tests. The operational capture must normalize on the **database
+server** first, for example
+`SELECT clock_timestamp()::timestamptz(3) AS post_lock_clock_cutover`
+after full old-writer quiescence, persist that exact rounded cutoff, and
+prove source exclusion at the fractional boundary. Do not infer a cutoff
+from a JS Date, guess a deployment time, or enable ALT-02/03 from this
+documentation alone. This is a release procedure correction/evidence
+gate, not a product source change in W7's test-only follow-up.
+
 Index note: Dispatch history has `(task_id, occurred_at, id)`; Audit history
 has a Session-time lookup index rather than a Task-version index. The reader
 only examines current QUEUED tasks and verifies the current version before
