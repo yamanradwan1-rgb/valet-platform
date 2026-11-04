@@ -20,6 +20,7 @@ const fixture = new ManagementAlertMfaFixture();
 const savedCutover =
   process.env.MANAGEMENT_ALERTS_PHASE1_DISPATCH_POST_LOCK_CUTOVER;
 let pool: PostgresPool;
+let observedPostgresVersion = 0;
 
 interface Scenario {
   readonly density: "sparse" | "dense";
@@ -60,30 +61,53 @@ async function measure(
   const measured = 100;
   for (let i = 0; i < warmups; i += 1) await readOne(scenario, role);
   const samples: number[] = [];
-  let peakWaiting = 0;
+  let groupPeakWaitingObserved = 0;
+  let groupPeakActiveObserved = 0;
   const before = runtimePoolSnapshot(pool);
-  await Promise.all(
-    Array.from({ length: concurrency }, async (_, lane) => {
-      for (let index = lane; index < measured; index += concurrency) {
-        samples.push(await readOne(scenario, role));
-        peakWaiting = Math.max(peakWaiting, pool.waitingCount);
-      }
-    }),
-  );
+  // Sample DURING in-flight requests; sampling only after reads complete would
+  // systematically miss acquisition pressure. Observed peaks are approximate
+  // under the event-loop sampler, not guaranteed database-level maxima.
+  const samplePool = () => {
+    groupPeakWaitingObserved = Math.max(
+      groupPeakWaitingObserved,
+      pool.waitingCount,
+    );
+    groupPeakActiveObserved = Math.max(
+      groupPeakActiveObserved,
+      pool.totalCount - pool.idleCount,
+    );
+  };
+  const sampler = setInterval(samplePool, 1);
+  try {
+    await Promise.all(
+      Array.from({ length: concurrency }, async (_, lane) => {
+        for (let index = lane; index < measured; index += concurrency) {
+          samplePool();
+          samples.push(await readOne(scenario, role));
+          samplePool();
+        }
+      }),
+    );
+  } finally {
+    clearInterval(sampler);
+    samplePool();
+  }
   expect(samples).toHaveLength(measured);
   const after = runtimePoolSnapshot(pool);
   console.info(
     JSON.stringify({
       suite: "issue414-pg17-authorized-aggregate",
+      postgresServerVersionNum: observedPostgresVersion,
       density: scenario.density,
       audience: role === "ca" ? "COMPANY_ADMIN_MFA" : "LOCATION_MANAGER",
       concurrency,
       warmups,
       measured,
       ...percentiles(samples),
-      peakWaiting,
-      peakAdmitted: after.peakAdmitted,
-      peakActive: after.peakActive,
+      groupPeakWaitingObserved,
+      groupPeakActiveObserved,
+      poolLifetimePeakAdmitted: after.peakAdmitted,
+      poolLifetimePeakActive: after.peakActive,
       lockTimeoutDelta: after.lockTimeouts - before.lockTimeouts,
       queryTimeoutDelta: after.queryTimeouts - before.queryTimeouts,
       acquisitionTimeoutDelta:
@@ -97,6 +121,12 @@ describe.skipIf(!profileEnabled)(
   () => {
     beforeAll(async () => {
       await fixture.start();
+      const version = await fixture.query<{ versionNum: number }>(
+        `SELECT current_setting('server_version_num')::integer AS "versionNum"`,
+      );
+      observedPostgresVersion = version.rows[0]!.versionNum;
+      expect(observedPostgresVersion).toBeGreaterThanOrEqual(170000);
+      expect(observedPostgresVersion).toBeLessThan(180000);
       pool = createRuntimePostgresPool(fixture.runtimeDatabaseUrl());
       const serverClock = await fixture.query<{ now: Date }>(
         "SELECT clock_timestamp()::timestamptz(3) AS now",
@@ -147,8 +177,13 @@ describe.skipIf(!profileEnabled)(
 
     afterAll(async () => {
       try {
-        await pool?.end();
-        await fixture.stop();
+        try {
+          await pool?.end();
+        } finally {
+          // Cleanup the disposable DB, runtime role, Nest app and MFA env
+          // even when the profiling pool fails during termination.
+          await fixture.stop();
+        }
       } finally {
         if (savedCutover === undefined)
           delete process.env
