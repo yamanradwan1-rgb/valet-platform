@@ -32,6 +32,7 @@ export async function provisionManagementAlertSeenPrivileges(
 export async function verifyManagementAlertSeenPrivileges(client, runtimeRole) {
   for (const [privilege, expected] of [
     ["SELECT", true],
+    ["INSERT", false],
     ["UPDATE", false],
     ["DELETE", false],
     ["TRUNCATE", false],
@@ -51,13 +52,22 @@ export async function verifyManagementAlertSeenPrivileges(client, runtimeRole) {
   }
   const checks = await client.query(
     `SELECT has_any_column_privilege($1,$2,'UPDATE,REFERENCES') AS unsafe,
-            has_column_privilege($1,$2,'seen_at','INSERT') AS fake_time,
-            has_column_privilege($1,$2,'organization_id','INSERT') AS own_org,
-            has_column_privilege($1,$2,'occurrence_audit_event_id','INSERT') AS audit_ref`,
+            has_column_privilege($1,$2,'seen_at','INSERT') AS fake_time`,
     [runtimeRole, table],
   );
-  if (checks.rows[0]?.unsafe !== false || checks.rows[0]?.fake_time !== false ||
-      checks.rows[0]?.own_org !== true || checks.rows[0]?.audit_ref !== true) {
+  if (checks.rows[0]?.unsafe !== false || checks.rows[0]?.fake_time !== false) {
     throw new Error("Management Alert Seen column privileges unsafe.");
+  }
+  for (const column of [
+    "organization_id", "user_id", "category", "source_id",
+    "takeover_operation_id", "occurrence_audit_event_id", "geofence_event_id",
+  ]) {
+    const columnGrant = await client.query(
+      `SELECT has_column_privilege($1,$2,$3,'INSERT') AS allowed`,
+      [runtimeRole, table, column],
+    );
+    if (columnGrant.rows[0]?.allowed !== true) {
+      throw new Error("Management Alert Seen source INSERT privilege missing.");
+    }
   }
 }

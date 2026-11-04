@@ -11,8 +11,9 @@ const categories: ReadonlySet<string> = new Set(["ALT-05", "ALT-07", "ALT-09", "
 
 /**
  * Server-confirmed explicit per-item Seen; NO GET/bell-open side effects.
- * sourceId = canonical Task / Shift / staff Membership; episodeId = source
- * operation / audit event UUID, verified against persistence in one transaction.
+ * ALT-05/07/09 sourceId is the immutable operation/event UUID; ALT-13/15
+ * sourceId is the owning Shift/staff Membership and episodeId is the exact
+ * audited event UUID, verified against persistence in one transaction.
  * No HTTP route/flag is installed by this independent workstream.
  */
 export async function markManagementAlertOccurrenceSeen(

@@ -19,6 +19,9 @@ const sourceSql: Record<SeenOccurrenceCategory, string> = {
      AND dispatch.valet_session_id = takeover.valet_session_id
      AND dispatch.event_type = 'EMERGENCY_TAKEOVER'
      AND dispatch.occurred_at = takeover.occurred_at
+     AND dispatch.actor_membership_id = takeover.actor_membership_id
+     AND dispatch.previous_assignee_membership_id = takeover.previous_assignee_membership_id
+     AND dispatch.new_assignee_membership_id = takeover.new_assignee_membership_id
     INNER JOIN audit_events AS audit
       ON audit.organization_id = takeover.organization_id
      AND audit.id = takeover.audit_event_id
@@ -27,10 +30,25 @@ const sourceSql: Record<SeenOccurrenceCategory, string> = {
      AND audit.event_type = 'TASK_EMERGENCY_TAKEOVER'
      AND audit.entity_type = 'Task' AND audit.entity_id = takeover.task_id
      AND audit.occurred_at = takeover.occurred_at
+     AND audit.actor_type = 'MEMBERSHIP'
+     AND audit.actor_membership_id = takeover.actor_membership_id
+     AND audit.metadata_json @> jsonb_build_object(
+       'operationId', takeover.operation_id::text,
+       'sessionId', takeover.valet_session_id::text,
+       'previousAssigneeMembershipId', takeover.previous_assignee_membership_id::text,
+       'newAssigneeMembershipId', takeover.new_assignee_membership_id::text,
+       'fromStatus', 'IN_PROGRESS', 'toStatus', 'IN_PROGRESS',
+       'fromVersion', takeover.expected_task_version,
+       'toVersion', takeover.result_task_version,
+       'fromSessionVersion', takeover.expected_session_version,
+       'toSessionVersion', takeover.result_session_version)
+     AND audit.metadata_json->>'reason' = dispatch.reason
     INNER JOIN locations AS location
       ON location.organization_id = takeover.organization_id
      AND location.id = takeover.location_id AND location.status = 'ACTIVE'
     WHERE takeover.organization_id = $1 AND takeover.location_id = $2
+      AND takeover.result_task_version = takeover.expected_task_version + 1
+      AND takeover.result_session_version = takeover.expected_session_version + 1
       AND takeover.operation_id = $3 AND takeover.operation_id = $4`,
   "ALT-07": `SELECT event.occurred_at AS "occurredAt"
     FROM audit_events AS event
@@ -96,30 +114,39 @@ const sourceSql: Record<SeenOccurrenceCategory, string> = {
     INNER JOIN shifts AS shift_row
       ON shift_row.organization_id = audit.organization_id
      AND shift_row.id = audit.entity_id AND shift_row.status = 'ENDED'
+     AND shift_row.location_id = audit.location_id
+     AND shift_row.ended_at = audit.occurred_at
     INNER JOIN locations AS location
       ON location.organization_id = shift_row.organization_id
      AND location.id = shift_row.location_id AND location.status = 'ACTIVE'
     WHERE audit.organization_id = $1 AND audit.location_id = $2
       AND audit.entity_id = $3 AND audit.id = $4
       AND audit.event_type = 'SHIFT_FORCE_ENDED' AND audit.entity_type = 'Shift'
+      AND audit.actor_type = 'MEMBERSHIP'
+      AND audit.actor_membership_id IS NOT NULL
       AND audit.metadata_json->>'closureKind' = 'ADMIN_FORCE_END'
       AND audit.metadata_json ? 'operationId'`,
   "ALT-15": `SELECT audit.occurred_at AS "occurredAt"
     FROM audit_events AS audit
+    INNER JOIN organization_memberships AS target
+      ON target.id = audit.entity_id
+     AND target.organization_id = audit.organization_id
     WHERE audit.organization_id = $1 AND audit.location_id IS NULL
       AND EXISTS (SELECT 1 FROM locations AS chosen
         WHERE chosen.id = $2 AND chosen.organization_id = audit.organization_id
           AND chosen.status = 'ACTIVE')
       AND audit.entity_type = 'OrganizationMembership'
       AND audit.entity_id = $3 AND audit.id = $4
+      AND audit.actor_type = 'MEMBERSHIP'
+      AND audit.actor_membership_id IS NOT NULL
       AND audit.event_type IN (
         'STAFF_ROLE_CHANGED','STAFF_LOCATION_ACCESS_REVOKED'
       )
       AND (
         (audit.event_type = 'STAFF_ROLE_CHANGED'
-          AND audit.metadata_json->>'previousRole' IS DISTINCT FROM audit.metadata_json->>'newRole'
-          AND audit.metadata_json ? 'previousRole'
-          AND audit.metadata_json ? 'newRole')
+          AND jsonb_typeof(audit.metadata_json->'previousRole') = 'string'
+          AND jsonb_typeof(audit.metadata_json->'newRole') = 'string'
+          AND audit.metadata_json->>'previousRole' <> audit.metadata_json->>'newRole')
         OR (audit.event_type = 'STAFF_LOCATION_ACCESS_REVOKED'
           AND length(audit.metadata_json->>'locationCount') BETWEEN 1 AND 10
           AND (audit.metadata_json->>'locationCount') ~ '^[0-9]+$'

@@ -251,4 +251,32 @@ describe("Issue #414 DEC-110 source-typed Seen receipts (PG17)", () => {
     expect(await mark(actor, "ALT-15", occurrence)).toEqual(receipt);
     expect(await receiptCount(actor.organizationId, actor.user.id)).toBe(1);
   });
+
+  it("denies fabricated non-membership audit actor and malformed role metadata", async () => {
+    const actor = await admin();
+    const source = await staffOccurrence(actor);
+    const synthetic = await fixture.insertAuditEvent({
+      organizationId: actor.organizationId,
+      actorType: "SYSTEM",
+      eventType: "STAFF_ROLE_CHANGED",
+      entityType: "OrganizationMembership",
+      entityId: source.sourceId,
+      metadata: { previousRole: "VALET_EMPLOYEE", newRole: "VALET_SUPERVISOR" },
+    });
+    const malformed = await fixture.insertAuditEvent({
+      organizationId: actor.organizationId,
+      actorMembershipId: actor.membershipId,
+      eventType: "STAFF_ROLE_CHANGED",
+      entityType: "OrganizationMembership",
+      entityId: source.sourceId,
+      metadata: { previousRole: 100, newRole: 200 },
+    });
+    for (const episodeId of [synthetic, malformed]) {
+      await expect(mark(actor, "ALT-15", {
+        sourceId: source.sourceId, episodeId,
+      })).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
+    }
+    expect(await receiptCount(actor.organizationId, actor.user.id)).toBe(0);
+    expect((await mark(actor, "ALT-15", source)).episodeId).toBe(source.episodeId);
+  });
 });
