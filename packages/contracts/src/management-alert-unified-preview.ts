@@ -57,16 +57,22 @@ const common = z.object({
   episodeId: z.string().min(1).max(150),
   /** Null is reserved for the two CA-only Organization-wide categories. */
   locationId: z.string().uuid().nullable(),
-  occurredAt: z.string().datetime({ offset: true }),
   title: z.string().min(1).max(100),
 });
 
 export const managementAlertUnifiedItemSchema = z
   .discriminatedUnion("caseKind", [
-    common.extend({ caseKind: z.literal("ACTIVE") }).strict(),
+    common
+      .extend({
+        caseKind: z.literal("ACTIVE"),
+        /** Current source state can exist without a provable onset clock. */
+        occurredAt: z.string().datetime({ offset: true }).nullable(),
+      })
+      .strict(),
     common
       .extend({
         caseKind: z.literal("OCCURRENCE"),
+        occurredAt: z.string().datetime({ offset: true }),
         seen: z.literal(false),
         /** Only eligible unseen occurrences are included in attention preview. */
         seenEligible: z.literal(true),
@@ -135,6 +141,15 @@ export const managementAlertUnifiedSourceDetailResponseSchema = z
   .object({
     item: managementAlertUnifiedItemSchema,
     valetSessionId: z.string().uuid().nullable(),
+  })
+  .strict();
+
+/** Explicit per-item Seen response, not a domain acknowledgement. */
+export const managementAlertSeenResponseSchema = z
+  .object({
+    category: z.enum(["ALT-05", "ALT-07", "ALT-09", "ALT-13", "ALT-15"]),
+    episodeId: z.string().uuid(),
+    seenAt: z.string().datetime({ offset: true }),
   })
   .strict();
 

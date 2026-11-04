@@ -87,7 +87,11 @@ describe("Issue 414 unified source-authorized alert correlation", () => {
   it("suppresses same-attempt ALT-04 under currently overdue ALT-01", () => {
     const preview = correlateManagementAlertUnifiedPreview(
       [
-        { ...active(2, "ALT-04"), retrievalAttemptKey: "attempt-9" },
+        {
+          ...active(2, "ALT-04"),
+          retrievalAttemptKey: "attempt-9",
+          sourceProvedAlt01Exclusion: true,
+        },
         {
           ...active(5, "ALT-01", "RETRIEVAL"),
           retrievalAttemptKey: "attempt-9",
@@ -105,6 +109,35 @@ describe("Issue 414 unified source-authorized alert correlation", () => {
     );
     expect(preview.items).toEqual([]);
     expect(preview.count).toBe(0);
+  });
+
+  it("accepts an ALT-04 stage only with source SQL proof of pre-LIMIT ALT-01 exclusion", () => {
+    const page = correlateManagementAlertUnifiedPreview(
+      [{ ...active(2, "ALT-04"), sourceProvedAlt01Exclusion: true }],
+      scope,
+    );
+    expect(page.items.map((item) => item.category)).toEqual(["ALT-04"]);
+  });
+
+  it("sorts current no-clock cases without a fabricated onset timestamp", () => {
+    const locationStopped: ManagementAlertUnifiedCandidate = {
+      category: "ALT-16",
+      caseKind: "ACTIVE",
+      severity: "IMPORTANT",
+      sourceKind: "LOCATION",
+      sourceId: id(1),
+      episodeId: "current",
+      organizationId,
+      locationId,
+      occurredAt: null,
+      title: "Location intake stopped",
+    };
+    const preview = correlateManagementAlertUnifiedPreview(
+      [locationStopped, active(2, "ALT-02")],
+      scope,
+    );
+    expect(preview.items[0]?.category).toBe("ALT-02");
+    expect(preview.items[1]?.occurredAt).toBeNull();
   });
 
   it("prioritizes unresolved ALT-11 over older failed ALT-10", () => {
@@ -129,6 +162,25 @@ describe("Issue 414 unified source-authorized alert correlation", () => {
     expect(overflow.count).toBe(20);
     expect(overflow.hasMore).toBe(true);
     expect(overflow.items).toHaveLength(20);
+  });
+
+  it("keeps the exact SQL top21 prefix for equal-ms incident source IDs", () => {
+    const incidents: ManagementAlertUnifiedCandidate[] = Array.from(
+      { length: 21 },
+      (_, index) => ({
+        ...active(index + 2, "ALT-02"),
+        category: "ALT-08",
+        sourceKind: "INCIDENT",
+      }),
+    );
+    const page = correlateManagementAlertUnifiedPreview(incidents, scope);
+    expect(page.hasMore).toBe(true);
+    expect(page.items.map((item) => item.sourceId)).toEqual(
+      incidents
+        .map((item) => item.sourceId)
+        .sort((a, b) => b.localeCompare(a))
+        .slice(0, 20),
+    );
   });
 
   it("rejects invalid category, severity and forged Seen state", () => {

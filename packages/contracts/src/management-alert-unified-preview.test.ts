@@ -17,7 +17,7 @@ const active = {
   sourceId: uuid,
   episodeId: "current",
   locationId,
-  occurredAt: "2026-11-04T20:30:00.000Z",
+  occurredAt: null,
   title: "Location intake stopped",
 } as const;
 
@@ -43,10 +43,33 @@ describe("Issue 414 unified category contract remains fail-closed", () => {
     );
   });
 
+  it("does not invent a stopped-since timestamp for current ALT-16 or ALT-17", () => {
+    expect(managementAlertUnifiedItemSchema.safeParse(active).success).toBe(
+      true,
+    );
+    expect(
+      managementAlertUnifiedItemSchema.safeParse({
+        ...active,
+        category: "ALT-17",
+        sourceKind: "SUBSCRIPTION",
+        locationId: null,
+      }).success,
+    ).toBe(true);
+  });
+
   it("accepts a committed, unseen eligible occurrence", () => {
     expect(managementAlertUnifiedItemSchema.safeParse(occurrence).success).toBe(
       true,
     );
+  });
+
+  it("does not accept a committed occurrence without its source event clock", () => {
+    expect(
+      managementAlertUnifiedItemSchema.safeParse({
+        ...occurrence,
+        occurredAt: null,
+      }).success,
+    ).toBe(false);
   });
 
   it("rejects Seen on active cases and absent Seen on occurrences", () => {

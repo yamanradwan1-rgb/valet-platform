@@ -11,6 +11,8 @@ export type ManagementAlertUnifiedCandidate =
     readonly organizationId: string;
     /** Actual source-proven same-attempt key, never guessed from timestamps. */
     readonly retrievalAttemptKey?: string;
+    /** Set ONLY by the ALT-04 reader which excludes overdue ALT-01 in SQL before LIMIT. */
+    readonly sourceProvedAlt01Exclusion?: true;
   };
 
 export interface UnifiedAuthorizedScope {
@@ -21,6 +23,22 @@ export interface UnifiedAuthorizedScope {
 }
 
 const PAGE_LIMIT = 20;
+
+/** Existing P1 readers tie by sourceId DESC; event readers tie by event ID. */
+function sourceTieId(candidate: ManagementAlertUnifiedCandidate): string {
+  switch (candidate.category) {
+    case "ALT-05":
+    case "ALT-07":
+    case "ALT-09":
+    case "ALT-10":
+    case "ALT-11":
+    case "ALT-13":
+    case "ALT-15":
+      return candidate.episodeId;
+    default:
+      return candidate.sourceId;
+  }
+}
 
 function identity(input: {
   readonly category: string;
@@ -115,8 +133,11 @@ export function correlateManagementAlertUnifiedPreview(
   }
 
   const eligible = [...unique.values()].filter((candidate) => {
-    if (candidate.category === "ALT-04" && !candidate.retrievalAttemptKey) {
-      // Without a proven attempt join ALT-01 overlap cannot be ruled out.
+    if (
+      candidate.category === "ALT-04" &&
+      candidate.sourceProvedAlt01Exclusion !== true
+    ) {
+      // Excluding overlaps only after per-source LIMIT 21 can undercount.
       return false;
     }
     if (
@@ -141,8 +162,19 @@ export function correlateManagementAlertUnifiedPreview(
   });
   eligible.sort((a, b) => {
     if (a.severity !== b.severity) return a.severity === "CRITICAL" ? -1 : 1;
-    const time = Date.parse(b.occurredAt) - Date.parse(a.occurredAt);
-    return time !== 0 ? time : identity(a).localeCompare(identity(b));
+    // No invented age for current Location/intake or commercial restriction.
+    // Equal missing clocks tie deterministically by category/source identity.
+    const aTime = a.occurredAt === null ? 0 : Date.parse(a.occurredAt);
+    const bTime = b.occurredAt === null ? 0 : Date.parse(b.occurredAt);
+    const time = bTime - aTime;
+    if (time !== 0) return time;
+    // Presentation tie ordering is not source chronology. Exact source
+    // queries must apply the same tie key before their LIMIT 21, with all
+    // category suppression/Seen and source permissions already applied.
+    const family = a.category.localeCompare(b.category);
+    if (family !== 0) return family;
+    const bySource = sourceTieId(b).localeCompare(sourceTieId(a));
+    return bySource !== 0 ? bySource : identity(a).localeCompare(identity(b));
   });
   return {
     items: eligible.slice(0, PAGE_LIMIT).map(publicItem),

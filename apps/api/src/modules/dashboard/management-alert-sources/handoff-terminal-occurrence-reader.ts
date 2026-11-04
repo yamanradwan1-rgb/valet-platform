@@ -1,4 +1,5 @@
 import type { PostgresTransaction } from "../../../common/database/postgres";
+import { unseenOccurrenceAntiJoin } from "../management-alert-seen/management-alert-seen-unseen-sql";
 import {
   authorizeCustodyOccurrenceAlertSource,
   type CustodyOccurrenceAlertCandidate,
@@ -11,7 +12,8 @@ import {
 
 interface HandoffOccurrenceRow {
   readonly eventId: string;
-  readonly eventType: "HANDOFF_VERIFICATION_FAILED" | "HANDOFF_SUPERVISOR_OVERRIDE";
+  readonly eventType:
+    "HANDOFF_VERIFICATION_FAILED" | "HANDOFF_SUPERVISOR_OVERRIDE";
   readonly valetSessionId: string;
   readonly occurredAt: Date;
 }
@@ -26,7 +28,10 @@ async function sourceOccurrences(
     input,
     "ALT-07",
   );
-  const exact = eventId === undefined ? "" : "AND event.id=$4::uuid";
+  const exact =
+    eventId === undefined
+      ? unseenOccurrenceAntiJoin("ALT-07", 4)
+      : "AND event.id=$4::uuid";
   const result = await transaction.query<HandoffOccurrenceRow>(
     `SELECT event.id::text AS "eventId",
             event.event_type AS "eventType",
@@ -56,11 +61,14 @@ async function sourceOccurrences(
       scope.organizationId,
       scope.locationId,
       input.limit,
-      ...(eventId === undefined ? [] : [eventId]),
+      eventId ?? input.context.userId,
     ],
   );
   return result.rows.flatMap((row) => {
-    if (!(row.occurredAt instanceof Date) || !Number.isFinite(row.occurredAt.getTime())) {
+    if (
+      !(row.occurredAt instanceof Date) ||
+      !Number.isFinite(row.occurredAt.getTime())
+    ) {
       return [];
     }
     if (
@@ -70,20 +78,24 @@ async function sourceOccurrences(
       return [];
     }
     const override = row.eventType === "HANDOFF_SUPERVISOR_OVERRIDE";
-    return [{
-      category: "ALT-07" as const,
-      severity: "CRITICAL" as const,
-      sourceKind: override
-        ? ("HANDOFF_SUPERVISOR_OVERRIDE" as const)
-        : ("TERMINAL_HANDOFF_FAILURE" as const),
-      sourceId: row.eventId,
-      episodeId: row.eventId,
-      organizationId: scope.organizationId,
-      locationId: scope.locationId,
-      valetSessionId: row.valetSessionId,
-      occurredAt: row.occurredAt.toISOString(),
-      title: override ? "Supervisor handoff override" : "Handoff verification exhausted",
-    }];
+    return [
+      {
+        category: "ALT-07" as const,
+        severity: "CRITICAL" as const,
+        sourceKind: override
+          ? ("HANDOFF_SUPERVISOR_OVERRIDE" as const)
+          : ("TERMINAL_HANDOFF_FAILURE" as const),
+        sourceId: row.eventId,
+        episodeId: row.eventId,
+        organizationId: scope.organizationId,
+        locationId: scope.locationId,
+        valetSessionId: row.valetSessionId,
+        occurredAt: row.occurredAt.toISOString(),
+        title: override
+          ? "Supervisor handoff override"
+          : "Handoff verification exhausted",
+      },
+    ];
   });
 }
 
@@ -105,10 +117,12 @@ export async function findHandoffTerminalAlertOccurrence(
 ): Promise<CustodyOccurrenceAlertCandidate | null> {
   requireManagementAlertSourceId(input.sourceId);
   return (
-    await sourceOccurrences(
-      transaction,
-      { context: input.context, scope: input.scope, limit: 1 },
-      input.sourceId,
-    )
-  )[0] ?? null;
+    (
+      await sourceOccurrences(
+        transaction,
+        { context: input.context, scope: input.scope, limit: 1 },
+        input.sourceId,
+      )
+    )[0] ?? null
+  );
 }

@@ -1,4 +1,5 @@
 import type { PostgresTransaction } from "../../../common/database/postgres";
+import { unseenOccurrenceAntiJoin } from "../management-alert-seen/management-alert-seen-unseen-sql";
 import {
   authorizeCustodyOccurrenceAlertSource,
   type CustodyOccurrenceAlertCandidate,
@@ -27,7 +28,10 @@ async function sourceOccurrences(
     input,
     "ALT-05",
   );
-  const exact = operationId === undefined ? "" : "AND takeover.operation_id=$4::uuid";
+  const exact =
+    operationId === undefined
+      ? unseenOccurrenceAntiJoin("ALT-05", 4)
+      : "AND takeover.operation_id=$4::uuid";
   const result = await transaction.query<TakeoverOccurrenceRow>(
     `SELECT takeover.operation_id::text AS "operationId",
             takeover.task_id::text AS "taskId",
@@ -76,26 +80,31 @@ async function sourceOccurrences(
       scope.organizationId,
       scope.locationId,
       input.limit,
-      ...(operationId === undefined ? [] : [operationId]),
+      operationId ?? input.context.userId,
     ],
   );
   return result.rows.flatMap((row) => {
-    if (!(row.occurredAt instanceof Date) || !Number.isFinite(row.occurredAt.getTime())) {
+    if (
+      !(row.occurredAt instanceof Date) ||
+      !Number.isFinite(row.occurredAt.getTime())
+    ) {
       return [];
     }
-    return [{
-      category: "ALT-05" as const,
-      severity: "CRITICAL" as const,
-      sourceKind: "EMERGENCY_TAKEOVER" as const,
-      sourceId: row.operationId,
-      episodeId: row.operationId,
-      organizationId: scope.organizationId,
-      locationId: scope.locationId,
-      valetSessionId: row.valetSessionId,
-      taskId: row.taskId,
-      occurredAt: row.occurredAt.toISOString(),
-      title: "Emergency task takeover",
-    }];
+    return [
+      {
+        category: "ALT-05" as const,
+        severity: "CRITICAL" as const,
+        sourceKind: "EMERGENCY_TAKEOVER" as const,
+        sourceId: row.operationId,
+        episodeId: row.operationId,
+        organizationId: scope.organizationId,
+        locationId: scope.locationId,
+        valetSessionId: row.valetSessionId,
+        taskId: row.taskId,
+        occurredAt: row.occurredAt.toISOString(),
+        title: "Emergency task takeover",
+      },
+    ];
   });
 }
 
@@ -114,10 +123,12 @@ export async function findEmergencyTakeoverAlertOccurrence(
 ): Promise<CustodyOccurrenceAlertCandidate | null> {
   requireManagementAlertSourceId(input.sourceId);
   return (
-    await sourceOccurrences(
-      transaction,
-      { context: input.context, scope: input.scope, limit: 1 },
-      input.sourceId,
-    )
-  )[0] ?? null;
+    (
+      await sourceOccurrences(
+        transaction,
+        { context: input.context, scope: input.scope, limit: 1 },
+        input.sourceId,
+      )
+    )[0] ?? null
+  );
 }
