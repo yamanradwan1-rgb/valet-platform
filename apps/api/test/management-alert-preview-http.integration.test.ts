@@ -86,6 +86,8 @@ async function seedIncident(input: {
 describe("Issue #414 mounted HTTP preview and exact detail (PG17 MFA ON)", () => {
   it("keeps rollout OFF by default and preserves no-store on denial", async () => {
     const admin = await fixture.createAssuredAdmin();
+    const mfaBefore = (await fixture.sessionSnapshot(admin.auth.sessionId))
+      .rows[0]!;
     const denied = await fixture.managementGet(
       previewPath(admin.location.locationId),
       admin.auth.accessToken,
@@ -105,6 +107,43 @@ describe("Issue #414 mounted HTTP preview and exact detail (PG17 MFA ON)", () =>
       hasMore: false,
     });
     expect(available.headers.get("cache-control")).toContain("no-store");
+    for (let iteration = 0; iteration < 3; iteration += 1) {
+      expect(
+        (
+          await fixture.managementGet(
+            previewPath(admin.location.locationId),
+            admin.auth.accessToken,
+          )
+        ).status,
+      ).toBe(200);
+    }
+    const rotated = await fixture.refresh(admin.auth.refreshToken);
+    expect(rotated.status).toBe(200);
+    const latestAccessToken = String(rotated.body?.accessToken);
+    expect(
+      (
+        await fixture.managementGet(
+          previewPath(admin.location.locationId),
+          latestAccessToken,
+        )
+      ).status,
+    ).toBe(200);
+    expect(
+      (
+        await fixture.managementGet(
+          previewPath(admin.location.locationId),
+          admin.auth.accessToken,
+        )
+      ).status,
+    ).toBe(401);
+    const mfaAfter = (await fixture.sessionSnapshot(admin.auth.sessionId))
+      .rows[0]!;
+    expect(mfaAfter.last_admin_activity_at).toEqual(
+      mfaBefore.last_admin_activity_at,
+    );
+    expect(mfaAfter.mfa_authenticated_at).toEqual(
+      mfaBefore.mfa_authenticated_at,
+    );
     const noToken = await fixture.request(
       previewPath(admin.location.locationId),
       {
