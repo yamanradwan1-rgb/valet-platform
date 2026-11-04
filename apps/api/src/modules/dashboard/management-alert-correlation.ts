@@ -52,7 +52,29 @@ export function correlateManagementAlertPreview(
       episodeKeys.add(key);
       taskIdentities.set(candidate.sourceId, episodeKeys);
     }
+    const existing = unique.get(key);
+    if (
+      existing !== undefined &&
+      (existing.severity !== candidate.severity ||
+        existing.sourceKind !== candidate.sourceKind ||
+        existing.occurredAt !== candidate.occurredAt ||
+        existing.title !== candidate.title)
+    ) {
+      // A current episode has one authoritative projection. Never let
+      // whichever reader finishes last determine its severity or timestamp.
+      throw new Error("Conflicting Management alert source projections.");
+    }
     unique.set(key, candidate);
+  }
+
+  const ambiguousTasks = [...taskIdentities.values()].filter(
+    (episodes) => episodes.size > 1,
+  ).length;
+  if (ambiguousTasks > 0) {
+    // Operational diagnostic only; no Task IDs, tenant or source metadata.
+    console.warn("ISSUE414_UNPROVEN_UNCOVERED_TASK_EPISODE", {
+      omittedTaskCount: ambiguousTasks,
+    });
   }
 
   const authorizedCases = [...unique.values()]

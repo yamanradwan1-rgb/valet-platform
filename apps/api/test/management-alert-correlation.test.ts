@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { managementAlertPreviewResponseSchema } from "@valet/contracts";
 import {
   correlateManagementAlertPreview,
@@ -82,9 +82,28 @@ describe("Issue #414 source-authorized alert correlation", () => {
       episodeId: "1",
     });
     const declined = { ...task, category: "ALT-03" as const, episodeId: "2" };
-    const preview = correlateManagementAlertPreview([task, declined], scope);
-    expect(preview.count).toBe(0);
-    expect(preview.hasMore).toBe(false);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const preview = correlateManagementAlertPreview([task, declined], scope);
+      expect(preview.count).toBe(0);
+      expect(preview.hasMore).toBe(false);
+      expect(warn).toHaveBeenCalledWith(
+        "ISSUE414_UNPROVEN_UNCOVERED_TASK_EPISODE",
+        { omittedTaskCount: 1 },
+      );
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it("rejects inconsistent duplicate source projections rather than selecting the last", () => {
+    const incident = candidate();
+    expect(() =>
+      correlateManagementAlertPreview(
+        [incident, { ...incident, severity: "IMPORTANT" }],
+        scope,
+      ),
+    ).toThrow(/Conflicting Management alert source projections/);
   });
 
   it("rejects a mistaken cross-organization or cross-Location source row", () => {
