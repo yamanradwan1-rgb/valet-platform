@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { evaluateAdvancingGpsSamples } from "../src/modules/tracking/geofence-evaluation";
 import { projectGeofenceViolationRow } from "../src/modules/dashboard/management-alert-sources/geofence-violation-alert-reader";
 
 const uuid = (last: string) => `00000000-0000-4000-8000-${last}`;
@@ -90,6 +91,52 @@ describe("Issue #414 ALT-09 committed, source-backed projection", () => {
     ]) {
       expect(projectGeofenceViolationRow(row(counts), scope)).toBeNull();
     }
+  });
+
+  it("does not treat a real same-ms source writer sequence as one proven group", () => {
+    const time = new Date("2026-11-04T10:00:00Z");
+    const areaId = uuid("000000000007");
+    const positions = [
+      ["33", "38"],
+      ["31.5", "35.5"],
+      ["33", "38"],
+      ["31.5", "35.5"],
+    ] as const;
+    const generated = evaluateAdvancingGpsSamples(
+      null,
+      [
+        {
+          id: areaId,
+          purpose: "RESTRICTED",
+          vertices: [
+            { latitude: "31", longitude: "35" },
+            { latitude: "31", longitude: "36" },
+            { latitude: "32", longitude: "36" },
+            { latitude: "32", longitude: "35" },
+          ],
+        },
+      ],
+      positions.map(([latitude, longitude], i) => ({
+        id: uuid(String(i + 10).padStart(12, "0")),
+        clientSampleId: uuid(String(i + 20).padStart(12, "0")),
+        latitude,
+        longitude,
+        capturedAt: time,
+      })),
+    );
+    const count = (type: string) =>
+      generated.filter((item) => item.type === type).length;
+    expect(count("VIOLATION")).toBe(2);
+    expect(count("ENTERED")).toBe(2);
+    expect(count("EXITED")).toBe(1);
+    // This ambiguous tied-captured-ms source must never become one alert
+    // (or a falsely inferred proof ordering) merely because UUIDs sort.
+    expect(
+      projectGeofenceViolationRow(
+        row({ enteredCount: count("ENTERED"), exitedCount: count("EXITED") }),
+        scope,
+      ),
+    ).toBeNull();
   });
 
   it("rejects invalid persisted clocks, and never projects raw GPS or assignee", () => {

@@ -128,6 +128,9 @@ describe("Issue #414 ALT-09 source-only authorized boundary", () => {
     expect(sql).toContain("JOIN valet_sessions AS session");
     expect(sql).toContain("JOIN location_map_areas AS area");
     expect(sql).toContain("peers.violation_count = 1");
+    expect(sql).toContain("peers.peer_count = 2");
+    expect(sql).toContain("LIMIT 3");
+    expect(sql).toContain("candidate.map_area_id = event.map_area_id");
     expect(sql).toContain("peers.entered_count = 1 AND peers.exited_count = 0");
     expect(sql).toContain("peers.entered_count = 0 AND peers.exited_count = 1");
     expect(sql).toContain(
@@ -139,6 +142,10 @@ describe("Issue #414 ALT-09 source-only authorized boundary", () => {
       "event.occurred_at <= event.recorded_at + INTERVAL '30 seconds'",
     );
     expect(sql).toContain("ORDER BY event.recorded_at DESC, event.id DESC");
+    expect(sql).toContain("NOT EXISTS");
+    expect(sql).toContain("FROM management_alert_seen_receipts AS seen");
+    expect(sql).toContain("seen.geofence_event_id = event.id");
+    expect(sql.indexOf("NOT EXISTS")).toBeLessThan(sql.indexOf("ORDER BY"));
     expect(sql).not.toMatch(
       /latitude|longitude|raw_gps_samples|assignee_membership_id/,
     );
@@ -146,6 +153,7 @@ describe("Issue #414 ALT-09 source-only authorized boundary", () => {
       scope.organizationId,
       scope.locationId,
       21,
+      context.userId,
     ]);
     expect(result[0]?.attentionAt).toBe("2026-11-04T10:00:00.000Z");
     expect(result[0]?.capturedAt).toBe("2026-11-04T09:59:00.000Z");
@@ -178,11 +186,13 @@ describe("Issue #414 ALT-09 source-only authorized boundary", () => {
       sourceId: eventId,
     });
     expect(result?.sourceId).toBe(eventId);
-    expect(calls[1]!.sql).toContain("AND event.id = $4::uuid");
+    expect(calls[1]!.sql).toContain("AND event.id = $5::uuid");
+    expect(calls[1]!.sql).not.toContain("management_alert_seen_receipts");
     expect(calls[1]!.values).toEqual([
       scope.organizationId,
       scope.locationId,
       1,
+      context.userId,
       eventId,
     ]);
     await expect(

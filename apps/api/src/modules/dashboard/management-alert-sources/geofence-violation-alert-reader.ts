@@ -82,7 +82,20 @@ async function readViolations(
 ): Promise<GeofenceViolationAlertCase[]> {
   // Authorization precedes every event row, subtype proof, count and LIMIT.
   const scope = await requireGeofenceSummaryScope(transaction, input);
-  const exact = sourceId === undefined ? "" : "AND event.id = $4::uuid";
+  const exact = sourceId === undefined ? "" : "AND event.id = $5::uuid";
+  // A Seen receipt affects only a recipient's pending list. The source still
+  // exists and exact navigation/Seen retries must reauthorize it independently.
+  const unseen =
+    sourceId === undefined
+      ? `AND NOT EXISTS (
+           SELECT 1 FROM management_alert_seen_receipts AS seen
+           WHERE seen.organization_id = event.organization_id
+             AND seen.user_id = $4::uuid
+             AND seen.category = 'ALT-09'
+             AND seen.source_id = event.id
+             AND seen.geofence_event_id = event.id
+         )`
+      : "";
   const result = await transaction.query<ViolationRow>(
     `WITH instant AS MATERIALIZED (SELECT clock_timestamp() AS at)
      SELECT event.id::text AS "eventId", event.task_id::text AS "taskId",
@@ -115,21 +128,30 @@ async function readViolations(
       AND area.id = event.map_area_id
      CROSS JOIN instant
      JOIN LATERAL (
-       SELECT count(*) FILTER (WHERE peer.event_type = 'VIOLATION')::int
+       SELECT count(*)::int AS peer_count,
+              count(*) FILTER (WHERE peer.event_type = 'VIOLATION')::int
                 AS violation_count,
               count(*) FILTER (WHERE peer.event_type = 'ENTERED')::int
                 AS entered_count,
               count(*) FILTER (WHERE peer.event_type = 'EXITED')::int
                 AS exited_count
-       FROM geofence_events AS peer
-       WHERE peer.organization_id = event.organization_id
-         AND peer.location_id = event.location_id
-         AND peer.valet_session_id = event.valet_session_id
-         AND peer.task_id = event.task_id
-         AND peer.tracking_session_id = event.tracking_session_id
-         AND peer.map_area_id = event.map_area_id
-         AND peer.occurred_at = event.occurred_at
-     ) AS peers ON peers.violation_count = 1
+       FROM (
+         -- Two source rows (one transition, one violation) prove the subtype.
+         -- Any third same-area/same-captured-ms row makes attribution ambiguous.
+         -- Existing area/occurred_at and tracker/occurred_at indexes can narrow
+         -- the probe; LIMIT 3 prevents counting arbitrarily many tied peers.
+         SELECT candidate.event_type
+         FROM geofence_events AS candidate
+         WHERE candidate.tracking_session_id = event.tracking_session_id
+           AND candidate.occurred_at = event.occurred_at
+           AND candidate.organization_id = event.organization_id
+           AND candidate.location_id = event.location_id
+           AND candidate.valet_session_id = event.valet_session_id
+           AND candidate.task_id = event.task_id
+           AND candidate.map_area_id = event.map_area_id
+         LIMIT 3
+       ) AS peer
+     ) AS peers ON peers.peer_count = 2 AND peers.violation_count = 1
        AND ((peers.entered_count = 1 AND peers.exited_count = 0)
          OR (peers.entered_count = 0 AND peers.exited_count = 1))
      WHERE event.organization_id = $1 AND event.location_id = $2
@@ -138,6 +160,7 @@ async function readViolations(
        AND event.recorded_at <= instant.at
        AND event.occurred_at >= tracker.started_at
        AND event.occurred_at <= event.recorded_at + INTERVAL '30 seconds'
+       ${unseen}
        ${exact}
      ORDER BY event.recorded_at DESC, event.id DESC
      LIMIT $3`,
@@ -145,6 +168,7 @@ async function readViolations(
       scope.organizationId,
       scope.locationId,
       input.limit,
+      input.context.userId,
       ...(sourceId === undefined ? [] : [sourceId]),
     ],
   );

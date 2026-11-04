@@ -1,254 +1,298 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import type { StaffSessionContext } from "../src/modules/auth/staff-session-context";
 import { inPostgresTransaction } from "../src/common/database/postgres-transaction";
+import { createEmergencyTakeoverCommandExecutor } from "../src/modules/dispatch/emergency-takeover-command";
+import { createGpsIngestionCommandExecutor } from "../src/modules/tracking/gps-ingestion-command";
 import {
   findGeofenceViolationAlertCaseById,
   queryGeofenceViolationAlertCases,
 } from "../src/modules/dashboard/management-alert-sources/geofence-violation-alert-reader";
-import { DashboardOverviewTestContext } from "./dashboard-overview-test-context";
+import { Issue352TakeoverTestContext } from "./issue352-takeover-test-context";
+import { seedIssue414GeofenceArea } from "./issue414-geofence-area-test-fixture";
 
-// Requires Prime-confirmed exclusive disposable PG17 fixture lease. NOT unit-only.
-const db = new DashboardOverviewTestContext("414-p23-alt09-source");
-let locationId: string;
-let organizationId: string;
-let membershipId: string;
-let userId: string;
-let context: Awaited<ReturnType<typeof db.staffSessionContext>>;
-let firstEvent: string;
-let repeatedEvent: string;
-let secondTrackerEvent: string;
-let ambiguousEvent: string;
-let expiredEvent: string;
+// Execute ONLY after Prime releases the exclusive disposable PG17 lease.
+// The reader also requires W18's forward-only Seen migration in this DB.
+const db = new Issue352TakeoverTestContext("414-alt09-real-gps");
+const ingest = () => createGpsIngestionCommandExecutor(db.runtimePool);
+const takeover = () => createEmergencyTakeoverCommandExecutor(db.runtimePool);
+type Member = Awaited<ReturnType<typeof db.addMember>>;
+type Parking = Awaited<ReturnType<typeof db.createStartParkingFixture>>;
 
-interface SourceSeed {
-  readonly areaId: string;
-  readonly taskId: string;
-  readonly sessionId: string;
-  readonly trackerId: string;
-}
+let source: Parking;
+let lm: Member;
+let admin: Member;
+let replacement: Member;
+let lmContext: StaffSessionContext;
+let caContext: StaffSessionContext;
+let firstTrackerId: string;
+let secondTrackerId: string;
+let originalEventIds: string[];
+let takeoverEventIds: string[];
+let restrictedAreaId: string;
+let allowedAreaId: string;
+const previousMfaBypass = process.env.VAYLET_LOCAL_DISABLE_MFA;
 
-async function seedSource(input: {
-  readonly assigneeId: string | null;
-  readonly startedAgoMinutes: number;
-  readonly endedAgoMinutes?: number;
-  readonly taskId: string;
-  readonly sessionId: string;
-  readonly purpose: "RESTRICTED" | "PARKING";
-}): Promise<SourceSeed> {
-  const areaId = randomUUID();
-  const trackerId = randomUUID();
-  await db.adminPool.query(
-    `INSERT INTO location_map_areas
-       (id, organization_id, location_id, purpose, code, label, active,
-        updated_at)
-     VALUES ($1,$2,$3,$4,$5,'Synthetic alert source',true,clock_timestamp())`,
-    [areaId, organizationId, locationId, input.purpose, randomUUID()],
-  );
-  await db.adminPool.query(
-    `INSERT INTO task_tracking_sessions
-       (id,organization_id,location_id,valet_session_id,task_id,
-        assignee_membership_id,started_at,ended_at)
-     VALUES ($1,$2,$3,$4,$5,$6,
-       clock_timestamp()-$7::integer * INTERVAL '1 minute',
-       CASE WHEN $8::integer IS NULL THEN NULL
-         ELSE clock_timestamp()-$8::integer * INTERVAL '1 minute' END)`,
-    [
-      trackerId,
-      organizationId,
-      locationId,
-      input.sessionId,
-      input.taskId,
-      input.assigneeId,
-      input.startedAgoMinutes,
-      input.endedAgoMinutes ?? null,
-    ],
-  );
+function readInput(actor: Member, context: StaffSessionContext) {
   return {
-    areaId,
-    taskId: input.taskId,
-    sessionId: input.sessionId,
-    trackerId,
+    context,
+    limit: 21,
+    scope: {
+      organizationId: source.organizationId,
+      locationId: source.locationId,
+      membershipId: actor.membershipId,
+    },
   };
 }
 
-async function insertCompanionedViolation(
-  source: SourceSeed,
-  input: {
-    readonly minutesAgo: number;
-    readonly subtype: "RESTRICTED_ENTRY" | "LEFT_ALLOWED_UNION";
-    readonly recordedDaysAgo?: number;
-    readonly recordedMinutesAgo?: number;
-    readonly ambiguous?: boolean;
-  },
-): Promise<string> {
-  const eventId = randomUUID();
-  const companion = input.subtype === "RESTRICTED_ENTRY" ? "ENTERED" : "EXITED";
-  const now = await db.adminPool.query<{ now: Date }>(
-    "SELECT clock_timestamp() AS now",
-  );
-  const capturedAt = new Date(
-    now.rows[0]!.now.getTime() - input.minutesAgo * 60_000,
-  );
-  const recordedAt = new Date(
-    now.rows[0]!.now.getTime() -
-      (input.recordedDaysAgo ?? 0) * 86_400_000 -
-      (input.recordedMinutesAgo ?? 0) * 60_000,
-  );
-  const kinds = input.ambiguous
-    ? [companion, "VIOLATION", companion]
-    : [companion, "VIOLATION"];
-  for (const kind of kinds) {
-    await db.adminPool.query(
-      `INSERT INTO geofence_events
-         (id, organization_id, location_id, valet_session_id, task_id,
-          tracking_session_id, map_area_id, event_type, occurred_at, recorded_at)
-       VALUES($1,$2,$3,$4,$5,$6,$7,$8::geofence_event_type,$9,$10)`,
-      [
-        kind === "VIOLATION" ? eventId : randomUUID(),
-        organizationId,
-        locationId,
-        source.sessionId,
-        source.taskId,
-        source.trackerId,
-        source.areaId,
-        kind,
-        capturedAt,
-        recordedAt,
-      ],
-    );
-  }
-  return eventId;
-}
-
-const read = () =>
+const read = (actor: Member, context: StaffSessionContext) =>
   inPostgresTransaction(db.runtimePool, (tx) =>
-    queryGeofenceViolationAlertCases(tx, {
-      context,
-      scope: { organizationId, locationId, membershipId },
-      limit: 21,
+    queryGeofenceViolationAlertCases(tx, readInput(actor, context)),
+  );
+const exact = (actor: Member, context: StaffSessionContext, sourceId: string) =>
+  inPostgresTransaction(db.runtimePool, (tx) =>
+    findGeofenceViolationAlertCaseById(tx, {
+      ...readInput(actor, context),
+      sourceId,
     }),
   );
 
-beforeAll(async () => {
-  await db.setup();
-  const fixture = await db.managerFixture();
-  ({ organizationId, locationId, membershipId, userId } = fixture);
-  context = await db.staffSessionContext(userId);
-  await db.adminPool.query(
-    "UPDATE organizations SET tracking_enabled=TRUE WHERE id=$1",
-    [organizationId],
+async function sendRoute(
+  userId: string,
+  points: readonly { latitude: number; longitude: number }[],
+  start: Date,
+): Promise<void> {
+  await ingest()({
+    authenticatedUserId: userId,
+    sessionId: source.sessionId,
+    samples: points.map((point, index) => ({
+      ...point,
+      accuracyMeters: 8,
+      clientSampleId: randomUUID(),
+      capturedAt: new Date(start.getTime() + index * 1_000).toISOString(),
+    })),
+  });
+}
+
+async function trackerIdFor(assigneeId: string): Promise<string> {
+  const rows = await db.adminPool.query<{ id: string }>(
+    `SELECT id::text FROM task_tracking_sessions
+     WHERE organization_id=$1 AND task_id=$2 AND assignee_membership_id=$3`,
+    [source.organizationId, source.taskId, assigneeId],
   );
-  const sessionId = await db.seedSession({ state: "PARKING" });
-  const taskId = await db.seedTask({
-    sessionId,
-    taskType: "PARKING",
-    status: "IN_PROGRESS",
-    assigneeMembershipId: membershipId,
+  expect(rows.rows).toHaveLength(1);
+  return rows.rows[0]!.id;
+}
+
+async function violationIds(trackerId: string): Promise<string[]> {
+  const rows = await db.adminPool.query<{ id: string }>(
+    `SELECT id::text FROM geofence_events
+     WHERE organization_id=$1 AND location_id=$2
+       AND tracking_session_id=$3 AND event_type='VIOLATION'
+     ORDER BY occurred_at,id`,
+    [source.organizationId, source.locationId, trackerId],
+  );
+  return rows.rows.map((row) => row.id);
+}
+
+beforeAll(async () => {
+  process.env.VAYLET_LOCAL_DISABLE_MFA = "false";
+  await db.setup();
+  source = await db.createStartParkingFixture({
+    assignKey: false,
+    role: "VALET_EMPLOYEE",
   });
-  const first = await seedSource({
-    assigneeId: membershipId,
-    startedAgoMinutes: 5,
-    endedAgoMinutes: 3,
-    taskId,
-    sessionId,
-    purpose: "RESTRICTED",
+  await db.adminPool.query(
+    `UPDATE organizations SET tracking_enabled=TRUE WHERE id=$1`,
+    [source.organizationId],
+  );
+  await db.adminPool.query(
+    `UPDATE organization_subscriptions
+     SET status='ACTIVE',dashboard_access_enabled=TRUE
+     WHERE organization_id=$1`,
+    [source.organizationId],
+  );
+  await db.start(source, { session: 1, task: 3 });
+  const actors = await db.actors(source);
+  admin = actors.admin;
+  replacement = actors.replacement;
+  lm = await db.addMember(source, "LOCATION_MANAGER", false);
+  lmContext = await db.credential(lm.userId);
+  caContext = await db.credential(admin.userId, true);
+  restrictedAreaId = await seedIssue414GeofenceArea(
+    db.adminPool,
+    source.organizationId,
+    source.locationId,
+    "RESTRICTED",
+  );
+  allowedAreaId = await seedIssue414GeofenceArea(
+    db.adminPool,
+    source.organizationId,
+    source.locationId,
+    "PARKING",
+  );
+  firstTrackerId = await trackerIdFor(source.membershipId);
+
+  // The real GPS writer accepts up to 5-minute-delayed captures while
+  // requiring capturedAt >= tracked segment start. Simulate a long-lived
+  // fixture segment; never fabricate geofence events themselves.
+  await db.adminPool.query(
+    `UPDATE task_tracking_sessions
+     SET started_at=clock_timestamp()-INTERVAL '4 minutes' WHERE id=$1`,
+    [firstTrackerId],
+  );
+  const clock = await db.adminPool.query<{ now: Date }>(
+    "SELECT clock_timestamp() AS now",
+  );
+  const delayed = new Date(clock.rows[0]!.now.getTime() - 60_000);
+  const outside = { latitude: 33, longitude: 38 };
+  const inside = { latitude: 31.5, longitude: 35.5 };
+  await sendRoute(source.userId, [outside, inside, outside, inside], delayed);
+  originalEventIds = await violationIds(firstTrackerId);
+  expect(originalEventIds).toHaveLength(3);
+
+  const request = await db.request(source, actors.initiator, replacement);
+  const outcome = await takeover()(request);
+  expect(outcome).toMatchObject({
+    operationId: request.operationId,
+    replayed: false,
   });
-  firstEvent = await insertCompanionedViolation(first, {
-    minutesAgo: 4.8,
-    recordedMinutesAgo: 3.8,
-    subtype: "RESTRICTED_ENTRY",
-  });
-  repeatedEvent = await insertCompanionedViolation(first, {
-    minutesAgo: 4.2,
-    recordedMinutesAgo: 3.4,
-    subtype: "RESTRICTED_ENTRY",
-  });
-  const secondAssignee = await db.createActor(fixture, "VALET_EMPLOYEE");
-  const second = await seedSource({
-    assigneeId: secondAssignee.membershipId,
-    startedAgoMinutes: 2,
-    taskId,
-    sessionId,
-    purpose: "PARKING",
-  });
-  secondTrackerEvent = await insertCompanionedViolation(second, {
-    minutesAgo: 1.5,
-    subtype: "LEFT_ALLOWED_UNION",
-  });
-  ambiguousEvent = await insertCompanionedViolation(second, {
-    minutesAgo: 0.5,
-    subtype: "LEFT_ALLOWED_UNION",
-    ambiguous: true,
-  });
-  const expired = await seedSource({
-    assigneeId: null,
-    startedAgoMinutes: 10 * 24 * 60,
-    endedAgoMinutes: 7 * 24 * 60,
-    taskId,
-    sessionId,
-    purpose: "RESTRICTED",
-  });
-  expiredEvent = await insertCompanionedViolation(expired, {
-    minutesAgo: 8 * 24 * 60,
-    recordedDaysAgo: 8,
-    subtype: "RESTRICTED_ENTRY",
-  });
+  secondTrackerId = await trackerIdFor(replacement.membershipId);
+  expect(secondTrackerId).not.toBe(firstTrackerId);
+  const secondClock = await db.adminPool.query<{ now: Date }>(
+    "SELECT clock_timestamp() AS now",
+  );
+  await sendRoute(
+    replacement.userId,
+    [outside, inside],
+    new Date(secondClock.rows[0]!.now.getTime() + 200),
+  );
+  takeoverEventIds = await violationIds(secondTrackerId);
+  expect(takeoverEventIds).toHaveLength(1);
 }, 120_000);
 
-afterAll(() => db.teardown(), 120_000);
+afterAll(async () => {
+  try {
+    await db.teardown();
+  } finally {
+    if (previousMfaBypass === undefined)
+      delete process.env.VAYLET_LOCAL_DISABLE_MFA;
+    else process.env.VAYLET_LOCAL_DISABLE_MFA = previousMfaBypass;
+  }
+}, 120_000);
 
-describe("ALT-09 source-backed PG17, no shared DB", () => {
-  it("returns distinct committed repeats and takeover trackers, never owner or GPS", async () => {
-    const result = await read();
-    const ids = result.map((item) => item.sourceId);
+describe("Issue #414 ALT-09: committed real GPS and takeover", () => {
+  it("reads both source subtypes, distinct re-entry, delayed clocks and B's new tracker", async () => {
+    const results = await read(lm, lmContext);
+    const ids = results.map((item) => item.sourceId);
     expect(ids).toEqual(
-      expect.arrayContaining([firstEvent, repeatedEvent, secondTrackerEvent]),
+      expect.arrayContaining([...originalEventIds, ...takeoverEventIds]),
     );
-    expect(ids).not.toContain(ambiguousEvent);
-    expect(ids).not.toContain(expiredEvent);
     expect(new Set(ids).size).toBe(ids.length);
     expect(
-      result.find((item) => item.sourceId === secondTrackerEvent)?.subtype,
-    ).toBe("LEFT_ALLOWED_UNION");
-    expect(result.find((item) => item.sourceId === firstEvent)?.subtype).toBe(
-      "RESTRICTED_ENTRY",
-    );
-    const serialized = JSON.stringify(result);
-    expect(serialized).not.toMatch(/latitude|longitude|assignee|gps|route/i);
+      results.filter((item) => item.subtype === "RESTRICTED_ENTRY"),
+    ).toHaveLength(3);
     expect(
-      result.every(
-        (item) =>
-          new Date(item.capturedAt).getTime() <=
-          new Date(item.attentionAt).getTime(),
-      ),
-    ).toBe(true);
+      results.filter((item) => item.subtype === "LEFT_ALLOWED_UNION"),
+    ).toHaveLength(1);
+    expect(results.some((item) => item.mapAreaId === restrictedAreaId)).toBe(
+      true,
+    );
+    expect(results.some((item) => item.mapAreaId === allowedAreaId)).toBe(true);
+    expect(
+      results.find((item) => item.sourceId === takeoverEventIds[0])
+        ?.trackingSessionId,
+    ).toBe(secondTrackerId);
+    const delayed = results.find(
+      (item) => item.sourceId === originalEventIds[0],
+    )!;
+    expect(
+      new Date(delayed.attentionAt).getTime() -
+        new Date(delayed.capturedAt).getTime(),
+    ).toBeGreaterThan(50_000);
+    expect(JSON.stringify(results)).not.toMatch(
+      /latitude|longitude|assignee|route/i,
+    );
+    expect(results.every((item) => item.sourceId === item.episodeId)).toBe(
+      true,
+    );
   });
 
-  it("uses source event identity for exact lookup, never ambiguous or foreign IDs", async () => {
-    const exact = (sourceId: string) =>
-      inPostgresTransaction(db.runtimePool, (tx) =>
-        findGeofenceViolationAlertCaseById(tx, {
-          context,
-          scope: { organizationId, locationId, membershipId },
-          sourceId,
-        }),
-      );
-    expect(await exact(firstEvent)).toMatchObject({
-      sourceId: firstEvent,
-      episodeId: firstEvent,
+  it("allows assured CA, but fails closed after expired MFA", async () => {
+    expect(await read(admin, caContext)).toHaveLength(4);
+    await db.adminPool.query(
+      `UPDATE staff_auth_sessions
+       SET mfa_authenticated_at=clock_timestamp()-INTERVAL '9 hours'
+       WHERE id=$1`,
+      [caContext.staffAuthSessionId],
+    );
+    await expect(read(admin, caContext)).rejects.toMatchObject({
+      code: "MFA_STEP_UP_REQUIRED",
     });
-    expect(await exact(ambiguousEvent)).toBeNull();
-    expect(await exact(expiredEvent)).toBeNull();
-    expect(await exact(randomUUID())).toBeNull();
+    await db.adminPool.query(
+      `UPDATE staff_auth_sessions
+       SET mfa_authenticated_at=clock_timestamp(),
+           last_admin_activity_at=clock_timestamp() WHERE id=$1`,
+      [caContext.staffAuthSessionId],
+    );
   });
 
-  it("denies after exact LM grant revocation instead of returning zero", async () => {
+  it("anti-joins this user's Seen before page LIMIT, but exact remains authorized", async () => {
+    const chosen = originalEventIds[0]!;
+    expect(await exact(lm, lmContext, chosen)).toMatchObject({
+      sourceId: chosen,
+    });
+    await db.adminPool.query(
+      `INSERT INTO management_alert_seen_receipts
+        (organization_id,user_id,category,source_id,geofence_event_id)
+       VALUES ($1,$2,'ALT-09',$3,$3)`,
+      [source.organizationId, lm.userId, chosen],
+    );
+    expect(
+      (await read(lm, lmContext)).map((item) => item.sourceId),
+    ).not.toContain(chosen);
+    expect(
+      (await read(admin, caContext)).map((item) => item.sourceId),
+    ).toContain(chosen);
+    expect(await exact(lm, lmContext, chosen)).toMatchObject({
+      sourceId: chosen,
+    });
+  });
+
+  it("rejects foreign scope and disabled source policy before reading events", async () => {
+    const foreign = await db.parking();
+    await expect(
+      inPostgresTransaction(db.runtimePool, (tx) =>
+        queryGeofenceViolationAlertCases(tx, {
+          ...readInput(lm, lmContext),
+          scope: {
+            organizationId: foreign.organizationId,
+            locationId: foreign.locationId,
+            membershipId: lm.membershipId,
+          },
+        }),
+      ),
+    ).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
+    await db.adminPool.query(
+      "UPDATE organizations SET tracking_enabled=FALSE WHERE id=$1",
+      [source.organizationId],
+    );
+    await expect(read(lm, lmContext)).rejects.toMatchObject({
+      code: "AUTHORIZATION_DENIED",
+    });
+    await db.adminPool.query(
+      "UPDATE organizations SET tracking_enabled=TRUE WHERE id=$1",
+      [source.organizationId],
+    );
+  });
+
+  it("denies removed exact LM grant instead of returning an empty list", async () => {
     await db.adminPool.query(
       `DELETE FROM membership_location_access
        WHERE organization_id=$1 AND location_id=$2 AND membership_id=$3`,
-      [organizationId, locationId, membershipId],
+      [source.organizationId, source.locationId, lm.membershipId],
     );
-    await expect(read()).rejects.toMatchObject({
+    await expect(read(lm, lmContext)).rejects.toMatchObject({
       code: "AUTHORIZATION_DENIED",
     });
   });
