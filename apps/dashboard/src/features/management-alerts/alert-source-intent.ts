@@ -27,33 +27,45 @@ const queryFields = [
 ] as const;
 
 function safeSelector(value: string | null): value is string {
-  return value !== null && value.length >= 1 && value.length <= 256 &&
+  return (
+    value !== null &&
+    value.length >= 1 &&
+    value.length <= 256 &&
     !Array.from(value).some(
       (char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127,
-    );
+    )
+  );
 }
 
 export function parseAlertSourceIntent(
   params: Pick<URLSearchParams, "get" | "getAll">,
   kind: AlertSourceKind,
 ): AlertSourceIntent | null {
-  if (queryFields.some((field) => params.getAll(field).length !== 1)) return null;
+  if (queryFields.some((field) => params.getAll(field).length !== 1))
+    return null;
   const category = params.get("alertCategory");
   const sourceId = params.get("alertSourceId");
   const episodeId = params.get("alertEpisodeId");
   if (
-    !safeSelector(category) || !phaseOneCategories.includes(category as PhaseOneCategory) ||
+    !safeSelector(category) ||
+    !phaseOneCategories.includes(category as PhaseOneCategory) ||
     alertSourceKind[category as PhaseOneCategory] !== kind ||
-    !safeSelector(sourceId) || !safeSelector(episodeId)
-  ) return null;
+    !safeSelector(sourceId) ||
+    !safeSelector(episodeId)
+  )
+    return null;
   return { category: category as PhaseOneCategory, sourceId, episodeId };
 }
 
 export function alertSourceHref(item: ManagementAlertItem): string {
-  const path = item.sourceKind === "RETRIEVAL"
-    ? "/live-operations" : item.sourceKind === "TASK"
-      ? "/tasks" : item.sourceKind === "INCIDENT"
-        ? "/incidents" : "/policies";
+  const path =
+    item.sourceKind === "RETRIEVAL"
+      ? "/live-operations"
+      : item.sourceKind === "TASK"
+        ? "/tasks"
+        : item.sourceKind === "INCIDENT"
+          ? "/incidents"
+          : "/policies";
   const params = new URLSearchParams();
   if (item.sourceKind === "PRESENCE") params.set("section", "presence");
   params.set("alertCategory", item.category);
@@ -62,9 +74,11 @@ export function alertSourceHref(item: ManagementAlertItem): string {
   return `${path}?${params.toString()}`;
 }
 
-export function clearAlertIntentFromUrl(): void {
+export function clearAlertIntentFromUrl(restoreSection?: string): void {
   const url = new URL(window.location.href);
   for (const field of queryFields) url.searchParams.delete(field);
+  if (restoreSection !== undefined)
+    url.searchParams.set("section", restoreSection);
   window.history.replaceState(
     window.history.state,
     "",
