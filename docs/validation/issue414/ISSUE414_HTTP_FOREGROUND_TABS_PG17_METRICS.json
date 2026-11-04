@@ -1,0 +1,186 @@
+{
+  "category": "SIMULATED_TABS_REAL_HTTP_PG17",
+  "databaseVersion": 170011,
+  "resultCount": 3,
+  "complete": true,
+  "results": [
+    {
+      "classification": "SIMULATED_FOREGROUND_TABS_REAL_LOCAL_BEARER_HTTP_PG17",
+      "tabs": 25,
+      "nominalPeriodMs": 60000,
+      "maxScheduledJitterMs": 3000,
+      "configuredArithmeticGetsPerSecond": 0.4166666666666667,
+      "warmupPlanned": 25,
+      "measuredPlanned": 25,
+      "warmupCompleted": 25,
+      "warmupHttpSuccess": 25,
+      "measuredCompleted": 25,
+      "measuredHttpSuccess": 25,
+      "missedInFlightTicks": 0,
+      "statusCounts": {
+        "200": 50
+      },
+      "measuredSuccessByAudience": {
+        "CA": 13,
+        "LM": 12
+      },
+      "measuredEndToEndHttp": {
+        "p50Ms": 74.07,
+        "p95Ms": 222.148,
+        "maxMs": 239.015
+      },
+      "measuredSuccessfulHttp": {
+        "p50Ms": 74.07,
+        "p95Ms": 222.148,
+        "maxMs": 239.015
+      },
+      "measuredScheduleLateness": {
+        "p50Ms": 0.912,
+        "p95Ms": 2.503,
+        "maxMs": 2.97
+      },
+      "measuredDispatchSpanMs": 58894.4004,
+      "actualFirstSendToLastCompletionMs": 58961.10830000001,
+      "observedSuccessfulGetsPerSecond": 0.424,
+      "peakHttpInFlight": 2,
+      "pool": {
+        "actualMountedPoolMax": 4,
+        "observedPeakPoolActive": 2,
+        "observedPeakPoolWaiting": 0,
+        "cumulativePoolPeakAdmitted": 3,
+        "cumulativePoolPeakWaiting": 1,
+        "acquisitionTimeoutsDelta": 0,
+        "queryTimeoutsDelta": 0,
+        "lockTimeoutsDelta": 0,
+        "statementTimeoutsDelta": 0,
+        "deadlocksDelta": 0,
+        "pgActivitySamplerIntervalMs": 200,
+        "pgActivitySamples": 605,
+        "positiveLockSamples": 0,
+        "peakLockedBackends": 0,
+        "peakPgActiveBackends": 1,
+        "samplerErrors": []
+      },
+      "complete": true
+    },
+    {
+      "classification": "SIMULATED_FOREGROUND_TABS_REAL_LOCAL_BEARER_HTTP_PG17",
+      "tabs": 100,
+      "nominalPeriodMs": 60000,
+      "maxScheduledJitterMs": 3000,
+      "configuredArithmeticGetsPerSecond": 1.6666666666666667,
+      "warmupPlanned": 100,
+      "measuredPlanned": 100,
+      "warmupCompleted": 100,
+      "warmupHttpSuccess": 100,
+      "measuredCompleted": 100,
+      "measuredHttpSuccess": 100,
+      "missedInFlightTicks": 0,
+      "statusCounts": {
+        "200": 200
+      },
+      "measuredSuccessByAudience": {
+        "CA": 50,
+        "LM": 50
+      },
+      "measuredEndToEndHttp": {
+        "p50Ms": 55.199,
+        "p95Ms": 84.203,
+        "maxMs": 136.497
+      },
+      "measuredSuccessfulHttp": {
+        "p50Ms": 55.199,
+        "p95Ms": 84.203,
+        "maxMs": 136.497
+      },
+      "measuredScheduleLateness": {
+        "p50Ms": 0.719,
+        "p95Ms": 1.996,
+        "maxMs": 2.995
+      },
+      "measuredDispatchSpanMs": 59926.076900000015,
+      "actualFirstSendToLastCompletionMs": 59976.86520000003,
+      "observedSuccessfulGetsPerSecond": 1.6673,
+      "peakHttpInFlight": 3,
+      "pool": {
+        "actualMountedPoolMax": 4,
+        "observedPeakPoolActive": 2,
+        "observedPeakPoolWaiting": 0,
+        "cumulativePoolPeakAdmitted": 5,
+        "cumulativePoolPeakWaiting": 1,
+        "acquisitionTimeoutsDelta": 0,
+        "queryTimeoutsDelta": 0,
+        "lockTimeoutsDelta": 0,
+        "statementTimeoutsDelta": 0,
+        "deadlocksDelta": 0,
+        "pgActivitySamplerIntervalMs": 200,
+        "pgActivitySamples": 606,
+        "positiveLockSamples": 2,
+        "peakLockedBackends": 1,
+        "peakPgActiveBackends": 1,
+        "samplerErrors": []
+      },
+      "complete": true
+    },
+    {
+      "classification": "SIMULATED_FOREGROUND_TABS_REAL_LOCAL_BEARER_HTTP_PG17",
+      "tabs": 200,
+      "nominalPeriodMs": 60000,
+      "maxScheduledJitterMs": 3000,
+      "configuredArithmeticGetsPerSecond": 3.3333333333333335,
+      "warmupPlanned": 200,
+      "measuredPlanned": 200,
+      "warmupCompleted": 200,
+      "warmupHttpSuccess": 200,
+      "measuredCompleted": 200,
+      "measuredHttpSuccess": 200,
+      "missedInFlightTicks": 0,
+      "statusCounts": {
+        "200": 400
+      },
+      "measuredSuccessByAudience": {
+        "CA": 100,
+        "LM": 100
+      },
+      "measuredEndToEndHttp": {
+        "p50Ms": 52.434,
+        "p95Ms": 101.788,
+        "maxMs": 239.064
+      },
+      "measuredSuccessfulHttp": {
+        "p50Ms": 52.434,
+        "p95Ms": 101.788,
+        "maxMs": 239.064
+      },
+      "measuredScheduleLateness": {
+        "p50Ms": 0.796,
+        "p95Ms": 2.507,
+        "maxMs": 3.783
+      },
+      "measuredDispatchSpanMs": 61321.46650000004,
+      "actualFirstSendToLastCompletionMs": 61367.3248,
+      "observedSuccessfulGetsPerSecond": 3.2591,
+      "peakHttpInFlight": 3,
+      "pool": {
+        "actualMountedPoolMax": 4,
+        "observedPeakPoolActive": 3,
+        "observedPeakPoolWaiting": 0,
+        "cumulativePoolPeakAdmitted": 5,
+        "cumulativePoolPeakWaiting": 1,
+        "acquisitionTimeoutsDelta": 0,
+        "queryTimeoutsDelta": 0,
+        "lockTimeoutsDelta": 0,
+        "statementTimeoutsDelta": 0,
+        "deadlocksDelta": 0,
+        "pgActivitySamplerIntervalMs": 200,
+        "pgActivitySamples": 612,
+        "positiveLockSamples": 3,
+        "peakLockedBackends": 1,
+        "peakPgActiveBackends": 2,
+        "samplerErrors": []
+      },
+      "complete": true
+    }
+  ],
+  "caveat": "Never a production capacity SLO; no actual browser tabs"
+}
